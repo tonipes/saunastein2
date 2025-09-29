@@ -103,6 +103,16 @@ namespace SFG
 			_size = size;
 		}
 
+		inline size_t tellg() const
+		{
+			return _index;
+		}
+
+		inline bool is_eof() const
+		{
+			return _index == _size;
+		}
+
 	private:
 		uint8* _data  = nullptr;
 		size_t _index = 0;

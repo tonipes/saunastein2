@@ -3,6 +3,7 @@
 #include "common/size_definitions.hpp"
 #include "resources/common_resources.hpp"
 #include "memory/chunk_handle.hpp"
+#include "common/type_id.hpp"
 
 namespace SFG
 {
@@ -10,11 +11,15 @@ namespace SFG
 
 	struct mesh_raw;
 
+	struct mesh_reflection
+	{
+		mesh_reflection();
+	};
+	extern mesh_reflection g_mesh_reflection;
+
 	class mesh
 	{
 	public:
-		static constexpr uint32 TYPE_INDEX = resource_types::resource_type_mesh;
-
 		void create_from_raw(const mesh_raw& raw, chunk_allocator32& alloc);
 		void destroy(chunk_allocator32& alloc);
 
@@ -66,5 +71,6 @@ namespace SFG
 		uint16		   _primitives_static_count	 = 0;
 		uint16		   _primitives_skinned_count = 0;
 	};
+	REGISTER_TYPE(mesh, resource_type::resource_type_mesh);
 
 }

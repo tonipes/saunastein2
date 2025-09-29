@@ -20,10 +20,7 @@ namespace SFG
 		vector<string> defines	  = {};
 		uint8		   is_skinned = 0;
 
-		shader_raw(){};
-		shader_raw(const shader_raw& temp_obj)			  = delete;
-		shader_raw& operator=(const shader_raw& temp_obj) = delete;
-		~shader_raw();
+		void destroy();
 
 		void serialize(ostream& stream, const shader_desc& desc) const;
 		void deserialize(istream& stream, shader_desc& desc);

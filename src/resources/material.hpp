@@ -6,6 +6,7 @@
 #include "data/ostream.hpp"
 #include "gfx/buffer.hpp"
 #include "gfx/common/gfx_constants.hpp"
+#include "common/type_id.hpp"
 #include "resources/common_resources.hpp"
 
 namespace SFG
@@ -13,11 +14,16 @@ namespace SFG
 	class world_resources;
 	struct material_raw;
 
+	struct material_reflection
+	{
+		material_reflection();
+	};
+
+	extern material_reflection g_material_reflection;
+
 	class material
 	{
 	public:
-		static constexpr uint32 TYPE_INDEX = resource_types::resource_type_material;
-
 		enum flags
 		{
 			is_opaque  = 1 << 0,
@@ -66,5 +72,7 @@ namespace SFG
 		gfx_id														 _bind_groups[FRAMES_IN_FLIGHT] = {};
 		bitmask<uint8>												 _flags							= 0;
 	};
+
+	REGISTER_TYPE(material, resource_type::resource_type_material);
 
 }

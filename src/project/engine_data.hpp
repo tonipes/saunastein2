@@ -27,6 +27,11 @@ namespace SFG
 			return _working_dir;
 		}
 
+		inline const string& get_cache_dir() const
+		{
+			return _cache_dir;
+		}
+
 		inline const string& get_last_world() const
 		{
 			return _last_world;
@@ -42,6 +47,7 @@ namespace SFG
 
 	private:
 		string _working_dir = {};
+		string _cache_dir	= {};
 		string _last_world	= {};
 	};
 }

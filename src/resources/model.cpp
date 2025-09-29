@@ -6,16 +6,81 @@
 #include "skin.hpp"
 #include "animation.hpp"
 #include "model_raw.hpp"
-#include "world/world_resources.hpp"
+#include "gfx/world/world_renderer.hpp"
+#include "project/engine_data.hpp"
+#include "resource_reflection_template.hpp"
 
 namespace SFG
 {
+	model_reflection::model_reflection()
+	{
+		meta& m = reflection::get().register_meta(type_id<model>::value, "gltf");
+
+#ifdef SFG_TOOLMODE
+
+		m.add_function<void*, const char*>("cook_from_file"_hs, [](const char* path) -> void* {
+			model_raw* raw = new model_raw();
+
+			const string& wd	   = engine_data::get().get_working_dir();
+			const string  base	   = path;
+			const string  relative = base.substr(wd.size(), base.size() - wd.size());
+
+			if (!raw->cook_from_file(path, relative.c_str()))
+			{
+				delete raw;
+				return nullptr;
+			}
+
+			return raw;
+		});
+#endif
+
+		m.add_function<void*, istream&>("cook_from_stream"_hs, [](istream& stream) -> void* {
+			model_raw* raw = new model_raw();
+			raw->deserialize(stream);
+			return raw;
+		});
+
+		m.add_function<resource_handle, void*, world&, string_id>("create_from_raw"_hs, [](void* raw, world& w, string_id sid) -> resource_handle {
+			model_raw*		   raw_ptr	 = reinterpret_cast<model_raw*>(raw);
+			world_resources&   resources = w.get_resources();
+			resource_handle	   handle	 = resources.create_resource<model>(sid);
+			model&			   res		 = resources.get_resource<model>(handle);
+			chunk_allocator32& aux		 = resources.get_aux();
+
+			res.create_from_raw(*raw_ptr, resources, aux);
+			delete raw_ptr;
+
+			resource_handle* mesh_handles = aux.get<resource_handle>(res.get_created_meshes());
+			const uint16	 count		  = res.get_mesh_count();
+			for (uint16 i = 0; i < count; i++)
+			{
+				mesh& created_mesh = resources.get_resource<mesh>(mesh_handles[i]);
+				w.get_renderer()->get_resource_uploads().add_pending_mesh(&created_mesh);
+			}
+
+			return handle;
+		});
+
+		m.add_function<void, world&>("init_resource_storage"_hs, [](world& w) -> void { w.get_resources().init_storage<model>(MAX_WORLD_MODELS); });
+
+		m.add_function<void, world&, resource_handle>("destroy"_hs, [](world& w, resource_handle h) -> void {
+			world_resources& res = w.get_resources();
+			res.get_resource<model>(h).destroy(res, res.get_aux());
+		});
+
+		m.add_function<void, void*, ostream&>("serialize"_hs, [](void* loader, ostream& stream) -> void {
+			model_raw* raw = reinterpret_cast<model_raw*>(loader);
+			raw->serialize(stream);
+		});
+	}
+
 	model::~model()
 	{
 		SFG_ASSERT(!_flags.is_set(model::flags::hw_exists));
 	}
 
-	void model::create_from_raw(model_raw& raw, chunk_allocator32& alloc, world_resources& resources)
+	void model::create_from_raw(const model_raw& raw, world_resources& resources, chunk_allocator32& alloc)
 	{
 		SFG_ASSERT(!_flags.is_set(model::flags::hw_exists));
 

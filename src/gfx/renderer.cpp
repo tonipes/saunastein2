@@ -53,6 +53,7 @@ namespace SFG
 		shader_raw raw = {};
 		raw.cook_from_file("assets/engine/shaders/swapchain/swapchain.stkfrg");
 		_shaders.swapchain.create_from_raw(raw, false, _gfx_data.bind_layout_global);
+		raw.destroy();
 
 #ifdef USE_DEBUG_CONTROLLER
 		_debug_controller.init(&_texture_queue, _gfx_data.bind_layout_global, main_window->get_size());

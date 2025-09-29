@@ -1,6 +1,7 @@
 // Copyright (c) 2025 Inan Evin
 #pragma once
 
+#include "common/type_id.hpp"
 #include "animation_common.hpp"
 #include "memory/chunk_handle.hpp"
 #include "resources/common_resources.hpp"
@@ -11,6 +12,12 @@ namespace SFG
 	struct animation_channel_v3_raw;
 	struct animation_channel_q_raw;
 	struct animation_raw;
+
+	struct animation_reflection
+	{
+		animation_reflection();
+	};
+	extern animation_reflection g_animation_reflection;
 
 	struct animation_channel_v3
 	{
@@ -39,7 +46,7 @@ namespace SFG
 	class animation
 	{
 	public:
-		static constexpr uint32 TYPE_INDEX = resource_types::resource_type_animation;
+		static constexpr uint32 TYPE_ID = resource_type::resource_type_animation;
 
 		void create_from_raw(const animation_raw& raw, chunk_allocator32& alloc);
 		void destroy(chunk_allocator32& alloc);
@@ -54,4 +61,6 @@ namespace SFG
 		uint16		   _rotation_count = 0;
 		uint16		   _scale_count	   = 0;
 	};
+
+	REGISTER_TYPE(animation, resource_type::resource_type_animation);
 }

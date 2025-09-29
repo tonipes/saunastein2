@@ -3,7 +3,7 @@
 
 #include "common/size_definitions.hpp"
 #include "data/vector.hpp"
-#include "data/string_id.hpp"
+#include "common/string_id.hpp"
 #include "data/string.hpp"
 #include "primitive_raw.hpp"
 

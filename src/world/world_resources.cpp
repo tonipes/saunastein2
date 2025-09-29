@@ -7,191 +7,188 @@
 #include "world/world.hpp"
 #include "gfx/renderer.hpp"
 #include "world/common_world.hpp"
+#include "data/istream.hpp"
+#include "data/ostream.hpp"
+#include "reflection/reflection.hpp"
+#include "data/pair.hpp"
 
-#include "resources/texture.hpp"
-#include "resources/texture_raw.hpp"
-#include "resources/texture_sampler.hpp"
-#include "resources/model.hpp"
-#include "resources/mesh.hpp"
-#include "resources/shader.hpp"
-#include "resources/skin.hpp"
-#include "resources/animation.hpp"
-#include "resources/material.hpp"
-#include "resources/physical_material.hpp"
-#include "resources/font.hpp"
-#include "resources/audio.hpp"
+#include <algorithm>
+#include <execution>
 
 #ifdef SFG_TOOLMODE
-#include "resources/model_raw.hpp"
+#include "io/file_system.hpp"
+#include "serialization/serialization.hpp"
 #endif
 namespace SFG
 {
-
-	world_resources::world_resources()
+	world_resources::world_resources(world& w) : _world(w)
 	{
 		_aux_memory.init(1024 * 1024 * 4);
-		_storages.resize(resource_types::resource_type_allowed_max);
 
-		init_storage<texture>(MAX_WORLD_TEXTURES);
-		init_storage<texture_sampler>(MAX_WORLD_TEXTURES);
-		init_storage<model>(MAX_WORLD_MODELS);
-		init_storage<animation>(MAX_WORLD_ANIMS);
-		init_storage<skin>(MAX_WORLD_SKINS);
-		init_storage<shader>(MAX_WORLD_SHADERS);
-		init_storage<material>(MAX_WORLD_MATERIALS);
-		init_storage<mesh>(MAX_WORLD_MESHES);
-		init_storage<font>(MAX_WORLD_FONTS);
-		init_storage<audio>(MAX_WORLD_AUDIO);
-		init_storage<physical_material>(MAX_WORLD_PHYSICAL_MATERIALS);
+		const auto& metas = reflection::get().get_metas();
+		for (const auto& [sid, meta] : metas)
+		{
+			if (meta.has_function("init_resource_storage"_hs))
+			{
+				meta.invoke_function<void, world&>("init_resource_storage"_hs, _world);
+			}
+		}
 	}
 
 	world_resources::~world_resources()
 	{
-		_aux_memory.uninit();
 		for (resource_storage& stg : _storages)
-		{
-			if (stg.storage.get_raw())
-				stg.storage.uninit();
-		}
+			stg.storage.uninit();
+
+		_aux_memory.uninit();
 	}
 
-	void world_resources::init(world* w)
+	void world_resources::init()
 	{
-		_world = w;
-		debug_console::get()->register_console_function<const char*>("world_load_texture", std::bind(&world_resources::load_texture, this, std::placeholders::_1));
 	}
 
 	void world_resources::uninit()
 	{
-		_aux_memory.reset();
 		for (resource_storage& stg : _storages)
-			stg.storage.reset();
+		{
+			const string_id tid = stg.type_id;
 
-		_world = nullptr;
-		debug_console::get()->unregister_console_function("world_load_texture");
+			for (resource_handle h : stg.storage)
+			{
+				meta& reflection_meta = reflection::get().resolve(tid);
+
+				if (reflection_meta.has_function("destroy"_hs))
+					reflection_meta.invoke_function<void, world&, resource_handle>("destroy"_hs, _world, h);
+			}
+
+			stg.storage.reset();
+		}
+
+		_aux_memory.reset();
 	}
 
 #ifdef SFG_TOOLMODE
-
-	resource_handle world_resources::load_texture(const char* relative_path)
+	void world_resources::load_resources(const vector<string>& relative_paths, bool skip_cache)
 	{
-		resource_storage& stg = _storages[texture::TYPE_INDEX];
+		const uint32  size		  = static_cast<uint32>(relative_paths.size());
+		const string& working_dir = engine_data::get().get_working_dir();
+		vector<meta*> resolved_metas(relative_paths.size());
+		vector<void*> resolved_loaders(relative_paths.size());
 
-		const string_id sid = TO_SIDC(relative_path);
-		auto			it	= stg.by_hashes.find(sid);
-		if (it != stg.by_hashes.end())
-			return it->second;
-		const string abs_path = engine_data::get().get_working_dir() + relative_path;
+		for (uint32 i = 0; i < size; i++)
+		{
+			const string& path = relative_paths[i];
+			const size_t  dot  = path.find_last_of(".");
 
-		const resource_handle txt = create_resource<texture>(sid);
-		texture&			  res = get_resource<texture>(txt);
+			if (dot == string::npos)
+				continue;
 
-		// texture_raw raw = {};
-		// if (raw.create_from_file(abs_path.c_str()))
-		// {
-		// 	SFG_INFO("Loaded texture: {0}", abs_path);
-		// 	raw.populate(res);
-		// 	_world->get_renderer()->get_resource_uploads().add_pending_texture(&res);
-		// }
-		// else
-		// {
-		// 	SFG_ERR("Failed loading texture: {0}", abs_path);
-		// 	destroy_resource<texture>(txt);
-		// }
+			const string  ext  = path.substr(dot + 1, path.size() - dot - 1);
+			resource_type type = resource_type::resource_type_allowed_max;
+			resolved_metas[i]  = reflection::get().find_by_tag(ext.c_str());
+		}
 
-		return txt;
+		// Create loaders & load.
+		vector<int> indices(relative_paths.size());
+		std::iota(indices.begin(), indices.end(), 0);
+		std::for_each(std::execution::par, indices.begin(), indices.end(), [&](int& i) {
+			const string&	path			= relative_paths.at(i);
+			const string_id sid				= TO_SID(path);
+			meta*			reflection_meta = resolved_metas[i];
+
+			if (reflection_meta == nullptr)
+				return;
+
+			const string full_path	= working_dir + path;
+			const string cache_path = engine_data::get().get_cache_dir() + path;
+
+			void* loader = nullptr;
+
+			if (!skip_cache && file_system::exists(cache_path.c_str()))
+			{
+				// Cook from the existing cache.
+				istream stream = serialization::load_from_file(cache_path.c_str());
+				loader		   = reflection_meta->invoke_function<void*, istream&>("cook_from_stream"_hs, stream);
+				stream.destroy();
+			}
+			else
+			{
+				loader = reflection_meta->invoke_function<void*, const char*>("cook_from_file"_hs, full_path.c_str());
+
+				// Save to cache.
+				ostream out_stream;
+				reflection_meta->invoke_function<void*, void*, ostream&>("serialize"_hs, loader, out_stream);
+				serialization::save_to_file(cache_path.c_str(), out_stream);
+				out_stream.destroy();
+			}
+
+			resolved_loaders[i] = loader;
+		});
+
+		// Create the resources & assign.
+		for (uint32 i = 0; i < size; i++)
+		{
+			meta* reflection_meta = resolved_metas[i];
+			void* loader		  = resolved_loaders[i];
+			if (loader == nullptr)
+				continue;
+
+			if (reflection_meta->has_function("create_from_raw"_hs))
+			{
+				const resource_handle handle = reflection_meta->invoke_function<resource_handle, void*, world&>("create_from_raw"_hs, loader, _world);
+
+				if (reflection_meta->has_function("upload"_hs))
+					reflection_meta->invoke_function<void*, world&, resource_handle>("upload"_hs, _world, handle);
+			}
+		}
+
+		// Second pass.
+		for (uint32 i = 0; i < size; i++)
+		{
+			meta* reflection_meta = resolved_metas[i];
+			void* loader		  = resolved_loaders[i];
+			if (loader == nullptr)
+				continue;
+
+			if (reflection_meta->has_function("create_from_raw_2"_hs))
+			{
+				const resource_handle handle = reflection_meta->invoke_function<resource_handle, void*, world&>("create_from_raw_2"_hs, loader, _world);
+				if (reflection_meta->has_function("upload"_hs))
+					reflection_meta->invoke_function<void*, world&, resource_handle>("upload"_hs, _world, handle);
+			}
+		}
 	}
 
-	resource_handle world_resources::load_model(const char* path)
+	void world_resources::load_resources(istream& stream)
 	{
-		resource_storage& stg = _storages[model::TYPE_INDEX];
+		const size_t size = stream.get_size();
 
-		const string_id sid = TO_SIDC(path);
-		auto			it	= stg.by_hashes.find(sid);
-		if (it != stg.by_hashes.end())
-			return it->second;
-		const string abs_path = engine_data::get().get_working_dir() + path;
+		vector<pair<string_id, void*>> loaders;
 
-		const resource_handle handle = create_resource<model>(sid);
-		model&				  mdl	 = get_resource<model>(handle);
+		while (!stream.is_eof())
+		{
+			resource_type res_type = {};
+			string_id	  sid	   = 0;
+			string_id	  type_id  = 0;
+			stream >> res_type;
+			stream >> sid;
+			stream >> type_id;
 
-		// model_raw loaded = {};
-		// if (loaded.create_from_file(abs_path.c_str(), path))
-		// {
-		// 	loaded.cook(mdl, _aux_memory, *this);
-		// 	SFG_INFO("Loaded model: {0}", abs_path);
-		//
-		// 	const chunk_handle32 created_meshes = mdl.get_created_meshes();
-		// 	const uint16		 meshes_count	= mdl.get_mesh_count();
-		//
-		// 	chunk_allocator32& aux	   = get_aux();
-		// 	resource_handle*   handles = meshes_count == 0 ? nullptr : aux.get<resource_handle>(created_meshes);
-		//
-		// 	for (uint16 i = 0; i < meshes_count; i++)
-		// 	{
-		// 		resource_handle& handle = handles[i];
-		// 		mesh&			 m		= get_resource<mesh>(handle);
-		// 		_world->get_renderer()->get_resource_uploads().add_pending_mesh(&m);
-		// 	}
-		// }
-		// else
-		// {
-		// 	SFG_ERR("Failed loading model: {0}", abs_path);
-		// 	destroy_resource<model>(handle);
-		// }
+			meta& reflection_meta = reflection::get().resolve(type_id);
+			void* loader		  = reflection_meta.invoke_function<void*, istream&>("cook_from_stream"_hs, stream);
 
-		return handle;
-	}
+			if (reflection_meta.has_function("create_from_raw"_hs))
+				reflection_meta.invoke_function<void, void*, world&>("create_from_raw"_hs, loader, _world);
+			loaders.push_back({type_id, loader});
+		}
 
-	resource_handle world_resources::load_shader(const char* path)
-	{
-		resource_storage& stg = _storages[shader::TYPE_INDEX];
-
-		const string_id sid = TO_SIDC(path);
-		auto			it	= stg.by_hashes.find(sid);
-		if (it != stg.by_hashes.end())
-			return it->second;
-		const string abs_path = engine_data::get().get_working_dir() + path;
-
-		const resource_handle handle = create_resource<shader>(sid);
-		shader&				  res	 = get_resource<shader>(handle);
-
-		// if (res.create_from_file_vertex_pixel(abs_path.c_str(), false, renderer::get_bind_layout_global()))
-		// {
-		// 	SFG_INFO("Loaded shader: {0}", abs_path);
-		// }
-		// else
-		// {
-		// 	SFG_ERR("Failed loading shader: {0}", abs_path);
-		// 	destroy_resource<shader>(handle);
-		// }
-
-		return handle;
-	}
-
-	resource_handle world_resources::load_material(const char* path)
-	{
-		resource_storage& stg = _storages[material::TYPE_INDEX];
-
-		const string_id sid = TO_SIDC(path);
-		auto			it	= stg.by_hashes.find(sid);
-		if (it != stg.by_hashes.end())
-			return it->second;
-		const string abs_path = engine_data::get().get_working_dir() + path;
-
-		const resource_handle handle = create_resource<material>(sid);
-		material&			  mat	 = get_resource<material>(handle);
-
-		// if (mat.create_from_file(abs_path.c_str(), *this))
-		//{
-		//	SFG_INFO("Loaded material: {0}", abs_path);
-		// }
-		// else
-		//{
-		//	SFG_ERR("Failed loading material: {0}", abs_path);
-		//	destroy_resource<material>(handle);
-		// }
-		return handle;
+		// Second pass.
+		for (auto [type_id, loader] : loaders)
+		{
+			meta& reflection_meta = reflection::get().resolve(type_id);
+			if (reflection_meta.has_function("create_from_raw_2"_hs))
+				reflection_meta.invoke_function<void, void*, world&>("create_from_raw_2"_hs, loader, _world);
+		}
 	}
 
 #endif

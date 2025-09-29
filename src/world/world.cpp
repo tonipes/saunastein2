@@ -35,9 +35,9 @@ namespace SFG
 {
 
 	world::world()
-		: _entity_manager(*this){
+		: _entity_manager(*this), _resources(*this){
 
-		  };
+								  };
 
 	world::~world()
 	{
@@ -46,40 +46,12 @@ namespace SFG
 	void world::init()
 	{
 		SFG_PROG("initializing world.");
-		_flags.set(world_flags_is_init);
+
 		debug_console::get()->register_console_function<int>("world_set_play", [this](int b) { _flags.set(world_flags_is_playing, b != 0); });
-		_resources.init(this);
+		_flags.set(world_flags_is_init);
+		_resources.init();
 		_entity_manager.init();
 	}
-
-	static vector<const char*> debug_textures = {
-		"assets/boombox/boombox_base.stkfrg",
-		"assets/boombox/boombox_emissive.stkfrg",
-		"assets/boombox/boombox_normal.stkfrg",
-		"assets/boombox/boombox_orm.stkfrg",
-		"assets/cesium_man/cesium_man_base.stkfrg",
-	};
-
-	static vector<const char*> debug_mats = {
-		"assets/boombox/boombox_material.stkfrg",
-		//"assets/cesium_man/cesium_man_material.stkfrg",
-	};
-
-	static vector<const char*> debug_shaders = {
-		"assets/shaders/object/default_lit.stkfrg",
-		"assets/shaders/object/default_lit_skinned.stkfrg",
-	};
-
-	static vector<const char*> debug_models = {
-		"assets/boombox/boombox.gltf",
-		"assets/cesium_man/CesiumMan.gltf",
-	};
-
-	static vector<resource_handle> loaded_debug_textures	  = {};
-	static vector<resource_handle> loaded_debug_mats		  = {};
-	static vector<resource_handle> loaded_debug_shaders		  = {};
-	static vector<model_raw>	   loaded_debug_models_loaded = {};
-	static vector<resource_handle> loaded_debug_models		  = {};
 
 	void world::load_debug()
 	{
@@ -241,42 +213,33 @@ namespace SFG
 		if (!loaded_debug_models.empty())
 			add_model_to_world(loaded_debug_models[0], &loaded_debug_mats[0], 1);
 			*/
+
+		world_raw	 raw = {};
+		const string p	 = engine_data::get().get_working_dir() + "assets/world/demo_world.stkworld";
+		raw.cook_from_file(p.c_str());
+		// create_from_raw(raw);
 	}
 
 	void world::uninit()
 	{
-		for (resource_handle handle : loaded_debug_textures)
-		{
-			_resources.get_resource<texture>(handle).destroy();
-			_resources.destroy_resource<texture>(handle);
-		}
-
-		for (resource_handle handle : loaded_debug_mats)
-		{
-			_resources.get_resource<material>(handle).destroy();
-			_resources.destroy_resource<material>(handle);
-		}
-
-		for (resource_handle handle : loaded_debug_shaders)
-		{
-			_resources.get_resource<shader>(handle).destroy();
-			_resources.destroy_resource<shader>(handle);
-		}
-
-		for (resource_handle handle : loaded_debug_models)
-		{
-			_resources.get_resource<model>(handle).destroy(_resources, _resources.get_aux());
-
-			_resources.destroy_resource<model>(handle);
-		}
-
 		_entity_manager.uninit();
 		_resources.uninit();
 		_txt_allocator.reset();
 
 		SFG_PROG("uninitializing world.");
-		_flags.remove(world_flags_is_init);
+
 		debug_console::get()->unregister_console_function("world_set_play");
+		_flags.remove(world_flags_is_init);
+	}
+
+	void world::create_from_raw(world_raw& raw)
+	{
+		if (_flags.is_set(world::flags::world_flags_is_init))
+			uninit();
+
+		init();
+
+		_resources.load_resources(raw.resources);
 	}
 
 	void world::tick(uint8 data_index, const vector2ui16& res, float dt)

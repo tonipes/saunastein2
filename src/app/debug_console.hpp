@@ -2,7 +2,7 @@
 #pragma once
 #include "common/size_definitions.hpp"
 #include "common/system_info.hpp"
-#include "data/string_id.hpp"
+#include "common/string_id.hpp"
 #include "data/hash_map.hpp"
 #include "data/string.hpp"
 #include "data/string_util.hpp"
@@ -199,7 +199,7 @@ namespace SFG
 
 		template <typename... TArgs> void register_console_function(const char* name, typename console_function<TArgs...>::function_type cb)
 		{
-			const string_id sid = TO_SIDC(name);
+			const string_id sid = TO_SID(name);
 
 			if (_console_entries.contains(sid))
 			{
@@ -212,7 +212,7 @@ namespace SFG
 
 		template <typename T> void register_console_variable(const char* name, T initial_value, typename console_variable<T>::callback_function cb = nullptr)
 		{
-			const uint32 sid = TO_SIDC(name);
+			const string_id sid = TO_SID(name);
 			if (_console_entries.find(sid) != _console_entries.end())
 			{
 				SFG_ERR("debug_console::register_console_variable() -> Console variable {0} already exists.", name);
@@ -224,8 +224,7 @@ namespace SFG
 
 		template <typename T> T get_console_variable(const char* name)
 		{
-
-			const uint32 sid = TO_SIDC(name);
+			const string_id sid = TO_SID(name);
 			if (_console_entries.find(sid) == _console_entries.end())
 			{
 				SFG_ERR("debug_console::get_console_variable() -> Console variable {0} doesn't exist.", name);

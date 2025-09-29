@@ -53,7 +53,7 @@ namespace SFG
 
 	void debug_console::unregister_console_function(const char* name)
 	{
-		const string_id sid = TO_SIDC(name);
+		const string_id sid = TO_SID(name);
 		auto			it	= _console_entries.find(sid);
 		if (it == _console_entries.end())
 		{

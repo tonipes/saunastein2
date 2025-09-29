@@ -4,11 +4,11 @@
 
 #include "common/size_definitions.hpp"
 #include "memory/pool_handle.hpp"
+#include "common/string_id.hpp"
 
 namespace SFG
 {
-
-	enum resource_types : uint8
+	enum resource_type : uint8
 	{
 		resource_type_texture = 0,
 		resource_type_texture_sampler,
@@ -22,8 +22,9 @@ namespace SFG
 		resource_type_mesh,
 		resource_type_physical_material,
 		resource_type_engine_max,
-		resource_type_allowed_max = 16,
+		resource_type_allowed_max,
 	};
 
 	typedef pool_handle16 resource_handle;
+
 }

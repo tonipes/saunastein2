@@ -16,7 +16,7 @@ using json = nlohmann::json;
 namespace SFG
 {
 
-	shader_raw::~shader_raw()
+	void shader_raw::destroy()
 	{
 		for (const shader_blob& b : desc.blobs)
 			delete[] b.data.data;

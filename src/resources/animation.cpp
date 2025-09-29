@@ -3,9 +3,17 @@
 #include "animation.hpp"
 #include "animation_raw.hpp"
 #include "memory/chunk_allocator.hpp"
+#include "reflection/reflection.hpp"
+#include "world/world.hpp"
 
 namespace SFG
 {
+	animation_reflection::animation_reflection()
+	{
+		meta& m = reflection::get().register_meta(type_id<animation>::value, "");
+		m.add_function<void, world&>("init_resource_storage"_hs, [](world& w) -> void { w.get_resources().init_storage<animation>(MAX_WORLD_ANIMS); });
+	}
+
 	void animation_channel_v3::create_from_raw(const animation_channel_v3_raw& raw, chunk_allocator32& alloc)
 	{
 		interpolation = raw.interpolation;

@@ -42,21 +42,21 @@ namespace SFG
 	void animation_raw::serialize(ostream& stream) const
 	{
 		stream << name;
-		stream << sid;
 		stream << duration;
 		stream << position_channels;
 		stream << rotation_channels;
 		stream << scale_channels;
+		stream << sid;
 	}
 
 	void animation_raw::deserialize(istream& stream)
 	{
 		stream >> name;
-		stream >> sid;
 		stream >> duration;
 		stream >> position_channels;
 		stream >> rotation_channels;
 		stream >> scale_channels;
+		stream >> sid;
 	}
 
 }

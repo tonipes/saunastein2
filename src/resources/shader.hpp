@@ -7,16 +7,25 @@
 #include "data/vector.hpp"
 #include "data/bitmask.hpp"
 #include "gfx/common/shader_description.hpp"
+#include "common/type_id.hpp"
 #include "resources/common_resources.hpp"
+
 namespace SFG
 {
 	struct shader_raw;
 
+	struct shader_reflection
+	{
+		shader_reflection();
+	};
+
+	extern shader_reflection g_shader_reflection;
+
+	class world;
+
 	class shader
 	{
 	public:
-		static constexpr uint32 TYPE_INDEX = resource_types::resource_type_shader;
-
 		enum flags
 		{
 			is_skinned = 1 << 0,
@@ -25,7 +34,7 @@ namespace SFG
 
 		~shader();
 
-		void   create_from_raw(shader_raw& raw, bool use_embedded_layout, gfx_id layout);
+		void   create_from_raw(const shader_raw& raw, bool use_embedded_layout, gfx_id layout);
 		void   destroy();
 		gfx_id get_hw() const;
 
@@ -38,5 +47,7 @@ namespace SFG
 		gfx_id		   _hw	  = 0;
 		bitmask<uint8> _flags = 0;
 	};
+
+	REGISTER_TYPE(shader, resource_type::resource_type_shader);
 
 }

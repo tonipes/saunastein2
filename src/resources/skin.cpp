@@ -3,9 +3,17 @@
 #include "skin.hpp"
 #include "skin_raw.hpp"
 #include "memory/chunk_allocator.hpp"
+#include "reflection/reflection.hpp"
+#include "world/world.hpp"
 
 namespace SFG
 {
+	skin_reflection::skin_reflection()
+	{
+		meta& m = reflection::get().register_meta(type_id<skin>::value, "");
+		m.add_function<void, world&>("init_resource_storage"_hs, [](world& w) -> void { w.get_resources().init_storage<skin>(MAX_WORLD_SKINS); });
+	}
+
 	void skin::create_from_raw(const skin_raw& raw, chunk_allocator32& alloc)
 	{
 		_root		  = raw.root_joint;

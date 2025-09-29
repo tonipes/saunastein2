@@ -4,7 +4,7 @@
 #include "animation_common.hpp"
 #include "data/vector.hpp"
 #include "data/string.hpp"
-#include "data/string_id.hpp"
+#include "common/string_id.hpp"
 
 namespace SFG
 {

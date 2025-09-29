@@ -4,6 +4,7 @@
 #include "memory/pool_handle.hpp"
 #include "data/bitmask.hpp"
 #include "common_trait.hpp"
+#include "common/type_id.hpp"
 
 namespace SFG
 {
@@ -18,4 +19,7 @@ namespace SFG
 		static void on_add(entity_manager& em, trait_light& trait);
 		static void on_remove(entity_manager& em, trait_light& trait);
 	};
+
+	REGISTER_TYPE(trait_light, trait_types::trait_type_light);
+
 }

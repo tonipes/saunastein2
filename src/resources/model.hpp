@@ -4,6 +4,7 @@
 #include "data/bitmask.hpp"
 #include "math/aabb.hpp"
 #include "memory/chunk_handle.hpp"
+#include "common/type_id.hpp"
 #include "resources/common_resources.hpp"
 
 namespace SFG
@@ -12,11 +13,15 @@ namespace SFG
 	class chunk_allocator32;
 	struct model_raw;
 
+	struct model_reflection
+	{
+		model_reflection();
+	};
+	extern model_reflection g_model_reflection;
+
 	class model
 	{
 	public:
-		static constexpr uint32 TYPE_INDEX = resource_types::resource_type_model;
-
 		enum flags
 		{
 			hw_exists	   = 1 << 0,
@@ -25,7 +30,7 @@ namespace SFG
 
 		~model();
 
-		void create_from_raw(model_raw& raw, chunk_allocator32& alloc, world_resources& resources);
+		void create_from_raw(const model_raw& raw, world_resources& resources, chunk_allocator32& alloc);
 		void destroy(world_resources& resources, chunk_allocator32& alloc);
 
 		inline bitmask<uint8>& get_flags()
@@ -79,5 +84,7 @@ namespace SFG
 		bitmask<uint8> _flags;
 		uint8		   _material_count = 0;
 	};
+
+	REGISTER_TYPE(model, resource_type::resource_type_model);
 
 }

@@ -36,8 +36,14 @@ namespace SFG
 		{
 			_working_dir = process::select_folder("Select working directory") + "/";
 			SFG_ASSERT(file_system::exists(_working_dir.c_str()));
+
 			save();
 		}
+
+		_cache_dir = _working_dir + "_stakeforge/";
+
+		if (!file_system::exists(_cache_dir.c_str()))
+			file_system::create_directory(_cache_dir.c_str());
 	}
 
 	void engine_data::uninit()

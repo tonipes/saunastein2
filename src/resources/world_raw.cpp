@@ -9,6 +9,7 @@
 #include "io/log.hpp"
 #include "project/engine_data.hpp"
 #include "gui/vekt.hpp"
+#include "world/world.hpp"
 #include <fstream>
 #include <vendor/nhlohmann/json.hpp>
 using json = nlohmann::json;
@@ -18,10 +19,12 @@ namespace SFG
 {
 	void world_raw::serialize(ostream& stream) const
 	{
+		stream << resources;
 	}
 
 	void world_raw::deserialize(istream& stream)
 	{
+		stream >> resources;
 	}
 
 #ifdef SFG_TOOLMODE
@@ -39,10 +42,16 @@ namespace SFG
 			json		  json_data = json::parse(f);
 			f.close();
 
-			if (!file_system::exists(source.c_str()))
+			const vector<string> resources = json_data.value<vector<string>>("resources", {});
+
+			for (const string& res : resources)
 			{
-				SFG_ERR("File don't exist! {0}", source.c_str());
-				return false;
+				const string source = engine_data::get().get_working_dir() + res;
+				if (!file_system::exists(source.c_str()))
+				{
+					SFG_ERR("File don't exist! {0}", source.c_str());
+					return false;
+				}
 			}
 		}
 		catch (std::exception e)
@@ -53,6 +62,23 @@ namespace SFG
 
 		SFG_INFO("Created world from file: {0}", path);
 		return true;
+	}
+
+	void world_raw::save_to_file(const char* path, world& w)
+	{
+		json j		   = {};
+		j["resources"] = resources;
+
+		std::ofstream file(path);
+		if (file.is_open())
+		{
+			file << j.dump(4);
+			file.close();
+		}
+	}
+
+	void world_raw::fetch_from_world(world& w)
+	{
 	}
 
 #endif

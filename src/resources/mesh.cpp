@@ -5,9 +5,16 @@
 #include "primitive_raw.hpp"
 #include "primitive.hpp"
 #include "memory/chunk_allocator.hpp"
+#include "reflection/reflection.hpp"
+#include "world/world.hpp"
 
 namespace SFG
 {
+	mesh_reflection::mesh_reflection()
+	{
+		meta& m = reflection::get().register_meta(type_id<mesh>::value, "");
+		m.add_function<void, world&>("init_resource_storage"_hs, [](world& w) -> void { w.get_resources().init_storage<mesh>(MAX_WORLD_MESHES); });
+	}
 
 	void mesh::create_from_raw(const mesh_raw& raw, chunk_allocator32& alloc)
 	{

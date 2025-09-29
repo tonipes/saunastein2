@@ -4,7 +4,7 @@
 
 #include "data/ostream.hpp"
 #include "data/static_vector.hpp"
-#include "data/string_id.hpp"
+#include "common/string_id.hpp"
 #include "resources/common_resources.hpp"
 #include "gfx/common/gfx_constants.hpp"
 

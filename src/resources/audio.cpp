@@ -4,12 +4,62 @@
 #include "audio_raw.hpp"
 #include "io/assert.hpp"
 #include "memory/chunk_allocator.hpp"
+#include "reflection/reflection.hpp"
+#include "world/world.hpp"
 #include <vendor/miniaudio/miniaudio.h>
 
 namespace SFG
 {
+	audio_reflection::audio_reflection()
+	{
+		meta& m = reflection::get().register_meta(type_id<audio>::value, "stkaud");
+
+#ifdef SFG_TOOLMODE
+
+		m.add_function<void*, const char*>("cook_from_file"_hs, [](const char* path) -> void* {
+			audio_raw* raw = new audio_raw();
+			if (!raw->cook_from_file(path))
+			{
+				delete raw;
+				return nullptr;
+			}
+
+			return raw;
+		});
+#endif
+
+		m.add_function<void*, istream&>("cook_from_stream"_hs, [](istream& stream) -> void* {
+			audio_raw* raw = new audio_raw();
+			raw->deserialize(stream);
+			return raw;
+		});
+
+		m.add_function<resource_handle, void*, world&, string_id>("create_from_raw"_hs, [](void* raw, world& w, string_id sid) -> resource_handle {
+			audio_raw*		 raw_ptr   = reinterpret_cast<audio_raw*>(raw);
+			world_resources& resources = w.get_resources();
+			resource_handle	 handle	   = resources.create_resource<audio>(sid);
+			audio&			 res	   = resources.get_resource<audio>(handle);
+			res.create_from_raw(*raw_ptr, resources.get_aux(), nullptr);
+			delete raw_ptr;
+			return handle;
+		});
+
+		m.add_function<void, world&>("init_resource_storage"_hs, [](world& w) -> void { w.get_resources().init_storage<audio>(MAX_WORLD_AUDIO); });
+
+		m.add_function<void, world&, resource_handle>("destroy"_hs, [](world& w, resource_handle h) -> void {
+			world_resources& res = w.get_resources();
+			res.get_resource<audio>(h).destroy(res.get_aux());
+		});
+
+		m.add_function<void, void*, ostream&>("serialize"_hs, [](void* loader, ostream& stream) -> void {
+			audio_raw* raw = reinterpret_cast<audio_raw*>(loader);
+			raw->serialize(stream);
+		});
+	}
+
 	void audio::create_from_raw(const audio_raw& raw, chunk_allocator32& alloc, ma_engine* engine)
 	{
+
 		if (_flags.is_set(audio::flags::is_init))
 			destroy(alloc);
 
@@ -44,7 +94,6 @@ namespace SFG
 	void audio::destroy(chunk_allocator32& alloc)
 	{
 		SFG_ASSERT(_flags.is_set(audio::flags::is_init));
-
 		ma_decoder_uninit(&_decoder);
 		_flags.remove(audio::flags::is_init);
 		if (_audio_data.size != 0)

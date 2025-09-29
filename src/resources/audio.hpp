@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "common/type_id.hpp"
 #include "common/size_definitions.hpp"
 #include "resources/common_resources.hpp"
 #include "data/bitmask.hpp"
@@ -13,6 +14,13 @@ namespace SFG
 	struct audio_raw;
 	class chunk_allocator32;
 
+	struct audio_reflection
+	{
+		audio_reflection();
+	};
+
+	extern audio_reflection g_audio_reflection;
+
 	class audio
 	{
 	public:
@@ -21,7 +29,7 @@ namespace SFG
 			is_init		 = 1 << 0,
 			is_streaming = 1 << 1,
 		};
-		static constexpr uint32 TYPE_INDEX = resource_types::resource_type_audio;
+		static constexpr uint32 TYPE_ID = resource_type::resource_type_audio;
 
 		void create_from_raw(const audio_raw& raw, chunk_allocator32& alloc, ma_engine* engine);
 		void destroy(chunk_allocator32& alloc);
@@ -43,4 +51,5 @@ namespace SFG
 		bitmask<uint8> _flags	   = 0;
 	};
 
+	REGISTER_TYPE(audio, resource_type::resource_type_audio);
 }

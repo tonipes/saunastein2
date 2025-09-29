@@ -358,6 +358,7 @@ namespace SFG
 			shader_raw raw = {};
 			raw.cook_from_file("assets/engine/shaders/gui/gui_default.stkfrg");
 			_shaders.gui_default.create_from_raw(raw, false, global_bind_layout);
+			raw.destroy();
 		}
 
 		// gui text
@@ -365,6 +366,7 @@ namespace SFG
 			shader_raw raw = {};
 			raw.cook_from_file("assets/engine/shaders/gui/gui_text.stkfrg");
 			_shaders.gui_text.create_from_raw(raw, false, global_bind_layout);
+			raw.destroy();
 		}
 
 		// gui sdf
@@ -372,6 +374,7 @@ namespace SFG
 			shader_raw raw = {};
 			raw.cook_from_file("assets/engine/shaders/gui/gui_sdf.stkfrg");
 			_shaders.gui_sdf.create_from_raw(raw, false, global_bind_layout);
+			raw.destroy();
 		}
 
 		// console draw
@@ -379,6 +382,7 @@ namespace SFG
 			shader_raw raw = {};
 			raw.cook_from_file("assets/engine/shaders/debug_controller/console_draw.stkfrg");
 			_shaders.debug_controller_console_draw.create_from_raw(raw, false, global_bind_layout);
+			raw.destroy();
 		}
 
 		for (uint32 i = 0; i < FRAMES_IN_FLIGHT; i++)
@@ -896,11 +900,11 @@ namespace SFG
 
 			for (const memory_category& cat : tracer.get_categories())
 			{
-				if (TO_SIDC(cat.name) == TO_SIDC("General"))
+				if (TO_SID(cat.name) == TO_SID("General"))
 				{
 					string_util::append_float(static_cast<float>(cat.total_size) / B_TO_MB, (char*)glob_mem_props.text + 18, 6, 4, true);
 				}
-				else if (TO_SIDC(cat.name) == TO_SIDC("Gfx"))
+				else if (TO_SID(cat.name) == TO_SID("Gfx"))
 				{
 					string_util::append_float(static_cast<float>(cat.total_size) / B_TO_MB, (char*)gfx_mem_props.text + 17, 6, 4, true);
 				}

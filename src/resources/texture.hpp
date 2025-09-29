@@ -7,17 +7,23 @@
 #include "data/static_vector.hpp"
 #include "gfx/common/gfx_constants.hpp"
 #include "gfx/common/texture_buffer.hpp"
-#include "resources/common_resources.hpp"
+#include "common/type_id.hpp"
+#include "common_resources.hpp"
 
 namespace SFG
 {
 	struct texture_raw;
 
+	struct texture_reflection
+	{
+		texture_reflection();
+	};
+
+	extern texture_reflection g_texture_reflection;
+
 	class texture
 	{
 	public:
-		static constexpr uint32 TYPE_INDEX = resource_types::resource_type_texture;
-
 		enum flags
 		{
 			hw_exists			= 1 << 0,
@@ -66,4 +72,5 @@ namespace SFG
 		bitmask<uint8>									_flags		  = 0;
 	};
 
+	REGISTER_TYPE(texture, resource_type::resource_type_texture);
 }

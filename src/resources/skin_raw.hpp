@@ -4,7 +4,7 @@
 #include "common/size_definitions.hpp"
 #include "common_skin.hpp"
 #include "data/vector.hpp"
-#include "data/string_id.hpp"
+#include "common/string_id.hpp"
 #include "data/string.hpp"
 
 namespace SFG

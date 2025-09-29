@@ -4,22 +4,25 @@
 
 #include "common/size_definitions.hpp"
 #include "gfx/common/descriptions.hpp"
-#include "data/string.hpp"
 #include "data/vector.hpp"
 
 namespace SFG
 {
 	class ostream;
 	class istream;
+	class world;
 
 	struct world_raw
 	{
+		vector<string> resources;
+
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);
 
 #ifdef SFG_TOOLMODE
 		bool cook_from_file(const char* file);
-		void save_to_file(const char* file);
+		void save_to_file(const char* file, world& w);
+		void fetch_from_world(world& w);
 #endif
 	};
 }

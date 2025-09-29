@@ -98,6 +98,7 @@ src/math/*.cpp
 src/io/*.cpp
 src/data/*.cpp
 src/memory/*.cpp
+src/reflection/*.cpp
 src/serialization/*.cpp
 src/input/*.cpp
 src/project/*.cpp
@@ -137,6 +138,8 @@ src/gui/*.hpp
 src/app/*.hpp
 src/project/*.hpp
 src/resources/*.hpp
+src/reflection/*.hpp
+src/serialization/*.hpp
 src/world/*.hpp
 src/world/traits/*.hpp
 src/vendor/stb/*.h

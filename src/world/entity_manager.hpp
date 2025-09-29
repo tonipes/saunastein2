@@ -3,6 +3,7 @@
 #pragma once
 #include "common_world.hpp"
 #include "common_entity.hpp"
+#include "common/type_id.hpp"
 #include "traits/common_trait.hpp"
 #include "memory/pool_allocator_simple.hpp"
 #include "memory/pool_allocator16.hpp"
@@ -21,6 +22,7 @@ namespace SFG
 	struct trait_storage
 	{
 		pool_allocator16 storage;
+		string_id		 type_id = 0;
 	};
 
 	class entity_manager
@@ -96,12 +98,20 @@ namespace SFG
 
 		template <typename T> void init_trait_storage(uint32 max_count)
 		{
-			_traits[T::TYPE_INDEX].storage.init<T>(max_count);
+			auto idx = type_id<T>::index;
+			if (_traits.size() <= idx)
+				_traits.resize(idx + 1);
+
+			trait_storage& trst = _traits[idx];
+			trst.type_id		= type_id<T>::value;
+
+			pool_allocator16& stg = trst.storage;
+			stg.init<T>(max_count);
 		}
 
 		template <typename T> trait_handle add_trait(entity_handle entity)
 		{
-			pool_allocator16& storage = _traits[T::TYPE_INDEX].storage;
+			pool_allocator16& storage = _traits[type_id<T>::index].storage;
 			trait_handle	  handle  = storage.allocate<T>();
 			T&				  tr	  = storage.get<T>(handle);
 			tr						  = T();
@@ -111,18 +121,18 @@ namespace SFG
 
 		template <typename T> T& get_trait(trait_handle handle)
 		{
-			pool_allocator16& storage = _traits[T::TYPE_INDEX].storage;
+			pool_allocator16& storage = _traits[type_id<T>::index].storage;
 			return storage.get<T>(handle);
 		}
 		template <typename T> const pool_allocator16& get_trait_storage() const
 		{
-			const pool_allocator16& storage = _traits[T::TYPE_INDEX].storage;
+			const pool_allocator16& storage = _traits[type_id<T>::index].storage;
 			return storage;
 		}
 
 		template <typename T> void remove_trait(trait_handle handle)
 		{
-			pool_allocator16& storage = _traits[T::TYPE_INDEX].storage;
+			pool_allocator16& storage = _traits[type_id<T>::index].storage;
 			T&				  tr	  = storage.get<T>(handle);
 			tr.~T();
 			storage.free(handle);
