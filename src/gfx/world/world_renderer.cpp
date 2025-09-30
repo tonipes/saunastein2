@@ -131,12 +131,8 @@ namespace SFG
 			//});
 			// alloc_head += size_per_lane;
 		}
-
-		for (uint32 i = 0; i < THREAD_BUFFER_COUNT; i++)
-		{
-			world_render_data& rd = _render_data[i];
-			rd.views.init(_world);
-		}
+		world_render_data& rd = _render_data;
+		rd.views.init(_world);
 	}
 
 	void world_renderer::uninit()
@@ -152,11 +148,8 @@ namespace SFG
 
 		gfx_backend* backend = gfx_backend::get();
 
-		for (uint32 i = 0; i < 2; i++)
-		{
-			world_render_data& rd = _render_data[i];
-			rd.views.uninit();
-		}
+		world_render_data& rd = _render_data;
+		rd.views.uninit();
 
 		for (uint8 i = 0; i < FRAMES_IN_FLIGHT; i++)
 		{
@@ -170,6 +163,7 @@ namespace SFG
 
 	void world_renderer::populate_render_data(uint8 index, double interpolation)
 	{
+		/*
 		buffer*		vertex_buffer = &_resource_uploads.get_big_vertex_buffer();
 		buffer*		index_buffer  = &_resource_uploads.get_big_index_buffer();
 		const float alpha		  = static_cast<float>(interpolation);
@@ -243,6 +237,7 @@ namespace SFG
 		_pass_opaque.populate_render_data(_world, cam_view, rd, index);
 		_pass_lighting_fw.populate_render_data(_world, index);
 		_pass_post_combiner.populate_render_data(_world, index);
+		*/
 	}
 
 	void world_renderer::on_render_joined()
@@ -250,12 +245,14 @@ namespace SFG
 		_resource_uploads.check_uploads(true);
 	}
 
-	void world_renderer::upload(uint8 data_index, uint8 frame_index)
+	void world_renderer::upload(uint8 frame_index)
 	{
-		_resource_uploads.check_uploads();
-		_resource_uploads.upload(_world->get_resources().get_aux(), _texture_queue, _buffer_queue, data_index, frame_index);
+		return;
 
-		world_render_data& rd  = _render_data[data_index];
+		_resource_uploads.check_uploads();
+		_resource_uploads.upload(_world->get_resources().get_aux(), _texture_queue, _buffer_queue, frame_index);
+
+		world_render_data& rd  = _render_data;
 		per_frame_data&	   pfd = _pfd[frame_index];
 
 		if (!rd.bones.empty())
@@ -271,16 +268,16 @@ namespace SFG
 		_buffer_queue->add_request({.buffer = &pfd.bones});
 		_buffer_queue->add_request({.buffer = &pfd.lights});
 
-		_pass_opaque.upload(_world, _buffer_queue, data_index, frame_index);
+		_pass_opaque.upload(_world, _buffer_queue, frame_index);
 	}
 
-	void world_renderer::render(uint8 data_index, uint8 frame_index, gfx_id layout_global, gfx_id bind_group_global, uint64 prev_copy, uint64 next_copy, gfx_id sem_copy)
+	void world_renderer::render(uint8 frame_index, gfx_id layout_global, gfx_id bind_group_global, uint64 prev_copy, uint64 next_copy, gfx_id sem_copy)
 	{
 		gfx_backend* backend   = gfx_backend::get();
 		const gfx_id queue_gfx = backend->get_queue_gfx();
 
 		per_frame_data&	   pfd		  = _pfd[frame_index];
-		world_render_data& rd		  = _render_data[data_index];
+		world_render_data& rd		  = _render_data;
 		const vector2ui16  resolution = _base_size;
 
 		semaphore_data& sd_opaque			= _pass_opaque.get_semaphore(frame_index);
@@ -297,7 +294,7 @@ namespace SFG
 		const gfx_id	cmd_post			= _pass_post_combiner.get_cmd_buffer(frame_index);
 
 		static_vector<std::function<void()>, 1> tasks;
-		tasks.push_back([&] { _pass_opaque.render(data_index, frame_index, resolution, layout_global, bind_group_global); });
+		tasks.push_back([&] { _pass_opaque.render(frame_index, resolution, layout_global, bind_group_global); });
 		std::for_each(std::execution::par, tasks.begin(), tasks.end(), [](std::function<void()>& task) { task(); });
 
 		//	tasks.push_back([&] { _pass_lighting_fw.render(data_index, frame_index, resolution, layout_global, bind_group_global); });
@@ -346,17 +343,17 @@ namespace SFG
 		// _pass_lighting_fw.reset_target_textures(opaque_textures.data(), depth_textures.data());
 	}
 
-	uint16 world_renderer::create_gpu_entity(uint8 data_index, const gpu_entity& e)
+	uint16 world_renderer::create_gpu_entity(const gpu_entity& e)
 	{
-		world_render_data& rd  = _render_data[data_index];
+		world_render_data& rd  = _render_data;
 		const uint32	   idx = static_cast<uint32>(rd.entities.size());
 		rd.entities.push_back(e);
 		return idx;
 	}
 
-	uint16 world_renderer::create_renderable(uint8 data_index, const renderable_object& e)
+	uint16 world_renderer::create_renderable(const renderable_object& e)
 	{
-		world_render_data& rd = _render_data[data_index];
+		world_render_data& rd = _render_data;
 		const uint16	   i  = static_cast<uint16>(rd.renderables.size());
 		rd.renderables.push_back(e);
 		return i;

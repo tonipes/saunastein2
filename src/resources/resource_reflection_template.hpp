@@ -44,7 +44,7 @@ namespace SFG
 			m.add_function<resource_handle, void*, world&, string_id>(creation_function, [](void* raw, world& w, string_id sid) -> resource_handle {
 				U*				 raw_ptr   = reinterpret_cast<U*>(raw);
 				world_resources& resources = w.get_resources();
-				resource_handle	 handle	   = resources.create_resource<T>(sid);
+				resource_handle	 handle	   = resources.add_resource<T>(sid);
 				T&				 res	   = resources.get_resource<T>(handle);
 				res.create_from_raw(*raw_ptr, w);
 				delete raw_ptr;

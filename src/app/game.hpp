@@ -1,9 +1,10 @@
 // Copyright (c) 2025 Inan Evin
 
 #include "common/size_definitions.hpp"
-#include "gfx/frame_processor.hpp"
+#include "gfx/event_stream/render_event_stream.hpp"
 #include "data/binary_semaphore.hpp"
 #include "data/atomic.hpp"
+#include "data/bitmask.hpp"
 #include "math/vector2ui16.hpp"
 #include <thread>
 
@@ -47,16 +48,14 @@ namespace SFG
 		void on_window_event(const window_event& ev);
 
 	private:
-		window*			 _main_window = nullptr;
-		renderer*		 _renderer	  = nullptr;
-		world*			 _world		  = nullptr;
-		std::thread		 _render_thread;
-		binary_semaphore _frame_available_semaphore{0};
-		vector2ui16		 _window_size				 = {};
-		uint8			 _update_render_frame_index	 = 0;
-		atomic<uint8>	 _current_render_frame_index = 0;
-		atomic<uint8>	 _should_close;
-		atomic<uint8>	 _render_joined;
-		bitmask<uint8>	 _flags = 0;
+		window*				_main_window = nullptr;
+		renderer*			_renderer	 = nullptr;
+		world*				_world		 = nullptr;
+		render_event_stream _render_stream;
+		std::thread			_render_thread;
+		vector2ui16			_window_size = {};
+		atomic<uint8>		_should_close;
+		atomic<uint8>		_render_joined;
+		bitmask<uint8>		_flags = 0;
 	};
 }

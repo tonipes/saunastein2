@@ -22,6 +22,7 @@ namespace SFG
 	extern shader_reflection g_shader_reflection;
 
 	class world;
+	class render_event_stream;
 
 	class shader
 	{
@@ -35,6 +36,7 @@ namespace SFG
 		~shader();
 
 		void   create_from_raw(const shader_raw& raw, bool use_embedded_layout, gfx_id layout);
+		void   push_create_event(render_event_stream& stream, resource_handle handle);
 		void   destroy();
 		gfx_id get_hw() const;
 

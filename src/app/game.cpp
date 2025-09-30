@@ -179,15 +179,12 @@ namespace SFG
 			while (accumulator >= FIXED_INTERVAL_US && ticks < MAX_TICKS)
 			{
 				accumulator -= FIXED_INTERVAL_US;
-				_world->tick(_update_render_frame_index, ws, SFG_DT);
+				_world->tick(ws, SFG_DT);
 				ticks++;
 			}
 
 			const double interpolation = static_cast<double>(accumulator) / static_cast<double>(FIXED_INTERVAL_US);
-			_renderer->populate_render_data(_update_render_frame_index, interpolation);
-			_current_render_frame_index.store(_update_render_frame_index, std::memory_order_release);
-			_update_render_frame_index = (_update_render_frame_index + 1) % 2;
-			_frame_available_semaphore.release();
+			_world->push_render_events(_render_stream, interpolation);
 			frame_info::s_frame.fetch_add(1);
 		}
 	}
@@ -208,7 +205,6 @@ namespace SFG
 			return;
 
 		_render_joined.store(1, std::memory_order_release);
-		_frame_available_semaphore.release();
 
 		if (_render_thread.joinable())
 			_render_thread.join();
@@ -267,8 +263,6 @@ namespace SFG
 			return;
 
 		_render_joined.store(0, std::memory_order_release);
-		_current_render_frame_index.store(1);
-		_update_render_frame_index	   = 1;
 		_render_thread				   = std::thread(&game_app::render_loop, this);
 		frame_info::s_is_render_active = true;
 	}
@@ -282,17 +276,14 @@ namespace SFG
 
 		while (_render_joined.load(std::memory_order_acquire) == 0)
 		{
-			_frame_available_semaphore.acquire();
-			const uint8 index = _current_render_frame_index.load(std::memory_order_acquire);
-
 #ifndef SFG_PRODUCTION
 			const int64 current_time = time::get_cpu_microseconds();
 			const int64 delta_micro	 = current_time - previous_time;
 			previous_time			 = current_time;
 #endif
 
-			_world->pre_render(index, screen_size);
-			_renderer->render(index, screen_size);
+			_world->pre_render(screen_size);
+			_renderer->render(screen_size);
 			frame_info::s_render_frame.fetch_add(1);
 
 #ifndef SFG_PRODUCTION

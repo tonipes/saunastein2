@@ -19,12 +19,15 @@ namespace SFG
 
 	extern texture_sampler_reflection g_texture_sampler_reflection;
 
+	class render_event_stream;
+
 	class texture_sampler
 	{
 	public:
 		~texture_sampler();
 
 		void create_from_raw(const texture_sampler_raw& raw);
+		void push_render_event(render_event_stream& stream, resource_handle handle);
 		void destroy();
 
 		inline gfx_id get_hw() const

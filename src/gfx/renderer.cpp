@@ -164,18 +164,14 @@ namespace SFG
 		_world_renderer->on_render_joined();
 	}
 
-	void renderer::populate_render_data(uint8 index, double interpolation)
+	void renderer::fetch_render_events(render_event_stream& stream)
 	{
-		render_data& write_data = _render_data[index];
-		write_data				= {};
-
 #ifdef USE_DEBUG_CONTROLLER
 		_debug_controller.tick();
 #endif
-		_world_renderer->populate_render_data(index, interpolation);
-	};
+	}
 
-	void renderer::render(uint8 index, const vector2ui16& size)
+	void renderer::render(const vector2ui16& size)
 	{
 		gfx_backend* backend   = gfx_backend::get();
 		const gfx_id queue_gfx = backend->get_queue_gfx();
@@ -207,7 +203,7 @@ namespace SFG
 		const uint64 next_frame_value = ++pfd.sem_frame.value;
 
 		// uploads
-		_world_renderer->upload(index, frame_index);
+		_world_renderer->upload(frame_index);
 		_debug_controller.upload(_buffer_queue, frame_index);
 		send_uploads(frame_index);
 		const uint64 next_copy_value = pfd.sem_copy.value;
@@ -232,7 +228,7 @@ namespace SFG
 		_debug_controller.collect_barriers(_reuse_barriers);
 		send_barriers(cmd_list);
 
-		_world_renderer->render(index, frame_index, layout_global, bg_global, prev_copy_value, next_copy_value, sem_copy);
+		_world_renderer->render(frame_index, layout_global, bg_global, prev_copy_value, next_copy_value, sem_copy);
 		_debug_controller.render(cmd_list, frame_index, alloc);
 		const semaphore_data& sem_world_data  = _world_renderer->get_final_semaphore(frame_index);
 		const gfx_id		  sem_world		  = sem_world_data.semaphore;

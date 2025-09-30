@@ -16,12 +16,12 @@ namespace SFG
 #define MAX_QUEUES					 8
 #define MAX_DESCRIPTOR_HANDLES		 1024
 #define COMMANDS_MAX_TID			 25
-#define MAX_TEXTURE_MIPS			 16
+#define MAX_TEXTURE_MIPS			 10
 #define MAX_MATERIAL_SHADER_VARIANTS 8
+#define MAX_MATERIAL_TEXTURES		 8
 
-#define FRAMES_IN_FLIGHT	2
-#define BACK_BUFFER_COUNT	3
-#define THREAD_BUFFER_COUNT 2
+#define FRAMES_IN_FLIGHT  2
+#define BACK_BUFFER_COUNT 3
 
 	// 0 discrete, 1 integrated
 #define GPU_DEVICE 0

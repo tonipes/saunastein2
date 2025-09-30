@@ -108,6 +108,7 @@ src/gfx/backend/*.cpp
 src/gfx/common/*.cpp
 src/gfx/world/*.cpp
 src/gfx/world/render_pass/*.cpp
+src/gfx/event_stream/*.cpp
 src/resources/*.cpp
 src/game/*.cpp
 src/game/traits/*.cpp
@@ -134,6 +135,7 @@ src/gfx/backend/*.hpp
 src/gfx/common/*.hpp
 src/gfx/world/*.hpp
 src/gfx/world/render_pass/*.hpp
+src/gfx/event_stream/*.hpp
 src/gui/*.hpp
 src/app/*.hpp
 src/project/*.hpp

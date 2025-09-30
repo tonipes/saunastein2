@@ -124,7 +124,7 @@ namespace SFG
 		/* Debug
 		for (const char* t : debug_textures)
 		{
-			const resource_handle handle = _resources.create_resource<texture>(TO_SIDC(t));
+			const resource_handle handle = _resources.add_resource<texture>(TO_SIDC(t));
 			loaded_debug_textures.push_back(handle);
 			const string abs = engine_data::get().get_working_dir() + t;
 			tasks.push_back([handle, abs, this]() {
@@ -138,7 +138,7 @@ namespace SFG
 
 		for (const char* t : debug_shaders)
 		{
-			const resource_handle handle = _resources.create_resource<shader>(TO_SIDC(t));
+			const resource_handle handle = _resources.add_resource<shader>(TO_SIDC(t));
 			loaded_debug_shaders.push_back(handle);
 			const string abs = engine_data::get().get_working_dir() + t;
 			tasks.push_back([handle, abs, this]() { _resources.get_resource<shader>(handle).create_from_file_vertex_pixel(abs.c_str(), false, renderer::get_bind_layout_global()); });
@@ -150,7 +150,7 @@ namespace SFG
 
 		for (const char* t : debug_mats)
 		{
-			const resource_handle handle = _resources.create_resource<material>(TO_SIDC(t));
+			const resource_handle handle = _resources.add_resource<material>(TO_SIDC(t));
 			loaded_debug_mats.push_back(handle);
 			const string abs = engine_data::get().get_working_dir() + t;
 			tasks.push_back([handle, abs, this]() { _resources.get_resource<material>(handle).create_from_file(abs.c_str(), _resources); });
@@ -160,7 +160,7 @@ namespace SFG
 		int i = 0;
 		for (const char* t : debug_models)
 		{
-			const resource_handle handle = _resources.create_resource<model>(TO_SIDC(t));
+			const resource_handle handle = _resources.add_resource<model>(TO_SIDC(t));
 			loaded_debug_models.push_back(handle);
 
 			const string relative = t;
@@ -242,11 +242,15 @@ namespace SFG
 		_resources.load_resources(raw.resources);
 	}
 
-	void world::tick(uint8 data_index, const vector2ui16& res, float dt)
+	void world::tick(const vector2ui16& res, float dt)
 	{
 	}
 
-	void world::pre_render(uint8 data_index, const vector2ui16& res)
+	void world::pre_render(const vector2ui16& res)
+	{
+	}
+
+	void world::push_render_events(render_event_stream& stream, double interpolation)
 	{
 	}
 

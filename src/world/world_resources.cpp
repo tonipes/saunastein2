@@ -2,15 +2,22 @@
 
 #include "world_resources.hpp"
 #include "gfx/world/world_renderer.hpp"
+#include "gfx/renderer.hpp"
+#include "gfx/event_stream/render_event_stream.hpp"
 #include "app/debug_console.hpp"
 #include "project/engine_data.hpp"
 #include "world/world.hpp"
-#include "gfx/renderer.hpp"
 #include "world/common_world.hpp"
 #include "data/istream.hpp"
 #include "data/ostream.hpp"
 #include "reflection/reflection.hpp"
 #include "data/pair.hpp"
+#include "resources/texture.hpp"
+#include "resources/texture_sampler.hpp"
+#include "resources/material.hpp"
+#include "resources/mesh.hpp"
+#include "resources/shader.hpp"
+#include "resources/font.hpp"
 
 #include <algorithm>
 #include <execution>
@@ -45,6 +52,10 @@ namespace SFG
 
 	void world_resources::init()
 	{
+		_file_watch.set_callback(std::bind(&world_resources::on_watched_resource_modified, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+		_modified_resources.reserve(250);
+		_reuse_reload_resources.reserve(250);
+		_file_watch.reserve(250);
 	}
 
 	void world_resources::uninit()
@@ -65,6 +76,61 @@ namespace SFG
 		}
 
 		_aux_memory.reset();
+		_file_watch.clear();
+	}
+
+	void world_resources::tick()
+	{
+#ifdef SFG_TOOLMODE
+
+		if (!_modified_resources.empty())
+		{
+			// TODO: We gotta stop render here?
+
+			for (uint16 id : _modified_resources)
+				_reuse_reload_resources.push_back(_watched_resources[id].base_path);
+			load_resources(_reuse_reload_resources, true);
+			_reuse_reload_resources.resize(0);
+			_modified_resources.resize(0);
+		}
+#endif
+	}
+
+	void world_resources::push_render_events(render_event_stream& stream)
+	{
+		if (_pending_resource_event_count == 0)
+			return;
+
+		for (const pending_resource_event& ev : _pending_resource_events)
+		{
+			if (ev.type_id == type_id<texture>::value)
+			{
+				texture& res = get_resource<texture>(ev.handle);
+				if (ev.is_destroy)
+					res.push_create_event(stream, ev.handle);
+				else
+				{
+					stream.add_event({
+						.handle		= ev.handle,
+						.event_type = render_event_type::render_event_destroy_texture,
+					});
+				}
+			}
+			if (ev.type_id == type_id<material>::value)
+			{
+			}
+			if (ev.type_id == type_id<shader>::value)
+			{
+			}
+			if (ev.type_id == type_id<mesh>::value)
+			{
+			}
+			if (ev.type_id == type_id<texture_sampler>::value)
+			{
+			}
+		}
+
+		_pending_resource_event_count = 0;
 	}
 
 #ifdef SFG_TOOLMODE
@@ -115,6 +181,18 @@ namespace SFG
 			{
 				loader = reflection_meta->invoke_function<void*, const char*>("cook_from_file"_hs, full_path.c_str());
 
+				_file_watch.add_path(full_path.c_str());
+
+				if (reflection_meta->has_function("get_dependencies"_hs))
+				{
+					vector<string> dependencies;
+					reflection_meta->invoke_function<void, void*, vector<string>&>("get_dependencies"_hs, loader, dependencies);
+
+					for (const string& str : dependencies)
+					{
+					}
+				}
+
 				// Save to cache.
 				ostream out_stream;
 				reflection_meta->invoke_function<void*, void*, ostream&>("serialize"_hs, loader, out_stream);
@@ -136,9 +214,6 @@ namespace SFG
 			if (reflection_meta->has_function("create_from_raw"_hs))
 			{
 				const resource_handle handle = reflection_meta->invoke_function<resource_handle, void*, world&>("create_from_raw"_hs, loader, _world);
-
-				if (reflection_meta->has_function("upload"_hs))
-					reflection_meta->invoke_function<void*, world&, resource_handle>("upload"_hs, _world, handle);
 			}
 		}
 
@@ -153,11 +228,38 @@ namespace SFG
 			if (reflection_meta->has_function("create_from_raw_2"_hs))
 			{
 				const resource_handle handle = reflection_meta->invoke_function<resource_handle, void*, world&>("create_from_raw_2"_hs, loader, _world);
-				if (reflection_meta->has_function("upload"_hs))
-					reflection_meta->invoke_function<void*, world&, resource_handle>("upload"_hs, _world, handle);
 			}
 		}
 	}
+
+	void world_resources::add_resource_watch(string_id type, const char* base_path, const vector<string>& dependency_paths)
+	{
+		for (const resource_watch& w : _watched_resources)
+		{
+			if (w.base_path.compare(base_path) == 0)
+				return;
+		}
+
+		const uint16 id = static_cast<uint16>(_watched_resources.size());
+		_watched_resources.push_back({base_path, type});
+
+		_file_watch.add_path(base_path, id);
+
+		for (const string& p : dependency_paths)
+			_file_watch.add_path(p.c_str(), id);
+	}
+
+	void world_resources::on_watched_resource_modified(const char* path, string_id last_modified, uint16 id)
+	{
+		SFG_ASSERT(id < _watched_resources.size());
+		resource_watch& w = _watched_resources[id];
+
+		meta& m = reflection::get().resolve(w.type_id);
+		m.invoke_function<void, world&>("destroy"_hs, _world);
+		_modified_resources.push_back(id);
+	}
+
+#endif
 
 	void world_resources::load_resources(istream& stream)
 	{
@@ -191,5 +293,4 @@ namespace SFG
 		}
 	}
 
-#endif
 }

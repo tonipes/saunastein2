@@ -53,7 +53,7 @@ namespace SFG
 		_mesh_data.big_index_buffer.destroy();
 	}
 
-	void world_resource_uploads::upload(chunk_allocator32& resources_aux, texture_queue* tq, buffer_queue* bq, uint8 data_index, uint8 frame_index)
+	void world_resource_uploads::upload(chunk_allocator32& resources_aux, texture_queue* tq, buffer_queue* bq, uint8 frame_index)
 	{
 		for (texture* t : _pending_textures)
 		{
@@ -156,7 +156,7 @@ namespace SFG
 		{
 			for (texture* txt : _uploaded_textures)
 			{
-				txt->destroy_cpu();
+				// txt->destroy_cpu();
 			}
 			_uploaded_textures.clear();
 		}

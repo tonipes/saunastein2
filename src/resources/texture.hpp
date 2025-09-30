@@ -21,6 +21,9 @@ namespace SFG
 
 	extern texture_reflection g_texture_reflection;
 
+	class render_event_stream;
+	class world_resources;
+
 	class texture
 	{
 	public:
@@ -32,9 +35,9 @@ namespace SFG
 
 		~texture();
 
-		void   create_from_raw(const texture_raw& raw);
-		void   destroy_cpu();
-		void   destroy();
+		void create_from_raw(const texture_raw& raw);
+		void push_create_event(render_event_stream& stream, resource_handle handle);
+
 		uint8  get_bpp() const;
 		uint16 get_width() const;
 		uint16 get_height() const;
@@ -61,15 +64,17 @@ namespace SFG
 		}
 
 	private:
-		void create_intermediate();
-		void destroy_intermediate();
-
-	private:
 		friend struct texture_raw;
+
+		static constexpr size_t NAME_SIZE = 64;
+
 		static_vector<texture_buffer, MAX_TEXTURE_MIPS> _cpu_buffers;
-		gfx_id											_hw			  = 0;
-		gfx_id											_intermediate = 0;
-		bitmask<uint8>									_flags		  = 0;
+		uint8											_texture_format = 0;
+		char											_name[NAME_SIZE];
+
+		gfx_id		   _hw			 = 0;
+		gfx_id		   _intermediate = 0;
+		bitmask<uint8> _flags		 = 0;
 	};
 
 	REGISTER_TYPE(texture, resource_type::resource_type_texture);

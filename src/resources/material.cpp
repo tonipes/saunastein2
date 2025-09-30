@@ -10,6 +10,7 @@
 #include "resources/texture.hpp"
 #include "resources/shader.hpp"
 #include "reflection/reflection.hpp"
+#include "gfx/event_stream/render_event_stream.hpp"
 
 namespace SFG
 {
@@ -41,7 +42,7 @@ namespace SFG
 		m.add_function<resource_handle, void*, world&, string_id>("create_from_raw"_hs, [](void* raw, world& w, string_id sid) -> resource_handle {
 			material_raw*	 raw_ptr   = reinterpret_cast<material_raw*>(raw);
 			world_resources& resources = w.get_resources();
-			resource_handle	 handle	   = resources.create_resource<material>(sid);
+			resource_handle	 handle	   = resources.add_resource<material>(sid);
 			material&		 res	   = resources.get_resource<material>(handle);
 			res.create_from_raw(*raw_ptr, resources);
 			delete raw_ptr;
@@ -56,6 +57,7 @@ namespace SFG
 		m.add_function<void, world&, resource_handle>("destroy"_hs, [](world& w, resource_handle h) -> void {
 			world_resources& res = w.get_resources();
 			res.get_resource<material>(h).destroy();
+			res.remove_resource<material>(h);
 		});
 
 		m.add_function<void, void*, ostream&>("serialize"_hs, [](void* loader, ostream& stream) -> void {
@@ -122,6 +124,18 @@ namespace SFG
 			}
 			backend->bind_group_update_pointer(_bind_groups[i], 0, updates);
 		}
+	}
+
+	void material::push_create_event(render_event_stream& stream, resource_handle handle)
+	{
+		stream.add_event({
+			.create_callback =
+				[data = this->_material_data](void* storage) {
+
+				},
+			.handle		= handle,
+			.event_type = render_event_type::render_event_create_material,
+		});
 	}
 
 	void material::destroy()

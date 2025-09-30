@@ -46,12 +46,12 @@ namespace SFG
 
 		void on_render_joined();
 		void populate_render_data(uint8 index, double interpolation);
-		void upload(uint8 data_index, uint8 frame_index);
-		void render(uint8 data_index, uint8 frame_index, gfx_id layout_global, gfx_id bind_group_global, uint64 prev_copy, uint64 next_copy, gfx_id sem_copy);
+		void upload(uint8 frame_index);
+		void render(uint8 frame_index, gfx_id layout_global, gfx_id bind_group_global, uint64 prev_copy, uint64 next_copy, gfx_id sem_copy);
 		void resize(const vector2ui16& size);
 
-		uint16 create_gpu_entity(uint8 data_index, const gpu_entity& e);
-		uint16 create_renderable(uint8 data_index, const renderable_object& e);
+		uint16 create_gpu_entity(const gpu_entity& e);
+		uint16 create_renderable(const renderable_object& e);
 
 		inline gfx_id get_output(uint8 frame_index)
 		{
@@ -76,10 +76,10 @@ namespace SFG
 		void send_barriers(gfx_id cmd_list, static_vector<barrier, MAX_BARRIERS>& barriers);
 
 	private:
-		texture_queue*	  _texture_queue					= nullptr;
-		buffer_queue*	  _buffer_queue						= nullptr;
-		world*			  _world							= nullptr;
-		world_render_data _render_data[THREAD_BUFFER_COUNT] = {};
+		texture_queue*	  _texture_queue = nullptr;
+		buffer_queue*	  _buffer_queue	 = nullptr;
+		world*			  _world		 = nullptr;
+		world_render_data _render_data	 = {};
 
 		render_pass_opaque			 _pass_opaque		 = {};
 		render_pass_lighting_forward _pass_lighting_fw	 = {};

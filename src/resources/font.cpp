@@ -36,7 +36,7 @@ namespace SFG
 		m.add_function<resource_handle, void*, world&, string_id>("create_from_raw"_hs, [](void* raw, world& w, string_id sid) -> resource_handle {
 			font_raw*		 raw_ptr   = reinterpret_cast<font_raw*>(raw);
 			world_resources& resources = w.get_resources();
-			resource_handle	 handle	   = resources.create_resource<font>(sid);
+			resource_handle	 handle	   = resources.add_resource<font>(sid);
 			font&			 res	   = resources.get_resource<font>(handle);
 			res.create_from_raw(*raw_ptr, w.get_font_manager());
 			delete raw_ptr;
@@ -48,6 +48,7 @@ namespace SFG
 		m.add_function<void, world&, resource_handle>("destroy"_hs, [](world& w, resource_handle h) -> void {
 			world_resources& res = w.get_resources();
 			res.get_resource<font>(h).destroy(w.get_font_manager());
+			res.remove_resource<font>(h);
 		});
 
 		m.add_function<void, void*, ostream&>("serialize"_hs, [](void* loader, ostream& stream) -> void {

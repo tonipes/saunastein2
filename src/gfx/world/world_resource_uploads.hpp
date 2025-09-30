@@ -41,7 +41,7 @@ namespace SFG
 		void add_pending_texture(texture* txt);
 		void add_pending_material(material* matk);
 		void add_pending_mesh(mesh* mesh);
-		void upload(chunk_allocator32& resources_aux, texture_queue* tq, buffer_queue* bq, uint8 data_index, uint8 frame_index);
+		void upload(chunk_allocator32& resources_aux, texture_queue* tq, buffer_queue* bq, uint8 frame_index);
 		void check_uploads(bool force = false);
 
 		inline buffer& get_big_vertex_buffer()

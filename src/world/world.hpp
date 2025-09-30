@@ -18,6 +18,7 @@ namespace SFG
 	struct world_raw;
 
 	class world_renderer;
+	class render_event_stream;
 
 	class world
 	{
@@ -36,8 +37,10 @@ namespace SFG
 		void uninit();
 		void create_from_raw(world_raw& raw);
 
-		void		  tick(uint8 data_index, const vector2ui16& res, float dt);
-		void		  pre_render(uint8 data_index, const vector2ui16& res);
+		void tick(const vector2ui16& res, float dt);
+		void pre_render(const vector2ui16& res);
+		void push_render_events(render_event_stream& stream, double interpolation);
+
 		entity_handle add_model_to_world(resource_handle model, resource_handle* materials, uint32 material_size);
 
 		void load_debug();

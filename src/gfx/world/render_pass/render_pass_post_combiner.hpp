@@ -43,8 +43,8 @@ namespace SFG
 		void init(const vector2ui16& size, uint8* alloc, size_t alloc_size, gfx_id* entity_buffers, gfx_id* bone_buffers);
 		void uninit();
 
-		void populate_render_data(world* w, uint8 data_index);
-		void render(uint8 data_index, uint8 frame_index, const vector2ui16& size, gfx_id global_layout, gfx_id global_group);
+		void populate_render_data(world* w);
+		void render(uint8 frame_index, const vector2ui16& size, gfx_id global_layout, gfx_id global_group);
 		void resize(const vector2ui16& size);
 
 		inline semaphore_data& get_semaphore(uint8 frame_index)
@@ -64,7 +64,7 @@ namespace SFG
 	private:
 		render_pass	   _pass = {};
 		per_frame_data _pfd[FRAMES_IN_FLIGHT];
-		render_data	   _render_data[THREAD_BUFFER_COUNT];
+		render_data	   _render_data;
 		bump_allocator _alloc = {};
 	};
 }

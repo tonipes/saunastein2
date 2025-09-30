@@ -21,6 +21,8 @@ namespace SFG
 
 	extern material_reflection g_material_reflection;
 
+	class render_event_stream;
+
 	class material
 	{
 	public:
@@ -31,6 +33,7 @@ namespace SFG
 		};
 
 		void   create_from_raw(const material_raw& raw, world_resources& resources);
+		void   push_create_event(render_event_stream& stream, resource_handle handle);
 		void   destroy();
 		gfx_id get_shader(world_resources& resources, uint8 flags_to_match) const;
 

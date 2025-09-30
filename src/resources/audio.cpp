@@ -37,7 +37,7 @@ namespace SFG
 		m.add_function<resource_handle, void*, world&, string_id>("create_from_raw"_hs, [](void* raw, world& w, string_id sid) -> resource_handle {
 			audio_raw*		 raw_ptr   = reinterpret_cast<audio_raw*>(raw);
 			world_resources& resources = w.get_resources();
-			resource_handle	 handle	   = resources.create_resource<audio>(sid);
+			resource_handle	 handle	   = resources.add_resource<audio>(sid);
 			audio&			 res	   = resources.get_resource<audio>(handle);
 			res.create_from_raw(*raw_ptr, resources.get_aux(), nullptr);
 			delete raw_ptr;
@@ -49,6 +49,7 @@ namespace SFG
 		m.add_function<void, world&, resource_handle>("destroy"_hs, [](world& w, resource_handle h) -> void {
 			world_resources& res = w.get_resources();
 			res.get_resource<audio>(h).destroy(res.get_aux());
+			res.remove_resource<audio>(h);
 		});
 
 		m.add_function<void, void*, ostream&>("serialize"_hs, [](void* loader, ostream& stream) -> void {

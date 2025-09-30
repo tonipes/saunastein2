@@ -27,14 +27,16 @@ namespace SFG
 #define USE_DEBUG_CONTROLLER
 #endif
 
+	class render_event_stream;
+
 	class renderer
 	{
 	public:
 		void init(window* main_window, world* world);
 		void uninit();
 		void wait_backend();
-		void populate_render_data(uint8 index, double interpolation);
-		void render(uint8 index, const vector2ui16& size);
+		void fetch_render_events(render_event_stream& stream);
+		void render(const vector2ui16& size);
 		bool on_window_event(const window_event& ev);
 		void on_window_resize(const vector2ui16& size);
 

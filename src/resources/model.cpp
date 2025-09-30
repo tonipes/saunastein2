@@ -44,7 +44,7 @@ namespace SFG
 		m.add_function<resource_handle, void*, world&, string_id>("create_from_raw"_hs, [](void* raw, world& w, string_id sid) -> resource_handle {
 			model_raw*		   raw_ptr	 = reinterpret_cast<model_raw*>(raw);
 			world_resources&   resources = w.get_resources();
-			resource_handle	   handle	 = resources.create_resource<model>(sid);
+			resource_handle	   handle	 = resources.add_resource<model>(sid);
 			model&			   res		 = resources.get_resource<model>(handle);
 			chunk_allocator32& aux		 = resources.get_aux();
 
@@ -67,6 +67,7 @@ namespace SFG
 		m.add_function<void, world&, resource_handle>("destroy"_hs, [](world& w, resource_handle h) -> void {
 			world_resources& res = w.get_resources();
 			res.get_resource<model>(h).destroy(res, res.get_aux());
+			res.remove_resource<model>(h);
 		});
 
 		m.add_function<void, void*, ostream&>("serialize"_hs, [](void* loader, ostream& stream) -> void {
@@ -113,7 +114,7 @@ namespace SFG
 			for (uint16 i = 0; i < mesh_count; i++)
 			{
 				const mesh_raw&		  loaded_mesh = raw.loaded_meshes[i];
-				const resource_handle handle	  = resources.create_resource<mesh>(loaded_mesh.sid);
+				const resource_handle handle	  = resources.add_resource<mesh>(loaded_mesh.sid);
 				meshes_ptr[i]					  = handle;
 
 				mesh& m = resources.get_resource<mesh>(handle);
@@ -129,7 +130,7 @@ namespace SFG
 			for (uint16 i = 0; i < skins_count; i++)
 			{
 				const skin_raw&		  loaded_skin = raw.loaded_skins[i];
-				const resource_handle handle	  = resources.create_resource<skin>(loaded_skin.sid);
+				const resource_handle handle	  = resources.add_resource<skin>(loaded_skin.sid);
 				skins_ptr[i]					  = handle;
 				skin& created					  = resources.get_resource<skin>(handle);
 				created.create_from_raw(loaded_skin, alloc);
@@ -144,7 +145,7 @@ namespace SFG
 			for (uint16 i = 0; i < anims_count; i++)
 			{
 				const animation_raw&  loaded_anim = raw.loaded_animations[i];
-				const resource_handle handle	  = resources.create_resource<animation>(loaded_anim.sid);
+				const resource_handle handle	  = resources.add_resource<animation>(loaded_anim.sid);
 				anims_ptr[i]					  = handle;
 				animation& created				  = resources.get_resource<animation>(handle);
 				created.create_from_raw(loaded_anim, alloc);
@@ -183,7 +184,7 @@ namespace SFG
 				const resource_handle handle = ptr[i];
 				mesh&				  m		 = resources.get_resource<mesh>(handle);
 				m.destroy(alloc);
-				resources.destroy_resource<mesh>(handle);
+				resources.remove_resource<mesh>(handle);
 			}
 
 			alloc.free(_created_meshes);
@@ -198,7 +199,7 @@ namespace SFG
 				const resource_handle handle = skins_ptr[i];
 				skin&				  sk	 = resources.get_resource<skin>(handle);
 				sk.destroy(alloc);
-				resources.destroy_resource<skin>(handle);
+				resources.remove_resource<skin>(handle);
 			}
 
 			alloc.free(_created_skins);
@@ -213,7 +214,7 @@ namespace SFG
 				const resource_handle handle = anims_ptr[i];
 				animation&			  anim	 = resources.get_resource<animation>(handle);
 				anim.destroy(alloc);
-				resources.destroy_resource<animation>(handle);
+				resources.remove_resource<animation>(handle);
 			}
 
 			alloc.free(_created_anims);

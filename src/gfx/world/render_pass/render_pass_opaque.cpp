@@ -63,6 +63,8 @@ namespace SFG
 		destroy_textures();
 	}
 
+	/*
+
 	void render_pass_opaque::populate_render_data(world* w, const view& v, const world_render_data& wd, uint8 data_index)
 	{
 		render_data& rd = _render_data[data_index];
@@ -97,11 +99,11 @@ namespace SFG
 			});
 		}
 	}
-
-	void render_pass_opaque::upload(world* w, buffer_queue* queue, uint8 data_index, uint8 frame_index)
+	*/
+	void render_pass_opaque::upload(world* w, buffer_queue* queue, uint8 frame_index)
 	{
 		per_frame_data& pfd = _pfd[frame_index];
-		render_data&	rd	= _render_data[data_index];
+		render_data&	rd	= _render_data;
 
 		ubo ubo_data = {
 			.view	   = rd.view,
@@ -113,11 +115,11 @@ namespace SFG
 		queue->add_request({.buffer = &pfd.ubo});
 	}
 
-	void render_pass_opaque::render(uint8 data_index, uint8 frame_index, const vector2ui16& size, gfx_id global_layout, gfx_id global_group)
+	void render_pass_opaque::render(uint8 frame_index, const vector2ui16& size, gfx_id global_layout, gfx_id global_group)
 	{
 		gfx_backend*	backend		  = gfx_backend::get();
 		per_frame_data& pfd			  = _pfd[frame_index];
-		render_data&	rd			  = _render_data[data_index];
+		render_data&	rd			  = _render_data;
 		const gfx_id*	textures	  = pfd.color_textures.data();
 		const gfx_id	cmd_buffer	  = pfd.cmd_buffer;
 		const gfx_id	depth_texture = pfd.depth_texture;

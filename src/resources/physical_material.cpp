@@ -34,7 +34,7 @@ namespace SFG
 		m.add_function<resource_handle, void*, world&, string_id>("create_from_raw"_hs, [](void* raw, world& w, string_id sid) -> resource_handle {
 			physical_material_raw* raw_ptr	 = reinterpret_cast<physical_material_raw*>(raw);
 			world_resources&	   resources = w.get_resources();
-			resource_handle		   handle	 = resources.create_resource<physical_material>(sid);
+			resource_handle		   handle	 = resources.add_resource<physical_material>(sid);
 			physical_material&	   res		 = resources.get_resource<physical_material>(handle);
 			res.create_from_raw(*raw_ptr);
 			delete raw_ptr;
@@ -46,6 +46,7 @@ namespace SFG
 		m.add_function<void, world&, resource_handle>("destroy"_hs, [](world& w, resource_handle h) -> void {
 			world_resources& res = w.get_resources();
 			res.get_resource<physical_material>(h).destroy();
+			res.remove_resource<physical_material>(h);
 		});
 
 		m.add_function<void, void*, ostream&>("serialize"_hs, [](void* loader, ostream& stream) -> void {

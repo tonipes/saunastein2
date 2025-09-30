@@ -108,6 +108,10 @@ namespace SFG
 		}
 	}
 
+	void mesh::push_create_event(render_event_stream& stream, resource_handle handle)
+	{
+	}
+
 	void mesh::destroy(chunk_allocator32& alloc)
 	{
 		if (_name.size != 0)

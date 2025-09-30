@@ -5,12 +5,16 @@
 #include "common/type_id.hpp"
 #include "data/hash_map.hpp"
 #include "data/static_vector.hpp"
-#include "data/string.hpp"
 #include "memory/pool_allocator16.hpp"
 #include "memory/chunk_allocator.hpp"
 #include "common/string_id.hpp"
 #include "common_world.hpp"
 #include "resources/common_resources.hpp"
+
+#ifdef SFG_TOOLMODE
+#include "io/simple_file_watcher.hpp"
+#include "data/string.hpp"
+#endif
 
 namespace SFG
 {
@@ -24,16 +28,31 @@ namespace SFG
 	};
 
 	class istream;
+	class texture;
+	class material;
+	class texture_sampler;
+	class mesh;
+	class render_event_stream;
 
 	class world_resources
 	{
 	public:
+		struct pending_resource_event
+		{
+			void*			res		   = nullptr;
+			resource_handle handle	   = {};
+			string_id		type_id	   = 0;
+			uint8			is_destroy = 0;
+		};
+
 		world_resources() = delete;
 		world_resources(world& w);
 		~world_resources();
 
 		void init();
 		void uninit();
+		void tick();
+		void push_render_events(render_event_stream& stream);
 
 #ifdef SFG_TOOLMODE
 		void load_resources(const vector<string>& relative_paths, bool skip_cache = false);
@@ -41,7 +60,7 @@ namespace SFG
 
 		void load_resources(istream& in);
 
-		template <typename T> void destroy_resource(resource_handle handle)
+		template <typename T> void remove_resource(resource_handle handle)
 		{
 			SFG_ASSERT(type_id<T>::index < _storages.size());
 			resource_storage& stg = _storages[type_id<T>::index];
@@ -55,7 +74,7 @@ namespace SFG
 			return stg.by_hashes.at(hash);
 		}
 
-		template <typename T> resource_handle create_resource(string_id hash)
+		template <typename T> resource_handle add_resource(string_id hash)
 		{
 			SFG_ASSERT(type_id<T>::index < _storages.size());
 			resource_storage&	  stg	 = _storages[type_id<T>::index];
@@ -100,10 +119,38 @@ namespace SFG
 			return _aux_memory;
 		}
 
+		inline void add_pending_resource_event(const pending_resource_event& ev)
+		{
+			_pending_resource_events.push_back(ev);
+			_pending_resource_event_count++;
+		}
+
 	private:
-		world& _world;
+#ifdef SFG_TOOLMODE
+
+		struct resource_watch
+		{
+			string	  base_path = "";
+			string_id type_id	= 0;
+		};
+
+		void add_resource_watch(string_id type, const char* base_path, const vector<string>& dependency_paths);
+		void on_watched_resource_modified(const char* path, string_id last_modified, uint16 id);
+#endif
+
+	private:
+		world&						   _world;
+		uint32						   _pending_resource_event_count = 0;
+		vector<pending_resource_event> _pending_resource_events;
 
 		mutable static_vector<resource_storage, resource_type_allowed_max> _storages;
 		chunk_allocator32												   _aux_memory;
+
+#ifdef SFG_TOOLMODE
+		simple_file_watcher	   _file_watch;
+		vector<resource_watch> _watched_resources;
+		vector<uint16>		   _modified_resources;
+		vector<string>		   _reuse_reload_resources;
+#endif
 	};
 }

@@ -55,15 +55,15 @@ namespace SFG
 		destroy_textures();
 	}
 
-	void render_pass_post_combiner::populate_render_data(world* w, uint8 data_index)
+	void render_pass_post_combiner::populate_render_data(world* w)
 	{
 	}
 
-	void render_pass_post_combiner::render(uint8 data_index, uint8 frame_index, const vector2ui16& size, gfx_id global_layout, gfx_id global_group)
+	void render_pass_post_combiner::render(uint8 frame_index, const vector2ui16& size, gfx_id global_layout, gfx_id global_group)
 	{
 		gfx_backend*	backend	   = gfx_backend::get();
 		per_frame_data& pfd		   = _pfd[frame_index];
-		render_data&	rd		   = _render_data[data_index];
+		render_data&	rd		   = _render_data;
 		const gfx_id*	textures   = pfd.color_textures.data();
 		const gfx_id	cmd_buffer = pfd.cmd_buffer;
 
