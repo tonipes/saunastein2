@@ -55,17 +55,17 @@ namespace SFG
 
 	void world_resource_uploads::upload(chunk_allocator32& resources_aux, texture_queue* tq, buffer_queue* bq, uint8 frame_index)
 	{
-		for (texture* t : _pending_textures)
-		{
-			tq->add_request({
-				.texture	  = t->get_hw(),
-				.intermediate = t->get_intermediate(),
-				.buffers	  = t->get_cpu(),
-				.buffer_count = t->get_cpu_count(),
-			});
-			_uploaded_textures.push_back(t);
-			_last_upload_frame = frame_info::get_render_frame();
-		}
+		// for (texture* t : _pending_textures)
+		// {
+		// 	tq->add_request({
+		// 		.texture	  = t->get_hw(),
+		// 		.intermediate = t->get_intermediate(),
+		// 		.buffers	  = t->get_cpu(),
+		// 		.buffer_count = t->get_cpu_count(),
+		// 	});
+		// 	_uploaded_textures.push_back(t);
+		// 	_last_upload_frame = frame_info::get_render_frame();
+		// }
 
 		for (mesh* m : _pending_meshes)
 		{

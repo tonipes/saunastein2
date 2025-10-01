@@ -804,7 +804,6 @@ namespace SFG
 			   .debug_name = "inter_buffer",
 		   });
 
-		ref.res_alive  = true;
 		ref.bind_group = backend->create_empty_bind_group();
 		backend->bind_group_add_pointer(ref.bind_group, rpi_table_material, 3, false);
 		backend->bind_group_update_pointer(ref.bind_group, 0, {{.resource = ref.texture, .view = 0, .pointer_index = upi_material_texture0, .type = binding_type::texture_binding}});
@@ -832,21 +831,16 @@ namespace SFG
 		ref.buffer.size		 = vector2ui16(static_cast<uint16>(atlas_width), static_cast<uint16>(atlas_height));
 		ref.buffer.bpp		 = bpp;
 
-		_gfx_data.texture_queue->add_request({
+		texture_queue::texture_request req = {
 			.texture	  = ref.texture,
 			.intermediate = ref.intermediate_buffer,
-			.buffers	  = &ref.buffer,
-			.buffer_count = 1,
-		});
-		ref.res_alive = true;
+		};
+		req.buffers.push_back(ref.buffer);
+
+		_gfx_data.texture_queue->add_request(req);
 
 		const int32 index  = std::distance(it, _gfx_data.atlases.begin());
 		uint8*		pixels = ref.buffer.pixels;
-		_gfx_data.texture_queue->subscribe_flush_callback([index, this, pixels]() {
-			atlas_ref& ref = _gfx_data.atlases[index];
-			ref.res_alive  = false;
-			delete[] pixels;
-		});
 	}
 
 	void debug_controller::on_atlas_destroyed(vekt::atlas* atlas)
@@ -863,10 +857,6 @@ namespace SFG
 
 		backend->destroy_resource(ref.intermediate_buffer);
 
-		if (ref.res_alive)
-		{
-			delete[] ref.buffer.pixels;
-		}
 		_gfx_data.atlases.erase(it);
 	}
 

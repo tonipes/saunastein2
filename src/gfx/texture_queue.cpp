@@ -4,29 +4,49 @@
 #include "data/vector_util.hpp"
 #include "gfx/backend/backend.hpp"
 #include "gfx/common/commands.hpp"
+#include "gfx/common/texture_buffer.hpp"
+#include "common/system_info.hpp"
 
 namespace SFG
 {
 
 	void texture_queue::init()
 	{
-		_callbacks.reserve(256);
 		_requests.reserve(256);
+		_flushed_requests.reserve(256);
 	}
 
 	void texture_queue::uninit()
 	{
+		clear_flushed_textures();
 	}
 
-	void texture_queue::add_request(const texture_request& req)
+	void texture_queue::clear_flushed_textures()
 	{
-		auto it = vector_util::find_if(_requests, [&](const texture_request& existing) -> bool { return req.texture == existing.texture; });
+		for (const texture_request& r : _flushed_requests)
+		{
+			for (const texture_buffer& b : r.buffers)
+				delete[] b.pixels;
+		}
+
+		_flushed_requests.clear();
+	}
+
+	void texture_queue::add_request(const static_vector<texture_buffer, MAX_TEXTURE_MIPS>& buffers, gfx_id texture, gfx_id intermediate)
+	{
+		auto it = vector_util::find_if(_requests, [&](const texture_request& existing) -> bool { return texture == existing.texture; });
 		if (it != _requests.end())
 		{
-			it->buffers		 = req.buffers;
-			it->buffer_count = req.buffer_count;
+			it->buffers = buffers;
 			return;
 		}
+
+		const texture_request req = {
+			.buffers	  = buffers,
+			.texture	  = texture,
+			.intermediate = intermediate,
+			.added_frame  = frame_info::get_render_frame(),
+		};
 
 		_requests.push_back(req);
 	}
@@ -35,35 +55,47 @@ namespace SFG
 	{
 		gfx_backend* backend = gfx_backend::get();
 
-		for (const texture_request& buf : _requests)
+		uint8 all_clear = 1;
+		for (texture_request& r : _flushed_requests)
+		{
+			if (r.cleared == 1)
+				continue;
+
+			if (r.added_frame + FRAMES_IN_FLIGHT <= frame_info::get_render_frame())
+			{
+				all_clear = 0;
+				continue;
+			}
+
+			for (const texture_buffer& b : r.buffers)
+				delete[] b.pixels;
+			r.cleared = 1;
+		}
+
+		if (all_clear)
+			_flushed_requests.resize(0);
+
+		for (texture_request& buf : _requests)
 		{
 			backend->cmd_copy_buffer_to_texture(cmd_list,
 												{
-													.textures			 = buf.buffers,
+													.textures			 = buf.buffers.data(),
 													.destination_texture = buf.texture,
 													.intermediate_buffer = buf.intermediate,
-													.mip_levels			 = buf.buffer_count,
+													.mip_levels			 = static_cast<uint8>(buf.buffers.size()),
 													.destination_slice	 = 0,
 
 												});
 		}
 
+		_flushed_requests.insert(_flushed_requests.end(), std::make_move_iterator(_requests.begin()), std::make_move_iterator(_requests.end()));
+
 		_requests.resize(0);
-
-		for (flush_callback cb : _callbacks)
-			cb();
-
-		_callbacks.resize(0);
 	}
 
 	bool texture_queue::empty() const
 	{
 		return _requests.empty();
-	}
-
-	void texture_queue::subscribe_flush_callback(flush_callback&& cb)
-	{
-		_callbacks.push_back(std::forward<flush_callback>(cb));
 	}
 
 } // namespace Lina

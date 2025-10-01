@@ -30,7 +30,7 @@ namespace SFG
 		};
 
 	public:
-		world();
+		world(render_event_stream& rstream);
 		~world();
 
 		void init();
@@ -38,8 +38,8 @@ namespace SFG
 		void create_from_raw(world_raw& raw);
 
 		void tick(const vector2ui16& res, float dt);
+		void post_tick(double interpolation);
 		void pre_render(const vector2ui16& res);
-		void push_render_events(render_event_stream& stream, double interpolation);
 
 		entity_handle add_model_to_world(resource_handle model, resource_handle* materials, uint32 material_size);
 
@@ -91,7 +91,13 @@ namespace SFG
 			return _vekt_fonts;
 		}
 
+		inline render_event_stream& get_render_stream()
+		{
+			return _render_stream;
+		}
+
 	private:
+		render_event_stream&			 _render_stream;
 		world_renderer*					 _world_renderer = nullptr;
 		world_resources					 _resources;
 		text_allocator<MAX_ENTITIES * 5> _txt_allocator;

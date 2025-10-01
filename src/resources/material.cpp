@@ -114,28 +114,28 @@ namespace SFG
 				.type		   = binding_type::ubo,
 			});
 
-			for (uint8 k = 0; k < texture_count; k++)
-			{
-				updates.push_back({
-					.resource	   = resources.get_resource_by_hash<texture>(raw.textures[k]).get_hw(),
-					.pointer_index = static_cast<uint8>(upi_material_texture0 + k),
-					.type		   = binding_type::texture_binding,
-				});
-			}
+			// for (uint8 k = 0; k < texture_count; k++)
+			// {
+			// 	updates.push_back({
+			// 		.resource	   = resources.get_resource_by_hash<texture>(raw.textures[k]).get_hw(),
+			// 		.pointer_index = static_cast<uint8>(upi_material_texture0 + k),
+			// 		.type		   = binding_type::texture_binding,
+			// 	});
+			// }
 			backend->bind_group_update_pointer(_bind_groups[i], 0, updates);
 		}
 	}
 
 	void material::push_create_event(render_event_stream& stream, resource_handle handle)
 	{
-		stream.add_event({
-			.create_callback =
-				[data = this->_material_data](void* storage) {
-
-				},
-			.handle		= handle,
-			.event_type = render_event_type::render_event_create_material,
-		});
+		// stream.add_event({
+		// 	.create_callback =
+		// 		[data = this->_material_data](void* storage) {
+		//
+		// 		},
+		// 	.handle		= handle,
+		// 	.event_type = render_event_type::render_event_create_material,
+		// });
 	}
 
 	void material::destroy()

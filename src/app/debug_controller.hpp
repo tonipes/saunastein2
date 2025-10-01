@@ -129,7 +129,6 @@ namespace SFG
 			gfx_id		   bind_group		   = 0;
 			gfx_id		   intermediate_buffer = 0;
 			texture_buffer buffer			   = {};
-			uint8		   res_alive		   = false;
 		};
 
 		struct shaders

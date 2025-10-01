@@ -5,7 +5,7 @@
 #include "gfx/buffer.hpp"
 #include "data/static_vector.hpp"
 #include "data/atomic.hpp"
-#include "world/common_world.hpp"
+#include "resources/common_resources.hpp"
 
 namespace SFG
 {

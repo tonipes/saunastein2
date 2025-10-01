@@ -96,43 +96,6 @@ namespace SFG
 #endif
 	}
 
-	void world_resources::push_render_events(render_event_stream& stream)
-	{
-		if (_pending_resource_event_count == 0)
-			return;
-
-		for (const pending_resource_event& ev : _pending_resource_events)
-		{
-			if (ev.type_id == type_id<texture>::value)
-			{
-				texture& res = get_resource<texture>(ev.handle);
-				if (ev.is_destroy)
-					res.push_create_event(stream, ev.handle);
-				else
-				{
-					stream.add_event({
-						.handle		= ev.handle,
-						.event_type = render_event_type::render_event_destroy_texture,
-					});
-				}
-			}
-			if (ev.type_id == type_id<material>::value)
-			{
-			}
-			if (ev.type_id == type_id<shader>::value)
-			{
-			}
-			if (ev.type_id == type_id<mesh>::value)
-			{
-			}
-			if (ev.type_id == type_id<texture_sampler>::value)
-			{
-			}
-		}
-
-		_pending_resource_event_count = 0;
-	}
-
 #ifdef SFG_TOOLMODE
 	void world_resources::load_resources(const vector<string>& relative_paths, bool skip_cache)
 	{

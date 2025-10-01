@@ -4,6 +4,7 @@
 #include "data/vector.hpp"
 #include "common/size_definitions.hpp"
 #include "gfx/common/gfx_constants.hpp"
+#include "data/static_vector.hpp"
 #include <functional>
 
 namespace SFG
@@ -12,27 +13,27 @@ namespace SFG
 
 	class texture_queue
 	{
-	public:
-		typedef std::function<void()> flush_callback;
-
+	private:
 		struct texture_request
 		{
-			gfx_id			texture		 = 0;
-			gfx_id			intermediate = 0;
-			texture_buffer* buffers		 = nullptr;
-			uint8			buffer_count = 0;
+			static_vector<texture_buffer, MAX_TEXTURE_MIPS> buffers;
+			gfx_id											texture		 = 0;
+			gfx_id											intermediate = 0;
+			uint64											added_frame	 = 0;
+			uint8											cleared		 = 0;
 		};
 
+	public:
 		void init();
 		void uninit();
+		void clear_flushed_textures();
 
-		void add_request(const texture_request& req);
+		void add_request(const static_vector<texture_buffer, MAX_TEXTURE_MIPS>& buffers, gfx_id texture, gfx_id intermediate);
 		void flush_all(gfx_id cmd);
 		bool empty() const;
-		void subscribe_flush_callback(flush_callback&& cb);
 
 	private:
-		vector<texture_request> _requests = {};
-		vector<flush_callback>	_callbacks;
+		vector<texture_request> _requests		  = {};
+		vector<texture_request> _flushed_requests = {};
 	};
 } // namespace Lina

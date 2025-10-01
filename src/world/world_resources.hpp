@@ -37,14 +37,6 @@ namespace SFG
 	class world_resources
 	{
 	public:
-		struct pending_resource_event
-		{
-			void*			res		   = nullptr;
-			resource_handle handle	   = {};
-			string_id		type_id	   = 0;
-			uint8			is_destroy = 0;
-		};
-
 		world_resources() = delete;
 		world_resources(world& w);
 		~world_resources();
@@ -52,7 +44,6 @@ namespace SFG
 		void init();
 		void uninit();
 		void tick();
-		void push_render_events(render_event_stream& stream);
 
 #ifdef SFG_TOOLMODE
 		void load_resources(const vector<string>& relative_paths, bool skip_cache = false);
@@ -119,12 +110,6 @@ namespace SFG
 			return _aux_memory;
 		}
 
-		inline void add_pending_resource_event(const pending_resource_event& ev)
-		{
-			_pending_resource_events.push_back(ev);
-			_pending_resource_event_count++;
-		}
-
 	private:
 #ifdef SFG_TOOLMODE
 
@@ -139,9 +124,7 @@ namespace SFG
 #endif
 
 	private:
-		world&						   _world;
-		uint32						   _pending_resource_event_count = 0;
-		vector<pending_resource_event> _pending_resource_events;
+		world& _world;
 
 		mutable static_vector<resource_storage, resource_type_allowed_max> _storages;
 		chunk_allocator32												   _aux_memory;

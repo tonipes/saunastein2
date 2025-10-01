@@ -15,6 +15,11 @@ namespace SFG
 
 		void add_event(const render_event& ev);
 
+		inline moodycamel::ReaderWriterQueue<render_event, MAX_RENDER_EVENTS>& get_events()
+		{
+			return _events;
+		}
+
 	private:
 		moodycamel::ReaderWriterQueue<render_event, MAX_RENDER_EVENTS> _events;
 	};

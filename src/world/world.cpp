@@ -34,10 +34,10 @@ using json = nlohmann::json;
 namespace SFG
 {
 
-	world::world()
-		: _entity_manager(*this), _resources(*this){
+	world::world(render_event_stream& rstream)
+		: _entity_manager(*this), _resources(*this), _render_stream(rstream){
 
-								  };
+													 };
 
 	world::~world()
 	{
@@ -246,11 +246,11 @@ namespace SFG
 	{
 	}
 
-	void world::pre_render(const vector2ui16& res)
+	void world::post_tick(double interpolation)
 	{
 	}
 
-	void world::push_render_events(render_event_stream& stream, double interpolation)
+	void world::pre_render(const vector2ui16& res)
 	{
 	}
 

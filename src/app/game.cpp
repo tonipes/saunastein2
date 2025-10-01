@@ -34,7 +34,7 @@ namespace SFG
 		time::init();
 		debug_console::init();
 
-		_world = new world();
+		_world = new world(_render_stream);
 
 		_main_window = new window();
 		_main_window->create("Game", window_flags::wf_style_windowed, vector2i16(0, 0), render_target_size);
@@ -184,7 +184,7 @@ namespace SFG
 			}
 
 			const double interpolation = static_cast<double>(accumulator) / static_cast<double>(FIXED_INTERVAL_US);
-			_world->push_render_events(_render_stream, interpolation);
+			_world->post_tick(interpolation);
 			frame_info::s_frame.fetch_add(1);
 		}
 	}
@@ -283,6 +283,7 @@ namespace SFG
 #endif
 
 			_world->pre_render(screen_size);
+			_renderer->fetch_render_events(_render_stream);
 			_renderer->render(screen_size);
 			frame_info::s_render_frame.fetch_add(1);
 

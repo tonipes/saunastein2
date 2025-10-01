@@ -12,6 +12,7 @@
 #include "reflection/reflection.hpp"
 #include "world/world.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"
+#include "gfx/event_stream/render_event_storage_gfx.hpp"
 
 namespace SFG
 {
@@ -48,33 +49,22 @@ namespace SFG
 			texture&		 res	   = resources.get_resource<texture>(handle);
 			res.create_from_raw(*raw_ptr);
 
-			resources.add_pending_resource_event({
-				.res		= &res,
-				.handle		= handle,
-				.type_id	= type_id<texture>::value,
-				.is_destroy = 0,
-			});
+			render_event_stream& stream = w.get_render_stream();
+			res.push_create_event(stream, handle);
 
 			delete raw_ptr;
 
 			return handle;
 		});
 
-		m.add_function<void, world&>("init_resource_storage"_hs, [](world& w) -> void { w.get_resources().init_storage<texture>(MAX_WORLD_TEXTURES); });
-
 		m.add_function<void, world&, resource_handle>("destroy"_hs, [](world& w, resource_handle h) -> void {
 			world_resources& resources = w.get_resources();
 			texture&		 txt	   = resources.get_resource<texture>(h);
-
-			resources.add_pending_resource_event({
-				.res		= &txt,
-				.handle		= h,
-				.type_id	= type_id<texture>::value,
-				.is_destroy = 0,
-			});
-
+			txt.push_destroy_event(w.get_render_stream(), h);
 			resources.remove_resource<texture>(h);
 		});
+
+		m.add_function<void, world&>("init_resource_storage"_hs, [](world& w) -> void { w.get_resources().init_storage<texture>(MAX_WORLD_TEXTURES); });
 
 		m.add_function<void, void*, ostream&>("serialize"_hs, [](void* loader, ostream& stream) -> void {
 			texture_raw* raw = reinterpret_cast<texture_raw*>(loader);
@@ -92,24 +82,38 @@ namespace SFG
 	{
 		_cpu_buffers	= raw.buffers;
 		_texture_format = raw.texture_format;
-
-		const size_t sz = raw.name.size() > NAME_SIZE ? NAME_SIZE - 1 : raw.name.size();
-		SFG_MEMCPY(_name, raw.name.data(), sz);
-
-		if (sz != raw.name.size())
-		{
-			char nt = '\0';
-			SFG_MEMCPY(_name + sz - 1, &nt, 1);
-		}
-
+		strcpy(_name, raw.name.data());
 		SFG_ASSERT(_cpu_buffers.empty());
 	}
 
 	void texture::push_create_event(render_event_stream& stream, resource_handle handle)
 	{
-		const vector2ui16 size = vector2ui16(get_width(), get_height());
-		const format	  fmt  = static_cast<format>(_texture_format);
+		render_event ev = {
+			.header =
+				{
+					.handle		= handle,
+					.event_type = render_event_type::render_event_create_texture,
+				},
+		};
 
+		void* name = MALLOC(NAME_SIZE);
+		strcpy((char*)name, _name);
+
+		gfx_backend* backend	= gfx_backend::get();
+		uint32		 total_size = 0;
+		for (const texture_buffer& buf : _cpu_buffers)
+			total_size += backend->get_texture_size(buf.size.x, buf.size.y, buf.bpp);
+
+		render_event_storage_texture* stg = reinterpret_cast<render_event_storage_texture*>(ev.data);
+		stg->buffers					  = _cpu_buffers;
+		stg->format						  = _texture_format;
+		stg->size						  = _cpu_buffers[0].size;
+		stg->name						  = reinterpret_cast<const char*>(name);
+		stg->intermediate_size			  = backend->align_texture_size(total_size);
+		stream.add_event(ev);
+		_cpu_buffers.clear();
+
+		/*
 		stream.add_event({.create_callback =
 							  [size, fmt, buffers = this->_cpu_buffers, name = this->_name](void* data_storage) {
 								  gfx_backend* backend = gfx_backend::get();
@@ -151,31 +155,15 @@ namespace SFG
 							  },
 						  .handle	  = handle,
 						  .event_type = render_event_type::render_event_create_texture});
-
-		_cpu_buffers.clear();
-	}
-	uint8 texture::get_bpp() const
-	{
-		SFG_ASSERT(!_cpu_buffers.empty());
-		return _cpu_buffers[0].bpp;
+						  */
 	}
 
-	uint16 texture::get_width() const
+	void texture::push_destroy_event(render_event_stream& stream, resource_handle handle)
 	{
-		SFG_ASSERT(!_cpu_buffers.empty());
-		return _cpu_buffers[0].size.x;
-	}
-
-	uint16 texture::get_height() const
-	{
-		SFG_ASSERT(!_cpu_buffers.empty());
-		return _cpu_buffers[0].size.y;
-	}
-
-	gfx_id texture::get_hw() const
-	{
-		SFG_ASSERT(_flags.is_set(texture::flags::hw_exists));
-		return _hw;
+		stream.add_event({.header = {
+							  .handle	  = handle,
+							  .event_type = render_event_type::render_event_destroy_texture,
+						  }});
 	}
 
 }
