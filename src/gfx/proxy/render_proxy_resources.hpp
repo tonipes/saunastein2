@@ -12,6 +12,27 @@ namespace SFG
 		resource_handle handle		 = {};
 		gfx_id			hw			 = 0;
 		gfx_id			intermediate = 0;
+		uint8			active		 = 0;
+	};
+
+	struct render_proxy_material
+	{
+	};
+
+	struct render_proxy_shader
+	{
+	};
+
+	struct render_proxy_font
+	{
+	};
+
+	struct render_proxy_sampler
+	{
+	};
+
+	struct render_proxy_mesh
+	{
 	};
 
 }

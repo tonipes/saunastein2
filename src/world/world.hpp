@@ -71,9 +71,9 @@ namespace SFG
 			return _camera;
 		}
 
-		inline text_allocator<MAX_ENTITIES * 5>& get_text_allocator()
+		inline text_allocator get_text_allocator()
 		{
-			return _txt_allocator;
+			return _text_allocator;
 		}
 
 		inline world_renderer* get_renderer() const
@@ -97,13 +97,13 @@ namespace SFG
 		}
 
 	private:
-		render_event_stream&			 _render_stream;
-		world_renderer*					 _world_renderer = nullptr;
-		world_resources					 _resources;
-		text_allocator<MAX_ENTITIES * 5> _txt_allocator;
-		bitmask<uint8>					 _flags = 0;
-		entity_manager					 _entity_manager;
-		camera							 _camera	 = {};
-		vekt::font_manager				 _vekt_fonts = {};
+		render_event_stream& _render_stream;
+		world_renderer*		 _world_renderer = nullptr;
+		world_resources		 _resources;
+		text_allocator		 _text_allocator;
+		bitmask<uint8>		 _flags = 0;
+		entity_manager		 _entity_manager;
+		camera				 _camera	 = {};
+		vekt::font_manager	 _vekt_fonts = {};
 	};
 }

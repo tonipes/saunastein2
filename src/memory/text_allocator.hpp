@@ -3,15 +3,11 @@
 #pragma once
 
 #include "common/size_definitions.hpp"
-#include "memory.hpp"
-#include "io/assert.hpp"
 #include "data/vector.hpp"
-#include "data/vector_util.hpp"
-#include <cstring>
 
 namespace SFG
 {
-	template <size_t CAPACITY> class text_allocator
+	class text_allocator
 	{
 
 	private:
@@ -22,91 +18,18 @@ namespace SFG
 		};
 
 	public:
-		text_allocator() : _head(0)
-		{
-			SFG_MEMSET(_raw, 0, CAPACITY);
-			_free_list.reserve(CAPACITY);
-		}
+		text_allocator() : _head(0){};
 
-		const char* allocate(size_t len)
-		{
-			auto it = vector_util::find_if(_free_list, [len](const allocation& alloc) -> bool { return alloc.size > len; });
-			if (it != _free_list.end())
-			{
-				allocation& free = *it;
-				if (free.size == len)
-				{
-					_free_list.erase(it);
-					return free.ptr;
-				}
-				else
-				{
-					free.size -= len;
-					return free.ptr;
-				}
-			}
-
-			SFG_ASSERT(_head + len + 1 < CAPACITY);
-
-			char* allocated = &_raw[_head];
-			_head += len + 1;
-
-			return allocated;
-		}
-
-		const char* allocate(const char* text)
-		{
-			if (!text)
-				return nullptr;
-
-			const size_t len = strlen(text);
-
-			auto it = vector_util::find_if(_free_list, [len](const allocation& alloc) -> bool { return alloc.size > len; });
-			if (it != _free_list.end())
-			{
-				allocation& free = *it;
-				if (free.size == len)
-				{
-					std::strcpy(free.ptr, text);
-					_free_list.erase(it);
-					return free.ptr;
-				}
-				else
-				{
-					free.size -= len;
-					std::strcpy(free.ptr, text);
-					return free.ptr;
-				}
-			}
-
-			SFG_ASSERT(_head + len + 1 < CAPACITY);
-
-			char* allocated = &_raw[_head];
-			std::strcpy(allocated, text);
-			_head += len + 1;
-
-			return allocated;
-		}
-
-		void deallocate(char* ptr)
-		{
-			_free_list.push_back({
-				.ptr  = ptr,
-				.size = strlen(ptr),
-			});
-		}
-
-		void deallocate(const char* ptr)
-		{
-			_free_list.push_back({
-				.ptr  = (char*)ptr,
-				.size = strlen(ptr),
-			});
-		}
+		void		init(uint32 capacity);
+		void		uninit();
+		const char* allocate(size_t len);
+		const char* allocate(const char* text);
+		void		deallocate(char* ptr);
+		void		deallocate(const char* ptr);
 
 		inline constexpr size_t get_capacity() const
 		{
-			return CAPACITY;
+			return _capacity;
 		}
 
 		inline constexpr size_t get_head() const
@@ -122,15 +45,14 @@ namespace SFG
 		inline void reset()
 		{
 			_free_list.resize(0);
-			_alloc_count = 0;
-			_head		 = 0;
+			_head = 0;
 		}
 
 	private:
-		char			   _raw[CAPACITY];
 		vector<allocation> _free_list;
-		size_t			   _alloc_count = 0;
-		size_t			   _head		= 0;
+		char*			   _raw		 = nullptr;
+		uint32			   _head	 = 0;
+		uint32			   _capacity = 0;
 	};
 
 }

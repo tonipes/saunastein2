@@ -34,13 +34,14 @@ using json = nlohmann::json;
 namespace SFG
 {
 
-	world::world(render_event_stream& rstream)
-		: _entity_manager(*this), _resources(*this), _render_stream(rstream){
-
-													 };
+	world::world(render_event_stream& rstream) : _entity_manager(*this), _resources(*this), _render_stream(rstream)
+	{
+		_text_allocator.init(MAX_ENTITIES * 32);
+	};
 
 	world::~world()
 	{
+		_text_allocator.uninit();
 	}
 
 	void world::init()
@@ -224,7 +225,7 @@ namespace SFG
 	{
 		_entity_manager.uninit();
 		_resources.uninit();
-		_txt_allocator.reset();
+		_text_allocator.reset();
 
 		SFG_PROG("uninitializing world.");
 

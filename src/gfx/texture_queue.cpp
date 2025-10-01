@@ -25,27 +25,30 @@ namespace SFG
 	{
 		for (const texture_request& r : _flushed_requests)
 		{
+			if (r.cleared == 1)
+				continue;
+
 			for (const texture_buffer& b : r.buffers)
-				delete[] b.pixels;
+			{
+				if (r.use_free)
+					SFG_FREE(b.pixels);
+				else
+					delete[] b.pixels;
+			}
 		}
 
 		_flushed_requests.clear();
 	}
 
-	void texture_queue::add_request(const static_vector<texture_buffer, MAX_TEXTURE_MIPS>& buffers, gfx_id texture, gfx_id intermediate)
+	void texture_queue::add_request(const static_vector<texture_buffer, MAX_TEXTURE_MIPS>& buffers, gfx_id texture, gfx_id intermediate, uint8 use_free)
 	{
-		auto it = vector_util::find_if(_requests, [&](const texture_request& existing) -> bool { return texture == existing.texture; });
-		if (it != _requests.end())
-		{
-			it->buffers = buffers;
-			return;
-		}
 
 		const texture_request req = {
 			.buffers	  = buffers,
 			.texture	  = texture,
 			.intermediate = intermediate,
 			.added_frame  = frame_info::get_render_frame(),
+			.use_free	  = use_free,
 		};
 
 		_requests.push_back(req);
@@ -68,7 +71,12 @@ namespace SFG
 			}
 
 			for (const texture_buffer& b : r.buffers)
-				delete[] b.pixels;
+			{
+				if (r.use_free)
+					SFG_FREE(b.pixels);
+				else
+					delete[] b.pixels;
+			}
 			r.cleared = 1;
 		}
 

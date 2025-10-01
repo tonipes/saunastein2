@@ -26,6 +26,10 @@ namespace SFG
 	gfx_id renderer::s_bind_group_global[FRAMES_IN_FLIGHT] = {};
 	gfx_id renderer::s_bind_layout_global				   = 0;
 
+	renderer::renderer() : _proxy_manager(_buffer_queue, _texture_queue)
+	{
+	}
+
 	void renderer::init(window* main_window, world* w)
 	{
 		_world				 = w;
@@ -109,12 +113,14 @@ namespace SFG
 		_buffer_queue.init();
 		_texture_queue.init();
 		_reuse_barriers.reserve(256);
-		_proxy_textures.init(MAX_WORLD_TEXTURES);
+		_proxy_manager.init();
 	}
 
 	void renderer::uninit()
 	{
-		_proxy_textures.uninit();
+		gfx_backend* backend = gfx_backend::get();
+
+		_proxy_manager.uninit();
 		_world_renderer->uninit();
 		delete _world_renderer;
 
@@ -127,7 +133,6 @@ namespace SFG
 		_texture_queue.uninit();
 		_buffer_queue.uninit();
 
-		gfx_backend* backend = gfx_backend::get();
 		backend->destroy_bind_layout(_gfx_data.bind_layout_global);
 
 		backend->destroy_resource(_gfx_data.dummy_ubo);
@@ -170,54 +175,17 @@ namespace SFG
 		_world_renderer->on_render_joined();
 	}
 
-	void renderer::fetch_render_events(render_event_stream& stream)
+	void renderer::tick()
 	{
 #ifdef USE_DEBUG_CONTROLLER
 		_debug_controller.tick();
 #endif
+	}
+
+	void renderer::fetch_render_events(render_event_stream& stream)
+	{
 		gfx_backend* backend = gfx_backend::get();
-
-		auto&		  events = stream.get_events();
-		render_event* ev	 = events.peek();
-
-		while (ev != nullptr)
-		{
-			if (ev->header.event_type == render_event_type::render_event_create_texture)
-			{
-				render_event_storage_texture* stg	= reinterpret_cast<render_event_storage_texture*>(ev->data);
-				render_proxy_texture&		  proxy = _proxy_textures.get(ev->header.handle.index);
-
-				proxy.hw = backend->create_texture({
-					.texture_format = static_cast<format>(stg->format),
-					.size			= stg->size,
-					.flags			= texture_flags::tf_is_2d | texture_flags::tf_sampled,
-					.views			= {{}},
-					.mip_levels		= static_cast<uint8>(stg->buffers.size()),
-					.array_length	= 1,
-					.samples		= 1,
-					.debug_name		= stg->name,
-				});
-
-				SFG_FREE((void*)stg->name);
-
-				proxy.intermediate = backend->create_resource({
-					.size		= stg->intermediate_size,
-					.flags		= resource_flags::rf_cpu_visible,
-					.debug_name = "texture_intermediate",
-				});
-
-				_texture_queue.add_request(stg->buffers, proxy.hw, proxy.intermediate);
-			}
-			else if (ev->header.event_type == render_event_type::render_event_destroy_texture)
-			{
-				render_proxy_texture& proxy = _proxy_textures.get(ev->header.handle.index);
-				backend->destroy_texture(proxy.hw);
-				backend->destroy_resource(proxy.intermediate);
-			}
-
-			events.pop();
-			ev = events.peek();
-		}
+		_proxy_manager.fetch_render_events(stream);
 	}
 
 	void renderer::render(const vector2ui16& size)

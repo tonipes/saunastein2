@@ -185,6 +185,7 @@ namespace SFG
 
 			const double interpolation = static_cast<double>(accumulator) / static_cast<double>(FIXED_INTERVAL_US);
 			_world->post_tick(interpolation);
+			_renderer->tick();
 			frame_info::s_frame.fetch_add(1);
 		}
 	}

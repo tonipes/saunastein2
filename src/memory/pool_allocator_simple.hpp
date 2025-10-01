@@ -56,6 +56,49 @@ namespace SFG
 			return *t;
 		}
 
+		struct iterator
+		{
+			uint32 current = 0;
+			uint32 end	   = 0;
+			T*	   items   = nullptr;
+
+			iterator(T* raw, uint32 c, uint32 e) : items(raw), current(c), end(e){};
+
+			T& operator*() const
+			{
+				return items[current];
+			}
+
+			iterator& operator++()
+			{
+				do
+				{
+					++current;
+				} while (current != end);
+				return *this;
+			}
+
+			bool operator==(const iterator& other) const
+			{
+				return current == other.current;
+			}
+
+			bool operator!=(const iterator& other) const
+			{
+				return current != other.current;
+			}
+		};
+
+		iterator begin() const
+		{
+			return iterator(reinterpret_cast<T*>(_raw), 0, _item_count);
+		}
+
+		iterator end() const
+		{
+			return iterator(reinterpret_cast<T*>(_raw), _item_count, _item_count);
+		}
+
 	private:
 		uint8* _raw				  = nullptr;
 		uint32 _item_size_aligned = 0;

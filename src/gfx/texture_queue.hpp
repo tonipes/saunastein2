@@ -4,6 +4,7 @@
 #include "data/vector.hpp"
 #include "common/size_definitions.hpp"
 #include "gfx/common/gfx_constants.hpp"
+#include "gfx/common/texture_buffer.hpp"
 #include "data/static_vector.hpp"
 #include <functional>
 
@@ -21,6 +22,7 @@ namespace SFG
 			gfx_id											intermediate = 0;
 			uint64											added_frame	 = 0;
 			uint8											cleared		 = 0;
+			uint8											use_free	 = 0;
 		};
 
 	public:
@@ -28,7 +30,7 @@ namespace SFG
 		void uninit();
 		void clear_flushed_textures();
 
-		void add_request(const static_vector<texture_buffer, MAX_TEXTURE_MIPS>& buffers, gfx_id texture, gfx_id intermediate);
+		void add_request(const static_vector<texture_buffer, MAX_TEXTURE_MIPS>& buffers, gfx_id texture, gfx_id intermediate, uint8 use_free);
 		void flush_all(gfx_id cmd);
 		bool empty() const;
 

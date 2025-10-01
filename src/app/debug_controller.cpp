@@ -346,7 +346,7 @@ namespace SFG
 
 	void debug_controller::init(texture_queue* texture_queue, gfx_id global_bind_layout, const vector2ui16& screen_size)
 	{
-
+		_text_allocator.init(100000);
 		_gfx_data.texture_queue = texture_queue;
 		_gfx_data.rt_size		= vector2ui16(screen_size.x, screen_size.y / 2);
 		_gfx_data.window_size	= vector2ui16(screen_size.x, screen_size.y);
@@ -511,6 +511,7 @@ namespace SFG
 
 	void debug_controller::uninit()
 	{
+
 		// save history
 		{
 			const uint8 history_sz = static_cast<uint8>(_input_field.history.size());
@@ -565,6 +566,7 @@ namespace SFG
 		}
 
 		log::instance().remove_listener(TO_SIDC("debug_controller"));
+		_text_allocator.uninit();
 	}
 
 	void debug_controller::upload(buffer_queue& q, uint8 frame_index)
@@ -831,13 +833,10 @@ namespace SFG
 		ref.buffer.size		 = vector2ui16(static_cast<uint16>(atlas_width), static_cast<uint16>(atlas_height));
 		ref.buffer.bpp		 = bpp;
 
-		texture_queue::texture_request req = {
-			.texture	  = ref.texture,
-			.intermediate = ref.intermediate_buffer,
-		};
-		req.buffers.push_back(ref.buffer);
-
-		_gfx_data.texture_queue->add_request(req);
+		static_vector<texture_buffer, MAX_TEXTURE_MIPS> buffers;
+		buffers.push_back(ref.buffer);
+		SFG_INFO("OKAY ADDING ATLAS {0}", (void*)ref.buffer.pixels);
+		_gfx_data.texture_queue->add_request(buffers, ref.texture, ref.intermediate_buffer, 0);
 
 		const int32 index  = std::distance(it, _gfx_data.atlases.begin());
 		uint8*		pixels = ref.buffer.pixels;

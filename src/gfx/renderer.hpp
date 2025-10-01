@@ -9,10 +9,9 @@
 #include "gfx/buffer.hpp"
 #include "gfx/buffer_queue.hpp"
 #include "gfx/texture_queue.hpp"
-#include "gfx/proxy/render_proxy_resources.hpp"
+#include "gfx/proxy/proxy_manager.hpp"
 #include "resources/shader.hpp"
 #include "memory/bump_allocator.hpp"
-#include "memory/pool_allocator_simple.hpp"
 #include "app/debug_controller.hpp"
 
 namespace SFG
@@ -34,9 +33,12 @@ namespace SFG
 	class renderer
 	{
 	public:
+		renderer();
+
 		void init(window* main_window, world* world);
 		void uninit();
 		void wait_backend();
+		void tick();
 		void fetch_render_events(render_event_stream& stream);
 		void render(const vector2ui16& size);
 		bool on_window_event(const window_event& ev);
@@ -111,16 +113,16 @@ namespace SFG
 #ifdef USE_DEBUG_CONTROLLER
 		debug_controller _debug_controller = {};
 #endif
-		world*										_world	  = nullptr;
-		gfx_data									_gfx_data = {};
-		shader_data									_shaders  = {};
-		per_frame_data								_pfd[FRAMES_IN_FLIGHT];
-		bump_allocator								_frame_allocator[FRAMES_IN_FLIGHT] = {};
-		buffer_queue								_buffer_queue					   = {};
-		texture_queue								_texture_queue					   = {};
-		render_data									_render_data[2];
-		vector<barrier>								_reuse_barriers;
-		pool_allocator_simple<render_proxy_texture> _proxy_textures;
+		world*			_world	  = nullptr;
+		gfx_data		_gfx_data = {};
+		shader_data		_shaders  = {};
+		per_frame_data	_pfd[FRAMES_IN_FLIGHT];
+		bump_allocator	_frame_allocator[FRAMES_IN_FLIGHT] = {};
+		buffer_queue	_buffer_queue					   = {};
+		texture_queue	_texture_queue					   = {};
+		render_data		_render_data[2];
+		vector<barrier> _reuse_barriers;
+		proxy_manager	_proxy_manager;
 
 		static gfx_id s_bind_layout_global;
 		static gfx_id s_bind_group_global[FRAMES_IN_FLIGHT];

@@ -102,7 +102,7 @@ namespace SFG
 		SFG_ASSERT(_entities.is_valid(entity));
 
 		entity_meta& meta = _metas.get(entity.index);
-		_world.get_text_allocator().deallocate((char*)meta.name);
+		_world.get_text_allocator().deallocate(meta.name);
 
 		entity_family& fam = _families.get(entity.index);
 

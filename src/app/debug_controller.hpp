@@ -180,7 +180,7 @@ namespace SFG
 		};
 
 	private:
-		text_allocator<10000>									   _text_allocator = {};
+		text_allocator											   _text_allocator = {};
 		shaders													   _shaders		   = {};
 		gfx_data												   _gfx_data	   = {};
 		vekt_data												   _vekt_data	   = {};
