@@ -4,6 +4,7 @@
 
 #include "common/size_definitions.hpp"
 #include "gfx/common/descriptions.hpp"
+#include "data/string.hpp"
 
 namespace SFG
 {
@@ -20,5 +21,6 @@ namespace SFG
 #endif
 
 		sampler_desc desc = {};
+		string		 name = "";
 	};
 }

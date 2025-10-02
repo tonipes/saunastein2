@@ -22,9 +22,8 @@ namespace SFG
 	class mesh
 	{
 	public:
-		void create_from_raw(const mesh_raw& raw, chunk_allocator32& alloc);
-		void push_create_event(render_event_stream& stream, resource_handle handle);
-		void destroy(chunk_allocator32& alloc);
+		void create_from_raw(const mesh_raw& raw, chunk_allocator32& alloc, render_event_stream& stream, resource_handle handle);
+		void destroy(chunk_allocator32& alloc, render_event_stream& stream, resource_handle handle);
 
 		inline chunk_handle32 get_primitives_static() const
 		{

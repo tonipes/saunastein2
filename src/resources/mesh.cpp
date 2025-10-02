@@ -7,6 +7,8 @@
 #include "memory/chunk_allocator.hpp"
 #include "reflection/reflection.hpp"
 #include "world/world.hpp"
+#include "gfx/event_stream/render_event_stream.hpp"
+#include "gfx/event_stream/render_event_storage_gfx.hpp"
 
 namespace SFG
 {
@@ -16,7 +18,7 @@ namespace SFG
 		m.add_function<void, world&>("init_resource_storage"_hs, [](world& w) -> void { w.get_resources().init_storage<mesh>(MAX_WORLD_MESHES); });
 	}
 
-	void mesh::create_from_raw(const mesh_raw& raw, chunk_allocator32& alloc)
+	void mesh::create_from_raw(const mesh_raw& raw, chunk_allocator32& alloc, render_event_stream& stream, resource_handle handle)
 	{
 		if (!raw.name.empty())
 		{
@@ -106,13 +108,18 @@ namespace SFG
 				prim.material_index						 = static_cast<uint16>(vector_util::index_of(materials, prim.material_index));
 			}
 		}
+
+		render_event ev = {.header = {
+							   .handle	   = handle,
+							   .event_type = render_event_type::render_event_create_mesh,
+						   }};
+
+		render_event_storage_mesh* stg = reinterpret_cast<render_event_storage_mesh*>(ev.data);
+
+		stream.add_event(ev);
 	}
 
-	void mesh::push_create_event(render_event_stream& stream, resource_handle handle)
-	{
-	}
-
-	void mesh::destroy(chunk_allocator32& alloc)
+	void mesh::destroy(chunk_allocator32& alloc, render_event_stream& stream, resource_handle handle)
 	{
 		if (_name.size != 0)
 			alloc.free(_name);
@@ -155,5 +162,10 @@ namespace SFG
 		_primitives_static_count  = 0;
 		_primitives_skinned_count = 0;
 		_material_count			  = 0;
+
+		stream.add_event({.header = {
+							  .handle	  = handle,
+							  .event_type = render_event_type::render_event_destroy_mesh,
+						  }});
 	}
 }

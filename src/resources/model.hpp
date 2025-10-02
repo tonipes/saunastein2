@@ -19,6 +19,8 @@ namespace SFG
 	};
 	extern model_reflection g_model_reflection;
 
+	class render_event_stream;
+
 	class model
 	{
 	public:
@@ -30,8 +32,8 @@ namespace SFG
 
 		~model();
 
-		void create_from_raw(const model_raw& raw, world_resources& resources, chunk_allocator32& alloc);
-		void destroy(world_resources& resources, chunk_allocator32& alloc);
+		void create_from_raw(const model_raw& raw, render_event_stream& stream, world_resources& resources, chunk_allocator32& alloc);
+		void destroy(world_resources& resources, render_event_stream& stream, chunk_allocator32& alloc);
 
 		inline bitmask<uint8>& get_flags()
 		{

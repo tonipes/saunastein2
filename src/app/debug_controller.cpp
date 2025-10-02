@@ -356,32 +356,32 @@ namespace SFG
 		// gui default
 		{
 			shader_raw raw = {};
-			raw.cook_from_file("assets/engine/shaders/gui/gui_default.stkfrg");
-			_shaders.gui_default.create_from_raw(raw, false, global_bind_layout);
+			raw.cook_from_file("assets/engine/shaders/gui/gui_default.stkfrg", false, global_bind_layout);
+			_shaders.gui_default.create_from_raw(raw);
 			raw.destroy();
 		}
 
 		// gui text
 		{
 			shader_raw raw = {};
-			raw.cook_from_file("assets/engine/shaders/gui/gui_text.stkfrg");
-			_shaders.gui_text.create_from_raw(raw, false, global_bind_layout);
+			raw.cook_from_file("assets/engine/shaders/gui/gui_text.stkfrg", false, global_bind_layout);
+			_shaders.gui_text.create_from_raw(raw);
 			raw.destroy();
 		}
 
 		// gui sdf
 		{
 			shader_raw raw = {};
-			raw.cook_from_file("assets/engine/shaders/gui/gui_sdf.stkfrg");
-			_shaders.gui_sdf.create_from_raw(raw, false, global_bind_layout);
+			raw.cook_from_file("assets/engine/shaders/gui/gui_sdf.stkfrg", false, global_bind_layout);
+			_shaders.gui_sdf.create_from_raw(raw);
 			raw.destroy();
 		}
 
 		// console draw
 		{
 			shader_raw raw = {};
-			raw.cook_from_file("assets/engine/shaders/debug_controller/console_draw.stkfrg");
-			_shaders.debug_controller_console_draw.create_from_raw(raw, false, global_bind_layout);
+			raw.cook_from_file("assets/engine/shaders/debug_controller/console_draw.stkfrg", false, global_bind_layout);
+			_shaders.debug_controller_console_draw.create_from_raw(raw);
 			raw.destroy();
 		}
 

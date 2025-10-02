@@ -48,7 +48,7 @@ namespace SFG
 			model&			   res		 = resources.get_resource<model>(handle);
 			chunk_allocator32& aux		 = resources.get_aux();
 
-			res.create_from_raw(*raw_ptr, resources, aux);
+			res.create_from_raw(*raw_ptr, w.get_render_stream(), resources, aux);
 			delete raw_ptr;
 
 			resource_handle* mesh_handles = aux.get<resource_handle>(res.get_created_meshes());
@@ -56,7 +56,6 @@ namespace SFG
 			for (uint16 i = 0; i < count; i++)
 			{
 				mesh& created_mesh = resources.get_resource<mesh>(mesh_handles[i]);
-				w.get_renderer()->get_resource_uploads().add_pending_mesh(&created_mesh);
 			}
 
 			return handle;
@@ -66,7 +65,7 @@ namespace SFG
 
 		m.add_function<void, world&, resource_handle>("destroy"_hs, [](world& w, resource_handle h) -> void {
 			world_resources& res = w.get_resources();
-			res.get_resource<model>(h).destroy(res, res.get_aux());
+			res.get_resource<model>(h).destroy(res, w.get_render_stream(), res.get_aux());
 			res.remove_resource<model>(h);
 		});
 
@@ -81,7 +80,7 @@ namespace SFG
 		SFG_ASSERT(!_flags.is_set(model::flags::hw_exists));
 	}
 
-	void model::create_from_raw(const model_raw& raw, world_resources& resources, chunk_allocator32& alloc)
+	void model::create_from_raw(const model_raw& raw, render_event_stream& stream, world_resources& resources, chunk_allocator32& alloc)
 	{
 		SFG_ASSERT(!_flags.is_set(model::flags::hw_exists));
 
@@ -118,7 +117,7 @@ namespace SFG
 				meshes_ptr[i]					  = handle;
 
 				mesh& m = resources.get_resource<mesh>(handle);
-				m.create_from_raw(loaded_mesh, alloc);
+				m.create_from_raw(loaded_mesh, alloc, stream, handle);
 			}
 		}
 
@@ -159,7 +158,7 @@ namespace SFG
 		_flags.set(model::flags::pending_upload | model::flags::hw_exists);
 	}
 
-	void model::destroy(world_resources& resources, chunk_allocator32& alloc)
+	void model::destroy(world_resources& resources, render_event_stream& stream, chunk_allocator32& alloc)
 	{
 		SFG_ASSERT(_flags.is_set(model::flags::hw_exists));
 
@@ -183,7 +182,7 @@ namespace SFG
 			{
 				const resource_handle handle = ptr[i];
 				mesh&				  m		 = resources.get_resource<mesh>(handle);
-				m.destroy(alloc);
+				m.destroy(alloc, stream, handle);
 				resources.remove_resource<mesh>(handle);
 			}
 

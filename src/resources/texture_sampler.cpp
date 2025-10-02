@@ -6,6 +6,8 @@
 #include "io/assert.hpp"
 #include "gfx/backend/backend.hpp"
 #include "gfx/common/descriptions.hpp"
+#include "gfx/event_stream/render_event_stream.hpp"
+#include "gfx/event_stream/render_event_storage_gfx.hpp"
 #include "resource_reflection_template.hpp"
 #include "world/world.hpp"
 
@@ -40,17 +42,17 @@ namespace SFG
 			world_resources&	 resources = w.get_resources();
 			resource_handle		 handle	   = resources.add_resource<texture_sampler>(sid);
 			texture_sampler&	 res	   = resources.get_resource<texture_sampler>(handle);
-			res.create_from_raw(*raw_ptr);
+			res.create_from_raw(*raw_ptr, w.get_render_stream(), handle);
 			delete raw_ptr;
 			return handle;
 		});
 
 		m.add_function<void, world&>("init_resource_storage"_hs, [](world& w) -> void { w.get_resources().init_storage<texture_sampler>(MAX_WORLD_SAMPLERS); });
 
-		m.add_function<void, world&, resource_handle>("destroy"_hs, [](world& w, resource_handle h) -> void {
+		m.add_function<void, world&, resource_handle>("destroy"_hs, [](world& w, resource_handle handle) -> void {
 			world_resources& res = w.get_resources();
-			res.get_resource<texture_sampler>(h).destroy();
-			res.remove_resource<texture_sampler>(h);
+			res.get_resource<texture_sampler>(handle).destroy(w.get_render_stream(), handle);
+			res.remove_resource<texture_sampler>(handle);
 		});
 
 		m.add_function<void, void*, ostream&>("serialize"_hs, [](void* loader, ostream& stream) -> void {
@@ -59,23 +61,35 @@ namespace SFG
 		});
 	}
 
-	texture_sampler::~texture_sampler()
+	void texture_sampler::create_from_raw(const texture_sampler_raw& raw, render_event_stream& stream, resource_handle handle)
 	{
-		SFG_ASSERT(_hw == std::numeric_limits<gfx_id>::max());
+		render_event ev = {
+			.header =
+				{
+					.handle		= handle,
+					.event_type = render_event_type::render_event_create_sampler,
+				},
+		};
+		render_event_storage_sampler* stg = reinterpret_cast<render_event_storage_sampler*>(ev.data);
+		stg->desc						  = raw.desc;
+		stg->name						  = (const char*)SFG_MALLOC(strlen(raw.name.c_str()));
+
+		if (stg->name != nullptr)
+			strcpy((char*)stg->name, raw.name.c_str());
+
+		stream.add_event(ev);
 	}
 
-	void texture_sampler::create_from_raw(const texture_sampler_raw& raw)
+	void texture_sampler::destroy(render_event_stream& stream, resource_handle handle)
 	{
-		gfx_backend* backend = gfx_backend::get();
-		_hw					 = backend->create_sampler(raw.desc);
-	}
-
-	void texture_sampler::destroy()
-	{
-		SFG_ASSERT(_hw != std::numeric_limits<gfx_id>::max());
-		gfx_backend* backend = gfx_backend::get();
-		backend->destroy_sampler(_hw);
-		_hw = std::numeric_limits<gfx_id>::max();
+		render_event ev = {
+			.header =
+				{
+					.handle		= handle,
+					.event_type = render_event_type::render_event_destroy_sampler,
+				},
+		};
+		stream.add_event(ev);
 	}
 
 }

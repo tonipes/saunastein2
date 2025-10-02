@@ -17,6 +17,7 @@ namespace SFG
 		string						  name		 = "";
 		string_id					  sid		 = 0;
 		uint16						  node_index = 0;
+		int16						  skin_index = -1;
 		vector<primitive_static_raw>  primitives_static;
 		vector<primitive_skinned_raw> primitives_skinned;
 

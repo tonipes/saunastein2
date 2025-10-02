@@ -612,4 +612,13 @@ namespace SFG
 		att.flags				 = j.value<uint8>("flags", 0);
 	}
 #endif
+
+	void shader_desc::destroy()
+	{
+		for (const shader_blob& b : blobs)
+			delete[] b.data.data;
+
+		if (layout_data.size != 0)
+			delete[] layout_data.data;
+	}
 }

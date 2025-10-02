@@ -35,8 +35,6 @@ namespace SFG
 
 		_base_size = size;
 
-		_resource_uploads.init();
-
 		static_vector<gfx_id, FRAMES_IN_FLIGHT> entity_buffers;
 		static_vector<gfx_id, FRAMES_IN_FLIGHT> bone_buffers;
 		static_vector<gfx_id, FRAMES_IN_FLIGHT> light_buffers;
@@ -137,8 +135,6 @@ namespace SFG
 
 	void world_renderer::uninit()
 	{
-		_resource_uploads.uninit();
-
 		_pass_opaque.uninit();
 		// _pass_lighting_fw.uninit();
 		// _pass_post_combiner.uninit();
@@ -240,18 +236,8 @@ namespace SFG
 		*/
 	}
 
-	void world_renderer::on_render_joined()
-	{
-		_resource_uploads.check_uploads(true);
-	}
-
 	void world_renderer::upload(uint8 frame_index)
 	{
-		return;
-
-		_resource_uploads.check_uploads();
-		_resource_uploads.upload(_world->get_resources().get_aux(), _texture_queue, _buffer_queue, frame_index);
-
 		world_render_data& rd  = _render_data;
 		per_frame_data&	   pfd = _pfd[frame_index];
 

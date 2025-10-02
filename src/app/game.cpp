@@ -284,8 +284,7 @@ namespace SFG
 #endif
 
 			_world->pre_render(screen_size);
-			_renderer->fetch_render_events(_render_stream);
-			_renderer->render(screen_size);
+			_renderer->render(_render_stream, screen_size);
 			frame_info::s_render_frame.fetch_add(1);
 
 #ifndef SFG_PRODUCTION

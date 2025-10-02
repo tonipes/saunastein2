@@ -13,10 +13,13 @@ namespace SFG
 		render_event_create_sampler,
 		render_event_create_material,
 		render_event_create_mesh,
+		render_event_create_shader,
 		render_event_destroy_texture,
 		render_event_destroy_sampler,
 		render_event_destroy_material,
 		render_event_destroy_mesh,
+		render_event_destroy_shader,
+		render_event_update_material,
 	};
 
 }

@@ -12,7 +12,6 @@
 #include "gfx/render_pass.hpp"
 #include "gfx/buffer.hpp"
 #include "memory/bump_allocator.hpp"
-#include "world_resource_uploads.hpp"
 #include "world_render_data.hpp"
 
 #include "render_pass/render_pass_opaque.hpp"
@@ -44,7 +43,6 @@ namespace SFG
 		void init(const vector2ui16& size, texture_queue* tq, buffer_queue* bq, world* w);
 		void uninit();
 
-		void on_render_joined();
 		void populate_render_data(uint8 index, double interpolation);
 		void upload(uint8 frame_index);
 		void render(uint8 frame_index, gfx_id layout_global, gfx_id bind_group_global, uint64 prev_copy, uint64 next_copy, gfx_id sem_copy);
@@ -65,11 +63,6 @@ namespace SFG
 			return _pass_opaque.get_semaphore(frame_index);
 		}
 
-		inline world_resource_uploads& get_resource_uploads()
-		{
-			return _resource_uploads;
-		}
-
 	private:
 		void push_barrier_ps(gfx_id id, static_vector<barrier, MAX_BARRIERS>& barriers);
 		void push_barrier_rt(gfx_id id, static_vector<barrier, MAX_BARRIERS>& barriers);
@@ -85,9 +78,8 @@ namespace SFG
 		render_pass_lighting_forward _pass_lighting_fw	 = {};
 		render_pass_post_combiner	 _pass_post_combiner = {};
 
-		per_frame_data		   _pfd[FRAMES_IN_FLIGHT];
-		world_resource_uploads _resource_uploads;
-		vector2ui16			   _base_size			 = vector2ui16::zero;
-		uint8*				   _shared_command_alloc = nullptr;
+		per_frame_data _pfd[FRAMES_IN_FLIGHT];
+		vector2ui16	   _base_size			 = vector2ui16::zero;
+		uint8*		   _shared_command_alloc = nullptr;
 	};
 }

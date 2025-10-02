@@ -17,6 +17,7 @@ namespace SFG
 		stream << node_index;
 		stream << primitives_static;
 		stream << primitives_skinned;
+		stream << skin_index;
 	}
 
 	void mesh_raw::deserialize(istream& stream)
@@ -26,6 +27,7 @@ namespace SFG
 		stream >> node_index;
 		stream >> primitives_static;
 		stream >> primitives_skinned;
+		stream >> skin_index;
 	}
 
 }

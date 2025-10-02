@@ -26,10 +26,10 @@ namespace SFG
 		void deserialize(istream& stream, shader_desc& desc);
 
 		void serialize(ostream& stream) const;
-		void deserialize(istream& stream);
+		void deserialize(istream& stream, bool use_embedded_layout, gfx_id layout);
 
 #ifdef SFG_TOOLMODE
-		bool cook_from_file(const char* file);
+		bool cook_from_file(const char* file, bool use_embedded_layout, gfx_id layout);
 #endif
 	};
 }

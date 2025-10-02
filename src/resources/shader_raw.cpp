@@ -15,14 +15,9 @@ using json = nlohmann::json;
 
 namespace SFG
 {
-
 	void shader_raw::destroy()
 	{
-		for (const shader_blob& b : desc.blobs)
-			delete[] b.data.data;
-
-		if (desc.layout_data.size != 0)
-			delete[] desc.layout_data.data;
+		desc.destroy();
 	}
 
 	void shader_raw::serialize(ostream& stream, const shader_desc& desc) const
@@ -215,17 +210,22 @@ namespace SFG
 		serialize(stream, desc);
 	}
 
-	void shader_raw::deserialize(istream& stream)
+	void shader_raw::deserialize(istream& stream, bool use_embedded_layout, gfx_id layout)
 	{
 		stream >> name;
 		stream >> defines;
 		stream >> is_skinned;
 		deserialize(stream, desc);
+
+		if (use_embedded_layout)
+			desc.flags.set(shader_flags::shf_use_embedded_layout);
+		else
+			desc.layout = layout;
 	}
 
 #ifdef SFG_TOOLMODE
 
-	bool shader_raw::cook_from_file(const char* path)
+	bool shader_raw::cook_from_file(const char* path, bool use_embedded_layout, gfx_id layout)
 	{
 		if (!file_system::exists(path))
 		{
@@ -259,6 +259,11 @@ namespace SFG
 				 {.stage = shader_stage::vertex},
 				 {.stage = shader_stage::fragment},
 			 };
+
+			if (use_embedded_layout)
+				desc.flags.set(shader_flags::shf_use_embedded_layout);
+			else
+				desc.layout = layout;
 
 			span<uint8> layout_data	   = {};
 			const bool	compile_layout = desc.flags.is_set(shader_flags::shf_use_embedded_layout);

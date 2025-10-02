@@ -32,6 +32,7 @@ namespace SFG
 		stream << textures;
 		stream << is_opaque;
 		stream << is_forward;
+		stream << name;
 	}
 
 	void material_raw::deserialize(istream& stream)
@@ -48,6 +49,7 @@ namespace SFG
 		stream >> textures;
 		stream >> is_opaque;
 		stream >> is_forward;
+		stream >> name;
 	}
 
 #ifdef SFG_TOOLMODE
@@ -87,6 +89,10 @@ namespace SFG
 				parameters = json_data.at("parameters").get<std::vector<parameter_entry>>();
 
 			SFG_ASSERT(!shaders.empty());
+
+			const string& wd = engine_data::get().get_working_dir();
+			const string  p	 = file;
+			name			 = p.substr(wd.size(), p.size() - wd.size());
 
 			const string engine_path = engine_data::get().get_working_dir();
 

@@ -27,42 +27,13 @@ namespace SFG
 	class texture
 	{
 	public:
-		enum flags
-		{
-			hw_exists			= 1 << 0,
-			intermediate_exists = 1 << 1,
-		};
-
 		~texture();
 
-		void create_from_raw(const texture_raw& raw);
-		void push_create_event(render_event_stream& stream, resource_handle handle);
-		void push_destroy_event(render_event_stream& stream, resource_handle handle);
-
-		inline bitmask<uint8>& get_flags()
-		{
-			return _flags;
-		}
-
-		inline texture_buffer* get_cpu()
-		{
-			return &_cpu_buffers[0];
-		}
-
-		inline uint8 get_cpu_count() const
-		{
-			return static_cast<uint8>(_cpu_buffers.size());
-		}
+		void create_from_raw(const texture_raw& raw, render_event_stream& stream, resource_handle handle);
+		void destroy(render_event_stream& stream, resource_handle handle);
 
 	private:
-		friend struct texture_raw;
-
-		static constexpr size_t NAME_SIZE = 64;
-
-		static_vector<texture_buffer, MAX_TEXTURE_MIPS> _cpu_buffers;
-		uint8											_texture_format = 0;
-		char											_name[NAME_SIZE];
-		bitmask<uint8>									_flags = 0;
+		uint8 _texture_format = 0;
 	};
 
 	REGISTER_TYPE(texture, resource_type::resource_type_texture);

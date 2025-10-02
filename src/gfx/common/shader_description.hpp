@@ -231,6 +231,8 @@ namespace SFG
 		float  depth_bias_slope	   = 0.0f;
 
 		const char* debug_name = "shader";
+
+		void destroy();
 	};
 
 #ifdef SFG_TOOLMODE

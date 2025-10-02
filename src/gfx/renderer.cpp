@@ -58,8 +58,8 @@ namespace SFG
 		_gfx_data.dummy_ssbo	= backend->create_resource({.size = 4, .flags = resource_flags::rf_storage_buffer | resource_flags::rf_gpu_only});
 
 		shader_raw raw = {};
-		raw.cook_from_file("assets/engine/shaders/swapchain/swapchain.stkfrg");
-		_shaders.swapchain.create_from_raw(raw, false, _gfx_data.bind_layout_global);
+		raw.cook_from_file("assets/engine/shaders/swapchain/swapchain.stkfrg", false, _gfx_data.bind_layout_global);
+		_shaders.swapchain.create_from_raw(raw);
 		raw.destroy();
 
 #ifdef USE_DEBUG_CONTROLLER
@@ -170,9 +170,9 @@ namespace SFG
 			backend->wait_semaphore(pfd.sem_frame.semaphore, pfd.sem_frame.value);
 		}
 
+		_proxy_manager.flush_destroys(true);
 		_texture_queue.clear_flushed_textures();
 		_gfx_data.frame_index = 0;
-		_world_renderer->on_render_joined();
 	}
 
 	void renderer::tick()
@@ -182,14 +182,11 @@ namespace SFG
 #endif
 	}
 
-	void renderer::fetch_render_events(render_event_stream& stream)
+	void renderer::render(render_event_stream& stream, const vector2ui16& size)
 	{
-		gfx_backend* backend = gfx_backend::get();
+		_proxy_manager.flush_destroys(false);
 		_proxy_manager.fetch_render_events(stream);
-	}
 
-	void renderer::render(const vector2ui16& size)
-	{
 		gfx_backend* backend   = gfx_backend::get();
 		const gfx_id queue_gfx = backend->get_queue_gfx();
 
@@ -351,11 +348,11 @@ namespace SFG
 		per_frame_data& pfd		= _pfd[frame_index];
 		gfx_backend*	backend = gfx_backend::get();
 		const gfx_id	queue	= backend->get_queue_transfer();
-		if (!_buffer_queue.empty() || !_texture_queue.empty())
+		if (!_buffer_queue.empty(frame_index) || !_texture_queue.empty())
 		{
 			pfd.sem_copy.value++;
 			backend->reset_command_buffer(pfd.cmd_copy);
-			_buffer_queue.flush_all(pfd.cmd_copy);
+			_buffer_queue.flush_all(pfd.cmd_copy, frame_index);
 			_texture_queue.flush_all(pfd.cmd_copy);
 			backend->close_command_buffer(pfd.cmd_copy);
 			backend->submit_commands(queue, &pfd.cmd_copy, 1);

@@ -24,13 +24,6 @@
 
 namespace SFG
 {
-	vector<model_node_raw> loaded_nodes;
-	vector<mesh_raw>	   loaded_meshes;
-	vector<skin_raw>	   loaded_skins;
-	vector<animation_raw>  loaded_animations;
-	aabb				   total_aabb;
-	uint8				   material_count = 0;
-
 	void model_raw::serialize(ostream& stream) const
 	{
 		stream << loaded_nodes;
@@ -363,35 +356,6 @@ namespace SFG
 				fill_prim(prim, model, tprim, vertex_accessor, vertex_buffer_view, vertex_buffer, num_vertices, start_vertex, start_index);
 			}
 
-			const size_t all_nodes_sz = model.nodes.size();
-			loaded_nodes.resize(all_nodes_sz);
-
-			for (size_t i = 0; i < all_nodes_sz; i++)
-			{
-				const tinygltf::Node& tnode = model.nodes[i];
-				model_node_raw&		  node	= loaded_nodes[i];
-				node.name					= tnode.name;
-				node.mesh_index				= static_cast<int16>(tnode.mesh);
-
-				if (tnode.matrix.empty())
-				{
-					const vector3 p	  = tnode.translation.empty() ? vector3::zero : vector3(tnode.translation[0], tnode.translation[1], tnode.translation[2]);
-					const vector3 s	  = tnode.scale.empty() ? vector3::one : vector3(tnode.scale[0], tnode.scale[1], tnode.scale[2]);
-					const quat	  r	  = tnode.rotation.empty() ? quat::identity : quat(tnode.rotation[0], tnode.rotation[1], tnode.rotation[2], tnode.rotation[3]);
-					node.local_matrix = matrix4x3::transform(p, r, s);
-				}
-				else
-				{
-					node.local_matrix = make_mat43(tnode.matrix);
-				}
-
-				for (int child : tnode.children)
-					loaded_nodes[child].parent_index = i;
-
-				if (tnode.mesh != -1)
-					loaded_meshes[tnode.mesh].node_index = static_cast<uint16>(i);
-			}
-
 			const size_t all_skins_sz = model.skins.size();
 
 			for (size_t i = 0; i < all_skins_sz; i++)
@@ -428,6 +392,39 @@ namespace SFG
 
 					for (size_t k = 0; k < 16; k++)
 						sj.inverse_bind_matrix.m[k] = raw[k];
+				}
+			}
+
+			const size_t all_nodes_sz = model.nodes.size();
+			loaded_nodes.resize(all_nodes_sz);
+
+			for (size_t i = 0; i < all_nodes_sz; i++)
+			{
+				const tinygltf::Node& tnode = model.nodes[i];
+				model_node_raw&		  node	= loaded_nodes[i];
+				node.name					= tnode.name;
+				node.mesh_index				= static_cast<int16>(tnode.mesh);
+				node.skin_index				= static_cast<int16>(tnode.skin);
+
+				if (tnode.matrix.empty())
+				{
+					const vector3 p	  = tnode.translation.empty() ? vector3::zero : vector3(tnode.translation[0], tnode.translation[1], tnode.translation[2]);
+					const vector3 s	  = tnode.scale.empty() ? vector3::one : vector3(tnode.scale[0], tnode.scale[1], tnode.scale[2]);
+					const quat	  r	  = tnode.rotation.empty() ? quat::identity : quat(tnode.rotation[0], tnode.rotation[1], tnode.rotation[2], tnode.rotation[3]);
+					node.local_matrix = matrix4x3::transform(p, r, s);
+				}
+				else
+				{
+					node.local_matrix = make_mat43(tnode.matrix);
+				}
+
+				for (int child : tnode.children)
+					loaded_nodes[child].parent_index = i;
+
+				if (tnode.mesh != -1)
+				{
+					loaded_meshes[tnode.mesh].node_index = static_cast<uint16>(i);
+					loaded_meshes[tnode.mesh].skin_index = node.skin_index;
 				}
 			}
 

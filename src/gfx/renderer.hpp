@@ -10,7 +10,7 @@
 #include "gfx/buffer_queue.hpp"
 #include "gfx/texture_queue.hpp"
 #include "gfx/proxy/proxy_manager.hpp"
-#include "resources/shader.hpp"
+#include "resources/shader_direct.hpp"
 #include "memory/bump_allocator.hpp"
 #include "app/debug_controller.hpp"
 
@@ -39,8 +39,7 @@ namespace SFG
 		void uninit();
 		void wait_backend();
 		void tick();
-		void fetch_render_events(render_event_stream& stream);
-		void render(const vector2ui16& size);
+		void render(render_event_stream& stream, const vector2ui16& size);
 		bool on_window_event(const window_event& ev);
 		void on_window_resize(const vector2ui16& size);
 
@@ -104,7 +103,7 @@ namespace SFG
 
 		struct shader_data
 		{
-			shader swapchain = {};
+			shader_direct swapchain = {};
 		};
 
 	private:

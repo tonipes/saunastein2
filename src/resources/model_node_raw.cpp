@@ -13,6 +13,7 @@ namespace SFG
 		stream << name;
 		stream << parent_index;
 		stream << mesh_index;
+		stream << skin_index;
 		stream << local_matrix;
 	}
 
@@ -21,6 +22,7 @@ namespace SFG
 		stream >> name;
 		stream >> parent_index;
 		stream >> mesh_index;
+		stream >> skin_index;
 		stream >> local_matrix;
 	}
 }

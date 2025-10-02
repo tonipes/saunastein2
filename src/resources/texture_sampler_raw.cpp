@@ -21,6 +21,7 @@ namespace SFG
 		stream << desc.min_lod;
 		stream << desc.max_lod;
 		stream << desc.flags.value();
+		stream << name;
 	}
 
 	void texture_sampler_raw::deserialize(istream& stream)
@@ -31,6 +32,7 @@ namespace SFG
 		stream >> desc.min_lod;
 		stream >> desc.max_lod;
 		stream >> val;
+		stream >> name;
 		desc.flags = val;
 	}
 

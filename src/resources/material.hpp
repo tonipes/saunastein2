@@ -32,34 +32,20 @@ namespace SFG
 			is_forward = 1 << 1,
 		};
 
-		void   create_from_raw(const material_raw& raw, world_resources& resources);
-		void   push_create_event(render_event_stream& stream, resource_handle handle);
-		void   destroy();
-		gfx_id get_shader(world_resources& resources, uint8 flags_to_match) const;
+		void			create_from_raw(const material_raw& raw, world_resources& resources, render_event_stream& stream, resource_handle handle);
+		void			destroy(render_event_stream& stream, resource_handle handle);
+		resource_handle get_shader(uint8 flags_to_match) const;
+		void			update_data(render_event_stream& stream, resource_handle handle);
 
-		inline bool is_dirty(uint8 frame_index) const
+		inline resource_handle get_shader() const
 		{
-			return _buffers[frame_index].is_dirty();
-		}
-
-		inline gfx_id get_gpu(uint8 frame_index) const
-		{
-			return _bind_groups[frame_index];
-		}
-
-		inline gfx_id get_shader() const
-		{
-			return _default_shader;
+			SFG_ASSERT(!_all_shaders.empty());
+			return _all_shaders[0];
 		}
 
 		inline const bitmask<uint8>& get_flags() const
 		{
 			return _flags;
-		}
-
-		inline buffer& get_buffer(uint8 frame_index)
-		{
-			return _buffers[frame_index];
 		}
 
 		inline ostream& get_data()
@@ -68,12 +54,10 @@ namespace SFG
 		}
 
 	private:
-		ostream														 _material_data				= {};
-		buffer														 _buffers[FRAMES_IN_FLIGHT] = {};
+		ostream														 _material_data = {};
 		static_vector<resource_handle, MAX_MATERIAL_SHADER_VARIANTS> _all_shaders;
-		gfx_id														 _default_shader				= 0;
-		gfx_id														 _bind_groups[FRAMES_IN_FLIGHT] = {};
-		bitmask<uint8>												 _flags							= 0;
+		static_vector<bitmask<uint8>, MAX_MATERIAL_SHADER_VARIANTS>	 _all_shader_flags;
+		bitmask<uint8>												 _flags = 0;
 	};
 
 	REGISTER_TYPE(material, resource_type::resource_type_material);

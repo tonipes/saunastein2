@@ -36,6 +36,7 @@ namespace SFG
 		vector<string_id> textures;
 		uint8			  is_opaque	 = 0;
 		uint8			  is_forward = 0;
+		string			  name		 = "";
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);

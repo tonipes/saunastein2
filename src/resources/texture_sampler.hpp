@@ -24,19 +24,10 @@ namespace SFG
 	class texture_sampler
 	{
 	public:
-		~texture_sampler();
-
-		void create_from_raw(const texture_sampler_raw& raw);
-		void push_render_event(render_event_stream& stream, resource_handle handle);
-		void destroy();
-
-		inline gfx_id get_hw() const
-		{
-			return _hw;
-		}
+		void create_from_raw(const texture_sampler_raw& raw, render_event_stream& stream, resource_handle handle);
+		void destroy(render_event_stream& stream, resource_handle handle);
 
 	private:
-		gfx_id _hw = std::numeric_limits<gfx_id>::max();
 	};
 
 	REGISTER_TYPE(texture_sampler, resource_type::resource_type_texture_sampler);

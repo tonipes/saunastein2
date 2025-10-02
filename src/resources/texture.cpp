@@ -43,15 +43,12 @@ namespace SFG
 		});
 
 		m.add_function<resource_handle, void*, world&, string_id>("create_from_raw"_hs, [](void* raw, world& w, string_id sid) -> resource_handle {
-			texture_raw*	 raw_ptr   = reinterpret_cast<texture_raw*>(raw);
-			world_resources& resources = w.get_resources();
-			resource_handle	 handle	   = resources.add_resource<texture>(sid);
-			texture&		 res	   = resources.get_resource<texture>(handle);
-			res.create_from_raw(*raw_ptr);
-
-			render_event_stream& stream = w.get_render_stream();
-			res.push_create_event(stream, handle);
-
+			texture_raw*		 raw_ptr   = reinterpret_cast<texture_raw*>(raw);
+			world_resources&	 resources = w.get_resources();
+			resource_handle		 handle	   = resources.add_resource<texture>(sid);
+			texture&			 res	   = resources.get_resource<texture>(handle);
+			render_event_stream& stream	   = w.get_render_stream();
+			res.create_from_raw(*raw_ptr, stream, handle);
 			delete raw_ptr;
 
 			return handle;
@@ -60,7 +57,7 @@ namespace SFG
 		m.add_function<void, world&, resource_handle>("destroy"_hs, [](world& w, resource_handle h) -> void {
 			world_resources& resources = w.get_resources();
 			texture&		 txt	   = resources.get_resource<texture>(h);
-			txt.push_destroy_event(w.get_render_stream(), h);
+			txt.destroy(w.get_render_stream(), h);
 			resources.remove_resource<texture>(h);
 		});
 
@@ -74,20 +71,13 @@ namespace SFG
 
 	texture::~texture()
 	{
-		SFG_ASSERT(_cpu_buffers.empty(), "");
-		SFG_ASSERT(!_flags.is_set(texture::flags::hw_exists));
 	}
 
-	void texture::create_from_raw(const texture_raw& raw)
+	void texture::create_from_raw(const texture_raw& raw, render_event_stream& stream, resource_handle handle)
 	{
-		_cpu_buffers	= raw.buffers;
 		_texture_format = raw.texture_format;
-		strcpy(_name, raw.name.data());
-		SFG_ASSERT(_cpu_buffers.empty());
-	}
+		SFG_ASSERT(raw.buffers.empty());
 
-	void texture::push_create_event(render_event_stream& stream, resource_handle handle)
-	{
 		render_event ev = {
 			.header =
 				{
@@ -96,69 +86,23 @@ namespace SFG
 				},
 		};
 
-		void* name = MALLOC(NAME_SIZE);
-		strcpy((char*)name, _name);
-
 		gfx_backend* backend	= gfx_backend::get();
 		uint32		 total_size = 0;
-		for (const texture_buffer& buf : _cpu_buffers)
+		for (const texture_buffer& buf : raw.buffers)
 			total_size += backend->get_texture_size(buf.size.x, buf.size.y, buf.bpp);
 
 		render_event_storage_texture* stg = reinterpret_cast<render_event_storage_texture*>(ev.data);
-		stg->buffers					  = _cpu_buffers;
+		stg->buffers					  = raw.buffers;
 		stg->format						  = _texture_format;
-		stg->size						  = _cpu_buffers[0].size;
-		stg->name						  = reinterpret_cast<const char*>(name);
+		stg->size						  = raw.buffers[0].size;
+		stg->name						  = (const char*)SFG_MALLOC(strlen(raw.name.c_str()));
 		stg->intermediate_size			  = backend->align_texture_size(total_size);
+		if (stg->name != nullptr)
+			strcpy((char*)stg->name, raw.name.c_str());
 		stream.add_event(ev);
-		_cpu_buffers.clear();
-
-		/*
-		stream.add_event({.create_callback =
-							  [size, fmt, buffers = this->_cpu_buffers, name = this->_name](void* data_storage) {
-								  gfx_backend* backend = gfx_backend::get();
-								  const gfx_id handle  = backend->create_texture({
-									   .texture_format = fmt,
-									   .size		   = size,
-									   .flags		   = texture_flags::tf_is_2d | texture_flags::tf_sampled,
-									   .views		   = {{}},
-									   .mip_levels	   = static_cast<uint8>(buffers.size()),
-									   .array_length   = 1,
-									   .samples		   = 1,
-									   .debug_name	   = name,
-								   });
-
-								  uint32 total_size = 0;
-								  for (const texture_buffer& buf : buffers)
-									  total_size += backend->get_texture_size(buf.size.x, buf.size.y, buf.bpp);
-
-								  const uint32 intermediate_size = backend->align_texture_size(total_size);
-
-								  const gfx_id intermediate = backend->create_resource({
-									  .size		  = intermediate_size,
-									  .flags	  = resource_flags::rf_cpu_visible,
-									  .debug_name = "texture_intermediate",
-								  });
-
-								  texture_data_storage* data = reinterpret_cast<texture_data_storage*>(data_storage);
-								  data->buffers				 = buffers;
-								  data->hw					 = handle;
-								  data->intermediate_buffer	 = intermediate;
-							  },
-						  .destroy_callback =
-							  [](void* data_storage) {
-								  texture_data_storage* data = reinterpret_cast<texture_data_storage*>(data_storage);
-
-								  gfx_backend* backend = gfx_backend::get();
-								  backend->destroy_texture(data->hw);
-								  backend->destroy_resource(data->intermediate_buffer);
-							  },
-						  .handle	  = handle,
-						  .event_type = render_event_type::render_event_create_texture});
-						  */
 	}
 
-	void texture::push_destroy_event(render_event_stream& stream, resource_handle handle)
+	void texture::destroy(render_event_stream& stream, resource_handle handle)
 	{
 		stream.add_event({.header = {
 							  .handle	  = handle,
