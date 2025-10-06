@@ -7,10 +7,11 @@
 #ifdef SFG_TOOLMODE
 
 #include "io/log.hpp"
+#include "io/file_system.hpp"
 #include "data/vector_util.hpp"
 #include "math/math.hpp"
 #include "vendor/nhlohmann/json.hpp"
-
+#
 #define TINYGLTF_NO_INCLUDE_STB_IMAGE
 #define TINYGLTF_NO_INCLUDE_STB_IMAGE_WRITE
 #define TINYGLTF_NO_INCLUDE_JSON
@@ -19,6 +20,7 @@
 #include "vendor/stb/stb_image.h"
 #include "vendor/stb/stb_image_write.h"
 #include "vendor/syoyo/tiny_gltf.h"
+using json = nlohmann::json;
 
 #endif
 
@@ -26,22 +28,26 @@ namespace SFG
 {
 	void model_raw::serialize(ostream& stream) const
 	{
+		stream << name;
+		stream << loaded_textures;
+		stream << loaded_materials;
 		stream << loaded_nodes;
 		stream << loaded_meshes;
 		stream << loaded_skins;
 		stream << loaded_animations;
 		stream << total_aabb;
-		stream << material_count;
 	}
 
 	void model_raw::deserialize(istream& stream)
 	{
+		stream >> name;
+		stream >> loaded_textures;
+		stream >> loaded_materials;
 		stream >> loaded_nodes;
 		stream >> loaded_meshes;
 		stream >> loaded_skins;
 		stream >> loaded_animations;
 		stream >> total_aabb;
-		stream >> material_count;
 	}
 
 #ifdef SFG_TOOLMODE
@@ -229,7 +235,8 @@ namespace SFG
 		};
 
 	}
-	bool model_raw::cook_from_file(const char* file, const char* relative_path)
+
+	bool model_raw::import_gtlf(const char* file, const char* relative_path, bool create_materials, bool import_textures)
 	{
 		tinygltf::Model	   model;
 		tinygltf::TinyGLTF loader;
@@ -255,7 +262,6 @@ namespace SFG
 			return false;
 		}
 
-		material_count			   = static_cast<uint8>(model.materials.size());
 		const size_t all_meshes_sz = model.meshes.size();
 		loaded_meshes.resize(all_meshes_sz);
 
@@ -428,6 +434,97 @@ namespace SFG
 				}
 			}
 
+			if (import_textures)
+			{
+				const size_t all_textures_sz = model.textures.size();
+
+				for (size_t i = 0; i < all_textures_sz; i++)
+				{
+					tinygltf::Texture& ttexture = model.textures[i];
+
+					if (ttexture.source != -1)
+					{
+						tinygltf::Image& img = model.images[ttexture.source];
+						if (!img.image.empty())
+						{
+							loaded_textures.push_back({});
+							texture_raw& raw = loaded_textures.back();
+							raw.name		 = img.name.empty() ? ttexture.name : img.name;
+
+							const string	hash_path = string(relative_path) + "/" + ttexture.name;
+							const string_id hash	  = TO_SID(hash_path);
+							raw.sid					  = hash;
+
+							uint8*			  data = new uint8[img.image.size()];
+							const vector2ui16 size = vector2ui16(static_cast<uint16>(img.width), static_cast<uint16>(img.height));
+							const uint8		  bpp  = img.bits / 8 * img.component;
+							raw.cook_from_data(data, size, bpp, true);
+						}
+					}
+				}
+			}
+
+			if (create_materials)
+			{
+				SFG_ASSERT(!material_shaders.empty());
+
+				const size_t all_materials_sz = model.materials.size();
+				for (size_t i = 0; i < all_materials_sz; i++)
+				{
+					tinygltf::Material& tmat = model.materials[i];
+					loaded_materials.push_back({});
+					material_raw& raw		  = loaded_materials.back();
+					raw.name				  = tmat.name;
+					const string	hash_path = string(relative_path) + "/" + tmat.name;
+					const string_id hash	  = TO_SID(hash_path);
+					raw.sid					  = hash;
+
+					const vector4 base_color = vector4(static_cast<float>(tmat.pbrMetallicRoughness.baseColorFactor[0]),
+													   static_cast<float>(tmat.pbrMetallicRoughness.baseColorFactor[1]),
+													   static_cast<float>(tmat.pbrMetallicRoughness.baseColorFactor[2]),
+													   static_cast<float>(tmat.pbrMetallicRoughness.baseColorFactor[3]));
+
+					const vector3 emissive	   = vector3(static_cast<float>(tmat.emissiveFactor[0]), static_cast<float>(tmat.emissiveFactor[1]), static_cast<float>(tmat.emissiveFactor[2]));
+					const float	  metallic	   = static_cast<float>(tmat.pbrMetallicRoughness.metallicFactor);
+					const float	  roughness	   = static_cast<float>(tmat.pbrMetallicRoughness.roughnessFactor);
+					const float	  alpha_cutoff = static_cast<float>(tmat.alphaCutoff);
+					raw.pass_mode			   = tmat.alphaMode.compare("OPAQUE") == 0 ? material_pass_mode::gbuffer : material_pass_mode::gbuffer_transparent;
+					raw.material_data << base_color;
+					raw.material_data << emissive;
+					raw.material_data << metallic;
+					raw.material_data << roughness;
+					raw.material_data << alpha_cutoff;
+
+					const int base_index	 = tmat.pbrMetallicRoughness.baseColorTexture.index;
+					const int normal_index	 = tmat.normalTexture.index;
+					const int orm_index		 = tmat.pbrMetallicRoughness.metallicRoughnessTexture.index;
+					const int emissive_index = tmat.emissiveTexture.index;
+
+					if (base_index == -1)
+						raw.textures.push_back(0);
+					else
+						raw.textures.push_back(loaded_textures[base_index].sid);
+
+					if (normal_index == -1)
+						raw.textures.push_back(0);
+					else
+						raw.textures.push_back(loaded_textures[normal_index].sid);
+
+					if (orm_index == -1)
+						raw.textures.push_back(0);
+					else
+						raw.textures.push_back(loaded_textures[orm_index].sid);
+
+					if (emissive_index == -1)
+						raw.textures.push_back(0);
+					else
+						raw.textures.push_back(loaded_textures[emissive_index].sid);
+
+					for (string_id sh : material_shaders)
+						raw.shaders.push_back(sh);
+				}
+			}
+
 			const size_t all_anims_sz = model.animations.size();
 
 			for (size_t i = 0; i < all_anims_sz; i++)
@@ -578,6 +675,43 @@ namespace SFG
 		total_aabb.update_half_extents();
 		SFG_INFO("Loaded model from file: {0}", file);
 		return true;
+	}
+
+	bool model_raw::cook_from_file(const char* file, const char* relative_path)
+	{
+		try
+		{
+			std::ifstream f(file);
+			json		  json_data = json::parse(f);
+			f.close();
+
+			const string source = json_data.value<string>("source", "");
+			if (!file_system::exists(source.c_str()))
+			{
+				SFG_ERR("File doesn't exists! {0}", source.c_str());
+				return false;
+			}
+
+			name									  = relative_path;
+			const uint8			 import_pbr_materials = json_data.value<uint8>("import_pbr_materials", 0);
+			const vector<string> shaders			  = json_data.value<vector<string>>("shaders", {});
+			const uint8			 import_textures	  = import_pbr_materials;
+
+			if (import_pbr_materials == 1)
+			{
+				SFG_ASSERT(!shaders.empty());
+
+				for (const string& sh : shaders)
+					material_shaders.push_back(TO_SID(sh));
+			}
+
+			return import_gtlf(file, relative_path, import_pbr_materials, import_textures);
+		}
+		catch (std::exception e)
+		{
+			SFG_ERR("Failed loading material: {0}", e.what());
+			return false;
+		}
 	}
 #endif
 }

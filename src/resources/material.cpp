@@ -45,7 +45,7 @@ namespace SFG
 			world_resources& resources = w.get_resources();
 			resource_handle	 handle	   = resources.add_resource<material>(sid);
 			material&		 res	   = resources.get_resource<material>(handle);
-			res.create_from_raw(*raw_ptr, resources, w.get_render_stream(), handle);
+			res.create_from_raw(*raw_ptr, resources, resources.get_aux(), w.get_render_stream(), handle);
 			delete raw_ptr;
 			return handle;
 		});
@@ -54,7 +54,7 @@ namespace SFG
 
 		m.add_function<void, world&, resource_handle>("destroy"_hs, [](world& w, resource_handle handle) -> void {
 			world_resources& res = w.get_resources();
-			res.get_resource<material>(handle).destroy(w.get_render_stream(), handle);
+			res.get_resource<material>(handle).destroy(w.get_render_stream(), res.get_aux(), handle);
 			res.remove_resource<material>(handle);
 		});
 
@@ -64,14 +64,17 @@ namespace SFG
 		});
 	}
 
-	void material::create_from_raw(const material_raw& raw, world_resources& resources, render_event_stream& stream, resource_handle handle)
+	void material::create_from_raw(const material_raw& raw, world_resources& resources, chunk_allocator32& alloc, render_event_stream& stream, resource_handle handle)
 	{
 		gfx_backend* backend = gfx_backend::get();
 
+		if (!raw.name.empty())
+			_name = alloc.allocate_text(raw.name);
+
 		const uint8 texture_count = static_cast<uint8>(raw.textures.size());
 		_material_data			  = raw.material_data;
-		_flags.set(material::flags::is_opaque, raw.is_opaque);
-		_flags.set(material::flags::is_forward, raw.is_forward);
+		_flags.set(material::flags::is_gbuffer, raw.pass_mode == material_pass_mode::gbuffer || raw.pass_mode == material_pass_mode::gbuffer_transparent);
+		_flags.set(material::flags::is_forward, raw.pass_mode == material_pass_mode::forward);
 		SFG_ASSERT(!raw.shaders.empty());
 
 		for (string_id sh : raw.shaders)
@@ -88,7 +91,7 @@ namespace SFG
 						   }};
 
 		render_event_storage_material* stg = reinterpret_cast<render_event_storage_material*>(ev.data);
-		stg->name						   = reinterpret_cast<const char*>(SFG_MALLOC(strlen(raw.name.c_str())));
+		stg->name						   = alloc.get<const char>(_name);
 		stg->data						   = _material_data;
 
 		for (string_id txt : raw.textures)
@@ -100,12 +103,17 @@ namespace SFG
 		stream.add_event(ev);
 	}
 
-	void material::destroy(render_event_stream& stream, resource_handle handle)
+	void material::destroy(render_event_stream& stream, chunk_allocator32& alloc, resource_handle handle)
 	{
+		if (_name.size != 0)
+			alloc.free(_name);
+
 		stream.add_event({.header = {
 							  .handle	  = handle,
 							  .event_type = render_event_type::render_event_destroy_material,
 						  }});
+
+		_name = {};
 	}
 
 	resource_handle material::get_shader(uint8 flags_to_match) const

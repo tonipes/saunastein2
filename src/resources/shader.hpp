@@ -6,6 +6,7 @@
 #include "data/bitmask.hpp"
 #include "common/type_id.hpp"
 #include "resources/common_resources.hpp"
+#include "memory/chunk_handle.hpp"
 
 namespace SFG
 {
@@ -19,6 +20,7 @@ namespace SFG
 	extern shader_reflection g_shader_reflection;
 
 	class render_event_stream;
+	class chunk_allocator32;
 
 	class shader
 	{
@@ -28,8 +30,8 @@ namespace SFG
 			is_skinned = 1 << 0,
 		};
 
-		void create_from_raw(const shader_raw& raw, render_event_stream& stream, resource_handle handle);
-		void destroy(render_event_stream& stream, resource_handle handle);
+		void create_from_raw(const shader_raw& raw, render_event_stream& stream, chunk_allocator32& alloc, resource_handle handle);
+		void destroy(render_event_stream& stream, chunk_allocator32& alloc, resource_handle handle);
 
 		inline const bitmask<uint8>& get_flags() const
 		{
@@ -38,6 +40,7 @@ namespace SFG
 
 	private:
 		bitmask<uint8> _flags = 0;
+		chunk_handle32 _name  = {};
 	};
 
 	REGISTER_TYPE(shader, resource_type::resource_type_shader);

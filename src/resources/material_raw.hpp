@@ -29,14 +29,21 @@ namespace SFG
 
 #endif
 
+	enum class material_pass_mode
+	{
+		gbuffer,
+		gbuffer_transparent,
+		forward,
+	};
+
 	struct material_raw
 	{
-		ostream			  material_data = {};
-		vector<string_id> shaders;
-		vector<string_id> textures;
-		uint8			  is_opaque	 = 0;
-		uint8			  is_forward = 0;
-		string			  name		 = "";
+		ostream			   material_data = {};
+		vector<string_id>  shaders;
+		vector<string_id>  textures;
+		material_pass_mode pass_mode;
+		string			   name = "";
+		string_id		   sid	= 0;
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);

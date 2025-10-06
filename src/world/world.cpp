@@ -262,7 +262,7 @@ namespace SFG
 		chunk_allocator32& aux	= _resources.get_aux();
 
 		const chunk_handle32 meshes		  = mdl.get_created_meshes();
-		const chunk_handle32 nodes		  = mdl.get_nodes();
+		const chunk_handle32 nodes		  = mdl.get_created_nodes();
 		const uint16		 meshes_count = mdl.get_mesh_count();
 		const uint16		 nodes_count  = mdl.get_node_count();
 

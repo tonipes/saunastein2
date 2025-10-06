@@ -263,11 +263,7 @@ namespace SFG
 	void animation::create_from_raw(const animation_raw& raw, chunk_allocator32& alloc)
 	{
 		if (!raw.name.empty())
-		{
-			_name = alloc.allocate<uint8>(raw.name.size());
-			strcpy((char*)alloc.get(_name.head), raw.name.data());
-			strcpy((char*)(alloc.get(_name.head + _name.size)), "\0");
-		}
+			_name = alloc.allocate_text(raw.name);
 
 		_duration = raw.duration;
 
@@ -324,7 +320,6 @@ namespace SFG
 	{
 		if (_name.size != 0)
 			alloc.free(_name);
-
 		if (_position_channels.size != 0)
 		{
 			animation_channel_v3* ptr = alloc.get<animation_channel_v3>(_position_channels);

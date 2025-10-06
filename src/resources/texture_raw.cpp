@@ -26,7 +26,9 @@ namespace SFG
 	void texture_raw::serialize(ostream& stream) const
 	{
 		const uint16 count = static_cast<uint16>(buffers.size());
+		stream << name;
 		stream << texture_format;
+		stream << sid;
 		stream << count;
 
 		for (const texture_buffer& b : buffers)
@@ -40,7 +42,9 @@ namespace SFG
 	void texture_raw::deserialize(istream& stream)
 	{
 		uint16 count = 0;
+		stream >> name;
 		stream >> texture_format;
+		stream >> sid;
 		stream >> count;
 
 		for (uint16 i = 0; i < count; i++)
@@ -58,6 +62,27 @@ namespace SFG
 		}
 	}
 
+	void texture_raw::cook_from_data(uint8* base, const vector2ui16& size, uint8 txt_format, bool generate_mips)
+	{
+		const format fmt	   = static_cast<format>(txt_format);
+		const uint8	 bpp	   = format_get_bpp(fmt);
+		const bool	 is_linear = format_is_linear(fmt);
+		const uint8	 channels  = format_get_channels(fmt);
+
+		const texture_buffer b = {
+			.pixels = reinterpret_cast<uint8*>(base),
+			.size	= size,
+			.bpp	= bpp,
+		};
+
+		const uint8 count = generate_mips ? math::min(image_util::calculate_mip_levels(size.x, size.y), (uint8)MAX_TEXTURE_MIPS) : 1;
+		buffers.resize(count);
+		buffers[0] = b;
+
+		if (generate_mips)
+			image_util::generate_mips(buffers.data(), count, image_util::mip_gen_filter::box, channels, is_linear, false);
+	}
+
 #ifdef SFG_TOOLMODE
 	bool texture_raw::cook_from_file(const char* file)
 	{
@@ -73,9 +98,10 @@ namespace SFG
 			json json_data = json::parse(f);
 			f.close();
 
-			texture_format = static_cast<uint8>(json_data.value<format>("format", format::undefined));
-			name		   = json_data.value<string>("source", "");
-			gen_mips	   = json_data.value<uint8>("gen_mips", 0);
+			texture_format	= static_cast<uint8>(json_data.value<format>("format", format::undefined));
+			name			= json_data.value<string>("source", "");
+			sid				= TO_SID(file);
+			const bool mips = json_data.value<uint8>("gen_mips", 0);
 
 			const format fmt	   = static_cast<format>(static_cast<format>(texture_format));
 			const uint8	 channels  = format_get_channels(fmt);
@@ -102,12 +128,12 @@ namespace SFG
 				.bpp	= bpp,
 			};
 
-			const uint8 count = gen_mips ? math::min(image_util::calculate_mip_levels(size.x, size.y), (uint8)MAX_TEXTURE_MIPS) : 1;
+			const uint8 count = mips ? math::min(image_util::calculate_mip_levels(size.x, size.y), (uint8)MAX_TEXTURE_MIPS) : 1;
 
 			buffers.resize(count);
 			buffers[0] = b;
 
-			if (gen_mips == 1)
+			if (mips == 1)
 				image_util::generate_mips(buffers.data(), count, image_util::mip_gen_filter::box, channels, is_linear, false);
 		}
 		catch (std::exception e)

@@ -18,6 +18,7 @@ namespace SFG
 {
 	void physical_material_raw::serialize(ostream& stream) const
 	{
+		stream << name;
 		stream << restitution;
 		stream << friction;
 		stream << angular_damp;
@@ -26,6 +27,7 @@ namespace SFG
 
 	void physical_material_raw::deserialize(istream& stream)
 	{
+		stream >> name;
 		stream >> restitution;
 		stream >> friction;
 		stream >> angular_damp;
@@ -46,6 +48,10 @@ namespace SFG
 			std::ifstream f(path);
 			json		  json_data = json::parse(f);
 			f.close();
+
+			const string& wd = engine_data::get().get_working_dir();
+			const string  p	 = path;
+			name			 = p.substr(wd.size(), p.size() - wd.size());
 
 			restitution	 = json_data.value<float>("restitution", 0.0f);
 			friction	 = json_data.value<float>("restitution", 0.2f);

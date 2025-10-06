@@ -36,7 +36,7 @@ namespace SFG
 			world_resources&	   resources = w.get_resources();
 			resource_handle		   handle	 = resources.add_resource<physical_material>(sid);
 			physical_material&	   res		 = resources.get_resource<physical_material>(handle);
-			res.create_from_raw(*raw_ptr);
+			res.create_from_raw(*raw_ptr, resources.get_aux());
 			delete raw_ptr;
 			return handle;
 		});
@@ -45,7 +45,7 @@ namespace SFG
 
 		m.add_function<void, world&, resource_handle>("destroy"_hs, [](world& w, resource_handle h) -> void {
 			world_resources& res = w.get_resources();
-			res.get_resource<physical_material>(h).destroy();
+			res.get_resource<physical_material>(h).destroy(res.get_aux());
 			res.remove_resource<physical_material>(h);
 		});
 
@@ -55,11 +55,16 @@ namespace SFG
 		});
 	}
 
-	void physical_material::create_from_raw(const physical_material_raw& raw)
+	void physical_material::create_from_raw(const physical_material_raw& raw, chunk_allocator32& alloc)
 	{
+		if (!raw.name.empty())
+			_name = alloc.allocate_text(raw.name);
 	}
 
-	void physical_material::destroy()
+	void physical_material::destroy(chunk_allocator32& alloc)
 	{
+		if (_name.size != 0)
+			alloc.free(_name);
+		_name = {};
 	}
 }

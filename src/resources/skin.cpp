@@ -16,15 +16,11 @@ namespace SFG
 
 	void skin::create_from_raw(const skin_raw& raw, chunk_allocator32& alloc)
 	{
+		if (!raw.name.empty())
+			_name = alloc.allocate_text(raw.name);
+
 		_root		  = raw.root_joint;
 		_joints_count = static_cast<uint16>(raw.joints.size());
-
-		if (!raw.name.empty())
-		{
-			_name = alloc.allocate<uint8>(raw.name.size());
-			strcpy((char*)alloc.get(_name.head), raw.name.data());
-			strcpy((char*)(alloc.get(_name.head + _name.size)), "\0");
-		}
 
 		_joints = alloc.allocate<skin_joint>(raw.joints.size());
 

@@ -45,19 +45,14 @@ namespace SFG
 			return _total_aabb;
 		}
 
-		inline uint8 get_material_count() const
+		inline uint16 get_material_count() const
 		{
-			return _material_count;
+			return _materials_count;
 		}
 
-		inline chunk_handle32 get_created_meshes() const
+		inline uint16 get_texture_count() const
 		{
-			return _created_meshes;
-		}
-
-		inline chunk_handle32 get_nodes() const
-		{
-			return _nodes;
+			return _textures_count;
 		}
 
 		inline uint16 get_node_count() const
@@ -70,21 +65,55 @@ namespace SFG
 			return _meshes_count;
 		}
 
+		inline chunk_handle32 get_created_meshes() const
+		{
+			return _created_meshes;
+		}
+
+		inline chunk_handle32 get_created_nodes() const
+		{
+			return _nodes;
+		}
+
+		inline chunk_handle32 get_created_materials() const
+		{
+			return _created_materials;
+		}
+
+		inline chunk_handle32 get_created_skins() const
+		{
+			return _created_skins;
+		}
+
+		inline chunk_handle32 get_created_anims() const
+		{
+			return _created_anims;
+		}
+
+		inline chunk_handle32 get_created_textures() const
+		{
+			return _created_textures;
+		}
+
 	private:
 #ifdef SFG_TOOLMODE
 		friend struct model_raw;
 #endif
+		chunk_handle32 _name;
 		chunk_handle32 _nodes;
 		chunk_handle32 _created_meshes;
 		chunk_handle32 _created_skins;
 		chunk_handle32 _created_anims;
+		chunk_handle32 _created_materials;
+		chunk_handle32 _created_textures;
 		aabb		   _total_aabb;
-		uint16		   _nodes_count	 = 0;
-		uint16		   _meshes_count = 0;
-		uint16		   _skins_count	 = 0;
-		uint16		   _anims_count	 = 0;
+		uint16		   _nodes_count		= 0;
+		uint16		   _meshes_count	= 0;
+		uint16		   _skins_count		= 0;
+		uint16		   _anims_count		= 0;
+		uint16		   _materials_count = 0;
+		uint16		   _textures_count	= 0;
 		bitmask<uint8> _flags;
-		uint8		   _material_count = 0;
 	};
 
 	REGISTER_TYPE(model, resource_type::resource_type_model);

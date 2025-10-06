@@ -110,9 +110,6 @@ namespace SFG
 					.debug_name		= stg->name,
 				});
 
-				if (stg->name != nullptr)
-					SFG_FREE((void*)stg->name);
-
 				proxy.intermediate = backend->create_resource({
 					.size		= stg->intermediate_size,
 					.flags		= resource_flags::rf_cpu_visible,
@@ -133,9 +130,6 @@ namespace SFG
 				proxy.active						= 1;
 				proxy.handle						= index;
 				proxy.hw							= backend->create_sampler(stg->desc);
-
-				if (stg->name != nullptr)
-					SFG_FREE((void*)stg->name);
 			}
 			else if (ev->header.event_type == render_event_type::render_event_destroy_sampler)
 			{
@@ -150,11 +144,7 @@ namespace SFG
 				proxy.active					   = 1;
 				proxy.handle					   = index;
 				proxy.hw						   = backend->create_shader(stg->desc);
-
 				stg->desc.destroy();
-
-				if (stg->name != nullptr)
-					SFG_FREE((void*)stg->name);
 			}
 			else if (ev->header.event_type == render_event_type::render_event_destroy_shader)
 			{
@@ -182,9 +172,6 @@ namespace SFG
 							.flags		= resource_flags::rf_constant_buffer | resource_flags::rf_gpu_only,
 							.debug_name = stg->name,
 						});
-
-					if (stg->name != nullptr)
-						SFG_FREE((void*)stg->name);
 
 					proxy.bind_groups[i] = backend->create_empty_bind_group();
 					backend->bind_group_add_pointer(proxy.bind_groups[i], root_param_index::rpi_table_material, 3, false);
@@ -291,9 +278,10 @@ namespace SFG
 						const size_t			vtx_sz	   = p.vertices.size() * vtx_type_size;
 						const size_t			idx_sz	   = p.indices.size() * sizeof(primitive_index);
 
-						proxy_prim.vertex_start = vtx_counter;
-						proxy_prim.index_start	= idx_counter;
-						proxy_prim.index_count	= static_cast<uint32>(p.indices.size());
+						proxy_prim.material_index = p.material_index;
+						proxy_prim.vertex_start	  = vtx_counter;
+						proxy_prim.index_start	  = idx_counter;
+						proxy_prim.index_count	  = static_cast<uint32>(p.indices.size());
 
 						proxy.vertex_buffer.buffer_data(vertex_offset, p.vertices.data(), vtx_sz);
 						proxy.index_buffer.buffer_data(index_offset, p.indices.data(), idx_sz);

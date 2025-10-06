@@ -6,6 +6,7 @@
 #include "gfx/common/gfx_constants.hpp"
 #include "common/type_id.hpp"
 #include "resources/common_resources.hpp"
+#include "memory/chunk_handle.hpp"
 #include <limits>
 
 namespace SFG
@@ -20,14 +21,16 @@ namespace SFG
 	extern texture_sampler_reflection g_texture_sampler_reflection;
 
 	class render_event_stream;
+	class chunk_allocator32;
 
 	class texture_sampler
 	{
 	public:
-		void create_from_raw(const texture_sampler_raw& raw, render_event_stream& stream, resource_handle handle);
-		void destroy(render_event_stream& stream, resource_handle handle);
+		void create_from_raw(const texture_sampler_raw& raw, render_event_stream& stream, chunk_allocator32& alloc, resource_handle handle);
+		void destroy(render_event_stream& stream, chunk_allocator32& alloc, resource_handle handle);
 
 	private:
+		chunk_handle32 _name = {};
 	};
 
 	REGISTER_TYPE(texture_sampler, resource_type::resource_type_texture_sampler);

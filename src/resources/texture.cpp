@@ -48,7 +48,7 @@ namespace SFG
 			resource_handle		 handle	   = resources.add_resource<texture>(sid);
 			texture&			 res	   = resources.get_resource<texture>(handle);
 			render_event_stream& stream	   = w.get_render_stream();
-			res.create_from_raw(*raw_ptr, stream, handle);
+			res.create_from_raw(*raw_ptr, stream, resources.get_aux(), handle);
 			delete raw_ptr;
 
 			return handle;
@@ -57,7 +57,7 @@ namespace SFG
 		m.add_function<void, world&, resource_handle>("destroy"_hs, [](world& w, resource_handle h) -> void {
 			world_resources& resources = w.get_resources();
 			texture&		 txt	   = resources.get_resource<texture>(h);
-			txt.destroy(w.get_render_stream(), h);
+			txt.destroy(w.get_render_stream(), resources.get_aux(), h);
 			resources.remove_resource<texture>(h);
 		});
 
@@ -73,10 +73,13 @@ namespace SFG
 	{
 	}
 
-	void texture::create_from_raw(const texture_raw& raw, render_event_stream& stream, resource_handle handle)
+	void texture::create_from_raw(const texture_raw& raw, render_event_stream& stream, chunk_allocator32& alloc, resource_handle handle)
 	{
 		_texture_format = raw.texture_format;
 		SFG_ASSERT(raw.buffers.empty());
+
+		if (!raw.name.empty())
+			_name = alloc.allocate_text(raw.name);
 
 		render_event ev = {
 			.header =
@@ -95,19 +98,24 @@ namespace SFG
 		stg->buffers					  = raw.buffers;
 		stg->format						  = _texture_format;
 		stg->size						  = raw.buffers[0].size;
-		stg->name						  = (const char*)SFG_MALLOC(strlen(raw.name.c_str()));
+		stg->name						  = alloc.get<const char>(_name);
 		stg->intermediate_size			  = backend->align_texture_size(total_size);
 		if (stg->name != nullptr)
 			strcpy((char*)stg->name, raw.name.c_str());
 		stream.add_event(ev);
 	}
 
-	void texture::destroy(render_event_stream& stream, resource_handle handle)
+	void texture::destroy(render_event_stream& stream, chunk_allocator32& alloc, resource_handle handle)
 	{
+		if (_name.size != 0)
+			alloc.free(_name);
+
 		stream.add_event({.header = {
 							  .handle	  = handle,
 							  .event_type = render_event_type::render_event_destroy_texture,
 						  }});
+
+		_name = {};
 	}
 
 }

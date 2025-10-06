@@ -38,7 +38,7 @@ namespace SFG
 			world_resources& resources = w.get_resources();
 			resource_handle	 handle	   = resources.add_resource<font>(sid);
 			font&			 res	   = resources.get_resource<font>(handle);
-			res.create_from_raw(*raw_ptr, w.get_font_manager());
+			res.create_from_raw(*raw_ptr, w.get_font_manager(), resources.get_aux());
 			delete raw_ptr;
 			return handle;
 		});
@@ -47,7 +47,7 @@ namespace SFG
 
 		m.add_function<void, world&, resource_handle>("destroy"_hs, [](world& w, resource_handle h) -> void {
 			world_resources& res = w.get_resources();
-			res.get_resource<font>(h).destroy(w.get_font_manager());
+			res.get_resource<font>(h).destroy(w.get_font_manager(), res.get_aux());
 			res.remove_resource<font>(h);
 		});
 
@@ -57,15 +57,23 @@ namespace SFG
 		});
 	}
 
-	void font::create_from_raw(const font_raw& raw, vekt::font_manager& fm)
+	void font::create_from_raw(const font_raw& raw, vekt::font_manager& fm, chunk_allocator32& alloc)
 	{
+		if (!raw.name.empty())
+			_name = alloc.allocate_text(raw.name);
+
 		// ffs man.
 		unsigned char* data = const_cast<unsigned char*>(reinterpret_cast<const unsigned char*>(raw.font_data.data()));
 		_font				= fm.load_font(data, static_cast<unsigned int>(raw.font_data.size()), static_cast<unsigned int>(raw.point_size), 32, 128, static_cast<vekt::font_type>(raw.font_type), raw.sdf_padding, raw.sdf_edge, raw.sdf_distance);
 	}
 
-	void font::destroy(vekt::font_manager& fm)
+	void font::destroy(vekt::font_manager& fm, chunk_allocator32& alloc)
 	{
+		if (_name.size != 0)
+			alloc.free(_name);
+
 		fm.unload_font(_font);
+
+		_name = {};
 	}
 }

@@ -6,6 +6,8 @@
 #include "skin.hpp"
 #include "animation.hpp"
 #include "model_raw.hpp"
+#include "texture.hpp"
+#include "material.hpp"
 #include "gfx/world/world_renderer.hpp"
 #include "project/engine_data.hpp"
 #include "resource_reflection_template.hpp"
@@ -14,7 +16,7 @@ namespace SFG
 {
 	model_reflection::model_reflection()
 	{
-		meta& m = reflection::get().register_meta(type_id<model>::value, "gltf");
+		meta& m = reflection::get().register_meta(type_id<model>::value, "stkmodel");
 
 #ifdef SFG_TOOLMODE
 
@@ -41,7 +43,7 @@ namespace SFG
 			return raw;
 		});
 
-		m.add_function<resource_handle, void*, world&, string_id>("create_from_raw"_hs, [](void* raw, world& w, string_id sid) -> resource_handle {
+		m.add_function<resource_handle, void*, world&, string_id>("create_from_raw_2"_hs, [](void* raw, world& w, string_id sid) -> resource_handle {
 			model_raw*		   raw_ptr	 = reinterpret_cast<model_raw*>(raw);
 			world_resources&   resources = w.get_resources();
 			resource_handle	   handle	 = resources.add_resource<model>(sid);
@@ -84,13 +86,17 @@ namespace SFG
 	{
 		SFG_ASSERT(!_flags.is_set(model::flags::hw_exists));
 
-		_total_aabb		= raw.total_aabb;
-		_material_count = raw.material_count;
+		if (!raw.name.empty())
+			_name = alloc.allocate_text(raw.name);
 
-		const uint16 node_count	 = static_cast<uint16>(raw.loaded_nodes.size());
-		const uint16 mesh_count	 = static_cast<uint16>(raw.loaded_meshes.size());
-		const uint16 skins_count = static_cast<uint16>(raw.loaded_skins.size());
-		const uint16 anims_count = static_cast<uint16>(raw.loaded_animations.size());
+		_total_aabb = raw.total_aabb;
+
+		const uint16 node_count		 = static_cast<uint16>(raw.loaded_nodes.size());
+		const uint16 mesh_count		 = static_cast<uint16>(raw.loaded_meshes.size());
+		const uint16 skins_count	 = static_cast<uint16>(raw.loaded_skins.size());
+		const uint16 anims_count	 = static_cast<uint16>(raw.loaded_animations.size());
+		const uint16 materials_count = static_cast<uint16>(raw.loaded_materials.size());
+		const uint16 textures_count	 = static_cast<uint16>(raw.loaded_textures.size());
 
 		if (node_count != 0)
 		{
@@ -151,16 +157,51 @@ namespace SFG
 			}
 		}
 
-		_skins_count  = skins_count;
-		_anims_count  = anims_count;
-		_meshes_count = mesh_count;
-		_nodes_count  = node_count;
+		if (textures_count != 0)
+		{
+			_created_textures	 = alloc.allocate<resource_handle>(textures_count);
+			resource_handle* ptr = alloc.get<resource_handle>(_created_textures);
+
+			for (uint16 i = 0; i < textures_count; i++)
+			{
+				const texture_raw&	  loaded = raw.loaded_textures[i];
+				const resource_handle handle = resources.add_resource<texture>(loaded.sid);
+				ptr[i]						 = handle;
+				texture& created			 = resources.get_resource<texture>(handle);
+				created.create_from_raw(loaded, stream, alloc, handle);
+			}
+		}
+
+		if (materials_count != 0)
+		{
+			_created_materials	 = alloc.allocate<resource_handle>(materials_count);
+			resource_handle* ptr = alloc.get<resource_handle>(_created_materials);
+
+			for (uint16 i = 0; i < materials_count; i++)
+			{
+				const material_raw&	  loaded = raw.loaded_materials[i];
+				const resource_handle handle = resources.add_resource<material>(loaded.sid);
+				ptr[i]						 = handle;
+				material& created			 = resources.get_resource<material>(handle);
+				created.create_from_raw(loaded, resources, resources.get_aux(), stream, handle);
+			}
+		}
+
+		_skins_count	 = skins_count;
+		_anims_count	 = anims_count;
+		_meshes_count	 = mesh_count;
+		_nodes_count	 = node_count;
+		_materials_count = materials_count;
+		_textures_count	 = textures_count;
 		_flags.set(model::flags::pending_upload | model::flags::hw_exists);
 	}
 
 	void model::destroy(world_resources& resources, render_event_stream& stream, chunk_allocator32& alloc)
 	{
 		SFG_ASSERT(_flags.is_set(model::flags::hw_exists));
+
+		if (_name.size != 0)
+			alloc.free(_name);
 
 		if (_nodes.size != 0)
 		{
@@ -219,10 +260,43 @@ namespace SFG
 			alloc.free(_created_anims);
 		}
 
-		_created_meshes = {};
-		_nodes			= {};
-		_created_skins	= {};
-		_created_anims	= {};
+		if (_created_textures.size != 0)
+		{
+			resource_handle* ptr = alloc.get<resource_handle>(_created_textures);
+
+			for (uint16 i = 0; i < _textures_count; i++)
+			{
+				const resource_handle handle = ptr[i];
+				texture&			  res	 = resources.get_resource<texture>(handle);
+				res.destroy(stream, alloc, handle);
+				resources.remove_resource<texture>(handle);
+			}
+
+			alloc.free(_created_textures);
+		}
+
+		if (_created_materials.size != 0)
+		{
+			resource_handle* ptr = alloc.get<resource_handle>(_created_materials);
+
+			for (uint16 i = 0; i < _materials_count; i++)
+			{
+				const resource_handle handle = ptr[i];
+				material&			  res	 = resources.get_resource<material>(handle);
+				res.destroy(stream, alloc, handle);
+				resources.remove_resource<material>(handle);
+			}
+
+			alloc.free(_created_materials);
+		}
+
+		_name			   = {};
+		_created_textures  = {};
+		_created_materials = {};
+		_created_meshes	   = {};
+		_nodes			   = {};
+		_created_skins	   = {};
+		_created_anims	   = {};
 		_flags.remove(model::flags::hw_exists);
 	}
 }

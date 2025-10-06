@@ -49,6 +49,7 @@ namespace SFG
 		// ma_sound	   _sound{};
 		chunk_handle32 _audio_data = {};
 		bitmask<uint8> _flags	   = 0;
+		chunk_handle32 _name	   = {};
 	};
 
 	REGISTER_TYPE(audio, resource_type::resource_type_audio);

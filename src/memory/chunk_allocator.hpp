@@ -7,6 +7,7 @@
 #include "io/assert.hpp"
 #include "data/vector.hpp"
 #include "data/vector_util.hpp"
+#include "data/string.hpp"
 #include "math/math_common.hpp"
 #include "memory.hpp"
 
@@ -18,9 +19,10 @@ namespace SFG
 	public:
 		~chunk_allocator32();
 
-		void init(size_t total_size);
-		void uninit();
-		void reset();
+		void		   init(size_t total_size);
+		void		   uninit();
+		void		   reset();
+		chunk_handle32 allocate_text(const string& source);
 
 		template <typename T> inline chunk_handle32 allocate(size_t count)
 		{

@@ -42,6 +42,7 @@ namespace SFG
 
 	struct render_event_storage_mesh
 	{
+		const char*					  name = "";
 		vector<primitive_static_raw>  primitives_static;
 		vector<primitive_skinned_raw> primitives_skinned;
 	};

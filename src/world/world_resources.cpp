@@ -146,16 +146,6 @@ namespace SFG
 
 				_file_watch.add_path(full_path.c_str());
 
-				if (reflection_meta->has_function("get_dependencies"_hs))
-				{
-					vector<string> dependencies;
-					reflection_meta->invoke_function<void, void*, vector<string>&>("get_dependencies"_hs, loader, dependencies);
-
-					for (const string& str : dependencies)
-					{
-					}
-				}
-
 				// Save to cache.
 				ostream out_stream;
 				reflection_meta->invoke_function<void*, void*, ostream&>("serialize"_hs, loader, out_stream);

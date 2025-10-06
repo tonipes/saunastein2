@@ -42,9 +42,10 @@ namespace SFG
 
 	struct render_proxy_primitive
 	{
-		uint32 vertex_start = 0;
-		uint32 index_start	= 0;
-		uint32 index_count	= 0;
+		uint16 material_index = 0;
+		uint32 vertex_start	  = 0;
+		uint32 index_start	  = 0;
+		uint32 index_count	  = 0;
 	};
 
 	struct render_proxy_mesh

@@ -45,4 +45,14 @@ namespace SFG
 		_free_chunks.resize(0);
 		_head = 0;
 	}
+
+	chunk_handle32 chunk_allocator32::allocate_text(const string& source)
+	{
+		const size_t		 len	= source.size();
+		const chunk_handle32 handle = allocate<uint8>(len + 1);
+		char*				 dst	= (char*)get<uint8>(handle);
+		SFG_MEMCPY(dst, source.data(), len);
+		dst[len] = '\0';
+		return handle;
+	}
 }

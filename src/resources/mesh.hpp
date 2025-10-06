@@ -25,29 +25,9 @@ namespace SFG
 		void create_from_raw(const mesh_raw& raw, chunk_allocator32& alloc, render_event_stream& stream, resource_handle handle);
 		void destroy(chunk_allocator32& alloc, render_event_stream& stream, resource_handle handle);
 
-		inline chunk_handle32 get_primitives_static() const
-		{
-			return _primitives_static;
-		}
-
-		inline chunk_handle32 get_primitives_skinned() const
-		{
-			return _primitives_skinned;
-		}
-
 		inline chunk_handle32 get_material_indices() const
 		{
 			return _material_indices;
-		}
-
-		inline uint16 get_primitives_static_count() const
-		{
-			return _primitives_static_count;
-		}
-
-		inline uint16 get_primitives_skinned_count() const
-		{
-			return _primitives_skinned_count;
 		}
 
 		inline uint16 get_node_index() const
@@ -64,14 +44,11 @@ namespace SFG
 		friend class model;
 
 	private:
-		uint16		   _node_index	   = 0;
-		uint16		   _material_count = 0;
 		chunk_handle32 _name;
-		chunk_handle32 _primitives_static;
-		chunk_handle32 _primitives_skinned;
 		chunk_handle32 _material_indices; // original indices into the loaded model.
-		uint16		   _primitives_static_count	 = 0;
-		uint16		   _primitives_skinned_count = 0;
+		uint16		   _node_index	   = 0;
+		int16		   _skin_index	   = 0;
+		uint16		   _material_count = 0;
 	};
 	REGISTER_TYPE(mesh, resource_type::resource_type_mesh);
 

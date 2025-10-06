@@ -39,7 +39,7 @@ namespace SFG
 			world_resources& resources = w.get_resources();
 			resource_handle	 handle	   = resources.add_resource<shader>(sid);
 			shader&			 res	   = resources.get_resource<shader>(handle);
-			res.create_from_raw(*raw_ptr, w.get_render_stream(), handle);
+			res.create_from_raw(*raw_ptr, w.get_render_stream(), resources.get_aux(), handle);
 			delete raw_ptr;
 			return handle;
 		});
@@ -48,7 +48,7 @@ namespace SFG
 
 		m.add_function<void, world&, resource_handle>("destroy"_hs, [](world& w, resource_handle handle) -> void {
 			world_resources& res = w.get_resources();
-			res.get_resource<shader>(handle).destroy(w.get_render_stream(), handle);
+			res.get_resource<shader>(handle).destroy(w.get_render_stream(), res.get_aux(), handle);
 			res.remove_resource<shader>(handle);
 		});
 
@@ -58,8 +58,11 @@ namespace SFG
 		});
 	}
 
-	void shader::create_from_raw(const shader_raw& raw, render_event_stream& stream, resource_handle handle)
+	void shader::create_from_raw(const shader_raw& raw, render_event_stream& stream, chunk_allocator32& alloc, resource_handle handle)
 	{
+		if (!raw.name.empty())
+			_name = alloc.allocate_text(raw.name);
+
 		render_event ev = {
 			.header =
 				{
@@ -69,16 +72,18 @@ namespace SFG
 		};
 		render_event_storage_shader* stg = reinterpret_cast<render_event_storage_shader*>(ev.data);
 		stg->desc						 = raw.desc;
-
-		stg->name = reinterpret_cast<const char*>(SFG_MALLOC(strlen(raw.name.c_str())));
+		stg->name						 = alloc.get<const char>(_name);
 
 		if (stg->name != nullptr)
 			strcpy((char*)stg->name, raw.name.c_str());
 		stream.add_event(ev);
 	}
 
-	void shader::destroy(render_event_stream& stream, resource_handle handle)
+	void shader::destroy(render_event_stream& stream, chunk_allocator32& alloc, resource_handle handle)
 	{
+		if (_name.size != 0)
+			alloc.free(_name);
+
 		render_event ev = {
 			.header =
 				{
@@ -87,5 +92,7 @@ namespace SFG
 				},
 		};
 		stream.add_event(ev);
+
+		_name = {};
 	}
 }

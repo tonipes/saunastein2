@@ -30,9 +30,9 @@ namespace SFG
 
 		stream << shaders;
 		stream << textures;
-		stream << is_opaque;
-		stream << is_forward;
+		stream << pass_mode;
 		stream << name;
+		stream << sid;
 	}
 
 	void material_raw::deserialize(istream& stream)
@@ -47,9 +47,9 @@ namespace SFG
 
 		stream >> shaders;
 		stream >> textures;
-		stream >> is_opaque;
-		stream >> is_forward;
+		stream >> pass_mode;
 		stream >> name;
+		stream >> sid;
 	}
 
 #ifdef SFG_TOOLMODE
@@ -79,8 +79,16 @@ namespace SFG
 			json		  json_data = json::parse(f);
 			f.close();
 
-			is_forward						   = json_data.value<uint8>("is_forward", 0);
-			is_opaque						   = json_data.value<uint8>("is_opaque", 0);
+			const string pass = json_data.value<string>("pass", "gbuffer");
+
+			if (pass.compare("gbuffer_transparent") == 0)
+				pass_mode = material_pass_mode::gbuffer_transparent;
+			else if (pass.compare("forward"))
+				pass_mode = material_pass_mode::gbuffer_transparent;
+			else
+				pass_mode = material_pass_mode::gbuffer;
+
+			sid								   = TO_SID(file);
 			const vector<string> shader_paths  = json_data.value<vector<string>>("shaders", {});
 			const vector<string> texture_paths = json_data.value<vector<string>>("textures", {});
 
