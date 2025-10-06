@@ -17,9 +17,11 @@
 
 namespace SFG
 {
+	texture_sampler_reflection g_texture_sampler_reflection = {};
+
 	texture_sampler_reflection::texture_sampler_reflection()
 	{
-		meta& m = reflection::get().register_meta(type_id<texture_sampler>::value, "stkphy");
+		meta& m = reflection::get().register_meta(type_id<texture_sampler>::value, "stksampler");
 
 #ifdef SFG_TOOLMODE
 
@@ -46,10 +48,10 @@ namespace SFG
 			return raw;
 		});
 
-		m.add_function<resource_handle, void*, world&, string_id>("create_from_raw"_hs, [](void* raw, world& w, string_id sid) -> resource_handle {
+		m.add_function<resource_handle, void*, world&>("create_from_raw"_hs, [](void* raw, world& w) -> resource_handle {
 			texture_sampler_raw* raw_ptr   = reinterpret_cast<texture_sampler_raw*>(raw);
 			world_resources&	 resources = w.get_resources();
-			resource_handle		 handle	   = resources.add_resource<texture_sampler>(sid);
+			resource_handle		 handle	   = resources.add_resource<texture_sampler>(TO_SID(raw_ptr->name));
 			texture_sampler&	 res	   = resources.get_resource<texture_sampler>(handle);
 			res.create_from_raw(*raw_ptr, w.get_render_stream(), resources.get_aux(), handle);
 			delete raw_ptr;

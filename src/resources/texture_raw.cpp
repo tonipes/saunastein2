@@ -61,6 +61,8 @@ namespace SFG
 			PUSH_ALLOCATION_SZ(pixels_size);
 			stream.read_to_raw(b.pixels, pixels_size);
 		}
+
+		SFG_INFO("Created texture from buffer: {0}", name);
 	}
 
 	void texture_raw::cook_from_data(uint8* base, const vector2ui16& size, uint8 txt_format, bool generate_mips)
@@ -143,7 +145,7 @@ namespace SFG
 			return false;
 		}
 
-		SFG_INFO("Created texture from file: {0}", file);
+		SFG_INFO("Created texture from file: {0}", name);
 
 		return true;
 	}

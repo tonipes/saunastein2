@@ -16,8 +16,19 @@ namespace SFG
 
 	struct render_event
 	{
-		static constexpr size_t MAX_SIZE = 256;
+		static constexpr size_t MAX_SIZE = 324;
 		render_event_header		header;
 		uint8					data[MAX_SIZE - sizeof(render_event_header)];
+
+		template <typename T> T* construct()
+		{
+			static_assert(sizeof(T) <= sizeof(data));
+			return new (data) T();
+		}
+
+		template <typename T> void destruct()
+		{
+			reinterpret_cast<T*>(data)->~T();
+		}
 	};
 }

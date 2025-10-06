@@ -45,7 +45,10 @@ namespace SFG
 	world_resources::~world_resources()
 	{
 		for (resource_storage& stg : _storages)
-			stg.storage.uninit();
+		{
+			if (stg.storage.get_raw())
+				stg.storage.uninit();
+		}
 
 		_aux_memory.uninit();
 	}

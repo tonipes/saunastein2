@@ -121,52 +121,60 @@ namespace SFG
 
 				if (stg->name)
 					SFG_FREE((char*)stg->name);
+				ev->destruct<render_event_storage_texture>();
 			}
 			else if (ev->header.event_type == render_event_type::render_event_destroy_texture)
 			{
 				render_proxy_texture& proxy = get_texture(index);
 				destroy_texture(proxy);
+				ev->destruct<render_event_storage_texture>();
 			}
 			else if (ev->header.event_type == render_event_type::render_event_create_sampler)
 			{
 				render_event_storage_sampler* stg	= reinterpret_cast<render_event_storage_sampler*>(ev->data);
-				render_proxy_sampler		  proxy = get_sampler(index);
+				render_proxy_sampler&		  proxy = get_sampler(index);
 				proxy.active						= 1;
 				proxy.handle						= index;
 				proxy.hw							= backend->create_sampler(stg->desc);
+				SFG_TRACE("Created sampler proxy for: {0}", stg->desc.debug_name);
 
 				if (stg->desc.debug_name)
 					SFG_FREE((char*)stg->desc.debug_name);
+				ev->destruct<render_event_storage_sampler>();
 			}
 			else if (ev->header.event_type == render_event_type::render_event_destroy_sampler)
 			{
 				render_event_storage_sampler* stg	= reinterpret_cast<render_event_storage_sampler*>(ev->data);
-				render_proxy_sampler		  proxy = get_sampler(index);
+				render_proxy_sampler&		  proxy = get_sampler(index);
 				destroy_sampler(proxy);
+				ev->destruct<render_event_storage_sampler>();
 			}
 			else if (ev->header.event_type == render_event_type::render_event_create_shader)
 			{
 				render_event_storage_shader* stg   = reinterpret_cast<render_event_storage_shader*>(ev->data);
-				render_proxy_shader			 proxy = get_shader(index);
+				render_proxy_shader&		 proxy = get_shader(index);
 				proxy.active					   = 1;
 				proxy.handle					   = index;
 				proxy.hw						   = backend->create_shader(stg->desc);
+				SFG_TRACE("Created shader proxy for: {0}", stg->desc.debug_name);
 
 				if (stg->desc.debug_name)
 					SFG_FREE((char*)stg->desc.debug_name);
 
 				stg->desc.destroy();
+				ev->destruct<render_event_storage_shader>();
 			}
 			else if (ev->header.event_type == render_event_type::render_event_destroy_shader)
 			{
 				render_event_storage_shader* stg   = reinterpret_cast<render_event_storage_shader*>(ev->data);
-				render_proxy_shader			 proxy = get_shader(index);
+				render_proxy_shader&		 proxy = get_shader(index);
 				destroy_shader(proxy);
+				ev->destruct<render_event_storage_shader>();
 			}
 			else if (ev->header.event_type == render_event_type::render_event_create_material)
 			{
 				render_event_storage_material* stg	 = reinterpret_cast<render_event_storage_material*>(ev->data);
-				render_proxy_material		   proxy = get_material(index);
+				render_proxy_material&		   proxy = get_material(index);
 				proxy.active						 = 1;
 				proxy.handle						 = index;
 
@@ -212,11 +220,13 @@ namespace SFG
 
 				if (stg->name)
 					SFG_FREE((char*)stg->name);
+
+				ev->destruct<render_event_storage_material>();
 			}
 			else if (ev->header.event_type == render_event_type::render_event_update_material)
 			{
 				render_event_storage_material* stg	 = reinterpret_cast<render_event_storage_material*>(ev->data);
-				render_proxy_material		   proxy = get_material(index);
+				render_proxy_material&		   proxy = get_material(index);
 
 				for (uint8 i = 0; i < FRAMES_IN_FLIGHT; i++)
 				{
@@ -228,11 +238,20 @@ namespace SFG
 						},
 						i);
 				}
+
+				ev->destruct<render_event_storage_material>();
+			}
+			else if (ev->header.event_type == render_event_type::render_event_destroy_material)
+			{
+				render_event_storage_material* stg	 = reinterpret_cast<render_event_storage_material*>(ev->data);
+				render_proxy_material&		   proxy = get_material(index);
+				destroy_material(proxy);
+				ev->destruct<render_event_storage_material>();
 			}
 			else if (ev->header.event_type == render_event_type::render_event_create_mesh)
 			{
 				render_event_storage_mesh* stg	 = reinterpret_cast<render_event_storage_mesh*>(ev->data);
-				render_proxy_mesh		   proxy = get_mesh(index);
+				render_proxy_mesh&		   proxy = get_mesh(index);
 
 				auto process = [&](auto& list, size_t vtx_type_size) {
 					size_t vertex_size = 0;
@@ -316,12 +335,15 @@ namespace SFG
 				{
 					SFG_ASSERT(false);
 				}
+
+				ev->destruct<render_event_storage_mesh>();
 			}
 			else if (ev->header.event_type == render_event_type::render_event_destroy_mesh)
 			{
 				render_event_storage_mesh* stg	 = reinterpret_cast<render_event_storage_mesh*>(ev->data);
-				render_proxy_mesh		   proxy = get_mesh(index);
+				render_proxy_mesh&		   proxy = get_mesh(index);
 				destroy_mesh(proxy);
+				ev->destruct<render_event_storage_mesh>();
 			}
 
 			events.pop();

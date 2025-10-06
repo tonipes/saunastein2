@@ -6,6 +6,8 @@
 #include "data/string.hpp"
 #include "common/string_id.hpp"
 #include "io/assert.hpp"
+#include "memory/malloc_allocator_map.hpp"
+#include "memory/memory.hpp"
 
 #pragma warning(push)
 #pragma warning(disable : 4541)
@@ -42,10 +44,18 @@ namespace SFG
 	class meta
 	{
 	public:
+		typedef phmap::flat_hash_map<string_id, reflection_function_base*, phmap::priv::hash_default_hash<string_id>, phmap::priv::hash_default_eq<string_id>, malloc_allocator_map<string_id>> alloc_map;
+
 		template <typename RetVal, typename... Args, typename F> meta& add_function(string_id id, F&& f)
 		{
+			using func_t						= reflection_function<RetVal, Args...>;
 			std::function<RetVal(Args...)> func = std::forward<F>(f);
-			_functions[id]						= std::make_unique<reflection_function<RetVal, Args...>>(std::move(func));
+
+			void*	mem			   = SFG_ALIGNED_MALLOC(alignof(func_t), sizeof(func_t));
+			func_t* reflectionFunc = new (mem) func_t(std::move(func));
+			_functions[id]		   = reflectionFunc;
+
+			//_functions[id]						= std::make_unique<func_t>(std::move(func));
 			return *this;
 		}
 
@@ -55,7 +65,7 @@ namespace SFG
 			if (it == _functions.end())
 				throw std::runtime_error("Function not found");
 
-			auto* ptr = it->second.get();
+			auto* ptr = it->second;
 			if (!ptr)
 				throw std::runtime_error("Empty reflection ptr!");
 
@@ -69,7 +79,7 @@ namespace SFG
 
 		reflection_function_base* get_function(string_id id)
 		{
-			return _functions[id].get();
+			return _functions[id];
 		}
 
 		bool has_function(string_id id) const
@@ -82,7 +92,7 @@ namespace SFG
 			return _type_id;
 		}
 
-		inline const string& get_tag() const
+		inline const string_id get_tag() const
 		{
 			return _tag;
 		}
@@ -90,25 +100,45 @@ namespace SFG
 	private:
 		friend class reflection;
 
-		hash_map<string_id, std::unique_ptr<reflection_function_base>> _functions;
-		string_id													   _type_id = 0;
-		string														   _tag		= "";
+		inline void destroy()
+		{
+			for (auto [sid, ptr] : _functions)
+			{
+				ptr->~reflection_function_base();
+				SFG_ALIGNED_FREE(ptr);
+			}
+		}
+
+	private:
+		alloc_map _functions;
+		string_id _type_id = 0;
+		string_id _tag	   = 0;
 	};
 
 	class reflection
 	{
 	public:
+		typedef phmap::flat_hash_map<string_id, meta, phmap::priv::hash_default_hash<string_id>, phmap::priv::hash_default_eq<string_id>, malloc_allocator_map<string_id>> alloc_map;
+
 		static reflection& get()
 		{
 			static reflection ref;
 			return ref;
 		}
 
-		meta& register_meta(string_id id, const char* tag)
+		~reflection()
+		{
+			for (auto& [sid, meta] : _metas)
+			{
+				meta.destroy();
+			}
+		}
+
+		meta& register_meta(string_id id, const string& tag)
 		{
 			meta& m	   = _metas[id];
 			m._type_id = id;
-			m._tag	   = tag;
+			m._tag	   = TO_SID(tag);
 			return m;
 		}
 
@@ -124,7 +154,7 @@ namespace SFG
 			return it == _metas.end() ? nullptr : &(it->second);
 		}
 
-		const hash_map<string_id, meta>& get_metas() const
+		const alloc_map& get_metas() const
 		{
 			return _metas;
 		}
@@ -132,7 +162,7 @@ namespace SFG
 		meta* find_by_tag(const char* tag);
 
 	private:
-		hash_map<string_id, meta> _metas;
+		alloc_map _metas;
 	};
 };
 

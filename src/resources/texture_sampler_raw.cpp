@@ -7,6 +7,7 @@
 #ifdef SFG_TOOLMODE
 #include "io/file_system.hpp"
 #include "io/log.hpp"
+#include "project/engine_data.hpp"
 #include <fstream>
 #include <vendor/nhlohmann/json.hpp>
 using json = nlohmann::json;
@@ -26,7 +27,7 @@ namespace SFG
 
 	void texture_sampler_raw::deserialize(istream& stream)
 	{
-		uint8 val = 0;
+		uint16 val = 0;
 		stream >> desc.anisotropy;
 		stream >> desc.lod_bias;
 		stream >> desc.min_lod;
@@ -34,6 +35,8 @@ namespace SFG
 		stream >> val;
 		stream >> name;
 		desc.flags = val;
+
+		SFG_INFO("Created sampler from buffer: {0}", name);
 	}
 
 #ifdef SFG_TOOLMODE
@@ -51,14 +54,18 @@ namespace SFG
 			json		  json_data = json::parse(f);
 			f.close();
 			desc = json_data;
+
+			const string& wd = engine_data::get().get_working_dir();
+			const string  p	 = path;
+			name			 = p.substr(wd.size(), p.size() - wd.size());
 		}
 		catch (std::exception e)
 		{
-			SFG_ERR("Failed loading texture sampler: {0}", e.what());
+			SFG_ERR("Failed loading sampler: {0}", e.what());
 			return false;
 		}
 
-		SFG_INFO("Created texture sampler from file: {0}", path);
+		SFG_INFO("Created sampler from file: {0}", name);
 		return true;
 	}
 

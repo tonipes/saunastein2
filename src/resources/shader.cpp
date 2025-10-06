@@ -14,9 +14,11 @@
 
 namespace SFG
 {
+	shader_reflection g_shader_reflection;
+
 	shader_reflection::shader_reflection()
 	{
-		meta& m = reflection::get().register_meta(type_id<shader>::value, "stkphy");
+		meta& m = reflection::get().register_meta(type_id<shader>::value, "stkshader");
 
 #ifdef SFG_TOOLMODE
 
@@ -31,7 +33,6 @@ namespace SFG
 			world_resources&				 resources = w.get_resources();
 			world_resources::resource_watch& watch	   = resources.add_resource_watch();
 			watch.base_path							   = path;
-
 			watch.dependencies.push_back(engine_data::get().get_working_dir() + raw->name);
 
 			return raw;
@@ -44,10 +45,10 @@ namespace SFG
 			return raw;
 		});
 
-		m.add_function<resource_handle, void*, world&, string_id>("create_from_raw"_hs, [](void* raw, world& w, string_id sid) -> resource_handle {
+		m.add_function<resource_handle, void*, world&>("create_from_raw"_hs, [](void* raw, world& w) -> resource_handle {
 			shader_raw*		 raw_ptr   = reinterpret_cast<shader_raw*>(raw);
 			world_resources& resources = w.get_resources();
-			resource_handle	 handle	   = resources.add_resource<shader>(sid);
+			resource_handle	 handle	   = resources.add_resource<shader>(TO_SID(raw_ptr->name));
 			shader&			 res	   = resources.get_resource<shader>(handle);
 			res.create_from_raw(*raw_ptr, w.get_render_stream(), resources.get_aux(), handle);
 			delete raw_ptr;
@@ -80,7 +81,8 @@ namespace SFG
 					.event_type = render_event_type::render_event_create_shader,
 				},
 		};
-		render_event_storage_shader* stg = reinterpret_cast<render_event_storage_shader*>(ev.data);
+
+		render_event_storage_shader* stg = ev.construct<render_event_storage_shader>();
 		stg->desc						 = raw.desc;
 		stg->desc.debug_name			 = reinterpret_cast<const char*>(SFG_MALLOC(_name.size));
 

@@ -38,6 +38,7 @@ namespace SFG
 		{
 			stream << b.stage;
 			stream << static_cast<uint32>(b.data.size);
+			SFG_ASSERT(b.data.size);
 			stream.write_raw(b.data.data, b.data.size);
 		}
 
@@ -100,7 +101,7 @@ namespace SFG
 
 	void shader_raw::deserialize(istream& stream, shader_desc& desc)
 	{
-		uint8  sh_flags	   = 0;
+		uint16 sh_flags	   = 0;
 		uint32 layout_size = 0;
 
 		stream >> desc.vertex_entry;
@@ -200,6 +201,8 @@ namespace SFG
 		stream >> desc.front;
 		stream >> desc.poly_mode;
 		stream >> desc.samples;
+
+		SFG_INFO("Created shader from buffer: {0}", name);
 	}
 
 	void shader_raw::serialize(ostream& stream) const
@@ -238,12 +241,16 @@ namespace SFG
 			json		  json_data = json::parse(f);
 			f.close();
 
-			name	   = json_data.value<string>("source", "");
-			desc	   = json_data.value<shader_desc>("desc", {});
-			defines	   = json_data.value<vector<string>>("defines", {});
-			is_skinned = json_data.value<uint8>("is_skinned", 0);
+			const string src = json_data.value<string>("source", "");
+			desc			 = json_data.value<shader_desc>("desc", {});
+			defines			 = json_data.value<vector<string>>("defines", {});
+			is_skinned		 = json_data.value<uint8>("is_skinned", 0);
 
-			const string source = engine_data::get().get_working_dir() + name;
+			const string& wd = engine_data::get().get_working_dir();
+			const string  p	 = path;
+			name			 = p.substr(wd.size(), p.size() - wd.size());
+
+			const string source = engine_data::get().get_working_dir() + src;
 			if (!file_system::exists(source.c_str()))
 			{
 				SFG_ERR("File don't exist! {0}", path);
@@ -254,11 +261,10 @@ namespace SFG
 			if (shader_text.empty())
 				return false;
 
-			desc.debug_name = name.c_str();
-			desc.blobs		= {
-				 {.stage = shader_stage::vertex},
-				 {.stage = shader_stage::fragment},
-			 };
+			desc.blobs = {
+				{.stage = shader_stage::vertex},
+				{.stage = shader_stage::fragment},
+			};
 
 			if (use_embedded_layout)
 				desc.flags.set(shader_flags::shf_use_embedded_layout);
@@ -279,7 +285,7 @@ namespace SFG
 			return false;
 		}
 
-		SFG_INFO("Created shader from file: {0}", path);
+		SFG_INFO("Created shader from file: {0}", name);
 		return true;
 	}
 #endif

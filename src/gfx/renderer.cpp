@@ -182,11 +182,13 @@ namespace SFG
 #endif
 	}
 
-	void renderer::render(render_event_stream& stream, const vector2ui16& size)
+	void renderer::fetch_render_events(render_event_stream& stream)
 	{
 		_proxy_manager.flush_destroys(false);
 		_proxy_manager.fetch_render_events(stream);
-
+	}
+	void renderer::render(const vector2ui16& size)
+	{
 		gfx_backend* backend   = gfx_backend::get();
 		const gfx_id queue_gfx = backend->get_queue_gfx();
 
