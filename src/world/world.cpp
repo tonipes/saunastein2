@@ -54,6 +54,18 @@ namespace SFG
 		_entity_manager.init();
 	}
 
+	void world::uninit()
+	{
+		_entity_manager.uninit();
+		_resources.uninit();
+		_text_allocator.reset();
+
+		SFG_PROG("uninitializing world.");
+
+		debug_console::get()->unregister_console_function("world_set_play");
+		_flags.remove(world_flags_is_init);
+	}
+
 	void world::load_debug()
 	{
 		/*
@@ -218,28 +230,13 @@ namespace SFG
 		world_raw	 raw = {};
 		const string p	 = engine_data::get().get_working_dir() + "assets/world/demo_world.stkworld";
 		raw.cook_from_file(p.c_str());
-		// create_from_raw(raw);
-	}
-
-	void world::uninit()
-	{
-		_entity_manager.uninit();
-		_resources.uninit();
-		_text_allocator.reset();
-
-		SFG_PROG("uninitializing world.");
-
-		debug_console::get()->unregister_console_function("world_set_play");
-		_flags.remove(world_flags_is_init);
+		create_from_raw(raw);
 	}
 
 	void world::create_from_raw(world_raw& raw)
 	{
-		if (_flags.is_set(world::flags::world_flags_is_init))
-			uninit();
-
+		uninit();
 		init();
-
 		_resources.load_resources(raw.resources);
 	}
 
@@ -372,14 +369,11 @@ namespace SFG
 
 	void world::load(const char* path)
 	{
+		if (strlen(path) == 0)
+			return;
+
 		if (_flags.is_set(world_flags_is_init))
 			uninit();
-
-		if (strlen(path) == 0)
-		{
-			init();
-			return;
-		}
 
 		if (!file_system::exists(path))
 		{

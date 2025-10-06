@@ -56,15 +56,17 @@ namespace SFG
 
 		engine_data::get().init();
 
-		const string& last_world = engine_data::get().get_last_world();
-		if (file_system::exists(last_world.c_str()))
-			_world->load(last_world.c_str());
-		else
-		{
-			engine_data::get().set_last_world("");
-			engine_data::get().save();
-			_world->load("");
-		}
+		_world->init();
+
+		// const string& last_world = engine_data::get().get_last_world();
+		// if (file_system::exists(last_world.c_str()))
+		// 	_world->load(last_world.c_str());
+		// else
+		// {
+		// 	engine_data::get().set_last_world("");
+		// 	engine_data::get().save();
+		// 	_world->load("");
+		// }
 
 		/*************** CONSOLE *************/
 		debug_console::get()->register_console_function("app_new_world", [this]() {

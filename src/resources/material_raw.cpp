@@ -88,9 +88,9 @@ namespace SFG
 			else
 				pass_mode = material_pass_mode::gbuffer;
 
-			sid								   = TO_SID(file);
-			const vector<string> shader_paths  = json_data.value<vector<string>>("shaders", {});
-			const vector<string> texture_paths = json_data.value<vector<string>>("textures", {});
+			sid			  = TO_SID(file);
+			shaders_path  = json_data.value<vector<string>>("shaders", {});
+			textures_path = json_data.value<vector<string>>("textures", {});
 
 			vector<parameter_entry> parameters;
 			if (json_data.contains("parameters"))
@@ -104,7 +104,7 @@ namespace SFG
 
 			const string engine_path = engine_data::get().get_working_dir();
 
-			for (const string& txt : texture_paths)
+			for (const string& txt : textures_path)
 			{
 				const string full = engine_path + txt;
 				if (!file_system::exists(full.c_str()))
@@ -112,11 +112,10 @@ namespace SFG
 					SFG_ERR("File doesn't exists! {0}", full.c_str());
 					return false;
 				}
-
 				textures.push_back(TO_SID(txt));
 			}
 
-			for (const string& sh : shader_paths)
+			for (const string& sh : shaders_path)
 			{
 				const string full = engine_path + sh;
 				if (!file_system::exists(full.c_str()))
@@ -124,7 +123,6 @@ namespace SFG
 					SFG_ERR("File doesn't exists! {0}", full.c_str());
 					return false;
 				}
-
 				shaders.push_back(TO_SID(sh));
 			}
 

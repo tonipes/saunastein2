@@ -8,6 +8,10 @@
 #include "world/world.hpp"
 #include <vendor/miniaudio/miniaudio.h>
 
+#ifdef SFG_TOOLMODE
+#include "project/engine_data.hpp"
+#endif
+
 namespace SFG
 {
 	audio_reflection::audio_reflection()
@@ -16,13 +20,18 @@ namespace SFG
 
 #ifdef SFG_TOOLMODE
 
-		m.add_function<void*, const char*>("cook_from_file"_hs, [](const char* path) -> void* {
+		m.add_function<void*, const char*, world&>("cook_from_file"_hs, [](const char* path, world& w) -> void* {
 			audio_raw* raw = new audio_raw();
 			if (!raw->cook_from_file(path))
 			{
 				delete raw;
 				return nullptr;
 			}
+
+			world_resources&				 resources = w.get_resources();
+			world_resources::resource_watch& watch	   = resources.add_resource_watch();
+			watch.base_path							   = path;
+			watch.dependencies.push_back(engine_data::get().get_working_dir() + raw->name);
 
 			return raw;
 		});

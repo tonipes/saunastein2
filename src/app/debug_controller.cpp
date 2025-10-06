@@ -835,7 +835,6 @@ namespace SFG
 
 		static_vector<texture_buffer, MAX_TEXTURE_MIPS> buffers;
 		buffers.push_back(ref.buffer);
-		SFG_INFO("OKAY ADDING ATLAS {0}", (void*)ref.buffer.pixels);
 		_gfx_data.texture_queue->add_request(buffers, ref.texture, ref.intermediate_buffer, 0);
 
 		const int32 index  = std::distance(it, _gfx_data.atlases.begin());

@@ -11,6 +11,10 @@
 #include "resource_reflection_template.hpp"
 #include "world/world.hpp"
 
+#ifdef SFG_TOOLMODE
+#include "project/engine_data.hpp"
+#endif
+
 namespace SFG
 {
 	texture_sampler_reflection::texture_sampler_reflection()
@@ -19,13 +23,18 @@ namespace SFG
 
 #ifdef SFG_TOOLMODE
 
-		m.add_function<void*, const char*>("cook_from_file"_hs, [](const char* path) -> void* {
+		m.add_function<void*, const char*, world&>("cook_from_file"_hs, [](const char* path, world& w) -> void* {
 			texture_sampler_raw* raw = new texture_sampler_raw();
 			if (!raw->cook_from_file(path))
 			{
 				delete raw;
 				return nullptr;
 			}
+
+			world_resources&				 resources = w.get_resources();
+			world_resources::resource_watch& watch	   = resources.add_resource_watch();
+			watch.base_path							   = path;
+			watch.dependencies.push_back(engine_data::get().get_working_dir() + raw->name);
 
 			return raw;
 		});
@@ -75,10 +84,9 @@ namespace SFG
 		};
 		render_event_storage_sampler* stg = reinterpret_cast<render_event_storage_sampler*>(ev.data);
 		stg->desc						  = raw.desc;
-		stg->name						  = alloc.get<const char>(_name);
-
-		if (stg->name != nullptr)
-			strcpy((char*)stg->name, raw.name.c_str());
+		stg->desc.debug_name			  = reinterpret_cast<const char*>(SFG_MALLOC(_name.size));
+		if (stg->desc.debug_name)
+			strcpy((char*)stg->desc.debug_name, alloc.get<const char>(_name));
 
 		stream.add_event(ev);
 	}

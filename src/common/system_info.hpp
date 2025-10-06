@@ -109,7 +109,7 @@ namespace SFG
 			return s_render_frame.load();
 		}
 
-		static inline bool get_is_render_acitve()
+		static inline bool get_is_render_active()
 		{
 			return s_is_render_active;
 		}
@@ -134,6 +134,7 @@ namespace SFG
 		static bool			  s_is_render_active;
 	};
 
-#define VERIFY_RENDER_NOT_RUNNING()					 SFG_ASSERT(!frame_info::get_is_render_acitve())
-#define VERIFY_RENDER_NOT_RUNNING_OR_RENDER_THREAD() SFG_ASSERT(thread_info::get_thread_id_render() == std::this_thread::get_id() || !frame_info::get_is_render_acitve())
+#define VERIFY_RENDER_NOT_RUNNING()					 SFG_ASSERT(!frame_info::get_is_render_active())
+#define VERIFY_RENDER_THREAD()						 SFG_ASSERT(frame_info::get_is_render_active())
+#define VERIFY_RENDER_NOT_RUNNING_OR_RENDER_THREAD() SFG_ASSERT(thread_info::get_thread_id_render() == std::this_thread::get_id() || !frame_info::get_is_render_active())
 }

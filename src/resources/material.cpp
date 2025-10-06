@@ -13,6 +13,10 @@
 #include "gfx/event_stream/render_event_stream.hpp"
 #include "gfx/event_stream/render_event_storage_gfx.hpp"
 
+#ifdef SFG_TOOLMODE
+#include "project/engine_data.hpp"
+#endif
+
 namespace SFG
 {
 
@@ -22,7 +26,7 @@ namespace SFG
 
 #ifdef SFG_TOOLMODE
 
-		m.add_function<void*, const char*>("cook_from_file"_hs, [](const char* path) -> void* {
+		m.add_function<void*, const char*, world&>("cook_from_file"_hs, [](const char* path, world& w) -> void* {
 			material_raw* raw = new material_raw();
 			if (!raw->cook_from_file(path))
 			{
@@ -30,6 +34,15 @@ namespace SFG
 				return nullptr;
 			}
 
+			world_resources&				 resources = w.get_resources();
+			world_resources::resource_watch& watch	   = resources.add_resource_watch();
+			watch.base_path							   = path;
+
+			for (const string& str : raw->textures_path)
+				watch.dependencies.push_back(engine_data::get().get_working_dir() + str);
+
+			for (const string& str : raw->shaders_path)
+				watch.dependencies.push_back(engine_data::get().get_working_dir() + str);
 			return raw;
 		});
 #endif
@@ -77,9 +90,9 @@ namespace SFG
 		_flags.set(material::flags::is_forward, raw.pass_mode == material_pass_mode::forward);
 		SFG_ASSERT(!raw.shaders.empty());
 
-		for (string_id sh : raw.shaders)
+		for (string_id sid : raw.shaders)
 		{
-			const resource_handle shader_handle = resources.get_resource_handle_by_hash<shader>(sh);
+			const resource_handle shader_handle = resources.get_resource_handle_by_hash<shader>(sid);
 			_all_shaders.push_back(shader_handle);
 			shader& shd = resources.get_resource<shader>(shader_handle);
 			_all_shader_flags.push_back(shd.get_flags());
@@ -91,11 +104,16 @@ namespace SFG
 						   }};
 
 		render_event_storage_material* stg = reinterpret_cast<render_event_storage_material*>(ev.data);
-		stg->name						   = alloc.get<const char>(_name);
 		stg->data						   = _material_data;
+		stg->name						   = reinterpret_cast<const char*>(SFG_MALLOC(_name.size));
 
-		for (string_id txt : raw.textures)
-			stg->textures.push_back(resources.get_resource_handle_by_hash<texture>(txt));
+		if (stg->name)
+			strcpy((char*)stg->name, alloc.get<const char>(_name));
+
+		for (string_id sid : raw.textures)
+		{
+			stg->textures.push_back(resources.get_resource_handle_by_hash<texture>(sid));
+		}
 
 		if (stg->name != nullptr)
 			strcpy((char*)stg->name, raw.name.c_str());

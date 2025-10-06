@@ -24,12 +24,19 @@ namespace SFG
 
 	void pool_allocator16::reset()
 	{
-		if (_raw)
-			SFG_MEMSET(_raw, 0, _item_size_aligned * _item_count + sizeof(uint16) * _item_count + sizeof(uint16) * _item_count + sizeof(uint8) * _item_count);
-		_head			   = 0;
-		_free_count		   = 0;
-		_item_count		   = 0;
-		_item_size_aligned = 0;
+		_head		= 0;
+		_free_count = 0;
+
+		uint16* generations	 = get_generations();
+		uint16* free_indices = get_free_indices();
+		uint8*	actives		 = get_actives();
+
+		for (uint16 i = 0; i < _item_count; i++)
+		{
+			free_indices[i] = 0;
+			generations[i]	= 1;
+			actives[i]		= 0;
+		}
 	}
 
 	bool pool_allocator16::is_valid(pool_handle16 handle) const

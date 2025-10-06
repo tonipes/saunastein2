@@ -37,6 +37,17 @@ namespace SFG
 	class world_resources
 	{
 	public:
+#ifdef SFG_TOOLMODE
+		struct resource_watch
+		{
+			string		   base_path = "";
+			vector<string> dependencies;
+			string_id	   type_id = 0;
+		};
+
+#endif
+
+	public:
 		world_resources() = delete;
 		world_resources(world& w);
 		~world_resources();
@@ -46,7 +57,9 @@ namespace SFG
 		void tick();
 
 #ifdef SFG_TOOLMODE
-		void load_resources(const vector<string>& relative_paths, bool skip_cache = false);
+		void			load_resources(const vector<string>& relative_paths, bool skip_cache = false);
+		resource_watch& add_resource_watch();
+		void			on_watched_resource_modified(const char* path, string_id last_modified, uint16 id);
 #endif
 
 		void load_resources(istream& in);
@@ -67,8 +80,9 @@ namespace SFG
 
 		template <typename T> resource_handle add_resource(string_id hash)
 		{
-			SFG_ASSERT(type_id<T>::index < _storages.size());
-			resource_storage&	  stg	 = _storages[type_id<T>::index];
+			const uint16 idx = type_id<T>::index;
+			SFG_ASSERT(idx < _storages.size());
+			resource_storage&	  stg	 = _storages[idx];
 			const resource_handle handle = stg.storage.allocate<T>();
 			stg.by_hashes[hash]			 = handle;
 			return handle;
@@ -111,18 +125,6 @@ namespace SFG
 		}
 
 	private:
-#ifdef SFG_TOOLMODE
-
-		struct resource_watch
-		{
-			string	  base_path = "";
-			string_id type_id	= 0;
-		};
-
-		void add_resource_watch(string_id type, const char* base_path, const vector<string>& dependency_paths);
-		void on_watched_resource_modified(const char* path, string_id last_modified, uint16 id);
-#endif
-
 	private:
 		world& _world;
 

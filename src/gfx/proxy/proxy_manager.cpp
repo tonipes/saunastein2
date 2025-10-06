@@ -117,6 +117,10 @@ namespace SFG
 				});
 
 				_texture_queue.add_request(stg->buffers, proxy.hw, proxy.intermediate, 1);
+				SFG_TRACE("Created texture proxy for: {0}", stg->name);
+
+				if (stg->name)
+					SFG_FREE((char*)stg->name);
 			}
 			else if (ev->header.event_type == render_event_type::render_event_destroy_texture)
 			{
@@ -130,6 +134,9 @@ namespace SFG
 				proxy.active						= 1;
 				proxy.handle						= index;
 				proxy.hw							= backend->create_sampler(stg->desc);
+
+				if (stg->desc.debug_name)
+					SFG_FREE((char*)stg->desc.debug_name);
 			}
 			else if (ev->header.event_type == render_event_type::render_event_destroy_sampler)
 			{
@@ -144,6 +151,10 @@ namespace SFG
 				proxy.active					   = 1;
 				proxy.handle					   = index;
 				proxy.hw						   = backend->create_shader(stg->desc);
+
+				if (stg->desc.debug_name)
+					SFG_FREE((char*)stg->desc.debug_name);
+
 				stg->desc.destroy();
 			}
 			else if (ev->header.event_type == render_event_type::render_event_destroy_shader)
@@ -198,6 +209,9 @@ namespace SFG
 					proxy.buffers[i].buffer_data(0, stg->data.get_raw(), stg->data.get_size());
 					_buffer_queue.add_request({.buffer = &proxy.buffers[i]});
 				}
+
+				if (stg->name)
+					SFG_FREE((char*)stg->name);
 			}
 			else if (ev->header.event_type == render_event_type::render_event_update_material)
 			{
@@ -214,9 +228,6 @@ namespace SFG
 						},
 						i);
 				}
-
-				events.pop();
-				ev = events.peek();
 			}
 			else if (ev->header.event_type == render_event_type::render_event_create_mesh)
 			{
@@ -312,6 +323,9 @@ namespace SFG
 				render_proxy_mesh		   proxy = get_mesh(index);
 				destroy_mesh(proxy);
 			}
+
+			events.pop();
+			ev = events.peek();
 		}
 	}
 

@@ -14,23 +14,32 @@
 #include "gfx/event_stream/render_event_stream.hpp"
 #include "gfx/event_stream/render_event_storage_gfx.hpp"
 
+#ifdef SFG_TOOLMODE
+#include "project/engine_data.hpp"
+#endif
+
 namespace SFG
 {
 	texture_reflection g_texture_reflection = {};
 
 	texture_reflection::texture_reflection()
 	{
-		meta& m = reflection::get().register_meta(type_id<texture>::value, "stkphy");
+		meta& m = reflection::get().register_meta(type_id<texture>::value, "stktexture");
 
 #ifdef SFG_TOOLMODE
 
-		m.add_function<void*, const char*>("cook_from_file"_hs, [](const char* path) -> void* {
+		m.add_function<void*, const char*, world&>("cook_from_file"_hs, [](const char* path, world& w) -> void* {
 			texture_raw* raw = new texture_raw();
 			if (!raw->cook_from_file(path))
 			{
 				delete raw;
 				return nullptr;
 			}
+
+			world_resources&				 resources = w.get_resources();
+			world_resources::resource_watch& watch	   = resources.add_resource_watch();
+			watch.base_path							   = path;
+			watch.dependencies.push_back(engine_data::get().get_working_dir() + raw->name);
 
 			return raw;
 		});
@@ -42,10 +51,10 @@ namespace SFG
 			return raw;
 		});
 
-		m.add_function<resource_handle, void*, world&, string_id>("create_from_raw"_hs, [](void* raw, world& w, string_id sid) -> resource_handle {
+		m.add_function<resource_handle, void*, world&>("create_from_raw"_hs, [](void* raw, world& w) -> resource_handle {
 			texture_raw*		 raw_ptr   = reinterpret_cast<texture_raw*>(raw);
 			world_resources&	 resources = w.get_resources();
-			resource_handle		 handle	   = resources.add_resource<texture>(sid);
+			resource_handle		 handle	   = resources.add_resource<texture>(TO_SID(raw_ptr->name));
 			texture&			 res	   = resources.get_resource<texture>(handle);
 			render_event_stream& stream	   = w.get_render_stream();
 			res.create_from_raw(*raw_ptr, stream, resources.get_aux(), handle);
@@ -76,7 +85,7 @@ namespace SFG
 	void texture::create_from_raw(const texture_raw& raw, render_event_stream& stream, chunk_allocator32& alloc, resource_handle handle)
 	{
 		_texture_format = raw.texture_format;
-		SFG_ASSERT(raw.buffers.empty());
+		SFG_ASSERT(!raw.buffers.empty());
 
 		if (!raw.name.empty())
 			_name = alloc.allocate_text(raw.name);
@@ -100,8 +109,11 @@ namespace SFG
 		stg->size						  = raw.buffers[0].size;
 		stg->name						  = alloc.get<const char>(_name);
 		stg->intermediate_size			  = backend->align_texture_size(total_size);
-		if (stg->name != nullptr)
-			strcpy((char*)stg->name, raw.name.c_str());
+		stg->name						  = reinterpret_cast<const char*>(SFG_MALLOC(_name.size));
+
+		if (stg->name)
+			strcpy((char*)stg->name, alloc.get<const char>(_name));
+
 		stream.add_event(ev);
 	}
 

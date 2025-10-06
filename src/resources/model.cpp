@@ -20,7 +20,7 @@ namespace SFG
 
 #ifdef SFG_TOOLMODE
 
-		m.add_function<void*, const char*>("cook_from_file"_hs, [](const char* path) -> void* {
+		m.add_function<void*, const char*, world&>("cook_from_file"_hs, [](const char* path, world& w) -> void* {
 			model_raw* raw = new model_raw();
 
 			const string& wd	   = engine_data::get().get_working_dir();
@@ -32,6 +32,11 @@ namespace SFG
 				delete raw;
 				return nullptr;
 			}
+
+			world_resources&				 resources = w.get_resources();
+			world_resources::resource_watch& watch	   = resources.add_resource_watch();
+			watch.base_path							   = path;
+			watch.dependencies.push_back(engine_data::get().get_working_dir() + raw->name);
 
 			return raw;
 		});

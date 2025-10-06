@@ -46,6 +46,7 @@ namespace SFG
 		stream >> texture_format;
 		stream >> sid;
 		stream >> count;
+		buffers.resize(count);
 
 		for (uint16 i = 0; i < count; i++)
 		{

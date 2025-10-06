@@ -42,7 +42,7 @@ namespace SFG
 			json		  json_data = json::parse(f);
 			f.close();
 
-			const vector<string> resources = json_data.value<vector<string>>("resources", {});
+			resources = json_data.value<vector<string>>("resources", {});
 
 			for (const string& res : resources)
 			{

@@ -41,6 +41,8 @@ namespace SFG
 		ostream			   material_data = {};
 		vector<string_id>  shaders;
 		vector<string_id>  textures;
+		vector<string>	   shaders_path;
+		vector<string>	   textures_path;
 		material_pass_mode pass_mode;
 		string			   name = "";
 		string_id		   sid	= 0;

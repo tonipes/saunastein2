@@ -24,13 +24,11 @@ namespace SFG
 	struct render_event_storage_sampler
 	{
 		sampler_desc desc = {};
-		const char*	 name = "";
 	};
 
 	struct render_event_storage_shader
 	{
 		shader_desc desc = {};
-		const char* name = "";
 	};
 
 	struct render_event_storage_material
