@@ -12,9 +12,11 @@
 
 namespace SFG
 {
+	mesh_reflection g_mesh_reflection;
+
 	mesh_reflection::mesh_reflection()
 	{
-		meta& m = reflection::get().register_meta(type_id<mesh>::value, "");
+		meta& m = reflection::get().register_meta(type_id<mesh>::value, type_id<mesh>::index, "");
 		m.add_function<void, world&>("init_resource_storage"_hs, [](world& w) -> void { w.get_resources().init_storage<mesh>(MAX_WORLD_MESHES); });
 	}
 
@@ -31,8 +33,12 @@ namespace SFG
 							   .event_type = render_event_type::render_event_create_mesh,
 						   }};
 
-		render_event_storage_mesh* stg = reinterpret_cast<render_event_storage_mesh*>(ev.data);
-		stg->name					   = alloc.get<const char>(_name);
+		render_event_storage_mesh* stg = ev.construct<render_event_storage_mesh>();
+
+		stg->name = reinterpret_cast<const char*>(SFG_MALLOC(_name.size));
+		if (stg->name)
+			strcpy((char*)stg->name, alloc.get<const char>(_name));
+
 		stg->primitives_static.resize(raw.primitives_static.size());
 		stg->primitives_skinned.resize(raw.primitives_skinned.size());
 
@@ -64,12 +70,19 @@ namespace SFG
 			}
 		}
 
-		if (!raw.primitives_static.empty())
-			SFG_MEMCPY(stg->primitives_static.data(), raw.primitives_static.data(), raw.primitives_static.size() * sizeof(primitive_static_raw));
+		uint32 i = 0;
+		for (const primitive_static_raw& r : raw.primitives_static)
+		{
+			stg->primitives_static[i] = r;
+			i++;
+		}
 
-		if (!raw.primitives_skinned.empty())
-			SFG_MEMCPY(stg->primitives_skinned.data(), raw.primitives_skinned.data(), raw.primitives_skinned.size() * sizeof(primitive_skinned_raw));
-		stream.add_event(ev);
+		i = 0;
+		for (const primitive_skinned_raw& r : raw.primitives_skinned)
+		{
+			stg->primitives_skinned[i] = r;
+			i++;
+		}
 
 		// run through again to localize material indices.
 		if (!raw.primitives_static.empty())
@@ -91,6 +104,8 @@ namespace SFG
 				prim_loaded.material_index		   = static_cast<uint16>(vector_util::index_of(materials, prim_loaded.material_index));
 			}
 		}
+
+		stream.add_event(ev);
 
 		_material_count	  = static_cast<uint16>(materials.size());
 		_material_indices = alloc.allocate<uint16>(materials.size());

@@ -66,9 +66,21 @@ namespace SFG
 
 		template <typename T> void remove_resource(resource_handle handle)
 		{
-			SFG_ASSERT(type_id<T>::index < _storages.size());
-			resource_storage& stg = _storages[type_id<T>::index];
+			const uint16 idx = type_id<T>::index;
+
+			SFG_ASSERT(idx < _storages.size());
+			resource_storage& stg = _storages[idx];
 			stg.storage.free<T>(handle);
+
+			auto it = stg.by_hashes.begin();
+			for (; it != stg.by_hashes.end(); ++it)
+			{
+				if (it->second == handle)
+				{
+					stg.by_hashes.erase(it);
+					break;
+				}
+			}
 		}
 
 		template <typename T> resource_handle get_resource_handle_by_hash(string_id hash) const
@@ -90,8 +102,16 @@ namespace SFG
 
 		template <typename T> T& get_resource(resource_handle handle) const
 		{
-			SFG_ASSERT(type_id<T>::index < _storages.size());
+			const uint16 idx = type_id<T>::index;
+			SFG_ASSERT(idx < _storages.size());
 			return _storages[type_id<T>::index].storage.get<T>(handle);
+		}
+
+		template <typename T> bool is_valid(resource_handle handle) const
+		{
+			const uint16 idx = type_id<T>::index;
+			SFG_ASSERT(idx < _storages.size());
+			return _storages[idx].storage.is_valid(handle);
 		}
 
 		template <typename T> T& get_resource_by_hash(string_id hash) const

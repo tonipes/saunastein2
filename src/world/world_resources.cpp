@@ -48,6 +48,8 @@ namespace SFG
 		{
 			if (stg.storage.get_raw())
 				stg.storage.uninit();
+
+			stg.by_hashes.clear();
 		}
 
 		_aux_memory.uninit();
@@ -115,9 +117,16 @@ namespace SFG
 			if (dot == string::npos)
 				continue;
 
-			const string  ext  = path.substr(dot + 1, path.size() - dot - 1);
-			resource_type type = resource_type::resource_type_allowed_max;
-			resolved_metas[i]  = reflection::get().find_by_tag(ext.c_str());
+			const string	ext	 = path.substr(dot + 1, path.size() - dot - 1);
+			resource_type	type = resource_type::resource_type_allowed_max;
+			meta*			m	 = reflection::get().find_by_tag(ext.c_str());
+			const string_id sid	 = TO_SID(path);
+
+			const resource_storage& stg = _storages.at(m->get_type_index());
+			if (stg.by_hashes.find(sid) != stg.by_hashes.end())
+				continue;
+
+			resolved_metas[i] = m;
 		}
 
 		// Create loaders & load.
@@ -148,10 +157,13 @@ namespace SFG
 				loader = reflection_meta->invoke_function<void*, const char*, world&>("cook_from_file"_hs, full_path.c_str(), _world);
 
 				// Save to cache.
-				ostream out_stream;
-				reflection_meta->invoke_function<void, void*, ostream&>("serialize"_hs, loader, out_stream);
-				serialization::save_to_file(cache_path.c_str(), out_stream);
-				out_stream.destroy();
+				if (loader)
+				{
+					ostream out_stream;
+					reflection_meta->invoke_function<void, void*, ostream&>("serialize"_hs, loader, out_stream);
+					serialization::save_to_file(cache_path.c_str(), out_stream);
+					out_stream.destroy();
+				}
 			}
 
 			resolved_loaders[i] = loader;

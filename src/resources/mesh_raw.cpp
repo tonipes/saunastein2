@@ -3,6 +3,7 @@
 #include "mesh_raw.hpp"
 #include "mesh.hpp"
 #include "primitive.hpp"
+#include "io/log.hpp"
 #include "memory/chunk_allocator.hpp"
 #include "data/ostream.hpp"
 #include "data/istream.hpp"
@@ -28,6 +29,8 @@ namespace SFG
 		stream >> primitives_static;
 		stream >> primitives_skinned;
 		stream >> skin_index;
+
+		SFG_INFO("Created mesh from buffer: {0}", name);
 	}
 
 }

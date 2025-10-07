@@ -83,6 +83,7 @@ namespace SFG
 		{
 			return _current_size;
 		}
+
 		inline uint8* get_raw() const
 		{
 			return _data;

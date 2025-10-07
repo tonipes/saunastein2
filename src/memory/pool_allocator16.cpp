@@ -27,14 +27,12 @@ namespace SFG
 		_head		= 0;
 		_free_count = 0;
 
-		uint16* generations	 = get_generations();
 		uint16* free_indices = get_free_indices();
 		uint8*	actives		 = get_actives();
 
 		for (uint16 i = 0; i < _item_count; i++)
 		{
 			free_indices[i] = 0;
-			generations[i]	= 1;
 			actives[i]		= 0;
 		}
 	}

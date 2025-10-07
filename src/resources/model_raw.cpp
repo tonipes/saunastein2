@@ -10,8 +10,9 @@
 #include "io/file_system.hpp"
 #include "data/vector_util.hpp"
 #include "math/math.hpp"
+#include "project/engine_data.hpp"
+#include "gfx/common/format.hpp"
 #include "vendor/nhlohmann/json.hpp"
-#
 #define TINYGLTF_NO_INCLUDE_STB_IMAGE
 #define TINYGLTF_NO_INCLUDE_STB_IMAGE_WRITE
 #define TINYGLTF_NO_INCLUDE_JSON
@@ -48,6 +49,8 @@ namespace SFG
 		stream >> loaded_skins;
 		stream >> loaded_animations;
 		stream >> total_aabb;
+
+		SFG_INFO("Created model from buffer: {0}", name);
 	}
 
 #ifdef SFG_TOOLMODE
@@ -361,338 +364,366 @@ namespace SFG
 				prim.vertices.resize(start_vertex + num_vertices);
 				fill_prim(prim, model, tprim, vertex_accessor, vertex_buffer_view, vertex_buffer, num_vertices, start_vertex, start_index);
 			}
+		}
 
-			const size_t all_skins_sz = model.skins.size();
+		const size_t all_skins_sz = model.skins.size();
 
-			for (size_t i = 0; i < all_skins_sz; i++)
+		for (size_t i = 0; i < all_skins_sz; i++)
+		{
+			const tinygltf::Skin& tskin = model.skins[i];
+
+			const string	hash_path = string(relative_path) + "/" + tskin.name;
+			const string_id hash	  = TO_SID(hash_path);
+			loaded_skins.push_back({});
+			skin_raw& skin = loaded_skins.back();
+			skin.sid	   = hash;
+
+			const size_t joints_sz = tskin.joints.size();
+			skin.name			   = hash_path;
+
+			skin.joints.resize(joints_sz);
+			skin.root_joint = static_cast<int16>(tskin.skeleton);
+
+			const tinygltf::Accessor&	inverse_bind_a	= model.accessors[tskin.inverseBindMatrices];
+			const tinygltf::BufferView& inverse_bind_bv = model.bufferViews[inverse_bind_a.bufferView];
+			const tinygltf::Buffer&		inverse_bind_b	= model.buffers[inverse_bind_bv.buffer];
+			const size_t				matrix_count	= inverse_bind_a.count;
+			SFG_ASSERT((inverse_bind_a.type == TINYGLTF_TYPE_MAT4 && inverse_bind_a.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT), "Unsupported component type!");
+			SFG_ASSERT(matrix_count == joints_sz);
+
+			for (size_t j = 0; j < joints_sz; j++)
 			{
-				const tinygltf::Skin& tskin = model.skins[i];
+				const size_t stride		 = inverse_bind_bv.byteStride == 0 ? sizeof(float) * 16 : inverse_bind_bv.byteStride;
+				const float* raw		 = reinterpret_cast<const float*>(inverse_bind_b.data.data() + inverse_bind_a.byteOffset + inverse_bind_bv.byteOffset + j * stride);
+				const int32	 joint_index = tskin.joints[j];
 
-				const string	hash_path = string(relative_path) + "/" + tskin.name;
-				const string_id hash	  = TO_SID(hash_path);
-				loaded_skins.push_back({});
-				skin_raw& skin = loaded_skins.back();
-				skin.sid	   = hash;
+				skin_joint& sj		= skin.joints[j];
+				sj.model_node_index = static_cast<int16>(joint_index);
 
-				const size_t joints_sz = tskin.joints.size();
-				skin.name			   = tskin.name;
+				for (size_t k = 0; k < 16; k++)
+					sj.inverse_bind_matrix.m[k] = raw[k];
+			}
+		}
 
-				skin.joints.resize(joints_sz);
-				skin.root_joint = static_cast<int16>(tskin.skeleton);
+		const size_t all_nodes_sz = model.nodes.size();
+		loaded_nodes.resize(all_nodes_sz);
 
-				const tinygltf::Accessor&	inverse_bind_a	= model.accessors[tskin.inverseBindMatrices];
-				const tinygltf::BufferView& inverse_bind_bv = model.bufferViews[inverse_bind_a.bufferView];
-				const tinygltf::Buffer&		inverse_bind_b	= model.buffers[inverse_bind_bv.buffer];
-				const size_t				matrix_count	= inverse_bind_a.count;
-				SFG_ASSERT((inverse_bind_a.type == TINYGLTF_TYPE_MAT4 && inverse_bind_a.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT), "Unsupported component type!");
-				SFG_ASSERT(matrix_count == joints_sz);
+		for (size_t i = 0; i < all_nodes_sz; i++)
+		{
+			const tinygltf::Node& tnode = model.nodes[i];
+			model_node_raw&		  node	= loaded_nodes[i];
+			node.name					= tnode.name;
+			node.mesh_index				= static_cast<int16>(tnode.mesh);
+			node.skin_index				= static_cast<int16>(tnode.skin);
 
-				for (size_t j = 0; j < joints_sz; j++)
-				{
-					const size_t stride		 = inverse_bind_bv.byteStride == 0 ? sizeof(float) * 16 : inverse_bind_bv.byteStride;
-					const float* raw		 = reinterpret_cast<const float*>(inverse_bind_b.data.data() + inverse_bind_a.byteOffset + inverse_bind_bv.byteOffset + j * stride);
-					const int32	 joint_index = tskin.joints[j];
-
-					skin_joint& sj		= skin.joints[j];
-					sj.model_node_index = static_cast<int16>(joint_index);
-
-					for (size_t k = 0; k < 16; k++)
-						sj.inverse_bind_matrix.m[k] = raw[k];
-				}
+			if (tnode.matrix.empty())
+			{
+				const vector3 p	  = tnode.translation.empty() ? vector3::zero : vector3(tnode.translation[0], tnode.translation[1], tnode.translation[2]);
+				const vector3 s	  = tnode.scale.empty() ? vector3::one : vector3(tnode.scale[0], tnode.scale[1], tnode.scale[2]);
+				const quat	  r	  = tnode.rotation.empty() ? quat::identity : quat(tnode.rotation[0], tnode.rotation[1], tnode.rotation[2], tnode.rotation[3]);
+				node.local_matrix = matrix4x3::transform(p, r, s);
+			}
+			else
+			{
+				node.local_matrix = make_mat43(tnode.matrix);
 			}
 
-			const size_t all_nodes_sz = model.nodes.size();
-			loaded_nodes.resize(all_nodes_sz);
+			for (int child : tnode.children)
+				loaded_nodes[child].parent_index = i;
 
-			for (size_t i = 0; i < all_nodes_sz; i++)
+			if (tnode.mesh != -1)
 			{
-				const tinygltf::Node& tnode = model.nodes[i];
-				model_node_raw&		  node	= loaded_nodes[i];
-				node.name					= tnode.name;
-				node.mesh_index				= static_cast<int16>(tnode.mesh);
-				node.skin_index				= static_cast<int16>(tnode.skin);
-
-				if (tnode.matrix.empty())
-				{
-					const vector3 p	  = tnode.translation.empty() ? vector3::zero : vector3(tnode.translation[0], tnode.translation[1], tnode.translation[2]);
-					const vector3 s	  = tnode.scale.empty() ? vector3::one : vector3(tnode.scale[0], tnode.scale[1], tnode.scale[2]);
-					const quat	  r	  = tnode.rotation.empty() ? quat::identity : quat(tnode.rotation[0], tnode.rotation[1], tnode.rotation[2], tnode.rotation[3]);
-					node.local_matrix = matrix4x3::transform(p, r, s);
-				}
-				else
-				{
-					node.local_matrix = make_mat43(tnode.matrix);
-				}
-
-				for (int child : tnode.children)
-					loaded_nodes[child].parent_index = i;
-
-				if (tnode.mesh != -1)
-				{
-					loaded_meshes[tnode.mesh].node_index = static_cast<uint16>(i);
-					loaded_meshes[tnode.mesh].skin_index = node.skin_index;
-				}
+				loaded_meshes[tnode.mesh].node_index = static_cast<uint16>(i);
+				loaded_meshes[tnode.mesh].skin_index = node.skin_index;
 			}
+		}
 
-			if (import_textures)
-			{
-				const size_t all_textures_sz = model.textures.size();
+		if (import_textures)
+		{
+			const size_t all_textures_sz = model.textures.size();
 
-				for (size_t i = 0; i < all_textures_sz; i++)
+			auto check_if_linear = [&](int index) -> bool {
+				for (const tinygltf::Material& tmat : model.materials)
 				{
-					tinygltf::Texture& ttexture = model.textures[i];
-
-					if (ttexture.source != -1)
-					{
-						tinygltf::Image& img = model.images[ttexture.source];
-						if (!img.image.empty())
-						{
-							loaded_textures.push_back({});
-							texture_raw& raw = loaded_textures.back();
-							raw.name		 = img.name.empty() ? ttexture.name : img.name;
-
-							const string	hash_path = string(relative_path) + "/" + ttexture.name;
-							const string_id hash	  = TO_SID(hash_path);
-							raw.sid					  = hash;
-
-							uint8*			  data = new uint8[img.image.size()];
-							const vector2ui16 size = vector2ui16(static_cast<uint16>(img.width), static_cast<uint16>(img.height));
-							const uint8		  bpp  = img.bits / 8 * img.component;
-							raw.cook_from_data(data, size, bpp, true);
-						}
-					}
+					if (tmat.pbrMetallicRoughness.metallicRoughnessTexture.index == index)
+						return true;
+					if (tmat.normalTexture.index == index)
+						return true;
 				}
-			}
+				return false;
+			};
 
-			if (create_materials)
+			for (size_t i = 0; i < all_textures_sz; i++)
 			{
-				SFG_ASSERT(!material_shaders.empty());
+				tinygltf::Texture& ttexture = model.textures[i];
 
-				const size_t all_materials_sz = model.materials.size();
-				for (size_t i = 0; i < all_materials_sz; i++)
+				if (ttexture.source != -1)
 				{
-					tinygltf::Material& tmat = model.materials[i];
-					loaded_materials.push_back({});
-					material_raw& raw		  = loaded_materials.back();
-					raw.name				  = tmat.name;
-					const string	hash_path = string(relative_path) + "/" + tmat.name;
-					const string_id hash	  = TO_SID(hash_path);
-					raw.sid					  = hash;
-
-					const vector4 base_color = vector4(static_cast<float>(tmat.pbrMetallicRoughness.baseColorFactor[0]),
-													   static_cast<float>(tmat.pbrMetallicRoughness.baseColorFactor[1]),
-													   static_cast<float>(tmat.pbrMetallicRoughness.baseColorFactor[2]),
-													   static_cast<float>(tmat.pbrMetallicRoughness.baseColorFactor[3]));
-
-					const vector3 emissive	   = vector3(static_cast<float>(tmat.emissiveFactor[0]), static_cast<float>(tmat.emissiveFactor[1]), static_cast<float>(tmat.emissiveFactor[2]));
-					const float	  metallic	   = static_cast<float>(tmat.pbrMetallicRoughness.metallicFactor);
-					const float	  roughness	   = static_cast<float>(tmat.pbrMetallicRoughness.roughnessFactor);
-					const float	  alpha_cutoff = static_cast<float>(tmat.alphaCutoff);
-					raw.pass_mode			   = tmat.alphaMode.compare("OPAQUE") == 0 ? material_pass_mode::gbuffer : material_pass_mode::gbuffer_transparent;
-					raw.material_data << base_color;
-					raw.material_data << emissive;
-					raw.material_data << metallic;
-					raw.material_data << roughness;
-					raw.material_data << alpha_cutoff;
-
-					const int base_index	 = tmat.pbrMetallicRoughness.baseColorTexture.index;
-					const int normal_index	 = tmat.normalTexture.index;
-					const int orm_index		 = tmat.pbrMetallicRoughness.metallicRoughnessTexture.index;
-					const int emissive_index = tmat.emissiveTexture.index;
-
-					if (base_index == -1)
-						raw.textures.push_back(0);
-					else
-						raw.textures.push_back(loaded_textures[base_index].sid);
-
-					if (normal_index == -1)
-						raw.textures.push_back(0);
-					else
-						raw.textures.push_back(loaded_textures[normal_index].sid);
-
-					if (orm_index == -1)
-						raw.textures.push_back(0);
-					else
-						raw.textures.push_back(loaded_textures[orm_index].sid);
-
-					if (emissive_index == -1)
-						raw.textures.push_back(0);
-					else
-						raw.textures.push_back(loaded_textures[emissive_index].sid);
-
-					for (string_id sh : material_shaders)
-						raw.shaders.push_back(sh);
-				}
-			}
-
-			const size_t all_anims_sz = model.animations.size();
-
-			for (size_t i = 0; i < all_anims_sz; i++)
-			{
-				tinygltf::Animation& tanim	   = model.animations[i];
-				const string		 hash_path = string(relative_path) + "/" + tanim.name;
-				const string_id		 hash	   = TO_SID(hash_path);
-				loaded_animations.push_back({});
-				animation_raw& anim = loaded_animations.back();
-				anim.sid			= hash;
-				anim.name			= tanim.name;
-
-				const size_t channels_sz = tanim.channels.size();
-
-				for (size_t j = 0; j < channels_sz; j++)
-				{
-					tinygltf::AnimationChannel& tchannel = tanim.channels[j];
-
-					const tinygltf::AnimationSampler sampler   = tanim.samplers[tchannel.sampler];
-					const tinygltf::Accessor&		 input_a   = model.accessors[sampler.input];
-					const tinygltf::BufferView&		 input_bv  = model.bufferViews[input_a.bufferView];
-					const tinygltf::Buffer&			 input_b   = model.buffers[input_bv.buffer];
-					const tinygltf::Accessor&		 output_a  = model.accessors[sampler.output];
-					const tinygltf::BufferView&		 output_bv = model.bufferViews[output_a.bufferView];
-					const tinygltf::Buffer&			 output_b  = model.buffers[output_bv.buffer];
-
-					SFG_ASSERT((input_a.type == TINYGLTF_TYPE_SCALAR && input_a.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT), "Unsupported component type!");
-					SFG_ASSERT(output_a.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT, "Unsupported component type!");
-
-					const size_t input_count  = input_a.count;
-					const size_t output_count = output_a.count;
-
-					const float*  raw_float_data = reinterpret_cast<const float*>(output_b.data.data() + output_a.byteOffset + output_bv.byteOffset);
-					vector<float> keyframe_times = {};
-					keyframe_times.resize(input_count);
-
-					for (size_t k = 0; k < input_count; k++)
+					tinygltf::Image& img = model.images[ttexture.source];
+					if (!img.image.empty())
 					{
-						const size_t stride = input_bv.byteStride == 0 ? sizeof(float) : input_bv.byteStride;
-						const float* raw	= reinterpret_cast<const float*>(input_b.data.data() + input_a.byteOffset + input_bv.byteOffset + j * stride);
-						keyframe_times[k]	= raw[0];
-						anim.duration		= math::max(anim.duration, raw[0]);
-					}
+						SFG_ASSERT(img.bits == 8 && img.component == 4);
+						loaded_textures.push_back({});
+						texture_raw& raw = loaded_textures.back();
 
-					animation_interpolation interpolation = animation_interpolation::linear;
-					if (sampler.interpolation.compare("LINEAR") == 0)
-						interpolation = animation_interpolation::linear;
-					else if (sampler.interpolation.compare("STEP") == 0)
-						interpolation = animation_interpolation::step;
-					else if (sampler.interpolation.compare("CUBICSPLINE") == 0)
-						interpolation = animation_interpolation::cubic_spline;
+						const string	hash_path = string(relative_path) + "/" + (img.name.empty() ? ttexture.name : img.name);
+						const string_id hash	  = TO_SID(hash_path);
+						raw.sid					  = hash;
+						raw.name				  = hash_path;
 
-					if (interpolation == animation_interpolation::cubic_spline)
-					{
-						SFG_ASSERT(output_count == input_count * 3, "Output count mismatch for CubicSpline!");
-					}
-					else
-					{
-						SFG_ASSERT(input_count == output_count, "Input & output counts do not match!");
-					}
+						uint8*			  data = new uint8[img.image.size()];
+						const vector2ui16 size = vector2ui16(static_cast<uint16>(img.width), static_cast<uint16>(img.height));
+						// const uint8		  bpp  = img.bits / 8 * img.component;
 
-					const bool is_translation = tchannel.target_path.compare("translation");
-					const bool is_scale		  = tchannel.target_path.compare("scale");
-
-					if (is_translation || is_scale)
-					{
-						animation_channel_v3_raw* channel = nullptr;
-
-						if (is_translation)
-						{
-							anim.position_channels.push_back({});
-							channel = &anim.position_channels.back();
-						}
-						else
-						{
-							anim.scale_channels.push_back({});
-							channel = &anim.scale_channels.back();
-						}
-
-						channel->interpolation = interpolation;
-						channel->node_index	   = static_cast<int16>(tchannel.target_node);
-
-						if (interpolation == animation_interpolation::cubic_spline)
-						{
-							for (size_t k = 0; k < input_count; k++)
-							{
-								size_t base = k * 9;
-								channel->keyframes_spline.push_back({});
-								animation_keyframe_v3_spline& kf = channel->keyframes_spline.back();
-								kf.in_tangent					 = vector3(raw_float_data[base], raw_float_data[base + 1], raw_float_data[base + 2]);
-								kf.value						 = vector3(raw_float_data[base + 3], raw_float_data[base + 4], raw_float_data[base + 5]);
-								kf.out_tangent					 = vector3(raw_float_data[base + 6], raw_float_data[base + 7], raw_float_data[base + 8]);
-								kf.time							 = keyframe_times[k];
-							}
-						}
-						else
-						{
-							for (size_t k = 0; k < input_count; k++)
-							{
-								size_t base = k * 3;
-								channel->keyframes.push_back({});
-								animation_keyframe_v3& kf = channel->keyframes.back();
-								kf.value				  = vector3(raw_float_data[base], raw_float_data[base + 1], raw_float_data[base + 2]);
-								kf.time					  = keyframe_times[k];
-							}
-						}
-					}
-					else if (tchannel.target_path.compare("rotation") == 0)
-					{
-						anim.rotation_channels.push_back({});
-						animation_channel_q_raw& channel = anim.rotation_channels.back();
-						channel.interpolation			 = interpolation;
-						channel.node_index				 = static_cast<int16>(tchannel.target_node);
-
-						if (interpolation == animation_interpolation::cubic_spline)
-						{
-							for (size_t k = 0; k < input_count; k++)
-							{
-								size_t base = k * 12;
-								channel.keyframes_spline.push_back({});
-								animation_keyframe_q_spline kf = channel.keyframes_spline.back();
-
-								kf.in_tangent  = quat(raw_float_data[base], raw_float_data[base + 1], raw_float_data[base + 2], raw_float_data[base + 3]);
-								kf.value	   = quat(raw_float_data[base + 4], raw_float_data[base + 5], raw_float_data[base + 6], raw_float_data[base + 7]);
-								kf.out_tangent = quat(raw_float_data[base + 8], raw_float_data[base + 9], raw_float_data[base + 10], raw_float_data[base + 11]);
-								kf.time		   = keyframe_times[k];
-							}
-						}
-						else
-						{
-							for (size_t k = 0; k < input_count; k++)
-							{
-								size_t base = k * 4;
-								channel.keyframes.push_back({});
-								animation_keyframe_q& kf = channel.keyframes.back();
-								kf.value				 = quat(raw_float_data[base], raw_float_data[base + 1], raw_float_data[base + 2], raw_float_data[base + 3]);
-								kf.time					 = keyframe_times[k];
-							}
-						}
-					}
-					else if (tchannel.target_path.compare("weights") == 0)
-					{
+						const format fmt = check_if_linear(i) ? format::r8g8b8a8_unorm : format::r8g8b8a8_srgb;
+						raw.cook_from_data(data, size, static_cast<uint8>(fmt), true);
 					}
 				}
 			}
 		}
 
+		if (create_materials)
+		{
+			SFG_ASSERT(!material_shaders.empty());
+
+			const size_t all_materials_sz = model.materials.size();
+			for (size_t i = 0; i < all_materials_sz; i++)
+			{
+				tinygltf::Material& tmat = model.materials[i];
+				loaded_materials.push_back({});
+				material_raw&	raw		  = loaded_materials.back();
+				const string	hash_path = string(relative_path) + "/" + tmat.name;
+				const string_id hash	  = TO_SID(hash_path);
+				raw.sid					  = hash;
+				raw.name				  = hash_path;
+
+				const vector4 base_color = vector4(static_cast<float>(tmat.pbrMetallicRoughness.baseColorFactor[0]),
+												   static_cast<float>(tmat.pbrMetallicRoughness.baseColorFactor[1]),
+												   static_cast<float>(tmat.pbrMetallicRoughness.baseColorFactor[2]),
+												   static_cast<float>(tmat.pbrMetallicRoughness.baseColorFactor[3]));
+
+				const vector3 emissive	   = vector3(static_cast<float>(tmat.emissiveFactor[0]), static_cast<float>(tmat.emissiveFactor[1]), static_cast<float>(tmat.emissiveFactor[2]));
+				const float	  metallic	   = static_cast<float>(tmat.pbrMetallicRoughness.metallicFactor);
+				const float	  roughness	   = static_cast<float>(tmat.pbrMetallicRoughness.roughnessFactor);
+				const float	  alpha_cutoff = static_cast<float>(tmat.alphaCutoff);
+				raw.pass_mode			   = tmat.alphaMode.compare("OPAQUE") == 0 ? material_pass_mode::gbuffer : material_pass_mode::gbuffer_transparent;
+				raw.material_data << base_color;
+				raw.material_data << emissive;
+				raw.material_data << metallic;
+				raw.material_data << roughness;
+				raw.material_data << alpha_cutoff;
+
+				uint32 pad = 0;
+				raw.material_data << pad;
+				raw.material_data << pad;
+
+				const int base_index	 = tmat.pbrMetallicRoughness.baseColorTexture.index;
+				const int normal_index	 = tmat.normalTexture.index;
+				const int orm_index		 = tmat.pbrMetallicRoughness.metallicRoughnessTexture.index;
+				const int emissive_index = tmat.emissiveTexture.index;
+
+				if (base_index == -1)
+					raw.textures.push_back(0);
+				else
+					raw.textures.push_back(loaded_textures[base_index].sid);
+
+				if (normal_index == -1)
+					raw.textures.push_back(0);
+				else
+					raw.textures.push_back(loaded_textures[normal_index].sid);
+
+				if (orm_index == -1)
+					raw.textures.push_back(0);
+				else
+					raw.textures.push_back(loaded_textures[orm_index].sid);
+
+				if (emissive_index == -1)
+					raw.textures.push_back(0);
+				else
+					raw.textures.push_back(loaded_textures[emissive_index].sid);
+
+				for (string_id sh : material_shaders)
+					raw.shaders.push_back(sh);
+
+				SFG_INFO("Created material from gltf: {0}", raw.name);
+			}
+		}
+
+		const size_t all_anims_sz = model.animations.size();
+
+		for (size_t i = 0; i < all_anims_sz; i++)
+		{
+			tinygltf::Animation& tanim	   = model.animations[i];
+			const string		 hash_path = string(relative_path) + "/" + tanim.name;
+			const string_id		 hash	   = TO_SID(hash_path);
+			loaded_animations.push_back({});
+			animation_raw& anim = loaded_animations.back();
+			anim.sid			= hash;
+			anim.name			= hash_path;
+
+			const size_t channels_sz = tanim.channels.size();
+
+			for (size_t j = 0; j < channels_sz; j++)
+			{
+				tinygltf::AnimationChannel& tchannel = tanim.channels[j];
+
+				const tinygltf::AnimationSampler sampler   = tanim.samplers[tchannel.sampler];
+				const tinygltf::Accessor&		 input_a   = model.accessors[sampler.input];
+				const tinygltf::BufferView&		 input_bv  = model.bufferViews[input_a.bufferView];
+				const tinygltf::Buffer&			 input_b   = model.buffers[input_bv.buffer];
+				const tinygltf::Accessor&		 output_a  = model.accessors[sampler.output];
+				const tinygltf::BufferView&		 output_bv = model.bufferViews[output_a.bufferView];
+				const tinygltf::Buffer&			 output_b  = model.buffers[output_bv.buffer];
+
+				SFG_ASSERT((input_a.type == TINYGLTF_TYPE_SCALAR && input_a.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT), "Unsupported component type!");
+				SFG_ASSERT(output_a.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT, "Unsupported component type!");
+
+				const size_t input_count  = input_a.count;
+				const size_t output_count = output_a.count;
+
+				const float*  raw_float_data = reinterpret_cast<const float*>(output_b.data.data() + output_a.byteOffset + output_bv.byteOffset);
+				vector<float> keyframe_times = {};
+				keyframe_times.resize(input_count);
+
+				for (size_t k = 0; k < input_count; k++)
+				{
+					const size_t stride = input_bv.byteStride == 0 ? sizeof(float) : input_bv.byteStride;
+					const float* raw	= reinterpret_cast<const float*>(input_b.data.data() + input_a.byteOffset + input_bv.byteOffset + j * stride);
+					keyframe_times[k]	= raw[0];
+					anim.duration		= math::max(anim.duration, raw[0]);
+				}
+
+				animation_interpolation interpolation = animation_interpolation::linear;
+				if (sampler.interpolation.compare("LINEAR") == 0)
+					interpolation = animation_interpolation::linear;
+				else if (sampler.interpolation.compare("STEP") == 0)
+					interpolation = animation_interpolation::step;
+				else if (sampler.interpolation.compare("CUBICSPLINE") == 0)
+					interpolation = animation_interpolation::cubic_spline;
+
+				if (interpolation == animation_interpolation::cubic_spline)
+				{
+					SFG_ASSERT(output_count == input_count * 3, "Output count mismatch for CubicSpline!");
+				}
+				else
+				{
+					SFG_ASSERT(input_count == output_count, "Input & output counts do not match!");
+				}
+
+				const bool is_translation = tchannel.target_path.compare("translation");
+				const bool is_scale		  = tchannel.target_path.compare("scale");
+
+				if (is_translation || is_scale)
+				{
+					animation_channel_v3_raw* channel = nullptr;
+
+					if (is_translation)
+					{
+						anim.position_channels.push_back({});
+						channel = &anim.position_channels.back();
+					}
+					else
+					{
+						anim.scale_channels.push_back({});
+						channel = &anim.scale_channels.back();
+					}
+
+					channel->interpolation = interpolation;
+					channel->node_index	   = static_cast<int16>(tchannel.target_node);
+
+					if (interpolation == animation_interpolation::cubic_spline)
+					{
+						for (size_t k = 0; k < input_count; k++)
+						{
+							size_t base = k * 9;
+							channel->keyframes_spline.push_back({});
+							animation_keyframe_v3_spline& kf = channel->keyframes_spline.back();
+							kf.in_tangent					 = vector3(raw_float_data[base], raw_float_data[base + 1], raw_float_data[base + 2]);
+							kf.value						 = vector3(raw_float_data[base + 3], raw_float_data[base + 4], raw_float_data[base + 5]);
+							kf.out_tangent					 = vector3(raw_float_data[base + 6], raw_float_data[base + 7], raw_float_data[base + 8]);
+							kf.time							 = keyframe_times[k];
+						}
+					}
+					else
+					{
+						for (size_t k = 0; k < input_count; k++)
+						{
+							size_t base = k * 3;
+							channel->keyframes.push_back({});
+							animation_keyframe_v3& kf = channel->keyframes.back();
+							kf.value				  = vector3(raw_float_data[base], raw_float_data[base + 1], raw_float_data[base + 2]);
+							kf.time					  = keyframe_times[k];
+						}
+					}
+				}
+				else if (tchannel.target_path.compare("rotation") == 0)
+				{
+					anim.rotation_channels.push_back({});
+					animation_channel_q_raw& channel = anim.rotation_channels.back();
+					channel.interpolation			 = interpolation;
+					channel.node_index				 = static_cast<int16>(tchannel.target_node);
+
+					if (interpolation == animation_interpolation::cubic_spline)
+					{
+						for (size_t k = 0; k < input_count; k++)
+						{
+							size_t base = k * 12;
+							channel.keyframes_spline.push_back({});
+							animation_keyframe_q_spline kf = channel.keyframes_spline.back();
+
+							kf.in_tangent  = quat(raw_float_data[base], raw_float_data[base + 1], raw_float_data[base + 2], raw_float_data[base + 3]);
+							kf.value	   = quat(raw_float_data[base + 4], raw_float_data[base + 5], raw_float_data[base + 6], raw_float_data[base + 7]);
+							kf.out_tangent = quat(raw_float_data[base + 8], raw_float_data[base + 9], raw_float_data[base + 10], raw_float_data[base + 11]);
+							kf.time		   = keyframe_times[k];
+						}
+					}
+					else
+					{
+						for (size_t k = 0; k < input_count; k++)
+						{
+							size_t base = k * 4;
+							channel.keyframes.push_back({});
+							animation_keyframe_q& kf = channel.keyframes.back();
+							kf.value				 = quat(raw_float_data[base], raw_float_data[base + 1], raw_float_data[base + 2], raw_float_data[base + 3]);
+							kf.time					 = keyframe_times[k];
+						}
+					}
+				}
+				else if (tchannel.target_path.compare("weights") == 0)
+				{
+				}
+			}
+		}
 		total_aabb.update_half_extents();
-		SFG_INFO("Loaded model from file: {0}", file);
 		return true;
 	}
 
-	bool model_raw::cook_from_file(const char* file, const char* relative_path)
+	bool model_raw::cook_from_file(const char* file)
 	{
+		if (!file_system::exists(file))
+		{
+			SFG_ERR("File doesn't exists! {0}", file);
+			return false;
+		}
+
 		try
 		{
 			std::ifstream f(file);
 			json		  json_data = json::parse(f);
 			f.close();
 
-			const string source = json_data.value<string>("source", "");
+			const string& wd = engine_data::get().get_working_dir();
+
+			const string source = wd + json_data.value<string>("source", "");
 			if (!file_system::exists(source.c_str()))
 			{
 				SFG_ERR("File doesn't exists! {0}", source.c_str());
 				return false;
 			}
 
-			name									  = relative_path;
+			const string p = file;
+			name		   = p.substr(wd.size(), p.size() - wd.size());
+
 			const uint8			 import_pbr_materials = json_data.value<uint8>("import_pbr_materials", 0);
 			const vector<string> shaders			  = json_data.value<vector<string>>("shaders", {});
 			const uint8			 import_textures	  = import_pbr_materials;
@@ -705,13 +736,21 @@ namespace SFG
 					material_shaders.push_back(TO_SID(sh));
 			}
 
-			return import_gtlf(file, relative_path, import_pbr_materials, import_textures);
+			const bool success = import_gtlf(source.c_str(), name.c_str(), import_pbr_materials, import_textures);
+			if (!success)
+			{
+				return false;
+			}
+
+			SFG_INFO("Created model from file: {0}", name);
 		}
 		catch (std::exception e)
 		{
 			SFG_ERR("Failed loading material: {0}", e.what());
 			return false;
 		}
+
+		return true;
 	}
 #endif
 }

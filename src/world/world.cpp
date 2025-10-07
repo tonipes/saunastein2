@@ -52,6 +52,13 @@ namespace SFG
 		_flags.set(world_flags_is_init);
 		_resources.init();
 		_entity_manager.init();
+
+		debug_console::get()->register_console_function<>("world_reload", [this]() {
+			world_raw	 raw = {};
+			const string p	 = engine_data::get().get_working_dir() + "assets/world/demo_world.stkworld";
+			raw.cook_from_file(p.c_str());
+			create_from_raw(raw);
+		});
 	}
 
 	void world::uninit()
@@ -62,6 +69,7 @@ namespace SFG
 
 		SFG_PROG("uninitializing world.");
 
+		debug_console::get()->unregister_console_function("world_reload");
 		debug_console::get()->unregister_console_function("world_set_play");
 		_flags.remove(world_flags_is_init);
 	}
@@ -131,8 +139,6 @@ namespace SFG
 		*/
 
 		vector<std::function<void()>> tasks;
-
-		const int64 mr_begin = time::get_cpu_microseconds();
 
 		/* Debug
 		for (const char* t : debug_textures)
@@ -227,10 +233,15 @@ namespace SFG
 			add_model_to_world(loaded_debug_models[0], &loaded_debug_mats[0], 1);
 			*/
 
+		const int64 mr_begin = time::get_cpu_microseconds();
+
 		world_raw	 raw = {};
 		const string p	 = engine_data::get().get_working_dir() + "assets/world/demo_world.stkworld";
 		raw.cook_from_file(p.c_str());
 		create_from_raw(raw);
+
+		const int64 mr_diff = time::get_cpu_microseconds() - mr_begin;
+		SFG_INFO("Resources took: {0} ms", mr_diff / 1000);
 	}
 
 	void world::create_from_raw(world_raw& raw)

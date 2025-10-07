@@ -795,7 +795,7 @@ namespace SFG
 		const gfx_id id	 = _resources.add();
 		resource&	 res = _resources.get(id);
 
-		const uint32 aligned_size = ALIGN_SIZE_POW(desc.size, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
+		const uint32 aligned_size = ALIGN_SIZE_POW(desc.size, D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 		const uint32 final_size	  = desc.flags.is_set(resource_flags::rf_constant_buffer) ? aligned_size : desc.size;
 		res.size				  = final_size;
 

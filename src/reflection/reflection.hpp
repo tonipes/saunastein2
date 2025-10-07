@@ -97,6 +97,11 @@ namespace SFG
 			return _tag;
 		}
 
+		inline uint32 get_type_index() const
+		{
+			return _type_index;
+		}
+
 	private:
 		friend class reflection;
 
@@ -111,8 +116,9 @@ namespace SFG
 
 	private:
 		alloc_map _functions;
-		string_id _type_id = 0;
-		string_id _tag	   = 0;
+		string_id _type_id	  = 0;
+		string_id _tag		  = 0;
+		uint32	  _type_index = 0;
 	};
 
 	class reflection
@@ -134,11 +140,12 @@ namespace SFG
 			}
 		}
 
-		meta& register_meta(string_id id, const string& tag)
+		meta& register_meta(string_id id, uint32 index, const string& tag)
 		{
-			meta& m	   = _metas[id];
-			m._type_id = id;
-			m._tag	   = TO_SID(tag);
+			meta& m		  = _metas[id];
+			m._type_id	  = id;
+			m._tag		  = TO_SID(tag);
+			m._type_index = index;
 			return m;
 		}
 

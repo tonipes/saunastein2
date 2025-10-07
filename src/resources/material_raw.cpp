@@ -42,7 +42,8 @@ namespace SFG
 		if (sz != 0)
 		{
 			material_data.create(static_cast<size_t>(sz));
-			stream.read_to_raw(material_data.get_raw(), material_data.get_size());
+			stream.read_to_raw(material_data.get_raw(), sz);
+			material_data.shrink(static_cast<size_t>(sz));
 		}
 
 		stream >> shaders;
@@ -50,6 +51,8 @@ namespace SFG
 		stream >> pass_mode;
 		stream >> name;
 		stream >> sid;
+
+		SFG_INFO("Created material from buffer: {0}", name);
 	}
 
 #ifdef SFG_TOOLMODE
@@ -96,7 +99,7 @@ namespace SFG
 			if (json_data.contains("parameters"))
 				parameters = json_data.at("parameters").get<std::vector<parameter_entry>>();
 
-			SFG_ASSERT(!shaders.empty());
+			SFG_ASSERT(!shaders_path.empty());
 
 			const string& wd = engine_data::get().get_working_dir();
 			const string  p	 = file;
@@ -167,7 +170,7 @@ namespace SFG
 			return false;
 		}
 
-		SFG_INFO("Created material from file: {0}", file);
+		SFG_INFO("Created material from file: {0}", name);
 		return true;
 	}
 #endif

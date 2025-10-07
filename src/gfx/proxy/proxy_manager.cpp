@@ -205,8 +205,11 @@ namespace SFG
 					const uint8 texture_count = static_cast<uint8>(stg->textures.size());
 					for (uint8 k = 0; k < texture_count; k++)
 					{
+						const render_proxy_texture& txt = get_texture(stg->textures[k].index);
+						SFG_ASSERT(txt.active);
+
 						updates.push_back({
-							.resource	   = get_texture(stg->textures[k].index).hw,
+							.resource	   = txt.hw,
 							.pointer_index = static_cast<uint8>(upi_material_texture0 + k),
 							.type		   = binding_type::texture_binding,
 						});
@@ -217,6 +220,8 @@ namespace SFG
 					proxy.buffers[i].buffer_data(0, stg->data.get_raw(), stg->data.get_size());
 					_buffer_queue.add_request({.buffer = &proxy.buffers[i]});
 				}
+
+				SFG_TRACE("Created material proxy for: {0}", stg->name);
 
 				if (stg->name)
 					SFG_FREE((char*)stg->name);
@@ -252,6 +257,8 @@ namespace SFG
 			{
 				render_event_storage_mesh* stg	 = reinterpret_cast<render_event_storage_mesh*>(ev->data);
 				render_proxy_mesh&		   proxy = get_mesh(index);
+				// proxy.active					 = 1;
+				// proxy.handle					 = index;
 
 				auto process = [&](auto& list, size_t vtx_type_size) {
 					size_t vertex_size = 0;
@@ -325,11 +332,11 @@ namespace SFG
 
 				if (!stg->primitives_static.empty())
 				{
-					process(stg->primitives_static, sizeof(vertex_static));
+					// process(stg->primitives_static, sizeof(vertex_static));
 				}
 				else if (!stg->primitives_skinned.empty())
 				{
-					process(stg->primitives_skinned, sizeof(vertex_skinned));
+					// process(stg->primitives_skinned, sizeof(vertex_skinned));
 				}
 				else
 				{
@@ -342,7 +349,7 @@ namespace SFG
 			{
 				render_event_storage_mesh* stg	 = reinterpret_cast<render_event_storage_mesh*>(ev->data);
 				render_proxy_mesh&		   proxy = get_mesh(index);
-				destroy_mesh(proxy);
+				// destroy_mesh(proxy);
 				ev->destruct<render_event_storage_mesh>();
 			}
 
@@ -408,18 +415,20 @@ namespace SFG
 		for (uint8 i = 0; i < FRAMES_IN_FLIGHT; i++)
 		{
 			const uint8 safe_bucket = (frame_info::get_render_frame() + i) % (FRAMES_IN_FLIGHT + 1);
-			add_to_destroy_bucket({.id = proxy.bind_groups[i], .type = destroy_data_type::texture}, safe_bucket);
-			add_to_destroy_bucket({.id = proxy.buffers->get_hw_staging(), .type = destroy_data_type::resource}, safe_bucket);
-			add_to_destroy_bucket({.id = proxy.buffers->get_hw_gpu(), .type = destroy_data_type::resource}, safe_bucket);
+			add_to_destroy_bucket({.id = proxy.bind_groups[i], .type = destroy_data_type::bind_group}, safe_bucket);
+			add_to_destroy_bucket({.id = proxy.buffers[i].get_hw_staging(), .type = destroy_data_type::resource}, safe_bucket);
+			add_to_destroy_bucket({.id = proxy.buffers[i].get_hw_gpu(), .type = destroy_data_type::resource}, safe_bucket);
 		}
 		proxy = {};
 	}
 
 	void proxy_manager::destroy_target_bucket(uint8 index)
 	{
-		gfx_backend* backend = gfx_backend::get();
-
 		destroy_bucket& bucket = _destroy_bucket[index];
+		if (bucket.list.empty())
+			return;
+
+		gfx_backend* backend = gfx_backend::get();
 
 		for (const destroy_data& destroy : bucket.list)
 		{

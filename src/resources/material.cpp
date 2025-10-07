@@ -19,10 +19,11 @@
 
 namespace SFG
 {
+	material_reflection g_material_reflection;
 
 	material_reflection::material_reflection()
 	{
-		meta& m = reflection::get().register_meta(type_id<material>::value, "stkmat");
+		meta& m = reflection::get().register_meta(type_id<material>::value, type_id<material>::index, "stkmat");
 
 #ifdef SFG_TOOLMODE
 
@@ -53,10 +54,10 @@ namespace SFG
 			return raw;
 		});
 
-		m.add_function<resource_handle, void*, world&, string_id>("create_from_raw"_hs, [](void* raw, world& w, string_id sid) -> resource_handle {
+		m.add_function<resource_handle, void*, world&>("create_from_raw_2"_hs, [](void* raw, world& w) -> resource_handle {
 			material_raw*	 raw_ptr   = reinterpret_cast<material_raw*>(raw);
 			world_resources& resources = w.get_resources();
-			resource_handle	 handle	   = resources.add_resource<material>(sid);
+			resource_handle	 handle	   = resources.add_resource<material>(TO_SID(raw_ptr->name));
 			material&		 res	   = resources.get_resource<material>(handle);
 			res.create_from_raw(*raw_ptr, resources, resources.get_aux(), w.get_render_stream(), handle);
 			delete raw_ptr;
@@ -103,12 +104,9 @@ namespace SFG
 							   .event_type = render_event_type::render_event_create_material,
 						   }};
 
-		render_event_storage_material* stg = reinterpret_cast<render_event_storage_material*>(ev.data);
+		render_event_storage_material* stg = ev.construct<render_event_storage_material>();
 		stg->data						   = _material_data;
 		stg->name						   = reinterpret_cast<const char*>(SFG_MALLOC(_name.size));
-
-		if (stg->name)
-			strcpy((char*)stg->name, alloc.get<const char>(_name));
 
 		for (string_id sid : raw.textures)
 		{
@@ -132,6 +130,7 @@ namespace SFG
 						  }});
 
 		_name = {};
+		_material_data.destroy();
 	}
 
 	resource_handle material::get_shader(uint8 flags_to_match) const
@@ -156,7 +155,7 @@ namespace SFG
 												  .handle	  = handle,
 												  .event_type = render_event_type::render_event_update_material,
 							  }};
-		render_event_storage_material* stg = reinterpret_cast<render_event_storage_material*>(ev.data);
+		render_event_storage_material* stg = ev.construct<render_event_storage_material>();
 		stg->data						   = _material_data;
 		stream.add_event(ev);
 	}

@@ -8,9 +8,11 @@
 
 namespace SFG
 {
+	animation_reflection g_animation_reflection;
+
 	animation_reflection::animation_reflection()
 	{
-		meta& m = reflection::get().register_meta(type_id<animation>::value, "");
+		meta& m = reflection::get().register_meta(type_id<animation>::value, type_id<animation>::index, "");
 		m.add_function<void, world&>("init_resource_storage"_hs, [](world& w) -> void { w.get_resources().init_storage<animation>(MAX_WORLD_ANIMS); });
 	}
 

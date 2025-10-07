@@ -8,9 +8,11 @@
 
 namespace SFG
 {
+	skin_reflection g_skin_reflection;
+
 	skin_reflection::skin_reflection()
 	{
-		meta& m = reflection::get().register_meta(type_id<skin>::value, "");
+		meta& m = reflection::get().register_meta(type_id<skin>::value, type_id<skin>::index, "");
 		m.add_function<void, world&>("init_resource_storage"_hs, [](world& w) -> void { w.get_resources().init_storage<skin>(MAX_WORLD_SKINS); });
 	}
 

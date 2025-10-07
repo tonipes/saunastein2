@@ -18,7 +18,7 @@ namespace SFG
 
 	shader_reflection::shader_reflection()
 	{
-		meta& m = reflection::get().register_meta(type_id<shader>::value, "stkshader");
+		meta& m = reflection::get().register_meta(type_id<shader>::value, type_id<shader>::index, "stkshader");
 
 #ifdef SFG_TOOLMODE
 
@@ -81,6 +81,8 @@ namespace SFG
 					.event_type = render_event_type::render_event_create_shader,
 				},
 		};
+
+		_flags.set(raw.is_skinned, shader::flags::is_skinned);
 
 		render_event_storage_shader* stg = ev.construct<render_event_storage_shader>();
 		stg->desc						 = raw.desc;

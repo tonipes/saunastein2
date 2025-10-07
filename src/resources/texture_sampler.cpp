@@ -21,7 +21,7 @@ namespace SFG
 
 	texture_sampler_reflection::texture_sampler_reflection()
 	{
-		meta& m = reflection::get().register_meta(type_id<texture_sampler>::value, "stksampler");
+		meta& m = reflection::get().register_meta(type_id<texture_sampler>::value, type_id<texture_sampler>::index, "stksampler");
 
 #ifdef SFG_TOOLMODE
 
@@ -84,7 +84,7 @@ namespace SFG
 					.event_type = render_event_type::render_event_create_sampler,
 				},
 		};
-		render_event_storage_sampler* stg = reinterpret_cast<render_event_storage_sampler*>(ev.data);
+		render_event_storage_sampler* stg = ev.construct<render_event_storage_sampler>();
 		stg->desc						  = raw.desc;
 		stg->desc.debug_name			  = reinterpret_cast<const char*>(SFG_MALLOC(_name.size));
 		if (stg->desc.debug_name)

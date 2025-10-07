@@ -31,7 +31,7 @@ namespace SFG
 		void deserialize(istream& stream);
 
 #ifdef SFG_TOOLMODE
-		bool cook_from_file(const char* file, const char* relative_path);
+		bool cook_from_file(const char* file);
 		bool import_gtlf(const char* file, const char* relative_path, bool import_materials, bool import_textures);
 #endif
 	};

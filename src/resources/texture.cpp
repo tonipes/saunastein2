@@ -24,7 +24,7 @@ namespace SFG
 
 	texture_reflection::texture_reflection()
 	{
-		meta& m = reflection::get().register_meta(type_id<texture>::value, "stktexture");
+		meta& m = reflection::get().register_meta(type_id<texture>::value, type_id<texture>::index, "stktexture");
 
 #ifdef SFG_TOOLMODE
 
@@ -103,7 +103,7 @@ namespace SFG
 		for (const texture_buffer& buf : raw.buffers)
 			total_size += backend->get_texture_size(buf.size.x, buf.size.y, buf.bpp);
 
-		render_event_storage_texture* stg = reinterpret_cast<render_event_storage_texture*>(ev.data);
+		render_event_storage_texture* stg = ev.construct<render_event_storage_texture>();
 		stg->buffers					  = raw.buffers;
 		stg->format						  = _texture_format;
 		stg->size						  = raw.buffers[0].size;

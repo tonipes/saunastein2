@@ -2,6 +2,7 @@
 
 #include "model_node_raw.hpp"
 #include "model_node.hpp"
+#include "io/log.hpp"
 #include "memory/chunk_allocator.hpp"
 #include "data/ostream.hpp"
 #include "data/istream.hpp"
@@ -24,5 +25,7 @@ namespace SFG
 		stream >> mesh_index;
 		stream >> skin_index;
 		stream >> local_matrix;
+
+		SFG_INFO("Created model node from buffer: {0}", name);
 	}
 }

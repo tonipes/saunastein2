@@ -14,20 +14,18 @@
 
 namespace SFG
 {
+	model_reflection g_model_reflection;
+
 	model_reflection::model_reflection()
 	{
-		meta& m = reflection::get().register_meta(type_id<model>::value, "stkmodel");
+		meta& m = reflection::get().register_meta(type_id<model>::value, type_id<model>::index, "stkmodel");
 
 #ifdef SFG_TOOLMODE
 
 		m.add_function<void*, const char*, world&>("cook_from_file"_hs, [](const char* path, world& w) -> void* {
 			model_raw* raw = new model_raw();
 
-			const string& wd	   = engine_data::get().get_working_dir();
-			const string  base	   = path;
-			const string  relative = base.substr(wd.size(), base.size() - wd.size());
-
-			if (!raw->cook_from_file(path, relative.c_str()))
+			if (!raw->cook_from_file(path))
 			{
 				delete raw;
 				return nullptr;
@@ -48,10 +46,10 @@ namespace SFG
 			return raw;
 		});
 
-		m.add_function<resource_handle, void*, world&, string_id>("create_from_raw_2"_hs, [](void* raw, world& w, string_id sid) -> resource_handle {
+		m.add_function<resource_handle, void*, world&>("create_from_raw_2"_hs, [](void* raw, world& w) -> resource_handle {
 			model_raw*		   raw_ptr	 = reinterpret_cast<model_raw*>(raw);
 			world_resources&   resources = w.get_resources();
-			resource_handle	   handle	 = resources.add_resource<model>(sid);
+			resource_handle	   handle	 = resources.add_resource<model>(TO_SID(raw_ptr->name));
 			model&			   res		 = resources.get_resource<model>(handle);
 			chunk_allocator32& aux		 = resources.get_aux();
 
@@ -227,7 +225,10 @@ namespace SFG
 			for (uint16 i = 0; i < _meshes_count; i++)
 			{
 				const resource_handle handle = ptr[i];
-				mesh&				  m		 = resources.get_resource<mesh>(handle);
+				if (!resources.is_valid<mesh>(handle))
+					continue;
+
+				mesh& m = resources.get_resource<mesh>(handle);
 				m.destroy(alloc, stream, handle);
 				resources.remove_resource<mesh>(handle);
 			}
@@ -242,7 +243,9 @@ namespace SFG
 			for (uint16 i = 0; i < _skins_count; i++)
 			{
 				const resource_handle handle = skins_ptr[i];
-				skin&				  sk	 = resources.get_resource<skin>(handle);
+				if (!resources.is_valid<skin>(handle))
+					continue;
+				skin& sk = resources.get_resource<skin>(handle);
 				sk.destroy(alloc);
 				resources.remove_resource<skin>(handle);
 			}
@@ -257,7 +260,9 @@ namespace SFG
 			for (uint16 i = 0; i < _anims_count; i++)
 			{
 				const resource_handle handle = anims_ptr[i];
-				animation&			  anim	 = resources.get_resource<animation>(handle);
+				if (!resources.is_valid<animation>(handle))
+					continue;
+				animation& anim = resources.get_resource<animation>(handle);
 				anim.destroy(alloc);
 				resources.remove_resource<animation>(handle);
 			}
@@ -272,7 +277,9 @@ namespace SFG
 			for (uint16 i = 0; i < _textures_count; i++)
 			{
 				const resource_handle handle = ptr[i];
-				texture&			  res	 = resources.get_resource<texture>(handle);
+				if (!resources.is_valid<texture>(handle))
+					continue;
+				texture& res = resources.get_resource<texture>(handle);
 				res.destroy(stream, alloc, handle);
 				resources.remove_resource<texture>(handle);
 			}
@@ -287,7 +294,9 @@ namespace SFG
 			for (uint16 i = 0; i < _materials_count; i++)
 			{
 				const resource_handle handle = ptr[i];
-				material&			  res	 = resources.get_resource<material>(handle);
+				if (!resources.is_valid<material>(handle))
+					continue;
+				material& res = resources.get_resource<material>(handle);
 				res.destroy(stream, alloc, handle);
 				resources.remove_resource<material>(handle);
 			}
