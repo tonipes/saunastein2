@@ -67,14 +67,18 @@ namespace SFG
 
 	void physical_material::create_from_raw(const physical_material_raw& raw, chunk_allocator32& alloc)
 	{
+#ifndef SFG_STRIP_DEBUG_NAMES
 		if (!raw.name.empty())
 			_name = alloc.allocate_text(raw.name);
+#endif
 	}
 
 	void physical_material::destroy(chunk_allocator32& alloc)
 	{
+#ifndef SFG_STRIP_DEBUG_NAMES
 		if (_name.size != 0)
 			alloc.free(_name);
 		_name = {};
+#endif
 	}
 }

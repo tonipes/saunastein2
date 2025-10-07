@@ -44,7 +44,9 @@ namespace SFG
 		friend class model;
 
 	private:
+#ifndef SFG_STRIP_DEBUG_NAMES
 		chunk_handle32 _name;
+#endif
 		chunk_handle32 _material_indices; // original indices into the loaded model.
 		uint16		   _node_index	   = 0;
 		int16		   _skin_index	   = 0;

@@ -80,10 +80,11 @@ namespace SFG
 
 	void material::create_from_raw(const material_raw& raw, world_resources& resources, chunk_allocator32& alloc, render_event_stream& stream, resource_handle handle)
 	{
-		gfx_backend* backend = gfx_backend::get();
-
+#ifndef SFG_STRIP_DEBUG_NAMES
 		if (!raw.name.empty())
 			_name = alloc.allocate_text(raw.name);
+#endif
+		gfx_backend* backend = gfx_backend::get();
 
 		const uint8 texture_count = static_cast<uint8>(raw.textures.size());
 		_material_data			  = raw.material_data;
@@ -106,30 +107,34 @@ namespace SFG
 
 		render_event_storage_material* stg = ev.construct<render_event_storage_material>();
 		stg->data						   = _material_data;
-		stg->name						   = reinterpret_cast<const char*>(SFG_MALLOC(_name.size));
+
+#ifndef SFG_STRIP_DEBUG_NAMES
+		stg->name = reinterpret_cast<const char*>(SFG_MALLOC(_name.size));
+		if (stg->name != nullptr)
+			strcpy((char*)stg->name, raw.name.c_str());
+#endif
 
 		for (string_id sid : raw.textures)
 		{
 			stg->textures.push_back(resources.get_resource_handle_by_hash<texture>(sid));
 		}
 
-		if (stg->name != nullptr)
-			strcpy((char*)stg->name, raw.name.c_str());
-
 		stream.add_event(ev);
 	}
 
 	void material::destroy(render_event_stream& stream, chunk_allocator32& alloc, resource_handle handle)
 	{
+#ifndef SFG_STRIP_DEBUG_NAMES
 		if (_name.size != 0)
 			alloc.free(_name);
+		_name = {};
+#endif
 
 		stream.add_event({.header = {
 							  .handle	  = handle,
 							  .event_type = render_event_type::render_event_destroy_material,
 						  }});
 
-		_name = {};
 		_material_data.destroy();
 	}
 

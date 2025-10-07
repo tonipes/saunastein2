@@ -60,7 +60,9 @@ namespace SFG
 		static_vector<resource_handle, MAX_MATERIAL_SHADER_VARIANTS> _all_shaders;
 		static_vector<bitmask<uint8>, MAX_MATERIAL_SHADER_VARIANTS>	 _all_shader_flags;
 		bitmask<uint8>												 _flags = 0;
-		chunk_handle32												 _name	= {};
+#ifndef SFG_STRIP_DEBUG_NAMES
+		chunk_handle32 _name;
+#endif
 	};
 
 	REGISTER_TYPE(material, resource_type::resource_type_material);

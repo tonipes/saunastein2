@@ -18,13 +18,14 @@ namespace SFG
 
 	void skin::create_from_raw(const skin_raw& raw, chunk_allocator32& alloc)
 	{
+#ifndef SFG_STRIP_DEBUG_NAMES
 		if (!raw.name.empty())
 			_name = alloc.allocate_text(raw.name);
+#endif
 
 		_root		  = raw.root_joint;
 		_joints_count = static_cast<uint16>(raw.joints.size());
-
-		_joints = alloc.allocate<skin_joint>(raw.joints.size());
+		_joints		  = alloc.allocate<skin_joint>(raw.joints.size());
 
 		skin_joint*	 ptr   = reinterpret_cast<skin_joint*>(alloc.get(_joints.head));
 		const uint32 count = static_cast<uint32>(raw.joints.size());
@@ -35,12 +36,14 @@ namespace SFG
 
 	void skin::destroy(chunk_allocator32& alloc)
 	{
+#ifndef SFG_STRIP_DEBUG_NAMES
 		if (_name.size != 0)
 			alloc.free(_name);
+		_name = {};
+#endif
 
 		alloc.free(_joints);
 
-		_name	= {};
 		_joints = {};
 	}
 

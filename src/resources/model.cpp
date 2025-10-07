@@ -89,8 +89,10 @@ namespace SFG
 	{
 		SFG_ASSERT(!_flags.is_set(model::flags::hw_exists));
 
+#ifndef SFG_STRIP_DEBUG_NAMES
 		if (!raw.name.empty())
 			_name = alloc.allocate_text(raw.name);
+#endif
 
 		_total_aabb = raw.total_aabb;
 
@@ -203,8 +205,11 @@ namespace SFG
 	{
 		SFG_ASSERT(_flags.is_set(model::flags::hw_exists));
 
+#ifndef SFG_STRIP_DEBUG_NAMES
 		if (_name.size != 0)
 			alloc.free(_name);
+		_name = {};
+#endif
 
 		if (_nodes.size != 0)
 		{
@@ -304,7 +309,6 @@ namespace SFG
 			alloc.free(_created_materials);
 		}
 
-		_name			   = {};
 		_created_textures  = {};
 		_created_materials = {};
 		_created_meshes	   = {};

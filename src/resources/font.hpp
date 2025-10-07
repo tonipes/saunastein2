@@ -34,8 +34,10 @@ namespace SFG
 		void destroy(vekt::font_manager& fm, chunk_allocator32& alloc);
 
 	private:
-		vekt::font*	   _font = nullptr;
-		chunk_handle32 _name = {};
+		vekt::font* _font = nullptr;
+#ifndef SFG_STRIP_DEBUG_NAMES
+		chunk_handle32 _name;
+#endif
 	};
 
 	REGISTER_TYPE(font, resource_type::resource_type_font);

@@ -52,8 +52,10 @@ namespace SFG
 		void destroy(chunk_allocator32& alloc);
 
 	private:
-		float		   _duration = 0.0f;
+		float _duration = 0.0f;
+#ifndef SFG_STRIP_DEBUG_NAMES
 		chunk_handle32 _name;
+#endif
 		chunk_handle32 _position_channels;
 		chunk_handle32 _scale_channels;
 		chunk_handle32 _rotation_channels;

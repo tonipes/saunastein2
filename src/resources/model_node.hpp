@@ -37,9 +37,11 @@ namespace SFG
 		}
 
 	private:
-		chunk_handle32 _name		 = {};
-		int16		   _parent_index = -1;
-		int16		   _mesh_index	 = -1;
-		matrix4x3	   _local_matrix = {};
+#ifndef SFG_STRIP_DEBUG_NAMES
+		chunk_handle32 _name;
+#endif
+		int16	  _parent_index = -1;
+		int16	  _mesh_index	= -1;
+		matrix4x3 _local_matrix = {};
 	};
 }

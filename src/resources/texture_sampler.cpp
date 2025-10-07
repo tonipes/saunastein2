@@ -74,8 +74,10 @@ namespace SFG
 
 	void texture_sampler::create_from_raw(const texture_sampler_raw& raw, render_event_stream& stream, chunk_allocator32& alloc, resource_handle handle)
 	{
+#ifndef SFG_STRIP_DEBUG_NAMES
 		if (!raw.name.empty())
 			_name = alloc.allocate_text(raw.name);
+#endif
 
 		render_event ev = {
 			.header =
@@ -86,17 +88,23 @@ namespace SFG
 		};
 		render_event_storage_sampler* stg = ev.construct<render_event_storage_sampler>();
 		stg->desc						  = raw.desc;
-		stg->desc.debug_name			  = reinterpret_cast<const char*>(SFG_MALLOC(_name.size));
+
+#ifndef SFG_STRIP_DEBUG_NAMES
+		stg->desc.debug_name = reinterpret_cast<const char*>(SFG_MALLOC(_name.size));
 		if (stg->desc.debug_name)
 			strcpy((char*)stg->desc.debug_name, alloc.get<const char>(_name));
+#endif
 
 		stream.add_event(ev);
 	}
 
 	void texture_sampler::destroy(render_event_stream& stream, chunk_allocator32& alloc, resource_handle handle)
 	{
+#ifndef SFG_STRIP_DEBUG_NAMES
 		if (_name.size != 0)
 			alloc.free(_name);
+		_name = {};
+#endif
 
 		render_event ev = {
 			.header =
@@ -106,8 +114,6 @@ namespace SFG
 				},
 		};
 		stream.add_event(ev);
-
-		_name = {};
 	}
 
 }

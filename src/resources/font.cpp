@@ -69,8 +69,11 @@ namespace SFG
 
 	void font::create_from_raw(const font_raw& raw, vekt::font_manager& fm, chunk_allocator32& alloc)
 	{
+
+#ifndef SFG_STRIP_DEBUG_NAMES
 		if (!raw.name.empty())
 			_name = alloc.allocate_text(raw.name);
+#endif
 
 		// ffs man.
 		unsigned char* data = const_cast<unsigned char*>(reinterpret_cast<const unsigned char*>(raw.font_data.data()));
@@ -79,11 +82,12 @@ namespace SFG
 
 	void font::destroy(vekt::font_manager& fm, chunk_allocator32& alloc)
 	{
+#ifndef SFG_STRIP_DEBUG_NAMES
 		if (_name.size != 0)
 			alloc.free(_name);
+		_name = {};
+#endif
 
 		fm.unload_font(_font);
-
-		_name = {};
 	}
 }

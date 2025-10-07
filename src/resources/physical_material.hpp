@@ -27,7 +27,9 @@ namespace SFG
 		void destroy(chunk_allocator32& alloc);
 
 	private:
-		chunk_handle32 _name = {};
+#ifndef SFG_STRIP_DEBUG_NAMES
+		chunk_handle32 _name;
+#endif
 	};
 
 	REGISTER_TYPE(physical_material, resource_type::resource_type_physical_material);

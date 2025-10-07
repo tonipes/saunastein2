@@ -264,8 +264,10 @@ namespace SFG
 
 	void animation::create_from_raw(const animation_raw& raw, chunk_allocator32& alloc)
 	{
+#ifndef SFG_STRIP_DEBUG_NAMES
 		if (!raw.name.empty())
 			_name = alloc.allocate_text(raw.name);
+#endif
 
 		_duration = raw.duration;
 
@@ -320,8 +322,12 @@ namespace SFG
 
 	void animation::destroy(chunk_allocator32& alloc)
 	{
+#ifndef SFG_STRIP_DEBUG_NAMES
 		if (_name.size != 0)
 			alloc.free(_name);
+		_name = {};
+#endif
+
 		if (_position_channels.size != 0)
 		{
 			animation_channel_v3* ptr = alloc.get<animation_channel_v3>(_position_channels);
@@ -352,7 +358,6 @@ namespace SFG
 			}
 		}
 
-		_name			   = {};
 		_position_channels = {};
 		_rotation_channels = {};
 		_scale_channels	   = {};

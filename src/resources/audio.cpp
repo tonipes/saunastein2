@@ -71,8 +71,10 @@ namespace SFG
 
 	void audio::create_from_raw(const audio_raw& raw, chunk_allocator32& alloc, ma_engine* engine)
 	{
+#ifndef SFG_STRIP_DEBUG_NAMES
 		if (!raw.name.empty())
 			_name = alloc.allocate_text(raw.name);
+#endif
 
 		if (_flags.is_set(audio::flags::is_init))
 			destroy(alloc);
@@ -107,8 +109,11 @@ namespace SFG
 
 	void audio::destroy(chunk_allocator32& alloc)
 	{
+#ifndef SFG_STRIP_DEBUG_NAMES
 		if (_name.size != 0)
 			alloc.free(_name);
+		_name = {};
+#endif
 
 		SFG_ASSERT(_flags.is_set(audio::flags::is_init));
 		ma_decoder_uninit(&_decoder);
@@ -116,7 +121,6 @@ namespace SFG
 		if (_audio_data.size != 0)
 			alloc.free(_audio_data);
 		_audio_data = {};
-		_name		= {};
 	}
 
 	// If streaming, we let ma_sound stream from decoder.

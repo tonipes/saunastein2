@@ -30,7 +30,9 @@ namespace SFG
 		void destroy(render_event_stream& stream, chunk_allocator32& alloc, resource_handle handle);
 
 	private:
-		chunk_handle32 _name = {};
+#ifndef SFG_STRIP_DEBUG_NAMES
+		chunk_handle32 _name;
+#endif
 	};
 
 	REGISTER_TYPE(texture_sampler, resource_type::resource_type_texture_sampler);

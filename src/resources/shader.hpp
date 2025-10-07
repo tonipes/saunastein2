@@ -40,7 +40,9 @@ namespace SFG
 
 	private:
 		bitmask<uint8> _flags = 0;
-		chunk_handle32 _name  = {};
+#ifndef SFG_STRIP_DEBUG_NAMES
+		chunk_handle32 _name;
+#endif
 	};
 
 	REGISTER_TYPE(shader, resource_type::resource_type_shader);

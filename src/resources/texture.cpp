@@ -87,8 +87,10 @@ namespace SFG
 		_texture_format = raw.texture_format;
 		SFG_ASSERT(!raw.buffers.empty());
 
+#ifndef SFG_STRIP_DEBUG_NAMES
 		if (!raw.name.empty())
 			_name = alloc.allocate_text(raw.name);
+#endif
 
 		render_event ev = {
 			.header =
@@ -107,27 +109,29 @@ namespace SFG
 		stg->buffers					  = raw.buffers;
 		stg->format						  = _texture_format;
 		stg->size						  = raw.buffers[0].size;
-		stg->name						  = alloc.get<const char>(_name);
 		stg->intermediate_size			  = backend->align_texture_size(total_size);
-		stg->name						  = reinterpret_cast<const char*>(SFG_MALLOC(_name.size));
 
+#ifndef SFG_STRIP_DEBUG_NAMES
+		stg->name = reinterpret_cast<const char*>(SFG_MALLOC(_name.size));
 		if (stg->name)
 			strcpy((char*)stg->name, alloc.get<const char>(_name));
+#endif
 
 		stream.add_event(ev);
 	}
 
 	void texture::destroy(render_event_stream& stream, chunk_allocator32& alloc, resource_handle handle)
 	{
+#ifndef SFG_STRIP_DEBUG_NAMES
 		if (_name.size != 0)
 			alloc.free(_name);
+		_name = {};
+#endif
 
 		stream.add_event({.header = {
 							  .handle	  = handle,
 							  .event_type = render_event_type::render_event_destroy_texture,
 						  }});
-
-		_name = {};
 	}
 
 }

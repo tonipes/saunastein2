@@ -22,8 +22,10 @@ namespace SFG
 
 	void mesh::create_from_raw(const mesh_raw& raw, chunk_allocator32& alloc, render_event_stream& stream, resource_handle handle)
 	{
+#ifndef SFG_STRIP_DEBUG_NAMES
 		if (!raw.name.empty())
 			_name = alloc.allocate_text(raw.name);
+#endif
 
 		_node_index = raw.node_index;
 		_skin_index = raw.skin_index;
@@ -35,9 +37,11 @@ namespace SFG
 
 		render_event_storage_mesh* stg = ev.construct<render_event_storage_mesh>();
 
+#ifndef SFG_STRIP_DEBUG_NAMES
 		stg->name = reinterpret_cast<const char*>(SFG_MALLOC(_name.size));
 		if (stg->name)
 			strcpy((char*)stg->name, alloc.get<const char>(_name));
+#endif
 
 		stg->primitives_static.resize(raw.primitives_static.size());
 		stg->primitives_skinned.resize(raw.primitives_skinned.size());
@@ -114,12 +118,14 @@ namespace SFG
 
 	void mesh::destroy(chunk_allocator32& alloc, render_event_stream& stream, resource_handle handle)
 	{
+#ifndef SFG_STRIP_DEBUG_NAMES
 		if (_name.size != 0)
 			alloc.free(_name);
+		_name = {};
+#endif
 
 		alloc.free(_material_indices);
 
-		_name			  = {};
 		_material_indices = {};
 		_material_count	  = 0;
 
