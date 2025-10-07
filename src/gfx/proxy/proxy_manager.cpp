@@ -32,7 +32,7 @@ namespace SFG
 	{
 		for (auto& res : _textures)
 		{
-			if (res.active == 0)
+			if (res.status == 0)
 				continue;
 
 			destroy_texture(res);
@@ -40,7 +40,7 @@ namespace SFG
 
 		for (auto& res : _samplers)
 		{
-			if (res.active == 0)
+			if (res.status == 0)
 				continue;
 
 			destroy_sampler(res);
@@ -48,7 +48,7 @@ namespace SFG
 
 		for (auto& res : _shaders)
 		{
-			if (res.active == 0)
+			if (res.status == 0)
 				continue;
 
 			destroy_shader(res);
@@ -56,7 +56,7 @@ namespace SFG
 
 		for (auto& res : _materials)
 		{
-			if (res.active == 0)
+			if (res.status == 0)
 				continue;
 
 			destroy_material(res);
@@ -64,7 +64,7 @@ namespace SFG
 
 		for (auto& res : _meshes)
 		{
-			if (res.active == 0)
+			if (res.status == 0)
 				continue;
 
 			destroy_mesh(res);
@@ -96,7 +96,7 @@ namespace SFG
 				render_event_storage_texture* stg = reinterpret_cast<render_event_storage_texture*>(ev->data);
 
 				render_proxy_texture& proxy = get_texture(index);
-				proxy.active				= 1;
+				proxy.status				= render_proxy_status::rps_active;
 				proxy.handle				= index;
 
 				proxy.hw = backend->create_texture({
@@ -138,7 +138,7 @@ namespace SFG
 			{
 				render_event_storage_sampler* stg	= reinterpret_cast<render_event_storage_sampler*>(ev->data);
 				render_proxy_sampler&		  proxy = get_sampler(index);
-				proxy.active						= 1;
+				proxy.status						= render_proxy_status::rps_active;
 				proxy.handle						= index;
 				proxy.hw							= backend->create_sampler(stg->desc);
 
@@ -149,6 +149,21 @@ namespace SFG
 					SFG_FREE((char*)stg->desc.debug_name);
 #endif
 				ev->destruct<render_event_storage_sampler>();
+
+				// Invalidate materials using this texture.
+				// Materials are dependent on shaders & textures. Shaders already checked in runtime.
+				// This is to avoid checking textures too.
+				for (render_proxy_material& m : _materials)
+				{
+					for (uint16 txt : m.texture_handles)
+					{
+						if (txt == index)
+						{
+							m.status = render_proxy_status::rps_obsolete;
+							break;
+						}
+					}
+				}
 			}
 			else if (ev->header.event_type == render_event_type::render_event_destroy_sampler)
 			{
@@ -161,7 +176,7 @@ namespace SFG
 			{
 				render_event_storage_shader* stg   = reinterpret_cast<render_event_storage_shader*>(ev->data);
 				render_proxy_shader&		 proxy = get_shader(index);
-				proxy.active					   = 1;
+				proxy.status					   = render_proxy_status::rps_active;
 				proxy.handle					   = index;
 				proxy.hw						   = backend->create_shader(stg->desc);
 
@@ -185,8 +200,14 @@ namespace SFG
 			{
 				render_event_storage_material* stg	 = reinterpret_cast<render_event_storage_material*>(ev->data);
 				render_proxy_material&		   proxy = get_material(index);
-				proxy.active						 = 1;
+				proxy.status						 = render_proxy_status::rps_active;
 				proxy.handle						 = index;
+
+				for (resource_handle h : stg->shaders)
+					proxy.shader_handles.push_back(h.index);
+
+				for (resource_handle h : stg->textures)
+					proxy.texture_handles.push_back(h.index);
 
 				for (uint8 i = 0; i < FRAMES_IN_FLIGHT; i++)
 				{
@@ -220,7 +241,7 @@ namespace SFG
 					for (uint8 k = 0; k < texture_count; k++)
 					{
 						const render_proxy_texture& txt = get_texture(stg->textures[k].index);
-						SFG_ASSERT(txt.active);
+						SFG_ASSERT(txt.status);
 
 						updates.push_back({
 							.resource	   = txt.hw,
@@ -246,17 +267,21 @@ namespace SFG
 			{
 				render_event_storage_material* stg	 = reinterpret_cast<render_event_storage_material*>(ev->data);
 				render_proxy_material&		   proxy = get_material(index);
+				stg->data.destroy();
 
-				for (uint8 i = 0; i < FRAMES_IN_FLIGHT; i++)
-				{
-					_buffer_queue.add_request(
-						{
-							.buffer	   = &proxy.buffers[i],
-							.data	   = proxy.data.get_raw(),
-							.data_size = proxy.data.get_size(),
-						},
-						i);
-				}
+				// TODO: transfer ownership of the data to the buffer queue.
+				// proxy.data							 = stg->data;
+				//
+				// for (uint8 i = 0; i < FRAMES_IN_FLIGHT; i++)
+				// {
+				// 	_buffer_queue.add_request(
+				// 		{
+				// 			.buffer	   = &proxy.buffers[i],
+				// 			.data	   = proxy.data.get_raw(),
+				// 			.data_size = proxy.data.get_size(),
+				// 		},
+				// 		i);
+				// }
 
 				ev->destruct<render_event_storage_material>();
 			}
@@ -271,7 +296,7 @@ namespace SFG
 			{
 				render_event_storage_mesh* stg	 = reinterpret_cast<render_event_storage_mesh*>(ev->data);
 				render_proxy_mesh&		   proxy = get_mesh(index);
-				proxy.active					 = 1;
+				proxy.status					 = render_proxy_status::rps_active;
 				proxy.handle					 = index;
 
 				auto process = [&](auto& list, size_t vtx_type_size) {
@@ -324,8 +349,6 @@ namespace SFG
 					{
 						render_proxy_primitive& proxy_prim = prim_ptr[i];
 						const auto&				p		   = list[i];
-						const size_t			vertices   = p.vertices.size();
-						const size_t			indices	   = p.indices.size();
 						const size_t			vtx_sz	   = p.vertices.size() * vtx_type_size;
 						const size_t			idx_sz	   = p.indices.size() * sizeof(primitive_index);
 

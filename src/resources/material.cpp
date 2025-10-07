@@ -34,16 +34,6 @@ namespace SFG
 				delete raw;
 				return nullptr;
 			}
-
-			world_resources&				 resources = w.get_resources();
-			world_resources::resource_watch& watch	   = resources.add_resource_watch();
-			watch.base_path							   = path;
-
-			for (const string& str : raw->textures_path)
-				watch.dependencies.push_back(engine_data::get().get_working_dir() + str);
-
-			for (const string& str : raw->shaders_path)
-				watch.dependencies.push_back(engine_data::get().get_working_dir() + str);
 			return raw;
 		});
 #endif
@@ -92,14 +82,6 @@ namespace SFG
 		_flags.set(material::flags::is_forward, raw.pass_mode == material_pass_mode::forward);
 		SFG_ASSERT(!raw.shaders.empty());
 
-		for (string_id sid : raw.shaders)
-		{
-			const resource_handle shader_handle = resources.get_resource_handle_by_hash<shader>(sid);
-			_all_shaders.push_back(shader_handle);
-			shader& shd = resources.get_resource<shader>(shader_handle);
-			_all_shader_flags.push_back(shd.get_flags());
-		}
-
 		render_event ev = {.header = {
 							   .handle	   = handle,
 							   .event_type = render_event_type::render_event_create_material,
@@ -116,7 +98,14 @@ namespace SFG
 
 		for (string_id sid : raw.textures)
 		{
-			stg->textures.push_back(resources.get_resource_handle_by_hash<texture>(sid));
+			const resource_handle handle = resources.get_resource_handle_by_hash<texture>(sid);
+			stg->textures.push_back(handle);
+		}
+
+		for (string_id sid : raw.shaders)
+		{
+			const resource_handle handle = resources.get_resource_handle_by_hash<shader>(sid);
+			stg->shaders.push_back(handle);
 		}
 
 		stream.add_event(ev);
@@ -138,22 +127,6 @@ namespace SFG
 		_material_data.destroy();
 	}
 
-	resource_handle material::get_shader(uint8 flags_to_match) const
-	{
-		if (flags_to_match == 0)
-			return _all_shaders[0];
-
-		uint16 i = 0;
-		for (const bitmask<uint8>& flags : _all_shader_flags)
-		{
-			if (flags.is_set(flags_to_match))
-				return _all_shaders[i];
-			i++;
-		}
-		SFG_ASSERT(false);
-		return _all_shaders[0];
-	}
-
 	void material::update_data(render_event_stream& stream, resource_handle handle)
 	{
 		render_event				   ev  = {.header = {
@@ -161,7 +134,7 @@ namespace SFG
 												  .event_type = render_event_type::render_event_update_material,
 							  }};
 		render_event_storage_material* stg = ev.construct<render_event_storage_material>();
-		stg->data						   = _material_data;
+		stg->data.write_raw(_material_data.get_raw(), _material_data.get_size());
 		stream.add_event(ev);
 	}
 }

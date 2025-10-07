@@ -38,8 +38,9 @@ namespace SFG
 #ifndef SFG_STRIP_DEBUG_NAMES
 		const char* name = "";
 #endif
-		ostream												  data = {};
-		static_vector<resource_handle, MAX_MATERIAL_TEXTURES> textures;
+		ostream														 data = {};
+		static_vector<resource_handle, MAX_MATERIAL_TEXTURES>		 textures;
+		static_vector<resource_handle, MAX_MATERIAL_SHADER_VARIANTS> shaders;
 	};
 
 	struct render_event_storage_mesh

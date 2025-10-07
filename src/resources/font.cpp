@@ -28,11 +28,6 @@ namespace SFG
 				return nullptr;
 			}
 
-			world_resources&				 resources = w.get_resources();
-			world_resources::resource_watch& watch	   = resources.add_resource_watch();
-			watch.base_path							   = path;
-			watch.dependencies.push_back(engine_data::get().get_working_dir() + raw->name);
-
 			return raw;
 		});
 #endif

@@ -253,6 +253,7 @@ namespace SFG
 
 	void world::tick(const vector2ui16& res, float dt)
 	{
+		_resources.tick();
 	}
 
 	void world::post_tick(double interpolation)

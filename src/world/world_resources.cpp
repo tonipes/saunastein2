@@ -58,9 +58,8 @@ namespace SFG
 	void world_resources::init()
 	{
 		_file_watch.set_callback(std::bind(&world_resources::on_watched_resource_modified, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-		_modified_resources.reserve(250);
-		_reuse_reload_resources.reserve(250);
 		_file_watch.reserve(250);
+		_file_watch.set_tick_interval(15);
 	}
 
 	void world_resources::uninit()
@@ -87,27 +86,19 @@ namespace SFG
 	void world_resources::tick()
 	{
 #ifdef SFG_TOOLMODE
-
-		if (!_modified_resources.empty())
-		{
-			// TODO: We gotta stop render here?
-
-			for (uint16 id : _modified_resources)
-				_reuse_reload_resources.push_back(_watched_resources[id].base_path);
-			load_resources(_reuse_reload_resources, true);
-			_reuse_reload_resources.resize(0);
-			_modified_resources.resize(0);
-		}
+		_file_watch.tick();
 #endif
 	}
 
 #ifdef SFG_TOOLMODE
 	void world_resources::load_resources(const vector<string>& relative_paths, bool skip_cache)
 	{
-		const uint32  size		  = static_cast<uint32>(relative_paths.size());
-		const string& working_dir = engine_data::get().get_working_dir();
-		vector<meta*> resolved_metas(relative_paths.size());
-		vector<void*> resolved_loaders(relative_paths.size());
+		const uint32	  size		  = static_cast<uint32>(relative_paths.size());
+		const string&	  working_dir = engine_data::get().get_working_dir();
+		vector<meta*>	  resolved_metas(relative_paths.size());
+		vector<void*>	  resolved_loaders(relative_paths.size());
+		vector<string>	  full_paths(relative_paths.size());
+		vector<string_id> resolved_types(relative_paths.size());
 
 		for (uint32 i = 0; i < size; i++)
 		{
@@ -127,6 +118,7 @@ namespace SFG
 				continue;
 
 			resolved_metas[i] = m;
+			resolved_types[i] = m->get_type_id();
 		}
 
 		// Create loaders & load.
@@ -140,7 +132,7 @@ namespace SFG
 			if (reflection_meta == nullptr)
 				return;
 
-			const string full_path	= working_dir + path;
+			full_paths[i]			= working_dir + path;
 			const string cache_path = engine_data::get().get_cache_dir() + std::to_string(TO_SID(path)) + ".stkcache";
 
 			void* loader = nullptr;
@@ -154,7 +146,7 @@ namespace SFG
 			}
 			else
 			{
-				loader = reflection_meta->invoke_function<void*, const char*, world&>("cook_from_file"_hs, full_path.c_str(), _world);
+				loader = reflection_meta->invoke_function<void*, const char*, world&>("cook_from_file"_hs, full_paths[i].c_str(), _world);
 
 				// Save to cache.
 				if (loader)
@@ -180,6 +172,7 @@ namespace SFG
 			if (reflection_meta->has_function("create_from_raw"_hs))
 			{
 				const resource_handle handle = reflection_meta->invoke_function<resource_handle, void*, world&>("create_from_raw"_hs, loader, _world);
+				add_resource_watch(handle, full_paths[i].c_str(), resolved_types[i]);
 			}
 		}
 
@@ -198,16 +191,15 @@ namespace SFG
 		}
 	}
 
-	world_resources::resource_watch& world_resources::add_resource_watch()
+	void world_resources::add_resource_watch(resource_handle base_handle, const char* path, string_id type)
 	{
-		for (resource_watch& w : _watched_resources)
-		{
-			return w;
-		}
-
-		const uint16 id = static_cast<uint16>(_watched_resources.size());
 		_watched_resources.push_back({});
-		return _watched_resources.back();
+		resource_watch& w = _watched_resources.back();
+		w.type_id		  = type;
+		w.path			  = path;
+		w.base_handle	  = base_handle;
+		const uint16 id	  = static_cast<uint16>(_watched_resources.size() - 1);
+		_file_watch.add_path(path, id);
 	}
 
 	void world_resources::on_watched_resource_modified(const char* path, string_id last_modified, uint16 id)
@@ -216,8 +208,14 @@ namespace SFG
 		resource_watch& w = _watched_resources[id];
 
 		meta& m = reflection::get().resolve(w.type_id);
-		m.invoke_function<void, world&>("destroy"_hs, _world);
-		_modified_resources.push_back(id);
+		m.get_type_index();
+
+		m.invoke_function<void, world&, resource_handle>("destroy"_hs, _world, w.base_handle);
+		void* loader = m.invoke_function<void*, const char*, world&>("cook_from_file"_hs, w.path.c_str(), _world);
+		if (m.has_function("create_from_raw"_hs))
+		{
+			w.base_handle = m.invoke_function<resource_handle, void*, world&>("create_from_raw"_hs, loader, _world);
+		}
 	}
 
 #endif

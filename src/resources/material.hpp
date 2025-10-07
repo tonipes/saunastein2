@@ -34,16 +34,9 @@ namespace SFG
 			is_forward = 1 << 1,
 		};
 
-		void			create_from_raw(const material_raw& raw, world_resources& resources, chunk_allocator32& alloc, render_event_stream& stream, resource_handle handle);
-		void			destroy(render_event_stream& stream, chunk_allocator32& alloc, resource_handle handle);
-		resource_handle get_shader(uint8 flags_to_match) const;
-		void			update_data(render_event_stream& stream, resource_handle handle);
-
-		inline resource_handle get_shader() const
-		{
-			SFG_ASSERT(!_all_shaders.empty());
-			return _all_shaders[0];
-		}
+		void create_from_raw(const material_raw& raw, world_resources& resources, chunk_allocator32& alloc, render_event_stream& stream, resource_handle handle);
+		void destroy(render_event_stream& stream, chunk_allocator32& alloc, resource_handle handle);
+		void update_data(render_event_stream& stream, resource_handle handle);
 
 		inline const bitmask<uint8>& get_flags() const
 		{
@@ -56,10 +49,8 @@ namespace SFG
 		}
 
 	private:
-		ostream														 _material_data = {};
-		static_vector<resource_handle, MAX_MATERIAL_SHADER_VARIANTS> _all_shaders;
-		static_vector<bitmask<uint8>, MAX_MATERIAL_SHADER_VARIANTS>	 _all_shader_flags;
-		bitmask<uint8>												 _flags = 0;
+		ostream		   _material_data = {};
+		bitmask<uint8> _flags		  = 0;
 #ifndef SFG_STRIP_DEBUG_NAMES
 		chunk_handle32 _name;
 #endif

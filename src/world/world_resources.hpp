@@ -40,9 +40,9 @@ namespace SFG
 #ifdef SFG_TOOLMODE
 		struct resource_watch
 		{
-			string		   base_path = "";
-			vector<string> dependencies;
-			string_id	   type_id = 0;
+			string			path		= "";
+			string_id		type_id		= 0;
+			resource_handle base_handle = {};
 		};
 
 #endif
@@ -57,9 +57,9 @@ namespace SFG
 		void tick();
 
 #ifdef SFG_TOOLMODE
-		void			load_resources(const vector<string>& relative_paths, bool skip_cache = false);
-		resource_watch& add_resource_watch();
-		void			on_watched_resource_modified(const char* path, string_id last_modified, uint16 id);
+		void load_resources(const vector<string>& relative_paths, bool skip_cache = false);
+		void add_resource_watch(resource_handle base_handle, const char* path, string_id type);
+		void on_watched_resource_modified(const char* path, string_id last_modified, uint16 id);
 #endif
 
 		void load_resources(istream& in);
@@ -154,8 +154,6 @@ namespace SFG
 #ifdef SFG_TOOLMODE
 		simple_file_watcher	   _file_watch;
 		vector<resource_watch> _watched_resources;
-		vector<uint16>		   _modified_resources;
-		vector<string>		   _reuse_reload_resources;
 #endif
 	};
 }
