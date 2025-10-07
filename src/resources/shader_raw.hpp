@@ -16,6 +16,7 @@ namespace SFG
 	struct shader_raw
 	{
 		string		   name		  = "";
+		string		   source	  = "";
 		shader_desc	   desc		  = {};
 		vector<string> defines	  = {};
 		uint8		   is_skinned = 0;

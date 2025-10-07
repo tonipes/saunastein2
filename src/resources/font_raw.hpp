@@ -15,6 +15,7 @@ namespace SFG
 	struct font_raw
 	{
 		string		 name		  = "";
+		string		 source		  = "";
 		uint16		 point_size	  = 0;
 		vector<char> font_data	  = {};
 		uint8		 font_type	  = 0;

@@ -18,6 +18,7 @@ namespace SFG
 	struct texture_raw
 	{
 		string											name		   = "";
+		string											source		   = "";
 		uint8											texture_format = 0;
 		static_vector<texture_buffer, MAX_TEXTURE_MIPS> buffers;
 		string_id										sid = 0;

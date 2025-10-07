@@ -97,7 +97,6 @@ namespace SFG
 		const string&	  working_dir = engine_data::get().get_working_dir();
 		vector<meta*>	  resolved_metas(relative_paths.size());
 		vector<void*>	  resolved_loaders(relative_paths.size());
-		vector<string>	  full_paths(relative_paths.size());
 		vector<string_id> resolved_types(relative_paths.size());
 
 		for (uint32 i = 0; i < size; i++)
@@ -132,7 +131,7 @@ namespace SFG
 			if (reflection_meta == nullptr)
 				return;
 
-			full_paths[i]			= working_dir + path;
+			const string full_path	= working_dir + path;
 			const string cache_path = engine_data::get().get_cache_dir() + std::to_string(TO_SID(path)) + ".stkcache";
 
 			void* loader = nullptr;
@@ -146,7 +145,7 @@ namespace SFG
 			}
 			else
 			{
-				loader = reflection_meta->invoke_function<void*, const char*, world&>("cook_from_file"_hs, full_paths[i].c_str(), _world);
+				loader = reflection_meta->invoke_function<void*, const char*, world&>("cook_from_file"_hs, full_path.c_str(), _world);
 
 				// Save to cache.
 				if (loader)
@@ -171,8 +170,14 @@ namespace SFG
 
 			if (reflection_meta->has_function("create_from_raw"_hs))
 			{
+				vector<string> dependencies;
+
+				if (reflection_meta->has_function("get_dependencies"_hs))
+					reflection_meta->invoke_function<void, void*, vector<string>&>("get_dependencies"_hs, loader, dependencies);
+
 				const resource_handle handle = reflection_meta->invoke_function<resource_handle, void*, world&>("create_from_raw"_hs, loader, _world);
-				add_resource_watch(handle, full_paths[i].c_str(), resolved_types[i]);
+
+				add_resource_watch(handle, relative_paths[i].c_str(), dependencies, resolved_types[i]);
 			}
 		}
 
@@ -191,15 +196,22 @@ namespace SFG
 		}
 	}
 
-	void world_resources::add_resource_watch(resource_handle base_handle, const char* path, string_id type)
+	void world_resources::add_resource_watch(resource_handle base_handle, const char* relative_path, const vector<string>& dependencies, string_id type)
 	{
 		_watched_resources.push_back({});
 		resource_watch& w = _watched_resources.back();
 		w.type_id		  = type;
-		w.path			  = path;
+		w.path			  = engine_data::get().get_working_dir() + relative_path;
 		w.base_handle	  = base_handle;
+		w.dependencies	  = dependencies;
 		const uint16 id	  = static_cast<uint16>(_watched_resources.size() - 1);
-		_file_watch.add_path(path, id);
+		_file_watch.add_path(w.path.c_str(), id);
+
+		for (const string& str : dependencies)
+		{
+			const string p = engine_data::get().get_working_dir() + str;
+			_file_watch.add_path(p.c_str(), id);
+		}
 	}
 
 	void world_resources::on_watched_resource_modified(const char* path, string_id last_modified, uint16 id)
@@ -208,14 +220,21 @@ namespace SFG
 		resource_watch& w = _watched_resources[id];
 
 		meta& m = reflection::get().resolve(w.type_id);
-		m.get_type_index();
-
 		m.invoke_function<void, world&, resource_handle>("destroy"_hs, _world, w.base_handle);
 		void* loader = m.invoke_function<void*, const char*, world&>("cook_from_file"_hs, w.path.c_str(), _world);
+
+		const string cache_path = engine_data::get().get_cache_dir() + std::to_string(TO_SID(w.path)) + ".stkcache";
+
+		ostream out_stream;
+		m.invoke_function<void, void*, ostream&>("serialize"_hs, loader, out_stream);
+		serialization::save_to_file(cache_path.c_str(), out_stream);
+		out_stream.destroy();
+
 		if (m.has_function("create_from_raw"_hs))
-		{
 			w.base_handle = m.invoke_function<resource_handle, void*, world&>("create_from_raw"_hs, loader, _world);
-		}
+
+		if (m.has_function("create_from_raw_2"_hs))
+			w.base_handle = m.invoke_function<resource_handle, void*, world&>("create_from_raw_2"_hs, loader, _world);
 	}
 
 #endif

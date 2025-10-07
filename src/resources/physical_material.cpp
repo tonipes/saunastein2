@@ -36,10 +36,10 @@ namespace SFG
 			return raw;
 		});
 
-		m.add_function<resource_handle, void*, world&, string_id>("create_from_raw"_hs, [](void* raw, world& w, string_id sid) -> resource_handle {
+		m.add_function<resource_handle, void*, world&>("create_from_raw"_hs, [](void* raw, world& w) -> resource_handle {
 			physical_material_raw* raw_ptr	 = reinterpret_cast<physical_material_raw*>(raw);
 			world_resources&	   resources = w.get_resources();
-			resource_handle		   handle	 = resources.add_resource<physical_material>(sid);
+			resource_handle		   handle	 = resources.add_resource<physical_material>(TO_SID(raw_ptr->name));
 			physical_material&	   res		 = resources.get_resource<physical_material>(handle);
 			res.create_from_raw(*raw_ptr, resources.get_aux());
 			delete raw_ptr;

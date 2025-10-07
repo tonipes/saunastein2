@@ -208,6 +208,7 @@ namespace SFG
 	void shader_raw::serialize(ostream& stream) const
 	{
 		stream << name;
+		stream << source;
 		stream << defines;
 		stream << is_skinned;
 		serialize(stream, desc);
@@ -216,6 +217,7 @@ namespace SFG
 	void shader_raw::deserialize(istream& stream, bool use_embedded_layout, gfx_id layout)
 	{
 		stream >> name;
+		stream >> source;
 		stream >> defines;
 		stream >> is_skinned;
 		deserialize(stream, desc);
@@ -241,23 +243,23 @@ namespace SFG
 			json		  json_data = json::parse(f);
 			f.close();
 
-			const string src = json_data.value<string>("source", "");
-			desc			 = json_data.value<shader_desc>("desc", {});
-			defines			 = json_data.value<vector<string>>("defines", {});
-			is_skinned		 = json_data.value<uint8>("is_skinned", 0);
+			source	   = json_data.value<string>("source", "");
+			desc	   = json_data.value<shader_desc>("desc", {});
+			defines	   = json_data.value<vector<string>>("defines", {});
+			is_skinned = json_data.value<uint8>("is_skinned", 0);
 
 			const string& wd = engine_data::get().get_working_dir();
 			const string  p	 = path;
 			name			 = p.substr(wd.size(), p.size() - wd.size());
 
-			const string source = engine_data::get().get_working_dir() + src;
-			if (!file_system::exists(source.c_str()))
+			const string full_source = engine_data::get().get_working_dir() + source;
+			if (!file_system::exists(full_source.c_str()))
 			{
 				SFG_ERR("File don't exist! {0}", path);
 				return false;
 			}
 
-			const string shader_text = file_system::read_file_as_string(source.c_str());
+			const string shader_text = file_system::read_file_as_string(full_source.c_str());
 			if (shader_text.empty())
 				return false;
 
@@ -275,7 +277,7 @@ namespace SFG
 			const bool	compile_layout = desc.flags.is_set(shader_flags::shf_use_embedded_layout);
 
 			gfx_backend* backend	 = gfx_backend::get();
-			const string folder_path = file_system::get_directory_of_file(source.c_str());
+			const string folder_path = file_system::get_directory_of_file(full_source.c_str());
 			if (!backend->compile_shader_vertex_pixel(shader_text, defines, folder_path.c_str(), desc.vertex_entry.c_str(), desc.pixel_entry.c_str(), desc.blobs[0].data, desc.blobs[1].data, compile_layout, desc.layout_data))
 				return false;
 		}

@@ -19,6 +19,7 @@ namespace SFG
 	void font_raw::serialize(ostream& stream) const
 	{
 		stream << name;
+		stream << source;
 		stream << point_size;
 		stream << font_data;
 		stream << font_type;
@@ -30,6 +31,7 @@ namespace SFG
 	void font_raw::deserialize(istream& stream)
 	{
 		stream >> name;
+		stream >> source;
 		stream >> point_size;
 		stream >> font_data;
 		stream >> font_type;
@@ -53,11 +55,14 @@ namespace SFG
 			json		  json_data = json::parse(f);
 			f.close();
 
-			name				= json_data.value<string>("source", "");
-			const string source = engine_data::get().get_working_dir() + name;
-			if (!file_system::exists(source.c_str()))
+			const string& wd		 = engine_data::get().get_working_dir();
+			const string  p			 = path;
+			name					 = p.substr(wd.size(), p.size() - wd.size());
+			source					 = json_data.value<string>("source", "");
+			const string full_source = engine_data::get().get_working_dir() + name;
+			if (!file_system::exists(full_source.c_str()))
 			{
-				SFG_ERR("File don't exist! {0}", source.c_str());
+				SFG_ERR("File don't exist! {0}", full_source.c_str());
 				return false;
 			}
 
@@ -69,7 +74,7 @@ namespace SFG
 				return false;
 			}
 
-			file_system::read_file_as_vector(source.c_str(), font_data);
+			file_system::read_file_as_vector(full_source.c_str(), font_data);
 			if (font_data.empty())
 			{
 				SFG_ERR("Invalid font data!");

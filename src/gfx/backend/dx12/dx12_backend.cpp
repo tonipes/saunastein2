@@ -1465,7 +1465,6 @@ namespace SFG
 	bool dx12_backend::compile_shader_vertex_pixel(
 		const string& source, const vector<string>& defines, const char* source_path, const char* vertex_entry, const char* pixel_entry, span<uint8>& vertex_out, span<uint8>& pixel_out, bool compile_root_sig, span<uint8>& out_signature_data) const
 	{
-		VERIFY_RENDER_NOT_RUNNING_OR_RENDER_THREAD();
 
 		Microsoft::WRL::ComPtr<IDxcCompiler3> idxc_compiler;
 		throw_if_failed(DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&idxc_compiler)));

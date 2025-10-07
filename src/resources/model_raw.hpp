@@ -17,7 +17,8 @@ namespace SFG
 
 	struct model_raw
 	{
-		string				   name = "";
+		string				   name	  = "";
+		string				   source = "";
 		vector<model_node_raw> loaded_nodes;
 		vector<mesh_raw>	   loaded_meshes;
 		vector<skin_raw>	   loaded_skins;

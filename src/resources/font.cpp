@@ -30,6 +30,11 @@ namespace SFG
 
 			return raw;
 		});
+
+		m.add_function<void, void*, vector<string>&>("get_dependencies"_hs, [](void* loader, vector<string>& out) {
+			font_raw* raw = reinterpret_cast<font_raw*>(loader);
+			out.push_back(raw->source);
+		});
 #endif
 
 		m.add_function<void*, istream&>("cook_from_stream"_hs, [](istream& stream) -> void* {
@@ -38,10 +43,10 @@ namespace SFG
 			return raw;
 		});
 
-		m.add_function<resource_handle, void*, world&, string_id>("create_from_raw"_hs, [](void* raw, world& w, string_id sid) -> resource_handle {
+		m.add_function<resource_handle, void*, world&>("create_from_raw"_hs, [](void* raw, world& w) -> resource_handle {
 			font_raw*		 raw_ptr   = reinterpret_cast<font_raw*>(raw);
 			world_resources& resources = w.get_resources();
-			resource_handle	 handle	   = resources.add_resource<font>(sid);
+			resource_handle	 handle	   = resources.add_resource<font>(TO_SID(raw_ptr->name));
 			font&			 res	   = resources.get_resource<font>(handle);
 			res.create_from_raw(*raw_ptr, w.get_font_manager(), resources.get_aux());
 			delete raw_ptr;

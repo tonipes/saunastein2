@@ -30,6 +30,7 @@ namespace SFG
 	void model_raw::serialize(ostream& stream) const
 	{
 		stream << name;
+		stream << source;
 		stream << loaded_textures;
 		stream << loaded_materials;
 		stream << loaded_nodes;
@@ -42,6 +43,7 @@ namespace SFG
 	void model_raw::deserialize(istream& stream)
 	{
 		stream >> name;
+		stream >> source;
 		stream >> loaded_textures;
 		stream >> loaded_materials;
 		stream >> loaded_nodes;
@@ -713,16 +715,16 @@ namespace SFG
 			f.close();
 
 			const string& wd = engine_data::get().get_working_dir();
+			const string  p	 = file;
+			name			 = p.substr(wd.size(), p.size() - wd.size());
+			source			 = json_data.value<string>("source", "");
 
-			const string source = wd + json_data.value<string>("source", "");
-			if (!file_system::exists(source.c_str()))
+			const string full_source = wd + source;
+			if (!file_system::exists(full_source.c_str()))
 			{
-				SFG_ERR("File doesn't exists! {0}", source.c_str());
+				SFG_ERR("File doesn't exists! {0}", full_source.c_str());
 				return false;
 			}
-
-			const string p = file;
-			name		   = p.substr(wd.size(), p.size() - wd.size());
 
 			const uint8			 import_pbr_materials = json_data.value<uint8>("import_pbr_materials", 0);
 			const vector<string> shaders			  = json_data.value<vector<string>>("shaders", {});
@@ -736,7 +738,7 @@ namespace SFG
 					material_shaders.push_back(TO_SID(sh));
 			}
 
-			const bool success = import_gtlf(source.c_str(), name.c_str(), import_pbr_materials, import_textures);
+			const bool success = import_gtlf(full_source.c_str(), name.c_str(), import_pbr_materials, import_textures);
 			if (!success)
 			{
 				return false;

@@ -33,6 +33,11 @@ namespace SFG
 
 			return raw;
 		});
+
+		m.add_function<void, void*, vector<string>&>("get_dependencies"_hs, [](void* loader, vector<string>& out) {
+			model_raw* raw = reinterpret_cast<model_raw*>(loader);
+			out.push_back(raw->source);
+		});
 #endif
 
 		m.add_function<void*, istream&>("cook_from_stream"_hs, [](istream& stream) -> void* {

@@ -14,6 +14,7 @@ namespace SFG
 	struct audio_raw
 	{
 		string		 name	   = "";
+		string		 source	   = "";
 		uint8		 is_stream = 0;
 		vector<char> audio_data;
 
