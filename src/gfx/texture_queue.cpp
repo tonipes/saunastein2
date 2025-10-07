@@ -27,6 +27,7 @@ namespace SFG
 		{
 			if (r.cleared == 1)
 				continue;
+			SFG_TRACE("BB TEXTURE BASE {0}", (void*)r.buffers[0].pixels);
 
 			for (const texture_buffer& b : r.buffers)
 			{

@@ -171,7 +171,6 @@ namespace SFG
 			if (reflection_meta->has_function("create_from_raw"_hs))
 			{
 				vector<string> dependencies;
-
 				if (reflection_meta->has_function("get_dependencies"_hs))
 					reflection_meta->invoke_function<void, void*, vector<string>&>("get_dependencies"_hs, loader, dependencies);
 
@@ -191,7 +190,11 @@ namespace SFG
 
 			if (reflection_meta->has_function("create_from_raw_2"_hs))
 			{
+				vector<string> dependencies;
+				if (reflection_meta->has_function("get_dependencies"_hs))
+					reflection_meta->invoke_function<void, void*, vector<string>&>("get_dependencies"_hs, loader, dependencies);
 				const resource_handle handle = reflection_meta->invoke_function<resource_handle, void*, world&>("create_from_raw_2"_hs, loader, _world);
+				add_resource_watch(handle, relative_paths[i].c_str(), dependencies, resolved_types[i]);
 			}
 		}
 	}

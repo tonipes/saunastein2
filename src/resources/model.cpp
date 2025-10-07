@@ -55,14 +55,6 @@ namespace SFG
 
 			res.create_from_raw(*raw_ptr, w.get_render_stream(), resources, aux);
 			delete raw_ptr;
-
-			resource_handle* mesh_handles = aux.get<resource_handle>(res.get_created_meshes());
-			const uint16	 count		  = res.get_mesh_count();
-			for (uint16 i = 0; i < count; i++)
-			{
-				mesh& created_mesh = resources.get_resource<mesh>(mesh_handles[i]);
-			}
-
 			return handle;
 		});
 

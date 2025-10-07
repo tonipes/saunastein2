@@ -473,10 +473,9 @@ namespace SFG
 						raw.sid					  = hash;
 						raw.name				  = hash_path;
 
-						uint8*			  data = new uint8[img.image.size()];
+						uint8*			  data = reinterpret_cast<uint8*>(SFG_MALLOC(img.image.size()));
 						const vector2ui16 size = vector2ui16(static_cast<uint16>(img.width), static_cast<uint16>(img.height));
 						// const uint8		  bpp  = img.bits / 8 * img.component;
-
 						const format fmt = check_if_linear(i) ? format::r8g8b8a8_unorm : format::r8g8b8a8_srgb;
 						raw.cook_from_data(data, size, static_cast<uint8>(fmt), true);
 					}
