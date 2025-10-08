@@ -334,30 +334,6 @@ namespace SFG
 			_entity_manager.visit_children(e, [&](entity_handle c) { report_entity(c); });
 		}
 
-		for (uint16 i = 0; i < meshes_count; i++)
-		{
-			resource_handle handle = ptr_meshes_handle[i];
-			mesh&			m	   = _resources.get_resource<mesh>(handle);
-
-			const uint16 mat_count = m.get_material_count();
-			SFG_ASSERT(mat_count != 0);
-			uint16* material_indices = aux.get<uint16>(m.get_material_indices());
-
-			trait_handle		 trait		 = _entity_manager.add_trait<trait_mesh_renderer>(created_node_entities[m.get_node_index()]);
-			trait_mesh_renderer& t			 = _entity_manager.get_trait<trait_mesh_renderer>(trait);
-			t.material_count				 = mat_count;
-			t.mesh							 = handle;
-			t.materials						 = aux.allocate<resource_handle>(mat_count);
-			resource_handle* trait_materials = aux.get<resource_handle>(t.materials);
-
-			for (uint16 j = 0; j < mat_count; j++)
-			{
-				uint16 index = material_indices[j];
-				SFG_ASSERT(index < material_size);
-				trait_materials[j] = materials[index];
-			}
-		}
-
 		return root;
 	}
 

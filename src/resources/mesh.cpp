@@ -46,34 +46,6 @@ namespace SFG
 		stg->primitives_static.resize(raw.primitives_static.size());
 		stg->primitives_skinned.resize(raw.primitives_skinned.size());
 
-		vector<uint16> materials;
-
-		auto add_material = [&](uint16 m) {
-			int32 index = vector_util::index_of(materials, m);
-			if (index == -1)
-				materials.push_back(m);
-		};
-
-		if (!raw.primitives_static.empty())
-		{
-			const uint32 prims_count = static_cast<uint32>(raw.primitives_static.size());
-			for (uint32 i = 0; i < prims_count; i++)
-			{
-				const primitive_static_raw& prim_loaded = raw.primitives_static[i];
-				add_material(prim_loaded.material_index);
-			}
-		}
-
-		if (!raw.primitives_skinned.empty())
-		{
-			const uint32 prims_count = static_cast<uint32>(raw.primitives_skinned.size());
-			for (uint32 i = 0; i < prims_count; i++)
-			{
-				const primitive_skinned_raw& prim_loaded = raw.primitives_skinned[i];
-				add_material(prim_loaded.material_index);
-			}
-		}
-
 		uint32 i = 0;
 		for (const primitive_static_raw& r : raw.primitives_static)
 		{
@@ -88,32 +60,7 @@ namespace SFG
 			i++;
 		}
 
-		// run through again to localize material indices.
-		if (!raw.primitives_static.empty())
-		{
-			const uint32 prims_count = static_cast<uint32>(raw.primitives_static.size());
-			for (uint32 i = 0; i < prims_count; i++)
-			{
-				primitive_static_raw& prim_loaded = stg->primitives_static[i];
-				prim_loaded.material_index		  = static_cast<uint16>(vector_util::index_of(materials, prim_loaded.material_index));
-			}
-		}
-
-		if (!raw.primitives_skinned.empty())
-		{
-			const uint32 prims_count = static_cast<uint32>(raw.primitives_skinned.size());
-			for (uint32 i = 0; i < prims_count; i++)
-			{
-				primitive_skinned_raw& prim_loaded = stg->primitives_skinned[i];
-				prim_loaded.material_index		   = static_cast<uint16>(vector_util::index_of(materials, prim_loaded.material_index));
-			}
-		}
-
 		stream.add_event(ev);
-
-		_material_count	  = static_cast<uint16>(materials.size());
-		_material_indices = alloc.allocate<uint16>(materials.size());
-		SFG_MEMCPY(alloc.get(_material_indices.head), materials.data(), sizeof(uint16) * materials.size());
 	}
 
 	void mesh::destroy(chunk_allocator32& alloc, render_event_stream& stream, resource_handle handle)
@@ -123,11 +70,6 @@ namespace SFG
 			alloc.free(_name);
 		_name = {};
 #endif
-
-		alloc.free(_material_indices);
-
-		_material_indices = {};
-		_material_count	  = 0;
 
 		stream.add_event({.header = {
 							  .handle	  = handle,

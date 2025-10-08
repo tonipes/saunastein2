@@ -25,19 +25,14 @@ namespace SFG
 		void create_from_raw(const mesh_raw& raw, chunk_allocator32& alloc, render_event_stream& stream, resource_handle handle);
 		void destroy(chunk_allocator32& alloc, render_event_stream& stream, resource_handle handle);
 
-		inline chunk_handle32 get_material_indices() const
-		{
-			return _material_indices;
-		}
-
 		inline uint16 get_node_index() const
 		{
 			return _node_index;
 		}
 
-		inline uint16 get_material_count() const
+		inline uint16 get_skin_index() const
 		{
-			return _material_count;
+			return _skin_index;
 		}
 
 	private:
@@ -47,10 +42,8 @@ namespace SFG
 #ifndef SFG_STRIP_DEBUG_NAMES
 		chunk_handle32 _name;
 #endif
-		chunk_handle32 _material_indices; // original indices into the loaded model.
-		uint16		   _node_index	   = 0;
-		int16		   _skin_index	   = 0;
-		uint16		   _material_count = 0;
+		uint16 _node_index = 0;
+		int16  _skin_index = 0;
 	};
 	REGISTER_TYPE(mesh, resource_type::resource_type_mesh);
 
