@@ -5,7 +5,7 @@
 #include "common/type_id.hpp"
 #include "data/hash_map.hpp"
 #include "data/static_vector.hpp"
-#include "memory/pool_allocator16.hpp"
+#include "memory/pool_allocator.hpp"
 #include "memory/chunk_allocator.hpp"
 #include "common/string_id.hpp"
 #include "common_world.hpp"
@@ -145,7 +145,6 @@ namespace SFG
 			return _aux_memory;
 		}
 
-	private:
 	private:
 		world& _world;
 

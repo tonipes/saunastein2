@@ -15,7 +15,6 @@ namespace SFG
 
 	class simple_file_watcher
 	{
-
 	private:
 		struct entry
 		{
@@ -49,10 +48,10 @@ namespace SFG
 		void watch();
 
 	private:
+		simple_file_watcher_callback _callback = nullptr;
 		vector<entry>				 _paths;
 		uint16						 _tick_interval = 1;
 		uint16						 _ticks			= 0;
-		simple_file_watcher_callback _callback		= nullptr;
 	};
 
 }
