@@ -8,8 +8,6 @@
 
 namespace SFG
 {
-	animation_reflection g_animation_reflection;
-
 	animation_reflection::animation_reflection()
 	{
 		meta& m = reflection::get().register_meta(type_id<animation>::value, type_id<animation>::index, "");

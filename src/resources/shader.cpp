@@ -14,7 +14,6 @@
 
 namespace SFG
 {
-	shader_reflection g_shader_reflection;
 
 	shader_reflection::shader_reflection()
 	{

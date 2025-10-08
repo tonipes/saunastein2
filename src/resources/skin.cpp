@@ -8,8 +8,6 @@
 
 namespace SFG
 {
-	skin_reflection g_skin_reflection;
-
 	skin_reflection::skin_reflection()
 	{
 		meta& m = reflection::get().register_meta(type_id<skin>::value, type_id<skin>::index, "");

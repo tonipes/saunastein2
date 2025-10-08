@@ -1,14 +1,14 @@
 // Copyright (c) 2025 Inan Evin
 
 #pragma once
-#include "data/static_vector.hpp"
 #include "data/bitmask.hpp"
 #include "data/ostream.hpp"
-#include "gfx/buffer.hpp"
-#include "gfx/common/gfx_constants.hpp"
-#include "common/type_id.hpp"
 #include "resources/common_resources.hpp"
+#include "reflection/resource_reflection.hpp"
+
+#ifndef SFG_STRIP_DEBUG_NAMES
 #include "memory/chunk_handle.hpp"
+#endif
 
 namespace SFG
 {
@@ -19,8 +19,6 @@ namespace SFG
 	{
 		material_reflection();
 	};
-
-	extern material_reflection g_material_reflection;
 
 	class render_event_stream;
 	class chunk_allocator32;
@@ -56,6 +54,6 @@ namespace SFG
 #endif
 	};
 
-	REGISTER_TYPE(material, resource_type::resource_type_material);
+	REGISTER_RESOURCE(material, resource_type::resource_type_material, material_reflection);
 
 }

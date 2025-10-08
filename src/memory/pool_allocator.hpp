@@ -12,6 +12,8 @@ namespace SFG
 	template <typename SIZE_TYPE> class pool_allocator
 	{
 	public:
+		typedef pool_handle<SIZE_TYPE> handle;
+
 		~pool_allocator()
 		{
 			if (_raw != nullptr)
@@ -86,13 +88,13 @@ namespace SFG
 			}
 		}
 
-		bool is_valid(pool_handle16 handle) const
+		bool is_valid(pool_handle<SIZE_TYPE> handle) const
 		{
 			SIZE_TYPE* generations = get_generations();
 			return handle.generation == generations[handle.index];
 		}
 
-		template <typename T> inline void free(pool_handle16 handle)
+		template <typename T> inline void free(pool_handle<SIZE_TYPE> handle)
 		{
 			SFG_ASSERT(is_valid(handle));
 
@@ -109,7 +111,7 @@ namespace SFG
 			_free_count++;
 		}
 
-		template <typename T> pool_handle16 allocate()
+		template <typename T> pool_handle<SIZE_TYPE> allocate()
 		{
 			const size_t aligned = (sizeof(T) + alignof(T) + 1) & ~(alignof(T) - 1);
 			SFG_ASSERT(aligned == static_cast<size_t>(_item_size_aligned));
@@ -139,7 +141,7 @@ namespace SFG
 			return {.generation = generations[index], .index = index};
 		}
 
-		template <typename T> inline T& get(pool_handle16 handle) const
+		template <typename T> inline T& get(pool_handle<SIZE_TYPE> handle) const
 		{
 			SFG_ASSERT(is_valid(handle));
 			const size_t pos  = sizeof(T) * handle.index;
@@ -160,7 +162,7 @@ namespace SFG
 					++current;
 			}
 
-			pool_handle16 operator*() const
+			pool_handle<SIZE_TYPE> operator*() const
 			{
 				return {.generation = gens[current], .index = current};
 			}
@@ -223,5 +225,6 @@ namespace SFG
 	};
 
 	typedef pool_allocator<uint16> pool_allocator16;
+	typedef pool_allocator<uint32> pool_allocator32;
 
 }

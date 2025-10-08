@@ -3,9 +3,13 @@
 #pragma once
 
 #include "common/size_definitions.hpp"
-#include "common/type_id.hpp"
 #include "resources/common_resources.hpp"
+#include "reflection/resource_reflection.hpp"
+
+#ifndef SFG_STRIP_DEBUG_NAMES
 #include "memory/chunk_handle.hpp"
+#endif
+
 namespace SFG
 {
 	struct physical_material_raw;
@@ -14,8 +18,6 @@ namespace SFG
 	{
 		physical_material_reflection();
 	};
-
-	extern physical_material_reflection g_physical_material_reflection;
 
 	class world;
 	class chunk_allocator32;
@@ -32,6 +34,6 @@ namespace SFG
 #endif
 	};
 
-	REGISTER_TYPE(physical_material, resource_type::resource_type_physical_material);
+	REGISTER_RESOURCE(physical_material, resource_type::resource_type_physical_material, physical_material_reflection);
 
 }

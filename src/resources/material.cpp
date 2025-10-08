@@ -19,8 +19,6 @@
 
 namespace SFG
 {
-	material_reflection g_material_reflection;
-
 	material_reflection::material_reflection()
 	{
 		meta& m = reflection::get().register_meta(type_id<material>::value, type_id<material>::index, "stkmat");

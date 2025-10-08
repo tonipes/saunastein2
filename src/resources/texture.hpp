@@ -3,13 +3,12 @@
 #pragma once
 
 #include "common/size_definitions.hpp"
-#include "data/bitmask.hpp"
-#include "data/static_vector.hpp"
-#include "gfx/common/gfx_constants.hpp"
-#include "gfx/common/texture_buffer.hpp"
-#include "common/type_id.hpp"
 #include "common_resources.hpp"
+#include "reflection/resource_reflection.hpp"
+
+#ifndef SFG_STRIP_DEBUG_NAMES
 #include "memory/chunk_handle.hpp"
+#endif
 
 namespace SFG
 {
@@ -19,8 +18,6 @@ namespace SFG
 	{
 		texture_reflection();
 	};
-
-	extern texture_reflection g_texture_reflection;
 
 	class render_event_stream;
 	class world_resources;
@@ -41,5 +38,5 @@ namespace SFG
 #endif
 	};
 
-	REGISTER_TYPE(texture, resource_type::resource_type_texture);
+	REGISTER_RESOURCE(texture, resource_type::resource_type_texture, texture_reflection);
 }

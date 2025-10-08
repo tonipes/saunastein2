@@ -5,6 +5,7 @@
 #include "animation_common.hpp"
 #include "memory/chunk_handle.hpp"
 #include "resources/common_resources.hpp"
+#include "reflection/resource_reflection.hpp"
 
 namespace SFG
 {
@@ -17,7 +18,6 @@ namespace SFG
 	{
 		animation_reflection();
 	};
-	extern animation_reflection g_animation_reflection;
 
 	struct animation_channel_v3
 	{
@@ -46,8 +46,6 @@ namespace SFG
 	class animation
 	{
 	public:
-		static constexpr uint32 TYPE_ID = resource_type::resource_type_animation;
-
 		void create_from_raw(const animation_raw& raw, chunk_allocator32& alloc);
 		void destroy(chunk_allocator32& alloc);
 
@@ -64,5 +62,5 @@ namespace SFG
 		uint16		   _scale_count	   = 0;
 	};
 
-	REGISTER_TYPE(animation, resource_type::resource_type_animation);
+	REGISTER_RESOURCE(animation, resource_type::resource_type_animation, animation_reflection);
 }

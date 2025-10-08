@@ -12,8 +12,6 @@
 
 namespace SFG
 {
-	mesh_reflection g_mesh_reflection;
-
 	mesh_reflection::mesh_reflection()
 	{
 		meta& m = reflection::get().register_meta(type_id<mesh>::value, type_id<mesh>::index, "");

@@ -8,14 +8,15 @@
 #include "model_raw.hpp"
 #include "texture.hpp"
 #include "material.hpp"
-#include "gfx/world/world_renderer.hpp"
+#include "world/world.hpp"
+#include "reflection/reflection.hpp"
+
+#ifdef SFG_TOOLMODE
 #include "project/engine_data.hpp"
-#include "resource_reflection_template.hpp"
+#endif
 
 namespace SFG
 {
-	model_reflection g_model_reflection;
-
 	model_reflection::model_reflection()
 	{
 		meta& m = reflection::get().register_meta(type_id<model>::value, type_id<model>::index, "stkmodel");

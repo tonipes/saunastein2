@@ -3,11 +3,12 @@
 #pragma once
 
 #include "common/size_definitions.hpp"
-#include "gfx/common/gfx_constants.hpp"
-#include "common/type_id.hpp"
 #include "resources/common_resources.hpp"
+#include "reflection/resource_reflection.hpp"
+
+#ifndef SFG_STRIP_DEBUG_NAMES
 #include "memory/chunk_handle.hpp"
-#include <limits>
+#endif
 
 namespace SFG
 {
@@ -17,8 +18,6 @@ namespace SFG
 	{
 		texture_sampler_reflection();
 	};
-
-	extern texture_sampler_reflection g_texture_sampler_reflection;
 
 	class render_event_stream;
 	class chunk_allocator32;
@@ -35,6 +34,6 @@ namespace SFG
 #endif
 	};
 
-	REGISTER_TYPE(texture_sampler, resource_type::resource_type_texture_sampler);
+	REGISTER_RESOURCE(texture_sampler, resource_type::resource_type_texture_sampler, texture_sampler_reflection);
 
 }

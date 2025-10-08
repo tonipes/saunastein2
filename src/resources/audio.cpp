@@ -14,8 +14,6 @@
 
 namespace SFG
 {
-	audio_reflection g_audio_reflection;
-
 	audio_reflection::audio_reflection()
 	{
 		meta& m = reflection::get().register_meta(type_id<audio>::value, type_id<audio>::index, "stkaud");

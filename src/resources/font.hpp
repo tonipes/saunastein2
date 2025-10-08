@@ -3,9 +3,12 @@
 #pragma once
 
 #include "common/size_definitions.hpp"
-#include "common/type_id.hpp"
 #include "resources/common_resources.hpp"
+#include "reflection/resource_reflection.hpp"
+
+#ifndef SFG_STRIP_DEBUG_NAMES
 #include "memory/chunk_handle.hpp"
+#endif
 
 namespace vekt
 {
@@ -21,8 +24,6 @@ namespace SFG
 	{
 		font_reflection();
 	};
-
-	extern font_reflection g_font_reflection;
 
 	class world;
 	class chunk_allocator32;
@@ -40,6 +41,6 @@ namespace SFG
 #endif
 	};
 
-	REGISTER_TYPE(font, resource_type::resource_type_font);
+	REGISTER_RESOURCE(font, resource_type::resource_type_font, font_reflection);
 
 }

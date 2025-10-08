@@ -11,7 +11,7 @@
 #include "gfx/buffer_queue.hpp"
 #include "world/world.hpp"
 #include "world/traits/trait_light.hpp"
-#include "world/traits/trait_mesh_renderer.hpp"
+#include "world/traits/trait_model_instance.hpp"
 #include "resources/mesh.hpp"
 #include "resources/primitive.hpp"
 #include <algorithm>

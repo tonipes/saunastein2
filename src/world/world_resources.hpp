@@ -135,7 +135,7 @@ namespace SFG
 			stg.storage.init<T>(count);
 		}
 
-		inline static_vector<resource_storage, resource_type_allowed_max>& get_storages()
+		inline static_vector<resource_storage, resource_type_max>& get_storages()
 		{
 			return _storages;
 		}
@@ -148,8 +148,8 @@ namespace SFG
 	private:
 		world& _world;
 
-		mutable static_vector<resource_storage, resource_type_allowed_max> _storages;
-		chunk_allocator32												   _aux_memory;
+		mutable static_vector<resource_storage, resource_type_max> _storages;
+		chunk_allocator32										   _aux_memory;
 
 #ifdef SFG_TOOLMODE
 		simple_file_watcher	   _file_watch;

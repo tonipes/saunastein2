@@ -2,16 +2,12 @@
 
 #pragma once
 #include "common/size_definitions.hpp"
-#include "memory/pool_handle.hpp"
 #include "data/bitmask.hpp"
+#include "world/world_constants.hpp"
 #undef max
 
 namespace SFG
 {
-	typedef uint16		  world_id;
-	typedef pool_handle16 entity_handle;
-
-#define NULL_WORLD_ID std::numeric_limits<world_id>::max()
 
 	enum entity_flags : uint8
 	{
@@ -28,9 +24,9 @@ namespace SFG
 
 	struct entity_family
 	{
-		pool_handle16 parent	   = {};
-		pool_handle16 first_child  = {};
-		pool_handle16 prev_sibling = {};
-		pool_handle16 next_sibling = {};
+		entity_handle parent	   = {};
+		entity_handle first_child  = {};
+		entity_handle prev_sibling = {};
+		entity_handle next_sibling = {};
 	};
 }

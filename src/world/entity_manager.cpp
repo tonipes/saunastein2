@@ -2,14 +2,15 @@
 
 #include "entity_manager.hpp"
 #include "world.hpp"
-#include "world/traits/trait_mesh_renderer.hpp"
+#include "world/traits/trait_model_instance.hpp"
 #include "world/traits/trait_light.hpp"
+#include "reflection/reflection.hpp"
 
 namespace SFG
 {
 	entity_manager::entity_manager(world& w) : _world(w)
 	{
-		_entities.init<world_id>(MAX_ENTITIES);
+		_entities.init<entity_id>(MAX_ENTITIES);
 		_metas.init(MAX_ENTITIES);
 		_positions.init(MAX_ENTITIES);
 		_prev_positions.init(MAX_ENTITIES);
@@ -23,10 +24,14 @@ namespace SFG
 		_abs_matrices.init(MAX_ENTITIES);
 		_families.init(MAX_ENTITIES);
 
-		_traits.resize(trait_types::trait_type_allowed_max);
-
-		init_trait_storage<trait_light>(100);
-		init_trait_storage<trait_mesh_renderer>(100);
+		const auto& metas = reflection::get().get_metas();
+		for (const auto& [sid, meta] : metas)
+		{
+			if (meta.has_function("init_trait_storage"_hs))
+			{
+				meta.invoke_function<void, world&>("init_trait_storage"_hs, _world);
+			}
+		}
 	}
 
 	entity_manager::~entity_manager()
@@ -69,7 +74,7 @@ namespace SFG
 		_families.reset();
 	}
 
-	void entity_manager::reset_entity_data(world_id id)
+	void entity_manager::reset_entity_data(entity_id id)
 	{
 		_aabbs.reset(id);
 		_metas.reset(id);
@@ -87,7 +92,7 @@ namespace SFG
 
 	entity_handle entity_manager::create_entity(const char* name)
 	{
-		entity_handle handle = _entities.allocate<world_id>();
+		entity_handle handle = _entities.allocate<entity_id>();
 		set_entity_scale(handle, vector3::one);
 		set_entity_prev_scale_abs(handle, vector3::one);
 
@@ -150,7 +155,7 @@ namespace SFG
 		}
 
 		reset_entity_data(entity.index);
-		_entities.free<world_id>(entity);
+		_entities.free<entity_id>(entity);
 	}
 
 	const aabb& entity_manager::get_entity_aabb(entity_handle entity)

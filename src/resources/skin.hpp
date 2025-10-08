@@ -3,8 +3,8 @@
 
 #include "common/size_definitions.hpp"
 #include "memory/chunk_handle.hpp"
-#include "common/type_id.hpp"
 #include "resources/common_resources.hpp"
+#include "reflection/resource_reflection.hpp"
 
 namespace SFG
 {
@@ -15,7 +15,6 @@ namespace SFG
 	{
 		skin_reflection();
 	};
-	extern skin_reflection g_skin_reflection;
 
 	class skin
 	{
@@ -32,6 +31,6 @@ namespace SFG
 		int16		   _root		 = -1;
 	};
 
-	REGISTER_TYPE(skin, resource_type_skin);
+	REGISTER_RESOURCE(skin, resource_type_skin, skin_reflection);
 
 }

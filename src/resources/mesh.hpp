@@ -2,8 +2,11 @@
 #pragma once
 #include "common/size_definitions.hpp"
 #include "resources/common_resources.hpp"
+#include "reflection/resource_reflection.hpp"
+
+#ifndef SFG_STRIP_DEBUG_NAMES
 #include "memory/chunk_handle.hpp"
-#include "common/type_id.hpp"
+#endif
 
 namespace SFG
 {
@@ -15,7 +18,6 @@ namespace SFG
 	{
 		mesh_reflection();
 	};
-	extern mesh_reflection g_mesh_reflection;
 
 	class render_event_stream;
 
@@ -45,6 +47,7 @@ namespace SFG
 		uint16 _node_index = 0;
 		int16  _skin_index = 0;
 	};
-	REGISTER_TYPE(mesh, resource_type::resource_type_mesh);
+
+	REGISTER_RESOURCE(mesh, resource_type::resource_type_mesh, mesh_reflection);
 
 }

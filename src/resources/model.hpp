@@ -4,8 +4,8 @@
 #include "data/bitmask.hpp"
 #include "math/aabb.hpp"
 #include "memory/chunk_handle.hpp"
-#include "common/type_id.hpp"
 #include "resources/common_resources.hpp"
+#include "reflection/resource_reflection.hpp"
 
 namespace SFG
 {
@@ -17,7 +17,6 @@ namespace SFG
 	{
 		model_reflection();
 	};
-	extern model_reflection g_model_reflection;
 
 	class render_event_stream;
 
@@ -118,6 +117,6 @@ namespace SFG
 		bitmask<uint8> _flags;
 	};
 
-	REGISTER_TYPE(model, resource_type::resource_type_model);
+	REGISTER_RESOURCE(model, resource_type::resource_type_model, model_reflection);
 
 }

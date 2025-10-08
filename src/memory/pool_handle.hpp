@@ -8,16 +8,10 @@ namespace SFG
 {
 	template <typename T> struct pool_handle
 	{
-		T id;
 		T generation;
-	};
+		T index;
 
-	struct pool_handle16
-	{
-		uint16 generation = 0;
-		uint16 index	  = 0;
-
-		bool operator==(const pool_handle16& other) const
+		bool operator==(const pool_handle& other) const
 		{
 			return generation == other.generation && index == other.index;
 		}
@@ -27,5 +21,8 @@ namespace SFG
 			return generation == 0;
 		}
 	};
+
+	typedef pool_handle<uint16> pool_handle16;
+	typedef pool_handle<uint32> pool_handle32;
 
 }

@@ -4,6 +4,7 @@
 #include "common/size_definitions.hpp"
 #include "world/common_entity.hpp"
 #include "data/bitmask.hpp"
+#include "world/world_constants.hpp"
 
 namespace SFG
 {
@@ -17,11 +18,8 @@ namespace SFG
 	{
 		trait_type_mesh_renderer = 0,
 		trait_type_light,
-		trait_type_engine_max,
-		trait_type_allowed_max = 32,
+		trait_type_max = 32,
 	};
-
-	typedef pool_handle16 trait_handle;
 
 	struct trait_meta
 	{

@@ -4,9 +4,12 @@
 
 #include "common/size_definitions.hpp"
 #include "data/bitmask.hpp"
-#include "common/type_id.hpp"
 #include "resources/common_resources.hpp"
+#include "reflection/resource_reflection.hpp"
+
+#ifndef SFG_STRIP_DEBUG_NAMES
 #include "memory/chunk_handle.hpp"
+#endif
 
 namespace SFG
 {
@@ -16,8 +19,6 @@ namespace SFG
 	{
 		shader_reflection();
 	};
-
-	extern shader_reflection g_shader_reflection;
 
 	class render_event_stream;
 	class chunk_allocator32;
@@ -45,6 +46,6 @@ namespace SFG
 #endif
 	};
 
-	REGISTER_TYPE(shader, resource_type::resource_type_shader);
+	REGISTER_RESOURCE(shader, resource_type::resource_type_shader, shader_reflection);
 
 }

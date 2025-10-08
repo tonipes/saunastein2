@@ -10,8 +10,6 @@
 #endif
 namespace SFG
 {
-	physical_material_reflection g_physical_material_reflection;
-
 	physical_material_reflection::physical_material_reflection()
 	{
 		meta& m = reflection::get().register_meta(type_id<physical_material>::value, type_id<physical_material>::index, "stkphy");

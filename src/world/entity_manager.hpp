@@ -21,7 +21,7 @@ namespace SFG
 
 	struct trait_storage
 	{
-		pool_allocator16 storage;
+		pool_allocator32 storage;
 		string_id		 type_id = 0;
 	};
 
@@ -105,13 +105,13 @@ namespace SFG
 			trait_storage& trst = _traits[idx];
 			trst.type_id		= type_id<T>::value;
 
-			pool_allocator16& stg = trst.storage;
+			pool_allocator32& stg = trst.storage;
 			stg.init<T>(max_count);
 		}
 
 		template <typename T> trait_handle add_trait(entity_handle entity)
 		{
-			pool_allocator16& storage = _traits[type_id<T>::index].storage;
+			pool_allocator32& storage = _traits[type_id<T>::index].storage;
 			trait_handle	  handle  = storage.allocate<T>();
 			T&				  tr	  = storage.get<T>(handle);
 			tr						  = T();
@@ -121,18 +121,18 @@ namespace SFG
 
 		template <typename T> T& get_trait(trait_handle handle)
 		{
-			pool_allocator16& storage = _traits[type_id<T>::index].storage;
+			pool_allocator32& storage = _traits[type_id<T>::index].storage;
 			return storage.get<T>(handle);
 		}
-		template <typename T> const pool_allocator16& get_trait_storage() const
+		template <typename T> const pool_allocator32& get_trait_storage() const
 		{
-			const pool_allocator16& storage = _traits[type_id<T>::index].storage;
+			const pool_allocator32& storage = _traits[type_id<T>::index].storage;
 			return storage;
 		}
 
 		template <typename T> void remove_trait(trait_handle handle)
 		{
-			pool_allocator16& storage = _traits[type_id<T>::index].storage;
+			pool_allocator32& storage = _traits[type_id<T>::index].storage;
 			T&				  tr	  = storage.get<T>(handle);
 			tr.~T();
 			storage.free(handle);
@@ -143,7 +143,7 @@ namespace SFG
 			return _trait_aux_memory;
 		}
 
-		inline static_vector<trait_storage, trait_types::trait_type_allowed_max>& get_traits()
+		inline static_vector<trait_storage, trait_types::trait_type_max>& get_traits()
 		{
 			return _traits;
 		}
@@ -155,19 +155,19 @@ namespace SFG
 			return _world;
 		}
 
-		inline pool_allocator16& get_entities()
+		inline pool_allocator32& get_entities()
 		{
 			return _entities;
 		}
 
 	private:
 		void reset_all_entity_data();
-		void reset_entity_data(world_id id);
+		void reset_entity_data(entity_id id);
 
 	private:
 		world& _world;
 
-		pool_allocator16					 _entities		 = {};
+		pool_allocator32					 _entities		 = {};
 		pool_allocator_simple<entity_meta>	 _metas			 = {};
 		pool_allocator_simple<entity_family> _families		 = {};
 		pool_allocator_simple<vector3>		 _positions		 = {};
@@ -181,7 +181,7 @@ namespace SFG
 		pool_allocator_simple<matrix4x3>	 _matrices		 = {};
 		pool_allocator_simple<matrix4x3>	 _abs_matrices	 = {};
 
-		static_vector<trait_storage, trait_types::trait_type_allowed_max> _traits;
-		chunk_allocator32												  _trait_aux_memory;
+		static_vector<trait_storage, trait_types::trait_type_max> _traits;
+		chunk_allocator32										  _trait_aux_memory;
 	};
 }

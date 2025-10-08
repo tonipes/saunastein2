@@ -12,8 +12,6 @@
 
 namespace SFG
 {
-	font_reflection g_font_reflection;
-
 	font_reflection::font_reflection()
 	{
 		meta& m = reflection::get().register_meta(type_id<font>::value, type_id<font>::index, "stkfont");

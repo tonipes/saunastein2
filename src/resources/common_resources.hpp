@@ -34,8 +34,7 @@ namespace SFG
 		resource_type_font,
 		resource_type_mesh,
 		resource_type_physical_material,
-		resource_type_engine_max,
-		resource_type_allowed_max,
+		resource_type_max,
 	};
 
 	typedef pool_handle16 resource_handle;

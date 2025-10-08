@@ -29,7 +29,6 @@ using json = nlohmann::json;
 #include "resources/model_raw.hpp"
 #include "resources/model_node.hpp"
 #include "resources/primitive.hpp"
-#include "world/traits/trait_mesh_renderer.hpp"
 
 namespace SFG
 {

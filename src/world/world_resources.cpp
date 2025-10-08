@@ -108,7 +108,7 @@ namespace SFG
 				continue;
 
 			const string	ext	 = path.substr(dot + 1, path.size() - dot - 1);
-			resource_type	type = resource_type::resource_type_allowed_max;
+			resource_type	type = resource_type::resource_type_max;
 			meta*			m	 = reflection::get().find_by_tag(ext.c_str());
 			const string_id sid	 = TO_SID(path);
 

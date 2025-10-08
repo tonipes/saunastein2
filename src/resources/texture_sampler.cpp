@@ -8,8 +8,9 @@
 #include "gfx/common/descriptions.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"
 #include "gfx/event_stream/render_event_storage_gfx.hpp"
-#include "resource_reflection_template.hpp"
+
 #include "world/world.hpp"
+#include "reflection/reflection.hpp"
 
 #ifdef SFG_TOOLMODE
 #include "project/engine_data.hpp"
@@ -17,8 +18,6 @@
 
 namespace SFG
 {
-	texture_sampler_reflection g_texture_sampler_reflection = {};
-
 	texture_sampler_reflection::texture_sampler_reflection()
 	{
 		meta& m = reflection::get().register_meta(type_id<texture_sampler>::value, type_id<texture_sampler>::index, "stksampler");

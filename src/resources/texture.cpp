@@ -20,8 +20,6 @@
 
 namespace SFG
 {
-	texture_reflection g_texture_reflection = {};
-
 	texture_reflection::texture_reflection()
 	{
 		meta& m = reflection::get().register_meta(type_id<texture>::value, type_id<texture>::index, "stktexture");
