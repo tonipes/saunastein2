@@ -5,6 +5,7 @@
 #include "gfx/event_stream/render_event_stream.hpp"
 #include "gfx/event_stream/render_event_storage_gfx.hpp"
 #include "gfx/event_stream/render_event_storage_entity.hpp"
+#include "gfx/event_stream/render_event_storage_traits.hpp"
 #include "gfx/texture_queue.hpp"
 #include "gfx/buffer_queue.hpp"
 #include "gfx/common/descriptions.hpp"
@@ -116,9 +117,33 @@ namespace SFG
 			}
 			else if (ev->header.event_type == render_event_type::render_event_update_model_instance)
 			{
+				render_event_storage_model_instance* stg = reinterpret_cast<render_event_storage_model_instance*>(ev->data);
+
 				render_proxy_model_instance& proxy = get_model_instance(index);
-				proxy.status					   = render_proxy_status::rps_inactive;
+				proxy.status					   = render_proxy_status::rps_active;
 				proxy.entity					   = index;
+				proxy.mesh						   = stg->mesh;
+				proxy.single_mesh				   = stg->single_mesh;
+				proxy.model						   = stg->model;
+				proxy.material_count			   = static_cast<uint16>(stg->materials.size());
+
+				if (proxy.materials.size != 0)
+					_aux_memory.free(proxy.materials);
+
+				if (proxy.material_count != 0)
+					proxy.materials = _aux_memory.allocate<uint16>(proxy.material_count);
+
+				uint16* materials = _aux_memory.get<uint16>(proxy.materials);
+				for (uint16 i = 0; i < proxy.material_count; i++)
+					materials[i] = stg->materials[i];
+			}
+			else if (ev->header.event_type == render_event_type::render_event_update_model_instance)
+			{
+				render_event_storage_model_instance* stg   = reinterpret_cast<render_event_storage_model_instance*>(ev->data);
+				render_proxy_model_instance&		 proxy = get_model_instance(index);
+				if (proxy.materials.size != 0)
+					_aux_memory.free(proxy.materials);
+				proxy = {};
 			}
 			else if (ev->header.event_type == render_event_type::render_event_create_texture)
 			{

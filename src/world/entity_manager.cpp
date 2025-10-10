@@ -314,9 +314,8 @@ namespace SFG
 				},
 		};
 
-		render_event_storage_entity* stg = ev.construct<render_event_storage_entity>();
-
-		_world.get_render_stream().add_event(ev);
+		// render_event_storage_entity* stg = ev.construct<render_event_storage_entity>();
+		//_world.get_render_stream().add_event(ev);
 	}
 
 	void entity_manager::on_remove_render_proxy(entity_handle entity)
@@ -329,15 +328,15 @@ namespace SFG
 
 		if (meta.render_proxy_count == 0)
 		{
-			const render_event ev = {
-				.header =
-					{
-						.index		= entity.index,
-						.event_type = render_event_type::render_event_remove_entity,
-					},
-			};
-
-			_world.get_render_stream().add_event(ev);
+			// const render_event ev = {
+			// 	.header =
+			// 		{
+			// 			.index		= entity.index,
+			// 			.event_type = render_event_type::render_event_remove_entity,
+			// 		},
+			// };
+			//
+			// _world.get_render_stream().add_event(ev);
 		}
 	}
 

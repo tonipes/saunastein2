@@ -56,7 +56,6 @@ namespace SFG
 		em.on_add_render_proxy(_header.entity);
 
 		render_event_storage_model_instance* stg = ev.construct<render_event_storage_model_instance>();
-		stg->entity								 = _header.entity.index;
 		stg->model								 = _target_model.index;
 		stg->single_mesh						 = !_target_mesh.is_null();
 		stg->materials.resize(_material_count);
