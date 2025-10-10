@@ -28,10 +28,13 @@ namespace SFG
 		_node_index = raw.node_index;
 		_skin_index = raw.skin_index;
 
-		render_event ev = {.header = {
-							   .handle	   = handle,
-							   .event_type = render_event_type::render_event_create_mesh,
-						   }};
+		render_event ev = {
+			.header =
+				{
+					.index		= static_cast<uint32>(handle.index),
+					.event_type = render_event_type::render_event_create_mesh,
+				},
+		};
 
 		render_event_storage_mesh* stg = ev.construct<render_event_storage_mesh>();
 
@@ -69,9 +72,12 @@ namespace SFG
 		_name = {};
 #endif
 
-		stream.add_event({.header = {
-							  .handle	  = handle,
-							  .event_type = render_event_type::render_event_destroy_mesh,
-						  }});
+		stream.add_event({
+			.header =
+				{
+					.index		= static_cast<uint32>(handle.index),
+					.event_type = render_event_type::render_event_destroy_mesh,
+				},
+		});
 	}
 }

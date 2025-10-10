@@ -3,13 +3,15 @@
 #pragma once
 
 #include "common/size_definitions.hpp"
+#include "common/string_id.hpp"
+#include "data/string_view.hpp"
 
 namespace SFG
 {
 	template <typename T> struct type_id;
 
 	// clang-format off
-#define REGISTER_RESOURCE(T, INDEX, REFLECTION_CLASS)           \
+#define REGISTER_TRAIT(T, INDEX, REFLECTION_CLASS)           \
 	template <> struct type_id<T>                              \
 	{                                                          \
 		static constexpr std::string_view name	= #T;          \

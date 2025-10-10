@@ -43,8 +43,10 @@ namespace SFG
 		void				 remove_from_parent(entity_handle entity);
 		entity_handle		 get_child_by_index(entity_handle parent, uint32 index);
 		const aabb&			 get_entity_aabb(entity_handle entity);
-		const entity_meta&	 get_entity_meta(entity_handle entity) const;
+		entity_meta&		 get_entity_meta(entity_handle entity);
 		const entity_family& get_entity_family(entity_handle entity) const;
+		void				 on_add_render_proxy(entity_handle entity);
+		void				 on_remove_render_proxy(entity_handle entity);
 
 		/* ---------------- entity transforms ---------------- */
 		void			 set_entity_position(entity_handle entity, const vector3& pos);
@@ -115,7 +117,7 @@ namespace SFG
 			trait_handle	  handle  = storage.allocate<T>();
 			T&				  tr	  = storage.get<T>(handle);
 			tr						  = T();
-			tr.meta.entity			  = entity;
+			tr.on_add(_world, handle, entity);
 			return handle;
 		}
 
@@ -134,6 +136,7 @@ namespace SFG
 		{
 			pool_allocator32& storage = _traits[type_id<T>::index].storage;
 			T&				  tr	  = storage.get<T>(handle);
+			tr.on_remove(_world, handle);
 			tr.~T();
 			storage.free(handle);
 		}

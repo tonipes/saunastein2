@@ -25,27 +25,27 @@ namespace SFG
 		void fetch_render_events(render_event_stream& stream);
 		void flush_destroys(bool force);
 
-		inline render_proxy_texture& get_texture(uint16 idx)
+		inline render_proxy_texture& get_texture(uint32 idx)
 		{
 			return _textures.get(idx);
 		}
 
-		inline render_proxy_sampler& get_sampler(uint16 idx)
+		inline render_proxy_sampler& get_sampler(uint32 idx)
 		{
 			return _samplers.get(idx);
 		}
 
-		inline render_proxy_mesh& get_mesh(uint16 idx)
+		inline render_proxy_mesh& get_mesh(uint32 idx)
 		{
 			return _meshes.get(idx);
 		}
 
-		inline render_proxy_shader& get_shader(uint16 idx)
+		inline render_proxy_shader& get_shader(uint32 idx)
 		{
 			return _shaders.get(idx);
 		}
 
-		inline render_proxy_material& get_material(uint16 idx)
+		inline render_proxy_material& get_material(uint32 idx)
 		{
 			return _materials.get(idx);
 		}

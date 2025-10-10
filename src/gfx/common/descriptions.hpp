@@ -244,7 +244,6 @@ namespace SFG
 	};
 
 #ifdef SFG_TOOLMODE
-
 	void to_json(nlohmann::json& j, const sampler_desc& s);
 	void from_json(const nlohmann::json& j, sampler_desc& s);
 #endif

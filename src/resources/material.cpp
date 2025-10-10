@@ -81,7 +81,7 @@ namespace SFG
 		SFG_ASSERT(!raw.shaders.empty());
 
 		render_event ev = {.header = {
-							   .handle	   = handle,
+							   .index	   = static_cast<uint32>(handle.index),
 							   .event_type = render_event_type::render_event_create_material,
 						   }};
 
@@ -117,20 +117,26 @@ namespace SFG
 		_name = {};
 #endif
 
-		stream.add_event({.header = {
-							  .handle	  = handle,
-							  .event_type = render_event_type::render_event_destroy_material,
-						  }});
+		stream.add_event({
+			.header =
+				{
+					.index		= static_cast<uint32>(handle.index),
+					.event_type = render_event_type::render_event_destroy_material,
+				},
+		});
 
 		_material_data.destroy();
 	}
 
 	void material::update_data(render_event_stream& stream, resource_handle handle)
 	{
-		render_event				   ev  = {.header = {
-												  .handle	  = handle,
-												  .event_type = render_event_type::render_event_update_material,
-							  }};
+		render_event ev = {
+			.header =
+				{
+					.index		= static_cast<uint32>(handle.index),
+					.event_type = render_event_type::render_event_update_material,
+				},
+		};
 		render_event_storage_material* stg = ev.construct<render_event_storage_material>();
 		stg->data.write_raw(_material_data.get_raw(), _material_data.get_size());
 		stream.add_event(ev);

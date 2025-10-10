@@ -29,6 +29,7 @@ using json = nlohmann::json;
 #include "resources/model_raw.hpp"
 #include "resources/model_node.hpp"
 #include "resources/primitive.hpp"
+#include "traits/trait_model_instance.hpp"
 
 namespace SFG
 {
@@ -139,99 +140,6 @@ namespace SFG
 
 		vector<std::function<void()>> tasks;
 
-		/* Debug
-		for (const char* t : debug_textures)
-		{
-			const resource_handle handle = _resources.add_resource<texture>(TO_SIDC(t));
-			loaded_debug_textures.push_back(handle);
-			const string abs = engine_data::get().get_working_dir() + t;
-			tasks.push_back([handle, abs, this]() {
-				texture_raw raw;
-				texture& txt = _resources.get_resource<texture>(handle);
-				raw.create_from_file(abs.c_str());
-				raw.populate(txt);
-
-			});
-		}
-
-		for (const char* t : debug_shaders)
-		{
-			const resource_handle handle = _resources.add_resource<shader>(TO_SIDC(t));
-			loaded_debug_shaders.push_back(handle);
-			const string abs = engine_data::get().get_working_dir() + t;
-			tasks.push_back([handle, abs, this]() { _resources.get_resource<shader>(handle).create_from_file_vertex_pixel(abs.c_str(), false, renderer::get_bind_layout_global()); });
-		}
-
-		std::for_each(std::execution::par, tasks.begin(), tasks.end(), [](std::function<void()>& task) { task(); });
-
-		tasks.clear();
-
-		for (const char* t : debug_mats)
-		{
-			const resource_handle handle = _resources.add_resource<material>(TO_SIDC(t));
-			loaded_debug_mats.push_back(handle);
-			const string abs = engine_data::get().get_working_dir() + t;
-			tasks.push_back([handle, abs, this]() { _resources.get_resource<material>(handle).create_from_file(abs.c_str(), _resources); });
-		}
-
-		loaded_debug_models_loaded.resize(debug_models.size());
-		int i = 0;
-		for (const char* t : debug_models)
-		{
-			const resource_handle handle = _resources.add_resource<model>(TO_SIDC(t));
-			loaded_debug_models.push_back(handle);
-
-			const string relative = t;
-			const string abs	  = engine_data::get().get_working_dir() + relative;
-			const int	 index	  = i;
-			tasks.push_back([handle, abs, relative, this, index]() { loaded_debug_models_loaded[index].create_from_file(abs.c_str(), relative.c_str()); });
-			i++;
-		}
-
-		std::for_each(std::execution::par, tasks.begin(), tasks.end(), [](std::function<void()>& task) { task(); });
-
-		i = 0;
-		for (resource_handle handle : loaded_debug_models)
-		{
-			model& mdl = _resources.get_resource<model>(handle);
-			loaded_debug_models_loaded[i].cook(mdl, _resources.get_aux(), _resources);
-			i++;
-		}
-
-		for (resource_handle h : loaded_debug_textures)
-		{
-			_world_renderer->get_resource_uploads().add_pending_texture(&_resources.get_resource<texture>(h));
-		}
-
-		for (resource_handle h : loaded_debug_models)
-		{
-			model&				 m				= _resources.get_resource<model>(h);
-			const chunk_handle32 created_meshes = m.get_created_meshes();
-			const uint16		 meshes_count	= m.get_mesh_count();
-
-			chunk_allocator32& aux	   = _resources.get_aux();
-			resource_handle*   handles = meshes_count == 0 ? nullptr : aux.get<resource_handle>(created_meshes);
-
-			for (uint16 i = 0; i < meshes_count; i++)
-			{
-				resource_handle& handle = handles[i];
-				mesh&			 m		= _resources.get_resource<mesh>(handle);
-				_world_renderer->get_resource_uploads().add_pending_mesh(&m);
-			}
-		}
-
-		for (resource_handle h : loaded_debug_mats)
-		{
-			_world_renderer->get_resource_uploads().add_pending_material(&_resources.get_resource<material>(h));
-		}
-
-		const int64 mr_diff = time::get_cpu_microseconds() - mr_begin;
-		SFG_INFO("Resources took: {0} ms", mr_diff / 1000);
-
-		if (!loaded_debug_models.empty())
-			add_model_to_world(loaded_debug_models[0], &loaded_debug_mats[0], 1);
-			*/
-
 		const int64 mr_begin = time::get_cpu_microseconds();
 
 		world_raw	 raw = {};
@@ -241,6 +149,11 @@ namespace SFG
 
 		const int64 mr_diff = time::get_cpu_microseconds() - mr_begin;
 		SFG_INFO("Resources took: {0} ms", mr_diff / 1000);
+
+		const entity_handle	  e	 = _entity_manager.create_entity();
+		const trait_handle	  t	 = _entity_manager.add_trait<trait_model_instance>(e);
+		trait_model_instance& mi = _entity_manager.get_trait<trait_model_instance>(t);
+		mi.set_model(TO_SIDC("assets/boombox/boombox.stkmodel"), *this, _render_stream);
 	}
 
 	void world::create_from_raw(world_raw& raw)

@@ -4,6 +4,9 @@
 #include "world.hpp"
 #include "world/traits/trait_model_instance.hpp"
 #include "world/traits/trait_light.hpp"
+#include "gfx/event_stream/render_event_common.hpp"
+#include "gfx/event_stream/render_event_stream.hpp"
+#include "gfx/event_stream/render_event_storage_entity.hpp"
 #include "reflection/reflection.hpp"
 
 namespace SFG
@@ -286,7 +289,7 @@ namespace SFG
 		return target;
 	}
 
-	const entity_meta& entity_manager::get_entity_meta(entity_handle entity) const
+	entity_meta& entity_manager::get_entity_meta(entity_handle entity)
 	{
 		SFG_ASSERT(_entities.is_valid(entity));
 		return _metas.get(entity.index);
@@ -296,6 +299,46 @@ namespace SFG
 	{
 		SFG_ASSERT(_entities.is_valid(entity));
 		return _families.get(entity.index);
+	}
+
+	void entity_manager::on_add_render_proxy(entity_handle entity)
+	{
+		SFG_ASSERT(_entities.is_valid(entity));
+		get_entity_meta(entity).render_proxy_count++;
+
+		const render_event ev = {
+			.header =
+				{
+					.index		= entity.index,
+					.event_type = render_event_type::render_event_add_entity,
+				},
+		};
+
+		_world.get_render_stream().add_event(ev);
+	}
+
+	void entity_manager::on_remove_render_proxy(entity_handle entity)
+	{
+		SFG_ASSERT(_entities.is_valid(entity));
+
+		entity_meta& meta = get_entity_meta(entity);
+		SFG_ASSERT(meta.render_proxy_count > 0);
+		meta.render_proxy_count--;
+
+		if (meta.render_proxy_count == 0)
+		{
+			render_event ev = {
+				.header =
+					{
+						.index		= entity.index,
+						.event_type = render_event_type::render_event_remove_entity,
+					},
+			};
+
+			render_event_storage_entity* stg = ev.construct<render_event_storage_entity>();
+
+			_world.get_render_stream().add_event(ev);
+		}
 	}
 
 	/* ----------------                   ---------------- */

@@ -10,7 +10,7 @@ namespace SFG
 
 	struct render_event_header
 	{
-		resource_handle	  handle;
+		uint32			  index = 0;
 		render_event_type event_type;
 	};
 

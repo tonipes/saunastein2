@@ -16,12 +16,12 @@ namespace SFG
 
 	enum trait_types : uint8
 	{
-		trait_type_mesh_renderer = 0,
+		trait_type_model_instance = 0,
 		trait_type_light,
 		trait_type_max = 32,
 	};
 
-	struct trait_meta
+	struct trait_header
 	{
 		entity_handle  entity;
 		bitmask<uint8> flags;

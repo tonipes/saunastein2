@@ -89,7 +89,7 @@ namespace SFG
 
 		while (ev != nullptr)
 		{
-			uint16 index = ev->header.handle.index;
+			const uint32 index = ev->header.index;
 
 			if (ev->header.event_type == render_event_type::render_event_create_texture)
 			{

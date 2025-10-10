@@ -822,11 +822,7 @@ namespace SFG
 		if (desc.flags.is_set(resource_flags::rf_gpu_only))
 		{
 			allocation_desc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
-			state					 = D3D12_RESOURCE_STATE_COMMON;
-		}
-		else if (desc.flags.is_set(resource_flags::rf_cpu_visible))
-		{
-			allocation_desc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
+			// state					 = D3D12_RESOURCE_STATE_COMMON;
 
 			if (desc.flags.is_set(resource_flags::rf_vertex_buffer) || desc.flags.is_set(resource_flags::rf_constant_buffer))
 				state = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
@@ -834,6 +830,10 @@ namespace SFG
 				state = D3D12_RESOURCE_STATE_INDEX_BUFFER;
 			else
 				state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+		}
+		else if (desc.flags.is_set(resource_flags::rf_cpu_visible))
+		{
+			allocation_desc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
 		}
 		else if (desc.flags.is_set(resource_flags::rf_gpu_write))
 		{

@@ -93,7 +93,7 @@ namespace SFG
 		render_event ev = {
 			.header =
 				{
-					.handle		= handle,
+					.index		= static_cast<uint32>(handle.index),
 					.event_type = render_event_type::render_event_create_texture,
 				},
 		};
@@ -127,7 +127,7 @@ namespace SFG
 #endif
 
 		stream.add_event({.header = {
-							  .handle	  = handle,
+							  .index	  = static_cast<uint32>(handle.index),
 							  .event_type = render_event_type::render_event_destroy_texture,
 						  }});
 	}

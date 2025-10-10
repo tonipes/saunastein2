@@ -18,8 +18,9 @@ namespace SFG
 
 	struct entity_meta
 	{
-		const char*		name  = "";
-		bitmask<uint16> flags = entity_flags_local_transform_dirty | entity_flags_abs_transform_dirty;
+		const char*		name			   = "";
+		bitmask<uint16> flags			   = entity_flags_local_transform_dirty | entity_flags_abs_transform_dirty;
+		uint8			render_proxy_count = 0;
 	};
 
 	struct entity_family

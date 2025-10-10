@@ -14,7 +14,7 @@ namespace SFG
 	{
 		static constexpr uint32 TYPE_INDEX = trait_types::trait_type_light;
 
-		trait_meta meta;
+		trait_header meta;
 
 		static void on_add(entity_manager& em, trait_light& trait);
 		static void on_remove(entity_manager& em, trait_light& trait);
