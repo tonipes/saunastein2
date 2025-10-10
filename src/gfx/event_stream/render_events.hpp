@@ -20,7 +20,7 @@ namespace SFG
 		render_event_header		header;
 		uint8					data[MAX_SIZE - sizeof(render_event_header)];
 
-		template <typename T> T* construct()
+		template <typename T> T* construct() const
 		{
 			static_assert(sizeof(T) <= sizeof(data));
 			return new (data) T();

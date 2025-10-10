@@ -4,6 +4,7 @@
 #include "resources/common_resources.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"
 #include "gfx/event_stream/render_event_storage_gfx.hpp"
+#include "gfx/event_stream/render_event_storage_entity.hpp"
 #include "gfx/texture_queue.hpp"
 #include "gfx/buffer_queue.hpp"
 #include "gfx/common/descriptions.hpp"
@@ -91,7 +92,35 @@ namespace SFG
 		{
 			const uint32 index = ev->header.index;
 
-			if (ev->header.event_type == render_event_type::render_event_create_texture)
+			if (ev->header.event_type == render_event_type::render_event_add_entity)
+			{
+				render_event_storage_entity* stg   = reinterpret_cast<render_event_storage_entity*>(ev->data);
+				render_proxy_entity&		 proxy = get_entity(index);
+				proxy.status					   = render_proxy_status::rps_active;
+				proxy.handle					   = index;
+				proxy.model						   = stg->abs_model;
+			}
+			else if (ev->header.event_type == render_event_type::render_event_add_entity)
+			{
+				render_proxy_entity& proxy = get_entity(index);
+				proxy.status			   = render_proxy_status::rps_inactive;
+				proxy					   = {};
+			}
+			else if (ev->header.event_type == render_event_type::render_event_update_entity)
+			{
+				render_event_storage_entity* stg   = reinterpret_cast<render_event_storage_entity*>(ev->data);
+				render_proxy_entity&		 proxy = get_entity(index);
+				proxy.status					   = render_proxy_status::rps_active;
+				proxy.handle					   = index;
+				proxy.model						   = stg->abs_model;
+			}
+			else if (ev->header.event_type == render_event_type::render_event_update_model_instance)
+			{
+				render_proxy_model_instance& proxy = get_model_instance(index);
+				proxy.status					   = render_proxy_status::rps_inactive;
+				proxy.entity					   = index;
+			}
+			else if (ev->header.event_type == render_event_type::render_event_create_texture)
 			{
 				render_event_storage_texture* stg = reinterpret_cast<render_event_storage_texture*>(ev->data);
 

@@ -7,15 +7,10 @@
 #include "data/ostream.hpp"
 #include "data/static_vector.hpp"
 #include "memory/chunk_handle.hpp"
+#include "render_proxy_common.hpp"
 
 namespace SFG
 {
-	enum render_proxy_status : uint8
-	{
-		rps_inactive = 0,
-		rps_active	 = 1,
-		rps_obsolete,
-	};
 
 	struct render_proxy_texture
 	{

@@ -23,6 +23,7 @@ namespace SFG
 		render_event_update_model_instance,
 		render_event_add_entity,
 		render_event_remove_entity,
+		render_event_update_entity,
 	};
 
 }

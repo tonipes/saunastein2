@@ -3,6 +3,8 @@
 
 #include "common/size_definitions.hpp"
 #include "render_proxy_resources.hpp"
+#include "render_proxy_entity.hpp"
+#include "render_proxy_traits.hpp"
 #include "memory/pool_allocator_simple.hpp"
 #include "memory/chunk_allocator.hpp"
 #include "data/vector.hpp"
@@ -50,6 +52,16 @@ namespace SFG
 			return _materials.get(idx);
 		}
 
+		inline render_proxy_entity& get_entity(uint32 idx)
+		{
+			return _entities.get(idx);
+		}
+
+		inline render_proxy_model_instance& get_model_instance(uint32 idx)
+		{
+			return _model_instances.get(idx);
+		}
+
 		inline chunk_allocator32& get_aux()
 		{
 			return _aux_memory;
@@ -89,13 +101,16 @@ namespace SFG
 		buffer_queue&  _buffer_queue;
 		texture_queue& _texture_queue;
 
-		chunk_allocator32							 _aux_memory;
-		pool_allocator_simple<render_proxy_texture>	 _textures;
-		pool_allocator_simple<render_proxy_sampler>	 _samplers;
-		pool_allocator_simple<render_proxy_material> _materials;
-		pool_allocator_simple<render_proxy_shader>	 _shaders;
-		pool_allocator_simple<render_proxy_mesh>	 _meshes;
-		destroy_bucket								 _destroy_bucket[FRAMES_IN_FLIGHT + 1];
-		uint8										 _destroy_bucket_index = 0;
+		chunk_allocator32								   _aux_memory;
+		pool_allocator_simple<render_proxy_texture>		   _textures;
+		pool_allocator_simple<render_proxy_sampler>		   _samplers;
+		pool_allocator_simple<render_proxy_material>	   _materials;
+		pool_allocator_simple<render_proxy_shader>		   _shaders;
+		pool_allocator_simple<render_proxy_mesh>		   _meshes;
+		pool_allocator_simple<render_proxy_entity>		   _entities;
+		pool_allocator_simple<render_proxy_model_instance> _model_instances;
+
+		destroy_bucket _destroy_bucket[FRAMES_IN_FLIGHT + 1];
+		uint8		   _destroy_bucket_index = 0;
 	};
 }
