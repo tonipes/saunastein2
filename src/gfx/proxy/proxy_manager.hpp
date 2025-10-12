@@ -114,6 +114,5 @@ namespace SFG
 		pool_allocator_simple<render_proxy_model_instance> _model_instances;
 
 		destroy_bucket _destroy_bucket[FRAMES_IN_FLIGHT + 1];
-		uint8		   _destroy_bucket_index = 0;
 	};
 }

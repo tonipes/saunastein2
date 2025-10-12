@@ -184,8 +184,8 @@ namespace SFG
 
 	void renderer::fetch_render_events(render_event_stream& stream)
 	{
-		_proxy_manager.flush_destroys(false);
 		_proxy_manager.fetch_render_events(stream);
+		_proxy_manager.flush_destroys(false);
 	}
 	void renderer::render(const vector2ui16& size)
 	{

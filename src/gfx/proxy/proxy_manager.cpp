@@ -120,16 +120,17 @@ namespace SFG
 	{
 		gfx_backend* backend = gfx_backend::get();
 
+		const uint64 frame = frame_info::get_render_frame();
+		if (frame < FRAMES_IN_FLIGHT + 1)
+			return;
+
 		const uint8 mod			= FRAMES_IN_FLIGHT + 1;
-		const uint8 safe_bucket = frame_info::get_render_frame() % mod;
+		const uint8 safe_bucket = (frame - FRAMES_IN_FLIGHT) % mod;
 		destroy_target_bucket(safe_bucket);
 		if (force)
 		{
-			for (uint32 i = 1; i < mod; i++)
-			{
-				const uint8 other = (safe_bucket + i) % mod;
-				destroy_target_bucket(other);
-			}
+			for (uint32 i = 0; i < mod; i++)
+				destroy_target_bucket(i);
 		}
 	}
 
