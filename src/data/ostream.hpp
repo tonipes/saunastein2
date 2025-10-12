@@ -94,6 +94,12 @@ namespace SFG
 			_current_size = size;
 		}
 
+		inline void set(size_t pad, size_t sz, uint8 val)
+		{
+			SFG_ASSERT(sz <= _total_size);
+			SFG_MEMSET(_data + pad, val, sz);
+		}
+
 	private:
 		void check_grow(size_t sz);
 

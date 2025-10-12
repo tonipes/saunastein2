@@ -8,7 +8,7 @@
 #include "gfx/util/gfx_util.hpp"
 #include "gfx/world/world_renderer.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"
-#include "gfx/event_stream/render_event_storage_gfx.hpp"
+#include "gfx/event_stream/render_events_gfx.hpp"
 #include "platform/window.hpp"
 #include "platform/time.hpp"
 #include "math/vector4.hpp"

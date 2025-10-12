@@ -17,24 +17,14 @@ namespace SFG
 {
 	void texture_sampler_raw::serialize(ostream& stream) const
 	{
-		stream << desc.anisotropy;
-		stream << desc.lod_bias;
-		stream << desc.min_lod;
-		stream << desc.max_lod;
-		stream << desc.flags.value();
+		stream << desc;
 		stream << name;
 	}
 
 	void texture_sampler_raw::deserialize(istream& stream)
 	{
-		uint16 val = 0;
-		stream >> desc.anisotropy;
-		stream >> desc.lod_bias;
-		stream >> desc.min_lod;
-		stream >> desc.max_lod;
-		stream >> val;
+		stream >> desc;
 		stream >> name;
-		desc.flags = val;
 
 		SFG_INFO("Created sampler from buffer: {0}", name);
 	}

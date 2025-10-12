@@ -128,7 +128,7 @@ namespace SFG
 
 	void image_util::free(void* data)
 	{
-		STBI_FREE(data);
+		::STBI_FREE(data);
 	}
 
 }

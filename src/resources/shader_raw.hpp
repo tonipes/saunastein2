@@ -22,10 +22,6 @@ namespace SFG
 		uint8		   is_skinned = 0;
 
 		void destroy();
-
-		void serialize(ostream& stream, const shader_desc& desc) const;
-		void deserialize(istream& stream, shader_desc& desc);
-
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream, bool use_embedded_layout, gfx_id layout);
 

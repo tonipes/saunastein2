@@ -34,6 +34,7 @@ namespace SFG
 		time::init();
 		debug_console::init();
 
+		_render_stream.init();
 		_world = new world(_render_stream);
 
 		_main_window = new window();
@@ -118,6 +119,7 @@ namespace SFG
 		time::uninit();
 		debug_console::uninit();
 
+		_render_stream.publish();
 		_renderer->fetch_render_events(_render_stream);
 		_renderer->uninit();
 		delete _renderer;
@@ -129,6 +131,7 @@ namespace SFG
 		backend->uninit();
 		delete gfx_backend::s_instance;
 		gfx_backend::s_instance = nullptr;
+		_render_stream.uninit();
 	}
 
 	void game_app::tick()
@@ -188,6 +191,7 @@ namespace SFG
 
 			const double interpolation = static_cast<double>(accumulator) / static_cast<double>(FIXED_INTERVAL_US);
 			_world->post_tick(interpolation);
+			_render_stream.publish();
 			_renderer->tick();
 			frame_info::s_frame.fetch_add(1);
 		}

@@ -8,7 +8,7 @@
 #include "reflection/reflection.hpp"
 #include "world/world.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"
-#include "gfx/event_stream/render_event_storage_gfx.hpp"
+#include "gfx/event_stream/render_events_gfx.hpp"
 
 namespace SFG
 {
@@ -28,40 +28,20 @@ namespace SFG
 		_node_index = raw.node_index;
 		_skin_index = raw.skin_index;
 
-		render_event ev = {
-			.header =
-				{
-					.index		= static_cast<uint32>(handle.index),
-					.event_type = render_event_type::render_event_create_mesh,
-				},
-		};
-
-		render_event_storage_mesh* stg = ev.construct<render_event_storage_mesh>();
+		render_event_mesh ev  = {};
+		ev.primitives_static  = raw.primitives_static;
+		ev.primitives_skinned = raw.primitives_skinned;
 
 #ifndef SFG_STRIP_DEBUG_NAMES
-		stg->name = reinterpret_cast<const char*>(SFG_MALLOC(_name.size));
-		if (stg->name)
-			strcpy((char*)stg->name, alloc.get<const char>(_name));
+		ev.name = raw.name;
 #endif
 
-		stg->primitives_static.resize(raw.primitives_static.size());
-		stg->primitives_skinned.resize(raw.primitives_skinned.size());
-
-		uint32 i = 0;
-		for (const primitive_static_raw& r : raw.primitives_static)
-		{
-			stg->primitives_static[i] = r;
-			i++;
-		}
-
-		i = 0;
-		for (const primitive_skinned_raw& r : raw.primitives_skinned)
-		{
-			stg->primitives_skinned[i] = r;
-			i++;
-		}
-
-		stream.add_event(ev);
+		stream.add_event(
+			{
+				.index		= static_cast<uint32>(handle.index),
+				.event_type = render_event_type::render_event_create_mesh,
+			},
+			ev);
 	}
 
 	void mesh::destroy(chunk_allocator32& alloc, render_event_stream& stream, resource_handle handle)
@@ -73,11 +53,8 @@ namespace SFG
 #endif
 
 		stream.add_event({
-			.header =
-				{
-					.index		= static_cast<uint32>(handle.index),
-					.event_type = render_event_type::render_event_destroy_mesh,
-				},
+			.index		= static_cast<uint32>(handle.index),
+			.event_type = render_event_type::render_event_destroy_mesh,
 		});
 	}
 }

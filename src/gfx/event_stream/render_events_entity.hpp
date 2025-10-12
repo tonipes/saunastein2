@@ -8,8 +8,14 @@
 
 namespace SFG
 {
-	struct render_event_storage_entity
+	class ostream;
+	class istream;
+
+	struct render_event_entity
 	{
 		matrix4x3 abs_model = {};
+
+		void serialize(ostream& stream) const;
+		void deserialize(istream& stream);
 	};
 }

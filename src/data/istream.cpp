@@ -5,6 +5,19 @@
 
 namespace SFG
 {
+	void istream::open(uint8* data, size_t size)
+	{
+		_data  = data;
+		_size  = size;
+		_index = 0;
+	}
+
+	void istream::close()
+	{
+		_data  = nullptr;
+		_size  = 0;
+		_index = 0;
+	}
 	void istream::create(uint8* data, size_t size)
 	{
 		destroy();

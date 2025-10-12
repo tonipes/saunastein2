@@ -7,6 +7,7 @@
 #include "data/bitmask.hpp"
 #include "data/vector.hpp"
 #include "data/span.hpp"
+#include "data/string.hpp"
 #include "format.hpp"
 #include "resource_limits.hpp"
 #include "shader_description.hpp"
@@ -16,6 +17,9 @@
 #endif
 namespace SFG
 {
+	class ostream;
+	class istream;
+
 	struct viewport
 	{
 		vector2		pos		 = vector2::zero;
@@ -175,7 +179,10 @@ namespace SFG
 		float			max_lod	   = 1.0f;
 		float			lod_bias   = 0.0f;
 		bitmask<uint16> flags	   = 0;
-		const char*		debug_name = "sampler";
+		string			debug_name = "sampler";
+
+		void serialize(ostream& stream) const;
+		void deserialize(istream& stream);
 	};
 
 	struct layout_entry

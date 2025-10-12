@@ -7,8 +7,8 @@
 #include "resources/mesh.hpp"
 #include "resources/material.hpp"
 #include "reflection/reflection.hpp"
-#include "gfx/event_stream/render_events.hpp"
-#include "gfx/event_stream/render_event_storage_traits.hpp"
+#include "gfx/event_stream/render_event_stream.hpp"
+#include "gfx/event_stream/render_events_trait.hpp"
 
 #ifdef SFG_TOOLMODE
 #include <vendor/nhlohmann/json.hpp>
@@ -44,27 +44,25 @@ namespace SFG
 		if (_material_count != 0)
 			_materials = mdl.get_created_materials();
 
-		render_event ev = {
-			.header =
-				{
-					.index		= _header.entity.index,
-					.event_type = render_event_type::render_event_update_model_instance,
-				},
-		};
-
 		entity_manager& em = w.get_entity_manager();
 		em.on_add_render_proxy(_header.entity);
 
-		render_event_storage_model_instance* stg = ev.construct<render_event_storage_model_instance>();
-		stg->model								 = _target_model.index;
-		stg->single_mesh						 = !_target_mesh.is_null();
-		stg->materials.resize(_material_count);
+		render_event_model_instance stg = {};
+
+		stg.model		= _target_model.index;
+		stg.single_mesh = !_target_mesh.is_null();
+		stg.materials.resize(_material_count);
 
 		resource_handle* materials = aux.get<resource_handle>(_materials);
 		for (uint16 i = 0; i < _material_count; i++)
-		{
-			stg->materials[i] = materials[i].index;
-		}
+			stg.materials[i] = materials[i].index;
+
+		stream.add_event(
+			{
+				.index		= _header.entity.index,
+				.event_type = render_event_type::render_event_update_model_instance,
+			},
+			stg);
 	}
 
 	void trait_model_instance::set_model(string_id sid, world& w, render_event_stream& stream, resource_handle target_mesh)

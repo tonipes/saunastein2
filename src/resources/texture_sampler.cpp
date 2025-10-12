@@ -7,7 +7,7 @@
 #include "gfx/backend/backend.hpp"
 #include "gfx/common/descriptions.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"
-#include "gfx/event_stream/render_event_storage_gfx.hpp"
+#include "gfx/event_stream/render_events_gfx.hpp"
 
 #include "world/world.hpp"
 #include "reflection/reflection.hpp"
@@ -72,23 +72,15 @@ namespace SFG
 			_name = alloc.allocate_text(raw.name);
 #endif
 
-		render_event ev = {
-			.header =
-				{
-					.index		= static_cast<uint32>(handle.index),
-					.event_type = render_event_type::render_event_create_sampler,
-				},
-		};
-		render_event_storage_sampler* stg = ev.construct<render_event_storage_sampler>();
-		stg->desc						  = raw.desc;
+		render_event_sampler stg = {};
+		stg.desc				 = raw.desc;
 
-#ifndef SFG_STRIP_DEBUG_NAMES
-		stg->desc.debug_name = reinterpret_cast<const char*>(SFG_MALLOC(_name.size));
-		if (stg->desc.debug_name)
-			strcpy((char*)stg->desc.debug_name, alloc.get<const char>(_name));
-#endif
-
-		stream.add_event(ev);
+		stream.add_event(
+			{
+				.index		= static_cast<uint32>(handle.index),
+				.event_type = render_event_type::render_event_create_sampler,
+			},
+			stg);
 	}
 
 	void texture_sampler::destroy(render_event_stream& stream, chunk_allocator32& alloc, resource_handle handle)
@@ -99,14 +91,10 @@ namespace SFG
 		_name = {};
 #endif
 
-		render_event ev = {
-			.header =
-				{
-					.index		= static_cast<uint32>(handle.index),
-					.event_type = render_event_type::render_event_destroy_sampler,
-				},
-		};
-		stream.add_event(ev);
+		stream.add_event({
+			.index		= static_cast<uint32>(handle.index),
+			.event_type = render_event_type::render_event_destroy_sampler,
+		});
 	}
 
 }

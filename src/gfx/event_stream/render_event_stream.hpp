@@ -2,25 +2,50 @@
 #pragma once
 
 #include "common/size_definitions.hpp"
+#include "data/vector.hpp"
 #include "gfx/event_stream/render_events.hpp"
 #include "vendor/moodycamel/readerwriterqueue.h"
+#include "data/ostream.hpp"
 
 namespace SFG
 {
-
 	class render_event_stream
 	{
 	public:
-		static constexpr size_t MAX_RENDER_EVENTS = 512;
+		static constexpr size_t MAX_RENDER_EVENTS = 2048;
+		static constexpr size_t BATCH_SIZE		  = 1024 * 512;
+		static constexpr size_t MAX_BATCHES		  = 8;
 
-		void add_event(const render_event& ev);
-
-		inline moodycamel::ReaderWriterQueue<render_event, MAX_RENDER_EVENTS>& get_events()
+		struct event_batch
 		{
-			return _events;
+			uint8  data[BATCH_SIZE];
+			size_t size = 0;
+		};
+
+		void init();
+		void uninit();
+
+		void publish();
+
+		template <typename T> inline void add_event(const render_event_header& header, const T& ev)
+		{
+			header.serialize(_main_thread_data);
+			ev.serialize(_main_thread_data);
+			SFG_ASSERT(_main_thread_data.get_size() < BATCH_SIZE);
+		}
+
+		inline void add_event(const render_event_header& header)
+		{
+			header.serialize(_main_thread_data);
+		}
+
+		inline moodycamel::ReaderWriterQueue<event_batch, MAX_BATCHES>& get_events()
+		{
+			return _event_queue;
 		}
 
 	private:
-		moodycamel::ReaderWriterQueue<render_event, MAX_RENDER_EVENTS> _events;
+		ostream													_main_thread_data = {};
+		moodycamel::ReaderWriterQueue<event_batch, MAX_BATCHES> _event_queue;
 	};
 }

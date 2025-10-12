@@ -16,6 +16,8 @@ namespace SFG
 	class buffer_queue;
 	class texture_queue;
 	class render_event_stream;
+	class istream;
+	struct render_event_header;
 
 	class proxy_manager
 	{
@@ -89,6 +91,7 @@ namespace SFG
 		};
 
 	private:
+		void process_event(const render_event_header& header, istream& stream);
 		void destroy_texture(render_proxy_texture& proxy);
 		void destroy_sampler(render_proxy_sampler& proxy);
 		void destroy_shader(render_proxy_shader& proxy);

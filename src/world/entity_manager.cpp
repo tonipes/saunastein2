@@ -6,7 +6,7 @@
 #include "world/traits/trait_light.hpp"
 #include "gfx/event_stream/render_event_common.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"
-#include "gfx/event_stream/render_event_storage_entity.hpp"
+#include "gfx/event_stream/render_events_gfx.hpp"
 #include "reflection/reflection.hpp"
 
 namespace SFG
@@ -306,15 +306,15 @@ namespace SFG
 		SFG_ASSERT(_entities.is_valid(entity));
 		get_entity_meta(entity).render_proxy_count++;
 
-		const render_event ev = {
-			.header =
-				{
-					.index		= entity.index,
-					.event_type = render_event_type::render_event_add_entity,
-				},
-		};
+		// const render_event ev = {
+		// 	.header =
+		// 		{
+		// 			.index		= entity.index,
+		// 			.event_type = render_event_type::render_event_add_entity,
+		// 		},
+		// };
 
-		// render_event_storage_entity* stg = ev.construct<render_event_storage_entity>();
+		// render_event_entity* stg = ev.construct<render_event_entity>();
 		//_world.get_render_stream().add_event(ev);
 	}
 

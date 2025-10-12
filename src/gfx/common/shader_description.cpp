@@ -2,6 +2,8 @@
 
 #include "shader_description.hpp"
 #include "io/assert.hpp"
+#include "data/ostream.hpp"
+#include "data/istream.hpp"
 
 #include "vendor/nhlohmann/json.hpp"
 using json = nlohmann::json;
@@ -620,5 +622,224 @@ namespace SFG
 
 		if (layout_data.size != 0)
 			delete[] layout_data.data;
+	}
+
+	void shader_desc::serialize(ostream& stream, bool write_addresses) const
+	{
+		stream << debug_name;
+		stream << vertex_entry;
+		stream << pixel_entry;
+		stream << compute_entry;
+		stream << flags.value();
+		stream << static_cast<uint32>(layout_data.size);
+
+		if (layout_data.size != 0)
+		{
+			if (write_addresses)
+			{
+				const uint64 addr = reinterpret_cast<uint64>(layout_data.data);
+				stream << addr;
+			}
+			else
+				stream.write_raw(layout_data.data, layout_data.size);
+		}
+
+		const uint16 blobs_count = static_cast<uint16>(blobs.size());
+		stream << blobs_count;
+
+		for (const shader_blob& b : blobs)
+		{
+			stream << b.stage;
+			stream << static_cast<uint32>(b.data.size);
+			SFG_ASSERT(b.data.size);
+
+			if (write_addresses)
+			{
+				const uint64 addr = reinterpret_cast<uint64>(b.data.data);
+				stream << addr;
+			}
+			else
+				stream.write_raw(b.data.data, b.data.size);
+		}
+
+		const uint16 att_count = static_cast<uint16>(attachments.size());
+		stream << att_count;
+
+		for (const shader_color_attachment& att : attachments)
+		{
+			stream << att.format;
+			stream << att.blend_attachment.blend_enabled;
+			stream << att.blend_attachment.src_alpha_blend_factor;
+			stream << att.blend_attachment.dst_alpha_blend_factor;
+			stream << att.blend_attachment.color_blend_op;
+			stream << att.blend_attachment.src_alpha_blend_factor;
+			stream << att.blend_attachment.dst_alpha_blend_factor;
+			stream << att.blend_attachment.alpha_blend_op;
+			stream << att.blend_attachment.color_comp_flags.value();
+		}
+
+		// depth stencil
+		{
+			stream << depth_stencil_desc.attachment_format;
+			stream << depth_stencil_desc.depth_compare;
+			stream << depth_stencil_desc.back_stencil_state.compare_op;
+			stream << depth_stencil_desc.back_stencil_state.depth_fail_op;
+			stream << depth_stencil_desc.back_stencil_state.fail_op;
+			stream << depth_stencil_desc.back_stencil_state.pass_op;
+			stream << depth_stencil_desc.front_stencil_state.compare_op;
+			stream << depth_stencil_desc.front_stencil_state.depth_fail_op;
+			stream << depth_stencil_desc.front_stencil_state.fail_op;
+			stream << depth_stencil_desc.front_stencil_state.pass_op;
+			stream << depth_stencil_desc.stencil_compare_mask;
+			stream << depth_stencil_desc.stencil_write_mask;
+			stream << depth_stencil_desc.flags.value();
+			stream << depth_bias_clamp;
+			stream << depth_bias_constant;
+			stream << depth_bias_slope;
+		}
+
+		const uint16 inp_count = static_cast<uint16>(inputs.size());
+		stream << inp_count;
+
+		for (const vertex_input& inp : inputs)
+		{
+			stream << inp.name;
+			stream << inp.location;
+			stream << inp.index;
+			stream << static_cast<uint32>(inp.offset);
+			stream << static_cast<uint32>(inp.size);
+			stream << inp.format;
+		}
+
+		stream << blend_logic_op;
+		stream << topo;
+		stream << cull;
+		stream << front;
+		stream << poly_mode;
+		stream << samples;
+	}
+
+	void shader_desc::deserialize(istream& stream, bool read_addresses)
+	{
+		uint16 sh_flags	   = 0;
+		uint32 layout_size = 0;
+
+		stream >> debug_name;
+		stream >> vertex_entry;
+		stream >> pixel_entry;
+		stream >> compute_entry;
+		stream >> sh_flags;
+		stream >> layout_size;
+		flags			 = sh_flags;
+		layout_data.size = static_cast<size_t>(layout_size);
+
+		if (layout_data.size != 0)
+		{
+			if (read_addresses)
+			{
+				uint64 addr = 0;
+				stream >> addr;
+				layout_data.data = reinterpret_cast<uint8*>(addr);
+			}
+			else
+			{
+				layout_data.data = new uint8[layout_data.size];
+				stream.read_to_raw(layout_data.data, layout_data.size);
+			}
+		}
+
+		uint16 blobs_count = 0;
+		stream >> blobs_count;
+
+		blobs.resize(static_cast<size_t>(blobs_count));
+
+		for (uint16 i = 0; i < blobs_count; i++)
+		{
+			shader_blob& b = blobs[i];
+			stream >> b.stage;
+			uint32 size = 0;
+			stream >> size;
+			b.data.size = static_cast<size_t>(size);
+
+			if (read_addresses)
+			{
+				uint64 addr = 0;
+				stream >> addr;
+				b.data.data = reinterpret_cast<uint8*>(addr);
+			}
+			else
+			{
+				b.data.data = new uint8[size];
+				stream.read_to_raw(b.data.data, b.data.size);
+			}
+		}
+
+		uint16 att_count = 0;
+		stream >> att_count;
+		attachments.resize(att_count);
+		for (uint16 i = 0; i < att_count; i++)
+		{
+			shader_color_attachment& att   = attachments[i];
+			uint8					 flags = 0;
+			stream >> att.format;
+			stream >> att.blend_attachment.blend_enabled;
+			stream >> att.blend_attachment.src_alpha_blend_factor;
+			stream >> att.blend_attachment.dst_alpha_blend_factor;
+			stream >> att.blend_attachment.color_blend_op;
+			stream >> att.blend_attachment.src_alpha_blend_factor;
+			stream >> att.blend_attachment.dst_alpha_blend_factor;
+			stream >> att.blend_attachment.alpha_blend_op;
+			stream >> flags;
+			att.blend_attachment.color_comp_flags = flags;
+		}
+
+		// depth stencil
+		{
+			uint8 flags = 0;
+			stream >> depth_stencil_desc.attachment_format;
+			stream >> depth_stencil_desc.depth_compare;
+			stream >> depth_stencil_desc.back_stencil_state.compare_op;
+			stream >> depth_stencil_desc.back_stencil_state.depth_fail_op;
+			stream >> depth_stencil_desc.back_stencil_state.fail_op;
+			stream >> depth_stencil_desc.back_stencil_state.pass_op;
+			stream >> depth_stencil_desc.front_stencil_state.compare_op;
+			stream >> depth_stencil_desc.front_stencil_state.depth_fail_op;
+			stream >> depth_stencil_desc.front_stencil_state.fail_op;
+			stream >> depth_stencil_desc.front_stencil_state.pass_op;
+			stream >> depth_stencil_desc.stencil_compare_mask;
+			stream >> depth_stencil_desc.stencil_write_mask;
+			stream >> flags;
+			depth_stencil_desc.flags = flags;
+			stream >> depth_bias_clamp;
+			stream >> depth_bias_constant;
+			stream >> depth_bias_slope;
+		}
+
+		uint16 inp_count = 0;
+		stream >> inp_count;
+		inputs.resize(inp_count);
+		for (uint16 i = 0; i < inp_count; i++)
+		{
+			vertex_input& inp	 = inputs[i];
+			uint32		  offset = 0;
+			uint32		  size	 = 0;
+
+			stream >> inp.name;
+			stream >> inp.location;
+			stream >> inp.index;
+			stream >> offset;
+			stream >> size;
+			stream >> inp.format;
+
+			inp.offset = static_cast<size_t>(offset);
+			inp.size   = static_cast<size_t>(size);
+		}
+
+		stream >> blend_logic_op;
+		stream >> topo;
+		stream >> cull;
+		stream >> front;
+		stream >> poly_mode;
+		stream >> samples;
 	}
 }

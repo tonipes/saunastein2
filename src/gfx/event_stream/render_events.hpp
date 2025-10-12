@@ -8,27 +8,16 @@
 namespace SFG
 {
 
+	class ostream;
+	class istream;
+
 	struct render_event_header
 	{
 		uint32			  index = 0;
 		render_event_type event_type;
+
+		void serialize(ostream& stream) const;
+		void deserialize(istream& stream);
 	};
 
-	struct render_event
-	{
-		static constexpr size_t MAX_SIZE = 324;
-		render_event_header		header;
-		uint8					data[MAX_SIZE - sizeof(render_event_header)];
-
-		template <typename T> T* construct()
-		{
-			static_assert(sizeof(T) <= sizeof(data));
-			return new (data) T();
-		}
-
-		template <typename T> void destruct()
-		{
-			reinterpret_cast<T*>(data)->~T();
-		}
-	};
 }

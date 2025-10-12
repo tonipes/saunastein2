@@ -1750,7 +1750,7 @@ namespace SFG
 			cpsd.CS								   = {it->data.data, it->data.size};
 			cpsd.NodeMask						   = 0;
 			_device->CreateComputePipelineState(&cpsd, IID_PPV_ARGS(&sh.ptr));
-			NAME_DX12_OBJECT_CSTR(sh.ptr, desc.debug_name);
+			NAME_DX12_OBJECT_CSTR(sh.ptr, desc.debug_name.c_str());
 			return id;
 		}
 
@@ -1847,7 +1847,7 @@ namespace SFG
 		}
 
 		throw_if_failed(_device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&sh.ptr)));
-		NAME_DX12_OBJECT_CSTR(sh.ptr, desc.debug_name);
+		NAME_DX12_OBJECT_CSTR(sh.ptr, desc.debug_name.c_str());
 		return id;
 	}
 

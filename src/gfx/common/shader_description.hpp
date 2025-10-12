@@ -15,6 +15,9 @@
 
 namespace SFG
 {
+	class ostream;
+	class istream;
+
 	enum class blend_op : uint8
 	{
 		add,
@@ -230,9 +233,11 @@ namespace SFG
 		float  depth_bias_clamp	   = 0.0f;
 		float  depth_bias_slope	   = 0.0f;
 
-		const char* debug_name = "shader";
+		string debug_name = "shader";
 
 		void destroy();
+		void serialize(ostream& stream, bool write_addresses = false) const;
+		void deserialize(istream& stream, bool read_addresses = false);
 	};
 
 #ifdef SFG_TOOLMODE

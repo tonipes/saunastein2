@@ -12,7 +12,7 @@
 #include "reflection/reflection.hpp"
 #include "world/world.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"
-#include "gfx/event_stream/render_event_storage_gfx.hpp"
+#include "gfx/event_stream/render_events_gfx.hpp"
 
 #ifdef SFG_TOOLMODE
 #include "project/engine_data.hpp"
@@ -90,32 +90,27 @@ namespace SFG
 			_name = alloc.allocate_text(raw.name);
 #endif
 
-		render_event ev = {
-			.header =
-				{
-					.index		= static_cast<uint32>(handle.index),
-					.event_type = render_event_type::render_event_create_texture,
-				},
-		};
-
 		gfx_backend* backend	= gfx_backend::get();
 		uint32		 total_size = 0;
 		for (const texture_buffer& buf : raw.buffers)
 			total_size += backend->get_texture_size(buf.size.x, buf.size.y, buf.bpp);
 
-		render_event_storage_texture* stg = ev.construct<render_event_storage_texture>();
-		stg->buffers					  = raw.buffers;
-		stg->format						  = _texture_format;
-		stg->size						  = raw.buffers[0].size;
-		stg->intermediate_size			  = backend->align_texture_size(total_size);
+		render_event_texture stg = {};
+		stg.buffers				 = raw.buffers;
+		stg.format				 = _texture_format;
+		stg.size				 = raw.buffers[0].size;
+		stg.intermediate_size	 = backend->align_texture_size(total_size);
 
 #ifndef SFG_STRIP_DEBUG_NAMES
-		stg->name = reinterpret_cast<const char*>(SFG_MALLOC(_name.size));
-		if (stg->name)
-			strcpy((char*)stg->name, alloc.get<const char>(_name));
+		stg.name = raw.name;
 #endif
 
-		stream.add_event(ev);
+		stream.add_event(
+			{
+				.index		= static_cast<uint32>(handle.index),
+				.event_type = render_event_type::render_event_create_texture,
+			},
+			stg);
 	}
 
 	void texture::destroy(render_event_stream& stream, chunk_allocator32& alloc, resource_handle handle)
@@ -126,10 +121,10 @@ namespace SFG
 		_name = {};
 #endif
 
-		stream.add_event({.header = {
-							  .index	  = static_cast<uint32>(handle.index),
-							  .event_type = render_event_type::render_event_destroy_texture,
-						  }});
+		stream.add_event({
+			.index		= static_cast<uint32>(handle.index),
+			.event_type = render_event_type::render_event_destroy_texture,
+		});
 	}
 
 }

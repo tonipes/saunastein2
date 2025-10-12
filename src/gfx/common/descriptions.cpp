@@ -1,5 +1,7 @@
 // Copyright (c) 2025 Inan Evin
 #include "descriptions.hpp"
+#include "data/ostream.hpp"
+#include "data/istream.hpp"
 
 #ifdef SFG_TOOLMODE
 #include "io/assert.hpp"
@@ -110,5 +112,27 @@ namespace SFG
 	}
 
 #endif
+
+	void sampler_desc::serialize(ostream& stream) const
+	{
+		stream << anisotropy;
+		stream << lod_bias;
+		stream << min_lod;
+		stream << max_lod;
+		stream << flags.value();
+		stream << debug_name;
+	}
+
+	void sampler_desc::deserialize(istream& stream)
+	{
+		uint16 val = 0;
+		stream >> anisotropy;
+		stream >> lod_bias;
+		stream >> min_lod;
+		stream >> max_lod;
+		stream >> val;
+		stream >> debug_name;
+		flags = val;
+	}
 
 }

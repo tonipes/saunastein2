@@ -56,6 +56,8 @@ namespace SFG
 			_data = data;
 			_size = size;
 		}
+		void open(uint8* data, size_t size);
+		void close();
 		void create(uint8* data, size_t size);
 		void destroy();
 		void read_from_ifstream(std::ifstream& stream);
@@ -110,7 +112,7 @@ namespace SFG
 
 		inline bool is_eof() const
 		{
-			return _index == _size;
+			return _index >= _size;
 		}
 
 	private:
