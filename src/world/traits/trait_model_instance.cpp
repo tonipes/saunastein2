@@ -20,12 +20,13 @@ namespace SFG
 	trait_model_instance_reflection::trait_model_instance_reflection()
 	{
 		meta& m = reflection::get().register_meta(type_id<trait_model_instance>::value, type_id<trait_model_instance>::index, "");
-		m.add_function<void, world&>("init_trait_storage"_hs, [](world& w) -> void { w.get_entity_manager().init_trait_storage<trait_model_instance>(1024); });
+		m.add_function<void, world&>("init_trait_storage"_hs, [](world& w) -> void { w.get_entity_manager().init_trait_storage<trait_model_instance>(MAX_MODEL_INSTANCES); });
 	}
 
 	void trait_model_instance::on_add(world& w, trait_handle handle, entity_handle entity)
 	{
 		_header.entity = entity;
+		w.get_entity_manager().on_add_render_proxy(_header.entity);
 	}
 
 	void trait_model_instance::on_remove(world& w, trait_handle handle)
@@ -43,9 +44,6 @@ namespace SFG
 		_target_mesh				 = target_mesh;
 		if (_material_count != 0)
 			_materials = mdl.get_created_materials();
-
-		entity_manager& em = w.get_entity_manager();
-		em.on_add_render_proxy(_header.entity);
 
 		render_event_model_instance stg = {};
 

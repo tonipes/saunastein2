@@ -6,10 +6,10 @@
 
 namespace SFG
 {
-#define MAX_RENDERABLE_NODES	 1024
-#define MAX_RENDERABLE_MATERIALS 256
-#define MAX_ENTITIES			 512
-#define MAX_TRAIT_AUX_MEMORY	 1024
+#define MAX_ENTITIES				   16000
+#define MAX_MODEL_INSTANCES			   1000
+#define MAX_WORLD_RESOURCES_AUX_MEMORY 1024 * 1024 * 4
+#define MAX_WORLD_TRAITS_AUX_MEMORY	   1024 * 512
 
 	typedef uint32		  entity_id;
 	typedef pool_handle32 entity_handle;

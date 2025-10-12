@@ -14,6 +14,7 @@ namespace SFG
 		entity_flags_local_transform_dirty = 1 << 0,
 		entity_flags_abs_transform_dirty   = 1 << 1,
 		entity_flags_abs_rotation_dirty	   = 1 << 2,
+		entity_flags_render_proxy_dirty	   = 1 << 3,
 	};
 
 	struct entity_meta

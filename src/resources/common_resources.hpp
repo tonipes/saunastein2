@@ -9,6 +9,7 @@
 namespace SFG
 {
 
+#define MAX_WORLD_MODEL_INSTANCES	 5000
 #define MAX_WORLD_TEXTURES			 32
 #define MAX_WORLD_MODELS			 32
 #define MAX_WORLD_MESHES			 256

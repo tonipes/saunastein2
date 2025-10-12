@@ -170,6 +170,7 @@ namespace SFG
 
 	void world::post_tick(double interpolation)
 	{
+		_entity_manager.post_tick(interpolation);
 	}
 
 	void world::pre_render(const vector2ui16& res)

@@ -6,13 +6,15 @@
 #include "world/traits/trait_light.hpp"
 #include "gfx/event_stream/render_event_common.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"
-#include "gfx/event_stream/render_events_gfx.hpp"
+#include "gfx/event_stream/render_events_entity.hpp"
 #include "reflection/reflection.hpp"
 
 namespace SFG
 {
 	entity_manager::entity_manager(world& w) : _world(w)
 	{
+		_traits_aux_memory.init(MAX_WORLD_TRAITS_AUX_MEMORY);
+
 		_entities.init<entity_id>(MAX_ENTITIES);
 		_metas.init(MAX_ENTITIES);
 		_positions.init(MAX_ENTITIES);
@@ -39,6 +41,8 @@ namespace SFG
 
 	entity_manager::~entity_manager()
 	{
+		_traits_aux_memory.uninit();
+
 		for (trait_storage& stg : _traits)
 		{
 			if (stg.storage.get_raw())
@@ -52,11 +56,31 @@ namespace SFG
 	{
 	}
 
+	void entity_manager::post_tick(double interpolation)
+	{
+		const float i = static_cast<float>(interpolation);
+
+		entity_meta*		 metas	= &_metas.get(0);
+		render_event_stream& stream = _world.get_render_stream();
+
+		render_event_entity update = {};
+		for (entity_handle h : _entities)
+		{
+			entity_meta& m = metas[h.index];
+			if (m.flags.is_set(entity_flags::entity_flags_render_proxy_dirty))
+			{
+				update.abs_model = calculate_interpolated_transform_abs(h, i);
+				stream.add_event({.index = h.index, .event_type = render_event_type::render_event_update_entity}, update);
+				m.flags.remove(entity_flags::entity_flags_render_proxy_dirty);
+			}
+		}
+	}
+
 	void entity_manager::uninit()
 	{
 		for (trait_storage& stg : _traits)
 			stg.storage.reset();
-
+		_traits_aux_memory.reset();
 		reset_all_entity_data();
 	}
 
@@ -304,18 +328,9 @@ namespace SFG
 	void entity_manager::on_add_render_proxy(entity_handle entity)
 	{
 		SFG_ASSERT(_entities.is_valid(entity));
-		get_entity_meta(entity).render_proxy_count++;
-
-		// const render_event ev = {
-		// 	.header =
-		// 		{
-		// 			.index		= entity.index,
-		// 			.event_type = render_event_type::render_event_add_entity,
-		// 		},
-		// };
-
-		// render_event_entity* stg = ev.construct<render_event_entity>();
-		//_world.get_render_stream().add_event(ev);
+		entity_meta& meta = get_entity_meta(entity);
+		meta.render_proxy_count++;
+		meta.flags.set(entity_flags::entity_flags_render_proxy_dirty);
 	}
 
 	void entity_manager::on_remove_render_proxy(entity_handle entity)
@@ -325,19 +340,7 @@ namespace SFG
 		entity_meta& meta = get_entity_meta(entity);
 		SFG_ASSERT(meta.render_proxy_count > 0);
 		meta.render_proxy_count--;
-
-		if (meta.render_proxy_count == 0)
-		{
-			// const render_event ev = {
-			// 	.header =
-			// 		{
-			// 			.index		= entity.index,
-			// 			.event_type = render_event_type::render_event_remove_entity,
-			// 		},
-			// };
-			//
-			// _world.get_render_stream().add_event(ev);
-		}
+		meta.flags.set(entity_flags::entity_flags_render_proxy_dirty);
 	}
 
 	/* ----------------                   ---------------- */
@@ -348,7 +351,7 @@ namespace SFG
 	{
 		SFG_ASSERT(_entities.is_valid(entity));
 		_positions.get(entity.index) = pos;
-		_metas.get(entity.index).flags.set(entity_flags::entity_flags_local_transform_dirty | entity_flags::entity_flags_abs_transform_dirty);
+		_metas.get(entity.index).flags.set(entity_flags::entity_flags_local_transform_dirty | entity_flags::entity_flags_abs_transform_dirty | entity_flags::entity_flags_render_proxy_dirty);
 		visit_children(entity, [this](entity_handle e) { _metas.get(e.index).flags.set(entity_flags::entity_flags_abs_transform_dirty); });
 	}
 
@@ -384,7 +387,7 @@ namespace SFG
 	{
 		SFG_ASSERT(_entities.is_valid(entity));
 		_rotations.get(entity.index) = rot;
-		_metas.get(entity.index).flags.set(entity_flags::entity_flags_local_transform_dirty | entity_flags::entity_flags_abs_transform_dirty | entity_flags::entity_flags_abs_rotation_dirty);
+		_metas.get(entity.index).flags.set(entity_flags::entity_flags_local_transform_dirty | entity_flags::entity_flags_abs_transform_dirty | entity_flags::entity_flags_abs_rotation_dirty | entity_flags::entity_flags_render_proxy_dirty);
 		visit_children(entity, [this](entity_handle e) { _metas.get(e.index).flags.set(entity_flags::entity_flags_abs_transform_dirty | entity_flags::entity_flags_abs_rotation_dirty); });
 	}
 
@@ -449,7 +452,7 @@ namespace SFG
 	{
 		SFG_ASSERT(_entities.is_valid(entity));
 		_scales.get(entity.index) = scale;
-		_metas.get(entity.index).flags.set(entity_flags::entity_flags_local_transform_dirty | entity_flags::entity_flags_abs_transform_dirty);
+		_metas.get(entity.index).flags.set(entity_flags::entity_flags_local_transform_dirty | entity_flags::entity_flags_abs_transform_dirty | entity_flags::entity_flags_render_proxy_dirty);
 		visit_children(entity, [this](entity_handle e) { _metas.get(e.index).flags.set(entity_flags::entity_flags_abs_transform_dirty); });
 	}
 

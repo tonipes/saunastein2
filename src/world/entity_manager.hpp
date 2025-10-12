@@ -34,6 +34,7 @@ namespace SFG
 
 		void init();
 		void uninit();
+		void post_tick(double interpolation);
 
 		/* ---------------- entity api ---------------- */
 		entity_handle		 create_entity(const char* name = "entity");
@@ -141,9 +142,9 @@ namespace SFG
 			storage.free(handle);
 		}
 
-		inline chunk_allocator32& get_trait_aux_memory()
+		inline chunk_allocator32& get_traits_aux_memory()
 		{
-			return _trait_aux_memory;
+			return _traits_aux_memory;
 		}
 
 		inline static_vector<trait_storage, trait_types::trait_type_max>& get_traits()
@@ -185,6 +186,6 @@ namespace SFG
 		pool_allocator_simple<matrix4x3>	 _abs_matrices	 = {};
 
 		static_vector<trait_storage, trait_types::trait_type_max> _traits;
-		chunk_allocator32										  _trait_aux_memory;
+		chunk_allocator32										  _traits_aux_memory;
 	};
 }

@@ -30,7 +30,7 @@ namespace SFG
 {
 	world_resources::world_resources(world& w) : _world(w)
 	{
-		_aux_memory.init(1024 * 1024 * 4);
+		_aux_memory.init(MAX_WORLD_RESOURCES_AUX_MEMORY);
 
 		const auto& metas = reflection::get().get_metas();
 		for (const auto& [sid, meta] : metas)

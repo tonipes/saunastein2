@@ -13,18 +13,20 @@
 #include "gfx/util/gfx_util.hpp"
 #include "common/system_info.hpp"
 #include "data/istream.hpp"
+#include "world/world_constants.hpp"
 
 namespace SFG
 {
 
 	void proxy_manager::init()
 	{
+		_entities.init(MAX_ENTITIES);
 		_shaders.init(MAX_WORLD_SHADERS);
 		_textures.init(MAX_WORLD_TEXTURES);
 		_samplers.init(MAX_WORLD_SAMPLERS);
 		_materials.init(MAX_WORLD_MATERIALS);
 		_meshes.init(MAX_WORLD_MESHES);
-		_model_instances.init(1024);
+		_model_instances.init(MAX_MODEL_INSTANCES);
 
 		for (uint8 i = 0; i < FRAMES_IN_FLIGHT + 1; i++)
 			_destroy_bucket[i].list.reserve(1000);
@@ -76,6 +78,7 @@ namespace SFG
 
 		flush_destroys(true);
 
+		_entities.uninit();
 		_model_instances.uninit();
 		_shaders.uninit();
 		_textures.uninit();
@@ -136,23 +139,7 @@ namespace SFG
 
 		const uint32			index = header.index;
 		const render_event_type type  = header.event_type;
-		if (type == render_event_type::render_event_add_entity)
-		{
-			render_event_entity stg = {};
-			stg.deserialize(stream);
-
-			render_proxy_entity& proxy = get_entity(index);
-			proxy.status			   = render_proxy_status::rps_active;
-			proxy.handle			   = index;
-			proxy.model				   = stg.abs_model;
-		}
-		else if (type == render_event_type::render_event_remove_entity)
-		{
-			render_proxy_entity& proxy = get_entity(index);
-			proxy.status			   = render_proxy_status::rps_inactive;
-			proxy					   = {};
-		}
-		else if (type == render_event_type::render_event_update_entity)
+		if (type == render_event_type::render_event_update_entity)
 		{
 			render_event_entity stg = {};
 			stg.deserialize(stream);
