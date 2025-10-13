@@ -59,6 +59,7 @@ namespace SFG
 		fr.bottom.normalize();
 		fr.near.normalize();
 		fr.far.normalize();
+		fr.top.normalize();
 		return fr;
 	}
 }

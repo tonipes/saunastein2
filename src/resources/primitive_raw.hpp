@@ -5,6 +5,7 @@
 #include "data/vector.hpp"
 #include "gfx/common/gfx_constants.hpp"
 #include "vertex.hpp"
+#include "math/aabb.hpp"
 
 namespace SFG
 {
@@ -13,7 +14,9 @@ namespace SFG
 
 	struct primitive_static_raw
 	{
-		uint16					material_index = 0;
+		aabb   local_aabb	  = {};
+		uint16 material_index = 0;
+
 		vector<vertex_static>	vertices;
 		vector<primitive_index> indices;
 
@@ -23,6 +26,7 @@ namespace SFG
 
 	struct primitive_skinned_raw
 	{
+		aabb					local_aabb	   = {};
 		uint16					material_index = 0;
 		vector<vertex_skinned>	vertices;
 		vector<primitive_index> indices;

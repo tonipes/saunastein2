@@ -8,24 +8,28 @@ namespace SFG
 {
 	void primitive_static_raw::serialize(ostream& stream) const
 	{
+		stream << local_aabb;
 		stream << material_index;
 		stream << vertices;
 		stream << indices;
 	}
 	void primitive_static_raw::deserialize(istream& stream)
 	{
+		stream >> local_aabb;
 		stream >> material_index;
 		stream >> vertices;
 		stream >> indices;
 	}
 	void primitive_skinned_raw::serialize(ostream& stream) const
 	{
+		stream << local_aabb;
 		stream << material_index;
 		stream << vertices;
 		stream << indices;
 	}
 	void primitive_skinned_raw::deserialize(istream& stream)
 	{
+		stream >> local_aabb;
 		stream >> material_index;
 		stream >> vertices;
 		stream >> indices;

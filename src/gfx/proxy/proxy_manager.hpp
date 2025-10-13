@@ -29,42 +29,42 @@ namespace SFG
 		void fetch_render_events(render_event_stream& stream);
 		void flush_destroys(bool force);
 
-		inline render_proxy_texture& get_texture(uint32 idx)
+		inline render_proxy_texture& get_texture(resource_id idx)
 		{
 			return _textures.get(idx);
 		}
 
-		inline render_proxy_sampler& get_sampler(uint32 idx)
+		inline render_proxy_sampler& get_sampler(resource_id idx)
 		{
 			return _samplers.get(idx);
 		}
 
-		inline render_proxy_mesh& get_mesh(uint32 idx)
+		inline render_proxy_mesh& get_mesh(resource_id idx)
 		{
 			return _meshes.get(idx);
 		}
 
-		inline render_proxy_shader& get_shader(uint32 idx)
+		inline render_proxy_shader& get_shader(resource_id idx)
 		{
 			return _shaders.get(idx);
 		}
 
-		inline render_proxy_material& get_material(uint32 idx)
+		inline render_proxy_material& get_material(resource_id idx)
 		{
 			return _materials.get(idx);
 		}
 
-		inline render_proxy_entity& get_entity(uint32 idx)
+		inline render_proxy_entity& get_entity(world_id idx)
 		{
 			return _entities.get(idx);
 		}
 
-		inline render_proxy_model_instance& get_model_instance(uint32 idx)
+		inline render_proxy_model_instance& get_model_instance(world_id idx)
 		{
 			return _model_instances.get(idx);
 		}
 
-		inline render_proxy_camera& get_camera(uint32 idx)
+		inline render_proxy_camera& get_camera(world_id idx)
 		{
 			return _cameras.get(idx);
 		}
@@ -87,6 +87,11 @@ namespace SFG
 		inline pool_allocator_simple<render_proxy_camera>& get_cameras()
 		{
 			return _cameras;
+		}
+
+		inline world_id get_main_camera() const
+		{
+			return _main_camera_trait;
 		}
 
 	private:

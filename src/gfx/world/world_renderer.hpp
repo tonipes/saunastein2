@@ -13,7 +13,6 @@
 #include "gfx/buffer.hpp"
 #include "memory/bump_allocator.hpp"
 #include "world_render_data.hpp"
-#include "view_manager.hpp"
 #include "render_pass/render_pass_opaque.hpp"
 #include "render_pass/render_pass_lighting_forward.hpp"
 #include "render_pass/render_pass_post_combiner.hpp"
@@ -47,6 +46,7 @@ namespace SFG
 		void init(const vector2ui16& size, texture_queue* tq, buffer_queue* bq);
 		void uninit();
 
+		void prepare(uint8 frame_index);
 		void upload(uint8 frame_index);
 		void render(uint8 frame_index, gfx_id layout_global, gfx_id bind_group_global, uint64 prev_copy, uint64 next_copy, gfx_id sem_copy);
 		void resize(const vector2ui16& size);
@@ -67,8 +67,7 @@ namespace SFG
 		}
 
 	private:
-		void generate_renderables();
-		void frustum_cull();
+		void collect_model_instances();
 		void push_barrier_ps(gfx_id id, static_vector<barrier, MAX_BARRIERS>& barriers);
 		void push_barrier_rt(gfx_id id, static_vector<barrier, MAX_BARRIERS>& barriers);
 		void send_barriers(gfx_id cmd_list, static_vector<barrier, MAX_BARRIERS>& barriers);
@@ -76,7 +75,7 @@ namespace SFG
 	private:
 		proxy_manager& _proxy_manager;
 		world&		   _world;
-		view_manager   _view_manager;
+		view		   _main_camera_view = {};
 
 		texture_queue*	  _texture_queue = nullptr;
 		buffer_queue*	  _buffer_queue	 = nullptr;

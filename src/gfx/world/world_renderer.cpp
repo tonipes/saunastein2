@@ -155,15 +155,32 @@ namespace SFG
 		}
 	}
 
-	void world_renderer::upload(uint8 frame_index)
+	void world_renderer::prepare(uint8 frame_index)
 	{
 		world_render_data& rd = _render_data;
 		rd.reset();
 
-		// All renderables, required entities etc.
-		generate_renderables();
+		const world_id main_cam_trait = _proxy_manager.get_main_camera();
+		if (main_cam_trait == NULL_WORLD_ID)
+			return;
 
-		per_frame_data& pfd = _pfd[frame_index];
+		const render_proxy_camera& cam_proxy  = _proxy_manager.get_camera(main_cam_trait);
+		const render_proxy_entity& cam_entity = _proxy_manager.get_entity(cam_proxy.entity);
+		const matrix4x3&		   cam_abs	  = cam_entity.model;
+		_main_camera_view					  = {
+								.view_matrix = camera::view(cam_entity.rotation, cam_entity.position),
+								.proj_matrix = camera::proj(cam_proxy.fov_degrees, _base_size, cam_proxy.near_plane, cam_proxy.far_plane),
+		};
+		_main_camera_view.view_proj_matrix = _main_camera_view.proj_matrix * _main_camera_view.view_matrix;
+		_main_camera_view.view_frustum	   = frustum::extract(_main_camera_view.view_proj_matrix);
+
+		collect_model_instances();
+	}
+
+	void world_renderer::upload(uint8 frame_index)
+	{
+		world_render_data& rd  = _render_data;
+		per_frame_data&	   pfd = _pfd[frame_index];
 
 		if (!rd.bones.empty())
 			pfd.bones.buffer_data(0, rd.bones.data(), sizeof(gpu_bone) * rd.bones.size());
@@ -179,8 +196,6 @@ namespace SFG
 		_buffer_queue->add_request({.buffer = &pfd.lights});
 
 		_pass_opaque.upload(_world, _buffer_queue, frame_index);
-
-		frustum_cull();
 	}
 
 	void world_renderer::render(uint8 frame_index, gfx_id layout_global, gfx_id bind_group_global, uint64 prev_copy, uint64 next_copy, gfx_id sem_copy)
@@ -303,13 +318,11 @@ namespace SFG
 		barriers.clear();
 	}
 
-	void world_renderer::generate_renderables()
+	void world_renderer::collect_model_instances()
 	{
 		auto&			   model_instances = _proxy_manager.get_model_instances();
 		auto&			   entities		   = _proxy_manager.get_entities();
 		chunk_allocator32& aux			   = _proxy_manager.get_aux();
-
-		_proxy_manager.get_material(0);
 
 		for (const render_proxy_model_instance& p : model_instances)
 		{
@@ -333,6 +346,15 @@ namespace SFG
 			{
 				const render_proxy_primitive& prim = primitives[i];
 
+				aabb frustum_aabb = prim.local_aabb;
+				frustum_aabb.bounds_min += proxy_entity.position;
+				frustum_aabb.bounds_max += proxy_entity.position;
+				frustum_aabb.update_half_extents();
+
+				const frustum_result res = frustum::test(_main_camera_view.view_frustum, frustum_aabb);
+				if (res == frustum_result::outside)
+					continue;
+
 				create_gpu_object({
 					.vertex_buffer = const_cast<buffer*>(&m.vertex_buffer),
 					.index_buffer  = const_cast<buffer*>(&m.index_buffer),
@@ -346,12 +368,4 @@ namespace SFG
 		}
 	}
 
-	void world_renderer::frustum_cull()
-	{
-		world_render_data& rd = _render_data;
-
-		_view_manager.reset();
-
-		//_view_manager.generate_view_from_camera(_world.get_camera());
-	}
 }

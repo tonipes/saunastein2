@@ -150,6 +150,9 @@ namespace SFG
 			proxy.status			   = render_proxy_status::rps_active;
 			proxy.handle			   = index;
 			proxy.model				   = stg.abs_model;
+			proxy.position			   = stg.position;
+			proxy.rotation			   = stg.rotation;
+			proxy.scale				   = stg.scale;
 		}
 		else if (type == render_event_type::render_event_update_entity_visibility)
 		{
@@ -470,6 +473,7 @@ namespace SFG
 					const size_t			vtx_sz	   = p.vertices.size() * vtx_type_size;
 					const size_t			idx_sz	   = p.indices.size() * sizeof(primitive_index);
 
+					proxy_prim.local_aabb	  = p.local_aabb;
 					proxy_prim.material_index = p.material_index;
 					proxy_prim.vertex_start	  = vtx_counter;
 					proxy_prim.index_start	  = idx_counter;

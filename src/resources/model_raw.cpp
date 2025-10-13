@@ -310,6 +310,8 @@ namespace SFG
 					const size_t		   start_vertex = prim.vertices.size();
 					const size_t		   start_index	= prim.indices.size();
 					prim.vertices.resize(start_vertex + num_vertices);
+					prim.local_aabb.bounds_min = min_position;
+					prim.local_aabb.bounds_max = max_position;
 
 					const tinygltf::Accessor&	joints_a   = model.accessors[joints0->second];
 					const tinygltf::BufferView& joints_bv  = model.bufferViews[joints_a.bufferView];
@@ -364,6 +366,8 @@ namespace SFG
 				const size_t		  start_vertex = prim.vertices.size();
 				const size_t		  start_index  = prim.indices.size();
 				prim.vertices.resize(start_vertex + num_vertices);
+				prim.local_aabb.bounds_min = min_position;
+				prim.local_aabb.bounds_max = max_position;
 				fill_prim(prim, model, tprim, vertex_accessor, vertex_buffer_view, vertex_buffer, num_vertices, start_vertex, start_index);
 			}
 		}

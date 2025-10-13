@@ -4,6 +4,7 @@
 
 #include "gfx/common/gfx_common.hpp"
 #include "gfx/buffer.hpp"
+#include "math/aabb.hpp"
 #include "data/ostream.hpp"
 #include "data/static_vector.hpp"
 #include "memory/chunk_handle.hpp"
@@ -47,10 +48,15 @@ namespace SFG
 
 	struct render_proxy_primitive
 	{
+		aabb   local_aabb	  = {};
 		uint32 vertex_start	  = 0;
 		uint32 index_start	  = 0;
 		uint32 index_count	  = 0;
 		uint16 material_index = 0;
+	};
+
+	struct render_proxy_node
+	{
 	};
 
 	struct render_proxy_mesh
@@ -60,6 +66,7 @@ namespace SFG
 		chunk_handle32 primitives;
 		uint32		   primitive_count = 0;
 		resource_id	   handle		   = {};
+		resource_id	   node_handle	   = {};
 		uint16		   material_count  = 0;
 		uint8		   status		   = render_proxy_status::rps_inactive;
 		uint8		   is_skinned	   = 0;

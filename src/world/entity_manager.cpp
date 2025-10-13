@@ -69,7 +69,9 @@ namespace SFG
 			entity_meta& m = metas[h.index];
 			if (m.render_proxy_count != 0 && m.flags.is_set(entity_flags::entity_flags_render_proxy_dirty))
 			{
-				update.abs_model = calculate_interpolated_transform_abs(h, i);
+				calculate_interpolated_transform_abs(h, i, update.position, update.rotation, update.scale);
+				update.abs_model = matrix4x3::transform(update.position, update.rotation, update.scale);
+
 				stream.add_event({.index = h.index, .event_type = render_event_type::render_event_update_entity_transform}, update);
 				m.flags.remove(entity_flags::entity_flags_render_proxy_dirty);
 			}
@@ -555,7 +557,7 @@ namespace SFG
 		return _prev_scales.get(entity.index);
 	}
 
-	matrix4x3 entity_manager::calculate_interpolated_transform_abs(world_handle entity, float interpolation)
+	void entity_manager::calculate_interpolated_transform_abs(world_handle entity, float interpolation, vector3& out_position, quat& out_rotation, vector3& out_scale)
 	{
 		SFG_ASSERT(_entities.is_valid(entity));
 
@@ -565,14 +567,12 @@ namespace SFG
 		const vector3& ent_prev_pos_abs	  = get_entity_prev_position_abs(entity);
 		const quat&	   ent_prev_rot_abs	  = get_entity_prev_rotation_abs(entity);
 		const vector3& ent_prev_scale_abs = get_entity_prev_scale_abs(entity);
-		const vector3  interpolated_pos	  = vector3::lerp(ent_prev_pos_abs, ent_pos_abs, interpolation);
-		const vector3  interpolated_scale = vector3::lerp(ent_prev_scale_abs, ent_scale_abs, interpolation);
-		const quat&	   interpolated_rot	  = quat::slerp(ent_prev_rot_abs, ent_rot_abs, interpolation);
+		out_position					  = vector3::lerp(ent_prev_pos_abs, ent_pos_abs, interpolation);
+		out_scale						  = vector3::lerp(ent_prev_scale_abs, ent_scale_abs, interpolation);
+		out_rotation					  = quat::slerp(ent_prev_rot_abs, ent_rot_abs, interpolation);
 		set_entity_prev_position_abs(entity, ent_prev_pos_abs);
 		set_entity_prev_rotation_abs(entity, ent_prev_rot_abs);
 		set_entity_prev_scale_abs(entity, ent_prev_scale_abs);
-
-		return matrix4x3::transform(interpolated_pos, interpolated_rot, interpolated_scale);
 	}
 
 }

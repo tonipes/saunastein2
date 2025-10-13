@@ -2,6 +2,8 @@
 
 #pragma once
 #include "math/matrix4x3.hpp"
+#include "math/vector3.hpp"
+#include "math/quat.hpp"
 #include "data/bitmask.hpp"
 #include "render_proxy_common.hpp"
 #include "world/world_constants.hpp"
@@ -16,10 +18,12 @@ namespace SFG
 
 	struct render_proxy_entity
 	{
-		matrix4x3			model  = {};
-		world_id			handle = 0;
-		uint32				padding[2];
-		render_proxy_status status = render_proxy_status::rps_inactive;
-		bitmask<uint8>		flags  = 0;
+		matrix4x3			model	 = {};
+		quat				rotation = quat::identity;
+		vector3				position = vector3::zero;
+		vector3				scale	 = vector3::one;
+		world_id			handle	 = 0;
+		render_proxy_status status	 = render_proxy_status::rps_inactive;
+		bitmask<uint8>		flags	 = 0;
 	};
 }

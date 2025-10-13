@@ -218,6 +218,7 @@ namespace SFG
 		const uint64 next_frame_value = ++pfd.sem_frame.value;
 
 		// uploads
+		_world_renderer->prepare(frame_index);
 		_world_renderer->upload(frame_index);
 		_debug_controller.upload(_buffer_queue, frame_index);
 		send_uploads(frame_index);
