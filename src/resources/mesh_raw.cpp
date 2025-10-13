@@ -19,6 +19,7 @@ namespace SFG
 		stream << primitives_static;
 		stream << primitives_skinned;
 		stream << skin_index;
+		stream << local_aabb;
 	}
 
 	void mesh_raw::deserialize(istream& stream)
@@ -29,6 +30,7 @@ namespace SFG
 		stream >> primitives_static;
 		stream >> primitives_skinned;
 		stream >> skin_index;
+		stream >> local_aabb;
 
 		SFG_INFO("Created mesh from buffer: {0}", name);
 	}

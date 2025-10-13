@@ -2,7 +2,7 @@
 
 #include "entity_manager.hpp"
 #include "world.hpp"
-#include "world/traits/trait_model_instance.hpp"
+#include "world/traits/trait_mesh_instance.hpp"
 #include "world/traits/trait_light.hpp"
 #include "gfx/event_stream/render_event_common.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"

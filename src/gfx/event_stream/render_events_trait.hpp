@@ -12,13 +12,11 @@ namespace SFG
 	class ostream;
 	class istream;
 
-	struct render_event_model_instance
+	struct render_event_mesh_instance
 	{
-		world_id	   entity_index = 0;
-		vector<uint16> materials;
-		uint16		   model	   = 0;
-		uint16		   mesh		   = 0;
-		uint8		   single_mesh = 0;
+		world_id entity_index = 0;
+		uint16	 model		  = 0;
+		uint16	 mesh		  = 0;
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);

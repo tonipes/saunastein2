@@ -11,7 +11,7 @@
 #include "gfx/buffer_queue.hpp"
 #include "world/world.hpp"
 #include "world/traits/trait_light.hpp"
-#include "world/traits/trait_model_instance.hpp"
+#include "world/traits/trait_mesh_instance.hpp"
 #include "resources/mesh.hpp"
 #include "resources/primitive.hpp"
 #include "gfx/proxy/proxy_manager.hpp"
@@ -320,44 +320,40 @@ namespace SFG
 
 	void world_renderer::collect_model_instances()
 	{
-		auto&			   model_instances = _proxy_manager.get_model_instances();
+		auto&			   model_instances = _proxy_manager.get_mesh_instances();
 		auto&			   entities		   = _proxy_manager.get_entities();
 		chunk_allocator32& aux			   = _proxy_manager.get_aux();
 
-		for (const render_proxy_model_instance& p : model_instances)
+		for (const render_proxy_mesh_instance& mesh_instance : model_instances)
 		{
-			if (p.status != render_proxy_status::rps_active)
+			if (mesh_instance.status != render_proxy_status::rps_active)
 				continue;
 
-			const render_proxy_entity& proxy_entity = entities.get(p.entity);
+			const render_proxy_entity& proxy_entity = entities.get(mesh_instance.entity);
 			SFG_ASSERT(proxy_entity.status == render_proxy_status::rps_active);
 
 			if (proxy_entity.flags.is_set(render_proxy_entity_flags::render_proxy_entity_invisible))
 				continue;
 
-			const uint32 entity_index = create_gpu_entity({.model = proxy_entity.model});
+			const render_proxy_mesh& proxy_mesh	  = _proxy_manager.get_mesh(mesh_instance.mesh);
+			aabb					 frustum_aabb = proxy_mesh.local_aabb;
 
-			const render_proxy_mesh& m			= _proxy_manager.get_mesh(0);
-			render_proxy_primitive*	 primitives = aux.get<render_proxy_primitive>(m.primitives);
+			const frustum_result res = frustum::test(_main_camera_view.view_frustum, frustum_aabb);
+			if (res == frustum_result::outside)
+				continue;
 
-			uint16* materials = aux.get<uint16>(p.materials);
+			const uint32				  entity_index = create_gpu_entity({.model = proxy_entity.model});
+			const render_proxy_model&	  proxy_model  = _proxy_manager.get_model(mesh_instance.model);
+			const render_proxy_primitive* primitives   = aux.get<render_proxy_primitive>(proxy_mesh.primitives);
+			const uint16*				  materials	   = aux.get<uint16>(proxy_model.materials);
 
-			for (uint32 i = 0; i < m.primitive_count; i++)
+			for (uint32 i = 0; i < proxy_mesh.primitive_count; i++)
 			{
 				const render_proxy_primitive& prim = primitives[i];
 
-				aabb frustum_aabb = prim.local_aabb;
-				frustum_aabb.bounds_min += proxy_entity.position;
-				frustum_aabb.bounds_max += proxy_entity.position;
-				frustum_aabb.update_half_extents();
-
-				const frustum_result res = frustum::test(_main_camera_view.view_frustum, frustum_aabb);
-				if (res == frustum_result::outside)
-					continue;
-
 				create_gpu_object({
-					.vertex_buffer = const_cast<buffer*>(&m.vertex_buffer),
-					.index_buffer  = const_cast<buffer*>(&m.index_buffer),
+					.vertex_buffer = const_cast<buffer*>(&proxy_mesh.vertex_buffer),
+					.index_buffer  = const_cast<buffer*>(&proxy_mesh.index_buffer),
 					.vertex_start  = prim.vertex_start,
 					.index_start   = prim.index_start,
 					.index_count   = prim.index_count,

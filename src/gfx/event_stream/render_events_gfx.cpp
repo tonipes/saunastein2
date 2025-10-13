@@ -127,6 +127,7 @@ namespace SFG
 	{
 		stream << primitives_static;
 		stream << primitives_skinned;
+		stream << local_aabb;
 
 #ifndef SFG_STRIP_DEBUG_NAMES
 		stream << name;
@@ -137,6 +138,27 @@ namespace SFG
 	{
 		stream >> primitives_static;
 		stream >> primitives_skinned;
+		stream >> local_aabb;
+
+#ifndef SFG_STRIP_DEBUG_NAMES
+		stream >> name;
+#endif
+	}
+
+	void render_event_model::serialize(ostream& stream) const
+	{
+		stream << meshes;
+		stream << materials;
+
+#ifndef SFG_STRIP_DEBUG_NAMES
+		stream << name;
+#endif
+	}
+
+	void render_event_model::deserialize(istream& stream)
+	{
+		stream >> meshes;
+		stream >> materials;
 
 #ifndef SFG_STRIP_DEBUG_NAMES
 		stream >> name;

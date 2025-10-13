@@ -14,7 +14,6 @@ namespace SFG
 
 	struct primitive_static_raw
 	{
-		aabb   local_aabb	  = {};
 		uint16 material_index = 0;
 
 		vector<vertex_static>	vertices;
@@ -26,7 +25,6 @@ namespace SFG
 
 	struct primitive_skinned_raw
 	{
-		aabb					local_aabb	   = {};
 		uint16					material_index = 0;
 		vector<vertex_skinned>	vertices;
 		vector<primitive_index> indices;

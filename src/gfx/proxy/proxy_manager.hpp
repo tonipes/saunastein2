@@ -44,6 +44,11 @@ namespace SFG
 			return _meshes.get(idx);
 		}
 
+		inline render_proxy_model& get_model(resource_id idx)
+		{
+			return _models.get(idx);
+		}
+
 		inline render_proxy_shader& get_shader(resource_id idx)
 		{
 			return _shaders.get(idx);
@@ -59,9 +64,9 @@ namespace SFG
 			return _entities.get(idx);
 		}
 
-		inline render_proxy_model_instance& get_model_instance(world_id idx)
+		inline render_proxy_mesh_instance& get_model_instance(world_id idx)
 		{
-			return _model_instances.get(idx);
+			return _mesh_instances.get(idx);
 		}
 
 		inline render_proxy_camera& get_camera(world_id idx)
@@ -74,9 +79,9 @@ namespace SFG
 			return _aux_memory;
 		}
 
-		inline pool_allocator_simple<render_proxy_model_instance>& get_model_instances()
+		inline pool_allocator_simple<render_proxy_mesh_instance>& get_mesh_instances()
 		{
-			return _model_instances;
+			return _mesh_instances;
 		}
 
 		inline pool_allocator_simple<render_proxy_entity>& get_entities()
@@ -122,6 +127,7 @@ namespace SFG
 		void destroy_shader(render_proxy_shader& proxy);
 		void destroy_material(render_proxy_material& proxy);
 		void destroy_mesh(render_proxy_mesh& proxy);
+		void destroy_model(render_proxy_model& proxy);
 		void destroy_target_bucket(uint8 index);
 		void add_to_destroy_bucket(const destroy_data& data, uint8 bucket);
 
@@ -129,16 +135,17 @@ namespace SFG
 		buffer_queue&  _buffer_queue;
 		texture_queue& _texture_queue;
 
-		chunk_allocator32								   _aux_memory;
-		pool_allocator_simple<render_proxy_texture>		   _textures;
-		pool_allocator_simple<render_proxy_sampler>		   _samplers;
-		pool_allocator_simple<render_proxy_material>	   _materials;
-		pool_allocator_simple<render_proxy_shader>		   _shaders;
-		pool_allocator_simple<render_proxy_mesh>		   _meshes;
-		pool_allocator_simple<render_proxy_entity>		   _entities;
-		pool_allocator_simple<render_proxy_model_instance> _model_instances;
-		pool_allocator_simple<render_proxy_camera>		   _cameras;
-		world_id										   _main_camera_trait = 0;
+		chunk_allocator32								  _aux_memory;
+		pool_allocator_simple<render_proxy_texture>		  _textures;
+		pool_allocator_simple<render_proxy_sampler>		  _samplers;
+		pool_allocator_simple<render_proxy_material>	  _materials;
+		pool_allocator_simple<render_proxy_shader>		  _shaders;
+		pool_allocator_simple<render_proxy_mesh>		  _meshes;
+		pool_allocator_simple<render_proxy_model>		  _models;
+		pool_allocator_simple<render_proxy_entity>		  _entities;
+		pool_allocator_simple<render_proxy_mesh_instance> _mesh_instances;
+		pool_allocator_simple<render_proxy_camera>		  _cameras;
+		world_id										  _main_camera_trait = 0;
 
 		destroy_bucket _destroy_bucket[FRAMES_IN_FLIGHT + 1];
 	};

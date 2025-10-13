@@ -9,15 +9,12 @@
 
 namespace SFG
 {
-	struct render_proxy_model_instance
+	struct render_proxy_mesh_instance
 	{
-		chunk_handle32		materials	   = {};
-		world_id			entity		   = 0;
-		resource_id			model		   = 0;
-		resource_id			material_count = 0;
-		resource_id			mesh		   = 0;
-		uint8				single_mesh	   = 0;
-		render_proxy_status status		   = render_proxy_status::rps_inactive;
+		world_id			entity = 0;
+		resource_id			model  = 0;
+		resource_id			mesh   = 0;
+		render_proxy_status status = render_proxy_status::rps_inactive;
 	};
 
 	struct render_proxy_camera

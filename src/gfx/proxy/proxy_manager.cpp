@@ -20,13 +20,15 @@ namespace SFG
 
 	void proxy_manager::init()
 	{
-		_entities.init(MAX_ENTITIES);
 		_shaders.init(MAX_WORLD_SHADERS);
 		_textures.init(MAX_WORLD_TEXTURES);
 		_samplers.init(MAX_WORLD_SAMPLERS);
 		_materials.init(MAX_WORLD_MATERIALS);
 		_meshes.init(MAX_WORLD_MESHES);
-		_model_instances.init(MAX_ENTITIES);
+		_models.init(MAX_WORLD_MODELS);
+
+		_entities.init(MAX_ENTITIES);
+		_mesh_instances.init(MAX_ENTITIES);
 		_cameras.init(MAX_ENTITIES);
 
 		for (uint8 i = 0; i < FRAMES_IN_FLIGHT + 1; i++)
@@ -81,7 +83,9 @@ namespace SFG
 
 		_entities.uninit();
 		_cameras.uninit();
-		_model_instances.uninit();
+		_mesh_instances.uninit();
+		_models.uninit();
+
 		_shaders.uninit();
 		_textures.uninit();
 		_samplers.uninit();
@@ -163,35 +167,21 @@ namespace SFG
 			proxy.handle			   = index;
 			proxy.flags.set(render_proxy_entity_flags::render_proxy_entity_invisible, !stg.visible);
 		}
-		else if (type == render_event_type::render_event_update_model_instance)
+		else if (type == render_event_type::render_event_update_mesh_instance)
 		{
-			render_event_model_instance stg = {};
+			render_event_mesh_instance stg = {};
 			stg.deserialize(stream);
 
-			render_proxy_model_instance& proxy = get_model_instance(index);
-			proxy.status					   = render_proxy_status::rps_active;
-			proxy.entity					   = stg.entity_index;
-			proxy.mesh						   = stg.mesh;
-			proxy.single_mesh				   = stg.single_mesh;
-			proxy.model						   = stg.model;
-			proxy.material_count			   = static_cast<uint16>(stg.materials.size());
-
-			if (proxy.materials.size != 0)
-				_aux_memory.free(proxy.materials);
-
-			if (proxy.material_count != 0)
-				proxy.materials = _aux_memory.allocate<uint16>(proxy.material_count);
-
-			uint16* materials = _aux_memory.get<uint16>(proxy.materials);
-			for (uint16 i = 0; i < proxy.material_count; i++)
-				materials[i] = stg.materials[i];
+			render_proxy_mesh_instance& proxy = get_model_instance(index);
+			proxy.status					  = render_proxy_status::rps_active;
+			proxy.entity					  = stg.entity_index;
+			proxy.mesh						  = stg.mesh;
+			proxy.model						  = stg.model;
 		}
-		else if (type == render_event_type::render_event_remove_model_instance)
+		else if (type == render_event_type::render_event_remove_mesh_instance)
 		{
-			render_proxy_model_instance& proxy = get_model_instance(index);
-			if (proxy.materials.size != 0)
-				_aux_memory.free(proxy.materials);
-			proxy = {};
+			render_proxy_mesh_instance& proxy = get_model_instance(index);
+			proxy							  = {};
 		}
 		else if (type == render_event_type::render_event_update_camera)
 		{
@@ -404,6 +394,38 @@ namespace SFG
 			render_proxy_material& proxy = get_material(index);
 			destroy_material(proxy);
 		}
+		else if (type == render_event_type::render_event_create_model)
+		{
+			render_proxy_model& proxy = get_model(index);
+			render_event_model	ev	  = {};
+			ev.deserialize(stream);
+
+			proxy.material_count = static_cast<uint32>(ev.materials.size());
+			proxy.mesh_count	 = static_cast<uint32>(ev.meshes.size());
+
+			if (proxy.mesh_count != 0)
+				proxy.meshes = _aux_memory.allocate<resource_id>(proxy.mesh_count);
+
+			if (proxy.material_count != 0)
+				proxy.materials = _aux_memory.allocate<resource_id>(proxy.material_count);
+
+			resource_id* mats	= _aux_memory.get<resource_id>(proxy.materials);
+			resource_id* meshes = _aux_memory.get<resource_id>(proxy.meshes);
+			for (uint32 i = 0; i < proxy.material_count; i++)
+				mats[i] = ev.materials[i];
+
+			for (uint32 i = 0; i < proxy.mesh_count; i++)
+				meshes[i] = ev.meshes[i];
+
+#ifndef SFG_STRIP_DEBUG_NAMES
+			SFG_TRACE("Created model proxy for: {0}", ev.name);
+#endif
+		}
+		else if (type == render_event_type::render_event_destroy_model)
+		{
+			render_proxy_model& proxy = get_model(index);
+			destroy_model(proxy);
+		}
 		else if (type == render_event_type::render_event_create_mesh)
 		{
 			render_event_mesh stg = {};
@@ -411,6 +433,7 @@ namespace SFG
 			render_proxy_mesh& proxy = get_mesh(index);
 			proxy.status			 = render_proxy_status::rps_active;
 			proxy.handle			 = index;
+			proxy.local_aabb		 = stg.local_aabb;
 
 			auto process = [&](auto& list, size_t vtx_type_size) {
 				size_t vertex_size = 0;
@@ -473,7 +496,6 @@ namespace SFG
 					const size_t			vtx_sz	   = p.vertices.size() * vtx_type_size;
 					const size_t			idx_sz	   = p.indices.size() * sizeof(primitive_index);
 
-					proxy_prim.local_aabb	  = p.local_aabb;
 					proxy_prim.material_index = p.material_index;
 					proxy_prim.vertex_start	  = vtx_counter;
 					proxy_prim.index_start	  = idx_counter;
@@ -544,7 +566,19 @@ namespace SFG
 		add_to_destroy_bucket({.id = proxy.vertex_buffer.get_hw_gpu(), .type = destroy_data_type::resource}, safe_bucket);
 		add_to_destroy_bucket({.id = proxy.index_buffer.get_hw_staging(), .type = destroy_data_type::resource}, safe_bucket);
 		add_to_destroy_bucket({.id = proxy.index_buffer.get_hw_gpu(), .type = destroy_data_type::resource}, safe_bucket);
-		_aux_memory.free(proxy.primitives);
+
+		if (proxy.primitives.size != 0)
+			_aux_memory.free(proxy.primitives);
+		proxy = {};
+	}
+
+	void proxy_manager::destroy_model(render_proxy_model& proxy)
+	{
+		if (proxy.materials.size != 0)
+			_aux_memory.free(proxy.materials);
+
+		if (proxy.meshes.size != 0)
+			_aux_memory.free(proxy.meshes);
 		proxy = {};
 	}
 

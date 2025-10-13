@@ -5,6 +5,7 @@
 #include "data/vector.hpp"
 #include "common/string_id.hpp"
 #include "data/string.hpp"
+#include "math/aabb.hpp"
 #include "primitive_raw.hpp"
 
 namespace SFG
@@ -18,6 +19,7 @@ namespace SFG
 		string_id					  sid		 = 0;
 		uint16						  node_index = 0;
 		int16						  skin_index = -1;
+		aabb						  local_aabb = {};
 		vector<primitive_static_raw>  primitives_static;
 		vector<primitive_skinned_raw> primitives_skinned;
 

@@ -10,6 +10,8 @@
 #include "material.hpp"
 #include "world/world.hpp"
 #include "reflection/reflection.hpp"
+#include "gfx/event_stream/render_event_stream.hpp"
+#include "gfx/event_stream/render_events_gfx.hpp"
 
 #ifdef SFG_TOOLMODE
 #include "project/engine_data.hpp"
@@ -54,7 +56,7 @@ namespace SFG
 			model&			   res		 = resources.get_resource<model>(handle);
 			chunk_allocator32& aux		 = resources.get_aux();
 
-			res.create_from_raw(*raw_ptr, w.get_render_stream(), resources, aux);
+			res.create_from_raw(*raw_ptr, w.get_render_stream(), resources, aux, handle);
 			delete raw_ptr;
 			return handle;
 		});
@@ -63,7 +65,7 @@ namespace SFG
 
 		m.add_function<void, world&, resource_handle>("destroy"_hs, [](world& w, resource_handle h) -> void {
 			world_resources& res = w.get_resources();
-			res.get_resource<model>(h).destroy(res, w.get_render_stream(), res.get_aux());
+			res.get_resource<model>(h).destroy(res, w.get_render_stream(), res.get_aux(), h);
 			res.remove_resource<model>(h);
 		});
 
@@ -78,7 +80,7 @@ namespace SFG
 		SFG_ASSERT(!_flags.is_set(model::flags::hw_exists));
 	}
 
-	void model::create_from_raw(const model_raw& raw, render_event_stream& stream, world_resources& resources, chunk_allocator32& alloc)
+	void model::create_from_raw(const model_raw& raw, render_event_stream& stream, world_resources& resources, chunk_allocator32& alloc, resource_handle handle)
 	{
 		SFG_ASSERT(!_flags.is_set(model::flags::hw_exists));
 
@@ -109,6 +111,8 @@ namespace SFG
 			}
 		}
 
+		render_event_model ev = {};
+
 		if (mesh_count != 0)
 		{
 			_created_meshes				= alloc.allocate<resource_handle>(mesh_count);
@@ -120,6 +124,7 @@ namespace SFG
 				const resource_handle handle	  = resources.add_resource<mesh>(loaded_mesh.sid);
 				meshes_ptr[i]					  = handle;
 
+				ev.meshes.push_back(handle.index);
 				mesh& m = resources.get_resource<mesh>(handle);
 				m.create_from_raw(loaded_mesh, alloc, stream, handle);
 			}
@@ -180,10 +185,19 @@ namespace SFG
 				const material_raw&	  loaded = raw.loaded_materials[i];
 				const resource_handle handle = resources.add_resource<material>(loaded.sid);
 				ptr[i]						 = handle;
-				material& created			 = resources.get_resource<material>(handle);
+
+				ev.materials.push_back(handle.index);
+				material& created = resources.get_resource<material>(handle);
 				created.create_from_raw(loaded, resources, resources.get_aux(), stream, handle);
 			}
 		}
+
+		stream.add_event(
+			{
+				.index		= handle.index,
+				.event_type = render_event_type::render_event_create_model,
+			},
+			ev);
 
 		_skins_count	 = skins_count;
 		_anims_count	 = anims_count;
@@ -194,7 +208,7 @@ namespace SFG
 		_flags.set(model::flags::pending_upload | model::flags::hw_exists);
 	}
 
-	void model::destroy(world_resources& resources, render_event_stream& stream, chunk_allocator32& alloc)
+	void model::destroy(world_resources& resources, render_event_stream& stream, chunk_allocator32& alloc, resource_handle handle)
 	{
 		SFG_ASSERT(_flags.is_set(model::flags::hw_exists));
 
@@ -301,6 +315,11 @@ namespace SFG
 
 			alloc.free(_created_materials);
 		}
+
+		stream.add_event({
+			.index		= handle.index,
+			.event_type = render_event_type::render_event_destroy_model,
+		});
 
 		_created_textures  = {};
 		_created_materials = {};

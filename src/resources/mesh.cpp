@@ -31,6 +31,7 @@ namespace SFG
 		render_event_mesh ev  = {};
 		ev.primitives_static  = raw.primitives_static;
 		ev.primitives_skinned = raw.primitives_skinned;
+		ev.local_aabb		  = raw.local_aabb;
 
 #ifndef SFG_STRIP_DEBUG_NAMES
 		ev.name = raw.name;

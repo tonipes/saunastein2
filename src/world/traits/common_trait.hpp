@@ -16,7 +16,7 @@ namespace SFG
 
 	enum trait_types : uint8
 	{
-		trait_type_model_instance = 0,
+		trait_type_mesh_instance = 0,
 		trait_type_light,
 		trait_type_camera,
 		trait_type_max = 32,

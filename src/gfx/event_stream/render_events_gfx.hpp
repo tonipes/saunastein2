@@ -7,6 +7,7 @@
 #include "gfx/common/descriptions.hpp"
 #include "data/static_vector.hpp"
 #include "math/vector2ui16.hpp"
+#include "math/aabb.hpp"
 #include "resources/primitive_raw.hpp"
 #include "resources/common_resources.hpp"
 #include "data/ostream.hpp"
@@ -64,11 +65,26 @@ namespace SFG
 		void deserialize(istream& stream);
 	};
 
+	struct render_event_model
+	{
+#ifndef SFG_STRIP_DEBUG_NAMES
+		string name = "";
+#endif
+
+		vector<resource_id> meshes;
+		vector<resource_id> materials;
+
+		void serialize(ostream& stream) const;
+		void deserialize(istream& stream);
+	};
+
 	struct render_event_mesh
 	{
 #ifndef SFG_STRIP_DEBUG_NAMES
 		string name = "";
 #endif
+
+		aabb						  local_aabb;
 		vector<primitive_static_raw>  primitives_static;
 		vector<primitive_skinned_raw> primitives_skinned;
 

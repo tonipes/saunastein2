@@ -29,7 +29,7 @@ using json = nlohmann::json;
 #include "resources/model_raw.hpp"
 #include "resources/model_node.hpp"
 #include "resources/primitive.hpp"
-#include "traits/trait_model_instance.hpp"
+#include "traits/trait_mesh_instance.hpp"
 #include "traits/trait_camera.hpp"
 
 namespace SFG
@@ -159,10 +159,8 @@ namespace SFG
 		trait_cam.set_main(*this);
 
 		// Model test
-		const world_handle	  e	 = _entity_manager.create_entity();
-		const world_handle	  t	 = _entity_manager.add_trait<trait_model_instance>(e);
-		trait_model_instance& mi = _entity_manager.get_trait<trait_model_instance>(t);
-		mi.set_model(TO_SIDC("assets/boombox/boombox.stkmodel"), *this);
+		const resource_handle boombox		 = _resources.get_resource_handle_by_hash<model>(TO_SIDC("assets/boombox/boombox.stkmodel"));
+		const world_handle	  boombox_entity = add_model_to_world(boombox, nullptr, 0);
 	}
 
 	void world::create_from_raw(world_raw& raw)
@@ -204,8 +202,8 @@ namespace SFG
 		resource_handle* ptr_meshes_handle = aux.get<resource_handle>(meshes);
 
 		// create nodes.
-		static_vector<world_handle, 128> created_node_entities;
-		static_vector<world_handle, 128> root_entities;
+		vector<world_handle> created_node_entities;
+		vector<world_handle> root_entities;
 		for (uint16 i = 0; i < nodes_count; i++)
 		{
 			model_node&		   node = ptr_nodes[i];
@@ -235,6 +233,21 @@ namespace SFG
 			_entity_manager.set_entity_position(created_node_entities[i], out_pos);
 			_entity_manager.set_entity_rotation(created_node_entities[i], out_rot);
 			_entity_manager.set_entity_scale(created_node_entities[i], out_scale);
+		}
+
+		// add meshes.
+		for (uint16 i = 0; i < nodes_count; i++)
+		{
+			model_node& node = ptr_nodes[i];
+			if (node.get_mesh_index() == -1)
+				continue;
+
+			const resource_handle& mesh_handle	= ptr_meshes_handle[node.get_mesh_index()];
+			const mesh&			   m			= _resources.get_resource<mesh>(mesh_handle);
+			const world_handle	   entity		= created_node_entities[i];
+			const world_handle	   trait_handle = _entity_manager.add_trait<trait_mesh_instance>(entity);
+			trait_mesh_instance&   mi			= _entity_manager.get_trait<trait_mesh_instance>(trait_handle);
+			mi.set_mesh(*this, handle, mesh_handle);
 		}
 
 		auto report_entity = [this](world_handle e) {

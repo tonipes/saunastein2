@@ -6,22 +6,18 @@
 
 namespace SFG
 {
-	void render_event_model_instance::serialize(ostream& stream) const
+	void render_event_mesh_instance::serialize(ostream& stream) const
 	{
 		stream << entity_index;
 		stream << model;
 		stream << mesh;
-		stream << single_mesh;
-		stream << materials;
 	}
 
-	void render_event_model_instance::deserialize(istream& stream)
+	void render_event_mesh_instance::deserialize(istream& stream)
 	{
 		stream >> entity_index;
 		stream >> model;
 		stream >> mesh;
-		stream >> single_mesh;
-		stream >> materials;
 	}
 
 	void render_event_camera::serialize(ostream& stream) const
