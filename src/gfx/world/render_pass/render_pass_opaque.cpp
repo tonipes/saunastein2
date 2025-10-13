@@ -100,7 +100,7 @@ namespace SFG
 		}
 	}
 	*/
-	void render_pass_opaque::upload(world* w, buffer_queue* queue, uint8 frame_index)
+	void render_pass_opaque::upload(world& w, buffer_queue* queue, uint8 frame_index)
 	{
 		per_frame_data& pfd = _pfd[frame_index];
 		render_data&	rd	= _render_data;

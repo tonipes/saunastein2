@@ -5,25 +5,16 @@
 
 namespace SFG
 {
-	void view_manager::init(world* w)
-	{
-		_views.clear();
-		_world = w;
-	}
-
-	void view_manager::uninit()
-	{
-	}
-
 	void view_manager::reset()
 	{
-		_views.clear();
+		_views.resize(0);
+		_view_count = 0;
 	}
 
-	void view_manager::generate_views(const vector2ui16& res, double interpolation)
+	void view_manager::generate_views(world& w, const vector2ui16& res, double interpolation)
 	{
 		const float		alpha			 = static_cast<float>(interpolation);
-		camera&			cam				 = _world->get_camera();
+		camera&			cam				 = w.get_camera();
 		const vector3&	prev_pos		 = cam.get_prev_pos();
 		const vector3&	current_pos		 = cam.get_pos();
 		const quat&		prev_rot		 = cam.get_prev_rot();
@@ -44,6 +35,8 @@ namespace SFG
 		};
 
 		_views.push_back(v);
+
+		// active camera proxy, all lights proxies, and fill views.
 	}
 
 	bool view_manager::visibility_test_any_view(const aabb& box)
@@ -57,9 +50,9 @@ namespace SFG
 		return true;
 	}
 
-	bool view_manager::visibility_test_main_view(const aabb& box)
+	bool view_manager::visibility_test_view(const aabb& box, uint8 view_index)
 	{
-		SFG_ASSERT(_views.empty());
-		return frustum::test(_views[0].view_frustum, box) != frustum_result::outside;
+		return frustum::test(_views[view_index].view_frustum, box) != frustum_result::outside;
 	}
+
 }

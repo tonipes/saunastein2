@@ -8,16 +8,17 @@
 #include "data/static_vector.hpp"
 #include "memory/chunk_handle.hpp"
 #include "render_proxy_common.hpp"
+#include "resources/common_resources.hpp"
 
 namespace SFG
 {
 
 	struct render_proxy_texture
 	{
-		uint16 handle		= {};
-		gfx_id hw			= 0;
-		gfx_id intermediate = 0;
-		uint8  status		= render_proxy_status::rps_inactive;
+		resource_id handle		 = {};
+		gfx_id		hw			 = 0;
+		gfx_id		intermediate = 0;
+		uint8		status		 = render_proxy_status::rps_inactive;
 	};
 
 	struct render_proxy_material
@@ -25,23 +26,23 @@ namespace SFG
 		buffer												buffers[FRAMES_IN_FLIGHT];
 		static_vector<uint16, MAX_MATERIAL_SHADER_VARIANTS> shader_handles;
 		static_vector<uint16, MAX_MATERIAL_TEXTURES>		texture_handles;
-		uint16												handle = {};
+		resource_id											handle = {};
 		gfx_id												bind_groups[FRAMES_IN_FLIGHT];
 		uint8												status = render_proxy_status::rps_inactive;
 	};
 
 	struct render_proxy_shader
 	{
-		uint16 handle = {};
-		gfx_id hw	  = 0;
-		uint8  status = render_proxy_status::rps_inactive;
+		resource_id handle = {};
+		gfx_id		hw	   = 0;
+		uint8		status = render_proxy_status::rps_inactive;
 	};
 
 	struct render_proxy_sampler
 	{
-		uint16 handle = {};
-		gfx_id hw	  = 0;
-		uint8  status = render_proxy_status::rps_inactive;
+		resource_id handle = {};
+		gfx_id		hw	   = 0;
+		uint8		status = render_proxy_status::rps_inactive;
 	};
 
 	struct render_proxy_primitive
@@ -58,9 +59,10 @@ namespace SFG
 		buffer		   index_buffer	 = {};
 		chunk_handle32 primitives;
 		uint32		   primitive_count = 0;
-		uint16		   handle		   = {};
+		resource_id	   handle		   = {};
 		uint16		   material_count  = 0;
 		uint8		   status		   = render_proxy_status::rps_inactive;
+		uint8		   is_skinned	   = 0;
 	};
 
 }

@@ -8,13 +8,13 @@
 
 namespace SFG
 {
-
 	enum entity_flags : uint8
 	{
 		entity_flags_local_transform_dirty = 1 << 0,
 		entity_flags_abs_transform_dirty   = 1 << 1,
 		entity_flags_abs_rotation_dirty	   = 1 << 2,
 		entity_flags_render_proxy_dirty	   = 1 << 3,
+		entity_flags_invisible			   = 1 << 4,
 	};
 
 	struct entity_meta
@@ -26,9 +26,9 @@ namespace SFG
 
 	struct entity_family
 	{
-		entity_handle parent	   = {};
-		entity_handle first_child  = {};
-		entity_handle prev_sibling = {};
-		entity_handle next_sibling = {};
+		world_handle parent		  = {};
+		world_handle first_child  = {};
+		world_handle prev_sibling = {};
+		world_handle next_sibling = {};
 	};
 }

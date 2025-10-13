@@ -39,5 +39,6 @@ namespace SFG
 	};
 
 	typedef pool_handle16 resource_handle;
+	typedef uint16		  resource_id;
 
 }

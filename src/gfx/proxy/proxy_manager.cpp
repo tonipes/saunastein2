@@ -26,7 +26,8 @@ namespace SFG
 		_samplers.init(MAX_WORLD_SAMPLERS);
 		_materials.init(MAX_WORLD_MATERIALS);
 		_meshes.init(MAX_WORLD_MESHES);
-		_model_instances.init(MAX_MODEL_INSTANCES);
+		_model_instances.init(MAX_ENTITIES);
+		_cameras.init(MAX_ENTITIES);
 
 		for (uint8 i = 0; i < FRAMES_IN_FLIGHT + 1; i++)
 			_destroy_bucket[i].list.reserve(1000);
@@ -79,6 +80,7 @@ namespace SFG
 		flush_destroys(true);
 
 		_entities.uninit();
+		_cameras.uninit();
 		_model_instances.uninit();
 		_shaders.uninit();
 		_textures.uninit();
@@ -138,16 +140,25 @@ namespace SFG
 	{
 		gfx_backend* backend = gfx_backend::get();
 
-		const uint32			index = header.index;
+		const world_id			index = header.index;
 		const render_event_type type  = header.event_type;
-		if (type == render_event_type::render_event_update_entity)
+		if (type == render_event_type::render_event_update_entity_transform)
 		{
-			render_event_entity stg = {};
+			render_event_entity_transform stg = {};
 			stg.deserialize(stream);
 			render_proxy_entity& proxy = get_entity(index);
 			proxy.status			   = render_proxy_status::rps_active;
 			proxy.handle			   = index;
 			proxy.model				   = stg.abs_model;
+		}
+		else if (type == render_event_type::render_event_update_entity_visibility)
+		{
+			render_event_entity_visibility stg = {};
+			stg.deserialize(stream);
+			render_proxy_entity& proxy = get_entity(index);
+			proxy.status			   = render_proxy_status::rps_active;
+			proxy.handle			   = index;
+			proxy.flags.set(render_proxy_entity_flags::render_proxy_entity_invisible, !stg.visible);
 		}
 		else if (type == render_event_type::render_event_update_model_instance)
 		{
@@ -156,7 +167,7 @@ namespace SFG
 
 			render_proxy_model_instance& proxy = get_model_instance(index);
 			proxy.status					   = render_proxy_status::rps_active;
-			proxy.entity					   = index;
+			proxy.entity					   = stg.entity_index;
 			proxy.mesh						   = stg.mesh;
 			proxy.single_mesh				   = stg.single_mesh;
 			proxy.model						   = stg.model;
@@ -172,14 +183,38 @@ namespace SFG
 			for (uint16 i = 0; i < proxy.material_count; i++)
 				materials[i] = stg.materials[i];
 		}
-		else if (type == render_event_type::render_event_update_model_instance)
+		else if (type == render_event_type::render_event_remove_model_instance)
 		{
-			render_event_model_instance stg = {};
-			stg.deserialize(stream);
-
 			render_proxy_model_instance& proxy = get_model_instance(index);
 			if (proxy.materials.size != 0)
 				_aux_memory.free(proxy.materials);
+			proxy = {};
+		}
+		else if (type == render_event_type::render_event_update_camera)
+		{
+			render_event_camera ev = {};
+			ev.deserialize(stream);
+
+			render_proxy_camera& proxy = get_camera(index);
+
+			proxy = {
+				.entity		 = ev.entity_index,
+				.near_plane	 = ev.near_plane,
+				.far_plane	 = ev.far_plane,
+				.fov_degrees = ev.fov_degrees,
+			};
+		}
+		else if (type == render_event_type::render_event_set_main_camera)
+		{
+			render_proxy_camera& proxy = get_camera(index);
+			_main_camera_trait		   = index;
+		}
+		else if (type == render_event_type::render_event_remove_camera)
+		{
+			render_proxy_camera& proxy = get_camera(index);
+			if (index == _main_camera_trait)
+				_main_camera_trait = NULL_WORLD_ID;
+
 			proxy = {};
 		}
 		else if (type == render_event_type::render_event_create_texture)
@@ -452,10 +487,12 @@ namespace SFG
 
 			if (!stg.primitives_static.empty())
 			{
+				proxy.is_skinned = 0;
 				process(stg.primitives_static, sizeof(vertex_static));
 			}
 			else if (!stg.primitives_skinned.empty())
 			{
+				proxy.is_skinned = 1;
 				process(stg.primitives_skinned, sizeof(vertex_skinned));
 			}
 			else

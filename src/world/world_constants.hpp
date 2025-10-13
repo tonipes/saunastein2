@@ -7,14 +7,12 @@
 namespace SFG
 {
 #define MAX_ENTITIES				   16000
-#define MAX_MODEL_INSTANCES			   1000
 #define MAX_WORLD_RESOURCES_AUX_MEMORY 1024 * 1024 * 4
 #define MAX_WORLD_TRAITS_AUX_MEMORY	   1024 * 512
 
-	typedef uint32		  entity_id;
-	typedef pool_handle32 entity_handle;
-	typedef pool_handle32 trait_handle;
+	typedef uint32		  world_id;
+	typedef pool_handle32 world_handle;
 
-#define NULL_ENTITY_ID std::numeric_limits<entity_id>::max()
+#define NULL_WORLD_ID std::numeric_limits<world_id>::max()
 
 }

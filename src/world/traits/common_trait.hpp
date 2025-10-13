@@ -18,12 +18,14 @@ namespace SFG
 	{
 		trait_type_model_instance = 0,
 		trait_type_light,
+		trait_type_camera,
 		trait_type_max = 32,
 	};
 
 	struct trait_header
 	{
-		entity_handle  entity;
+		world_handle   entity;
+		world_handle   own_handle;
 		bitmask<uint8> flags;
 	};
 }

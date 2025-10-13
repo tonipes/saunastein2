@@ -6,13 +6,23 @@
 
 namespace SFG
 {
-	void render_event_entity::serialize(ostream& stream) const
+	void render_event_entity_transform::serialize(ostream& stream) const
 	{
 		stream << abs_model;
 	}
 
-	void render_event_entity::deserialize(istream& stream)
+	void render_event_entity_transform::deserialize(istream& stream)
 	{
 		stream >> abs_model;
+	}
+
+	void render_event_entity_visibility::serialize(ostream& stream) const
+	{
+		stream << visible;
+	}
+
+	void render_event_entity_visibility::deserialize(istream& stream)
+	{
+		stream >> visible;
 	}
 }

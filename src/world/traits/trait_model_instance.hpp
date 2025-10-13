@@ -27,8 +27,8 @@ namespace SFG
 	class trait_model_instance
 	{
 	public:
-		void set_model(resource_handle handle, world& w, render_event_stream& stream, resource_handle target_mesh = {});
-		void set_model(string_id sid, world& w, render_event_stream& stream, resource_handle target_mesh = {});
+		void set_model(resource_handle handle, world& w, resource_handle target_mesh = {});
+		void set_model(string_id sid, world& w, resource_handle target_mesh = {});
 
 		void serialize(ostream& stream, world& w) const;
 		void deserialize(istream& stream, world& w);
@@ -41,8 +41,8 @@ namespace SFG
 	private:
 		friend class entity_manager;
 
-		void on_add(world& w, trait_handle handle, entity_handle entity);
-		void on_remove(world& w, trait_handle handle);
+		void on_add(world& we);
+		void on_remove(world& w);
 		void fetch_refs(world_resources& res, string_id& out_target, string_id& out_target_mesh, vector<string_id>& out_materials) const;
 		void fill_refs(world_resources& res, string_id target, string_id target_mesh, const vector<string_id>& materials);
 

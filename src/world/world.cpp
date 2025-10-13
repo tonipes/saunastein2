@@ -30,6 +30,7 @@ using json = nlohmann::json;
 #include "resources/model_node.hpp"
 #include "resources/primitive.hpp"
 #include "traits/trait_model_instance.hpp"
+#include "traits/trait_camera.hpp"
 
 namespace SFG
 {
@@ -77,8 +78,8 @@ namespace SFG
 	void world::load_debug()
 	{
 		/*
-		entity_handle parent = _entity_manager.create_entity();
-		entity_handle child	 = _entity_manager.create_entity();
+		world_handle parent = _entity_manager.create_entity();
+		world_handle child	 = _entity_manager.create_entity();
 		_entity_manager.add_child(parent, child);
 
 		auto report = [&]() {
@@ -150,10 +151,18 @@ namespace SFG
 		const int64 mr_diff = time::get_cpu_microseconds() - mr_begin;
 		SFG_INFO("Resources took: {0} ms", mr_diff / 1000);
 
-		const entity_handle	  e	 = _entity_manager.create_entity();
-		const trait_handle	  t	 = _entity_manager.add_trait<trait_model_instance>(e);
+		// Camera
+		const world_handle cam_entity = _entity_manager.create_entity();
+		const world_handle cam_handle = _entity_manager.add_trait<trait_camera>(cam_entity);
+		trait_camera&	   trait_cam  = _entity_manager.get_trait<trait_camera>(cam_handle);
+		trait_cam.set_values(*this, 0.01f, 500.0f, 90.0f);
+		trait_cam.set_main(*this);
+
+		// Model test
+		const world_handle	  e	 = _entity_manager.create_entity();
+		const world_handle	  t	 = _entity_manager.add_trait<trait_model_instance>(e);
 		trait_model_instance& mi = _entity_manager.get_trait<trait_model_instance>(t);
-		mi.set_model(TO_SIDC("assets/boombox/boombox.stkmodel"), *this, _render_stream);
+		mi.set_model(TO_SIDC("assets/boombox/boombox.stkmodel"), *this);
 	}
 
 	void world::create_from_raw(world_raw& raw)
@@ -177,9 +186,9 @@ namespace SFG
 	{
 	}
 
-	entity_handle world::add_model_to_world(resource_handle handle, resource_handle* materials, uint32 material_size)
+	world_handle world::add_model_to_world(resource_handle handle, resource_handle* materials, uint32 material_size)
 	{
-		entity_handle	   root = _entity_manager.create_entity("root");
+		world_handle	   root = _entity_manager.create_entity("root");
 		model&			   mdl	= _resources.get_resource<model>(handle);
 		chunk_allocator32& aux	= _resources.get_aux();
 
@@ -195,13 +204,13 @@ namespace SFG
 		resource_handle* ptr_meshes_handle = aux.get<resource_handle>(meshes);
 
 		// create nodes.
-		static_vector<entity_handle, 128> created_node_entities;
-		static_vector<entity_handle, 128> root_entities;
+		static_vector<world_handle, 128> created_node_entities;
+		static_vector<world_handle, 128> root_entities;
 		for (uint16 i = 0; i < nodes_count; i++)
 		{
-			model_node&			node = ptr_nodes[i];
-			const char*			name = reinterpret_cast<const char*>(aux.get(node.get_name().head));
-			const entity_handle e	 = _entity_manager.create_entity(name);
+			model_node&		   node = ptr_nodes[i];
+			const char*		   name = reinterpret_cast<const char*>(aux.get(node.get_name().head));
+			const world_handle e	= _entity_manager.create_entity(name);
 			created_node_entities.push_back(e);
 			if (node.get_parent_index() == -1)
 				root_entities.push_back(e);
@@ -228,7 +237,7 @@ namespace SFG
 			_entity_manager.set_entity_scale(created_node_entities[i], out_scale);
 		}
 
-		auto report_entity = [this](entity_handle e) {
+		auto report_entity = [this](world_handle e) {
 			const entity_meta& meta	 = _entity_manager.get_entity_meta(e);
 			const vector3&	   pos	 = _entity_manager.get_entity_position(e);
 			const quat&		   rot	 = _entity_manager.get_entity_rotation(e);
@@ -239,12 +248,12 @@ namespace SFG
 			SFG_INFO("scale: {0} {1} {2}", scale.x, scale.y, scale.z);
 		};
 
-		for (entity_handle e : root_entities)
+		for (world_handle e : root_entities)
 		{
 			SFG_INFO("reporting root...");
 			report_entity(e);
 			SFG_INFO("reporting children...");
-			_entity_manager.visit_children(e, [&](entity_handle c) { report_entity(c); });
+			_entity_manager.visit_children(e, [&](world_handle c) { report_entity(c); });
 		}
 
 		return root;

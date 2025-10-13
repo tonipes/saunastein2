@@ -64,7 +64,7 @@ namespace SFG
 		void init(const init_params& params);
 		void uninit();
 
-		void upload(world* w, buffer_queue* queue, uint8 frame_index);
+		void upload(world& w, buffer_queue* queue, uint8 frame_index);
 		void render(uint8 frame_index, const vector2ui16& size, gfx_id global_layout, gfx_id global_group);
 		void resize(const vector2ui16& size);
 

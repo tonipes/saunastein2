@@ -37,45 +37,46 @@ namespace SFG
 		void post_tick(double interpolation);
 
 		/* ---------------- entity api ---------------- */
-		entity_handle		 create_entity(const char* name = "entity");
-		void				 destroy_entity(entity_handle handle);
-		void				 add_child(entity_handle parent, entity_handle child);
-		void				 remove_child(entity_handle parent, entity_handle child);
-		void				 remove_from_parent(entity_handle entity);
-		entity_handle		 get_child_by_index(entity_handle parent, uint32 index);
-		const aabb&			 get_entity_aabb(entity_handle entity);
-		entity_meta&		 get_entity_meta(entity_handle entity);
-		const entity_family& get_entity_family(entity_handle entity) const;
-		void				 on_add_render_proxy(entity_handle entity);
-		void				 on_remove_render_proxy(entity_handle entity);
+		world_handle		 create_entity(const char* name = "entity");
+		void				 destroy_entity(world_handle handle);
+		void				 add_child(world_handle parent, world_handle child);
+		void				 remove_child(world_handle parent, world_handle child);
+		void				 remove_from_parent(world_handle entity);
+		world_handle		 get_child_by_index(world_handle parent, uint32 index);
+		const aabb&			 get_entity_aabb(world_handle entity);
+		const entity_meta&	 get_entity_meta(world_handle entity) const;
+		const entity_family& get_entity_family(world_handle entity) const;
+		void				 on_add_render_proxy(world_handle entity);
+		void				 on_remove_render_proxy(world_handle entity);
+		void				 set_entity_visible(world_handle entity, bool is_visible);
 
 		/* ---------------- entity transforms ---------------- */
-		void			 set_entity_position(entity_handle entity, const vector3& pos);
-		void			 set_entity_position_abs(entity_handle entity, const vector3& pos);
-		const vector3&	 get_entity_position(entity_handle entity) const;
-		vector3			 get_entity_position_abs(entity_handle entity);
-		void			 set_entity_rotation(entity_handle entity, const quat& rot);
-		void			 set_entity_rotation_abs(entity_handle entity, const quat& rot);
-		const quat&		 get_entity_rotation(entity_handle entity) const;
-		const quat&		 get_entity_rotation_abs(entity_handle entity);
-		void			 set_entity_scale(entity_handle entity, const vector3& scale);
-		void			 set_entity_scale_abs(entity_handle entity, const vector3& scale);
-		const vector3&	 get_entity_scale(entity_handle entity) const;
-		vector3			 get_entity_scale_abs(entity_handle entity);
-		const matrix4x3& get_entity_transform(entity_handle entity);
-		const matrix4x3& get_entity_transform_abs(entity_handle entity);
-		void			 set_entity_prev_position_abs(entity_handle entity, const vector3& pos);
-		void			 set_entity_prev_rotation_abs(entity_handle entity, const quat& rot);
-		void			 set_entity_prev_scale_abs(entity_handle entity, const vector3& scale);
-		const vector3&	 get_entity_prev_position_abs(entity_handle entity) const;
-		const quat&		 get_entity_prev_rotation_abs(entity_handle entity) const;
-		const vector3&	 get_entity_prev_scale_abs(entity_handle entity) const;
-		matrix4x3		 calculate_interpolated_transform_abs(entity_handle entity, float interpolation);
+		void			 set_entity_position(world_handle entity, const vector3& pos);
+		void			 set_entity_position_abs(world_handle entity, const vector3& pos);
+		const vector3&	 get_entity_position(world_handle entity) const;
+		vector3			 get_entity_position_abs(world_handle entity);
+		void			 set_entity_rotation(world_handle entity, const quat& rot);
+		void			 set_entity_rotation_abs(world_handle entity, const quat& rot);
+		const quat&		 get_entity_rotation(world_handle entity) const;
+		const quat&		 get_entity_rotation_abs(world_handle entity);
+		void			 set_entity_scale(world_handle entity, const vector3& scale);
+		void			 set_entity_scale_abs(world_handle entity, const vector3& scale);
+		const vector3&	 get_entity_scale(world_handle entity) const;
+		vector3			 get_entity_scale_abs(world_handle entity);
+		const matrix4x3& get_entity_transform(world_handle entity);
+		const matrix4x3& get_entity_transform_abs(world_handle entity);
+		void			 set_entity_prev_position_abs(world_handle entity, const vector3& pos);
+		void			 set_entity_prev_rotation_abs(world_handle entity, const quat& rot);
+		void			 set_entity_prev_scale_abs(world_handle entity, const vector3& scale);
+		const vector3&	 get_entity_prev_position_abs(world_handle entity) const;
+		const quat&		 get_entity_prev_rotation_abs(world_handle entity) const;
+		const vector3&	 get_entity_prev_scale_abs(world_handle entity) const;
+		matrix4x3		 calculate_interpolated_transform_abs(world_handle entity, float interpolation);
 
-		template <typename VisitFunc> void visit_children(entity_handle parent, VisitFunc f)
+		template <typename VisitFunc> void visit_children(world_handle parent, VisitFunc f)
 		{
 			const entity_family& fam	= get_entity_family(parent);
-			entity_handle		 entity = fam.first_child;
+			world_handle		 entity = fam.first_child;
 
 			while (!entity.is_null())
 			{
@@ -85,10 +86,10 @@ namespace SFG
 			}
 		}
 
-		template <typename VisitFunc> void visit_parents(entity_handle entity, VisitFunc f)
+		template <typename VisitFunc> void visit_parents(world_handle entity, VisitFunc f)
 		{
 			const entity_family& fam	= get_entity_family(entity);
-			entity_handle		 parent = fam.parent;
+			world_handle		 parent = fam.parent;
 			while (!parent.is_null())
 			{
 				f(parent);
@@ -112,17 +113,19 @@ namespace SFG
 			stg.init<T>(max_count);
 		}
 
-		template <typename T> trait_handle add_trait(entity_handle entity)
+		template <typename T> world_handle add_trait(world_handle entity)
 		{
 			pool_allocator32& storage = _traits[type_id<T>::index].storage;
-			trait_handle	  handle  = storage.allocate<T>();
+			world_handle	  handle  = storage.allocate<T>();
 			T&				  tr	  = storage.get<T>(handle);
 			tr						  = T();
-			tr.on_add(_world, handle, entity);
+			tr._header.entity		  = entity;
+			tr._header.own_handle	  = handle;
+			tr.on_add(_world);
 			return handle;
 		}
 
-		template <typename T> T& get_trait(trait_handle handle)
+		template <typename T> T& get_trait(world_handle handle)
 		{
 			pool_allocator32& storage = _traits[type_id<T>::index].storage;
 			return storage.get<T>(handle);
@@ -133,11 +136,11 @@ namespace SFG
 			return storage;
 		}
 
-		template <typename T> void remove_trait(trait_handle handle)
+		template <typename T> void remove_trait(world_handle handle)
 		{
 			pool_allocator32& storage = _traits[type_id<T>::index].storage;
 			T&				  tr	  = storage.get<T>(handle);
-			tr.on_remove(_world, handle);
+			tr.on_remove(_world);
 			tr.~T();
 			storage.free(handle);
 		}
@@ -166,7 +169,7 @@ namespace SFG
 
 	private:
 		void reset_all_entity_data();
-		void reset_entity_data(entity_id id);
+		void reset_entity_data(world_id id);
 
 	private:
 		world& _world;

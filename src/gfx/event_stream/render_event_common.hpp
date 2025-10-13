@@ -22,7 +22,11 @@ namespace SFG
 		render_event_update_material,
 		render_event_update_model_instance,
 		render_event_remove_model_instance,
-		render_event_update_entity,
+		render_event_update_entity_transform,
+		render_event_update_entity_visibility,
+		render_event_set_main_camera,
+		render_event_update_camera,
+		render_event_remove_camera,
 	};
 
 }

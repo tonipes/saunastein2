@@ -64,9 +64,29 @@ namespace SFG
 			return _model_instances.get(idx);
 		}
 
+		inline render_proxy_camera& get_camera(uint32 idx)
+		{
+			return _cameras.get(idx);
+		}
+
 		inline chunk_allocator32& get_aux()
 		{
 			return _aux_memory;
+		}
+
+		inline pool_allocator_simple<render_proxy_model_instance>& get_model_instances()
+		{
+			return _model_instances;
+		}
+
+		inline pool_allocator_simple<render_proxy_entity>& get_entities()
+		{
+			return _entities;
+		}
+
+		inline pool_allocator_simple<render_proxy_camera>& get_cameras()
+		{
+			return _cameras;
 		}
 
 	private:
@@ -112,6 +132,8 @@ namespace SFG
 		pool_allocator_simple<render_proxy_mesh>		   _meshes;
 		pool_allocator_simple<render_proxy_entity>		   _entities;
 		pool_allocator_simple<render_proxy_model_instance> _model_instances;
+		pool_allocator_simple<render_proxy_camera>		   _cameras;
+		world_id										   _main_camera_trait = 0;
 
 		destroy_bucket _destroy_bucket[FRAMES_IN_FLIGHT + 1];
 	};

@@ -4,6 +4,7 @@
 
 #include "render_event_common.hpp"
 #include "resources/common_resources.hpp"
+#include "world/world_constants.hpp"
 
 namespace SFG
 {
@@ -13,7 +14,7 @@ namespace SFG
 
 	struct render_event_header
 	{
-		uint32			  index = 0;
+		world_id		  index = 0;
 		render_event_type event_type;
 
 		void serialize(ostream& stream) const;

@@ -20,21 +20,25 @@ namespace SFG
 	trait_model_instance_reflection::trait_model_instance_reflection()
 	{
 		meta& m = reflection::get().register_meta(type_id<trait_model_instance>::value, type_id<trait_model_instance>::index, "");
-		m.add_function<void, world&>("init_trait_storage"_hs, [](world& w) -> void { w.get_entity_manager().init_trait_storage<trait_model_instance>(MAX_MODEL_INSTANCES); });
+		m.add_function<void, world&>("init_trait_storage"_hs, [](world& w) -> void { w.get_entity_manager().init_trait_storage<trait_model_instance>(MAX_ENTITIES); });
 	}
 
-	void trait_model_instance::on_add(world& w, trait_handle handle, entity_handle entity)
+	void trait_model_instance::on_add(world& w)
 	{
-		_header.entity = entity;
 		w.get_entity_manager().on_add_render_proxy(_header.entity);
 	}
 
-	void trait_model_instance::on_remove(world& w, trait_handle handle)
+	void trait_model_instance::on_remove(world& w)
 	{
 		w.get_entity_manager().on_remove_render_proxy(_header.entity);
+
+		w.get_render_stream().add_event({
+			.index		= _header.own_handle.index,
+			.event_type = render_event_type::render_event_remove_model_instance,
+		});
 	}
 
-	void trait_model_instance::set_model(resource_handle handle, world& w, render_event_stream& stream, resource_handle target_mesh)
+	void trait_model_instance::set_model(resource_handle handle, world& w, resource_handle target_mesh)
 	{
 		world_resources&   resources = w.get_resources();
 		chunk_allocator32& aux		 = resources.get_aux();
@@ -47,26 +51,27 @@ namespace SFG
 
 		render_event_model_instance stg = {};
 
-		stg.model		= _target_model.index;
-		stg.single_mesh = !_target_mesh.is_null();
+		stg.entity_index = _header.entity.index;
+		stg.model		 = _target_model.index;
+		stg.single_mesh	 = !_target_mesh.is_null();
 		stg.materials.resize(_material_count);
 
 		resource_handle* materials = aux.get<resource_handle>(_materials);
 		for (uint16 i = 0; i < _material_count; i++)
 			stg.materials[i] = materials[i].index;
 
-		stream.add_event(
+		w.get_render_stream().add_event(
 			{
-				.index		= _header.entity.index,
+				.index		= _header.own_handle.index,
 				.event_type = render_event_type::render_event_update_model_instance,
 			},
 			stg);
 	}
 
-	void trait_model_instance::set_model(string_id sid, world& w, render_event_stream& stream, resource_handle target_mesh)
+	void trait_model_instance::set_model(string_id sid, world& w, resource_handle target_mesh)
 	{
 		const resource_handle handle = w.get_resources().get_resource_handle_by_hash<model>(sid);
-		set_model(handle, w, stream);
+		set_model(handle, w, target_mesh);
 	}
 
 	void trait_model_instance::serialize(ostream& stream, world& w) const

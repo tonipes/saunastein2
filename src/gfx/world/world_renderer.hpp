@@ -13,7 +13,7 @@
 #include "gfx/buffer.hpp"
 #include "memory/bump_allocator.hpp"
 #include "world_render_data.hpp"
-
+#include "view_manager.hpp"
 #include "render_pass/render_pass_opaque.hpp"
 #include "render_pass/render_pass_lighting_forward.hpp"
 #include "render_pass/render_pass_post_combiner.hpp"
@@ -25,6 +25,7 @@ namespace SFG
 	class buffer_queue;
 	class world;
 	class texture;
+	class proxy_manager;
 
 #define MAX_BARRIERS 20
 
@@ -40,16 +41,18 @@ namespace SFG
 		};
 
 	public:
-		void init(const vector2ui16& size, texture_queue* tq, buffer_queue* bq, world* w);
+		world_renderer() = delete;
+		world_renderer(proxy_manager& pm, world& w);
+
+		void init(const vector2ui16& size, texture_queue* tq, buffer_queue* bq);
 		void uninit();
 
-		void populate_render_data(uint8 index, double interpolation);
 		void upload(uint8 frame_index);
 		void render(uint8 frame_index, gfx_id layout_global, gfx_id bind_group_global, uint64 prev_copy, uint64 next_copy, gfx_id sem_copy);
 		void resize(const vector2ui16& size);
 
-		uint16 create_gpu_entity(const gpu_entity& e);
-		uint16 create_renderable(const renderable_object& e);
+		uint32 create_gpu_entity(const gpu_entity& e);
+		uint16 create_gpu_object(const renderable_object& e);
 
 		inline gfx_id get_output(uint8 frame_index)
 		{
@@ -64,14 +67,19 @@ namespace SFG
 		}
 
 	private:
+		void generate_renderables();
+		void frustum_cull();
 		void push_barrier_ps(gfx_id id, static_vector<barrier, MAX_BARRIERS>& barriers);
 		void push_barrier_rt(gfx_id id, static_vector<barrier, MAX_BARRIERS>& barriers);
 		void send_barriers(gfx_id cmd_list, static_vector<barrier, MAX_BARRIERS>& barriers);
 
 	private:
+		proxy_manager& _proxy_manager;
+		world&		   _world;
+		view_manager   _view_manager;
+
 		texture_queue*	  _texture_queue = nullptr;
 		buffer_queue*	  _buffer_queue	 = nullptr;
-		world*			  _world		 = nullptr;
 		world_render_data _render_data	 = {};
 
 		render_pass_opaque			 _pass_opaque		 = {};

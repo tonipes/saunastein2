@@ -4,6 +4,7 @@
 
 #include "common/size_definitions.hpp"
 #include "data/vector.hpp"
+#include "world/world_constants.hpp"
 
 namespace SFG
 {
@@ -13,6 +14,7 @@ namespace SFG
 
 	struct render_event_model_instance
 	{
+		world_id	   entity_index = 0;
 		vector<uint16> materials;
 		uint16		   model	   = 0;
 		uint16		   mesh		   = 0;
@@ -21,4 +23,16 @@ namespace SFG
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);
 	};
+
+	struct render_event_camera
+	{
+		world_id entity_index = 0;
+		float	 near_plane	  = 0.0f;
+		float	 far_plane	  = 0.0f;
+		float	 fov_degrees  = 0.0f;
+
+		void serialize(ostream& stream) const;
+		void deserialize(istream& stream);
+	};
+
 }
