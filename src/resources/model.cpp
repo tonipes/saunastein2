@@ -192,6 +192,10 @@ namespace SFG
 			}
 		}
 
+#ifndef SFG_STRIP_DEBUG_NAMES
+		ev.name = raw.name;
+#endif
+
 		stream.add_event(
 			{
 				.index		= handle.index,

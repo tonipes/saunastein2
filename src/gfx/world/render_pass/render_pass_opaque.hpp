@@ -11,12 +11,12 @@
 
 namespace SFG
 {
-	class world;
-	struct world_render_data;
+	struct view;
 	class buffer_queue;
-	class world;
+	class proxy_manager;
 	struct vector2ui16;
 	struct view;
+	struct world_render_data;
 
 	class render_pass_opaque
 	{
@@ -46,9 +46,6 @@ namespace SFG
 		struct render_data
 		{
 			static_vector<indexed_draw, MAX_DRAWS> draws;
-			matrix4x4							   view		 = matrix4x4::identity;
-			matrix4x4							   proj		 = matrix4x4::identity;
-			matrix4x4							   view_proj = matrix4x4::identity;
 		};
 
 	public:
@@ -64,7 +61,8 @@ namespace SFG
 		void init(const init_params& params);
 		void uninit();
 
-		void upload(world& w, buffer_queue* queue, uint8 frame_index);
+		void prepare(proxy_manager& pm, uint8 frame_index, world_render_data& rd);
+		void upload(proxy_manager& pm, view& camera_view, buffer_queue* queue, uint8 frame_index);
 		void render(uint8 frame_index, const vector2ui16& size, gfx_id global_layout, gfx_id global_group);
 		void resize(const vector2ui16& size);
 

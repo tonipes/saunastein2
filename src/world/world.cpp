@@ -157,6 +157,7 @@ namespace SFG
 		trait_camera&	   trait_cam  = _entity_manager.get_trait<trait_camera>(cam_handle);
 		trait_cam.set_values(*this, 0.01f, 500.0f, 90.0f);
 		trait_cam.set_main(*this);
+		_entity_manager.set_entity_position(cam_entity, vector3(0, 4.5f, -17.5f));
 
 		// Model test
 		const resource_handle boombox		 = _resources.get_resource_handle_by_hash<model>(TO_SIDC("assets/boombox/boombox.stkmodel"));

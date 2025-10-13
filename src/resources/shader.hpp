@@ -26,11 +26,6 @@ namespace SFG
 	class shader
 	{
 	public:
-		enum flags
-		{
-			is_skinned = 1 << 0,
-		};
-
 		void create_from_raw(const shader_raw& raw, render_event_stream& stream, chunk_allocator32& alloc, resource_handle handle);
 		void destroy(render_event_stream& stream, chunk_allocator32& alloc, resource_handle handle);
 

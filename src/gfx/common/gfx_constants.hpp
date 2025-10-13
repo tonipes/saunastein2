@@ -1,6 +1,8 @@
 // Copyright (c) 2025 Inan Evin
 #pragma once
 
+#include <limits>
+
 namespace SFG
 {
 #define MAX_RESOURCES				 512
@@ -28,4 +30,6 @@ namespace SFG
 
 	typedef unsigned short gfx_id;
 	typedef unsigned short primitive_index;
+
+#define NULL_GFX_ID std::numeric_limits<gfx_id>::max()
 }

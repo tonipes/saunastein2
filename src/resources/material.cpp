@@ -76,13 +76,14 @@ namespace SFG
 
 		const uint8 texture_count = static_cast<uint8>(raw.textures.size());
 		_material_data			  = raw.material_data;
-		_flags.set(material::flags::is_gbuffer, raw.pass_mode == material_pass_mode::gbuffer || raw.pass_mode == material_pass_mode::gbuffer_transparent);
-		_flags.set(material::flags::is_forward, raw.pass_mode == material_pass_mode::forward);
+		_flags.set(material_flags::material_flags_is_gbuffer, raw.pass_mode == material_pass_mode::gbuffer || raw.pass_mode == material_pass_mode::gbuffer_transparent);
+		_flags.set(material_flags::material_flags_is_forward, raw.pass_mode == material_pass_mode::forward);
 		SFG_ASSERT(!raw.shaders.empty());
 
 		render_event_material stg = {};
 		stg.data.data			  = _material_data.get_raw();
 		stg.data.size			  = _material_data.get_size();
+		stg.flags				  = _flags.value();
 
 		for (string_id sid : raw.textures)
 		{

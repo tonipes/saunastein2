@@ -5,7 +5,7 @@
 #include "common/size_definitions.hpp"
 #include "memory/pool_handle.hpp"
 #include "common/string_id.hpp"
-
+#include <limits>
 namespace SFG
 {
 
@@ -21,6 +21,9 @@ namespace SFG
 #define MAX_WORLD_FONTS				 20
 #define MAX_WORLD_PHYSICAL_MATERIALS 30
 #define MAX_WORLD_SAMPLERS			 16
+
+#define DUMMY_COLOR_TEXTURE_SID	 UINT64_MAX - 1000
+#define DUMMY_LINEAR_TEXTURE_SID UINT64_MAX - 999
 
 	enum resource_type : uint8
 	{
@@ -40,5 +43,18 @@ namespace SFG
 
 	typedef pool_handle16 resource_handle;
 	typedef uint16		  resource_id;
+
+#define NULL_RESOURCE_ID std::numeric_limits<resource_id>::max();
+
+	enum material_flags
+	{
+		material_flags_is_gbuffer = 1 << 0,
+		material_flags_is_forward = 1 << 1,
+	};
+
+	enum res_shader_flags
+	{
+		res_shader_flags_is_skinned = 1 << 0,
+	};
 
 }

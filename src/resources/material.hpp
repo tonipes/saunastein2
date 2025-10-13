@@ -26,12 +26,6 @@ namespace SFG
 	class material
 	{
 	public:
-		enum flags
-		{
-			is_gbuffer = 1 << 0,
-			is_forward = 1 << 1,
-		};
-
 		void create_from_raw(const material_raw& raw, world_resources& resources, chunk_allocator32& alloc, render_event_stream& stream, resource_handle handle);
 		void destroy(render_event_stream& stream, chunk_allocator32& alloc, resource_handle handle);
 		void update_data(render_event_stream& stream, resource_handle handle);

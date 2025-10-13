@@ -12,6 +12,7 @@
 #include "resources/shader.hpp"
 #include "resources/vertex.hpp"
 #include "math/vector2ui16.hpp"
+#include "gfx/proxy/proxy_manager.hpp"
 
 namespace SFG
 {
@@ -33,7 +34,7 @@ namespace SFG
 			pfd.ubo.create_hw({.size = sizeof(ubo), .flags = resource_flags::rf_constant_buffer | resource_flags::rf_cpu_visible, .debug_name = "opaque_ubo"});
 
 			pfd.bind_group = backend->create_empty_bind_group();
-			backend->bind_group_add_pointer(pfd.bind_group, rpi_table_render_pass, 5, false);
+			backend->bind_group_add_pointer(pfd.bind_group, rpi_table_render_pass, 4, false);
 			backend->bind_group_update_pointer(pfd.bind_group,
 											   0,
 											   {
@@ -100,15 +101,66 @@ namespace SFG
 		}
 	}
 	*/
-	void render_pass_opaque::upload(world& w, buffer_queue* queue, uint8 frame_index)
+
+	void render_pass_opaque::prepare(proxy_manager& pm, uint8 frame_index, world_render_data& wrd)
+	{
+		render_data& rd = _render_data;
+		rd.draws.clear();
+
+		for (const renderable_object& obj : wrd.objects)
+		{
+			const render_proxy_material& proxy_material = pm.get_material(obj.material);
+
+			if (!proxy_material.flags.is_set(material_flags::material_flags_is_gbuffer))
+				continue;
+
+			gfx_id target_shader = NULL_GFX_ID;
+
+			for (gfx_id shader : proxy_material.shader_handles)
+			{
+				const render_proxy_shader& proxy_shader	 = pm.get_shader(shader);
+				const bitmask<uint8>&	   flags		 = proxy_shader.flags;
+				const bool				   is_sh_skinned = proxy_shader.flags.is_set(res_shader_flags::res_shader_flags_is_skinned);
+				if (obj.is_skinned && is_sh_skinned)
+				{
+					target_shader = proxy_shader.hw;
+					break;
+				}
+				else if (!obj.is_skinned && !is_sh_skinned)
+				{
+					target_shader = proxy_shader.hw;
+					break;
+				}
+			}
+
+			SFG_ASSERT(target_shader != NULL_GFX_ID);
+
+			rd.draws.push_back({
+				.constants =
+					{
+						.constant0 = obj.gpu_entity,
+					},
+				.base_vertex	= obj.vertex_start,
+				.index_count	= obj.index_count,
+				.instance_count = 1,
+				.start_index	= obj.index_start,
+				.start_instance = 0,
+				.pipeline		= target_shader,
+				.bind_group		= proxy_material.bind_groups[frame_index],
+				.vertex_buffer	= obj.vertex_buffer->get_hw_gpu(),
+				.idx_buffer		= obj.index_buffer->get_hw_gpu(),
+			});
+		}
+	}
+	void render_pass_opaque::upload(proxy_manager& pm, view& camera_view, buffer_queue* queue, uint8 frame_index)
 	{
 		per_frame_data& pfd = _pfd[frame_index];
 		render_data&	rd	= _render_data;
 
 		ubo ubo_data = {
-			.view	   = rd.view,
-			.proj	   = rd.proj,
-			.view_proj = rd.view_proj,
+			.view	   = camera_view.view_matrix,
+			.proj	   = camera_view.proj_matrix,
+			.view_proj = camera_view.view_proj_matrix,
 		};
 
 		pfd.ubo.buffer_data(0, &ubo_data, sizeof(ubo));
@@ -214,7 +266,7 @@ namespace SFG
 			if (idx != last_idx)
 			{
 				last_idx = idx;
-				backend->cmd_bind_index_buffers(cmd_buffer, {.buffer = idx, .bit_depth = 2});
+				backend->cmd_bind_index_buffers(cmd_buffer, {.buffer = idx, .index_size = static_cast<uint8>(sizeof(primitive_index))});
 			}
 			if (pipeline != last_bound_pipeline)
 			{
@@ -280,6 +332,12 @@ namespace SFG
 	{
 		gfx_backend* backend = gfx_backend::get();
 
+		static_vector<const char*, COLOR_TEXTURES> names;
+		names.push_back("rt_albedo");
+		names.push_back("rt_normal");
+		names.push_back("rt_orm");
+		names.push_back("rt_emissive");
+
 		for (uint32 i = 0; i < FRAMES_IN_FLIGHT; i++)
 		{
 			per_frame_data& pfd = _pfd[i];
@@ -291,7 +349,7 @@ namespace SFG
 					.texture_format = format::r8g8b8a8_srgb,
 					.size			= sz,
 					.flags			= texture_flags::tf_render_target | texture_flags::tf_is_2d | texture_flags::tf_sampled,
-					.debug_name		= "opaque_color",
+					.debug_name		= names[j],
 				}));
 			}
 

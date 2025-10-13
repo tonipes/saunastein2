@@ -249,9 +249,9 @@ namespace SFG
 	{
 		static constexpr uint8 TID = 14;
 
-		gfx_id buffer	 = 0;
-		uint64 offset	 = 0;
-		uint8  bit_depth = 0;
+		gfx_id buffer	  = 0;
+		uint64 offset	  = 0;
+		uint8  index_size = 0;
 	};
 
 	struct command_bind_group

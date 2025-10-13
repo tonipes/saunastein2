@@ -2506,7 +2506,7 @@ namespace SFG
 		const D3D12_INDEX_BUFFER_VIEW view = {
 			.BufferLocation = res.ptr->GetResource()->GetGPUVirtualAddress(),
 			.SizeInBytes	= static_cast<uint32>(res.size),
-			.Format			= cmd.bit_depth == 16 ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT,
+			.Format			= cmd.index_size == 2 ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT,
 		};
 
 		cmd_list->IASetIndexBuffer(&view);

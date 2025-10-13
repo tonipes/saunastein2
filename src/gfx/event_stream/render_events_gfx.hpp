@@ -46,7 +46,8 @@ namespace SFG
 
 	struct render_event_shader
 	{
-		shader_desc desc = {};
+		shader_desc desc  = {};
+		uint8		flags = 0;
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);
@@ -57,6 +58,7 @@ namespace SFG
 #ifndef SFG_STRIP_DEBUG_NAMES
 		string name = "";
 #endif
+		uint8														 flags;
 		span<uint8>													 data = {};
 		static_vector<resource_handle, MAX_MATERIAL_TEXTURES>		 textures;
 		static_vector<resource_handle, MAX_MATERIAL_SHADER_VARIANTS> shaders;

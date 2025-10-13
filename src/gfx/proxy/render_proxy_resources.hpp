@@ -6,6 +6,7 @@
 #include "gfx/buffer.hpp"
 #include "math/aabb.hpp"
 #include "data/ostream.hpp"
+#include "data/bitmask.hpp"
 #include "data/static_vector.hpp"
 #include "memory/chunk_handle.hpp"
 #include "render_proxy_common.hpp"
@@ -30,13 +31,15 @@ namespace SFG
 		resource_id											handle = {};
 		gfx_id												bind_groups[FRAMES_IN_FLIGHT];
 		uint8												status = render_proxy_status::rps_inactive;
+		bitmask<uint8>										flags  = 0;
 	};
 
 	struct render_proxy_shader
 	{
-		resource_id handle = {};
-		gfx_id		hw	   = 0;
-		uint8		status = render_proxy_status::rps_inactive;
+		resource_id	   handle = {};
+		gfx_id		   hw	  = 0;
+		uint8		   status = render_proxy_status::rps_inactive;
+		bitmask<uint8> flags  = 0;
 	};
 
 	struct render_proxy_sampler

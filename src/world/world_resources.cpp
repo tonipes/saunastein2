@@ -12,12 +12,6 @@
 #include "data/ostream.hpp"
 #include "reflection/reflection.hpp"
 #include "data/pair.hpp"
-#include "resources/texture.hpp"
-#include "resources/texture_sampler.hpp"
-#include "resources/material.hpp"
-#include "resources/mesh.hpp"
-#include "resources/shader.hpp"
-#include "resources/font.hpp"
 
 #include <algorithm>
 #include <execution>

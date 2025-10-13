@@ -175,6 +175,8 @@ namespace SFG
 		_main_camera_view.view_frustum	   = frustum::extract(_main_camera_view.view_proj_matrix);
 
 		collect_model_instances();
+
+		_pass_opaque.prepare(_proxy_manager, frame_index, rd);
 	}
 
 	void world_renderer::upload(uint8 frame_index)
@@ -195,7 +197,7 @@ namespace SFG
 		_buffer_queue->add_request({.buffer = &pfd.bones});
 		_buffer_queue->add_request({.buffer = &pfd.lights});
 
-		_pass_opaque.upload(_world, _buffer_queue, frame_index);
+		_pass_opaque.upload(_proxy_manager, _main_camera_view, _buffer_queue, frame_index);
 	}
 
 	void world_renderer::render(uint8 frame_index, gfx_id layout_global, gfx_id bind_group_global, uint64 prev_copy, uint64 next_copy, gfx_id sem_copy)
@@ -351,6 +353,8 @@ namespace SFG
 			{
 				const render_proxy_primitive& prim = primitives[i];
 
+				const uint16 mat = materials[prim.material_index];
+
 				create_gpu_object({
 					.vertex_buffer = const_cast<buffer*>(&proxy_mesh.vertex_buffer),
 					.index_buffer  = const_cast<buffer*>(&proxy_mesh.index_buffer),
@@ -358,7 +362,8 @@ namespace SFG
 					.index_start   = prim.index_start,
 					.index_count   = prim.index_count,
 					.gpu_entity	   = entity_index,
-					.material	   = materials[prim.material_index],
+					.material	   = mat,
+					.is_skinned	   = proxy_mesh.is_skinned,
 				});
 			}
 		}

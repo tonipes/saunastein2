@@ -75,10 +75,11 @@ namespace SFG
 			_name = alloc.allocate_text(raw.name);
 #endif
 
-		_flags.set(raw.is_skinned, shader::flags::is_skinned);
+		_flags.set(raw.is_skinned, res_shader_flags::res_shader_flags_is_skinned);
 
 		render_event_shader ev = {};
 		ev.desc				   = raw.desc;
+		ev.flags			   = _flags.value();
 
 		stream.add_event(
 			{

@@ -148,35 +148,35 @@ namespace SFG
 		const render_event_type type  = header.event_type;
 		if (type == render_event_type::render_event_update_entity_transform)
 		{
-			render_event_entity_transform stg = {};
-			stg.deserialize(stream);
+			render_event_entity_transform ev = {};
+			ev.deserialize(stream);
 			render_proxy_entity& proxy = get_entity(index);
 			proxy.status			   = render_proxy_status::rps_active;
 			proxy.handle			   = index;
-			proxy.model				   = stg.abs_model;
-			proxy.position			   = stg.position;
-			proxy.rotation			   = stg.rotation;
-			proxy.scale				   = stg.scale;
+			proxy.model				   = ev.abs_model;
+			proxy.position			   = ev.position;
+			proxy.rotation			   = ev.rotation;
+			proxy.scale				   = ev.scale;
 		}
 		else if (type == render_event_type::render_event_update_entity_visibility)
 		{
-			render_event_entity_visibility stg = {};
-			stg.deserialize(stream);
+			render_event_entity_visibility ev = {};
+			ev.deserialize(stream);
 			render_proxy_entity& proxy = get_entity(index);
 			proxy.status			   = render_proxy_status::rps_active;
 			proxy.handle			   = index;
-			proxy.flags.set(render_proxy_entity_flags::render_proxy_entity_invisible, !stg.visible);
+			proxy.flags.set(render_proxy_entity_flags::render_proxy_entity_invisible, !ev.visible);
 		}
 		else if (type == render_event_type::render_event_update_mesh_instance)
 		{
-			render_event_mesh_instance stg = {};
-			stg.deserialize(stream);
+			render_event_mesh_instance ev = {};
+			ev.deserialize(stream);
 
 			render_proxy_mesh_instance& proxy = get_model_instance(index);
 			proxy.status					  = render_proxy_status::rps_active;
-			proxy.entity					  = stg.entity_index;
-			proxy.mesh						  = stg.mesh;
-			proxy.model						  = stg.model;
+			proxy.entity					  = ev.entity_index;
+			proxy.mesh						  = ev.mesh;
+			proxy.model						  = ev.model;
 		}
 		else if (type == render_event_type::render_event_remove_mesh_instance)
 		{
@@ -212,36 +212,36 @@ namespace SFG
 		}
 		else if (type == render_event_type::render_event_create_texture)
 		{
-			render_event_texture stg = {};
-			stg.deserialize(stream);
+			render_event_texture ev = {};
+			ev.deserialize(stream);
 
 			render_proxy_texture& proxy = get_texture(index);
 			proxy.status				= render_proxy_status::rps_active;
 			proxy.handle				= index;
 
 			proxy.hw = backend->create_texture({
-				.texture_format = static_cast<format>(stg.format),
-				.size			= stg.size,
+				.texture_format = static_cast<format>(ev.format),
+				.size			= ev.size,
 				.flags			= texture_flags::tf_is_2d | texture_flags::tf_sampled,
 				.views			= {{}},
-				.mip_levels		= static_cast<uint8>(stg.buffers.size()),
+				.mip_levels		= static_cast<uint8>(ev.buffers.size()),
 				.array_length	= 1,
 				.samples		= 1,
 #ifndef SFG_STRIP_DEBUG_NAMES
-				.debug_name = stg.name.c_str(),
+				.debug_name = ev.name.c_str(),
 #endif
 			});
 
 			proxy.intermediate = backend->create_resource({
-				.size		= stg.intermediate_size,
+				.size		= ev.intermediate_size,
 				.flags		= resource_flags::rf_cpu_visible,
 				.debug_name = "texture_intermediate",
 			});
 
-			_texture_queue.add_request(stg.buffers, proxy.hw, proxy.intermediate, 1);
+			_texture_queue.add_request(ev.buffers, proxy.hw, proxy.intermediate, 1);
 
 #ifndef SFG_STRIP_DEBUG_NAMES
-			SFG_TRACE("Created texture proxy for: {0}", stg.name);
+			SFG_TRACE("Created texture proxy for: {0}", ev.name);
 #endif
 		}
 		else if (type == render_event_type::render_event_destroy_texture)
@@ -251,15 +251,15 @@ namespace SFG
 		}
 		else if (type == render_event_type::render_event_create_sampler)
 		{
-			render_event_sampler stg = {};
-			stg.deserialize(stream);
+			render_event_sampler ev = {};
+			ev.deserialize(stream);
 			render_proxy_sampler& proxy = get_sampler(index);
 			proxy.status				= render_proxy_status::rps_active;
 			proxy.handle				= index;
-			proxy.hw					= backend->create_sampler(stg.desc);
+			proxy.hw					= backend->create_sampler(ev.desc);
 
 #ifndef SFG_STRIP_DEBUG_NAMES
-			SFG_TRACE("Created sampler proxy for: {0}", stg.desc.debug_name);
+			SFG_TRACE("Created sampler proxy for: {0}", ev.desc.debug_name);
 
 #endif
 
@@ -285,17 +285,18 @@ namespace SFG
 		}
 		else if (type == render_event_type::render_event_create_shader)
 		{
-			render_event_shader stg = {};
-			stg.deserialize(stream);
+			render_event_shader ev = {};
+			ev.deserialize(stream);
 			render_proxy_shader& proxy = get_shader(index);
 			proxy.status			   = render_proxy_status::rps_active;
 			proxy.handle			   = index;
-			proxy.hw				   = backend->create_shader(stg.desc);
+			proxy.hw				   = backend->create_shader(ev.desc);
+			proxy.flags				   = ev.flags;
 
 #ifndef SFG_STRIP_DEBUG_NAMES
-			SFG_TRACE("Created shader proxy for: {0}", stg.desc.debug_name);
+			SFG_TRACE("Created shader proxy for: {0}", ev.desc.debug_name);
 #endif
-			stg.desc.destroy();
+			ev.desc.destroy();
 		}
 		else if (type == render_event_type::render_event_destroy_shader)
 		{
@@ -304,39 +305,40 @@ namespace SFG
 		}
 		else if (type == render_event_type::render_event_create_material)
 		{
-			render_event_material stg = {};
-			stg.deserialize(stream);
+			render_event_material ev = {};
+			ev.deserialize(stream);
 
 			render_proxy_material& proxy = get_material(index);
 			proxy.status				 = render_proxy_status::rps_active;
 			proxy.handle				 = index;
+			proxy.flags					 = ev.flags;
 
-			for (resource_handle h : stg.shaders)
+			for (resource_handle h : ev.shaders)
 				proxy.shader_handles.push_back(h.index);
 
-			for (resource_handle h : stg.textures)
+			for (resource_handle h : ev.textures)
 				proxy.texture_handles.push_back(h.index);
 
 			for (uint8 i = 0; i < FRAMES_IN_FLIGHT; i++)
 			{
 				proxy.buffers[i].create_staging_hw(
 					{
-						.size  = static_cast<uint32>(stg.data.size),
+						.size  = static_cast<uint32>(ev.data.size),
 						.flags = resource_flags::rf_constant_buffer | resource_flags::rf_cpu_visible,
 #ifndef SFG_STRIP_DEBUG_NAMES
-						.debug_name = stg.name.c_str(),
+						.debug_name = ev.name.c_str(),
 #endif
 					},
 					{
-						.size  = static_cast<uint32>(stg.data.size),
+						.size  = static_cast<uint32>(ev.data.size),
 						.flags = resource_flags::rf_constant_buffer | resource_flags::rf_gpu_only,
 #ifndef SFG_STRIP_DEBUG_NAMES
-						.debug_name = stg.name.c_str(),
+						.debug_name = ev.name.c_str(),
 #endif
 					});
 
 				proxy.bind_groups[i] = backend->create_empty_bind_group();
-				backend->bind_group_add_pointer(proxy.bind_groups[i], root_param_index::rpi_table_material, 3, false);
+				backend->bind_group_add_pointer(proxy.bind_groups[i], root_param_index::rpi_table_material, 6, false);
 
 				vector<bind_group_pointer> updates;
 				updates.push_back({
@@ -345,10 +347,10 @@ namespace SFG
 					.type		   = binding_type::ubo,
 				});
 
-				const uint8 texture_count = static_cast<uint8>(stg.textures.size());
+				const uint8 texture_count = static_cast<uint8>(ev.textures.size());
 				for (uint8 k = 0; k < texture_count; k++)
 				{
-					const render_proxy_texture& txt = get_texture(stg.textures[k].index);
+					const render_proxy_texture& txt = get_texture(ev.textures[k].index);
 					SFG_ASSERT(txt.status);
 
 					updates.push_back({
@@ -360,23 +362,23 @@ namespace SFG
 
 				backend->bind_group_update_pointer(proxy.bind_groups[i], 0, updates);
 
-				proxy.buffers[i].buffer_data(0, stg.data.data, stg.data.size);
+				proxy.buffers[i].buffer_data(0, ev.data.data, ev.data.size);
 				_buffer_queue.add_request({.buffer = &proxy.buffers[i]});
 			}
 
 #ifndef SFG_STRIP_DEBUG_NAMES
-			SFG_TRACE("Created material proxy for: {0}", stg.name);
+			SFG_TRACE("Created material proxy for: {0}", ev.name);
 #endif
 		}
 		else if (type == render_event_type::render_event_update_material)
 		{
-			render_event_material stg = {};
-			stg.deserialize(stream);
+			render_event_material ev = {};
+			ev.deserialize(stream);
 
 			render_proxy_material& proxy = get_material(index);
 
 			// TODO: transfer ownership of the data to the buffer queue.
-			// proxy.data							 = stg.data;
+			// proxy.data							 = ev.data;
 			//
 			// for (uint8 i = 0; i < FRAMES_IN_FLIGHT; i++)
 			// {
@@ -428,12 +430,12 @@ namespace SFG
 		}
 		else if (type == render_event_type::render_event_create_mesh)
 		{
-			render_event_mesh stg = {};
-			stg.deserialize(stream);
+			render_event_mesh ev = {};
+			ev.deserialize(stream);
 			render_proxy_mesh& proxy = get_mesh(index);
 			proxy.status			 = render_proxy_status::rps_active;
 			proxy.handle			 = index;
-			proxy.local_aabb		 = stg.local_aabb;
+			proxy.local_aabb		 = ev.local_aabb;
 
 			auto process = [&](auto& list, size_t vtx_type_size) {
 				size_t vertex_size = 0;
@@ -452,14 +454,14 @@ namespace SFG
 						.size  = static_cast<uint32>(vertex_size),
 						.flags = resource_flags::rf_cpu_visible,
 #ifndef SFG_STRIP_DEBUG_NAMES
-						.debug_name = stg.name.c_str(),
+						.debug_name = ev.name.c_str(),
 #endif
 					},
 					{
 						.size  = static_cast<uint32>(vertex_size),
 						.flags = resource_flags::rf_vertex_buffer | resource_flags::rf_gpu_only,
 #ifndef SFG_STRIP_DEBUG_NAMES
-						.debug_name = stg.name.c_str(),
+						.debug_name = ev.name.c_str(),
 #endif
 					});
 
@@ -468,14 +470,14 @@ namespace SFG
 						.size  = static_cast<uint32>(index_size),
 						.flags = resource_flags::rf_cpu_visible,
 #ifndef SFG_STRIP_DEBUG_NAMES
-						.debug_name = stg.name.c_str(),
+						.debug_name = ev.name.c_str(),
 #endif
 					},
 					{
 						.size  = static_cast<uint32>(index_size),
 						.flags = resource_flags::rf_index_buffer | resource_flags::rf_gpu_only,
 #ifndef SFG_STRIP_DEBUG_NAMES
-						.debug_name = stg.name.c_str(),
+						.debug_name = ev.name.c_str(),
 #endif
 					});
 
@@ -509,17 +511,20 @@ namespace SFG
 					vtx_counter += static_cast<uint32>(p.vertices.size());
 					idx_counter += proxy_prim.index_count;
 				}
+
+				_buffer_queue.add_request({.buffer = &proxy.vertex_buffer});
+				_buffer_queue.add_request({.buffer = &proxy.index_buffer});
 			};
 
-			if (!stg.primitives_static.empty())
+			if (!ev.primitives_static.empty())
 			{
 				proxy.is_skinned = 0;
-				process(stg.primitives_static, sizeof(vertex_static));
+				process(ev.primitives_static, sizeof(vertex_static));
 			}
-			else if (!stg.primitives_skinned.empty())
+			else if (!ev.primitives_skinned.empty())
 			{
 				proxy.is_skinned = 1;
-				process(stg.primitives_skinned, sizeof(vertex_skinned));
+				process(ev.primitives_skinned, sizeof(vertex_skinned));
 			}
 			else
 			{
@@ -527,7 +532,7 @@ namespace SFG
 			}
 
 #ifndef SFG_STRIP_DEBUG_NAMES
-			SFG_TRACE("Created mesh proxy for: {0}", stg.name);
+			SFG_TRACE("Created mesh proxy for: {0}", ev.name);
 #endif
 		}
 		else if (type == render_event_type::render_event_destroy_mesh)

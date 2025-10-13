@@ -55,11 +55,13 @@ namespace SFG
 	void render_event_shader::serialize(ostream& stream) const
 	{
 		desc.serialize(stream, true);
+		stream << flags;
 	}
 
 	void render_event_shader::deserialize(istream& stream)
 	{
 		desc.deserialize(stream, true);
+		stream >> flags;
 	}
 
 	void render_event_material::serialize(ostream& stream) const
@@ -68,6 +70,7 @@ namespace SFG
 		const uint32 shaders_sz = static_cast<uint32>(shaders.size());
 		stream << txt_sz;
 		stream << shaders_sz;
+		stream << flags;
 
 		for (resource_handle h : textures)
 		{
@@ -95,6 +98,7 @@ namespace SFG
 		uint32 shaders_sz = 0;
 		stream >> txt_sz;
 		stream >> shaders_sz;
+		stream >> flags;
 		textures.resize(txt_sz);
 		shaders.resize(shaders_sz);
 

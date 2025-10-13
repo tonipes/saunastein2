@@ -458,6 +458,24 @@ namespace SFG
 				return false;
 			};
 
+			auto get_texture_order = [&](int index) -> int {
+				for (const tinygltf::Material& tmat : model.materials)
+				{
+					if (tmat.pbrMetallicRoughness.baseColorTexture.index == index)
+						return 0;
+					if (tmat.normalTexture.index == index)
+						return 1;
+					if (tmat.pbrMetallicRoughness.metallicRoughnessTexture.index == index)
+						return 2;
+					if (tmat.emissiveTexture.index == index)
+						return 3;
+				}
+
+				return 0;
+			};
+
+			loaded_textures.resize(all_textures_sz);
+
 			for (size_t i = 0; i < all_textures_sz; i++)
 			{
 				tinygltf::Texture& ttexture = model.textures[i];
@@ -468,8 +486,7 @@ namespace SFG
 					if (!img.image.empty())
 					{
 						SFG_ASSERT(img.bits == 8 && img.component == 4);
-						loaded_textures.push_back({});
-						texture_raw& raw = loaded_textures.back();
+						texture_raw& raw = loaded_textures[get_texture_order(i)];
 
 						const string	hash_path = string(relative_path) + "/" + (img.name.empty() ? ttexture.name : img.name);
 						const string_id hash	  = TO_SID(hash_path);
@@ -517,7 +534,7 @@ namespace SFG
 				raw.material_data << roughness;
 				raw.material_data << alpha_cutoff;
 
-				uint32 pad = 0;
+				float pad = 0;
 				raw.material_data << pad;
 				raw.material_data << pad;
 
@@ -526,25 +543,11 @@ namespace SFG
 				const int orm_index		 = tmat.pbrMetallicRoughness.metallicRoughnessTexture.index;
 				const int emissive_index = tmat.emissiveTexture.index;
 
-				if (base_index == -1)
-					raw.textures.push_back(0);
-				else
-					raw.textures.push_back(loaded_textures[base_index].sid);
-
-				if (normal_index == -1)
-					raw.textures.push_back(0);
-				else
-					raw.textures.push_back(loaded_textures[normal_index].sid);
-
-				if (orm_index == -1)
-					raw.textures.push_back(0);
-				else
-					raw.textures.push_back(loaded_textures[orm_index].sid);
-
-				if (emissive_index == -1)
-					raw.textures.push_back(0);
-				else
-					raw.textures.push_back(loaded_textures[emissive_index].sid);
+				raw.textures.resize(4);
+				raw.textures[0] = base_index == -1 ? DUMMY_COLOR_TEXTURE_SID : loaded_textures[base_index].sid;
+				raw.textures[1] = normal_index == -1 ? DUMMY_LINEAR_TEXTURE_SID : loaded_textures[normal_index].sid;
+				raw.textures[2] = orm_index == -1 ? DUMMY_LINEAR_TEXTURE_SID : loaded_textures[orm_index].sid;
+				raw.textures[3] = emissive_index == -1 ? DUMMY_COLOR_TEXTURE_SID : loaded_textures[emissive_index].sid;
 
 				for (string_id sh : material_shaders)
 					raw.shaders.push_back(sh);

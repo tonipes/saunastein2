@@ -657,7 +657,7 @@ namespace SFG
 
 		backend->cmd_begin_render_pass(cmd_buffer, {.color_attachments = attachment_console_rt, .color_attachment_count = 1});
 		backend->cmd_bind_vertex_buffers(cmd_buffer, {.buffer = gui_vertex, .vertex_size = sizeof(vekt::vertex)});
-		backend->cmd_bind_index_buffers(cmd_buffer, {.buffer = gui_index, .bit_depth = 16});
+		backend->cmd_bind_index_buffers(cmd_buffer, {.buffer = gui_index, .index_size = sizeof(vekt::index)});
 
 		int32 last_pipeline = -1, last_bind_group = -1;
 
