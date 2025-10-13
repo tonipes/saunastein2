@@ -338,7 +338,7 @@ namespace SFG
 			const render_proxy_mesh& proxy_mesh	  = _proxy_manager.get_mesh(mesh_instance.mesh);
 			aabb					 frustum_aabb = proxy_mesh.local_aabb;
 
-			const frustum_result res = frustum::test(_main_camera_view.view_frustum, frustum_aabb);
+			const frustum_result res = frustum::test(_main_camera_view.view_frustum, proxy_mesh.local_aabb, proxy_entity.model.to_linear3x3(), proxy_entity.position);
 			if (res == frustum_result::outside)
 				continue;
 

@@ -1,8 +1,8 @@
 // Copyright (c) 2025 Inan Evin
 #pragma once
 
-#include "vector3.hpp"
 #include "vector4.hpp"
+#include "matrix3x3.hpp"
 
 namespace SFG
 {
@@ -39,13 +39,15 @@ namespace SFG
 		static matrix4x3 scale(const vector3& s);
 		static matrix4x3 rotation(const quat& q);
 		static matrix4x3 transform(const vector3& position, const quat& rotation, const vector3& scale);
-		matrix4x3		 inverse() const;
-		void			 decompose(vector3& position, quat& rotation, vector3& scale) const;
-		void			 serialize(ostream& stream) const;
-		void			 deserialize(istream& stream);
-
-		matrix4x4		 to_matrix4x4() const;
 		static matrix4x3 from_matrix4x4(const matrix4x4& mat);
+
+		matrix4x3 inverse() const;
+		void	  decompose(vector3& position, quat& rotation, vector3& scale) const;
+		void	  serialize(ostream& stream) const;
+		void	  deserialize(istream& stream);
+
+		matrix4x4 to_matrix4x4() const;
+		matrix3x3 to_linear3x3() const;
 
 		inline float operator[](int index) const
 		{

@@ -238,6 +238,19 @@ namespace SFG
 		);
 	}
 
+	matrix3x3 matrix4x3::to_linear3x3() const
+	{
+		return matrix3x3(m[0],
+						 m[1],
+						 m[2], // Col 0
+						 m[3],
+						 m[4],
+						 m[5], // Col 1
+						 m[6],
+						 m[7],
+						 m[8]); // Col 2
+	}
+
 	void matrix4x3::serialize(ostream& stream) const
 	{
 		for (int i = 0; i < 12; ++i)

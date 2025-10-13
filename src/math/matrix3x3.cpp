@@ -1,0 +1,115 @@
+// Copyright (c) 2025 Inan Evin
+#include "matrix3x3.hpp"
+#include "quat.hpp"
+#include "math.hpp" // for sqrtf, etc.
+#include "data/ostream.hpp"
+#include "data/istream.hpp"
+
+namespace SFG
+{
+	matrix3x3::matrix3x3(float m00, float m10, float m20, float m01, float m11, float m21, float m02, float m12, float m22)
+	{
+		m[0] = m00;
+		m[1] = m10;
+		m[2] = m20; // Col 0
+		m[3] = m01;
+		m[4] = m11;
+		m[5] = m21; // Col 1
+		m[6] = m02;
+		m[7] = m12;
+		m[8] = m22; // Col 2
+	}
+
+	const matrix3x3 matrix3x3::identity(1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+
+	matrix3x3 matrix3x3::scale(const vector3& s)
+	{
+		return matrix3x3(s.x, 0.0f, 0.0f, 0.0f, s.y, 0.0f, 0.0f, 0.0f, s.z);
+	}
+
+	matrix3x3 matrix3x3::rotation(const quat& q)
+	{
+		// Same convention as matrix4x3::rotation(), 3x3 part only.
+		const float x2 = q.x * q.x;
+		const float y2 = q.y * q.y;
+		const float z2 = q.z * q.z;
+		const float xy = q.x * q.y;
+		const float xz = q.x * q.z;
+		const float yz = q.y * q.z;
+		const float wx = q.w * q.x;
+		const float wy = q.w * q.y;
+		const float wz = q.w * q.z;
+
+		return matrix3x3(1.0f - 2.0f * (y2 + z2), 2.0f * (xy + wz), 2.0f * (xz - wy), 2.0f * (xy - wz), 1.0f - 2.0f * (x2 + z2), 2.0f * (yz + wx), 2.0f * (xz + wy), 2.0f * (yz - wx), 1.0f - 2.0f * (x2 + y2));
+	}
+
+	matrix3x3 matrix3x3::from_axes(const vector3& x, const vector3& y, const vector3& z)
+	{
+		// x,y,z as columns
+		return matrix3x3(x.x, x.y, x.z, y.x, y.y, y.z, z.x, z.y, z.z);
+	}
+
+	matrix3x3 matrix3x3::transpose() const
+	{
+		// swap rows/cols
+		return matrix3x3(m[0], m[3], m[6], m[1], m[4], m[7], m[2], m[5], m[8]);
+	}
+
+	float matrix3x3::determinant() const
+	{
+		// Using column-major indices
+		const float a = m[0], d = m[3], g = m[6];
+		const float b = m[1], e = m[4], h = m[7];
+		const float c = m[2], f = m[5], i = m[8];
+
+		return a * (e * i - f * h) - d * (b * i - c * h) + g * (b * f - c * e);
+	}
+
+	matrix3x3 matrix3x3::inverse() const
+	{
+		const float a = m[0], d = m[3], g = m[6];
+		const float b = m[1], e = m[4], h = m[7];
+		const float c = m[2], f = m[5], i = m[8];
+
+		const float A = (e * i - f * h);
+		const float B = -(d * i - f * g);
+		const float C = (d * h - e * g);
+
+		const float D = -(b * i - c * h);
+		const float E = (a * i - c * g);
+		const float F = -(a * h - b * g);
+
+		const float G = (b * f - c * e);
+		const float H = -(a * f - c * d);
+		const float I = (a * e - b * d);
+
+		const float det = a * A + d * D + g * G;
+		if (fabsf(det) <= 1e-8f)
+			return identity; // or assert/return zero; choose policy
+
+		const float invDet = 1.0f / det;
+
+		// adjugate / det, write back in column-major
+		return matrix3x3(A * invDet, D * invDet, G * invDet, B * invDet, E * invDet, H * invDet, C * invDet, F * invDet, I * invDet);
+	}
+
+	matrix3x3 matrix3x3::abs(const matrix3x3& A)
+	{
+		matrix3x3 R;
+		for (int i = 0; i < 9; ++i)
+			R.m[i] = fabsf(A.m[i]);
+		return R;
+	}
+
+	void matrix3x3::serialize(ostream& stream) const
+	{
+		for (int i = 0; i < 9; ++i)
+			stream << m[i];
+	}
+
+	void matrix3x3::deserialize(istream& stream)
+	{
+		for (int i = 0; i < 9; ++i)
+			stream >> m[i];
+	}
+}
