@@ -31,6 +31,7 @@ using json = nlohmann::json;
 #include "resources/primitive.hpp"
 #include "traits/trait_mesh_instance.hpp"
 #include "traits/trait_camera.hpp"
+#include "math/math.hpp"
 
 namespace SFG
 {
@@ -74,73 +75,9 @@ namespace SFG
 		debug_console::get()->unregister_console_function("world_set_play");
 		_flags.remove(world_flags_is_init);
 	}
-
-	void world::load_debug()
+	world_handle cam_entity = {};
+	void		 world::load_debug()
 	{
-		/*
-		world_handle parent = _entity_manager.create_entity();
-		world_handle child	 = _entity_manager.create_entity();
-		_entity_manager.add_child(parent, child);
-
-		auto report = [&]() {
-			SFG_INFO("*************** Report ***************");
-
-			const vector3 parent_pos   = _entity_manager.get_entity_position(parent);
-			const vector3 parent_rot   = quat::to_euler(_entity_manager.get_entity_rotation(parent));
-			const vector3 parent_scale = _entity_manager.get_entity_scale(parent);
-
-			const vector3 parent_pos_abs   = _entity_manager.get_entity_position_abs(parent);
-			const vector3 parent_rot_abs   = quat::to_euler(_entity_manager.get_entity_rotation_abs(parent));
-			const vector3 parent_scale_abs = _entity_manager.get_entity_scale_abs(parent);
-			SFG_INFO("parent local -> position: x:{0} y:{1} z:{2}, rotation: x:{3} y:{4} z:{5}, scale: x:{6} y:{7} z:{8}", parent_pos.x, parent_pos.y, parent_pos.z, parent_rot.x, parent_rot.y, parent_rot.z, parent_scale.x, parent_scale.y, parent_scale.z);
-			SFG_INFO("parent abs   -> position: x:{0} y:{1} z:{2}, rotation: x:{3} y:{4} z:{5}, scale: x:{6} y:{7} z:{8}",
-					 parent_pos_abs.x,
-					 parent_pos_abs.y,
-					 parent_pos_abs.z,
-					 parent_rot_abs.x,
-					 parent_rot_abs.y,
-					 parent_rot_abs.z,
-					 parent_scale_abs.x,
-					 parent_scale_abs.y,
-					 parent_scale_abs.z);
-
-			const vector3 child_pos	  = _entity_manager.get_entity_position(child);
-			const vector3 child_rot	  = quat::to_euler(_entity_manager.get_entity_rotation(child));
-			const vector3 child_scale = _entity_manager.get_entity_scale(child);
-
-			const vector3 child_pos_abs	  = _entity_manager.get_entity_position_abs(child);
-			const vector3 child_rot_abs	  = quat::to_euler(_entity_manager.get_entity_rotation_abs(child));
-			const vector3 child_scale_abs = _entity_manager.get_entity_scale_abs(child);
-			SFG_INFO("               ");
-			SFG_INFO("child local -> position: x:{0} y:{1} z:{2}, rotation: x:{3} y:{4} z:{5}, scale: x:{6} y:{7} z:{8}", child_pos.x, child_pos.y, child_pos.z, child_rot.x, child_rot.y, child_rot.z, child_scale.x, child_scale.y, child_scale.z);
-			SFG_INFO("child abs   -> position: x:{0} y:{1} z:{2}, rotation: x:{3} y:{4} z:{5}, scale: x:{6} y:{7} z:{8}",
-					 child_pos_abs.x,
-					 child_pos_abs.y,
-					 child_pos_abs.z,
-					 child_rot_abs.x,
-					 child_rot_abs.y,
-					 child_rot_abs.z,
-					 child_scale_abs.x,
-					 child_scale_abs.y,
-					 child_scale_abs.z);
-		};
-
-		report();
-
-		_entity_manager.set_entity_position(parent, vector3(2, 5, 2));
-		_entity_manager.set_entity_position_abs(child, vector3(0, 0, 0));
-
-		_entity_manager.set_entity_rotation(parent, quat::from_euler(15, 30, 150));
-		_entity_manager.set_entity_rotation_abs(child, quat::from_euler(0, 0, 100));
-
-		_entity_manager.set_entity_scale(parent, vector3(5, 10, 2));
-		_entity_manager.set_entity_scale(child, vector3(1, 1, 1));
-		report();
-		return;
-		*/
-
-		vector<std::function<void()>> tasks;
-
 		const int64 mr_begin = time::get_cpu_microseconds();
 
 		world_raw	 raw = {};
@@ -152,12 +89,13 @@ namespace SFG
 		SFG_INFO("Resources took: {0} ms", mr_diff / 1000);
 
 		// Camera
-		const world_handle cam_entity = _entity_manager.create_entity();
+		cam_entity					  = _entity_manager.create_entity("camera");
 		const world_handle cam_handle = _entity_manager.add_trait<trait_camera>(cam_entity);
 		trait_camera&	   trait_cam  = _entity_manager.get_trait<trait_camera>(cam_handle);
 		trait_cam.set_values(*this, 0.01f, 500.0f, 90.0f);
 		trait_cam.set_main(*this);
-		_entity_manager.set_entity_position(cam_entity, vector3(0, 4.5f, -17.5f));
+		_entity_manager.set_entity_position(cam_entity, vector3(0, 0.5f, -27.5f));
+		_entity_manager.set_entity_rotation(cam_entity, quat::identity);
 
 		// Model test
 		const resource_handle boombox		 = _resources.get_resource_handle_by_hash<model>(TO_SIDC("assets/boombox/boombox.stkmodel"));
@@ -174,6 +112,9 @@ namespace SFG
 	void world::tick(const vector2ui16& res, float dt)
 	{
 		_resources.tick();
+		static float acc = 0.0f;
+		_entity_manager.set_entity_position(cam_entity, vector3(math::sin(acc) * 5.0f, 0.0f, -10.0f));
+		acc += dt;
 	}
 
 	void world::post_tick(double interpolation)

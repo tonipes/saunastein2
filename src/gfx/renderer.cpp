@@ -158,14 +158,13 @@ namespace SFG
 
 	void renderer::wait_backend()
 	{
-		SFG_INFO("renderer::wait_backend()");
+		SFG_INFO("renderer::wait_backend() - frame: {0}", frame_info::s_render_frame);
 
 		gfx_backend* backend = gfx_backend::get();
 
 		for (uint32 i = 0; i < FRAMES_IN_FLIGHT; i++)
 		{
 			per_frame_data& pfd = _pfd[i];
-			SFG_TRACE("Waiting for backend {0}", pfd.sem_frame.value);
 			backend->wait_semaphore(pfd.sem_frame.semaphore, pfd.sem_frame.value);
 		}
 
@@ -186,7 +185,7 @@ namespace SFG
 		_proxy_manager.fetch_render_events(stream);
 		_proxy_manager.flush_destroys(false);
 	}
-	void renderer::render(const vector2ui16& size)
+	void renderer::render(render_event_stream& stream, const vector2ui16& size)
 	{
 		gfx_backend* backend   = gfx_backend::get();
 		const gfx_id queue_gfx = backend->get_queue_gfx();
@@ -203,6 +202,8 @@ namespace SFG
 
 		// Wait for frame's fence, then send any uploads needed.
 		backend->wait_semaphore(pfd.sem_frame.semaphore, pfd.sem_frame.value);
+
+		fetch_render_events(stream);
 
 		const buf_engine_global globals = {};
 		pfd.buf_engine_global.buffer_data(0, (void*)&globals, sizeof(buf_engine_global));

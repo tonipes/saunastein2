@@ -406,18 +406,20 @@ namespace SFG
 			proxy.mesh_count	 = static_cast<uint32>(ev.meshes.size());
 
 			if (proxy.mesh_count != 0)
-				proxy.meshes = _aux_memory.allocate<resource_id>(proxy.mesh_count);
+			{
+				proxy.meshes		= _aux_memory.allocate<resource_id>(proxy.mesh_count);
+				resource_id* meshes = _aux_memory.get<resource_id>(proxy.meshes);
+				for (uint32 i = 0; i < proxy.mesh_count; i++)
+					meshes[i] = ev.meshes[i];
+			}
 
 			if (proxy.material_count != 0)
-				proxy.materials = _aux_memory.allocate<resource_id>(proxy.material_count);
-
-			resource_id* mats	= _aux_memory.get<resource_id>(proxy.materials);
-			resource_id* meshes = _aux_memory.get<resource_id>(proxy.meshes);
-			for (uint32 i = 0; i < proxy.material_count; i++)
-				mats[i] = ev.materials[i];
-
-			for (uint32 i = 0; i < proxy.mesh_count; i++)
-				meshes[i] = ev.meshes[i];
+			{
+				proxy.materials	  = _aux_memory.allocate<resource_id>(proxy.material_count);
+				resource_id* mats = _aux_memory.get<resource_id>(proxy.materials);
+				for (uint32 i = 0; i < proxy.material_count; i++)
+					mats[i] = ev.materials[i];
+			}
 
 #ifndef SFG_STRIP_DEBUG_NAMES
 			SFG_TRACE("Created model proxy for: {0}", ev.name);

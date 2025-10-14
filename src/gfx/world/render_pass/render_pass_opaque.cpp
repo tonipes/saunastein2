@@ -333,10 +333,10 @@ namespace SFG
 		gfx_backend* backend = gfx_backend::get();
 
 		static_vector<const char*, COLOR_TEXTURES> names;
-		names.push_back("rt_albedo");
-		names.push_back("rt_normal");
-		names.push_back("rt_orm");
-		names.push_back("rt_emissive");
+		names.push_back("opaque_rt_albedo");
+		names.push_back("opaque_rt_normal");
+		names.push_back("opaque_rt_orm");
+		names.push_back("opaque_rt_emissive");
 
 		for (uint32 i = 0; i < FRAMES_IN_FLIGHT; i++)
 		{
@@ -358,7 +358,7 @@ namespace SFG
 				.depth_stencil_format = format::d16_unorm,
 				.size				  = sz,
 				.flags				  = texture_flags::tf_depth_texture | texture_flags::tf_is_2d,
-				.debug_name			  = "opaque_depth",
+				.debug_name			  = "opaque_rt_depth",
 			});
 		}
 	}

@@ -27,7 +27,6 @@ namespace SFG
 		{
 			if (r.cleared == 1)
 				continue;
-			SFG_TRACE("BB TEXTURE BASE {0}", (void*)r.buffers[0].pixels);
 
 			for (const texture_buffer& b : r.buffers)
 			{
@@ -43,7 +42,6 @@ namespace SFG
 
 	void texture_queue::add_request(const static_vector<texture_buffer, MAX_TEXTURE_MIPS>& buffers, gfx_id texture, gfx_id intermediate, uint8 use_free)
 	{
-
 		const texture_request req = {
 			.buffers	  = buffers,
 			.texture	  = texture,

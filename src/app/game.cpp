@@ -21,10 +21,6 @@
 namespace SFG
 {
 
-#define SFG_DT 1.0f / 60.0f
-
-	static uint8 wr = 0;
-
 	void game_app::init(const vector2ui16& render_target_size)
 	{
 
@@ -136,9 +132,11 @@ namespace SFG
 
 	void game_app::tick()
 	{
-		const int64 FIXED_INTERVAL_US = (int64)1000000 / (int64)SFG_DT;
-		int64		previous_time	  = time::get_cpu_microseconds();
-		int64		accumulator		  = FIXED_INTERVAL_US;
+		static constexpr int64 TICKS			 = 60;
+		static constexpr float DT				 = 1.0f / (float)TICKS;
+		const int64			   FIXED_INTERVAL_US = (int64)1000000000 / (int64)(60);
+		int64				   previous_time	 = time::get_cpu_microseconds();
+		int64				   accumulator		 = FIXED_INTERVAL_US;
 
 		while (_should_close.load(std::memory_order_acquire) == 0)
 		{
@@ -185,7 +183,7 @@ namespace SFG
 			while (accumulator >= FIXED_INTERVAL_US && ticks < MAX_TICKS)
 			{
 				accumulator -= FIXED_INTERVAL_US;
-				_world->tick(ws, SFG_DT);
+				_world->tick(ws, DT);
 				ticks++;
 			}
 
@@ -291,8 +289,7 @@ namespace SFG
 #endif
 
 			_world->pre_render(screen_size);
-			_renderer->fetch_render_events(_render_stream);
-			_renderer->render(screen_size);
+			_renderer->render(_render_stream, screen_size);
 			frame_info::s_render_frame.fetch_add(1);
 
 #ifndef SFG_PRODUCTION

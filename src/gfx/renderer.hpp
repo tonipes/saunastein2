@@ -40,7 +40,7 @@ namespace SFG
 		void wait_backend();
 		void tick();
 		void fetch_render_events(render_event_stream& stream);
-		void render(const vector2ui16& size);
+		void render(render_event_stream& stream, const vector2ui16& size);
 		bool on_window_event(const window_event& ev);
 		void on_window_resize(const vector2ui16& size);
 

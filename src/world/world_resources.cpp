@@ -12,6 +12,8 @@
 #include "data/ostream.hpp"
 #include "reflection/reflection.hpp"
 #include "data/pair.hpp"
+#include "resources/texture_raw.hpp"
+#include "resources/texture.hpp"
 
 #include <algorithm>
 #include <execution>
@@ -54,6 +56,40 @@ namespace SFG
 		_file_watch.set_callback(std::bind(&world_resources::on_watched_resource_modified, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 		_file_watch.reserve(250);
 		_file_watch.set_tick_interval(15);
+
+		// Dummy textures.
+		{
+			texture_raw dummy_color_raw	 = {};
+			texture_raw dummy_orm_raw	 = {};
+			texture_raw dummy_normal_raw = {};
+			dummy_color_raw.name		 = "dummy_color";
+			dummy_normal_raw.name		 = "dummy_normal";
+			dummy_orm_raw.name			 = "dummy_orm";
+			uint8* dummy_color_data		 = reinterpret_cast<uint8*>(SFG_MALLOC(4));
+			uint8* dummy_normal_data	 = reinterpret_cast<uint8*>(SFG_MALLOC(4));
+			uint8* dummy_orm_data		 = reinterpret_cast<uint8*>(SFG_MALLOC(4));
+
+			uint8 color_data[4]	 = {255, 255, 255, 255};
+			uint8 normal_data[4] = {128, 128, 255, 255};
+			uint8 orm_data[4]	 = {255, 255, 0, 255};
+			SFG_MEMCPY(dummy_color_data, color_data, 4);
+			SFG_MEMCPY(dummy_normal_data, normal_data, 4);
+			SFG_MEMCPY(dummy_orm_data, orm_data, 4);
+
+			dummy_color_raw.cook_from_data(dummy_color_data, vector2ui16(1, 1), static_cast<uint8>(format::r8g8b8a8_srgb), false);
+			dummy_normal_raw.cook_from_data(dummy_normal_data, vector2ui16(1, 1), static_cast<uint8>(format::r8g8b8a8_unorm), false);
+			dummy_orm_raw.cook_from_data(dummy_orm_data, vector2ui16(1, 1), static_cast<uint8>(format::r8g8b8a8_unorm), false);
+
+			_dummy_color_texture	  = add_resource<texture>(DUMMY_COLOR_TEXTURE_SID);
+			_dummy_orm_texture		  = add_resource<texture>(DUMMY_ORM_TEXTURE_SID);
+			_dummy_normal_texture	  = add_resource<texture>(DUMMY_NORMAL_TEXTURE_SID);
+			texture& dummy_color_txt  = get_resource<texture>(_dummy_color_texture);
+			texture& dummy_orm_txt	  = get_resource<texture>(_dummy_orm_texture);
+			texture& dummy_normal_txt = get_resource<texture>(_dummy_normal_texture);
+			dummy_color_txt.create_from_raw(dummy_color_raw, _world.get_render_stream(), _aux_memory, _dummy_color_texture);
+			dummy_normal_txt.create_from_raw(dummy_normal_raw, _world.get_render_stream(), _aux_memory, _dummy_normal_texture);
+			dummy_orm_txt.create_from_raw(dummy_orm_raw, _world.get_render_stream(), _aux_memory, _dummy_orm_texture);
+		}
 	}
 
 	void world_resources::uninit()

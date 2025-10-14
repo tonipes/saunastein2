@@ -474,8 +474,6 @@ namespace SFG
 				return 0;
 			};
 
-			loaded_textures.resize(all_textures_sz);
-
 			for (size_t i = 0; i < all_textures_sz; i++)
 			{
 				tinygltf::Texture& ttexture = model.textures[i];
@@ -486,18 +484,20 @@ namespace SFG
 					if (!img.image.empty())
 					{
 						SFG_ASSERT(img.bits == 8 && img.component == 4);
-						texture_raw& raw = loaded_textures[get_texture_order(i)];
+						loaded_textures.push_back({});
+						texture_raw& raw = loaded_textures.back();
 
 						const string	hash_path = string(relative_path) + "/" + (img.name.empty() ? ttexture.name : img.name);
 						const string_id hash	  = TO_SID(hash_path);
 						raw.sid					  = hash;
 						raw.name				  = hash_path;
 
-						uint8*			  data = reinterpret_cast<uint8*>(SFG_MALLOC(img.image.size()));
+						uint8* data = reinterpret_cast<uint8*>(SFG_MALLOC(img.image.size()));
+						SFG_MEMCPY(data, img.image.data(), img.image.size());
 						const vector2ui16 size = vector2ui16(static_cast<uint16>(img.width), static_cast<uint16>(img.height));
 						// const uint8		  bpp  = img.bits / 8 * img.component;
 						const format fmt = check_if_linear(i) ? format::r8g8b8a8_unorm : format::r8g8b8a8_srgb;
-						raw.cook_from_data(data, size, static_cast<uint8>(fmt), true);
+						raw.cook_from_data(data, size, static_cast<uint8>(fmt), false);
 					}
 				}
 			}
@@ -545,8 +545,8 @@ namespace SFG
 
 				raw.textures.resize(4);
 				raw.textures[0] = base_index == -1 ? DUMMY_COLOR_TEXTURE_SID : loaded_textures[base_index].sid;
-				raw.textures[1] = normal_index == -1 ? DUMMY_LINEAR_TEXTURE_SID : loaded_textures[normal_index].sid;
-				raw.textures[2] = orm_index == -1 ? DUMMY_LINEAR_TEXTURE_SID : loaded_textures[orm_index].sid;
+				raw.textures[1] = normal_index == -1 ? DUMMY_NORMAL_TEXTURE_SID : loaded_textures[normal_index].sid;
+				raw.textures[2] = orm_index == -1 ? DUMMY_ORM_TEXTURE_SID : loaded_textures[orm_index].sid;
 				raw.textures[3] = emissive_index == -1 ? DUMMY_COLOR_TEXTURE_SID : loaded_textures[emissive_index].sid;
 
 				for (string_id sh : material_shaders)

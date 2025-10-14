@@ -71,7 +71,7 @@ namespace SFG
 			return _camera;
 		}
 
-		inline text_allocator get_text_allocator()
+		inline text_allocator& get_text_allocator()
 		{
 			return _text_allocator;
 		}

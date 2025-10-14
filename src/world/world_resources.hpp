@@ -175,6 +175,9 @@ namespace SFG
 
 		mutable static_vector<resource_storage, resource_type_max> _storages;
 		chunk_allocator32										   _aux_memory;
+		resource_handle											   _dummy_color_texture	 = {};
+		resource_handle											   _dummy_orm_texture	 = {};
+		resource_handle											   _dummy_normal_texture = {};
 
 #ifdef SFG_TOOLMODE
 		simple_file_watcher	   _file_watch;

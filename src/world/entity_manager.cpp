@@ -73,7 +73,7 @@ namespace SFG
 				update.abs_model = matrix4x3::transform(update.position, update.rotation, update.scale);
 
 				stream.add_event({.index = h.index, .event_type = render_event_type::render_event_update_entity_transform}, update);
-				m.flags.remove(entity_flags::entity_flags_render_proxy_dirty);
+				// m.flags.remove(entity_flags::entity_flags_render_proxy_dirty);
 			}
 		}
 	}
@@ -570,9 +570,9 @@ namespace SFG
 		out_position					  = vector3::lerp(ent_prev_pos_abs, ent_pos_abs, interpolation);
 		out_scale						  = vector3::lerp(ent_prev_scale_abs, ent_scale_abs, interpolation);
 		out_rotation					  = quat::slerp(ent_prev_rot_abs, ent_rot_abs, interpolation);
-		set_entity_prev_position_abs(entity, ent_prev_pos_abs);
-		set_entity_prev_rotation_abs(entity, ent_prev_rot_abs);
-		set_entity_prev_scale_abs(entity, ent_prev_scale_abs);
+		set_entity_prev_position_abs(entity, ent_pos_abs);
+		set_entity_prev_rotation_abs(entity, ent_rot_abs);
+		set_entity_prev_scale_abs(entity, ent_scale_abs);
 	}
 
 }

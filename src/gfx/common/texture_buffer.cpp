@@ -36,7 +36,7 @@ namespace SFG
 		else
 		{
 			const size_t sz = static_cast<size_t>(bpp * size.x * size.y);
-			pixels			= new uint8[sz];
+			pixels			= reinterpret_cast<uint8*>(SFG_MALLOC(sz));
 			stream.read_to_raw(pixels, sz);
 		}
 	}
