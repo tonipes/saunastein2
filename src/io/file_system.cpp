@@ -4,7 +4,6 @@
 #include "log.hpp"
 #include "data/string_util.hpp"
 
-#include <filesystem>
 #include <fstream>
 
 #ifdef SFG_PLATFORM_OSX
@@ -130,6 +129,17 @@ namespace SFG
 	}
 
 	uint64 file_system::get_last_modified_ticks(const char* path) noexcept
+	{
+		std::error_code					ec;
+		std::filesystem::file_time_type ft = std::filesystem::last_write_time(path, ec);
+		if (ec)
+			return 0;
+
+		using dur = std::chrono::nanoseconds;
+		return static_cast<uint64_t>(std::chrono::duration_cast<dur>(ft.time_since_epoch()).count());
+	}
+
+	uint64 file_system::get_last_modified_ticks(const fs_path& path) noexcept
 	{
 		std::error_code					ec;
 		std::filesystem::file_time_type ft = std::filesystem::last_write_time(path, ec);

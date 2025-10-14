@@ -6,6 +6,7 @@
 #include "data/string.hpp"
 #include "data/vector.hpp"
 #include "common/string_id.hpp"
+#include "io/file_system.hpp"
 #include <functional>
 
 namespace SFG
@@ -18,9 +19,10 @@ namespace SFG
 	private:
 		struct entry
 		{
-			string path			 = "";
-			uint64 last_modified = 0;
-			uint16 id			 = 0;
+			fs_path path		  = "";
+			string	str			  = "";
+			uint64	last_modified = 0;
+			uint16	id			  = 0;
 		};
 
 	public:

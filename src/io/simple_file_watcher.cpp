@@ -2,7 +2,6 @@
 
 #include "simple_file_watcher.hpp"
 #include "data/vector_util.hpp"
-#include "io/file_system.hpp"
 #include "io/log.hpp"
 
 namespace SFG
@@ -16,11 +15,11 @@ namespace SFG
 		}
 
 		const uint64 last_modified = file_system::get_last_modified_ticks(path);
-		_paths.push_back({path, last_modified, optional_id});
+		_paths.push_back({path, path, last_modified, optional_id});
 	}
 	void simple_file_watcher::remove_path(const char* path)
 	{
-		auto it = vector_util::find_if(_paths, [path](const entry& e) -> bool { return strcmp(path, e.path.c_str()) == 0; });
+		auto it = vector_util::find_if(_paths, [path](entry& e) -> bool { return strcmp(path, e.str.c_str()) == 0; });
 
 		if (it != _paths.end())
 			_paths.erase(it);
@@ -41,12 +40,12 @@ namespace SFG
 	{
 		for (entry& e : _paths)
 		{
-			const uint64 ticks = file_system::get_last_modified_ticks(e.path.c_str());
+			const uint64 ticks = file_system::get_last_modified_ticks(e.path);
 			if (e.last_modified != ticks)
 			{
 				e.last_modified = ticks;
 				if (_callback)
-					_callback(e.path.c_str(), e.last_modified, e.id);
+					_callback(e.str.c_str(), e.last_modified, e.id);
 			}
 		}
 	}
