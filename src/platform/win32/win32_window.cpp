@@ -31,6 +31,8 @@ namespace SFG
 				return static_cast<uint32>(WS_OVERLAPPEDWINDOW);
 			else
 			{
+				return WS_POPUP | WS_VISIBLE;
+
 				DWORD style = 0;
 				if (composition_enabled())
 					style = WS_POPUP | WS_THICKFRAME | WS_CAPTION | WS_MAXIMIZEBOX | WS_MINIMIZEBOX;
@@ -64,6 +66,8 @@ namespace SFG
 	LRESULT __stdcall window::wnd_proc(HWND__* hwnd, unsigned int msg, unsigned __int64 wParam, __int64 lParam)
 	{
 		window* wnd = reinterpret_cast<window*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+		if (!wnd)
+			return DefWindowProcA(hwnd, msg, wParam, lParam);
 
 		switch (msg)
 		{
@@ -509,6 +513,7 @@ namespace SFG
 		_size	  = size;
 		_flags	  = flags;
 
+		_true_size = size;
 		if (flags & window_flags::wf_style_windowed)
 		{
 			RECT windowRect = {0, 0, static_cast<LONG>(size.x), static_cast<LONG>(size.y)};

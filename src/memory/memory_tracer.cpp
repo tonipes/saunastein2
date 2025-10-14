@@ -83,7 +83,6 @@ namespace SFG
 				cat.total_size -= it->second.size;
 				SFG_ASSERT(cat.total_size >= 0);
 			}
-
 			return;
 		}
 	}

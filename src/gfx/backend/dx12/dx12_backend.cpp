@@ -787,8 +787,9 @@ namespace SFG
 	{
 		for (uint8 i = 0; i < swapchain_count; i++)
 		{
-			swapchain& swp = _swapchains.get(swapchains[i]);
-			throw_if_failed(swp.ptr->Present(swp.vsync, swp.vsync == 0 ? DXGI_PRESENT_ALLOW_TEARING : 0));
+			swapchain&				swp	   = _swapchains.get(swapchains[i]);
+			DXGI_PRESENT_PARAMETERS params = {};
+			throw_if_failed(swp.ptr->Present1(swp.vsync, swp.vsync == 0 ? DXGI_PRESENT_ALLOW_TEARING : 0, &params));
 			swp.image_index = swp.ptr->GetCurrentBackBufferIndex();
 		}
 	}
