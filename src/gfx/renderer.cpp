@@ -22,7 +22,6 @@
 namespace SFG
 {
 #define RT_FORMAT format::r8g8b8a8_srgb
-#define SWP_FLAGS swapchain_flags::sf_vsync_every_v_blank
 
 	gfx_id renderer::s_bind_group_global[BACK_BUFFER_COUNT] = {};
 	gfx_id renderer::s_bind_layout_global					= 0;
@@ -37,6 +36,8 @@ namespace SFG
 		_world				 = w;
 		gfx_backend* backend = gfx_backend::get();
 
+		_swapchain_flags = swapchain_flags::sf_vsync_every_v_blank;
+
 		_gfx_data.swapchain = backend->create_swapchain({
 			.window	   = main_window->get_window_handle(),
 			.os_handle = main_window->get_platform_handle(),
@@ -44,8 +45,9 @@ namespace SFG
 			.format	   = RT_FORMAT,
 			.pos	   = vector2ui16::zero,
 			.size	   = main_window->get_size(),
-			.flags	   = SWP_FLAGS,
+			.flags	   = _swapchain_flags,
 		});
+		_base_size			= main_window->get_size();
 
 		_gfx_data.bind_layout_global = gfx_util::create_bind_layout_global();
 		s_bind_layout_global		 = _gfx_data.bind_layout_global;
@@ -348,13 +350,14 @@ namespace SFG
 	void renderer::on_window_resize(const vector2ui16& size)
 	{
 		VERIFY_THREAD_MAIN();
+		_base_size = size;
 
 		gfx_backend* backend = gfx_backend::get();
 
 		backend->recreate_swapchain({
 			.size	   = size,
 			.swapchain = _gfx_data.swapchain,
-			.flags	   = SWP_FLAGS,
+			.flags	   = _swapchain_flags,
 		});
 
 		_world_renderer->resize(size);
@@ -376,6 +379,21 @@ namespace SFG
 #endif
 											   });
 		}
+	}
+
+	void renderer::on_swapchain_flags(uint8 flags)
+	{
+		VERIFY_THREAD_MAIN();
+
+		gfx_backend* backend = gfx_backend::get();
+
+		_swapchain_flags = flags;
+
+		backend->recreate_swapchain({
+			.size	   = _base_size,
+			.swapchain = _gfx_data.swapchain,
+			.flags	   = _swapchain_flags,
+		});
 	}
 
 }

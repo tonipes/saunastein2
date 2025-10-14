@@ -611,10 +611,9 @@ namespace SFG
 		throw_if_failed(CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(&_factory)));
 
 		ComPtr<IDXGIFactory5> factory5;
-		HRESULT				  facres	   = _factory.As(&factory5);
-		BOOL				  allowTearing = FALSE;
+		HRESULT				  facres = _factory.As(&factory5);
 		if (SUCCEEDED(facres))
-			facres = factory5->CheckFeatureSupport(DXGI_FEATURE_PRESENT_ALLOW_TEARING, &allowTearing, sizeof(allowTearing));
+			facres = factory5->CheckFeatureSupport(DXGI_FEATURE_PRESENT_ALLOW_TEARING, &_tearing_supported, sizeof(_tearing_supported));
 
 		// Choose gpu & create device
 		{
@@ -789,7 +788,8 @@ namespace SFG
 		{
 			swapchain&				swp	   = _swapchains.get(swapchains[i]);
 			DXGI_PRESENT_PARAMETERS params = {};
-			throw_if_failed(swp.ptr->Present1(swp.vsync, swp.vsync == 0 ? DXGI_PRESENT_ALLOW_TEARING : 0, &params));
+
+			throw_if_failed(swp.ptr->Present1(swp.vsync, swp.tearing ? DXGI_PRESENT_ALLOW_TEARING : 0, &params));
 			swp.image_index = swp.ptr->GetCurrentBackBufferIndex();
 		}
 	}
@@ -1356,6 +1356,8 @@ namespace SFG
 		swp.format = static_cast<uint8>(get_format(desc.format));
 
 		const bool vsync_on = desc.flags.is_set(swapchain_flags::sf_vsync_every_v_blank) || desc.flags.is_set(swapchain_flags::sf_vsync_every_2v_blank);
+		const bool tearing	= _tearing_supported && !vsync_on && desc.flags.is_set(swapchain_flags::sf_allow_tearing);
+		swp.tearing			= tearing;
 
 		const DXGI_SWAP_CHAIN_DESC1 swapchain_desc = {
 			.Width	= static_cast<UINT>(desc.size.x),
@@ -1368,7 +1370,7 @@ namespace SFG
 			.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
 			.BufferCount = BACK_BUFFER_COUNT,
 			.SwapEffect	 = DXGI_SWAP_EFFECT_FLIP_DISCARD,
-			.Flags		 = (vsync_on ? (UINT)0 : DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING) | DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT,
+			.Flags		 = (tearing ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : (UINT)0) | DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT,
 		};
 
 		ComPtr<IDXGISwapChain1> swapchain;
@@ -1379,7 +1381,7 @@ namespace SFG
 		Microsoft::WRL::ComPtr<IDXGISwapChain2> sc2;
 		if (SUCCEEDED(swp.ptr.As(&sc2)))
 		{
-			sc2->SetMaximumFrameLatency(2);
+			sc2->SetMaximumFrameLatency(FRAME_LATENCY);
 			swp.frame_latency_waitable = sc2->GetFrameLatencyWaitableObject();
 		}
 
@@ -1428,8 +1430,18 @@ namespace SFG
 		}
 
 		const bool vsync_on = desc.flags.is_set(swapchain_flags::sf_vsync_every_v_blank) || desc.flags.is_set(swapchain_flags::sf_vsync_every_2v_blank);
+		const bool tearing	= _tearing_supported && !vsync_on && desc.flags.is_set(swapchain_flags::sf_allow_tearing);
+		swp.tearing			= tearing;
+
+		if (desc.flags.is_set(swapchain_flags::sf_vsync_every_v_blank))
+			swp.vsync = 1;
+		else if (desc.flags.is_set(swapchain_flags::sf_vsync_every_2v_blank))
+			swp.vsync = 2;
+		else
+			swp.vsync = 0;
+
 		throw_if_failed(
-			swp.ptr->ResizeBuffers(BACK_BUFFER_COUNT, static_cast<UINT>(desc.size.x), static_cast<UINT>(desc.size.y), swp_desc.BufferDesc.Format, (vsync_on ? (UINT)0 : DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING) | DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT));
+			swp.ptr->ResizeBuffers(BACK_BUFFER_COUNT, static_cast<UINT>(desc.size.x), static_cast<UINT>(desc.size.y), swp_desc.BufferDesc.Format, (tearing ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : (UINT)0) | DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT));
 		swp.image_index = swp.ptr->GetCurrentBackBufferIndex();
 
 		// Re-apply frame latency settings and refresh waitable object after resize
@@ -1437,7 +1449,7 @@ namespace SFG
 			Microsoft::WRL::ComPtr<IDXGISwapChain2> sc2;
 			if (SUCCEEDED(swp.ptr.As(&sc2)))
 			{
-				sc2->SetMaximumFrameLatency(1);
+				sc2->SetMaximumFrameLatency(FRAME_LATENCY);
 				swp.frame_latency_waitable = sc2->GetFrameLatencyWaitableObject();
 			}
 		}

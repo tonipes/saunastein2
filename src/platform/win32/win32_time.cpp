@@ -108,7 +108,7 @@ namespace SFG
 			::Sleep(milliseconds);
 	}
 
-	void time::YieldThread()
+	void time::yield_thread()
 	{
 		YieldProcessor();
 	}

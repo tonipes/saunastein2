@@ -117,6 +117,7 @@ namespace SFG
 			uint8  format				  = 0;
 			uint8  image_index			  = 0;
 			uint8  vsync				  = 0;
+			uint8  tearing				  = 0;
 			HANDLE frame_latency_waitable = NULL;
 		};
 
@@ -331,9 +332,10 @@ namespace SFG
 		vector<CD3DX12_DESCRIPTOR_RANGE1>	_reuse_root_ranges				= {};
 		vector<D3D12_STATIC_SAMPLER_DESC>	_reuse_static_samplers			= {};
 
-		gfx_id _queue_graphics = 0;
-		gfx_id _queue_transfer = 0;
-		gfx_id _queue_compute  = 0;
+		gfx_id _queue_graphics	  = 0;
+		gfx_id _queue_transfer	  = 0;
+		gfx_id _queue_compute	  = 0;
+		bool   _tearing_supported = false;
 
 		friend class game_app;
 

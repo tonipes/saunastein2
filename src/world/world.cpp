@@ -100,16 +100,16 @@ namespace SFG
 
 		// Model test
 
-		for (uint32 i = 0; i < 1; i++)
+		for (uint32 i = 0; i < 15; i++)
 		{
 			const resource_handle boombox		 = _resources.get_resource_handle_by_hash<model>(TO_SIDC("assets/boombox/boombox.stkmodel"));
 			const world_handle	  boombox_entity = add_model_to_world(boombox, nullptr, 0);
 			const float			  x				 = (random::random_01() * 2.0f) - 1.0f;
 			const float			  y				 = (random::random_01() * 2.0f) - 1.0f;
 			const float			  z				 = 0.0f;
-			//_entity_manager.set_entity_position(boombox_entity, vector3(x * 5.0f, y * 5.0f, z * 5.0f));
-			_entity_manager.set_entity_position(boombox_entity, vector3::zero);
-			_entity_manager.set_entity_rotation(boombox_entity, quat::identity);
+			_entity_manager.set_entity_position(boombox_entity, vector3(x * 5.0f, y * 5.0f, z * 5.0f));
+			//_entity_manager.set_entity_position(boombox_entity, vector3::zero);
+			//_entity_manager.set_entity_rotation(boombox_entity, quat::identity);
 		}
 	}
 

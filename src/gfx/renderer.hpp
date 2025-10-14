@@ -42,6 +42,7 @@ namespace SFG
 		void render(render_event_stream& stream, const vector2ui16& size);
 		bool on_window_event(const window_event& ev);
 		void on_window_resize(const vector2ui16& size);
+		void on_swapchain_flags(uint8 flags);
 
 		inline texture_queue& get_texture_queue()
 		{
@@ -119,6 +120,8 @@ namespace SFG
 		render_data		_render_data[2];
 		proxy_manager	_proxy_manager;
 		vector<barrier> _reuse_upload_barriers = {};
+		vector2ui16		_base_size			   = {};
+		uint8			_swapchain_flags	   = 0;
 
 		static gfx_id s_bind_layout_global;
 		static gfx_id s_bind_group_global[BACK_BUFFER_COUNT];

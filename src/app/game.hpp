@@ -31,6 +31,7 @@ namespace SFG
 		void uninit();
 		void tick();
 		void join_render();
+		void set_swapchain_flags(uint8 flags);
 
 		inline bool get_should_exit() const
 		{

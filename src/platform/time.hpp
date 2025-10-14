@@ -22,7 +22,7 @@ namespace SFG
 		static int64  get_delta_microseconds(int64 fromCycles, int64 toCycles);
 		static void	  throttle(int64 microseconds);
 		static void	  go_to_sleep(uint32 milliseconds);
-		static void	  YieldThread();
+		static void	  yield_thread();
 
 	private:
 #ifdef SFG_PLATFORM_OSX

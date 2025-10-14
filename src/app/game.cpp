@@ -72,6 +72,21 @@ namespace SFG
 			kick_off_render();
 		});
 
+		debug_console::get()->register_console_function<int, int>("vsync", [this](int v, int tearing) {
+			uint8 flags = {};
+
+			if (v == 1)
+				flags |= swapchain_flags::sf_vsync_every_v_blank;
+			else if (v == 2)
+				flags |= swapchain_flags::sf_vsync_every_2v_blank;
+			if (tearing == 1)
+				flags |= swapchain_flags::sf_allow_tearing;
+
+			SFG_INFO("Setting VSync: {0}, Tearing: {1}", v, tearing);
+
+			set_swapchain_flags(flags);
+		});
+
 		debug_console::get()->register_console_function<const char*>("app_save_world", [this](const char* path) {
 			const string p = engine_data::get().get_working_dir() + path;
 			_world->save(p.c_str());
@@ -131,10 +146,10 @@ namespace SFG
 
 	void game_app::tick()
 	{
-		// Default to ~16.666 ms; adapt to measured vsync interval for smoother pacing.
-		double ema_fixed_ns	  = 16'666'667.0;
-		int64  previous_time  = time::get_cpu_microseconds();
-		int64  accumulator_ns = static_cast<int64>(ema_fixed_ns);
+		// ~16.666 ms; can adapt later for smoother-pacing
+		constexpr double ema_fixed_ns	= 16'666'667.0;
+		int64			 previous_time	= time::get_cpu_microseconds();
+		int64			 accumulator_ns = static_cast<int64>(ema_fixed_ns);
 
 		while (_should_close.load(std::memory_order_acquire) == 0)
 		{
@@ -172,18 +187,6 @@ namespace SFG
 				_window_size = ws;
 				kick_off_render();
 			}
-			/* add any fast tick events here */
-
-			// Smoothly adapt fixed step to measured present interval to avoid beat against 59.94 Hz.
-			/*{
-				const double present_us = frame_info::get_present_time_micro();
-				if (present_us > 0.0)
-				{
-					const double present_ns = present_us * 1000.0;
-					// EMA smoothing (alpha=0.1)
-					ema_fixed_ns = ema_fixed_ns * 0.9 + present_ns * 0.1;
-				}
-			}*/
 
 			const int64 FIXED_INTERVAL_NS = static_cast<int64>(ema_fixed_ns);
 			const float dt_seconds		  = static_cast<float>(static_cast<double>(FIXED_INTERVAL_NS) / 1'000'000'000.0);
@@ -204,6 +207,27 @@ namespace SFG
 			_render_stream.publish();
 			_renderer->tick();
 			frame_info::s_frame.fetch_add(1);
+
+			if (ticks == 0)
+			{
+				const int64 remaining_ns = FIXED_INTERVAL_NS - accumulator_ns;
+				if (remaining_ns > 0)
+				{
+					constexpr int64 MAX_SLEEP_US = 2000;
+					int64			sleep_us	 = remaining_ns / 1000;
+					if (sleep_us > MAX_SLEEP_US)
+						sleep_us = MAX_SLEEP_US;
+
+					if (sleep_us > 0)
+						time::throttle(sleep_us);
+					else
+						time::yield_thread();
+				}
+				else
+				{
+					time::yield_thread();
+				}
+			}
 		}
 	}
 
@@ -229,6 +253,13 @@ namespace SFG
 
 		frame_info::s_is_render_active = false;
 		_renderer->wait_backend();
+	}
+
+	void game_app::set_swapchain_flags(uint8 flags)
+	{
+		join_render();
+		_renderer->on_swapchain_flags(flags);
+		kick_off_render();
 	}
 
 	void game_app::kick_off_render()
