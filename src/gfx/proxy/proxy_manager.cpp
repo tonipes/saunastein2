@@ -238,7 +238,7 @@ namespace SFG
 				.debug_name = "texture_intermediate",
 			});
 
-			_texture_queue.add_request(ev.buffers, proxy.hw, proxy.intermediate, 1);
+			_texture_queue.add_request(ev.buffers, proxy.hw, proxy.intermediate, 1, resource_state::ps_resource);
 
 #ifndef SFG_STRIP_DEBUG_NAMES
 			SFG_TRACE("Created texture proxy for: {0}", ev.name);
@@ -363,8 +363,13 @@ namespace SFG
 				backend->bind_group_update_pointer(proxy.bind_groups[i], 0, updates);
 
 				proxy.buffers[i].buffer_data(0, ev.data.data, ev.data.size);
-				_buffer_queue.add_request({.buffer = &proxy.buffers[i]});
+				_buffer_queue.add_request({
+					.buffer	  = &proxy.buffers[i],
+					.to_state = resource_state::vertex_cbv,
+				});
 			}
+
+			SFG_FREE(ev.data.data);
 
 #ifndef SFG_STRIP_DEBUG_NAMES
 			SFG_TRACE("Created material proxy for: {0}", ev.name);
@@ -377,19 +382,17 @@ namespace SFG
 
 			render_proxy_material& proxy = get_material(index);
 
-			// TODO: transfer ownership of the data to the buffer queue.
-			// proxy.data							 = ev.data;
-			//
-			// for (uint8 i = 0; i < FRAMES_IN_FLIGHT; i++)
-			// {
-			// 	_buffer_queue.add_request(
-			// 		{
-			// 			.buffer	   = &proxy.buffers[i],
-			// 			.data	   = proxy.data.get_raw(),
-			// 			.data_size = proxy.data.get_size(),
-			// 		},
-			// 		i);
-			// }
+			for (uint8 i = 0; i < FRAMES_IN_FLIGHT; i++)
+			{
+				_buffer_queue.add_request(
+					{
+						.buffer	   = &proxy.buffers[i],
+						.data	   = ev.data.data,
+						.data_size = ev.data.size,
+						.to_state  = resource_state::vertex_cbv,
+					},
+					i);
+			}
 		}
 		else if (type == render_event_type::render_event_destroy_material)
 		{
@@ -514,8 +517,14 @@ namespace SFG
 					idx_counter += proxy_prim.index_count;
 				}
 
-				_buffer_queue.add_request({.buffer = &proxy.vertex_buffer});
-				_buffer_queue.add_request({.buffer = &proxy.index_buffer});
+				_buffer_queue.add_request({
+					.buffer	  = &proxy.vertex_buffer,
+					.to_state = resource_state::vertex_cbv,
+				});
+				_buffer_queue.add_request({
+					.buffer	  = &proxy.index_buffer,
+					.to_state = resource_state::index_buffer,
+				});
 			};
 
 			if (!ev.primitives_static.empty())

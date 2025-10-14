@@ -1,6 +1,7 @@
 // Copyright (c) 2025 Inan Evin
 #pragma once
 
+#define NOMINMAX
 #include <limits>
 
 namespace SFG

@@ -82,32 +82,6 @@ namespace SFG
 		uint8						  color_attachment_count = 0;
 	};
 
-	struct command_begin_render_pass_depth
-	{
-		static constexpr uint8 TID = 19;
-
-		render_pass_color_attachment*		 color_attachments		  = {};
-		render_pass_depth_stencil_attachment depth_stencil_attachment = {};
-		uint8								 color_attachment_count	  = 0;
-	};
-
-	struct command_begin_render_pass_swapchain
-	{
-		static constexpr uint8 TID = 20;
-
-		render_pass_color_attachment* color_attachments		 = {};
-		uint8						  color_attachment_count = 0;
-	};
-
-	struct command_begin_render_pass_swapchain_depth
-	{
-		static constexpr uint8 TID = 21;
-
-		render_pass_color_attachment*		 color_attachments		  = {};
-		render_pass_depth_stencil_attachment depth_stencil_attachment = {};
-		uint8								 color_attachment_count	  = 0;
-	};
-
 	struct command_end_render_pass
 	{
 		static constexpr uint8 TID = 1;
@@ -138,13 +112,6 @@ namespace SFG
 	struct command_bind_pipeline
 	{
 		static constexpr uint8 TID = 4;
-
-		gfx_id pipeline = 0;
-	};
-
-	struct command_bind_pipeline_compute
-	{
-		static constexpr uint8 TID = 22;
 
 		gfx_id pipeline = 0;
 	};
@@ -288,6 +255,39 @@ namespace SFG
 		uint16		   barrier_count = 0;
 	};
 
+	struct command_begin_render_pass_depth
+	{
+		static constexpr uint8 TID = 19;
+
+		render_pass_color_attachment*		 color_attachments		  = {};
+		render_pass_depth_stencil_attachment depth_stencil_attachment = {};
+		uint8								 color_attachment_count	  = 0;
+	};
+
+	struct command_begin_render_pass_swapchain
+	{
+		static constexpr uint8 TID = 20;
+
+		render_pass_color_attachment* color_attachments		 = {};
+		uint8						  color_attachment_count = 0;
+	};
+
+	struct command_begin_render_pass_swapchain_depth
+	{
+		static constexpr uint8 TID = 21;
+
+		render_pass_color_attachment*		 color_attachments		  = {};
+		render_pass_depth_stencil_attachment depth_stencil_attachment = {};
+		uint8								 color_attachment_count	  = 0;
+	};
+
+	struct command_bind_pipeline_compute
+	{
+		static constexpr uint8 TID = 22;
+
+		gfx_id pipeline = 0;
+	};
+
 	struct command_bind_layout
 	{
 		static constexpr uint8 TID = 23;
@@ -300,6 +300,17 @@ namespace SFG
 		static constexpr uint8 TID = 24;
 
 		gfx_id layout = 0;
+	};
+
+	struct command_copy_resource_region
+	{
+		static constexpr uint8 TID = 25;
+
+		gfx_id source	   = 0;
+		gfx_id destination = 0;
+		size_t dst_offset  = 0;
+		size_t src_offset  = 0;
+		size_t size		   = 0;
 	};
 
 }

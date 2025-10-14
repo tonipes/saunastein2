@@ -6,11 +6,13 @@
 #include "gfx/common/gfx_constants.hpp"
 #include "gfx/common/texture_buffer.hpp"
 #include "data/static_vector.hpp"
+#include "gfx/common/barrier_description.hpp"
 #include <functional>
 
 namespace SFG
 {
 	struct texture_buffer;
+	struct barrier;
 
 	class texture_queue
 	{
@@ -23,19 +25,18 @@ namespace SFG
 			uint64											added_frame	 = 0;
 			uint8											cleared		 = 0;
 			uint8											use_free	 = 0;
+			resource_state									to_state	 = resource_state::ps_resource;
 		};
 
 	public:
 		void init();
 		void uninit();
-		void clear_flushed_textures();
 
-		void add_request(const static_vector<texture_buffer, MAX_TEXTURE_MIPS>& buffers, gfx_id texture, gfx_id intermediate, uint8 use_free);
-		void flush_all(gfx_id cmd);
+		void add_request(const static_vector<texture_buffer, MAX_TEXTURE_MIPS>& buffers, gfx_id texture, gfx_id intermediate, uint8 use_free, resource_state state);
+		void flush_all(gfx_id cmd, vector<barrier>& out_barriers);
 		bool empty() const;
 
 	private:
-		vector<texture_request> _requests		  = {};
-		vector<texture_request> _flushed_requests = {};
+		vector<texture_request> _requests = {};
 	};
 } // namespace Lina

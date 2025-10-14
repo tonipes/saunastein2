@@ -3,6 +3,7 @@
 #pragma once
 
 #include "common/size_definitions.hpp"
+#include "gfx/common/gfx_constants.hpp"
 #include <limits>
 
 namespace SFG
@@ -23,7 +24,7 @@ namespace SFG
 		}
 
 	private:
-		uint16 _hw = std::numeric_limits<uint16>::max();
+		gfx_id _hw = NULL_GFX_ID;
 	};
 
 }

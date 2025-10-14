@@ -39,55 +39,11 @@ namespace SFG
 
 		_base_size = size;
 
-		static_vector<gfx_id, FRAMES_IN_FLIGHT> entity_buffers;
-		static_vector<gfx_id, FRAMES_IN_FLIGHT> bone_buffers;
-		static_vector<gfx_id, FRAMES_IN_FLIGHT> light_buffers;
-
 		// pfd
 		for (uint8 i = 0; i < FRAMES_IN_FLIGHT; i++)
 		{
 			per_frame_data& pfd	  = _pfd[i];
 			pfd.sem_gfx.semaphore = backend->create_semaphore();
-
-			pfd.bones.create_staging_hw(
-				{
-					.size		= sizeof(gpu_bone) * MAX_GPU_BONES,
-					.flags		= resource_flags::rf_cpu_visible,
-					.debug_name = "bones_cpu",
-				},
-				{
-					.size		= sizeof(gpu_bone) * MAX_GPU_BONES,
-					.flags		= resource_flags::rf_gpu_only | resource_flags::rf_storage_buffer,
-					.debug_name = "bones_gpu",
-				});
-
-			pfd.entities.create_staging_hw(
-				{
-					.size		= sizeof(gpu_entity) * MAX_GPU_ENTITIES,
-					.flags		= resource_flags::rf_cpu_visible,
-					.debug_name = "entities_cpu",
-				},
-				{
-					.size		= sizeof(gpu_entity) * MAX_GPU_ENTITIES,
-					.flags		= resource_flags::rf_gpu_only | resource_flags::rf_storage_buffer,
-					.debug_name = "entities_gpu",
-				});
-
-			pfd.lights.create_staging_hw(
-				{
-					.size		= sizeof(gpu_light) * MAX_GPU_LIGHTS,
-					.flags		= resource_flags::rf_cpu_visible,
-					.debug_name = "lights_cpu",
-				},
-				{
-					.size		= sizeof(gpu_light) * MAX_GPU_LIGHTS,
-					.flags		= resource_flags::rf_gpu_only | resource_flags::rf_storage_buffer,
-					.debug_name = "lights_gpu",
-				});
-
-			entity_buffers.push_back(pfd.entities.get_hw_gpu());
-			bone_buffers.push_back(pfd.bones.get_hw_gpu());
-			light_buffers.push_back(pfd.lights.get_hw_gpu());
 		}
 
 		// Command allocations
@@ -100,11 +56,9 @@ namespace SFG
 
 			uint8* alloc_head = _shared_command_alloc;
 			_pass_opaque.init({
-				.size			= size,
-				.alloc			= alloc_head,
-				.alloc_size		= size_per_lane,
-				.entity_buffers = entity_buffers.data(),
-				.bone_buffers	= bone_buffers.data(),
+				.size		= size,
+				.alloc		= alloc_head,
+				.alloc_size = size_per_lane,
 			});
 
 			alloc_head += size_per_lane;
@@ -152,14 +106,8 @@ namespace SFG
 		{
 			per_frame_data& pfd = _pfd[i];
 			backend->destroy_semaphore(pfd.sem_gfx.semaphore);
-			pfd.bones.destroy();
-			pfd.entities.destroy();
-			pfd.lights.destroy();
 		}
 	}
-
-	string data_dump = "";
-	uint64 frames	 = 0;
 
 	void world_renderer::prepare(uint8 frame_index)
 	{
@@ -180,40 +128,9 @@ namespace SFG
 		_main_camera_view.view_proj_matrix = _main_camera_view.proj_matrix * _main_camera_view.view_matrix;
 		_main_camera_view.view_frustum	   = frustum::extract(_main_camera_view.view_proj_matrix);
 
-		if (frames < 300)
-		{
-			// data_dump += "x: " + std::to_string(cam_entity.position.x) + "\n";
-			// frames++;
-		}
-		else
-		{
-			// serialization::write_to_file(data_dump, "test.txt");
-		}
-
 		collect_model_instances();
 
-		_pass_opaque.prepare(_proxy_manager, frame_index, rd);
-	}
-
-	void world_renderer::upload(uint8 frame_index)
-	{
-		world_render_data& rd  = _render_data;
-		per_frame_data&	   pfd = _pfd[frame_index];
-
-		if (!rd.bones.empty())
-			pfd.bones.buffer_data(0, rd.bones.data(), sizeof(gpu_bone) * rd.bones.size());
-
-		if (!rd.entities.empty())
-			pfd.entities.buffer_data(0, rd.entities.data(), sizeof(gpu_entity) * rd.entities.size());
-
-		if (!rd.lights.empty())
-			pfd.lights.buffer_data(0, rd.lights.data(), sizeof(gpu_light) * rd.lights.size());
-
-		_buffer_queue->add_request({.buffer = &pfd.entities});
-		_buffer_queue->add_request({.buffer = &pfd.bones});
-		_buffer_queue->add_request({.buffer = &pfd.lights});
-
-		_pass_opaque.upload(_proxy_manager, _main_camera_view, _buffer_queue, frame_index);
+		_pass_opaque.prepare(_proxy_manager, _main_camera_view, frame_index, rd);
 	}
 
 	void world_renderer::render(uint8 frame_index, gfx_id layout_global, gfx_id bind_group_global, uint64 prev_copy, uint64 next_copy, gfx_id sem_copy)
@@ -239,7 +156,7 @@ namespace SFG
 		const gfx_id	cmd_post			= _pass_post_combiner.get_cmd_buffer(frame_index);
 
 		static_vector<std::function<void()>, 1> tasks;
-		tasks.push_back([&] { _pass_opaque.render(frame_index, resolution, layout_global, bind_group_global); });
+		tasks.push_back([&] { _pass_opaque.render(frame_index, rd, resolution, layout_global, bind_group_global); });
 		std::for_each(std::execution::par, tasks.begin(), tasks.end(), [](std::function<void()>& task) { task(); });
 
 		//	tasks.push_back([&] { _pass_lighting_fw.render(data_index, frame_index, resolution, layout_global, bind_group_global); });

@@ -55,6 +55,7 @@ namespace SFG
 	struct command_bind_vertex_buffers;
 	struct command_bind_index_buffers;
 	struct command_copy_resource;
+	struct command_copy_resource_region;
 	struct command_copy_buffer_to_texture;
 	struct command_copy_texture_to_buffer;
 	struct command_copy_texture_to_texture;
@@ -254,6 +255,7 @@ namespace SFG
 		void cmd_bind_vertex_buffers(gfx_id cmd_list, const command_bind_vertex_buffers& command) const;
 		void cmd_bind_index_buffers(gfx_id cmd_list, const command_bind_index_buffers& command) const;
 		void cmd_copy_resource(gfx_id cmd_list, const command_copy_resource& command) const;
+		void cmd_copy_resource_region(gfx_id cmd_list, const command_copy_resource_region& command) const;
 		void cmd_copy_buffer_to_texture(gfx_id cmd_list, const command_copy_buffer_to_texture& command);
 		void cmd_copy_texture_to_buffer(gfx_id cmd_list, const command_copy_texture_to_buffer& command) const;
 		void cmd_copy_texture_to_texture(gfx_id cmd_list, const command_copy_texture_to_texture& command) const;

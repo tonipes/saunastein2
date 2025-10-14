@@ -9,7 +9,7 @@ namespace SFG
 {
 	shader_direct::~shader_direct()
 	{
-		SFG_ASSERT(_hw == std::numeric_limits<uint16>::max());
+		SFG_ASSERT(_hw == NULL_GFX_ID);
 	}
 
 	void shader_direct::create_from_raw(shader_raw& raw)
@@ -22,7 +22,7 @@ namespace SFG
 	{
 		gfx_backend* backend = gfx_backend::get();
 		backend->destroy_shader(_hw);
-		_hw = std::numeric_limits<uint16>::max();
+		_hw = NULL_GFX_ID;
 	}
 
 }

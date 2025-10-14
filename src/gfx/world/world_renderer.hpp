@@ -33,10 +33,7 @@ namespace SFG
 	private:
 		struct per_frame_data
 		{
-			buffer		   bones	= {};
-			buffer		   entities = {};
-			buffer		   lights	= {};
-			semaphore_data sem_gfx	= {};
+			semaphore_data sem_gfx = {};
 		};
 
 	public:
@@ -47,7 +44,6 @@ namespace SFG
 		void uninit();
 
 		void prepare(uint8 frame_index);
-		void upload(uint8 frame_index);
 		void render(uint8 frame_index, gfx_id layout_global, gfx_id bind_group_global, uint64 prev_copy, uint64 next_copy, gfx_id sem_copy);
 		void resize(const vector2ui16& size);
 

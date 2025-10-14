@@ -7,12 +7,13 @@
 #include "gfx/util/gfx_util.hpp"
 #include "gfx/buffer_queue.hpp"
 #include "gfx/world/world_render_data.hpp"
+#include "gfx/proxy/proxy_manager.hpp"
+#include "gfx/common/barrier_description.hpp"
 #include "world/world.hpp"
 #include "resources/material.hpp"
 #include "resources/shader.hpp"
 #include "resources/vertex.hpp"
 #include "math/vector2ui16.hpp"
-#include "gfx/proxy/proxy_manager.hpp"
 
 namespace SFG
 {
@@ -33,14 +34,38 @@ namespace SFG
 
 			pfd.ubo.create_hw({.size = sizeof(ubo), .flags = resource_flags::rf_constant_buffer | resource_flags::rf_cpu_visible, .debug_name = "opaque_ubo"});
 
+			pfd.bones.create_staging_hw(
+				{
+					.size		= sizeof(gpu_bone) * MAX_GPU_BONES,
+					.flags		= resource_flags::rf_cpu_visible,
+					.debug_name = "opaque_bones_cpu",
+				},
+				{
+					.size		= sizeof(gpu_bone) * MAX_GPU_BONES,
+					.flags		= resource_flags::rf_gpu_only | resource_flags::rf_storage_buffer,
+					.debug_name = "opaque_bones_gpu",
+				});
+
+			pfd.entities.create_staging_hw(
+				{
+					.size		= sizeof(gpu_entity) * MAX_GPU_ENTITIES,
+					.flags		= resource_flags::rf_cpu_visible,
+					.debug_name = "opaque_entities_cpu",
+				},
+				{
+					.size		= sizeof(gpu_entity) * MAX_GPU_ENTITIES,
+					.flags		= resource_flags::rf_gpu_only | resource_flags::rf_storage_buffer,
+					.debug_name = "opaque_entities_gpu",
+				});
+
 			pfd.bind_group = backend->create_empty_bind_group();
 			backend->bind_group_add_pointer(pfd.bind_group, rpi_table_render_pass, 4, false);
 			backend->bind_group_update_pointer(pfd.bind_group,
 											   0,
 											   {
 												   {.resource = pfd.ubo.get_hw_gpu(), .view = 0, .pointer_index = upi_render_pass_ubo0, .type = binding_type::ubo},
-												   {.resource = params.entity_buffers[i], .view = 0, .pointer_index = upi_render_pass_ssbo0, .type = binding_type::ssbo},
-												   {.resource = params.bone_buffers[i], .view = 0, .pointer_index = upi_render_pass_ssbo1, .type = binding_type::ssbo},
+												   {.resource = pfd.entities.get_hw_gpu(), .view = 0, .pointer_index = upi_render_pass_ssbo0, .type = binding_type::ssbo},
+												   {.resource = pfd.bones.get_hw_gpu(), .view = 0, .pointer_index = upi_render_pass_ssbo1, .type = binding_type::ssbo},
 											   });
 		}
 	}
@@ -59,6 +84,8 @@ namespace SFG
 			backend->destroy_bind_group(pfd.bind_group);
 			backend->destroy_semaphore(pfd.semaphore.semaphore);
 			pfd.ubo.destroy();
+			pfd.bones.destroy();
+			pfd.entities.destroy();
 		}
 
 		destroy_textures();
@@ -102,7 +129,7 @@ namespace SFG
 	}
 	*/
 
-	void render_pass_opaque::prepare(proxy_manager& pm, uint8 frame_index, world_render_data& wrd)
+	void render_pass_opaque::prepare(proxy_manager& pm, view& camera_view, uint8 frame_index, world_render_data& wrd)
 	{
 		render_data& rd = _render_data;
 		rd.draws.clear();
@@ -151,23 +178,17 @@ namespace SFG
 				.idx_buffer		= obj.index_buffer->get_hw_gpu(),
 			});
 		}
-	}
-	void render_pass_opaque::upload(proxy_manager& pm, view& camera_view, buffer_queue* queue, uint8 frame_index)
-	{
-		per_frame_data& pfd = _pfd[frame_index];
-		render_data&	rd	= _render_data;
 
-		ubo ubo_data = {
-			.view	   = camera_view.view_matrix,
-			.proj	   = camera_view.proj_matrix,
-			.view_proj = camera_view.view_proj_matrix,
-		};
-
+		per_frame_data& pfd		 = _pfd[frame_index];
+		const ubo		ubo_data = {
+				  .view		 = camera_view.view_matrix,
+				  .proj		 = camera_view.proj_matrix,
+				  .view_proj = camera_view.view_proj_matrix,
+		  };
 		pfd.ubo.buffer_data(0, &ubo_data, sizeof(ubo));
-		queue->add_request({.buffer = &pfd.ubo});
 	}
 
-	void render_pass_opaque::render(uint8 frame_index, const vector2ui16& size, gfx_id global_layout, gfx_id global_group)
+	void render_pass_opaque::render(uint8 frame_index, world_render_data& wrd, const vector2ui16& size, gfx_id global_layout, gfx_id global_group)
 	{
 		gfx_backend*	backend		  = gfx_backend::get();
 		per_frame_data& pfd			  = _pfd[frame_index];
@@ -180,8 +201,8 @@ namespace SFG
 
 		render_pass_color_attachment* attachments = _alloc.allocate<render_pass_color_attachment>(COLOR_TEXTURES);
 
-		static_vector<barrier, COLOR_TEXTURES + 1> barriers;
-		static_vector<barrier, COLOR_TEXTURES + 1> barriers_after;
+		static_vector<barrier, 20> barriers;
+		static_vector<barrier, 20> barriers_after;
 
 		for (uint8 i = 0; i < COLOR_TEXTURES; i++)
 		{
@@ -224,11 +245,71 @@ namespace SFG
 
 		backend->reset_command_buffer(cmd_buffer);
 
+		if (!wrd.bones.empty())
+		{
+			barriers.push_back({
+				.resource	= pfd.bones.get_hw_gpu(),
+				.flags		= barrier_flags::baf_is_resource,
+				.from_state = resource_state::non_ps_resource,
+				.to_state	= resource_state::copy_dest,
+			});
+		}
+
+		if (!wrd.entities.empty())
+		{
+			barriers.push_back({
+				.resource	= pfd.entities.get_hw_gpu(),
+				.flags		= barrier_flags::baf_is_resource,
+				.from_state = resource_state::non_ps_resource,
+				.to_state	= resource_state::copy_dest,
+			});
+		}
+
 		backend->cmd_barrier(cmd_buffer,
 							 {
 								 .barriers		= barriers.data(),
 								 .barrier_count = static_cast<uint16>(barriers.size()),
 							 });
+
+		barriers.resize(0);
+
+		if (!wrd.bones.empty())
+		{
+			const size_t sz = sizeof(gpu_bone) * wrd.bones.size();
+			pfd.bones.buffer_data(0, wrd.bones.data(), sz);
+			pfd.bones.copy_region(pfd.cmd_buffer, 0, sz);
+
+			barriers.push_back({
+				.resource	= pfd.bones.get_hw_gpu(),
+				.flags		= barrier_flags::baf_is_resource,
+				.from_state = resource_state::copy_dest,
+				.to_state	= resource_state::non_ps_resource,
+			});
+		}
+
+		if (!wrd.entities.empty())
+		{
+			const size_t sz = sizeof(gpu_entity) * wrd.entities.size();
+			pfd.entities.buffer_data(0, wrd.entities.data(), sz);
+			pfd.entities.copy_region(pfd.cmd_buffer, 0, sz);
+
+			barriers.push_back({
+				.resource	= pfd.entities.get_hw_gpu(),
+				.flags		= barrier_flags::baf_is_resource,
+				.from_state = resource_state::copy_dest,
+				.to_state	= resource_state::non_ps_resource,
+			});
+		}
+
+		if (!barriers.empty())
+		{
+			backend->cmd_barrier(cmd_buffer,
+								 {
+									 .barriers		= barriers.data(),
+									 .barrier_count = static_cast<uint16>(barriers.size()),
+								 });
+			barriers.resize(0);
+		}
 
 		backend->cmd_begin_render_pass_depth(cmd_buffer,
 											 {

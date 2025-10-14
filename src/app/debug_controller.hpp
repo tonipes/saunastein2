@@ -4,13 +4,14 @@
 #include "math/matrix4x4.hpp"
 #include "math/vector4ui16.hpp"
 #include "data/vector.hpp"
+#include "data/string.hpp"
+#include "data/static_vector.hpp"
 #include "math/vector2.hpp"
 #include "gfx/buffer.hpp"
 #include "gfx/common/gfx_constants.hpp"
 #include "gfx/common/gfx_common.hpp"
 #include "gfx/common/texture_buffer.hpp"
 #include "memory/text_allocator.hpp"
-#include "data/string.hpp"
 #include "vendor/moodycamel/readerwriterqueue.h"
 
 namespace vekt
@@ -41,9 +42,9 @@ namespace SFG
 		void init(texture_queue* texture_queue, gfx_id global_bind_layout, const vector2ui16& screen_size);
 		void uninit();
 		void tick();
-		void collect_barriers(vector<barrier>& out_barriers);
+		void collect_barriers(static_vector<barrier, 8>& out_barriers);
+		void prepare(uint8 frame_index);
 		void render(gfx_id cmd_buffer, uint8 frame_index, bump_allocator& alloc);
-		void upload(buffer_queue& q, uint8 frame_index);
 		void on_window_resize(const vector2ui16& size);
 		bool on_window_event(const window_event& ev);
 

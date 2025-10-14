@@ -81,9 +81,10 @@ namespace SFG
 		SFG_ASSERT(!raw.shaders.empty());
 
 		render_event_material stg = {};
-		stg.data.data			  = _material_data.get_raw();
-		stg.data.size			  = _material_data.get_size();
-		stg.flags				  = _flags.value();
+		stg.data.data			  = reinterpret_cast<uint8*>(SFG_MALLOC(_material_data.get_size()));
+		SFG_MEMCPY(stg.data.data, _material_data.get_raw(), _material_data.get_size());
+		stg.data.size = _material_data.get_size();
+		stg.flags	  = _flags.value();
 
 		for (string_id sid : raw.textures)
 		{

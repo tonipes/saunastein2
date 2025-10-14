@@ -36,10 +36,9 @@ namespace SFG
 		renderer();
 
 		void init(window* main_window, world* world);
-		void uninit();
+		void uninit(render_event_stream& stream);
 		void wait_backend();
 		void tick();
-		void fetch_render_events(render_event_stream& stream);
 		void render(render_event_stream& stream, const vector2ui16& size);
 		bool on_window_event(const window_event& ev);
 		void on_window_resize(const vector2ui16& size);
@@ -70,9 +69,6 @@ namespace SFG
 		}
 
 	private:
-		void send_uploads(uint8 frame_index);
-		void send_barriers(gfx_id cmd_list);
-
 	private:
 		struct buf_engine_global
 		{
@@ -121,8 +117,8 @@ namespace SFG
 		buffer_queue	_buffer_queue					   = {};
 		texture_queue	_texture_queue					   = {};
 		render_data		_render_data[2];
-		vector<barrier> _reuse_barriers;
 		proxy_manager	_proxy_manager;
+		vector<barrier> _reuse_upload_barriers = {};
 
 		static gfx_id s_bind_layout_global;
 		static gfx_id s_bind_group_global[FRAMES_IN_FLIGHT];

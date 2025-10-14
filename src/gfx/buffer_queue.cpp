@@ -2,6 +2,8 @@
 
 #include "buffer_queue.hpp"
 #include "gfx/buffer.hpp"
+#include "gfx/backend/backend.hpp"
+#include "gfx/common/commands.hpp"
 
 namespace SFG
 {
@@ -27,17 +29,36 @@ namespace SFG
 		_pfd[frame_index].buffered_requests.push_back(req);
 	}
 
-	void buffer_queue::flush_all(gfx_id cmd_list, uint8 frame_index)
+	void buffer_queue::flush_all(gfx_id cmd_list, uint8 frame_index, vector<barrier>& out_barriers)
 	{
+		gfx_backend*	backend = gfx_backend::get();
+		per_frame_data& pfd		= _pfd[frame_index];
+
+		// perform copies.
 		for (const buffer_request& buf : _requests)
+		{
 			buf.buffer->copy(cmd_list);
 
-		per_frame_data& pfd = _pfd[frame_index];
+			out_barriers.push_back({
+				.resource	= buf.buffer->get_hw_gpu(),
+				.flags		= barrier_flags::baf_is_resource,
+				.from_state = resource_state::copy_dest,
+				.to_state	= buf.to_state,
+			});
+		}
 
-		for (const update_request& buf : pfd.buffered_requests)
+		for (update_request& buf : pfd.buffered_requests)
 		{
 			buf.buffer->buffer_data(0, buf.data, buf.data_size);
 			buf.buffer->copy(cmd_list);
+			SFG_FREE(buf.data);
+
+			out_barriers.push_back({
+				.resource	= buf.buffer->get_hw_gpu(),
+				.flags		= barrier_flags::baf_is_resource,
+				.from_state = resource_state::copy_dest,
+				.to_state	= buf.to_state,
+			});
 		}
 
 		_requests.resize(0);
@@ -46,20 +67,6 @@ namespace SFG
 
 	bool buffer_queue::empty(uint8 frame_index) const
 	{
-		for (const buffer_request& buf : _requests)
-		{
-			if (buf.buffer->is_dirty())
-				return false;
-		}
-
-		const per_frame_data& pfd = _pfd[frame_index];
-
-		for (const update_request& buf : pfd.buffered_requests)
-		{
-			if (buf.buffer->is_dirty())
-				return false;
-		}
-
-		return true;
+		return _requests.empty() && _pfd[frame_index].buffered_requests.empty();
 	}
-} // namespace Lina
+}

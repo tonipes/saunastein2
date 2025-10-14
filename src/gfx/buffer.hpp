@@ -17,7 +17,8 @@ namespace SFG
 		void create_hw(const resource_desc& desc);
 		void destroy();
 		void buffer_data(size_t padding, const void* data, size_t size);
-		bool copy(gfx_id cmd_buffer);
+		void copy(gfx_id cmd_buffer);
+		void copy_region(gfx_id cmd_buffer, size_t padding, size_t size);
 
 		inline gfx_id get_hw_staging() const
 		{

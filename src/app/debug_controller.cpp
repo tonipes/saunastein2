@@ -569,14 +569,12 @@ namespace SFG
 		_text_allocator.uninit();
 	}
 
-	void debug_controller::upload(buffer_queue& q, uint8 frame_index)
+	void debug_controller::prepare(uint8 frame_index)
 	{
 		_gfx_data.frame_index = frame_index;
 
 		per_frame_data& pfd = _pfd[frame_index];
 		pfd.reset();
-		q.add_request({.buffer = &pfd.buf_gui_idx});
-		q.add_request({.buffer = &pfd.buf_gui_vtx});
 
 		const gui_pass_view view = {
 			.proj		   = matrix4x4::ortho(0, static_cast<float>(_gfx_data.rt_size.x), 0, static_cast<float>(_gfx_data.rt_size.y), 0.0f, 1.0f),
@@ -598,7 +596,7 @@ namespace SFG
 		_vekt_data.builder->flush();
 	}
 
-	void debug_controller::collect_barriers(vector<barrier>& out_barriers)
+	void debug_controller::collect_barriers(static_vector<barrier, 8>& out_barriers)
 	{
 		per_frame_data& pfd = _pfd[_gfx_data.frame_index];
 		out_barriers.push_back({
@@ -614,6 +612,20 @@ namespace SFG
 			.from_state = resource_state::ps_resource,
 			.to_state	= resource_state::render_target,
 		});
+
+		out_barriers.push_back({
+			.resource	= pfd.buf_gui_idx.get_hw_gpu(),
+			.flags		= barrier_flags::baf_is_resource,
+			.from_state = resource_state::index_buffer,
+			.to_state	= resource_state::copy_dest,
+		});
+
+		out_barriers.push_back({
+			.resource	= pfd.buf_gui_vtx.get_hw_gpu(),
+			.flags		= barrier_flags::baf_is_resource,
+			.from_state = resource_state::vertex_cbv,
+			.to_state	= resource_state::copy_dest,
+		});
 	}
 
 	void debug_controller::tick()
@@ -628,6 +640,8 @@ namespace SFG
 
 	void debug_controller::render(gfx_id cmd_buffer, uint8 frame_index, bump_allocator& alloc)
 	{
+		gfx_backend* backend = gfx_backend::get();
+
 		per_frame_data&	  pfd				= _pfd[frame_index];
 		const vector2ui16 rt_size			= _gfx_data.rt_size;
 		const gfx_id	  rt_console		= pfd.rt_console;
@@ -638,6 +652,28 @@ namespace SFG
 		const gfx_id	  bg_fullscreen		= pfd.bind_group_fullscreen;
 		const gfx_id	  shader_fullscreen = _shaders.debug_controller_console_draw.get_hw();
 		const uint16	  dc_count			= pfd.draw_call_count;
+
+		// Copy vtx idx buffers. First transition barriers will be executed via collect_barriers
+		{
+			pfd.buf_gui_vtx.copy_region(cmd_buffer, 0, pfd.counter_vtx * sizeof(vekt::vertex));
+			pfd.buf_gui_idx.copy_region(cmd_buffer, 0, pfd.counter_idx * sizeof(vekt::index));
+
+			static_vector<barrier, 2> barriers_bufs;
+			barriers_bufs.push_back({
+				.resource	= pfd.buf_gui_idx.get_hw_gpu(),
+				.flags		= barrier_flags::baf_is_resource,
+				.from_state = resource_state::copy_dest,
+				.to_state	= resource_state::index_buffer,
+			});
+
+			barriers_bufs.push_back({
+				.resource	= pfd.buf_gui_vtx.get_hw_gpu(),
+				.flags		= barrier_flags::baf_is_resource,
+				.from_state = resource_state::copy_dest,
+				.to_state	= resource_state::vertex_cbv,
+			});
+			backend->cmd_barrier(cmd_buffer, {.barriers = barriers_bufs.data(), .barrier_count = 2});
+		}
 
 		render_pass_color_attachment* attachment_console_rt = alloc.allocate<render_pass_color_attachment>(1);
 		attachment_console_rt->clear_color					= vector4(0.0f, 0.0f, 0.0f, 0.0f);
@@ -651,7 +687,6 @@ namespace SFG
 		attachment_fullscreen_rt->store_op					   = store_op::store;
 		attachment_fullscreen_rt->texture					   = rt_fullscreen;
 
-		gfx_backend* backend = gfx_backend::get();
 		backend->cmd_bind_group(cmd_buffer, {.group = bg_rp});
 		backend->cmd_set_viewport(cmd_buffer, {.width = static_cast<uint16>(rt_size.x), .height = static_cast<uint16>(rt_size.y)});
 
@@ -835,7 +870,7 @@ namespace SFG
 
 		static_vector<texture_buffer, MAX_TEXTURE_MIPS> buffers;
 		buffers.push_back(ref.buffer);
-		_gfx_data.texture_queue->add_request(buffers, ref.texture, ref.intermediate_buffer, 0);
+		_gfx_data.texture_queue->add_request(buffers, ref.texture, ref.intermediate_buffer, 0, resource_state::ps_resource);
 
 		const int32 index  = std::distance(it, _gfx_data.atlases.begin());
 		uint8*		pixels = ref.buffer.pixels;

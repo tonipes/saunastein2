@@ -116,8 +116,7 @@ namespace SFG
 		debug_console::uninit();
 
 		_render_stream.publish();
-		_renderer->fetch_render_events(_render_stream);
-		_renderer->uninit();
+		_renderer->uninit(_render_stream);
 		delete _renderer;
 
 		_main_window->destroy();
@@ -218,50 +217,6 @@ namespace SFG
 		frame_info::s_is_render_active = false;
 		_renderer->wait_backend();
 	}
-
-	/*
-	void game_app::pipe_read()
-	{
-		char  buffer[PIPE_MAX_MSG_SIZE];
-		DWORD bytesRead;
-
-		const HANDLE pipe = static_cast<HANDLE>(process::get_pipe_handle());
-
-		// Read loop
-		while (pipe != INVALID_HANDLE_VALUE)
-		{
-			if (ReadFile(pipe, buffer, sizeof(buffer) - 1, &bytesRead, NULL))
-			{
-				if (bytesRead > 0)
-				{
-
-					buffer[bytesRead] = '\0'; // Null-terminate the string
-					istream		   stream((uint8*)buffer, static_cast<size_t>(bytesRead));
-					pipe_data_type data_type = {};
-					stream >> data_type;
-
-					if (data_type == pipe_data_type::log)
-					{
-						log_level lvl = {};
-						stream >> lvl;
-
-						const char* msg = reinterpret_cast<const char*>(stream.get_data_current());
-						log::instance().log_msg(lvl, msg);
-					}
-				}
-			}
-			else
-			{
-				DWORD dwError = GetLastError();
-				if (dwError == ERROR_BROKEN_PIPE)
-				{
-					SFG_ERR("pipe_read() -> pipe disconnected! {0}", dwError);
-					break;
-				}
-			}
-		}
-	}
-*/
 
 	void game_app::kick_off_render()
 	{

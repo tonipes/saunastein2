@@ -4,6 +4,7 @@
 #include "engine_data.hpp"
 #include "app/debug_console.hpp"
 #include "io/log.hpp"
+#include "io/assert.hpp"
 #include "io/file_system.hpp"
 #include "platform/process.hpp"
 #include <fstream>

@@ -112,14 +112,15 @@ namespace SFG
 
 		_buffer_queue.init();
 		_texture_queue.init();
-		_reuse_barriers.reserve(256);
 		_proxy_manager.init();
 	}
 
-	void renderer::uninit()
+	void renderer::uninit(render_event_stream& stream)
 	{
 		gfx_backend* backend = gfx_backend::get();
 
+		// fetch any stale commands.
+		_proxy_manager.fetch_render_events(stream);
 		_proxy_manager.uninit();
 		_world_renderer->uninit();
 		delete _world_renderer;
@@ -170,7 +171,6 @@ namespace SFG
 		}
 
 		_proxy_manager.flush_destroys(true);
-		_texture_queue.clear_flushed_textures();
 		_gfx_data.frame_index = 0;
 	}
 
@@ -181,15 +181,11 @@ namespace SFG
 #endif
 	}
 
-	void renderer::fetch_render_events(render_event_stream& stream)
-	{
-		_proxy_manager.fetch_render_events(stream);
-		_proxy_manager.flush_destroys(false);
-	}
 	void renderer::render(render_event_stream& stream, const vector2ui16& size)
 	{
-		gfx_backend* backend   = gfx_backend::get();
-		const gfx_id queue_gfx = backend->get_queue_gfx();
+		gfx_backend* backend		= gfx_backend::get();
+		const gfx_id queue_gfx		= backend->get_queue_gfx();
+		const gfx_id queue_transfer = backend->get_queue_transfer();
 
 		/* access frame data */
 		const uint8		frame_index	  = _gfx_data.frame_index;
@@ -204,13 +200,12 @@ namespace SFG
 		// Wait for frame's fence, then send any uploads needed.
 		backend->wait_semaphore(pfd.sem_frame.semaphore, pfd.sem_frame.value);
 
-		fetch_render_events(stream);
-
-		const buf_engine_global globals = {};
-		pfd.buf_engine_global.buffer_data(0, (void*)&globals, sizeof(buf_engine_global));
+		_proxy_manager.fetch_render_events(stream);
+		_proxy_manager.flush_destroys(false);
 
 		/* access pfd */
 		const gfx_id cmd_list		  = pfd.cmd_gfx;
+		const gfx_id cmd_list_copy	  = pfd.cmd_copy;
 		const gfx_id bg_global		  = pfd.bind_group_global;
 		const gfx_id bg_swapchain	  = pfd.bind_group_swapchain;
 		const gfx_id shader_swp		  = _shaders.swapchain.get_hw();
@@ -219,35 +214,60 @@ namespace SFG
 		const uint64 prev_copy_value  = pfd.sem_copy.value;
 		const uint64 next_frame_value = ++pfd.sem_frame.value;
 
-		// uploads
-		_world_renderer->prepare(frame_index);
-		_world_renderer->upload(frame_index);
-		_debug_controller.upload(_buffer_queue, frame_index);
-		send_uploads(frame_index);
-		const uint64 next_copy_value = pfd.sem_copy.value;
-
-		/*
-			Start frame command list.
-			Transition swapchain, then render console & retransition.
-		*/
+		// Handle uploads
+		if (!_buffer_queue.empty(frame_index) || !_texture_queue.empty())
+		{
+			pfd.sem_copy.value++;
+			backend->reset_command_buffer(cmd_list_copy);
+			_buffer_queue.flush_all(cmd_list_copy, frame_index, _reuse_upload_barriers);
+			_texture_queue.flush_all(cmd_list_copy, _reuse_upload_barriers);
+			backend->close_command_buffer(cmd_list_copy);
+			backend->submit_commands(queue_transfer, &cmd_list_copy, 1);
+			backend->queue_signal(queue_transfer, &sem_copy, &pfd.sem_copy.value, 1);
+		}
 
 		// Begin frame cmd list
 		backend->reset_command_buffer(cmd_list);
 		backend->cmd_bind_layout(cmd_list, {.layout = layout_global});
 		backend->cmd_bind_group(cmd_list, {.group = bg_global});
 
-		_reuse_barriers.push_back({
-			.resource	= render_target,
-			.flags		= barrier_flags::baf_is_swapchain,
-			.from_state = resource_state::present,
-			.to_state	= resource_state::render_target,
-		});
+		// Uploaded resources will have post-transitions.
+		if (!_reuse_upload_barriers.empty())
+		{
+			backend->cmd_barrier(cmd_list,
+								 {
+									 .barriers		= _reuse_upload_barriers.data(),
+									 .barrier_count = static_cast<uint16>(_reuse_upload_barriers.size()),
+								 });
+			_reuse_upload_barriers.resize(0);
+		}
 
-		_debug_controller.collect_barriers(_reuse_barriers);
-		send_barriers(cmd_list);
+		const uint64 next_copy_value = pfd.sem_copy.value;
 
+		const buf_engine_global globals = {};
+		pfd.buf_engine_global.buffer_data(0, (void*)&globals, sizeof(buf_engine_global));
+
+		// Handle debug controller
+		{
+			_debug_controller.prepare(frame_index);
+			static_vector<barrier, 8> barriers;
+			barriers.push_back({
+				.resource	= render_target,
+				.flags		= barrier_flags::baf_is_swapchain,
+				.from_state = resource_state::present,
+				.to_state	= resource_state::render_target,
+			});
+			_debug_controller.collect_barriers(barriers);
+			backend->cmd_barrier(cmd_list,
+								 {
+									 .barriers		= barriers.data(),
+									 .barrier_count = static_cast<uint16>(barriers.size()),
+								 });
+			_debug_controller.render(cmd_list, frame_index, alloc);
+		}
+
+		_world_renderer->prepare(frame_index);
 		_world_renderer->render(frame_index, layout_global, bg_global, prev_copy_value, next_copy_value, sem_copy);
-		_debug_controller.render(cmd_list, frame_index, alloc);
 		const semaphore_data& sem_world_data  = _world_renderer->get_final_semaphore(frame_index);
 		const gfx_id		  sem_world		  = sem_world_data.semaphore;
 		const uint64		  sem_world_value = sem_world_data.value;
@@ -271,14 +291,20 @@ namespace SFG
 
 		// Rt -> Present Barrier
 		{
-			_reuse_barriers.push_back({
+			static_vector<barrier, 1> barriers;
+
+			barriers.push_back({
 				.resource	= render_target,
 				.flags		= barrier_flags::baf_is_swapchain,
 				.from_state = resource_state::render_target,
 				.to_state	= resource_state::present,
 			});
 
-			send_barriers(cmd_list);
+			backend->cmd_barrier(cmd_list,
+								 {
+									 .barriers		= barriers.data(),
+									 .barrier_count = static_cast<uint16>(barriers.size()),
+								 });
 		}
 
 		/*
@@ -347,32 +373,4 @@ namespace SFG
 		}
 	}
 
-	void renderer::send_uploads(uint8 frame_index)
-	{
-		per_frame_data& pfd		= _pfd[frame_index];
-		gfx_backend*	backend = gfx_backend::get();
-		const gfx_id	queue	= backend->get_queue_transfer();
-		if (!_buffer_queue.empty(frame_index) || !_texture_queue.empty())
-		{
-			pfd.sem_copy.value++;
-			backend->reset_command_buffer(pfd.cmd_copy);
-			_buffer_queue.flush_all(pfd.cmd_copy, frame_index);
-			_texture_queue.flush_all(pfd.cmd_copy);
-			backend->close_command_buffer(pfd.cmd_copy);
-			backend->submit_commands(queue, &pfd.cmd_copy, 1);
-			backend->queue_signal(queue, &pfd.sem_copy.semaphore, &pfd.sem_copy.value, 1);
-		}
-	}
-
-	void renderer::send_barriers(gfx_id cmd_list)
-	{
-		gfx_backend* backend = gfx_backend::get();
-		backend->cmd_barrier(cmd_list,
-							 {
-								 .barriers		= _reuse_barriers.data(),
-								 .barrier_count = static_cast<uint16>(_reuse_barriers.size()),
-							 });
-
-		_reuse_barriers.resize(0);
-	}
 }

@@ -25,13 +25,13 @@ namespace SFG
 
 	struct render_proxy_material
 	{
-		buffer												buffers[FRAMES_IN_FLIGHT];
-		static_vector<uint16, MAX_MATERIAL_SHADER_VARIANTS> shader_handles;
-		static_vector<uint16, MAX_MATERIAL_TEXTURES>		texture_handles;
-		resource_id											handle = {};
-		gfx_id												bind_groups[FRAMES_IN_FLIGHT];
-		uint8												status = render_proxy_status::rps_inactive;
-		bitmask<uint8>										flags  = 0;
+		buffer													 buffers[FRAMES_IN_FLIGHT];
+		static_vector<resource_id, MAX_MATERIAL_SHADER_VARIANTS> shader_handles;
+		static_vector<resource_id, MAX_MATERIAL_TEXTURES>		 texture_handles;
+		resource_id												 handle = {};
+		gfx_id													 bind_groups[FRAMES_IN_FLIGHT];
+		uint8													 status = render_proxy_status::rps_inactive;
+		bitmask<uint8>											 flags	= 0;
 	};
 
 	struct render_proxy_shader

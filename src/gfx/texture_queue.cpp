@@ -13,74 +13,47 @@ namespace SFG
 	void texture_queue::init()
 	{
 		_requests.reserve(256);
-		_flushed_requests.reserve(256);
 	}
 
 	void texture_queue::uninit()
 	{
-		clear_flushed_textures();
 	}
 
-	void texture_queue::clear_flushed_textures()
+	void texture_queue::add_request(const static_vector<texture_buffer, MAX_TEXTURE_MIPS>& buffers, gfx_id texture, gfx_id intermediate, uint8 use_free, resource_state state)
 	{
-		for (const texture_request& r : _flushed_requests)
+		for (texture_request& req : _requests)
 		{
-			if (r.cleared == 1)
-				continue;
-
-			for (const texture_buffer& b : r.buffers)
+			if (req.texture == texture)
 			{
-				if (r.use_free)
-					SFG_FREE(b.pixels);
-				else
-					delete[] b.pixels;
+				for (texture_buffer& b : req.buffers)
+				{
+					if (req.use_free)
+						SFG_FREE(b.pixels);
+					else
+						delete[] b.pixels;
+				}
+
+				req.buffers.clear();
+				req.buffers = buffers;
+				return;
 			}
 		}
 
-		_flushed_requests.clear();
-	}
-
-	void texture_queue::add_request(const static_vector<texture_buffer, MAX_TEXTURE_MIPS>& buffers, gfx_id texture, gfx_id intermediate, uint8 use_free)
-	{
 		const texture_request req = {
 			.buffers	  = buffers,
 			.texture	  = texture,
 			.intermediate = intermediate,
 			.added_frame  = frame_info::get_render_frame(),
 			.use_free	  = use_free,
+			.to_state	  = state,
 		};
 
 		_requests.push_back(req);
 	}
 
-	void texture_queue::flush_all(gfx_id cmd_list)
+	void texture_queue::flush_all(gfx_id cmd_list, vector<barrier>& out_barriers)
 	{
 		gfx_backend* backend = gfx_backend::get();
-
-		uint8 all_clear = 1;
-		for (texture_request& r : _flushed_requests)
-		{
-			if (r.cleared == 1)
-				continue;
-
-			if (r.added_frame + FRAMES_IN_FLIGHT <= frame_info::get_render_frame())
-			{
-				all_clear = 0;
-				continue;
-			}
-
-			for (const texture_buffer& b : r.buffers)
-			{
-				if (r.use_free)
-					SFG_FREE(b.pixels);
-				else
-					delete[] b.pixels;
-			}
-			r.cleared = 1;
-		}
-
-		if (all_clear)
-			_flushed_requests.resize(0);
 
 		for (texture_request& buf : _requests)
 		{
@@ -93,9 +66,22 @@ namespace SFG
 													.destination_slice	 = 0,
 
 												});
-		}
 
-		_flushed_requests.insert(_flushed_requests.end(), std::make_move_iterator(_requests.begin()), std::make_move_iterator(_requests.end()));
+			out_barriers.push_back({
+				.resource	= buf.texture,
+				.flags		= barrier_flags::baf_is_texture,
+				.from_state = resource_state::copy_dest,
+				.to_state	= buf.to_state,
+			});
+
+			for (const texture_buffer& b : buf.buffers)
+			{
+				if (buf.use_free)
+					SFG_FREE(b.pixels);
+				else
+					delete[] b.pixels;
+			}
+		}
 
 		_requests.resize(0);
 	}

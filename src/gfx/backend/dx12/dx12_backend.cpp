@@ -15,7 +15,14 @@
 #include "math/math_common.hpp"
 #include "common/system_info.hpp"
 
-#define SERIALIZE_DEBUG_INFORMATION 0
+#ifndef SFG_PRODUCTION
+#define SERIALIZE_DEBUG_INFORMATION 1
+#endif
+
+#ifdef SFG_DEBUG
+#define USE_DEBUG_LAYERS
+#endif
+
 #ifdef SERIALIZE_DEBUG_INFORMATION
 #include <fstream>
 #endif
@@ -586,7 +593,7 @@ namespace SFG
 	{
 		UINT dxgiFactoryFlags = 0;
 
-#ifdef SFG_DEBUG
+#ifdef USE_DEBUG_LAYERS
 		ComPtr<ID3D12Debug> debugController;
 		if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController))))
 		{
@@ -615,6 +622,7 @@ namespace SFG
 			throw_if_failed(D3D12CreateDevice(_adapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&_device)));
 		}
 
+#ifdef USE_DEBUG_LAYERS
 		// Dbg callback
 		{
 			ID3D12InfoQueue1* infoQueue = nullptr;
@@ -623,6 +631,7 @@ namespace SFG
 				infoQueue->RegisterMessageCallback(&msg_callback, D3D12_MESSAGE_CALLBACK_IGNORE_FILTERS, nullptr, &msgcallback);
 			}
 		}
+#endif
 
 		// Allocator
 		{
@@ -707,7 +716,7 @@ namespace SFG
 		_heap_gpu_buffer.uninit();
 		_heap_gpu_sampler.uninit();
 
-#ifdef SFG_DEBUG
+#ifdef USE_DEBUG_LAYERS
 		ID3D12InfoQueue1* infoQueue = nullptr;
 		if (SUCCEEDED(_device->QueryInterface<ID3D12InfoQueue1>(&infoQueue)))
 		{
@@ -817,23 +826,22 @@ namespace SFG
 		};
 
 		D3D12MA::ALLOCATION_DESC allocation_desc = {};
-		D3D12_RESOURCE_STATES	 state			 = D3D12_RESOURCE_STATE_GENERIC_READ;
+		D3D12_RESOURCE_STATES	 state			 = {};
 
 		if (desc.flags.is_set(resource_flags::rf_gpu_only))
 		{
 			allocation_desc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
-			// state					 = D3D12_RESOURCE_STATE_COMMON;
+			state					 = D3D12_RESOURCE_STATE_COMMON;
 
 			if (desc.flags.is_set(resource_flags::rf_vertex_buffer) || desc.flags.is_set(resource_flags::rf_constant_buffer))
 				state = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
 			else if (desc.flags.is_set(resource_flags::rf_index_buffer))
 				state = D3D12_RESOURCE_STATE_INDEX_BUFFER;
-			else
-				state = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
 		}
 		else if (desc.flags.is_set(resource_flags::rf_cpu_visible))
 		{
 			allocation_desc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
+			state					 = D3D12_RESOURCE_STATE_GENERIC_READ;
 		}
 		else if (desc.flags.is_set(resource_flags::rf_gpu_write))
 		{
@@ -2522,6 +2530,15 @@ namespace SFG
 		const resource&				src_res	 = _resources.get(cmd.source);
 		const resource&				dest_res = _resources.get(cmd.destination);
 		cmd_list->CopyResource(dest_res.ptr->GetResource(), src_res.ptr->GetResource());
+	}
+
+	void dx12_backend::cmd_copy_resource_region(gfx_id cmd_id, const command_copy_resource_region& cmd) const
+	{
+		const command_buffer&		buffer	 = _command_buffers.get(cmd_id);
+		ID3D12GraphicsCommandList4* cmd_list = buffer.ptr.Get();
+		const resource&				src_res	 = _resources.get(cmd.source);
+		const resource&				dest_res = _resources.get(cmd.destination);
+		cmd_list->CopyBufferRegion(dest_res.ptr->GetResource(), cmd.dst_offset, src_res.ptr->GetResource(), cmd.src_offset, cmd.size);
 	}
 
 	uint32 dx12_backend::get_texture_size(uint32 width, uint32 height, uint32 bpp) const

@@ -88,8 +88,9 @@ namespace SFG
 		stream << name;
 #endif
 
+		const uint64 addr = reinterpret_cast<uint64>(data.data);
 		stream << static_cast<uint32>(data.size);
-		stream.write_raw(data.data, data.size);
+		stream << addr;
 	}
 
 	void render_event_material::deserialize(istream& stream)
@@ -120,11 +121,12 @@ namespace SFG
 		stream >> name;
 #endif
 
-		uint32 sz = 0;
+		uint64 addr = 0;
+		uint32 sz	= 0;
 		stream >> sz;
+		stream >> addr;
 		data.size = sz;
-		data.data = stream.get_data_current();
-		stream.skip_by(sz);
+		data.data = reinterpret_cast<uint8*>(addr);
 	}
 
 	void render_event_mesh::serialize(ostream& stream) const

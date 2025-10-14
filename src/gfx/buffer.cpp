@@ -27,6 +27,7 @@ namespace SFG
 		_total_size			 = desc.size;
 		_hw_gpu				 = backend->create_resource(desc);
 		backend->map_resource(_hw_gpu, _mapped);
+		_flags.set(buf_alive);
 	}
 
 	void buffer::destroy()
@@ -48,10 +49,10 @@ namespace SFG
 		_flags.set(buf_dirty);
 	}
 
-	bool buffer::copy(gfx_id cmd_buffer)
+	void buffer::copy(gfx_id cmd_buffer)
 	{
-		if (!_flags.is_set(buf_dirty) || !_flags.is_set(buffer_flags::buf_has_staging))
-			return false;
+		SFG_ASSERT(_flags.is_set(buffer_flags::buf_has_staging));
+		SFG_ASSERT(_flags.is_set(buffer_flags::buf_dirty));
 
 		gfx_backend* backend = gfx_backend::get();
 		backend->cmd_copy_resource(cmd_buffer,
@@ -60,7 +61,23 @@ namespace SFG
 									   .destination = _hw_gpu,
 								   });
 		_flags.remove(buf_dirty);
-		return true;
+	}
+
+	void buffer::copy_region(gfx_id cmd_buffer, size_t padding, size_t size)
+	{
+		SFG_ASSERT(_flags.is_set(buffer_flags::buf_has_staging));
+		SFG_ASSERT(_flags.is_set(buffer_flags::buf_dirty));
+
+		gfx_backend* backend = gfx_backend::get();
+		backend->cmd_copy_resource_region(cmd_buffer,
+										  {
+											  .source	   = _hw_staging,
+											  .destination = _hw_gpu,
+											  .dst_offset  = padding,
+											  .src_offset  = padding,
+											  .size		   = size,
+										  });
+		_flags.remove(buf_dirty);
 	}
 
 } // namespace Lina

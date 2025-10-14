@@ -37,6 +37,8 @@ namespace SFG
 			gfx_id								  cmd_buffer;
 			gfx_id								  bind_group;
 			buffer								  ubo;
+			buffer								  entities;
+			buffer								  bones;
 			semaphore_data						  semaphore;
 			static_vector<gfx_id, COLOR_TEXTURES> color_textures;
 			gfx_id								  depth_texture = 0;
@@ -54,16 +56,13 @@ namespace SFG
 			const vector2ui16& size;
 			uint8*			   alloc;
 			size_t			   alloc_size;
-			gfx_id*			   entity_buffers;
-			gfx_id*			   bone_buffers;
 		};
 
 		void init(const init_params& params);
 		void uninit();
 
-		void prepare(proxy_manager& pm, uint8 frame_index, world_render_data& rd);
-		void upload(proxy_manager& pm, view& camera_view, buffer_queue* queue, uint8 frame_index);
-		void render(uint8 frame_index, const vector2ui16& size, gfx_id global_layout, gfx_id global_group);
+		void prepare(proxy_manager& pm, view& camera_view, uint8 frame_index, world_render_data& rd);
+		void render(uint8 frame_index, world_render_data& wrd, const vector2ui16& size, gfx_id global_layout, gfx_id global_group);
 		void resize(const vector2ui16& size);
 
 		inline gfx_id get_color_texture(uint8 frame_index, uint8 texture_index) const

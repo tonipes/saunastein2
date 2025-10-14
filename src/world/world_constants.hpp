@@ -4,6 +4,10 @@
 #include "common/size_definitions.hpp"
 #include "memory/pool_handle.hpp"
 
+#undef min
+#undef max
+#include <limits>
+
 namespace SFG
 {
 #define MAX_ENTITIES				   16000
