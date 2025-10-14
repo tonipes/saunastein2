@@ -18,6 +18,9 @@
 #include <algorithm>
 #include <execution>
 
+/* DEBUG */
+#include "serialization/serialization.hpp"
+
 namespace SFG
 {
 #define RT_FORMAT			 format::r8g8b8a8_srgb
@@ -155,6 +158,9 @@ namespace SFG
 		}
 	}
 
+	string data_dump = "";
+	uint64 frames	 = 0;
+
 	void world_renderer::prepare(uint8 frame_index)
 	{
 		world_render_data& rd = _render_data;
@@ -173,6 +179,16 @@ namespace SFG
 		};
 		_main_camera_view.view_proj_matrix = _main_camera_view.proj_matrix * _main_camera_view.view_matrix;
 		_main_camera_view.view_frustum	   = frustum::extract(_main_camera_view.view_proj_matrix);
+
+		if (frames < 300)
+		{
+			// data_dump += "x: " + std::to_string(cam_entity.position.x) + "\n";
+			// frames++;
+		}
+		else
+		{
+			// serialization::write_to_file(data_dump, "test.txt");
+		}
 
 		collect_model_instances();
 
@@ -229,11 +245,11 @@ namespace SFG
 		//	tasks.push_back([&] { _pass_lighting_fw.render(data_index, frame_index, resolution, layout_global, bind_group_global); });
 		//	tasks.push_back([&] { _pass_post_combiner.render(data_index, frame_index, resolution, layout_global, bind_group_global); });
 
-		// Submit opaque, signals itself
-		backend->submit_commands(queue_gfx, &cmd_opaque, 1);
-
 		if (prev_copy != next_copy)
 			backend->queue_wait(queue_gfx, &sem_copy, &next_copy, 1);
+
+		// Submit opaque, signals itself
+		backend->submit_commands(queue_gfx, &cmd_opaque, 1);
 
 		backend->queue_signal(queue_gfx, &sem_opaque, &sem_opaque_val, 1);
 

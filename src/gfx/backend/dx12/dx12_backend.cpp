@@ -779,7 +779,7 @@ namespace SFG
 		for (uint8 i = 0; i < swapchain_count; i++)
 		{
 			swapchain& swp = _swapchains.get(swapchains[i]);
-			throw_if_failed(swp.ptr->Present(swp.vsync, 0));
+			throw_if_failed(swp.ptr->Present(swp.vsync, swp.vsync == 0 ? DXGI_PRESENT_ALLOW_TEARING : 0));
 			swp.image_index = swp.ptr->GetCurrentBackBufferIndex();
 		}
 	}
@@ -1331,6 +1331,8 @@ namespace SFG
 		// this is view(rtv) format
 		swp.format = static_cast<uint8>(get_format(desc.format));
 
+		const bool vsync_on = desc.flags.is_set(swapchain_flags::sf_vsync_every_v_blank) || desc.flags.is_set(swapchain_flags::sf_vsync_every_2v_blank);
+
 		const DXGI_SWAP_CHAIN_DESC1 swapchain_desc = {
 			.Width	= static_cast<UINT>(desc.size.x),
 			.Height = static_cast<UINT>(desc.size.y),
@@ -1342,7 +1344,7 @@ namespace SFG
 			.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
 			.BufferCount = BACK_BUFFER_COUNT,
 			.SwapEffect	 = DXGI_SWAP_EFFECT_FLIP_DISCARD,
-			.Flags		 = desc.flags.is_set(swapchain_flags::sf_allow_tearing) ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : (UINT)0,
+			.Flags		 = vsync_on ? (UINT)0 : DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING,
 		};
 
 		ComPtr<IDXGISwapChain1> swapchain;
@@ -1393,7 +1395,8 @@ namespace SFG
 			swp.textures[i].Reset();
 		}
 
-		throw_if_failed(swp.ptr->ResizeBuffers(BACK_BUFFER_COUNT, static_cast<UINT>(desc.size.x), static_cast<UINT>(desc.size.y), swp_desc.BufferDesc.Format, desc.flags.is_set(swapchain_flags::sf_allow_tearing) ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : (UINT)0));
+		const bool vsync_on = desc.flags.is_set(swapchain_flags::sf_vsync_every_v_blank) || desc.flags.is_set(swapchain_flags::sf_vsync_every_2v_blank);
+		throw_if_failed(swp.ptr->ResizeBuffers(BACK_BUFFER_COUNT, static_cast<UINT>(desc.size.x), static_cast<UINT>(desc.size.y), swp_desc.BufferDesc.Format, vsync_on ? (UINT)0 : DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING));
 		swp.image_index = swp.ptr->GetCurrentBackBufferIndex();
 
 		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)

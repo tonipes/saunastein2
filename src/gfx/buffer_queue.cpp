@@ -24,7 +24,7 @@ namespace SFG
 
 	void buffer_queue::add_request(const update_request& req, uint8 frame_index)
 	{
-		_pfd->buffered_requests.push_back(req);
+		_pfd[frame_index].buffered_requests.push_back(req);
 	}
 
 	void buffer_queue::flush_all(gfx_id cmd_list, uint8 frame_index)

@@ -22,6 +22,7 @@
 namespace SFG
 {
 #define RT_FORMAT format::r8g8b8a8_srgb
+#define SWP_FLAGS swapchain_flags::sf_vsync_every_v_blank
 
 	gfx_id renderer::s_bind_group_global[FRAMES_IN_FLIGHT] = {};
 	gfx_id renderer::s_bind_layout_global				   = 0;
@@ -42,7 +43,7 @@ namespace SFG
 			.format	   = RT_FORMAT,
 			.pos	   = vector2ui16::zero,
 			.size	   = main_window->get_size(),
-			.flags	   = swapchain_flags::sf_allow_tearing | swapchain_flags::sf_vsync_every_v_blank,
+			.flags	   = SWP_FLAGS,
 		});
 
 		_gfx_data.bind_layout_global = gfx_util::create_bind_layout_global();
@@ -322,7 +323,7 @@ namespace SFG
 		backend->recreate_swapchain({
 			.size	   = size,
 			.swapchain = _gfx_data.swapchain,
-			.flags	   = swapchain_flags::sf_allow_tearing | swapchain_flags::sf_vsync_every_v_blank,
+			.flags	   = SWP_FLAGS,
 		});
 
 		_world_renderer->resize(size);
