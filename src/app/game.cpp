@@ -34,13 +34,13 @@ namespace SFG
 		_world = new world(_render_stream);
 
 		_main_window = new window();
-		_main_window->create("Game", window_flags::wf_style_borderless, vector2i16(0, 0), render_target_size);
+		_main_window->create("Game", window_flags::wf_style_windowed, vector2i16(0, 0), render_target_size);
 		_window_size = render_target_size;
 
 		vector<monitor_info> out_infos;
 		process::get_all_monitors(out_infos);
 		//_main_window->set_position(out_infos[1].position);
-		_main_window->set_size(out_infos[0].size);
+		//_main_window->set_size(out_infos[0].size);
 
 		gfx_backend::s_instance = new gfx_backend();
 		gfx_backend* backend	= gfx_backend::get();
@@ -175,7 +175,7 @@ namespace SFG
 			/* add any fast tick events here */
 
 			// Smoothly adapt fixed step to measured present interval to avoid beat against 59.94 Hz.
-			{
+			/*{
 				const double present_us = frame_info::get_present_time_micro();
 				if (present_us > 0.0)
 				{
@@ -183,7 +183,7 @@ namespace SFG
 					// EMA smoothing (alpha=0.1)
 					ema_fixed_ns = ema_fixed_ns * 0.9 + present_ns * 0.1;
 				}
-			}
+			}*/
 
 			const int64 FIXED_INTERVAL_NS = static_cast<int64>(ema_fixed_ns);
 			const float dt_seconds		  = static_cast<float>(static_cast<double>(FIXED_INTERVAL_NS) / 1'000'000'000.0);

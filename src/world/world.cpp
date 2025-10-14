@@ -100,15 +100,16 @@ namespace SFG
 
 		// Model test
 
-		for (uint32 i = 0; i < 15; i++)
+		for (uint32 i = 0; i < 1; i++)
 		{
 			const resource_handle boombox		 = _resources.get_resource_handle_by_hash<model>(TO_SIDC("assets/boombox/boombox.stkmodel"));
 			const world_handle	  boombox_entity = add_model_to_world(boombox, nullptr, 0);
 			const float			  x				 = (random::random_01() * 2.0f) - 1.0f;
 			const float			  y				 = (random::random_01() * 2.0f) - 1.0f;
 			const float			  z				 = 0.0f;
-			_entity_manager.set_entity_position(boombox_entity, vector3(x * 5.0f, y * 5.0f, z * 5.0f));
-			//_entity_manager.set_entity_position(boombox_entity, vector3::zero);
+			//_entity_manager.set_entity_position(boombox_entity, vector3(x * 5.0f, y * 5.0f, z * 5.0f));
+			_entity_manager.set_entity_position(boombox_entity, vector3::zero);
+			_entity_manager.set_entity_rotation(boombox_entity, quat::identity);
 		}
 	}
 
@@ -212,7 +213,7 @@ namespace SFG
 			SFG_INFO("rotation: {0} {1} {2} {3}", rot.x, rot.y, rot.z, rot.w);
 			SFG_INFO("scale: {0} {1} {2}", scale.x, scale.y, scale.z);
 		};
-
+		/*
 		for (world_handle e : root_entities)
 		{
 			SFG_INFO("reporting root...");
@@ -220,7 +221,7 @@ namespace SFG
 			SFG_INFO("reporting children...");
 			_entity_manager.visit_children(e, [&](world_handle c) { report_entity(c); });
 		}
-
+		*/
 		for (world_handle r : root_entities)
 		{
 			_entity_manager.add_child(root, r);

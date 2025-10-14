@@ -8,6 +8,7 @@
 #include "gfx/event_stream/render_event_stream.hpp"
 #include "gfx/event_stream/render_events_entity.hpp"
 #include "reflection/reflection.hpp"
+#include "math/math.hpp"
 
 namespace SFG
 {
@@ -73,7 +74,7 @@ namespace SFG
 				update.abs_model = matrix4x3::transform(update.position, update.rotation, update.scale);
 
 				stream.add_event({.index = h.index, .event_type = render_event_type::render_event_update_entity_transform}, update);
-				// m.flags.remove(entity_flags::entity_flags_render_proxy_dirty);
+				m.flags.remove(entity_flags::entity_flags_render_proxy_dirty);
 			}
 		}
 	}
@@ -343,6 +344,8 @@ namespace SFG
 		SFG_ASSERT(meta.render_proxy_count > 0);
 		meta.render_proxy_count--;
 		meta.flags.set(entity_flags::entity_flags_render_proxy_dirty);
+		if (meta.render_proxy_count == 0)
+			meta.flags.remove(entity_flags::entity_flags_prev_transform_init);
 	}
 
 	void entity_manager::set_entity_visible(world_handle entity, bool is_visible)
@@ -561,15 +564,29 @@ namespace SFG
 	{
 		SFG_ASSERT(_entities.is_valid(entity));
 
-		const vector3& ent_pos_abs		  = get_entity_position_abs(entity);
-		const quat&	   ent_rot_abs		  = get_entity_rotation_abs(entity);
-		const vector3& ent_scale_abs	  = get_entity_scale_abs(entity);
-		const vector3& ent_prev_pos_abs	  = get_entity_prev_position_abs(entity);
-		const quat&	   ent_prev_rot_abs	  = get_entity_prev_rotation_abs(entity);
-		const vector3& ent_prev_scale_abs = get_entity_prev_scale_abs(entity);
-		out_position					  = vector3::lerp(ent_prev_pos_abs, ent_pos_abs, interpolation);
-		out_scale						  = vector3::lerp(ent_prev_scale_abs, ent_scale_abs, interpolation);
-		out_rotation					  = quat::slerp(ent_prev_rot_abs, ent_rot_abs, interpolation);
+		entity_meta&  meta			= _metas.get(entity.index);
+		const vector3 ent_pos_abs	= get_entity_position_abs(entity);
+		const quat	  ent_rot_abs	= get_entity_rotation_abs(entity);
+		const vector3 ent_scale_abs = get_entity_scale_abs(entity);
+		const float	  blend			= math::clamp(1.0f - static_cast<float>(interpolation), 0.0f, 1.0f);
+
+		if (!meta.flags.is_set(entity_flags::entity_flags_prev_transform_init))
+		{
+			out_position = ent_pos_abs;
+			out_rotation = ent_rot_abs;
+			out_scale	 = ent_scale_abs;
+			meta.flags.set(entity_flags::entity_flags_prev_transform_init);
+		}
+		else
+		{
+			const vector3& ent_prev_pos_abs	  = get_entity_prev_position_abs(entity);
+			const quat&	   ent_prev_rot_abs	  = get_entity_prev_rotation_abs(entity);
+			const vector3& ent_prev_scale_abs = get_entity_prev_scale_abs(entity);
+			out_position					  = vector3::lerp(ent_prev_pos_abs, ent_pos_abs, blend);
+			out_scale						  = vector3::lerp(ent_prev_scale_abs, ent_scale_abs, blend);
+			out_rotation					  = quat::slerp(ent_prev_rot_abs, ent_rot_abs, blend);
+		}
+
 		set_entity_prev_position_abs(entity, ent_pos_abs);
 		set_entity_prev_rotation_abs(entity, ent_rot_abs);
 		set_entity_prev_scale_abs(entity, ent_scale_abs);

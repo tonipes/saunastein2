@@ -23,7 +23,7 @@ namespace SFG
 #define MAX_MATERIAL_SHADER_VARIANTS 4
 #define MAX_MATERIAL_TEXTURES		 8
 
-#define BACK_BUFFER_COUNT 3
+#define BACK_BUFFER_COUNT 2
 
 	// 0 discrete, 1 integrated
 #define GPU_DEVICE 0

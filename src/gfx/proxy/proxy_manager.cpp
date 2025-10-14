@@ -97,10 +97,8 @@ namespace SFG
 
 	void proxy_manager::fetch_render_events(render_event_stream& stream)
 	{
-		auto&		 events	 = stream.get_events();
-		gfx_backend* backend = gfx_backend::get();
-
-		render_event_stream::event_batch* batch = events.peek();
+		auto&							  events = stream.get_events();
+		render_event_stream::event_batch* batch	 = events.peek();
 
 		istream				in;
 		render_event_header header = {};
