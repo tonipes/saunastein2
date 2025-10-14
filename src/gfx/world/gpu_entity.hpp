@@ -9,6 +9,7 @@ namespace SFG
 
 	struct gpu_entity
 	{
-		matrix4x3 model = matrix4x3::identity;
+		matrix4x3 model	 = matrix4x3::identity;
+		matrix4x3 normal = matrix4x3::identity;
 	};
 }

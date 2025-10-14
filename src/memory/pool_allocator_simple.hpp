@@ -71,10 +71,7 @@ namespace SFG
 
 			iterator& operator++()
 			{
-				do
-				{
-					++current;
-				} while (current != end);
+				++current;
 				return *this;
 			}
 

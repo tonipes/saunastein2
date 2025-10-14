@@ -794,6 +794,15 @@ namespace SFG
 		}
 	}
 
+	void dx12_backend::wait_for_swapchain_latency(gfx_id swapchain_id)
+	{
+		swapchain& swp = _swapchains.get(swapchain_id);
+		if (swp.frame_latency_waitable != NULL)
+		{
+			WaitForSingleObject(swp.frame_latency_waitable, INFINITE);
+		}
+	}
+
 	uint8 dx12_backend::get_back_buffer_index(gfx_id s)
 	{
 		swapchain& swp = _swapchains.get(s);
@@ -1359,13 +1368,20 @@ namespace SFG
 			.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
 			.BufferCount = BACK_BUFFER_COUNT,
 			.SwapEffect	 = DXGI_SWAP_EFFECT_FLIP_DISCARD,
-			.Flags		 = vsync_on ? (UINT)0 : DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING,
+			.Flags		 = (vsync_on ? (UINT)0 : DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING) | DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT,
 		};
 
 		ComPtr<IDXGISwapChain1> swapchain;
 
 		throw_if_failed(_factory->CreateSwapChainForHwnd(_queues.get(_queue_graphics).ptr.Get(), (HWND)desc.window, &swapchain_desc, nullptr, nullptr, &swapchain));
 		throw_if_failed(swapchain.As(&swp.ptr));
+
+		Microsoft::WRL::ComPtr<IDXGISwapChain2> sc2;
+		if (SUCCEEDED(swp.ptr.As(&sc2)))
+		{
+			sc2->SetMaximumFrameLatency(2);
+			swp.frame_latency_waitable = sc2->GetFrameLatencyWaitableObject();
+		}
 
 		{
 			for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
@@ -1412,8 +1428,19 @@ namespace SFG
 		}
 
 		const bool vsync_on = desc.flags.is_set(swapchain_flags::sf_vsync_every_v_blank) || desc.flags.is_set(swapchain_flags::sf_vsync_every_2v_blank);
-		throw_if_failed(swp.ptr->ResizeBuffers(BACK_BUFFER_COUNT, static_cast<UINT>(desc.size.x), static_cast<UINT>(desc.size.y), swp_desc.BufferDesc.Format, vsync_on ? (UINT)0 : DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING));
+		throw_if_failed(
+			swp.ptr->ResizeBuffers(BACK_BUFFER_COUNT, static_cast<UINT>(desc.size.x), static_cast<UINT>(desc.size.y), swp_desc.BufferDesc.Format, (vsync_on ? (UINT)0 : DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING) | DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT));
 		swp.image_index = swp.ptr->GetCurrentBackBufferIndex();
+
+		// Re-apply frame latency settings and refresh waitable object after resize
+		{
+			Microsoft::WRL::ComPtr<IDXGISwapChain2> sc2;
+			if (SUCCEEDED(swp.ptr.As(&sc2)))
+			{
+				sc2->SetMaximumFrameLatency(1);
+				swp.frame_latency_waitable = sc2->GetFrameLatencyWaitableObject();
+			}
+		}
 
 		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{

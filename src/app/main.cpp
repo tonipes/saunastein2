@@ -17,13 +17,11 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 	SetProcessPriorityBoost(GetCurrentProcess(), FALSE);
 
-	DWORD_PTR mask = 1;
-	SetThreadAffinityMask(GetCurrentThread(), mask);
-
-	DWORD dwError;
-	if (!SetPriorityClass(GetCurrentProcess(), REALTIME_PRIORITY_CLASS))
+	// Avoid over-constraining scheduling which can cause hitches.
+	// Do not pin to a single CPU and avoid realtime priority.
+	if (!SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS))
 	{
-		dwError = GetLastError();
+		DWORD dwError = GetLastError();
 		SFG_ERR("Failed setting process priority: {0}", dwError);
 	}
 

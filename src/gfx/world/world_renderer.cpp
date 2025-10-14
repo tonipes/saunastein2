@@ -16,7 +16,6 @@
 #include "resources/primitive.hpp"
 #include "gfx/proxy/proxy_manager.hpp"
 #include <algorithm>
-#include <execution>
 
 /* DEBUG */
 #include "serialization/serialization.hpp"
@@ -155,9 +154,8 @@ namespace SFG
 		const gfx_id	cmd_lighting_fw		= _pass_lighting_fw.get_cmd_buffer(frame_index);
 		const gfx_id	cmd_post			= _pass_post_combiner.get_cmd_buffer(frame_index);
 
-		static_vector<std::function<void()>, 1> tasks;
-		tasks.push_back([&] { _pass_opaque.render(frame_index, rd, resolution, layout_global, bind_group_global); });
-		std::for_each(std::execution::par, tasks.begin(), tasks.end(), [](std::function<void()>& task) { task(); });
+		// Single task; avoid parallel overhead.
+		_pass_opaque.render(frame_index, rd, resolution, layout_global, bind_group_global);
 
 		//	tasks.push_back([&] { _pass_lighting_fw.render(data_index, frame_index, resolution, layout_global, bind_group_global); });
 		//	tasks.push_back([&] { _pass_post_combiner.render(data_index, frame_index, resolution, layout_global, bind_group_global); });
@@ -255,12 +253,14 @@ namespace SFG
 
 	void world_renderer::collect_model_instances()
 	{
-		auto&			   model_instances = _proxy_manager.get_mesh_instances();
-		auto&			   entities		   = _proxy_manager.get_entities();
-		chunk_allocator32& aux			   = _proxy_manager.get_aux();
+		const uint32	   mesh_instances_peak = _proxy_manager.get_mesh_instances_peak();
+		auto&			   mesh_instances	   = _proxy_manager.get_mesh_instances();
+		auto&			   entities			   = _proxy_manager.get_entities();
+		chunk_allocator32& aux				   = _proxy_manager.get_aux();
 
-		for (const render_proxy_mesh_instance& mesh_instance : model_instances)
+		for (uint32 i = 0; i < mesh_instances_peak; i++)
 		{
+			const render_proxy_mesh_instance& mesh_instance = mesh_instances.get(i);
 			if (mesh_instance.status != render_proxy_status::rps_active)
 				continue;
 

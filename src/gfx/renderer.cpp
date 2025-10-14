@@ -29,6 +29,7 @@ namespace SFG
 
 	renderer::renderer() : _proxy_manager(_buffer_queue, _texture_queue)
 	{
+		_reuse_upload_barriers.reserve(32);
 	}
 
 	void renderer::init(window* main_window, world* w)
@@ -186,6 +187,9 @@ namespace SFG
 		gfx_backend* backend		= gfx_backend::get();
 		const gfx_id queue_gfx		= backend->get_queue_gfx();
 		const gfx_id queue_transfer = backend->get_queue_transfer();
+
+		// Gate frame start to DXGI frame latency waitable for stable pacing
+		backend->wait_for_swapchain_latency(_gfx_data.swapchain);
 
 		/* access frame data */
 		const uint8		frame_index	  = _gfx_data.frame_index;

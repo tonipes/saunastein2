@@ -172,15 +172,16 @@ namespace SFG
 			render_event_mesh_instance ev = {};
 			ev.deserialize(stream);
 
-			render_proxy_mesh_instance& proxy = get_model_instance(index);
+			render_proxy_mesh_instance& proxy = get_mesh_instance(index);
 			proxy.status					  = render_proxy_status::rps_active;
 			proxy.entity					  = ev.entity_index;
 			proxy.mesh						  = ev.mesh;
 			proxy.model						  = ev.model;
+			_mesh_instances_peak++;
 		}
 		else if (type == render_event_type::render_event_remove_mesh_instance)
 		{
-			render_proxy_mesh_instance& proxy = get_model_instance(index);
+			render_proxy_mesh_instance& proxy = get_mesh_instance(index);
 			proxy							  = {};
 		}
 		else if (type == render_event_type::render_event_update_camera)

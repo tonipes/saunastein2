@@ -114,9 +114,10 @@ namespace SFG
 			uint32 size = 0;
 #endif
 			gfx_id rtv_indices[BACK_BUFFER_COUNT];
-			uint8  format	   = 0;
-			uint8  image_index = 0;
-			uint8  vsync	   = 0;
+			uint8  format				  = 0;
+			uint8  image_index			  = 0;
+			uint8  vsync				  = 0;
+			HANDLE frame_latency_waitable = NULL;
 		};
 
 		struct semaphore
@@ -189,6 +190,7 @@ namespace SFG
 		void  queue_signal(gfx_id queue, const gfx_id* semaphores, const uint64* semaphore_values, uint8 semaphore_count);
 		void  present(const gfx_id* swapchains, uint8 swapchain_count);
 		uint8 get_back_buffer_index(gfx_id swapchain);
+		void  wait_for_swapchain_latency(gfx_id swapchain);
 
 		bool compile_shader_vertex_pixel(
 			const string& source, const vector<string>& defines, const char* source_path, const char* vertex_entry, const char* pixel_entry, span<uint8>& vertex_out, span<uint8>& pixel_out, bool compile_layout, span<uint8>& out_layout) const;
@@ -233,6 +235,12 @@ namespace SFG
 		void wait_semaphore(gfx_id id, uint64 value) const;
 		void map_resource(gfx_id id, uint8*& ptr) const;
 		void unmap_resource(gfx_id id) const;
+
+		// Utility to fetch the frame latency waitable handle, if needed externally.
+		inline HANDLE get_swapchain_latency_handle(gfx_id id)
+		{
+			return _swapchains.get(id).frame_latency_waitable;
+		}
 
 		HANDLE get_shared_handle_for_texture(gfx_id id);
 

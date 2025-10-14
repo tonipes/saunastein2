@@ -582,6 +582,8 @@ namespace SFG
 			_true_size.x			  = static_cast<uint32>(adjusted_width);
 			_true_size.y			  = static_cast<uint32>(adjusted_height);
 		}
+		else
+			_true_size = size;
 
 		SetWindowPos(hwnd, NULL, 0, 0, _true_size.x, _true_size.y, SWP_NOMOVE | SWP_NOZORDER);
 	}

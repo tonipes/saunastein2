@@ -600,7 +600,8 @@ namespace SFG
 		j["front_stencil_state"]  = att.front_stencil_state;
 		j["stencil_compare_mask"] = att.stencil_compare_mask;
 		j["stencil_write_mask"]	  = att.stencil_write_mask;
-		j["flags"]				  = att.flags.value();
+		j["depth_write"]		  = att.flags.is_set(depth_stencil_flags::dsf_depth_write) ? 1 : 0;
+		j["depth_test"]			  = att.flags.is_set(depth_stencil_flags::dsf_depth_test) ? 1 : 0;
 	}
 
 	void from_json(const nlohmann::json& j, shader_depth_stencil_desc& att)
@@ -611,7 +612,10 @@ namespace SFG
 		att.front_stencil_state	 = j.value("front_stencil_state", stencil_state{});
 		att.stencil_compare_mask = j.value("stencil_compare_mask", static_cast<uint32>(0xFF));
 		att.stencil_write_mask	 = j.value("stencil_write_mask", static_cast<uint32>(0xFF));
-		att.flags				 = j.value<uint8>("flags", 0);
+		const uint8 depth_write	 = j.value<uint8>("depth_write", 0);
+		const uint8 depth_test	 = j.value<uint8>("depth_test", 0);
+		att.flags.set(depth_stencil_flags::dsf_depth_write, depth_write);
+		att.flags.set(depth_stencil_flags::dsf_depth_test, depth_write);
 	}
 #endif
 

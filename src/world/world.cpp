@@ -32,6 +32,7 @@ using json = nlohmann::json;
 #include "traits/trait_mesh_instance.hpp"
 #include "traits/trait_camera.hpp"
 #include "math/math.hpp"
+#include "math/random.hpp"
 
 namespace SFG
 {
@@ -98,8 +99,17 @@ namespace SFG
 		_entity_manager.set_entity_rotation(cam_entity, quat::identity);
 
 		// Model test
-		const resource_handle boombox		 = _resources.get_resource_handle_by_hash<model>(TO_SIDC("assets/boombox/boombox.stkmodel"));
-		const world_handle	  boombox_entity = add_model_to_world(boombox, nullptr, 0);
+
+		for (uint32 i = 0; i < 15; i++)
+		{
+			const resource_handle boombox		 = _resources.get_resource_handle_by_hash<model>(TO_SIDC("assets/boombox/boombox.stkmodel"));
+			const world_handle	  boombox_entity = add_model_to_world(boombox, nullptr, 0);
+			const float			  x				 = (random::random_01() * 2.0f) - 1.0f;
+			const float			  y				 = (random::random_01() * 2.0f) - 1.0f;
+			const float			  z				 = 0.0f;
+			_entity_manager.set_entity_position(boombox_entity, vector3(x * 5.0f, y * 5.0f, z * 5.0f));
+			//_entity_manager.set_entity_position(boombox_entity, vector3::zero);
+		}
 	}
 
 	void world::create_from_raw(world_raw& raw)
@@ -209,6 +219,11 @@ namespace SFG
 			report_entity(e);
 			SFG_INFO("reporting children...");
 			_entity_manager.visit_children(e, [&](world_handle c) { report_entity(c); });
+		}
+
+		for (world_handle r : root_entities)
+		{
+			_entity_manager.add_child(root, r);
 		}
 
 		return root;
