@@ -592,4 +592,25 @@ namespace SFG
 		set_entity_prev_scale_abs(entity, ent_scale_abs);
 	}
 
+	void entity_manager::teleport_entity(world_handle entity)
+	{
+		SFG_ASSERT(_entities.is_valid(entity));
+
+		auto sync_prev = [this](world_handle handle) {
+			entity_meta&  meta		= _metas.get(handle.index);
+			const vector3 abs_pos	= get_entity_position_abs(handle);
+			const quat	  abs_rot	= get_entity_rotation_abs(handle);
+			const vector3 abs_scale = get_entity_scale_abs(handle);
+
+			set_entity_prev_position_abs(handle, abs_pos);
+			set_entity_prev_rotation_abs(handle, abs_rot);
+			set_entity_prev_scale_abs(handle, abs_scale);
+			meta.flags.remove(entity_flags::entity_flags_prev_transform_init);
+			meta.flags.set(entity_flags::entity_flags_render_proxy_dirty);
+		};
+
+		sync_prev(entity);
+		visit_children(entity, sync_prev);
+	}
+
 }

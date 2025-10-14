@@ -72,6 +72,7 @@ namespace SFG
 		const quat&		 get_entity_prev_rotation_abs(world_handle entity) const;
 		const vector3&	 get_entity_prev_scale_abs(world_handle entity) const;
 		void			 calculate_interpolated_transform_abs(world_handle entity, float interpolation, vector3& out_position, quat& out_rotation, vector3& out_scale);
+		void			 teleport_entity(world_handle entity);
 
 		template <typename VisitFunc> void visit_children(world_handle parent, VisitFunc f)
 		{
