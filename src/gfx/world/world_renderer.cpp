@@ -40,7 +40,7 @@ namespace SFG
 		_base_size = size;
 
 		// pfd
-		for (uint8 i = 0; i < FRAMES_IN_FLIGHT; i++)
+		for (uint8 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
 			per_frame_data& pfd	  = _pfd[i];
 			pfd.sem_gfx.semaphore = backend->create_semaphore();
@@ -63,10 +63,10 @@ namespace SFG
 
 			alloc_head += size_per_lane;
 
-			static_vector<gfx_id, FRAMES_IN_FLIGHT * 4> opaque_textures;
-			static_vector<gfx_id, FRAMES_IN_FLIGHT>		depth_textures;
+			static_vector<gfx_id, BACK_BUFFER_COUNT * 4> opaque_textures;
+			static_vector<gfx_id, BACK_BUFFER_COUNT>	 depth_textures;
 
-			for (uint32 i = 0; i < FRAMES_IN_FLIGHT; i++)
+			for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 			{
 				opaque_textures.push_back(_pass_opaque.get_color_texture(i, 0));
 				opaque_textures.push_back(_pass_opaque.get_color_texture(i, 1));
@@ -102,7 +102,7 @@ namespace SFG
 
 		world_render_data& rd = _render_data;
 
-		for (uint8 i = 0; i < FRAMES_IN_FLIGHT; i++)
+		for (uint8 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
 			per_frame_data& pfd = _pfd[i];
 			backend->destroy_semaphore(pfd.sem_gfx.semaphore);
@@ -190,10 +190,10 @@ namespace SFG
 		// _pass_lighting_fw.resize(size);
 		// _pass_post_combiner.resize(size);
 
-		static_vector<gfx_id, FRAMES_IN_FLIGHT * 4> opaque_textures;
-		static_vector<gfx_id, FRAMES_IN_FLIGHT>		depth_textures;
+		static_vector<gfx_id, BACK_BUFFER_COUNT * 4> opaque_textures;
+		static_vector<gfx_id, BACK_BUFFER_COUNT>	 depth_textures;
 
-		for (uint32 i = 0; i < FRAMES_IN_FLIGHT; i++)
+		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
 			opaque_textures.push_back(_pass_opaque.get_color_texture(i, 0));
 			opaque_textures.push_back(_pass_opaque.get_color_texture(i, 1));

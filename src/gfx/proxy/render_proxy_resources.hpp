@@ -25,11 +25,11 @@ namespace SFG
 
 	struct render_proxy_material
 	{
-		buffer													 buffers[FRAMES_IN_FLIGHT];
+		buffer													 buffers[BACK_BUFFER_COUNT];
 		static_vector<resource_id, MAX_MATERIAL_SHADER_VARIANTS> shader_handles;
 		static_vector<resource_id, MAX_MATERIAL_TEXTURES>		 texture_handles;
 		resource_id												 handle = {};
-		gfx_id													 bind_groups[FRAMES_IN_FLIGHT];
+		gfx_id													 bind_groups[BACK_BUFFER_COUNT];
 		uint8													 status = render_proxy_status::rps_inactive;
 		bitmask<uint8>											 flags	= 0;
 	};

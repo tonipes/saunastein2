@@ -81,7 +81,7 @@ namespace SFG
 		render_pass_lighting_forward _pass_lighting_fw	 = {};
 		render_pass_post_combiner	 _pass_post_combiner = {};
 
-		per_frame_data _pfd[FRAMES_IN_FLIGHT];
+		per_frame_data _pfd[BACK_BUFFER_COUNT];
 		vector2ui16	   _base_size			 = vector2ui16::zero;
 		uint8*		   _shared_command_alloc = nullptr;
 	};

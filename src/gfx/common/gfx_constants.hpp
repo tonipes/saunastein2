@@ -23,7 +23,6 @@ namespace SFG
 #define MAX_MATERIAL_SHADER_VARIANTS 4
 #define MAX_MATERIAL_TEXTURES		 8
 
-#define FRAMES_IN_FLIGHT  2
 #define BACK_BUFFER_COUNT 3
 
 	// 0 discrete, 1 integrated

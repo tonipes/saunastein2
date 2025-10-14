@@ -15,7 +15,7 @@ namespace SFG
 
 		create_textures(sz);
 
-		for (uint32 i = 0; i < FRAMES_IN_FLIGHT; i++)
+		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
 			per_frame_data& pfd = _pfd[i];
 
@@ -42,7 +42,7 @@ namespace SFG
 
 		gfx_backend* backend = gfx_backend::get();
 
-		for (uint32 i = 0; i < FRAMES_IN_FLIGHT; i++)
+		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
 			per_frame_data& pfd = _pfd[i];
 
@@ -136,7 +136,7 @@ namespace SFG
 	{
 		gfx_backend* backend = gfx_backend::get();
 
-		for (uint32 i = 0; i < FRAMES_IN_FLIGHT; i++)
+		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
 			per_frame_data& pfd = _pfd[i];
 
@@ -151,7 +151,7 @@ namespace SFG
 	{
 		gfx_backend* backend = gfx_backend::get();
 
-		for (uint32 i = 0; i < FRAMES_IN_FLIGHT; i++)
+		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
 			per_frame_data& pfd = _pfd[i];
 			pfd.color_textures.clear();

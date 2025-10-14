@@ -16,7 +16,7 @@ namespace SFG
 		gfx_backend* backend = gfx_backend::get();
 		_texture_format		 = fmt;
 
-		for (uint32 i = 0; i < FRAMES_IN_FLIGHT; i++)
+		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
 			per_frame_data& pfd = _pfd[i];
 
@@ -41,7 +41,7 @@ namespace SFG
 		_depth_format		   = fmt;
 		const format depth_fmt = static_cast<format>(fmt);
 
-		for (uint32 i = 0; i < FRAMES_IN_FLIGHT; i++)
+		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
 			per_frame_data& pfd = _pfd[i];
 
@@ -62,7 +62,7 @@ namespace SFG
 
 		uint32 texture_index = 0;
 
-		for (uint32 i = 0; i < FRAMES_IN_FLIGHT; i++)
+		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
 			per_frame_data& pfd = _pfd[i];
 
@@ -78,7 +78,7 @@ namespace SFG
 	{
 		SFG_ASSERT(!_flags.is_set(render_pass_flags::owns_depth));
 
-		for (uint32 i = 0; i < FRAMES_IN_FLIGHT; i++)
+		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
 			per_frame_data& pfd = _pfd[i];
 			pfd.depth_texture	= targets[i];
@@ -96,7 +96,7 @@ namespace SFG
 		gfx_backend* backend   = gfx_backend::get();
 		const format depth_fmt = static_cast<format>(_depth_format);
 
-		for (uint32 i = 0; i < FRAMES_IN_FLIGHT; i++)
+		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
 			per_frame_data& pfd = _pfd[i];
 
@@ -231,7 +231,7 @@ namespace SFG
 		const format txt_fmt   = static_cast<format>(_texture_format);
 		const format depth_fmt = static_cast<format>(_depth_format);
 
-		for (uint32 i = 0; i < FRAMES_IN_FLIGHT; i++)
+		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
 			per_frame_data& pfd			  = _pfd[i];
 			const uint8		texture_count = static_cast<uint8>(pfd.textures.size());

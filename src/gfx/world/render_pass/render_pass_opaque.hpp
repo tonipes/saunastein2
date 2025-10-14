@@ -91,7 +91,7 @@ namespace SFG
 
 	private:
 		render_pass	   _pass = {};
-		per_frame_data _pfd[FRAMES_IN_FLIGHT];
+		per_frame_data _pfd[BACK_BUFFER_COUNT];
 		render_data	   _render_data;
 		bump_allocator _alloc = {};
 	};

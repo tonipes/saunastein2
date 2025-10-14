@@ -11,7 +11,7 @@ namespace SFG
 	void buffer_queue::init()
 	{
 		_requests.reserve(256);
-		for (uint8 i = 0; i < FRAMES_IN_FLIGHT; i++)
+		for (uint8 i = 0; i < BACK_BUFFER_COUNT; i++)
 			_pfd[i].buffered_requests.reserve(256);
 	}
 

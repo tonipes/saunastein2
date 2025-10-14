@@ -56,10 +56,10 @@ namespace SFG
 		void draw(indexed_draw* draws, uint32 draws_count, bump_allocator& alloc, gfx_id cmd_buffer, uint8 frame_index, const vector2ui16& size);
 
 	private:
-		per_frame_data _pfd[FRAMES_IN_FLIGHT] = {};
-		bitmask<uint8> _flags				  = 0;
-		uint8		   _texture_format		  = 0;
-		uint8		   _depth_format		  = 0;
+		per_frame_data _pfd[BACK_BUFFER_COUNT] = {};
+		bitmask<uint8> _flags				   = 0;
+		uint8		   _texture_format		   = 0;
+		uint8		   _depth_format		   = 0;
 	};
 
 }

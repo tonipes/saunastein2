@@ -40,7 +40,7 @@ namespace SFG
 		bool empty(uint8 frame_index) const;
 
 	private:
-		per_frame_data		   _pfd[FRAMES_IN_FLIGHT];
+		per_frame_data		   _pfd[BACK_BUFFER_COUNT];
 		vector<buffer_request> _requests = {};
 	};
 } // namespace Lina

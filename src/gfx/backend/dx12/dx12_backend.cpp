@@ -793,6 +793,12 @@ namespace SFG
 		}
 	}
 
+	uint8 dx12_backend::get_back_buffer_index(gfx_id s)
+	{
+		swapchain& swp = _swapchains.get(s);
+		return swp.image_index;
+	}
+
 	gfx_id dx12_backend::create_resource(const resource_desc& desc)
 	{
 		PUSH_MEMORY_CATEGORY("Gfx");
@@ -1378,6 +1384,7 @@ namespace SFG
 			}
 		}
 
+		swp.image_index = swp.ptr->GetCurrentBackBufferIndex();
 		return id;
 	}
 

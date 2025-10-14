@@ -186,7 +186,7 @@ namespace SFG
 		gfx_data												   _gfx_data	   = {};
 		vekt_data												   _vekt_data	   = {};
 		input_field												   _input_field	   = {};
-		per_frame_data											   _pfd[FRAMES_IN_FLIGHT];
+		per_frame_data											   _pfd[BACK_BUFFER_COUNT];
 		gui_draw_call											   _gui_draw_calls[MAX_GUI_DRAW_CALLS];
 		moodycamel::ReaderWriterQueue<input_event, MAX_KEY_EVENTS> _input_events;
 		moodycamel::ReaderWriterQueue<const char*, 2>			   _commands;

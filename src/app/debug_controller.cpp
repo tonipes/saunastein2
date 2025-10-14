@@ -385,7 +385,7 @@ namespace SFG
 			raw.destroy();
 		}
 
-		for (uint32 i = 0; i < FRAMES_IN_FLIGHT; i++)
+		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
 			per_frame_data& pfd = _pfd[i];
 
@@ -548,7 +548,7 @@ namespace SFG
 		_shaders.gui_sdf.destroy();
 		_shaders.debug_controller_console_draw.destroy();
 
-		for (uint32 i = 0; i < FRAMES_IN_FLIGHT; i++)
+		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
 			per_frame_data& pfd = _pfd[i];
 			backend->destroy_texture(pfd.rt_console);
@@ -1203,7 +1203,7 @@ namespace SFG
 		_gfx_data.rt_size	  = vector2ui16(size.x, size.y / 2);
 		_gfx_data.window_size = vector2ui16(size.x, size.y);
 
-		for (uint32 i = 0; i < FRAMES_IN_FLIGHT; i++)
+		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
 			per_frame_data& pfd = _pfd[i];
 			backend->destroy_texture(pfd.rt_console);

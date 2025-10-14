@@ -112,15 +112,15 @@ namespace SFG
 		world*			_world	  = nullptr;
 		gfx_data		_gfx_data = {};
 		shader_data		_shaders  = {};
-		per_frame_data	_pfd[FRAMES_IN_FLIGHT];
-		bump_allocator	_frame_allocator[FRAMES_IN_FLIGHT] = {};
-		buffer_queue	_buffer_queue					   = {};
-		texture_queue	_texture_queue					   = {};
+		per_frame_data	_pfd[BACK_BUFFER_COUNT];
+		bump_allocator	_frame_allocator[BACK_BUFFER_COUNT] = {};
+		buffer_queue	_buffer_queue						= {};
+		texture_queue	_texture_queue						= {};
 		render_data		_render_data[2];
 		proxy_manager	_proxy_manager;
 		vector<barrier> _reuse_upload_barriers = {};
 
 		static gfx_id s_bind_layout_global;
-		static gfx_id s_bind_group_global[FRAMES_IN_FLIGHT];
+		static gfx_id s_bind_group_global[BACK_BUFFER_COUNT];
 	};
 }

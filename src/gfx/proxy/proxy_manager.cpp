@@ -31,7 +31,7 @@ namespace SFG
 		_mesh_instances.init(MAX_ENTITIES);
 		_cameras.init(MAX_ENTITIES);
 
-		for (uint8 i = 0; i < FRAMES_IN_FLIGHT + 1; i++)
+		for (uint8 i = 0; i < BACK_BUFFER_COUNT + 1; i++)
 			_destroy_bucket[i].list.reserve(1000);
 
 		_aux_memory.init(1024 * 1024 * 2);
@@ -127,11 +127,11 @@ namespace SFG
 		gfx_backend* backend = gfx_backend::get();
 
 		const uint64 frame = frame_info::get_render_frame();
-		if (frame < FRAMES_IN_FLIGHT + 1)
+		if (frame < BACK_BUFFER_COUNT + 1)
 			return;
 
-		const uint8 mod			= FRAMES_IN_FLIGHT + 1;
-		const uint8 safe_bucket = (frame - FRAMES_IN_FLIGHT) % mod;
+		const uint8 mod			= BACK_BUFFER_COUNT + 1;
+		const uint8 safe_bucket = (frame - BACK_BUFFER_COUNT) % mod;
 		destroy_target_bucket(safe_bucket);
 		if (force)
 		{
@@ -319,7 +319,7 @@ namespace SFG
 			for (resource_handle h : ev.textures)
 				proxy.texture_handles.push_back(h.index);
 
-			for (uint8 i = 0; i < FRAMES_IN_FLIGHT; i++)
+			for (uint8 i = 0; i < BACK_BUFFER_COUNT; i++)
 			{
 				proxy.buffers[i].create_staging_hw(
 					{
@@ -382,7 +382,7 @@ namespace SFG
 
 			render_proxy_material& proxy = get_material(index);
 
-			for (uint8 i = 0; i < FRAMES_IN_FLIGHT; i++)
+			for (uint8 i = 0; i < BACK_BUFFER_COUNT; i++)
 			{
 				_buffer_queue.add_request(
 					{
@@ -555,7 +555,7 @@ namespace SFG
 
 	void proxy_manager::destroy_texture(render_proxy_texture& proxy)
 	{
-		const uint8 safe_bucket = frame_info::get_render_frame() % (FRAMES_IN_FLIGHT + 1);
+		const uint8 safe_bucket = frame_info::get_render_frame() % (BACK_BUFFER_COUNT + 1);
 		add_to_destroy_bucket({.id = proxy.hw, .type = destroy_data_type::texture}, safe_bucket);
 		add_to_destroy_bucket({.id = proxy.intermediate, .type = destroy_data_type::resource}, safe_bucket);
 		proxy = {};
@@ -563,21 +563,21 @@ namespace SFG
 
 	void proxy_manager::destroy_sampler(render_proxy_sampler& proxy)
 	{
-		const uint8 safe_bucket = frame_info::get_render_frame() % (FRAMES_IN_FLIGHT + 1);
+		const uint8 safe_bucket = frame_info::get_render_frame() % (BACK_BUFFER_COUNT + 1);
 		add_to_destroy_bucket({.id = proxy.hw, .type = destroy_data_type::sampler}, safe_bucket);
 		proxy = {};
 	}
 
 	void proxy_manager::destroy_shader(render_proxy_shader& proxy)
 	{
-		const uint8 safe_bucket = frame_info::get_render_frame() % (FRAMES_IN_FLIGHT + 1);
+		const uint8 safe_bucket = frame_info::get_render_frame() % (BACK_BUFFER_COUNT + 1);
 		add_to_destroy_bucket({.id = proxy.hw, .type = destroy_data_type::shader}, safe_bucket);
 		proxy = {};
 	}
 
 	void proxy_manager::destroy_mesh(render_proxy_mesh& proxy)
 	{
-		const uint8 safe_bucket = frame_info::get_render_frame() % (FRAMES_IN_FLIGHT + 1);
+		const uint8 safe_bucket = frame_info::get_render_frame() % (BACK_BUFFER_COUNT + 1);
 		add_to_destroy_bucket({.id = proxy.vertex_buffer.get_hw_staging(), .type = destroy_data_type::resource}, safe_bucket);
 		add_to_destroy_bucket({.id = proxy.vertex_buffer.get_hw_gpu(), .type = destroy_data_type::resource}, safe_bucket);
 		add_to_destroy_bucket({.id = proxy.index_buffer.get_hw_staging(), .type = destroy_data_type::resource}, safe_bucket);
@@ -602,9 +602,9 @@ namespace SFG
 	{
 		gfx_backend* backend = gfx_backend::get();
 
-		for (uint8 i = 0; i < FRAMES_IN_FLIGHT; i++)
+		for (uint8 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
-			const uint8 safe_bucket = (frame_info::get_render_frame() + i) % (FRAMES_IN_FLIGHT + 1);
+			const uint8 safe_bucket = (frame_info::get_render_frame() + i) % (BACK_BUFFER_COUNT + 1);
 			add_to_destroy_bucket({.id = proxy.bind_groups[i], .type = destroy_data_type::bind_group}, safe_bucket);
 			add_to_destroy_bucket({.id = proxy.buffers[i].get_hw_staging(), .type = destroy_data_type::resource}, safe_bucket);
 			add_to_destroy_bucket({.id = proxy.buffers[i].get_hw_gpu(), .type = destroy_data_type::resource}, safe_bucket);

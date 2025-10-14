@@ -24,8 +24,8 @@ namespace SFG
 #define RT_FORMAT format::r8g8b8a8_srgb
 #define SWP_FLAGS swapchain_flags::sf_vsync_every_v_blank
 
-	gfx_id renderer::s_bind_group_global[FRAMES_IN_FLIGHT] = {};
-	gfx_id renderer::s_bind_layout_global				   = 0;
+	gfx_id renderer::s_bind_group_global[BACK_BUFFER_COUNT] = {};
+	gfx_id renderer::s_bind_layout_global					= 0;
 
 	renderer::renderer() : _proxy_manager(_buffer_queue, _texture_queue)
 	{
@@ -70,7 +70,7 @@ namespace SFG
 		_world_renderer->init(main_window->get_size(), &_texture_queue, &_buffer_queue);
 		w->set_world_renderer(_world_renderer);
 
-		for (uint32 i = 0; i < FRAMES_IN_FLIGHT; i++)
+		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
 			per_frame_data& pfd		= _pfd[i];
 			pfd.sem_frame.semaphore = backend->create_semaphore();
@@ -141,7 +141,7 @@ namespace SFG
 		backend->destroy_sampler(_gfx_data.dummy_sampler);
 		backend->destroy_texture(_gfx_data.dummy_texture);
 
-		for (uint32 i = 0; i < FRAMES_IN_FLIGHT; i++)
+		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
 			per_frame_data& pfd = _pfd[i];
 
@@ -164,14 +164,14 @@ namespace SFG
 
 		gfx_backend* backend = gfx_backend::get();
 
-		for (uint32 i = 0; i < FRAMES_IN_FLIGHT; i++)
+		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
 			per_frame_data& pfd = _pfd[i];
 			backend->wait_semaphore(pfd.sem_frame.semaphore, pfd.sem_frame.value);
 		}
 
 		_proxy_manager.flush_destroys(true);
-		_gfx_data.frame_index = 0;
+		_gfx_data.frame_index = backend->get_back_buffer_index(_gfx_data.swapchain);
 	}
 
 	void renderer::tick()
@@ -191,8 +191,7 @@ namespace SFG
 		const uint8		frame_index	  = _gfx_data.frame_index;
 		const gfx_id	layout_global = _gfx_data.bind_layout_global;
 		per_frame_data& pfd			  = _pfd[frame_index];
-		_gfx_data.frame_index		  = (_gfx_data.frame_index + 1) % FRAMES_IN_FLIGHT;
-		const gfx_id render_target	  = _gfx_data.swapchain;
+		const gfx_id	render_target = _gfx_data.swapchain;
 
 		bump_allocator& alloc = _frame_allocator[frame_index];
 		alloc.reset();
@@ -322,7 +321,9 @@ namespace SFG
 #endif
 
 		backend->present(&render_target, 1);
+		_gfx_data.frame_index = backend->get_back_buffer_index(_gfx_data.swapchain);
 
+		// SFG_TRACE("frame index {0}", (uint32)_gfx_data.frame_index);
 #ifndef SFG_PRODUCTION
 		const int64 present_time = time::get_cpu_microseconds() - time_before;
 		frame_info::s_present_time_micro.store(static_cast<double>(present_time));
@@ -358,7 +359,7 @@ namespace SFG
 		_debug_controller.on_window_resize(size);
 #endif
 
-		for (uint32 i = 0; i < FRAMES_IN_FLIGHT; i++)
+		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
 			per_frame_data& pfd = _pfd[i];
 

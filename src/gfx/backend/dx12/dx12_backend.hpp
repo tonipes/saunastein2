@@ -180,14 +180,15 @@ namespace SFG
 			return s_instance;
 		}
 
-		void init();
-		void uninit();
-		void reset_command_buffer(gfx_id cmd_buffer);
-		void close_command_buffer(gfx_id cmd_buffer);
-		void submit_commands(gfx_id queue, const gfx_id* commands, uint8 commands_count);
-		void queue_wait(gfx_id queue, const gfx_id* semaphores, const uint64* semaphore_values, uint8 semaphore_count);
-		void queue_signal(gfx_id queue, const gfx_id* semaphores, const uint64* semaphore_values, uint8 semaphore_count);
-		void present(const gfx_id* swapchains, uint8 swapchain_count);
+		void  init();
+		void  uninit();
+		void  reset_command_buffer(gfx_id cmd_buffer);
+		void  close_command_buffer(gfx_id cmd_buffer);
+		void  submit_commands(gfx_id queue, const gfx_id* commands, uint8 commands_count);
+		void  queue_wait(gfx_id queue, const gfx_id* semaphores, const uint64* semaphore_values, uint8 semaphore_count);
+		void  queue_signal(gfx_id queue, const gfx_id* semaphores, const uint64* semaphore_values, uint8 semaphore_count);
+		void  present(const gfx_id* swapchains, uint8 swapchain_count);
+		uint8 get_back_buffer_index(gfx_id swapchain);
 
 		bool compile_shader_vertex_pixel(
 			const string& source, const vector<string>& defines, const char* source_path, const char* vertex_entry, const char* pixel_entry, span<uint8>& vertex_out, span<uint8>& pixel_out, bool compile_layout, span<uint8>& out_layout) const;

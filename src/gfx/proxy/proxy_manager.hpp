@@ -147,6 +147,6 @@ namespace SFG
 		pool_allocator_simple<render_proxy_camera>		  _cameras;
 		world_id										  _main_camera_trait = 0;
 
-		destroy_bucket _destroy_bucket[FRAMES_IN_FLIGHT + 1];
+		destroy_bucket _destroy_bucket[BACK_BUFFER_COUNT + 1];
 	};
 }
