@@ -11,16 +11,16 @@
 namespace SFG
 {
 
-	typedef std::function<void(const char* p, string_id last_modified, uint16 id)> simple_file_watcher_callback;
+	typedef std::function<void(const char* p, uint64 last_modified, uint16 id)> simple_file_watcher_callback;
 
 	class simple_file_watcher
 	{
 	private:
 		struct entry
 		{
-			string	  path			= "";
-			string_id last_modified = 0;
-			uint16	  id			= 0;
+			string path			 = "";
+			uint64 last_modified = 0;
+			uint16 id			 = 0;
 		};
 
 	public:

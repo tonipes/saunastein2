@@ -125,7 +125,19 @@ namespace SFG
 		std::filesystem::file_time_type ftime  = std::filesystem::last_write_time(path);
 		auto							sctp   = std::chrono::time_point_cast<std::chrono::system_clock::duration>(ftime - decltype(ftime)::clock::now() + std::chrono::system_clock::now());
 		std::time_t						cftime = std::chrono::system_clock::to_time_t(sctp);
-		return std::asctime(std::localtime(&cftime));
+		const string					str	   = std::asctime(std::localtime(&cftime));
+		return str;
+	}
+
+	uint64 file_system::get_last_modified_ticks(const char* path) noexcept
+	{
+		std::error_code					ec;
+		std::filesystem::file_time_type ft = std::filesystem::last_write_time(path, ec);
+		if (ec)
+			return 0;
+
+		using dur = std::chrono::nanoseconds;
+		return static_cast<uint64_t>(std::chrono::duration_cast<dur>(ft.time_since_epoch()).count());
 	}
 
 	string file_system::get_directory_of_file(const char* path)

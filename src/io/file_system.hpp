@@ -20,6 +20,7 @@ namespace SFG
 		static bool	  change_directory_name(const char* oldPath, const char* new_path);
 		static bool	  exists(const char* path);
 		static string get_last_modified_date(const char* path);
+		static uint64 get_last_modified_ticks(const char* path) noexcept;
 		static string get_directory_of_file(const char* path);
 		static string remove_extensions_from_path(const string& filename);
 		static string get_filename_and_extension_from_path(const string& filename);

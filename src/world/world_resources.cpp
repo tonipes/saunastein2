@@ -247,7 +247,7 @@ namespace SFG
 		}
 	}
 
-	void world_resources::on_watched_resource_modified(const char* path, string_id last_modified, uint16 id)
+	void world_resources::on_watched_resource_modified(const char* path, uint64 last_modified, uint16 id)
 	{
 		SFG_ASSERT(id < _watched_resources.size());
 		resource_watch& w = _watched_resources[id];

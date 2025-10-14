@@ -60,7 +60,7 @@ namespace SFG
 #ifdef SFG_TOOLMODE
 		void load_resources(const vector<string>& relative_paths, bool skip_cache = false);
 		void add_resource_watch(resource_handle base_handle, const char* relative_path, const vector<string>& dependencies, string_id type);
-		void on_watched_resource_modified(const char* path, string_id last_modified, uint16 id);
+		void on_watched_resource_modified(const char* path, uint64 last_modified, uint16 id);
 #endif
 
 		void load_resources(istream& in);

@@ -15,7 +15,7 @@ namespace SFG
 			return;
 		}
 
-		const string_id last_modified = TO_SID(file_system::get_last_modified_date(path));
+		const uint64 last_modified = file_system::get_last_modified_ticks(path);
 		_paths.push_back({path, last_modified, optional_id});
 	}
 	void simple_file_watcher::remove_path(const char* path)
@@ -41,11 +41,10 @@ namespace SFG
 	{
 		for (entry& e : _paths)
 		{
-			const string	date = file_system::get_last_modified_date(e.path.c_str());
-			const string_id sid	 = TO_SID(date);
-			if (e.last_modified != sid)
+			const uint64 ticks = file_system::get_last_modified_ticks(e.path.c_str());
+			if (e.last_modified != ticks)
 			{
-				e.last_modified = sid;
+				e.last_modified = ticks;
 				if (_callback)
 					_callback(e.path.c_str(), e.last_modified, e.id);
 			}
