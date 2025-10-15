@@ -176,37 +176,37 @@ namespace SFG
 
 				if (mouse_flags & RI_MOUSE_LEFT_BUTTON_DOWN)
 				{
-					ev.button	= static_cast<uint16>(input_code::Mouse0);
+					ev.button	= static_cast<uint16>(input_code::mouse_0);
 					ev.sub_type = window_event_sub_type::press;
 					ev_exists	= true;
 				}
 				if (mouse_flags & RI_MOUSE_LEFT_BUTTON_UP)
 				{
-					ev.button	= static_cast<uint16>(input_code::Mouse0);
+					ev.button	= static_cast<uint16>(input_code::mouse_0);
 					ev.sub_type = window_event_sub_type::release;
 					ev_exists	= true;
 				}
 				if (mouse_flags & RI_MOUSE_RIGHT_BUTTON_DOWN)
 				{
-					ev.button	= static_cast<uint16>(input_code::Mouse1);
+					ev.button	= static_cast<uint16>(input_code::mouse_1);
 					ev.sub_type = window_event_sub_type::press;
 					ev_exists	= true;
 				}
 				if (mouse_flags & RI_MOUSE_RIGHT_BUTTON_UP)
 				{
-					ev.button	= static_cast<uint16>(input_code::Mouse1);
+					ev.button	= static_cast<uint16>(input_code::mouse_1);
 					ev.sub_type = window_event_sub_type::release;
 					ev_exists	= true;
 				}
 				if (mouse_flags & RI_MOUSE_MIDDLE_BUTTON_DOWN)
 				{
-					ev.button	= static_cast<uint16>(input_code::Mouse2);
+					ev.button	= static_cast<uint16>(input_code::mouse_2);
 					ev.sub_type = window_event_sub_type::press;
 					ev_exists	= true;
 				}
 				if (mouse_flags & RI_MOUSE_MIDDLE_BUTTON_UP)
 				{
-					ev.button	= static_cast<uint16>(input_code::Mouse2);
+					ev.button	= static_cast<uint16>(input_code::mouse_2);
 					ev.sub_type = window_event_sub_type::release;
 					ev_exists	= true;
 				}
@@ -251,6 +251,7 @@ namespace SFG
 			const int  extended	 = (lParam & 0x01000000) != 0;
 			const bool is_repeat = (lParam & 1 << 30);
 			uint32	   key		 = static_cast<uint32>(wParam);
+			s_key_down_map[key]	 = 1;
 
 			if (wParam == VK_SHIFT)
 				key = extended == 0 ? VK_LSHIFT : VK_RSHIFT;
@@ -278,6 +279,7 @@ namespace SFG
 			const WORD scanCode	 = LOBYTE(key_flags);
 			const int  extended	 = (lParam & 0x01000000) != 0;
 			uint32	   key		 = static_cast<uint32>(wParam);
+			s_key_down_map[key]	 = 0;
 
 			if (wParam == VK_SHIFT)
 				key = extended ? VK_LSHIFT : VK_RSHIFT;
@@ -342,7 +344,7 @@ namespace SFG
 			const window_event ev = {
 
 				.value	  = vector2i16(x, y),
-				.button	  = static_cast<uint16>(input_code::Mouse0),
+				.button	  = static_cast<uint16>(input_code::mouse_0),
 				.type	  = window_event_type::mouse,
 				.sub_type = window_event_sub_type::press,
 			};
@@ -359,7 +361,7 @@ namespace SFG
 			const window_event ev = {
 
 				.value	  = vector2i16(x, y),
-				.button	  = static_cast<uint16>(input_code::Mouse0),
+				.button	  = static_cast<uint16>(input_code::mouse_0),
 				.type	  = window_event_type::mouse,
 				.sub_type = window_event_sub_type::repeat,
 			};
@@ -378,7 +380,7 @@ namespace SFG
 			const window_event ev = {
 
 				.value	  = vector2i16(x, y),
-				.button	  = static_cast<uint16>(input_code::Mouse1),
+				.button	  = static_cast<uint16>(input_code::mouse_1),
 				.type	  = window_event_type::mouse,
 				.sub_type = window_event_sub_type::press,
 			};
@@ -395,7 +397,7 @@ namespace SFG
 			const window_event ev = {
 
 				.value	  = vector2i16(x, y),
-				.button	  = static_cast<uint16>(input_code::Mouse1),
+				.button	  = static_cast<uint16>(input_code::mouse_1),
 				.type	  = window_event_type::mouse,
 				.sub_type = window_event_sub_type::repeat,
 			};
@@ -415,7 +417,7 @@ namespace SFG
 			const window_event ev = {
 
 				.value	  = vector2i16(x, y),
-				.button	  = static_cast<uint16>(input_code::Mouse2),
+				.button	  = static_cast<uint16>(input_code::mouse_2),
 				.type	  = window_event_type::mouse,
 				.sub_type = window_event_sub_type::press,
 			};
@@ -434,7 +436,7 @@ namespace SFG
 			const window_event ev = {
 
 				.value	  = vector2i16(x, y),
-				.button	  = static_cast<uint16>(input_code::Mouse0),
+				.button	  = static_cast<uint16>(input_code::mouse_0),
 				.type	  = window_event_type::mouse,
 				.sub_type = window_event_sub_type::release,
 			};
@@ -454,7 +456,7 @@ namespace SFG
 			const window_event ev = {
 
 				.value	  = vector2i16(x, y),
-				.button	  = static_cast<uint16>(input_code::Mouse1),
+				.button	  = static_cast<uint16>(input_code::mouse_1),
 				.type	  = window_event_type::mouse,
 				.sub_type = window_event_sub_type::release,
 			};
@@ -474,7 +476,7 @@ namespace SFG
 			const window_event ev = {
 
 				.value	  = vector2i16(x, y),
-				.button	  = static_cast<uint16>(input_code::Mouse2),
+				.button	  = static_cast<uint16>(input_code::mouse_2),
 				.type	  = window_event_type::mouse,
 				.sub_type = window_event_sub_type::release,
 			};
@@ -489,6 +491,11 @@ namespace SFG
 		return DefWindowProcA(hwnd, msg, wParam, lParam);
 	}
 
+	bool window::is_key_down(uint16 key)
+	{
+		return s_key_down_map[key];
+	}
+
 	bool window::create(const char* title, uint16 flags, const vector2i16& pos, const vector2ui16& size)
 	{
 		HINSTANCE  hinst = GetModuleHandle(0);
@@ -501,7 +508,7 @@ namespace SFG
 			wc.lpfnWndProc	 = wnd_proc;
 			wc.hInstance	 = hinst;
 			wc.lpszClassName = title;
-			wc.hCursor		 = NULL;
+			wc.hCursor		 = LoadCursor(NULL, IDC_ARROW);
 			wc.style		 = CS_DBLCLKS;
 
 			if (!RegisterClassA(&wc))

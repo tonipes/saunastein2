@@ -72,6 +72,8 @@ namespace SFG
 		static __int64 wnd_proc(HWND__* hwnd, unsigned int msg, unsigned __int64 wParam, __int64 lParam);
 #endif
 
+		static bool is_key_down(uint16 key);
+
 	private:
 		monitor_info	_monitor_info		= {};
 		void*			_window_handle		= nullptr;

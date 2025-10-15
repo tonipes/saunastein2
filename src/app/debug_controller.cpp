@@ -1046,7 +1046,7 @@ namespace SFG
 
 			const input_code button = static_cast<input_code>(ev.button);
 
-			if (button == input_code::KeyAngleBracket)
+			if (button == input_code::key_angle_bracket)
 			{
 				if (_console_state == console_state::visible)
 				{
@@ -1068,7 +1068,7 @@ namespace SFG
 			_input_field.text_size = static_cast<int8>(strlen(_input_field.text));
 			char* buffer		   = const_cast<char*>(_input_field.text);
 
-			if (button == input_code::KeyBackspace)
+			if (button == input_code::key_backspace)
 			{
 				if (_input_field.text_size != 0)
 				{
@@ -1082,7 +1082,7 @@ namespace SFG
 				continue;
 			}
 
-			if (button == input_code::KeyReturn)
+			if (button == input_code::key_return)
 			{
 				if (_input_field.text_size > 0)
 				{
@@ -1110,7 +1110,7 @@ namespace SFG
 				continue;
 			}
 
-			if (button == input_code::KeyUp)
+			if (button == input_code::key_up)
 			{
 				if (_input_field.history.empty())
 					continue;
@@ -1125,7 +1125,7 @@ namespace SFG
 				continue;
 			}
 
-			if (button == input_code::KeyDown)
+			if (button == input_code::key_down)
 			{
 				if (_input_field.history.empty())
 					continue;
@@ -1140,13 +1140,13 @@ namespace SFG
 				continue;
 			}
 
-			if (button == input_code::KeyLeft)
+			if (button == input_code::key_left)
 			{
 				_input_field.caret_pos = math::max(0, _input_field.caret_pos - 1);
 				continue;
 			}
 
-			if (button == input_code::KeyRight)
+			if (button == input_code::key_right)
 			{
 				_input_field.caret_pos = math::min(static_cast<int8>(_input_field.text_size), static_cast<int8>(_input_field.caret_pos + 1));
 				continue;
@@ -1179,7 +1179,7 @@ namespace SFG
 	{
 		if (ev.type == window_event_type::key && ev.sub_type != window_event_sub_type::release)
 		{
-			if (_console_state == console_state::invisible && static_cast<input_code>(ev.button) != input_code::KeyAngleBracket)
+			if (_console_state == console_state::invisible && static_cast<input_code>(ev.button) != input_code::key_angle_bracket)
 				return false;
 
 			const input_event ke = {.button = static_cast<uint16>(ev.button)};

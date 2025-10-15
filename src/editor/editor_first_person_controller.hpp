@@ -3,6 +3,7 @@
 
 #include "world/common_world.hpp"
 #include "math/vector2.hpp"
+#include "math/vector3.hpp"
 #include "world/world_constants.hpp"
 #include <array>
 
@@ -31,16 +32,17 @@ namespace SFG
 		void apply_movement(float dt_seconds);
 
 	private:
-		window*				  _window			 = nullptr;
-		world*				  _world			 = nullptr;
-		world_handle		  _entity			 = {};
-		std::array<bool, 512> _key_states		 = {};
-		vector2				  _mouse_delta		 = vector2::zero;
-		float				  _yaw_degrees		 = 0.0f;
-		float				  _pitch_degrees	 = 0.0f;
-		float				  _move_speed		 = 12.0f;
-		float				  _boost_multiplier	 = 8.0f;
-		float				  _mouse_sensitivity = 0.08f;
-		bool				  _is_looking		 = false;
+		window*		 _window			 = nullptr;
+		world*		 _world				 = nullptr;
+		world_handle _entity			 = {};
+		vector3		 _direction_input	 = vector3::zero;
+		vector2		 _mouse_delta		 = vector2::zero;
+		float		 _yaw_degrees		 = 0.0f;
+		float		 _pitch_degrees		 = 0.0f;
+		float		 _current_move_speed = 12.0f;
+		float		 _base_move_speed	 = 12.0f;
+		float		 _boost_multiplier	 = 8.0f;
+		float		 _mouse_sensitivity	 = 0.08f;
+		bool		 _is_looking		 = false;
 	};
 }

@@ -17,22 +17,19 @@ namespace SFG
 {
 	void editor_first_person_controller::init(world& world, world_handle entity, window* wnd)
 	{
-		_window = wnd;
-		_world	= &world;
-		_entity = entity;
-		std::fill(_key_states.begin(), _key_states.end(), false);
+		_window		 = wnd;
+		_world		 = &world;
+		_entity		 = entity;
 		_mouse_delta = vector2::zero;
 
 		if (_entity.is_null())
 			return;
 
 		entity_manager& manager = world.get_entity_manager();
-		const quat&		rot		= manager.get_entity_rotation_abs(entity);
+		const quat&		rot		= manager.get_entity_rotation(entity);
 		const vector3	euler	= quat::to_euler(rot);
 		_yaw_degrees			= euler.x;
 		_pitch_degrees			= euler.y;
-
-		std::fill(_key_states.begin(), _key_states.end(), false);
 	}
 
 	void editor_first_person_controller::uninit()
@@ -40,7 +37,6 @@ namespace SFG
 		_entity		 = {};
 		_mouse_delta = vector2::zero;
 		_is_looking	 = false;
-		std::fill(_key_states.begin(), _key_states.end(), false);
 	}
 
 	void editor_first_person_controller::on_window_event(const window_event& ev)
@@ -53,17 +49,43 @@ namespace SFG
 		switch (ev.type)
 		{
 		case window_event_type::key: {
-			if (button < _key_states.size())
-			{
-				if (ev.sub_type == window_event_sub_type::press || ev.sub_type == window_event_sub_type::repeat)
-					_key_states[button] = true;
-				else if (ev.sub_type == window_event_sub_type::release)
-					_key_states[button] = false;
-			}
+
+			if (button == input_code::key_w && ev.sub_type == window_event_sub_type::press)
+				_direction_input.z += 1.0f;
+			else if (button == input_code::key_w && ev.sub_type == window_event_sub_type::release)
+				_direction_input.z -= 1.0f;
+			if (button == input_code::key_s && ev.sub_type == window_event_sub_type::press)
+				_direction_input.z -= 1.0f;
+			else if (button == input_code::key_s && ev.sub_type == window_event_sub_type::release)
+				_direction_input.z += 1.0f;
+
+			if (button == input_code::key_d && ev.sub_type == window_event_sub_type::press)
+				_direction_input.x += 1.0f;
+			else if (button == input_code::key_d && ev.sub_type == window_event_sub_type::release)
+				_direction_input.x -= 1.0f;
+			if (button == input_code::key_a && ev.sub_type == window_event_sub_type::press)
+				_direction_input.x -= 1.0f;
+			else if (button == input_code::key_a && ev.sub_type == window_event_sub_type::release)
+				_direction_input.x += 1.0f;
+
+			if (button == input_code::key_e && ev.sub_type == window_event_sub_type::press)
+				_direction_input.y += 1.0f;
+			else if (button == input_code::key_e && ev.sub_type == window_event_sub_type::release)
+				_direction_input.y -= 1.0f;
+			if (button == input_code::key_q && ev.sub_type == window_event_sub_type::press)
+				_direction_input.y -= 1.0f;
+			else if (button == input_code::key_q && ev.sub_type == window_event_sub_type::release)
+				_direction_input.y += 1.0f;
+
+			if (button == input_code::key_lshift && ev.sub_type == window_event_sub_type::press)
+				_current_move_speed = _base_move_speed * _boost_multiplier;
+			else if (button == input_code::key_lshift && ev.sub_type == window_event_sub_type::release)
+				_current_move_speed = _base_move_speed;
+
 			break;
 		}
 		case window_event_type::mouse: {
-			if (button == static_cast<uint16>(input_code::Mouse1))
+			if (button == static_cast<uint16>(input_code::mouse_1))
 			{
 				const bool was_looking = _is_looking;
 
@@ -126,7 +148,7 @@ namespace SFG
 
 		entity_manager& manager = _world->get_entity_manager();
 		const quat		new_rot = quat::from_euler(_pitch_degrees, _yaw_degrees, 0.0f);
-		manager.set_entity_rotation_abs(_entity, new_rot);
+		manager.set_entity_rotation(_entity, new_rot);
 
 		_mouse_delta = vector2::zero;
 	}
@@ -136,41 +158,21 @@ namespace SFG
 		if (!_world || _entity.is_null())
 			return;
 
-		auto is_down = [this](uint16 code) -> bool { return code < _key_states.size() ? _key_states[code] : false; };
+		auto is_down = [this](uint16 code) -> bool { return false; };
 
 		entity_manager& manager = _world->get_entity_manager();
-		const quat&		rot		= manager.get_entity_rotation_abs(_entity);
+		const quat&		rot		= manager.get_entity_rotation(_entity);
 
-		vector3 move_dir = vector3::zero;
-
-		const vector3 forward = rot.get_forward();
-		const vector3 right	  = rot.get_right();
-		const vector3 up	  = vector3::up;
-
-		if (is_down(static_cast<uint16>(input_code::KeyW)))
-			move_dir += forward;
-		if (is_down(static_cast<uint16>(input_code::KeyS)))
-			move_dir -= forward;
-		if (is_down(static_cast<uint16>(input_code::KeyD)))
-			move_dir += right;
-		if (is_down(static_cast<uint16>(input_code::KeyA)))
-			move_dir -= right;
-		if (is_down(static_cast<uint16>(input_code::KeyE)) || is_down(static_cast<uint16>(input_code::KeySpace)))
-			move_dir += up;
-		if (is_down(static_cast<uint16>(input_code::KeyQ)) || is_down(static_cast<uint16>(input_code::KeyLCTRL)) || is_down(static_cast<uint16>(input_code::KeyRCTRL)))
-			move_dir -= up;
+		const vector3 forward  = rot.get_forward();
+		const vector3 right	   = rot.get_right();
+		const vector3 up	   = vector3::up;
+		vector3		  move_dir = (forward * _direction_input.z + right * _direction_input.x + up * _direction_input.y);
 
 		if (move_dir.is_zero())
 			return;
-
 		move_dir.normalize();
 
-		float move_speed = _move_speed;
-		if (is_down(static_cast<uint16>(input_code::KeyLSHIFT)) || is_down(static_cast<uint16>(input_code::KeyRSHIFT)))
-			move_speed *= _boost_multiplier;
-
-		vector3 position = manager.get_entity_position_abs(_entity);
-		position += move_dir * (move_speed * dt_seconds);
-		manager.set_entity_position_abs(_entity, position);
+		const vector3 position = manager.get_entity_position(_entity) + (move_dir * (_current_move_speed * dt_seconds));
+		manager.set_entity_position(_entity, position);
 	}
 }
