@@ -89,7 +89,7 @@ namespace SFG
 			{
 				const size_t stride					  = vertex_bv.byteStride == 0 ? sizeof(float) * 3 : vertex_bv.byteStride;
 				const float* rawFloatData			  = reinterpret_cast<const float*>(vertex_b.data.data() + vertex_a.byteOffset + vertex_bv.byteOffset + j * stride);
-				prim.vertices[start_vertices + j].pos = vector3(rawFloatData[0], rawFloatData[1], rawFloatData[2]);
+				prim.vertices[start_vertices + j].pos = vector3(rawFloatData[0], rawFloatData[1], -rawFloatData[2]);
 			}
 
 			if (tprim.indices != -1)
@@ -157,7 +157,7 @@ namespace SFG
 				{
 					const size_t stride						 = normals_bv.byteStride == 0 ? sizeof(float) * 3 : normals_bv.byteStride;
 					const float* raw_data					 = reinterpret_cast<const float*>(normals_b.data.data() + normals_a.byteOffset + normals_bv.byteOffset + j * stride);
-					prim.vertices[start_vertices + j].normal = vector3(raw_data[0], raw_data[1], raw_data[2]);
+					prim.vertices[start_vertices + j].normal = vector3(raw_data[0], raw_data[1], -raw_data[2]);
 				}
 			}
 			else
@@ -203,7 +203,7 @@ namespace SFG
 				{
 					const size_t stride						  = targents_bv.byteStride == 0 ? sizeof(float) * 4 : targents_bv.byteStride;
 					const float* raw_data					  = reinterpret_cast<const float*>(tangents_b.data.data() + tangents_a.byteOffset + targents_bv.byteOffset + j * stride);
-					prim.vertices[start_vertices + j].tangent = vector4(raw_data[0], raw_data[1], raw_data[2], raw_data[3]);
+					prim.vertices[start_vertices + j].tangent = vector4(raw_data[0], raw_data[1], -raw_data[2], raw_data[3]);
 				}
 			}
 			else

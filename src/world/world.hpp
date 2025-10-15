@@ -6,7 +6,6 @@
 #include "data/vector.hpp"
 #include "memory/text_allocator.hpp"
 #include "world/world_resources.hpp"
-#include "gfx/camera.hpp"
 #include "entity_manager.hpp"
 #include "gui/vekt.hpp"
 #include <resources/world_raw.hpp>
@@ -66,11 +65,6 @@ namespace SFG
 			return _resources;
 		}
 
-		inline camera& get_camera()
-		{
-			return _camera;
-		}
-
 		inline text_allocator& get_text_allocator()
 		{
 			return _text_allocator;
@@ -103,7 +97,6 @@ namespace SFG
 		text_allocator		 _text_allocator;
 		bitmask<uint8>		 _flags = 0;
 		entity_manager		 _entity_manager;
-		camera				 _camera	 = {};
 		vekt::font_manager	 _vekt_fonts = {};
 	};
 }

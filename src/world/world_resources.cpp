@@ -256,6 +256,9 @@ namespace SFG
 		m.invoke_function<void, world&, resource_handle>("destroy"_hs, _world, w.base_handle);
 		void* loader = m.invoke_function<void*, const char*, world&>("cook_from_file"_hs, w.path.c_str(), _world);
 
+		if (loader == nullptr)
+			return;
+
 		const string cache_path = engine_data::get().get_cache_dir() + std::to_string(TO_SID(w.path)) + ".stkcache";
 
 		ostream out_stream;

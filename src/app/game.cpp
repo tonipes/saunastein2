@@ -133,6 +133,7 @@ namespace SFG
 #endif
 		_world->uninit();
 		delete _world;
+		_world = nullptr;
 
 #ifdef SFG_TOOLMODE
 		engine_data::get().uninit();
@@ -252,11 +253,12 @@ namespace SFG
 			return;
 
 #ifdef SFG_TOOLMODE
-		if (_editor->on_window_event(ev))
+		if (_editor && _editor->on_window_event(ev))
 			return;
 #endif
 
-		_world->on_window_event(ev);
+		if (_world)
+			_world->on_window_event(ev);
 	}
 
 	void game_app::join_render()

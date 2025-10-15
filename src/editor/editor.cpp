@@ -72,7 +72,7 @@ namespace SFG
 		_camera_trait	   = em.add_trait<trait_camera>(_camera_entity);
 
 		trait_camera& cam_trait = em.get_trait<trait_camera>(_camera_trait);
-		cam_trait.set_values(w, 0.01f, 500.0f, 90.0f);
+		cam_trait.set_values(w, 0.01f, 500.0f, 45.0f);
 		cam_trait.set_main(w);
 
 		em.set_entity_position(_camera_entity, vector3(0.0f, 0.5f, -27.5f));

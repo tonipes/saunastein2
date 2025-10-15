@@ -16,6 +16,7 @@
 #include "resources/primitive.hpp"
 #include "gfx/proxy/proxy_manager.hpp"
 #include <algorithm>
+#include "gfx/camera.hpp"
 
 /* DEBUG */
 #include "serialization/serialization.hpp"

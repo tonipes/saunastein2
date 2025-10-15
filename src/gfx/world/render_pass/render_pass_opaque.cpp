@@ -330,7 +330,14 @@ namespace SFG
 		backend->cmd_bind_group(cmd_buffer, {.group = global_group});
 		backend->cmd_bind_group(cmd_buffer, {.group = rp_bind_group});
 		backend->cmd_set_scissors(cmd_buffer, {.width = static_cast<uint16>(size.x), .height = static_cast<uint16>(size.y)});
-		backend->cmd_set_viewport(cmd_buffer, {.width = static_cast<uint16>(size.x), .height = static_cast<uint16>(size.y)});
+		backend->cmd_set_viewport(cmd_buffer,
+								  {
+									  .min_depth = 0.0f,
+									  .max_depth = 1.0f,
+									  .width	 = static_cast<uint16>(size.x),
+									  .height	 = static_cast<uint16>(size.y),
+
+								  });
 
 		gfx_id last_bound_group	   = std::numeric_limits<gfx_id>::max();
 		gfx_id last_bound_pipeline = std::numeric_limits<gfx_id>::max();

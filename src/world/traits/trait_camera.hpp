@@ -61,7 +61,7 @@ namespace SFG
 
 		float _near		   = 0.1f;
 		float _far		   = 0.1f;
-		float _fov_degrees = 90.0f;
+		float _fov_degrees = 45.0f;
 	};
 
 	REGISTER_TRAIT(trait_camera, trait_types::trait_type_camera, trait_camera_reflection);

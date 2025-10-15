@@ -658,7 +658,6 @@ namespace SFG
 				.bottom = _prev_confinement.w,
 			};
 			ClipCursor(&rc_clip);
-			_prev_confinement = {};
 			return;
 		}
 

@@ -42,7 +42,7 @@ namespace SFG
 	{
 		_direction_input = vector3::zero;
 		_mouse_delta	 = vector2::zero;
-		_is_looking		 = true;
+		_is_looking		 = false;
 		_window->set_cursor_visible(true);
 	}
 
