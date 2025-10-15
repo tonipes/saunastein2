@@ -82,10 +82,24 @@ namespace SFG
 		}
 		case WM_KILLFOCUS: {
 			wnd->_flags.remove(wf_has_focus);
+
+			const window_event ev = {
+				.value = vector2i16(0, 0),
+				.type  = window_event_type::focus,
+			};
+
+			wnd->add_event(ev);
 			return 0;
 		}
 		case WM_SETFOCUS: {
 			wnd->_flags.set(wf_has_focus);
+
+			const window_event ev = {
+				.value = vector2i16(1, 0),
+				.type  = window_event_type::focus,
+			};
+			wnd->add_event(ev);
+
 			return 0;
 		}
 		case WM_MOVE: {
@@ -623,6 +637,7 @@ namespace SFG
 
 	void window::add_event(const window_event& ev)
 	{
+
 		if (!_event_callback)
 			return;
 		_event_callback(ev);

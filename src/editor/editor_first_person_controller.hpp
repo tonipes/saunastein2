@@ -15,6 +15,7 @@ namespace SFG
 
 	class editor_first_person_controller
 	{
+
 	public:
 		void init(world& world, world_handle entity, window* wnd);
 		void uninit();
@@ -28,6 +29,7 @@ namespace SFG
 		}
 
 	private:
+		void reset_runtime();
 		void update_rotation();
 		void apply_movement(float dt_seconds);
 

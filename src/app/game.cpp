@@ -245,7 +245,7 @@ namespace SFG
 
 	void game_app::on_window_event(const window_event& ev)
 	{
-		if (!_main_window->get_flags().is_set(window_flags::wf_has_focus))
+		if (ev.type != window_event_type::focus && !_main_window->get_flags().is_set(window_flags::wf_has_focus))
 			return;
 
 		if (_renderer->on_window_event(ev))

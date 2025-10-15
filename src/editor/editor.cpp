@@ -53,6 +53,7 @@ namespace SFG
 
 	bool editor::on_window_event(const window_event& ev)
 	{
+
 		if (_camera_controller.is_active())
 			_camera_controller.on_window_event(ev);
 

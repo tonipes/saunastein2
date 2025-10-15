@@ -34,9 +34,16 @@ namespace SFG
 
 	void editor_first_person_controller::uninit()
 	{
-		_entity		 = {};
-		_mouse_delta = vector2::zero;
-		_is_looking	 = false;
+		_entity = {};
+		reset_runtime();
+	}
+
+	void editor_first_person_controller::reset_runtime()
+	{
+		_direction_input = vector3::zero;
+		_mouse_delta	 = vector2::zero;
+		_is_looking		 = true;
+		_window->set_cursor_visible(true);
 	}
 
 	void editor_first_person_controller::on_window_event(const window_event& ev)
@@ -48,6 +55,10 @@ namespace SFG
 
 		switch (ev.type)
 		{
+		case window_event_type::focus: {
+			reset_runtime();
+			break;
+		}
 		case window_event_type::key: {
 
 			if (button == input_code::key_w && ev.sub_type == window_event_sub_type::press)

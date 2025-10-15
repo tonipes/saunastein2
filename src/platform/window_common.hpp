@@ -41,6 +41,7 @@ namespace SFG
 		mouse,
 		wheel,
 		delta,
+		focus,
 	};
 
 	enum class window_event_sub_type : uint8
