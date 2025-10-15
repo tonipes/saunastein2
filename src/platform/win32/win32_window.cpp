@@ -127,9 +127,14 @@ namespace SFG
 			if (raw->header.dwType == RIM_TYPEKEYBOARD)
 			{
 				// Handle keyboard input
-				const USHORT key		= raw->data.keyboard.VKey;
-				USHORT		 scanCode	= raw->data.keyboard.MakeCode;
-				const bool	 is_release = raw->data.keyboard.Flags & RI_KEY_BREAK;
+				USHORT sc = raw->data.keyboard.MakeCode;
+				if (raw->data.keyboard.Flags & RI_KEY_E0)
+					sc |= 0xE000;
+				if (raw->data.keyboard.Flags & RI_KEY_E1)
+					sc |= 0xE100;
+
+				UINT	   key		  = MapVirtualKey(sc, MAPVK_VSC_TO_VK_EX);
+				const bool is_release = raw->data.keyboard.Flags & RI_KEY_BREAK;
 
 				uint8 is_repeat = 0;
 				if (!is_release)
@@ -141,7 +146,7 @@ namespace SFG
 					s_key_down_map[key] = 0;
 
 				const window_event ev = {
-					.value	  = vector2i16(static_cast<int32>(scanCode), 0),
+					.value	  = vector2i16(static_cast<int32>(sc), 0),
 					.button	  = static_cast<uint16>(key),
 					.type	  = window_event_type::key,
 					.sub_type = is_release ? window_event_sub_type::release : (is_repeat ? window_event_sub_type::repeat : window_event_sub_type::press),
@@ -484,7 +489,7 @@ namespace SFG
 		return DefWindowProcA(hwnd, msg, wParam, lParam);
 	}
 
-	bool window::create(const char* title, uint8 flags, const vector2i16& pos, const vector2ui16& size)
+	bool window::create(const char* title, uint16 flags, const vector2i16& pos, const vector2ui16& size)
 	{
 		HINSTANCE  hinst = GetModuleHandle(0);
 		WNDCLASSEX wcx;
@@ -550,11 +555,18 @@ namespace SFG
 		bring_to_front();
 		ShowWindow(hwnd, SW_SHOW);
 		UpdateWindow(hwnd);
+
+		if (flags & window_flags::wf_cursor_confined_window)
+			confine_cursor(cursor_confinement::window);
+		set_cursor_visible(!(flags & window_flags::wf_cursor_hidden));
 		return true;
 	}
 
 	void window::destroy()
 	{
+		if (_flags.is_set(window_flags::wf_cursor_hidden))
+			set_cursor_visible(true);
+
 		if (_window_handle)
 			DestroyWindow(static_cast<HWND>(_window_handle));
 	}
@@ -607,5 +619,69 @@ namespace SFG
 		if (!_event_callback)
 			return;
 		_event_callback(ev);
+	}
+
+	void window::confine_cursor(cursor_confinement conf)
+	{
+		_flags.remove(window_flags::wf_cursor_confined_window);
+
+		HWND hwnd = static_cast<HWND>(_window_handle);
+
+		if (conf == cursor_confinement::none)
+		{
+			const RECT rc_clip = {
+				.left	= _prev_confinement.x,
+				.top	= _prev_confinement.z,
+				.right	= _prev_confinement.y,
+				.bottom = _prev_confinement.w,
+			};
+			ClipCursor(&rc_clip);
+			_prev_confinement = {};
+			return;
+		}
+
+		RECT rc_old_clip;
+		GetClipCursor(&rc_old_clip);
+		_prev_confinement = vector4i(rc_old_clip.left, rc_old_clip.right, rc_old_clip.top, rc_old_clip.bottom);
+
+		if (conf == cursor_confinement::window)
+		{
+			RECT rc_clip;
+			GetWindowRect(hwnd, &rc_clip);
+			ClipCursor(&rc_clip);
+			_flags.set(window_flags::wf_cursor_confined_window);
+		}
+		else if (conf == cursor_confinement::pointer)
+		{
+			POINT p;
+			GetCursorPos(&p);
+			RECT rect = {
+				.left	= p.x,
+				.top	= p.y,
+				.right	= p.x,
+				.bottom = p.y,
+			};
+			ClipCursor(&rect);
+			_flags.set(window_flags::wf_cursor_confined_pointer);
+		}
+	}
+
+	void window::set_cursor_visible(bool vis)
+	{
+		static uint32 cursor_ct = 1;
+
+		if (vis && cursor_ct != 0)
+			return;
+
+		if (!vis && cursor_ct == 0)
+			return;
+
+		if (vis)
+			cursor_ct++;
+		else
+			cursor_ct--;
+
+		ShowCursor(vis);
+		_flags.set(window_flags::wf_cursor_hidden, !vis);
 	}
 }

@@ -3,6 +3,7 @@
 
 #include "window_common.hpp"
 #include "data/hash_map.hpp"
+#include "math/vector4i.hpp"
 #include "memory/malloc_allocator_map.hpp"
 
 #ifdef SFG_PLATFORM_WINDOWS
@@ -20,13 +21,15 @@ namespace SFG
 	public:
 		typedef std::function<void(const window_event& ev)> event_callback;
 
-		bool create(const char* title, uint8 flags, const vector2i16& pos, const vector2ui16& size);
+		bool create(const char* title, uint16 flags, const vector2i16& pos, const vector2ui16& size);
 		void destroy();
 		void set_position(const vector2i16& pos);
 		void set_size(const vector2ui16& size);
 		void set_style(window_flags flags);
 		void bring_to_front();
 		void add_event(const window_event& ev);
+		void confine_cursor(cursor_confinement conf);
+		void set_cursor_visible(bool vis);
 
 		inline const vector2i16 get_position() const
 		{
@@ -45,7 +48,7 @@ namespace SFG
 			return _platform_handle;
 		}
 
-		inline const bitmask<uint8>& get_flags() const
+		inline const bitmask<uint16>& get_flags() const
 		{
 			return _flags;
 		}
@@ -70,17 +73,18 @@ namespace SFG
 #endif
 
 	private:
-		monitor_info   _monitor_info	   = {};
-		void*		   _window_handle	   = nullptr;
-		void*		   _platform_handle	   = nullptr;
-		event_callback _event_callback	   = nullptr;
-		vector2i16	   _mouse_position	   = vector2i16::zero;
-		vector2i16	   _mouse_position_abs = vector2i16::zero;
-		vector2i16	   _position		   = vector2i16::zero;
-		vector2ui16	   _true_size		   = vector2ui16::zero;
-		vector2ui16	   _size			   = vector2ui16::zero;
-		bitmask<uint8> _flags			   = 0;
-		static map	   s_key_down_map;
+		monitor_info	_monitor_info		= {};
+		void*			_window_handle		= nullptr;
+		void*			_platform_handle	= nullptr;
+		event_callback	_event_callback		= nullptr;
+		vector4i		_prev_confinement	= {};
+		vector2i16		_mouse_position		= vector2i16::zero;
+		vector2i16		_mouse_position_abs = vector2i16::zero;
+		vector2i16		_position			= vector2i16::zero;
+		vector2ui16		_true_size			= vector2ui16::zero;
+		vector2ui16		_size				= vector2ui16::zero;
+		bitmask<uint16> _flags				= 0;
+		static map		s_key_down_map;
 	};
 
 	/*

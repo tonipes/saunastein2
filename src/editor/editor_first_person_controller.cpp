@@ -4,8 +4,8 @@
 
 #include <algorithm>
 
-#include "platform/window.hpp"
 #include "platform/window_common.hpp"
+#include "platform/window.hpp"
 #include "input/input_mappings.hpp"
 #include "world/world.hpp"
 #include "world/entity_manager.hpp"
@@ -15,11 +15,11 @@
 
 namespace SFG
 {
-	void editor_first_person_controller::init(world& world, world_handle entity, window* win)
+	void editor_first_person_controller::init(world& world, world_handle entity, window* wnd)
 	{
+		_window = wnd;
 		_world	= &world;
 		_entity = entity;
-		_window = win;
 		std::fill(_key_states.begin(), _key_states.end(), false);
 		_mouse_delta = vector2::zero;
 
@@ -40,7 +40,6 @@ namespace SFG
 		_entity		 = {};
 		_mouse_delta = vector2::zero;
 		_is_looking	 = false;
-		_window		 = nullptr;
 		std::fill(_key_states.begin(), _key_states.end(), false);
 	}
 
@@ -69,9 +68,15 @@ namespace SFG
 				const bool was_looking = _is_looking;
 
 				if (ev.sub_type == window_event_sub_type::press || ev.sub_type == window_event_sub_type::repeat)
+				{
+					_window->confine_cursor(cursor_confinement::pointer);
+					_window->set_cursor_visible(false);
 					_is_looking = true;
+				}
 				else if (ev.sub_type == window_event_sub_type::release)
 				{
+					_window->confine_cursor(cursor_confinement::none);
+					_window->set_cursor_visible(true);
 					_is_looking	 = false;
 					_mouse_delta = vector2::zero;
 				}

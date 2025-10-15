@@ -51,10 +51,12 @@ namespace SFG
 	{
 	}
 
-	void editor::on_window_event(const window_event& ev)
+	bool editor::on_window_event(const window_event& ev)
 	{
 		if (_camera_controller.is_active())
 			_camera_controller.on_window_event(ev);
+
+		return true;
 	}
 
 	void editor::create_default_camera()

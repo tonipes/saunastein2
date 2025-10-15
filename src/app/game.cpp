@@ -127,12 +127,9 @@ namespace SFG
 	{
 		frame_info::s_is_render_active = false;
 #ifdef SFG_TOOLMODE
-		if (_editor)
-		{
-			_editor->on_uninit();
-			delete _editor;
-			_editor = nullptr;
-		}
+		_editor->on_uninit();
+		delete _editor;
+		_editor = nullptr;
 #endif
 		_world->uninit();
 		delete _world;
@@ -175,7 +172,7 @@ namespace SFG
 
 			process::pump_os_messages();
 
-			const bitmask<uint8>& window_flags = _main_window->get_flags();
+			const bitmask<uint16>& window_flags = _main_window->get_flags();
 
 			if (window_flags.is_set(window_flags::wf_close_requested))
 			{
@@ -206,18 +203,19 @@ namespace SFG
 				accumulator_ns -= FIXED_INTERVAL_NS;
 				_world->tick(ws, dt_seconds);
 #ifdef SFG_TOOLMODE
-				if (_editor)
-					_editor->on_tick(dt_seconds);
+				_editor->on_tick(dt_seconds);
 #endif
 				ticks++;
 			}
 
 			const double interpolation = static_cast<double>(accumulator_ns) / static_cast<double>(FIXED_INTERVAL_NS);
-#ifdef SFG_TOOLMODE
-			if (_editor)
-				_editor->on_post_tick(interpolation);
-#endif
+
 			_world->post_tick(interpolation);
+
+#ifdef SFG_TOOLMODE
+			_editor->on_post_tick(interpolation);
+#endif
+
 			_render_stream.publish();
 			_renderer->tick();
 			frame_info::s_frame.fetch_add(1);
@@ -254,8 +252,8 @@ namespace SFG
 			return;
 
 #ifdef SFG_TOOLMODE
-		if (_editor)
-			_editor->on_window_event(ev);
+		if (_editor->on_window_event(ev))
+			return;
 #endif
 
 		_world->on_window_event(ev);
@@ -310,14 +308,13 @@ namespace SFG
 #endif
 
 #ifdef SFG_TOOLMODE
-			if (_editor)
-				_editor->on_pre_render(screen_size);
+			_editor->on_pre_render(screen_size);
 #endif
 			_world->pre_render(screen_size);
 			_renderer->render(_render_stream, screen_size);
+
 #ifdef SFG_TOOLMODE
-			if (_editor)
-				_editor->on_render();
+			_editor->on_render();
 #endif
 			frame_info::s_render_frame.fetch_add(1);
 

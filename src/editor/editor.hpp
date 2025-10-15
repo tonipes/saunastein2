@@ -10,10 +10,6 @@ namespace SFG
 	class game_app;
 	struct window_event;
 
-	/**
-	 * High level entry point for editor-only features.
-	 * Receives mirrors of the main game lifecycle and owns editor specific systems.
-	 */
 	class editor
 	{
 	public:
@@ -26,7 +22,7 @@ namespace SFG
 		void on_post_tick(double interpolation);
 		void on_pre_render(const vector2ui16& size);
 		void on_render();
-		void on_window_event(const window_event& ev);
+		bool on_window_event(const window_event& ev);
 
 	private:
 		void create_default_camera();

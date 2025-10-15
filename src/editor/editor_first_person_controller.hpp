@@ -12,14 +12,10 @@ namespace SFG
 	class world;
 	class window;
 
-	/**
-	 * Simple first person fly controller used for editor camera navigation.
-	 * Listens to window events, tracks the relevant key state and applies movement every tick.
-	 */
 	class editor_first_person_controller
 	{
 	public:
-		void init(world& world, world_handle entity, window* win);
+		void init(world& world, world_handle entity, window* wnd);
 		void uninit();
 
 		void on_window_event(const window_event& ev);
@@ -35,16 +31,16 @@ namespace SFG
 		void apply_movement(float dt_seconds);
 
 	private:
+		window*				  _window			 = nullptr;
 		world*				  _world			 = nullptr;
 		world_handle		  _entity			 = {};
 		std::array<bool, 512> _key_states		 = {};
 		vector2				  _mouse_delta		 = vector2::zero;
 		float				  _yaw_degrees		 = 0.0f;
 		float				  _pitch_degrees	 = 0.0f;
-		float				  _move_speed		 = 6.0f;
-		float				  _boost_multiplier	 = 4.0f;
+		float				  _move_speed		 = 12.0f;
+		float				  _boost_multiplier	 = 8.0f;
 		float				  _mouse_sensitivity = 0.08f;
 		bool				  _is_looking		 = false;
-		window*				  _window			 = nullptr;
 	};
 }

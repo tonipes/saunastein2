@@ -19,12 +19,15 @@ namespace SFG
 
 	enum window_flags
 	{
-		wf_size_dirty		= 1 << 0,
-		wf_has_focus		= 1 << 1,
-		wf_high_freq		= 1 << 2,
-		wf_close_requested	= 1 << 3,
-		wf_style_windowed	= 1 << 4,
-		wf_style_borderless = 1 << 5,
+		wf_size_dirty			   = 1 << 0,
+		wf_has_focus			   = 1 << 1,
+		wf_high_freq			   = 1 << 2,
+		wf_close_requested		   = 1 << 3,
+		wf_style_windowed		   = 1 << 4,
+		wf_style_borderless		   = 1 << 5,
+		wf_cursor_hidden		   = 1 << 6,
+		wf_cursor_confined_window  = 1 << 7,
+		wf_cursor_confined_pointer = 1 << 8,
 	};
 
 	enum window_event_flags
@@ -45,6 +48,13 @@ namespace SFG
 		press,
 		release,
 		repeat,
+	};
+
+	enum class cursor_confinement : uint8
+	{
+		none,
+		window,
+		pointer,
 	};
 
 	struct window_event
