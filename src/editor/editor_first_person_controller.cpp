@@ -153,8 +153,8 @@ namespace SFG
 		if (_mouse_delta.is_zero())
 			return;
 
-		_yaw_degrees += _mouse_delta.x * _mouse_sensitivity;
-		_pitch_degrees += _mouse_delta.y * _mouse_sensitivity;
+		_yaw_degrees -= _mouse_delta.x * _mouse_sensitivity;
+		_pitch_degrees -= _mouse_delta.y * _mouse_sensitivity;
 		_pitch_degrees = math::clamp(_pitch_degrees, -89.0f, 89.0f);
 
 		entity_manager& manager = _world->get_entity_manager();

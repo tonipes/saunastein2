@@ -10,17 +10,17 @@ namespace SFG
 
 	vector3 quat::get_right() const
 	{
-		return (*this) * vector3(1.0f, 0.0f, 0.0f);
+		return (*this) * vector3::right;
 	}
 
 	vector3 quat::get_up() const
 	{
-		return (*this) * vector3(0.0f, 1.0f, 0.0f);
+		return (*this) * vector3::up;
 	}
 
 	vector3 quat::get_forward() const
 	{
-		return (*this) * vector3(0.0f, 0.0f, 1.0f);
+		return (*this) * vector3::forward;
 	}
 
 	quat quat::conjugate() const
