@@ -155,6 +155,17 @@ src/vendor/miniaudio/*.h
 src/sfg_api.hpp
 )
 
+if (TOOLMODE)
+file(GLOB EDITOR_SOURCES
+src/editor/*.cpp
+)
+file(GLOB EDITOR_HEADERS
+src/editor/*.hpp
+)
+list(APPEND SOURCES ${EDITOR_SOURCES})
+list(APPEND HEADERS ${EDITOR_HEADERS})
+endif()
+
 if(WIN32)
 file(GLOB_RECURSE SHADERS
 assets/engine/shaders/*.hlsl

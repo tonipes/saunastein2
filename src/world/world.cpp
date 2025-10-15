@@ -30,9 +30,7 @@ using json = nlohmann::json;
 #include "resources/model_node.hpp"
 #include "resources/primitive.hpp"
 #include "traits/trait_mesh_instance.hpp"
-#include "traits/trait_camera.hpp"
 #include "math/math.hpp"
-#include "math/random.hpp"
 
 namespace SFG
 {
@@ -76,8 +74,8 @@ namespace SFG
 		debug_console::get()->unregister_console_function("world_set_play");
 		_flags.remove(world_flags_is_init);
 	}
-	world_handle cam_entity = {};
-	void		 world::load_debug()
+
+	void world::load_debug()
 	{
 		const int64 mr_begin = time::get_cpu_microseconds();
 
@@ -88,29 +86,6 @@ namespace SFG
 
 		const int64 mr_diff = time::get_cpu_microseconds() - mr_begin;
 		SFG_INFO("Resources took: {0} ms", mr_diff / 1000);
-
-		// Camera
-		cam_entity					  = _entity_manager.create_entity("camera");
-		const world_handle cam_handle = _entity_manager.add_trait<trait_camera>(cam_entity);
-		trait_camera&	   trait_cam  = _entity_manager.get_trait<trait_camera>(cam_handle);
-		trait_cam.set_values(*this, 0.01f, 500.0f, 90.0f);
-		trait_cam.set_main(*this);
-		_entity_manager.set_entity_position(cam_entity, vector3(0, 0.5f, -27.5f));
-		_entity_manager.set_entity_rotation(cam_entity, quat::identity);
-
-		// Model test
-
-		for (uint32 i = 0; i < 15; i++)
-		{
-			const resource_handle boombox		 = _resources.get_resource_handle_by_hash<model>(TO_SIDC("assets/boombox/boombox.stkmodel"));
-			const world_handle	  boombox_entity = add_model_to_world(boombox, nullptr, 0);
-			const float			  x				 = (random::random_01() * 2.0f) - 1.0f;
-			const float			  y				 = (random::random_01() * 2.0f) - 1.0f;
-			const float			  z				 = 0.0f;
-			_entity_manager.set_entity_position(boombox_entity, vector3(x * 5.0f, y * 5.0f, z * 5.0f));
-			//_entity_manager.set_entity_position(boombox_entity, vector3::zero);
-			//_entity_manager.set_entity_rotation(boombox_entity, quat::identity);
-		}
 	}
 
 	void world::create_from_raw(world_raw& raw)
@@ -123,9 +98,6 @@ namespace SFG
 	void world::tick(const vector2ui16& res, float dt)
 	{
 		_resources.tick();
-		static float acc = 0.0f;
-		_entity_manager.set_entity_position(cam_entity, vector3(math::sin(acc) * 5.0f, 0.0f, -10.0f));
-		acc += dt;
 	}
 
 	void world::post_tick(double interpolation)

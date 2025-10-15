@@ -139,11 +139,13 @@ namespace SFG
 
 		template <typename T> void remove_trait(world_handle handle)
 		{
-			pool_allocator32& storage = _traits[type_id<T>::index].storage;
+			auto idx = type_id<T>::index;
+			SFG_ASSERT(idx < _traits.size());
+			pool_allocator32& storage = _traits[idx].storage;
 			T&				  tr	  = storage.get<T>(handle);
 			tr.on_remove(_world);
 			tr.~T();
-			storage.free(handle);
+			storage.free<T>(handle);
 		}
 
 		inline chunk_allocator32& get_traits_aux_memory()

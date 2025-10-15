@@ -18,6 +18,8 @@ namespace SFG
 		typedef phmap::flat_hash_map<uint16, uint8, phmap::priv::hash_default_hash<uint16>, phmap::priv::hash_default_eq<uint16>, malloc_allocator_map<uint16>> map;
 
 	public:
+		typedef std::function<void(const window_event& ev)> event_callback;
+
 		bool create(const char* title, uint8 flags, const vector2i16& pos, const vector2ui16& size);
 		void destroy();
 		void set_position(const vector2i16& pos);
@@ -42,20 +44,8 @@ namespace SFG
 		{
 			return _platform_handle;
 		}
-		inline window_event* get_events()
-		{
-			return _events;
-		}
-		inline uint32 get_event_count() const
-		{
-			return _event_count;
-		}
-		inline void clear_events()
-		{
-			_event_count = 0;
-		}
 
-		inline bitmask<uint8>& get_flags()
+		inline const bitmask<uint8>& get_flags() const
 		{
 			return _flags;
 		}
@@ -65,21 +55,30 @@ namespace SFG
 			return _monitor_info;
 		}
 
+		inline void set_event_callback(event_callback&& cb)
+		{
+			_event_callback = std::move(cb);
+		}
+
+		inline void set_size_dirty(bool dirty)
+		{
+			_flags.set(window_flags::wf_size_dirty, dirty);
+		}
+
 #ifdef SFG_PLATFORM_WINDOWS
 		static __int64 wnd_proc(HWND__* hwnd, unsigned int msg, unsigned __int64 wParam, __int64 lParam);
 #endif
 
 	private:
-		window_event   _events[MAX_EVENTS];
 		monitor_info   _monitor_info	   = {};
 		void*		   _window_handle	   = nullptr;
 		void*		   _platform_handle	   = nullptr;
+		event_callback _event_callback	   = nullptr;
 		vector2i16	   _mouse_position	   = vector2i16::zero;
 		vector2i16	   _mouse_position_abs = vector2i16::zero;
 		vector2i16	   _position		   = vector2i16::zero;
 		vector2ui16	   _true_size		   = vector2ui16::zero;
 		vector2ui16	   _size			   = vector2ui16::zero;
-		uint32		   _event_count		   = 0;
 		bitmask<uint8> _flags			   = 0;
 		static map	   s_key_down_map;
 	};

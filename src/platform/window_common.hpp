@@ -1,5 +1,5 @@
 // Copyright (c) 2025 Inan Evin
-
+#pragma once
 #include "common/size_definitions.hpp"
 #include "math/vector2i16.hpp"
 #include "math/vector2ui16.hpp"

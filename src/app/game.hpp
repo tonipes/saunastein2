@@ -14,6 +14,7 @@ namespace SFG
 	struct window_event;
 	class world;
 	class renderer;
+	class editor;
 
 	class game_app
 	{
@@ -43,6 +44,21 @@ namespace SFG
 			return _main_window;
 		}
 
+		inline window* get_window() const
+		{
+			return _main_window;
+		}
+
+		inline renderer* get_renderer() const
+		{
+			return _renderer;
+		}
+
+		inline world* get_world() const
+		{
+			return _world;
+		}
+
 	private:
 		void kick_off_render();
 		void render_loop();
@@ -58,5 +74,8 @@ namespace SFG
 		atomic<uint8>		_should_close;
 		atomic<uint8>		_render_joined;
 		bitmask<uint8>		_flags = 0;
+#ifdef SFG_TOOLMODE
+		editor* _editor = nullptr;
+#endif
 	};
 }

@@ -604,7 +604,8 @@ namespace SFG
 
 	void window::add_event(const window_event& ev)
 	{
-		_events[_event_count] = ev;
-		_event_count		  = (_event_count + 1) % MAX_EVENTS;
+		if (!_event_callback)
+			return;
+		_event_callback(ev);
 	}
 }

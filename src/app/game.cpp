@@ -16,6 +16,7 @@
 #ifdef SFG_TOOLMODE
 #include "io/file_system.hpp"
 #include "project/engine_data.hpp"
+#include "editor/editor.hpp"
 #endif
 
 namespace SFG
@@ -34,7 +35,8 @@ namespace SFG
 		_world = new world(_render_stream);
 
 		_main_window = new window();
-		_main_window->create("Game", window_flags::wf_style_windowed, vector2i16(0, 0), render_target_size);
+		_main_window->create("Game", window_flags::wf_style_windowed | window_flags::wf_high_freq, vector2i16(0, 0), render_target_size);
+		_main_window->set_event_callback(std::bind(&game_app::on_window_event, this, std::placeholders::_1));
 		_window_size = render_target_size;
 
 		vector<monitor_info> out_infos;
@@ -110,6 +112,11 @@ namespace SFG
 		_world->load_debug();
 		/*************** DEBUG *************/
 
+#ifdef SFG_TOOLMODE
+		_editor = new editor(*this);
+		_editor->on_init();
+#endif
+
 		_render_joined.store(1);
 		kick_off_render();
 
@@ -119,6 +126,14 @@ namespace SFG
 	void game_app::uninit()
 	{
 		frame_info::s_is_render_active = false;
+#ifdef SFG_TOOLMODE
+		if (_editor)
+		{
+			_editor->on_uninit();
+			delete _editor;
+			_editor = nullptr;
+		}
+#endif
 		_world->uninit();
 		delete _world;
 
@@ -160,10 +175,7 @@ namespace SFG
 
 			process::pump_os_messages();
 
-			const uint32	  event_count  = _main_window->get_event_count();
-			bitmask<uint8>&	  window_flags = _main_window->get_flags();
-			window_event*	  events	   = _main_window->get_events();
-			const vector2ui16 ws		   = _main_window->get_size();
+			const bitmask<uint8>& window_flags = _main_window->get_flags();
 
 			if (window_flags.is_set(window_flags::wf_close_requested))
 			{
@@ -171,17 +183,11 @@ namespace SFG
 				break;
 			}
 
-			for (uint32 i = 0; i < event_count; i++)
-			{
-				const window_event& ev = events[i];
-				on_window_event(ev);
-			}
-
-			_main_window->clear_events();
+			const vector2ui16 ws = _main_window->get_size();
 
 			if (window_flags.is_set(window_flags::wf_size_dirty))
 			{
-				window_flags.remove(window_flags::wf_size_dirty);
+				_main_window->set_size_dirty(false);
 				join_render();
 				_renderer->on_window_resize(ws);
 				_window_size = ws;
@@ -199,42 +205,58 @@ namespace SFG
 			{
 				accumulator_ns -= FIXED_INTERVAL_NS;
 				_world->tick(ws, dt_seconds);
+#ifdef SFG_TOOLMODE
+				if (_editor)
+					_editor->on_tick(dt_seconds);
+#endif
 				ticks++;
 			}
 
 			const double interpolation = static_cast<double>(accumulator_ns) / static_cast<double>(FIXED_INTERVAL_NS);
+#ifdef SFG_TOOLMODE
+			if (_editor)
+				_editor->on_post_tick(interpolation);
+#endif
 			_world->post_tick(interpolation);
 			_render_stream.publish();
 			_renderer->tick();
 			frame_info::s_frame.fetch_add(1);
 
-			if (ticks == 0)
-			{
-				const int64 remaining_ns = FIXED_INTERVAL_NS - accumulator_ns;
-				if (remaining_ns > 0)
-				{
-					constexpr int64 MAX_SLEEP_US = 2000;
-					int64			sleep_us	 = remaining_ns / 1000;
-					if (sleep_us > MAX_SLEEP_US)
-						sleep_us = MAX_SLEEP_US;
-
-					if (sleep_us > 0)
-						time::throttle(sleep_us);
-					else
-						time::yield_thread();
-				}
-				else
-				{
-					time::yield_thread();
-				}
-			}
+			// if (ticks == 0)
+			//{
+			//	const int64 remaining_ns = FIXED_INTERVAL_NS - accumulator_ns;
+			//	if (remaining_ns > 0)
+			//	{
+			//		constexpr int64 MAX_SLEEP_US = 2000;
+			//		int64			sleep_us	 = remaining_ns / 1000;
+			//		if (sleep_us > MAX_SLEEP_US)
+			//			sleep_us = MAX_SLEEP_US;
+			//
+			//		if (sleep_us > 0)
+			//			time::throttle(sleep_us);
+			//		else
+			//			time::yield_thread();
+			//	}
+			//	else
+			//	{
+			//		time::yield_thread();
+			//	}
+			// }
 		}
 	}
 
 	void game_app::on_window_event(const window_event& ev)
 	{
+		if (!_main_window->get_flags().is_set(window_flags::wf_has_focus))
+			return;
+
 		if (_renderer->on_window_event(ev))
 			return;
+
+#ifdef SFG_TOOLMODE
+		if (_editor)
+			_editor->on_window_event(ev);
+#endif
 
 		_world->on_window_event(ev);
 	}
@@ -287,8 +309,16 @@ namespace SFG
 			previous_time			 = current_time;
 #endif
 
+#ifdef SFG_TOOLMODE
+			if (_editor)
+				_editor->on_pre_render(screen_size);
+#endif
 			_world->pre_render(screen_size);
 			_renderer->render(_render_stream, screen_size);
+#ifdef SFG_TOOLMODE
+			if (_editor)
+				_editor->on_render();
+#endif
 			frame_info::s_render_frame.fetch_add(1);
 
 #ifndef SFG_PRODUCTION
