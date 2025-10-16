@@ -1543,21 +1543,31 @@ namespace SFG
 		const wchar_t* include_path = string_util::char_to_wchar(source_path);
 
 		auto compile = [&](const wchar_t* target_profile, const wchar_t* target_entry, span<uint8>& out, bool root_sig) -> bool {
-			vector<LPCWSTR> arguments = {L"-T", target_profile, L"-E", target_entry, DXC_ARG_WARNINGS_ARE_ERRORS, L"-HV 2021", L"-I", include_path};
+			std::vector<std::wstring> arg_storage;
+			std::vector<LPCWSTR>	  arguments = {L"-T",
+												   target_profile,
+												   L"-E",
+												   target_entry,
+												   DXC_ARG_WARNINGS_ARE_ERRORS,
+												   L"-HV",
+												   L"2021",
+												   L"-I",
+												   include_path,
 #ifdef SFG_DEBUG
-			arguments.push_back(DXC_ARG_DEBUG);
-			arguments.push_back(DXC_ARG_PREFER_FLOW_CONTROL);
-			arguments.push_back(DXC_ARG_SKIP_OPTIMIZATIONS);
+											  DXC_ARG_DEBUG,
+											  DXC_ARG_PREFER_FLOW_CONTROL,
+											  DXC_ARG_SKIP_OPTIMIZATIONS
 #else
-			arguments.push_back(L"-Qstrip_debug");
-			arguments.push_back(L"-Qstrip_reflect");
-			arguments.push_back(DXC_ARG_OPTIMIZATION_LEVEL3);
+											  L"-Qstrip_debug",
+											  L"-Qstrip_reflect",
+											  DXC_ARG_OPTIMIZATION_LEVEL3
 #endif
+			};
 
 			for (const auto& def : defines)
 			{
-				std::wstring wstr = L"-D" + string_util::to_wstr(def);
-				arguments.push_back(wstr.c_str());
+				arg_storage.emplace_back(L"-D" + string_util::to_wstr(def));
+				arguments.push_back(arg_storage.back().c_str());
 			}
 
 			ComPtr<IDxcIncludeHandler> include_handler;

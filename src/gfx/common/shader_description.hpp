@@ -163,6 +163,8 @@ namespace SFG
 		ccf_green = 1 << 1,
 		ccf_blue  = 1 << 2,
 		ccf_alpha = 1 << 3,
+		ccf_rgb	  = ccf_red | ccf_green | ccf_blue,
+		ccf_rgba  = ccf_red | ccf_green | ccf_blue | ccf_alpha,
 	};
 
 	struct color_blend_attachment

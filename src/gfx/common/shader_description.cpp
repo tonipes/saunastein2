@@ -560,7 +560,7 @@ namespace SFG
 		att.dst_alpha_blend_factor = j.value("dst_alpha_blend_factor", att.dst_alpha_blend_factor);
 		att.alpha_blend_op		   = j.value("alpha_blend_op", att.alpha_blend_op);
 
-		const uint8 color	 = j.value<uint8>("color_comp_flags", 0);
+		const uint8 color	 = j.value<uint8>("color_comp_flags", color_comp_flags::ccf_rgba);
 		att.color_comp_flags = color;
 	}
 

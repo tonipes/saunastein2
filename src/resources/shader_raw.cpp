@@ -68,10 +68,10 @@ namespace SFG
 
 			for (const string& def : defines)
 			{
-				if (def.compare("USE_SKINNING"))
+				if (def.compare("USE_SKINNING") == 0)
 					is_skinned = 1;
 
-				if (def.compare("USE_DISCARD"))
+				if (def.compare("USE_DISCARD") == 0)
 					is_discard = 1;
 			}
 
@@ -85,15 +85,15 @@ namespace SFG
 				SFG_ERR("File don't exist! {0}", path);
 				return false;
 			}
-
 			const string shader_text = file_system::read_file_as_string(full_source.c_str());
 			if (shader_text.empty())
 				return false;
 
-			desc.blobs = {
-				{.stage = shader_stage::vertex},
-				{.stage = shader_stage::fragment},
-			};
+			desc.debug_name = name;
+			desc.blobs		= {
+				 {.stage = shader_stage::vertex},
+				 {.stage = shader_stage::fragment},
+			 };
 
 			if (use_embedded_layout)
 				desc.flags.set(shader_flags::shf_use_embedded_layout);
