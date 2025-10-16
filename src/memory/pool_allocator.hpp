@@ -96,10 +96,14 @@ namespace SFG
 
 		template <typename T> inline void free(pool_handle<SIZE_TYPE> handle)
 		{
-			SFG_ASSERT(is_valid(handle));
-
 			T& t = get<T>(handle);
 			t.~T();
+			free_no_destruct(handle);
+		}
+
+		inline void free_no_destruct(pool_handle<SIZE_TYPE> handle)
+		{
+			SFG_ASSERT(is_valid(handle));
 
 			SIZE_TYPE* generations	= get_generations();
 			SIZE_TYPE* free_indices = get_free_indices();
@@ -111,11 +115,8 @@ namespace SFG
 			_free_count++;
 		}
 
-		template <typename T> pool_handle<SIZE_TYPE> allocate()
+		pool_handle<SIZE_TYPE> allocate_no_construct()
 		{
-			const size_t aligned = (sizeof(T) + alignof(T) + 1) & ~(alignof(T) - 1);
-			SFG_ASSERT(aligned == static_cast<size_t>(_item_size_aligned));
-
 			SIZE_TYPE index = 0;
 
 			if (_free_count != 0)
@@ -134,11 +135,20 @@ namespace SFG
 			uint8* actives = get_actives();
 			actives[index] = 1;
 
-			T& data = *(reinterpret_cast<T*>(_raw + static_cast<size_t>(_item_size_aligned) * index));
-			data	= T();
-
 			SIZE_TYPE* generations = get_generations();
 			return {.generation = generations[index], .index = index};
+		}
+
+		template <typename T> pool_handle<SIZE_TYPE> allocate()
+		{
+			const size_t aligned = (sizeof(T) + alignof(T) + 1) & ~(alignof(T) - 1);
+			SFG_ASSERT(aligned == static_cast<size_t>(_item_size_aligned));
+
+			const auto handle = allocate_no_construct();
+			T&		   data	  = *(reinterpret_cast<T*>(_raw + static_cast<size_t>(_item_size_aligned) * handle.index));
+			data			  = T();
+
+			return handle;
 		}
 
 		template <typename T> inline T& get(pool_handle<SIZE_TYPE> handle) const

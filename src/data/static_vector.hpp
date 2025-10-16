@@ -148,6 +148,16 @@ namespace SFG
 			remove_index(idx);
 		}
 
+		void remove_swap(const T& value)
+		{
+			auto end = begin() + _head;
+			auto it	 = std::find(begin(), end, value);
+			SFG_ASSERT(it != end);
+
+			const size_t idx = it - begin();
+			remove_index_swap(idx);
+		}
+
 		template <typename Pred> void remove_if(Pred pred)
 		{
 			auto end = begin() + _head;
@@ -158,11 +168,31 @@ namespace SFG
 			remove_index(idx);
 		}
 
+		template <typename Pred> void remove_if_swap(Pred pred)
+		{
+			auto end = begin() + _head;
+			auto it	 = std::find_if(begin(), end, pred);
+			SFG_ASSERT(it != end);
+
+			const size_t idx = it - begin();
+			remove_index_swap(idx);
+		}
+
 		void remove_index(size_t idx)
 		{
 			SFG_ASSERT(idx < _head);
 			for (size_t i = idx; i < _head - 1; i++)
 				_data[i] = _data[i + 1];
+			_head--;
+		}
+
+		void remove_index_swap(size_t idx)
+		{
+			SFG_ASSERT(idx < _head);
+
+			if (idx < _head - 1)
+				_data[idx] = _data[_head - 1];
+
 			_head--;
 		}
 

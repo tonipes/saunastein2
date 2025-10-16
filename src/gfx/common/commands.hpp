@@ -68,9 +68,9 @@ namespace SFG
 		uint8	 clear_stencil	  = 0;
 		float	 clear_depth	  = 1.0f;
 		load_op	 depth_load_op	  = load_op::clear;
-		load_op	 stencil_load_op  = load_op::clear;
+		load_op	 stencil_load_op  = load_op::none;
 		store_op depth_store_op	  = store_op::dont_care;
-		store_op stencil_store_op = store_op::dont_care;
+		store_op stencil_store_op = store_op::none;
 		uint8	 view_index		  = 0;
 	};
 

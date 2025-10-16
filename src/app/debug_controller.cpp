@@ -436,24 +436,24 @@ namespace SFG
 
 			pfd.buf_gui_vtx.create_staging_hw(
 				{
-					.size		= sizeof(vekt::vertex) * 14000,
+					.size		= sizeof(vekt::vertex) * 240000,
 					.flags		= resource_flags::rf_vertex_buffer | resource_flags::rf_cpu_visible,
 					.debug_name = "gui_vertex_stg",
 				},
 				{
-					.size		= sizeof(vekt::vertex) * 14000,
+					.size		= sizeof(vekt::vertex) * 240000,
 					.flags		= resource_flags::rf_vertex_buffer | resource_flags::rf_gpu_only,
 					.debug_name = "gui_vertex_gpu",
 				});
 
 			pfd.buf_gui_idx.create_staging_hw(
 				{
-					.size		= sizeof(vekt::index) * 24000,
+					.size		= sizeof(vekt::index) * 320000,
 					.flags		= resource_flags::rf_index_buffer | resource_flags::rf_cpu_visible,
 					.debug_name = "gui_index_stg",
 				},
 				{
-					.size		= sizeof(vekt::index) * 24000,
+					.size		= sizeof(vekt::index) * 320000,
 					.flags		= resource_flags::rf_index_buffer | resource_flags::rf_gpu_only,
 					.debug_name = "gui_index_gpu",
 				});
@@ -989,7 +989,7 @@ namespace SFG
 
 		_input_field.scroll_amt = 0.0f;
 
-		if (_vekt_data.console_texts.size() == MAX_CONSOLE_TEXT)
+		if (_vekt_data.console_texts.size() == MAX_CONSOLE_TEXT - 1)
 		{
 			vekt::id		  t	 = _vekt_data.console_texts[0];
 			vekt::text_props& tp = _vekt_data.builder->widget_get_text(t);
@@ -998,6 +998,10 @@ namespace SFG
 			_vekt_data.builder->deallocate(t);
 			_vekt_data.console_texts.erase(_vekt_data.console_texts.begin());
 		}
+
+		const char* allocated = _text_allocator.allocate(text);
+		if (!allocated)
+			return;
 
 		vekt::id w = _vekt_data.builder->allocate();
 		_vekt_data.builder->widget_set_pos(w, vector2(0.0f, 0.0f));
@@ -1022,7 +1026,7 @@ namespace SFG
 		}
 
 		vekt::text_props& tp = _vekt_data.builder->widget_get_text(w);
-		tp.text				 = _text_allocator.allocate(text);
+		tp.text				 = allocated;
 		tp.font				 = _vekt_data.font_debug;
 		_vekt_data.builder->widget_update_text(w);
 		_vekt_data.builder->widget_add_child(_vekt_data.widget_console_bg, w);

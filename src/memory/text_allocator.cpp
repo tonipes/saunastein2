@@ -75,7 +75,8 @@ namespace SFG
 			}
 		}
 
-		SFG_ASSERT(_head + len + 1 < _capacity);
+		if (_head + len + 1 >= _capacity)
+			return nullptr;
 
 		char* allocated = &_raw[_head];
 		std::strcpy(allocated, text);

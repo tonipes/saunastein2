@@ -33,6 +33,7 @@ namespace SFG
 	class texture_sampler;
 	class mesh;
 	class render_event_stream;
+	class meta;
 
 	class world_resources
 	{
@@ -61,6 +62,8 @@ namespace SFG
 		void load_resources(const vector<string>& relative_paths, bool skip_cache = false);
 		void add_resource_watch(resource_handle base_handle, const char* relative_path, const vector<string>& dependencies, string_id type);
 		void on_watched_resource_modified(const char* path, uint64 last_modified, uint16 id);
+		void save_to_cache(meta* reflection_meta, void* loader, const char* relative_path);
+		bool load_from_cache(meta* reflection_meta, void*& loader, const char* relative_path);
 #endif
 
 		void load_resources(istream& in);

@@ -165,12 +165,14 @@ namespace SFG
 	{
 		SFG_INFO("renderer::wait_backend() - frame: {0}", frame_info::s_render_frame);
 
-		gfx_backend* backend = gfx_backend::get();
+		gfx_backend* backend   = gfx_backend::get();
+		const gfx_id queue_gfx = backend->get_queue_gfx();
 
 		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
 			per_frame_data& pfd = _pfd[i];
 			backend->wait_semaphore(pfd.sem_frame.semaphore, pfd.sem_frame.value);
+			_proxy_manager.flush_material_updates(i);
 		}
 
 		_proxy_manager.flush_destroys(true);
@@ -207,6 +209,7 @@ namespace SFG
 
 		_proxy_manager.fetch_render_events(stream);
 		_proxy_manager.flush_destroys(false);
+		_proxy_manager.flush_material_updates(frame_index);
 
 		/* access pfd */
 		const gfx_id cmd_list		  = pfd.cmd_gfx;

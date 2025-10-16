@@ -27,6 +27,7 @@ namespace SFG
 
 		_node_index = raw.node_index;
 		_skin_index = raw.skin_index;
+		_sid		= raw.sid;
 
 		render_event_mesh ev  = {};
 		ev.primitives_static  = raw.primitives_static;
@@ -57,5 +58,7 @@ namespace SFG
 			.index		= static_cast<uint32>(handle.index),
 			.event_type = render_event_type::render_event_destroy_mesh,
 		});
+
+		_node_index = _skin_index = _sid = 0;
 	}
 }

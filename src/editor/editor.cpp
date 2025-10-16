@@ -6,7 +6,7 @@
 #include "world/world.hpp"
 #include "world/entity_manager.hpp"
 #include "world/traits/trait_camera.hpp"
-#include "world/traits/trait_mesh_instance.hpp"
+#include "world/traits/trait_model_instance.hpp"
 #include "world/world_resources.hpp"
 #include "resources/model.hpp"
 #include "platform/window.hpp"
@@ -75,7 +75,7 @@ namespace SFG
 		cam_trait.set_values(w, 0.01f, 500.0f, 45.0f);
 		cam_trait.set_main(w);
 
-		em.set_entity_position(_camera_entity, vector3(0.0f, 0.5f, -27.5f));
+		em.set_entity_position(_camera_entity, vector3(0.0f, 0.5f, 27.5f));
 		em.set_entity_rotation(_camera_entity, quat::identity);
 
 		window* main_window = _game.get_main_window();
@@ -94,14 +94,16 @@ namespace SFG
 
 		if (!resources.is_valid<model>(boombox))
 			return;
+		entity_manager& em = w.get_entity_manager();
 
-		_demo_model_root = w.add_model_to_world(boombox, nullptr, 0);
-		if (!_demo_model_root.is_null())
-		{
-			entity_manager& em = w.get_entity_manager();
-			em.set_entity_position(_demo_model_root, vector3::zero);
-			em.set_entity_rotation(_demo_model_root, quat::identity);
-		}
+		_demo_model_root = em.create_entity("boombox_root");
+		em.set_entity_position(_demo_model_root, vector3::zero);
+		em.set_entity_rotation(_demo_model_root, quat::identity);
+
+		const world_handle	  model_inst_handle = em.add_trait<trait_model_instance>(_demo_model_root);
+		trait_model_instance& mi				= em.get_trait<trait_model_instance>(model_inst_handle);
+		mi.set_model(boombox);
+		mi.instantiate_model_to_world(w, boombox);
 	}
 
 	void editor::destroy_demo_content()

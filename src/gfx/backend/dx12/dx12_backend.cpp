@@ -2005,7 +2005,7 @@ namespace SFG
 		dh.gpu				   = res.ptr->GetResource()->GetGPUVirtualAddress();
 	}
 
-	void dx12_backend::bind_group_update_pointer(gfx_id id, uint8 binding_index, const vector<bind_group_pointer>& updates)
+	void dx12_backend::bind_group_update_pointer(gfx_id id, uint8 binding_index, const bind_group_pointer* updates, uint16 update_count)
 	{
 		VERIFY_RENDER_NOT_RUNNING_OR_RENDER_THREAD();
 
@@ -2019,8 +2019,9 @@ namespace SFG
 
 		descriptor_handle& binding_dh = _descriptors.get(binding.descriptor_index);
 
-		for (const bind_group_pointer& p : updates)
+		for (uint8 i = 0; i < update_count; i++)
 		{
+			const bind_group_pointer& p = updates[i];
 			if (p.type == binding_type::texture_binding)
 			{
 				const texture& txt = _textures.get(p.resource);
@@ -2057,6 +2058,11 @@ namespace SFG
 
 		if (descriptor_count_sampler != 0)
 			_device->CopyDescriptors(descriptor_count_sampler, _reuse_dest_descriptors_sampler.data(), NULL, descriptor_count_sampler, _reuse_src_descriptors_sampler.data(), NULL, D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
+	}
+
+	void dx12_backend::bind_group_update_pointer(gfx_id group, uint8 binding_index, const vector<bind_group_pointer>& updates)
+	{
+		bind_group_update_pointer(group, binding_index, updates.data(), static_cast<uint16>(updates.size()));
 	}
 
 	void dx12_backend::destroy_bind_group(gfx_id id)

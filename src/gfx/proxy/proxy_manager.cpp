@@ -32,7 +32,10 @@ namespace SFG
 		_cameras.init(MAX_ENTITIES);
 
 		for (uint8 i = 0; i < BACK_BUFFER_COUNT + 1; i++)
+		{
 			_destroy_bucket[i].list.reserve(1000);
+			_material_update_buckets[i].updates.reserve(256);
+		}
 
 		_aux_memory.init(1024 * 1024 * 2);
 	}
@@ -120,6 +123,39 @@ namespace SFG
 		}
 	}
 
+	void proxy_manager::flush_material_updates(uint8 frame_index)
+	{
+		material_update_bucket& bucket = _material_update_buckets[frame_index];
+		if (bucket.updates.empty())
+			return;
+
+		static_vector<bind_group_pointer, 8> updates;
+		gfx_backend*						 backend = gfx_backend::get();
+
+		for (const material_update& up : bucket.updates)
+		{
+			updates.resize(0);
+			render_proxy_material& mat = get_material(up.material_index);
+
+			const uint8 texture_count = static_cast<uint8>(mat.texture_handles.size());
+			for (uint8 k = 0; k < texture_count; k++)
+			{
+				const render_proxy_texture& txt = get_texture(mat.texture_handles[k]);
+				SFG_ASSERT(txt.status);
+
+				updates.push_back({
+					.resource	   = txt.hw,
+					.pointer_index = static_cast<uint8>(upi_material_texture0 + k),
+					.type		   = binding_type::texture_binding,
+				});
+			}
+
+			backend->bind_group_update_pointer(mat.bind_groups[frame_index], 0, updates.data(), static_cast<uint16>(updates.size()));
+		}
+
+		bucket.updates.resize(0);
+	}
+
 	void proxy_manager::flush_destroys(bool force)
 	{
 		gfx_backend* backend = gfx_backend::get();
@@ -144,6 +180,7 @@ namespace SFG
 
 		const world_id			index = header.index;
 		const render_event_type type  = header.event_type;
+
 		if (type == render_event_type::render_event_update_entity_transform)
 		{
 			render_event_entity_transform ev = {};
@@ -171,11 +208,14 @@ namespace SFG
 			ev.deserialize(stream);
 
 			render_proxy_mesh_instance& proxy = get_mesh_instance(index);
-			proxy.status					  = render_proxy_status::rps_active;
-			proxy.entity					  = ev.entity_index;
-			proxy.mesh						  = ev.mesh;
-			proxy.model						  = ev.model;
-			_mesh_instances_peak++;
+
+			if (proxy.status != render_proxy_status::rps_active)
+				_mesh_instances_peak++;
+
+			proxy.status = render_proxy_status::rps_active;
+			proxy.entity = ev.entity_index;
+			proxy.mesh	 = ev.mesh;
+			proxy.model	 = ev.model;
 		}
 		else if (type == render_event_type::render_event_remove_mesh_instance)
 		{
@@ -248,6 +288,33 @@ namespace SFG
 			render_proxy_texture& proxy = get_texture(index);
 			destroy_texture(proxy);
 		}
+		else if (type == render_event_type::render_event_reload_texture)
+		{
+			render_event_resource_reloaded ev = {};
+			ev.deserialize(stream);
+			for (uint32 i = 0; i < MAX_WORLD_MATERIALS; i++)
+			{
+				render_proxy_material& mat = _materials.get(i);
+				if (mat.status != render_proxy_status::rps_active)
+					continue;
+
+				bool changed = false;
+				for (resource_id& txt : mat.texture_handles)
+				{
+					if (txt == ev.prev_id)
+					{
+						changed = true;
+						txt		= ev.new_id;
+					}
+				}
+
+				if (!changed)
+					continue;
+
+				for (uint8 i = 0; i < BACK_BUFFER_COUNT; i++)
+					_material_update_buckets[i].updates.push_back({.material_index = i});
+			}
+		}
 		else if (type == render_event_type::render_event_create_sampler)
 		{
 			render_event_sampler ev = {};
@@ -301,6 +368,23 @@ namespace SFG
 		{
 			render_proxy_shader& proxy = get_shader(index);
 			destroy_shader(proxy);
+		}
+		else if (type == render_event_type::render_event_reload_shader)
+		{
+			render_event_resource_reloaded ev = {};
+			ev.deserialize(stream);
+			for (uint32 i = 0; i < MAX_WORLD_MATERIALS; i++)
+			{
+				render_proxy_material& mat = _materials.get(i);
+				if (mat.status != render_proxy_status::rps_active)
+					continue;
+
+				for (resource_id& shader : mat.shader_handles)
+				{
+					if (shader == ev.prev_id)
+						shader = ev.new_id;
+				}
+			}
 		}
 		else if (type == render_event_type::render_event_create_material)
 		{

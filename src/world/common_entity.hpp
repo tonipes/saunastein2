@@ -3,6 +3,8 @@
 #pragma once
 #include "common/size_definitions.hpp"
 #include "data/bitmask.hpp"
+#include "common/string_id.hpp"
+#include "data/static_vector.hpp"
 #include "world/world_constants.hpp"
 #undef max
 
@@ -31,5 +33,22 @@ namespace SFG
 		world_handle first_child  = {};
 		world_handle prev_sibling = {};
 		world_handle next_sibling = {};
+	};
+
+	struct entity_trait
+	{
+		string_id	 trait_type		  = 0;
+		uint32		 trait_type_index = 0;
+		world_handle trait_handle	  = {};
+
+		bool operator==(const entity_trait& other) const
+		{
+			return trait_type == other.trait_type && trait_type_index == other.trait_type_index && trait_handle == other.trait_handle;
+		}
+	};
+
+	struct entity_trait_register
+	{
+		static_vector<entity_trait, UINT8_MAX> traits;
 	};
 }

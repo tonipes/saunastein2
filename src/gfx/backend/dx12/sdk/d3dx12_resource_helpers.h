@@ -11,9 +11,9 @@
 #error D3DX12 requires C++
 #endif
 
+#include "d3dx12_property_format_table.h"
 #include "d3d12.h"
 #include "d3dx12_core.h"
-#include "d3dx12_property_format_table.h"
 //------------------------------------------------------------------------------------------------
 template <typename T, typename U, typename V> inline void D3D12DecomposeSubresource(UINT Subresource, UINT MipLevels, UINT ArraySize, _Out_ T& MipSlice, _Out_ U& ArraySlice, _Out_ V& PlaneSlice) noexcept
 {
@@ -362,11 +362,12 @@ template <typename T> inline T D3DX12AlignAtLeast(T uValue, T uAlign)
 	return aligned > uAlign ? aligned : uAlign;
 }
 
-inline const CD3DX12_RESOURCE_DESC1* D3DX12ConditionallyExpandAPIDesc(D3D12_RESOURCE_DESC1& LclDesc, const D3D12_RESOURCE_DESC1* pDesc)
+inline const CD3DX12_RESOURCE_DESC1* D3DX12ConditionallyExpandAPIDesc(D3D12_RESOURCE_DESC1& LclDesc, const D3D12_RESOURCE_DESC1* pDesc, const bool tightAlignmentSupported = false, const bool alignAsCommitted = false)
 {
-	return D3DX12ConditionallyExpandAPIDesc(static_cast<CD3DX12_RESOURCE_DESC1&>(LclDesc), static_cast<const CD3DX12_RESOURCE_DESC1*>(pDesc));
+	return D3DX12ConditionallyExpandAPIDesc(static_cast<CD3DX12_RESOURCE_DESC1&>(LclDesc), static_cast<const CD3DX12_RESOURCE_DESC1*>(pDesc), tightAlignmentSupported, alignAsCommitted);
 }
 
+#if defined(D3D12_SDK_VERSION) && (D3D12_SDK_VERSION >= 606)
 //------------------------------------------------------------------------------------------------
 // The difference between D3DX12GetCopyableFootprints and ID3D12Device::GetCopyableFootprints
 // is that this one loses a lot of error checking by assuming the arguments are correct
@@ -393,6 +394,12 @@ inline bool D3DX12GetCopyableFootprints(_In_ const D3D12_RESOURCE_DESC1&								
 
 	// Check if its a valid format
 	D3DX12_ASSERT(D3D12_PROPERTY_LAYOUT_FORMAT_TABLE::FormatExists(Format));
+
+	// D3DX12GetCopyableFootprints does not support buffers with width larger than UINT_MAX.
+	if (ResourceDesc.Dimension == D3D12_RESOURCE_DIMENSION_BUFFER && ResourceDesc.Width >= UINT_MAX)
+	{
+		return false;
+	}
 
 	const UINT	 WidthAlignment	 = D3D12_PROPERTY_LAYOUT_FORMAT_TABLE::GetWidthAlignment(Format);
 	const UINT	 HeightAlignment = D3D12_PROPERTY_LAYOUT_FORMAT_TABLE::GetHeightAlignment(Format);
@@ -557,3 +564,5 @@ inline bool D3DX12GetCopyableFootprints(_In_ const D3D12_RESOURCE_DESC&									
 									   pRowSizeInBytes,
 									   pTotalBytes);
 }
+
+#endif // D3D12_SDK_VERSION >= 606

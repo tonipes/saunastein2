@@ -49,6 +49,7 @@ namespace SFG
 		void				 on_add_render_proxy(world_handle entity);
 		void				 on_remove_render_proxy(world_handle entity);
 		void				 set_entity_visible(world_handle entity, bool is_visible);
+		void				 remove_all_entity_traits(world_handle entity);
 
 		/* ---------------- entity transforms ---------------- */
 		void			 set_entity_position(world_handle entity, const vector3& pos);
@@ -101,6 +102,9 @@ namespace SFG
 
 		/* ---------------- trait api ---------------- */
 
+		world_handle add_trait_reflected(string_id type_id, uint32 type_index, world_handle entity);
+		void		 remove_trait_reflected(string_id type_id, uint32 type_index, world_handle trait, world_handle entity);
+
 		template <typename T> void init_trait_storage(uint32 max_count)
 		{
 			auto idx = type_id<T>::index;
@@ -116,13 +120,26 @@ namespace SFG
 
 		template <typename T> world_handle add_trait(world_handle entity)
 		{
-			pool_allocator32& storage = _traits[type_id<T>::index].storage;
+			auto idx = type_id<T>::index;
+			SFG_ASSERT(idx < _traits.size());
+
+			entity_trait_register& reg = _trait_registers.get(entity.index);
+			SFG_ASSERT(!reg.traits.full());
+
+			pool_allocator32& storage = _traits[idx].storage;
 			world_handle	  handle  = storage.allocate<T>();
 			T&				  tr	  = storage.get<T>(handle);
 			tr						  = T();
 			tr._header.entity		  = entity;
 			tr._header.own_handle	  = handle;
 			tr.on_add(_world);
+
+			reg.traits.push_back({
+				.trait_type		  = type_id<T>::value,
+				.trait_type_index = type_id<T>::index,
+				.trait_handle	  = handle,
+			});
+
 			return handle;
 		}
 
@@ -143,6 +160,14 @@ namespace SFG
 			SFG_ASSERT(idx < _traits.size());
 			pool_allocator32& storage = _traits[idx].storage;
 			T&				  tr	  = storage.get<T>(handle);
+
+			entity_trait_register& reg = _trait_registers.get(tr._header.entity.index);
+			reg.traits.remove_swap({
+				.trait_type		  = type_id<T>::value,
+				.trait_type_index = type_id<T>::index,
+				.trait_handle	  = handle,
+			});
+
 			tr.on_remove(_world);
 			tr.~T();
 			storage.free<T>(handle);
@@ -172,24 +197,25 @@ namespace SFG
 
 	private:
 		void reset_all_entity_data();
-		void reset_entity_data(world_id id);
+		void reset_entity_data(world_handle handle);
 
 	private:
 		world& _world;
 
-		pool_allocator32					 _entities		 = {};
-		pool_allocator_simple<entity_meta>	 _metas			 = {};
-		pool_allocator_simple<entity_family> _families		 = {};
-		pool_allocator_simple<vector3>		 _positions		 = {};
-		pool_allocator_simple<vector3>		 _prev_positions = {};
-		pool_allocator_simple<quat>			 _rotations		 = {};
-		pool_allocator_simple<quat>			 _rotations_abs	 = {};
-		pool_allocator_simple<quat>			 _prev_rotations = {};
-		pool_allocator_simple<vector3>		 _scales		 = {};
-		pool_allocator_simple<vector3>		 _prev_scales	 = {};
-		pool_allocator_simple<aabb>			 _aabbs			 = {};
-		pool_allocator_simple<matrix4x3>	 _matrices		 = {};
-		pool_allocator_simple<matrix4x3>	 _abs_matrices	 = {};
+		pool_allocator32							 _entities		  = {};
+		pool_allocator_simple<entity_meta>			 _metas			  = {};
+		pool_allocator_simple<entity_family>		 _families		  = {};
+		pool_allocator_simple<vector3>				 _positions		  = {};
+		pool_allocator_simple<vector3>				 _prev_positions  = {};
+		pool_allocator_simple<quat>					 _rotations		  = {};
+		pool_allocator_simple<quat>					 _rotations_abs	  = {};
+		pool_allocator_simple<quat>					 _prev_rotations  = {};
+		pool_allocator_simple<vector3>				 _scales		  = {};
+		pool_allocator_simple<vector3>				 _prev_scales	  = {};
+		pool_allocator_simple<aabb>					 _aabbs			  = {};
+		pool_allocator_simple<matrix4x3>			 _matrices		  = {};
+		pool_allocator_simple<matrix4x3>			 _abs_matrices	  = {};
+		pool_allocator_simple<entity_trait_register> _trait_registers = {};
 
 		static_vector<trait_storage, trait_types::trait_type_max> _traits;
 		chunk_allocator32										  _traits_aux_memory;

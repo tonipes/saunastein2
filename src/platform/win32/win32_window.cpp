@@ -110,19 +110,22 @@ namespace SFG
 		}
 		case WM_SIZE: {
 
-			UINT width	= LOWORD(lParam);
-			UINT height = HIWORD(lParam);
+			const UINT width  = LOWORD(lParam);
+			const UINT height = HIWORD(lParam);
 
-			RECT rect;
-			GetWindowRect(hwnd, &rect);
+			// RECT clientRect;
+			// GetClientRect(hwnd, &clientRect);
 
-			RECT clientRect;
-			GetClientRect(hwnd, &clientRect);
+			if (wnd->_size.x == width && wnd->_size.y == height)
+				return 0;
+
 			wnd->_size = vector2ui16(static_cast<uint16>(width), static_cast<uint16>(height));
 			wnd->_flags.set(wf_size_dirty);
 
 			if (wnd->_flags.is_set(window_flags::wf_style_windowed))
 			{
+				RECT rect;
+				GetWindowRect(hwnd, &rect);
 				wnd->_true_size.x = rect.right - rect.left;
 				wnd->_true_size.y = rect.bottom - rect.top;
 			}

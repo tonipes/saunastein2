@@ -52,6 +52,7 @@ namespace SFG
 
 	private:
 		friend class entity_manager;
+		friend struct trait_camera_reflection;
 
 		void on_add(world& w);
 		void on_remove(world& w);

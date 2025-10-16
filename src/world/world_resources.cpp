@@ -4,16 +4,21 @@
 #include "gfx/world/world_renderer.hpp"
 #include "gfx/renderer.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"
+#include "gfx/event_stream/render_events_gfx.hpp"
 #include "app/debug_console.hpp"
 #include "project/engine_data.hpp"
 #include "world/world.hpp"
 #include "world/common_world.hpp"
+#include "world/traits/trait_model_instance.hpp"
 #include "data/istream.hpp"
 #include "data/ostream.hpp"
 #include "reflection/reflection.hpp"
 #include "data/pair.hpp"
 #include "resources/texture_raw.hpp"
 #include "resources/texture.hpp"
+#include "resources/shader.hpp"
+#include "resources/model.hpp"
+#include "resources/mesh.hpp"
 
 #include <algorithm>
 #include <execution>
@@ -166,25 +171,12 @@ namespace SFG
 
 			void* loader = nullptr;
 
-			if (!skip_cache && file_system::exists(cache_path.c_str()))
-			{
-				// Cook from the existing cache.
-				istream stream = serialization::load_from_file(cache_path.c_str());
-				loader		   = reflection_meta->invoke_function<void*, istream&>("cook_from_stream"_hs, stream);
-				stream.destroy();
-			}
-			else
+			if (skip_cache || !load_from_cache(reflection_meta, loader, path.c_str()))
 			{
 				loader = reflection_meta->invoke_function<void*, const char*, world&>("cook_from_file"_hs, full_path.c_str(), _world);
 
-				// Save to cache.
 				if (loader)
-				{
-					ostream out_stream;
-					reflection_meta->invoke_function<void, void*, ostream&>("serialize"_hs, loader, out_stream);
-					serialization::save_to_file(cache_path.c_str(), out_stream);
-					out_stream.destroy();
-				}
+					save_to_cache(reflection_meta, loader, path.c_str());
 			}
 
 			resolved_loaders[i] = loader;
@@ -232,13 +224,14 @@ namespace SFG
 	void world_resources::add_resource_watch(resource_handle base_handle, const char* relative_path, const vector<string>& dependencies, string_id type)
 	{
 		_watched_resources.push_back({});
-		resource_watch& w = _watched_resources.back();
-		w.type_id		  = type;
-		w.path			  = engine_data::get().get_working_dir() + relative_path;
-		w.base_handle	  = base_handle;
-		w.dependencies	  = dependencies;
-		const uint16 id	  = static_cast<uint16>(_watched_resources.size() - 1);
-		_file_watch.add_path(w.path.c_str(), id);
+		resource_watch& w	   = _watched_resources.back();
+		w.type_id			   = type;
+		w.path				   = relative_path;
+		w.base_handle		   = base_handle;
+		w.dependencies		   = dependencies;
+		const uint16 id		   = static_cast<uint16>(_watched_resources.size() - 1);
+		const string full_path = engine_data::get().get_working_dir() + w.path;
+		_file_watch.add_path(full_path.c_str(), id);
 
 		for (const string& str : dependencies)
 		{
@@ -252,25 +245,178 @@ namespace SFG
 		SFG_ASSERT(id < _watched_resources.size());
 		resource_watch& w = _watched_resources[id];
 
+		const resource_handle	prev_handle = w.base_handle;
+		vector<resource_handle> prev_sub_handles;
+		vector<string_id>		prev_sub_ids;
+
+		if (w.type_id == type_id<model>::value)
+		{
+			model&				 m		= get_resource<model>(w.base_handle);
+			const chunk_handle32 meshes = m.get_created_meshes();
+			const uint16		 count	= m.get_mesh_count();
+			if (count > 0)
+			{
+				resource_handle* mesh_handles = _aux_memory.get<resource_handle>(meshes);
+				for (uint16 i = 0; i < count; i++)
+				{
+					const resource_handle handle = mesh_handles[i];
+					prev_sub_handles.push_back(handle);
+					mesh& mm = get_resource<mesh>(handle);
+					prev_sub_ids.push_back(mm.get_sid());
+				}
+			}
+		}
+
 		meta& m = reflection::get().resolve(w.type_id);
 		m.invoke_function<void, world&, resource_handle>("destroy"_hs, _world, w.base_handle);
-		void* loader = m.invoke_function<void*, const char*, world&>("cook_from_file"_hs, w.path.c_str(), _world);
+		const string full_path = engine_data::get().get_working_dir() + w.path;
+		void*		 loader	   = m.invoke_function<void*, const char*, world&>("cook_from_file"_hs, full_path.c_str(), _world);
 
 		if (loader == nullptr)
 			return;
 
-		const string cache_path = engine_data::get().get_cache_dir() + std::to_string(TO_SID(w.path)) + ".stkcache";
-
-		ostream out_stream;
-		m.invoke_function<void, void*, ostream&>("serialize"_hs, loader, out_stream);
-		serialization::save_to_file(cache_path.c_str(), out_stream);
-		out_stream.destroy();
+		save_to_cache(&m, loader, w.path.c_str());
 
 		if (m.has_function("create_from_raw"_hs))
 			w.base_handle = m.invoke_function<resource_handle, void*, world&>("create_from_raw"_hs, loader, _world);
 
 		if (m.has_function("create_from_raw_2"_hs))
 			w.base_handle = m.invoke_function<resource_handle, void*, world&>("create_from_raw_2"_hs, loader, _world);
+
+		const resource_handle new_handle = w.base_handle;
+		if (w.type_id == type_id<shader>::value)
+		{
+			const render_event_resource_reloaded ev = {
+				.prev_id = prev_handle.index,
+				.new_id	 = new_handle.index,
+			};
+
+			_world.get_render_stream().add_event({.event_type = render_event_type::render_event_reload_shader}, ev);
+		}
+		else if (w.type_id == type_id<texture>::value)
+		{
+			const render_event_resource_reloaded ev = {
+				.prev_id = prev_handle.index,
+				.new_id	 = new_handle.index,
+			};
+
+			_world.get_render_stream().add_event({.event_type = render_event_type::render_event_reload_texture}, ev);
+		}
+		else if (w.type_id == type_id<model>::value)
+		{
+			vector<resource_handle> new_sub_handles;
+			vector<string_id>		new_sids;
+
+			model&				 m		= get_resource<model>(w.base_handle);
+			const chunk_handle32 meshes = m.get_created_meshes();
+
+			const uint16 count = m.get_mesh_count();
+			if (count > 0)
+			{
+				resource_handle* mesh_handles = _aux_memory.get<resource_handle>(meshes);
+				for (uint16 i = 0; i < count; i++)
+				{
+					const resource_handle handle = mesh_handles[i];
+					const mesh&			  mm	 = get_resource<mesh>(handle);
+					new_sub_handles.push_back(handle);
+					new_sids.push_back(mm.get_sid());
+				}
+			}
+
+			entity_manager& em				= _world.get_entity_manager();
+			auto&			model_instances = em.get_trait_storage<trait_model_instance>();
+
+			for (world_handle handle : model_instances)
+			{
+				trait_model_instance& mi = em.get_trait<trait_model_instance>(handle);
+				if (mi.get_model() != prev_handle)
+					continue;
+
+				mi.instantiate_model_to_world(_world, w.base_handle);
+			}
+		}
+	}
+
+	void world_resources::save_to_cache(meta* reflection_meta, void* loader, const char* relative_path)
+	{
+		vector<string> dependencies;
+		if (reflection_meta->has_function("get_dependencies"_hs))
+			reflection_meta->invoke_function<void, void*, vector<string>&>("get_dependencies"_hs, loader, dependencies);
+
+		ostream out_stream;
+
+		const string	base_path		   = engine_data::get().get_working_dir() + relative_path;
+		const string_id base_last_modified = file_system::get_last_modified_ticks(base_path);
+		out_stream << base_last_modified;
+		out_stream << static_cast<uint32>(dependencies.size());
+
+		for (const string& dep : dependencies)
+		{
+			const string	p		 = engine_data::get().get_working_dir() + dep;
+			const string_id modified = file_system::get_last_modified_ticks(p);
+			out_stream << modified;
+			out_stream << dep;
+		}
+
+		reflection_meta->invoke_function<void, void*, ostream&>("serialize"_hs, loader, out_stream);
+		const string cache_path = engine_data::get().get_cache_dir() + std::to_string(TO_SID(relative_path)) + ".stkcache";
+		serialization::save_to_file(cache_path.c_str(), out_stream);
+		out_stream.destroy();
+	}
+
+	bool world_resources::load_from_cache(meta* reflection_meta, void*& loader, const char* relative_path)
+	{
+		const string cache_path = engine_data::get().get_cache_dir() + std::to_string(TO_SID(relative_path)) + ".stkcache";
+
+		if (!file_system::exists(cache_path.c_str()))
+			return false;
+
+		istream stream = serialization::load_from_file(cache_path.c_str());
+
+		const string base_path = engine_data::get().get_working_dir() + relative_path;
+
+		if (!file_system::exists(base_path.c_str()))
+		{
+			stream.destroy();
+			return false;
+		}
+
+		const string_id base_last_modified = file_system::get_last_modified_ticks(base_path);
+
+		string_id stream_base_last_modified = 0;
+		stream >> stream_base_last_modified;
+
+		if (stream_base_last_modified != base_last_modified)
+		{
+			stream.destroy();
+			return false;
+		}
+
+		uint32 dep_size = 0;
+		stream >> dep_size;
+
+		for (uint32 i = 0; i < dep_size; i++)
+		{
+			string_id dep_modified = 0;
+			string	  dep_relative = "";
+			stream >> dep_modified;
+			stream >> dep_relative;
+
+			const string p = engine_data::get().get_working_dir() + dep_relative;
+			if (!file_system::exists(p.c_str()))
+				continue;
+
+			const string_id modified = file_system::get_last_modified_ticks(p);
+			if (modified != dep_modified)
+			{
+				stream.destroy();
+				return false;
+			}
+		}
+
+		loader = reflection_meta->invoke_function<void*, istream&>("cook_from_stream"_hs, stream);
+		stream.destroy();
+		return true;
 	}
 
 #endif

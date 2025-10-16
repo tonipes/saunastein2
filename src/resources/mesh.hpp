@@ -37,6 +37,11 @@ namespace SFG
 			return _skin_index;
 		}
 
+		inline string_id get_sid() const
+		{
+			return _sid;
+		}
+
 	private:
 		friend class model;
 
@@ -44,8 +49,9 @@ namespace SFG
 #ifndef SFG_STRIP_DEBUG_NAMES
 		chunk_handle32 _name;
 #endif
-		uint16 _node_index = 0;
-		int16  _skin_index = 0;
+		uint16	  _node_index = 0;
+		int16	  _skin_index = 0;
+		string_id _sid		  = 0;
 	};
 
 	REGISTER_RESOURCE(mesh, resource_type::resource_type_mesh, mesh_reflection);

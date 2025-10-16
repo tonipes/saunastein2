@@ -40,6 +40,7 @@ namespace SFG
 
 	private:
 		friend class entity_manager;
+		friend class trait_light_reflection;
 
 		void on_add(world& w);
 		void on_remove(world& w);

@@ -93,4 +93,29 @@ namespace SFG
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);
 	};
+
+	struct render_event_material_reloaded
+	{
+	};
+
+	struct render_event_resource_reloaded
+	{
+		resource_id prev_id;
+		resource_id new_id;
+
+		void serialize(ostream& stream) const;
+		void deserialize(istream& stream);
+	};
+
+	struct render_event_model_reloaded
+	{
+		resource_id			prev_id;
+		resource_id			new_id;
+		vector<resource_id> prev_meshes;
+		vector<resource_id> new_meshes;
+
+		void serialize(ostream& stream) const;
+		void deserialize(istream& stream);
+	};
+
 }

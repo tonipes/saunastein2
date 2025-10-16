@@ -40,8 +40,6 @@ namespace SFG
 		void post_tick(double interpolation);
 		void pre_render(const vector2ui16& res);
 
-		world_handle add_model_to_world(resource_handle model, resource_handle* materials, uint32 material_size);
-
 		void load_debug();
 
 #ifdef SFG_TOOLMODE

@@ -19,15 +19,16 @@ namespace SFG
 	class world_resources;
 	class render_event_stream;
 
-	struct trait_mesh_instance_reflection
+	struct trait_model_instance_reflection
 	{
-		trait_mesh_instance_reflection();
+		trait_model_instance_reflection();
 	};
 
-	class trait_mesh_instance
+	class trait_model_instance
 	{
 	public:
-		void set_mesh(world& w, resource_handle model, resource_handle mesh);
+		void set_model(resource_handle model);
+		void instantiate_model_to_world(world& w, resource_handle model, resource_handle* materials = nullptr, uint32 materials_count = 0);
 
 		void serialize(ostream& stream, world& w) const;
 		void deserialize(istream& stream, world& w);
@@ -42,11 +43,6 @@ namespace SFG
 			return _target_model;
 		}
 
-		inline resource_handle get_mesh() const
-		{
-			return _target_mesh;
-		}
-
 		inline const trait_header& get_header() const
 		{
 			return _header;
@@ -54,18 +50,19 @@ namespace SFG
 
 	private:
 		friend class entity_manager;
-		friend struct trait_mesh_instance_reflection;
+		friend struct trait_model_instance_reflection;
 
 		void on_add(world& we);
 		void on_remove(world& w);
-		void fetch_refs(world_resources& res, string_id& out_target, string_id& out_target_mesh) const;
-		void fill_refs(world_resources& res, string_id target, string_id target_mesh);
+		void fetch_refs(world_resources& res, string_id& out_target) const;
+		void fill_refs(world_resources& res, string_id target);
 
 	private:
-		trait_header	_header		  = {};
-		resource_handle _target_model = {};
-		resource_handle _target_mesh  = {};
+		trait_header	_header				 = {};
+		resource_handle _target_model		 = {};
+		chunk_handle32	_root_entities		 = {};
+		uint32			_root_entities_count = 0;
 	};
 
-	REGISTER_TRAIT(trait_mesh_instance, trait_types::trait_type_mesh_instance, trait_mesh_instance_reflection);
+	REGISTER_TRAIT(trait_model_instance, trait_types::trait_type_model_instance, trait_model_instance_reflection);
 }

@@ -29,6 +29,9 @@ namespace SFG
 		render_event_set_main_camera,
 		render_event_update_camera,
 		render_event_remove_camera,
+		render_event_reload_shader,
+		render_event_reload_texture,
+		render_event_reload_material,
 	};
 
 }

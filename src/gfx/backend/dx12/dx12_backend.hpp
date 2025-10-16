@@ -219,6 +219,7 @@ namespace SFG
 		void   finalize_bind_layout(gfx_id id, bool is_compute, const char* name);
 		void   bind_group_update_constants(gfx_id group, uint8 binding_index, uint8* constants, uint8 count);
 		void   bind_group_update_descriptor(gfx_id group, uint8 binding_index, gfx_id resource);
+		void   bind_group_update_pointer(gfx_id group, uint8 binding_index, const bind_group_pointer* updates, uint16 update_count);
 		void   bind_group_update_pointer(gfx_id group, uint8 binding_index, const vector<bind_group_pointer>& updates);
 
 		void destroy_resource(gfx_id id);

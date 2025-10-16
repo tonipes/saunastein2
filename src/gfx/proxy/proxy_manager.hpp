@@ -27,6 +27,7 @@ namespace SFG
 		void init();
 		void uninit();
 		void fetch_render_events(render_event_stream& stream);
+		void flush_material_updates(uint8 frame_index);
 		void flush_destroys(bool force);
 
 		inline render_proxy_texture& get_texture(resource_id idx)
@@ -125,6 +126,16 @@ namespace SFG
 			vector<destroy_data> list;
 		};
 
+		struct material_update
+		{
+			uint32 material_index = 0;
+		};
+
+		struct material_update_bucket
+		{
+			vector<material_update> updates;
+		};
+
 	private:
 		void process_event(const render_event_header& header, istream& stream);
 		void destroy_texture(render_proxy_texture& proxy);
@@ -154,6 +165,7 @@ namespace SFG
 
 		uint32 _mesh_instances_peak = 0;
 
-		destroy_bucket _destroy_bucket[BACK_BUFFER_COUNT + 1];
+		static_vector<material_update_bucket, BACK_BUFFER_COUNT> _material_update_buckets;
+		destroy_bucket											 _destroy_bucket[BACK_BUFFER_COUNT + 1];
 	};
 }

@@ -170,4 +170,17 @@ namespace SFG
 		stream >> name;
 #endif
 	}
+
+	void render_event_resource_reloaded::serialize(ostream& stream) const
+	{
+		stream << prev_id;
+		stream << new_id;
+	}
+
+	void render_event_resource_reloaded::deserialize(istream& stream)
+	{
+		stream >> prev_id;
+		stream >> new_id;
+	}
+
 }
