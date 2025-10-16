@@ -217,6 +217,13 @@ namespace SFG
 		return result;
 	}
 
+	matrix4x4 matrix4x4::view(const quat& rot, const vector3& pos)
+	{
+		const matrix4x4 rot_mat		= matrix4x4::rotation(rot.inverse());
+		const matrix4x4 translation = matrix4x4::translation(-pos);
+		return rot_mat * translation;
+	}
+
 	vector3 matrix4x4::operator*(const vector3& v) const
 	{
 		vector4 temp_v4(v.x, v.y, v.z, 1.0f);

@@ -16,7 +16,6 @@
 #include "resources/primitive.hpp"
 #include "gfx/proxy/proxy_manager.hpp"
 #include <algorithm>
-#include "gfx/camera.hpp"
 
 /* DEBUG */
 #include "serialization/serialization.hpp"
@@ -122,8 +121,8 @@ namespace SFG
 		const render_proxy_entity& cam_entity = _proxy_manager.get_entity(cam_proxy.entity);
 		const matrix4x3&		   cam_abs	  = cam_entity.model;
 		_main_camera_view					  = {
-								.view_matrix = camera::view(cam_entity.rotation, cam_entity.position),
-								.proj_matrix = camera::proj(cam_proxy.fov_degrees, _base_size, cam_proxy.near_plane, cam_proxy.far_plane),
+								.view_matrix = matrix4x4::view(cam_entity.rotation, cam_entity.position),
+								.proj_matrix = matrix4x4::perspective_reverse_z(cam_proxy.fov_degrees, static_cast<float>(_base_size.x) / static_cast<float>(_base_size.y), cam_proxy.near_plane, cam_proxy.far_plane),
 		};
 		_main_camera_view.view_proj_matrix = _main_camera_view.proj_matrix * _main_camera_view.view_matrix;
 		_main_camera_view.view_frustum	   = frustum::extract(_main_camera_view.view_proj_matrix);
