@@ -42,7 +42,7 @@ namespace SFG
 #define COLOR_TEXT_PROGRESS		color::srgb_to_linear(color(148.0f / 255.0f, 170.0f / 255.0f, 240.0f / 255.0f, 1.0f)).to_vector()
 #define COLOR_TEXT_ERR			color::srgb_to_linear(color(250.0f / 255.0f, 120.0f / 255.0f, 88.0f / 255.0f, 1.0f)).to_vector()
 #define COLOR_TEXT_DARK			color::srgb_to_linear(color(119.0f / 255.0f, 210.0f / 255.0f, 138.0f / 255.0f, 1.0f)).to_vector()
-#define COLOR_CONSOLE_BG		color::srgb_to_linear(color(12.0f / 255.0f, 16.0f / 255.0f, 12.0f / 255.0f, 0.99f)).to_vector()
+#define COLOR_CONSOLE_BG		color::srgb_to_linear(color(12.0f / 255.0f, 16.0f / 255.0f, 12.0f / 255.0f, 1.0f)).to_vector()
 #define COLOR_CONSOLE_BG_OPAQUE color::srgb_to_linear(color(12.0f / 255.0f, 16.0f / 255.0f, 12.0f / 255.0f, 1.0f)).to_vector()
 #define COLOR_BORDER			color::srgb_to_linear(color(89.0f / 255.0f, 180.0f / 255.0f, 108.0f / 255.0f, 1.0f)).to_vector()
 #define DEBUG_FONT_SIZE			20
@@ -676,13 +676,13 @@ namespace SFG
 		}
 
 		render_pass_color_attachment* attachment_console_rt = alloc.allocate<render_pass_color_attachment>(1);
-		attachment_console_rt->clear_color					= vector4(0.0f, 0.0f, 0.0f, 0.0f);
+		attachment_console_rt->clear_color					= vector4(0.0f, 0.0f, 0.0f, 1.0f);
 		attachment_console_rt->load_op						= load_op::clear;
 		attachment_console_rt->store_op						= store_op::store;
 		attachment_console_rt->texture						= rt_console;
 
 		render_pass_color_attachment* attachment_fullscreen_rt = alloc.allocate<render_pass_color_attachment>(1);
-		attachment_fullscreen_rt->clear_color				   = vector4(0.0f, 0.0f, 0.0f, 0.0f);
+		attachment_fullscreen_rt->clear_color				   = vector4(0.0f, 0.0f, 0.0f, 1.0f);
 		attachment_fullscreen_rt->load_op					   = load_op::clear;
 		attachment_fullscreen_rt->store_op					   = store_op::store;
 		attachment_fullscreen_rt->texture					   = rt_fullscreen;
@@ -1181,10 +1181,12 @@ namespace SFG
 
 	bool debug_controller::on_window_event(const window_event& ev)
 	{
+		const bool def_val = _console_state == console_state::visible;
+
 		if (ev.type == window_event_type::key && ev.sub_type != window_event_sub_type::release)
 		{
 			if (_console_state == console_state::invisible && static_cast<input_code>(ev.button) != input_code::key_angle_bracket)
-				return false;
+				return def_val;
 
 			const input_event ke = {.button = static_cast<uint16>(ev.button)};
 			_input_events.try_enqueue(ke);
@@ -1198,7 +1200,7 @@ namespace SFG
 			return true;
 		}
 
-		return false;
+		return def_val;
 	}
 
 	void debug_controller::on_window_resize(const vector2ui16& size)

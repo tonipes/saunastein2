@@ -31,7 +31,6 @@ namespace SFG
 
 			pfd.cmd_buffer			= backend->create_command_buffer({.type = command_type::graphics, .debug_name = "opaque_cmd"});
 			pfd.semaphore.semaphore = backend->create_semaphore();
-
 			pfd.ubo.create_hw({.size = sizeof(ubo), .flags = resource_flags::rf_constant_buffer | resource_flags::rf_cpu_visible, .debug_name = "opaque_ubo"});
 
 			pfd.bones.create_staging_hw(
