@@ -174,6 +174,30 @@ namespace SFG
 		}
 	}
 
+	gfx_id proxy_manager::get_shader_variant(const render_proxy_material& mat, bool is_skinned)
+	{
+		gfx_id target_shader = NULL_GFX_ID;
+
+		const bool is_discard = mat.flags.is_set(material_flags::material_flags_is_gbuffer_transparent);
+
+		for (gfx_id shader : mat.shader_handles)
+		{
+			const render_proxy_shader& proxy_shader	 = get_shader(shader);
+			const bitmask<uint8>&	   flags		 = proxy_shader.flags;
+			const bool				   is_sh_skinned = proxy_shader.flags.is_set(res_shader_flags::res_shader_flags_is_skinned);
+			const bool				   is_sh_discard = proxy_shader.flags.is_set(res_shader_flags::res_shader_flags_is_discard);
+			const bool				   skin_fits	 = (is_skinned && is_sh_skinned) || (!is_skinned && !is_sh_skinned);
+			const bool				   discard_fits	 = (is_discard && is_sh_discard) || (!is_discard && !is_sh_discard);
+
+			if (skin_fits && discard_fits)
+			{
+				target_shader = proxy_shader.hw;
+				break;
+			}
+		}
+		return target_shader;
+	}
+
 	void proxy_manager::process_event(const render_event_header& header, istream& stream)
 	{
 		gfx_backend* backend = gfx_backend::get();

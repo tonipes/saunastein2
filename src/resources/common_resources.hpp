@@ -49,13 +49,15 @@ namespace SFG
 
 	enum material_flags
 	{
-		material_flags_is_gbuffer = 1 << 0,
-		material_flags_is_forward = 1 << 1,
+		material_flags_is_gbuffer			  = 1 << 0,
+		material_flags_is_gbuffer_transparent = 1 << 1,
+		material_flags_is_forward			  = 1 << 2,
 	};
 
 	enum res_shader_flags
 	{
 		res_shader_flags_is_skinned = 1 << 0,
+		res_shader_flags_is_discard = 1 << 1,
 	};
 
 }

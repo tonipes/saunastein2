@@ -20,6 +20,7 @@ namespace SFG
 		shader_desc	   desc		  = {};
 		vector<string> defines	  = {};
 		uint8		   is_skinned = 0;
+		uint8		   is_discard = 0;
 
 		void destroy();
 		void serialize(ostream& stream) const;

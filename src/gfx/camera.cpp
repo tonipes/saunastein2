@@ -16,7 +16,7 @@ namespace SFG
 
 	matrix4x4 camera::proj(float fov_degrees, const vector2ui16& size, float near, float far)
 	{
-		return matrix4x4::perspective(fov_degrees, static_cast<float>(size.x) / static_cast<float>(size.y), near, far);
+		return matrix4x4::perspective_reverse_z(fov_degrees, static_cast<float>(size.x) / static_cast<float>(size.y), near, far);
 	}
 
 	matrix4x4 camera::ortho(const vector2ui16& size, float near, float far)

@@ -90,10 +90,19 @@ namespace SFG
 		template <typename T> resource_handle get_resource_handle_by_hash(string_id hash) const
 		{
 			SFG_ASSERT(type_id<T>::index < _storages.size());
-			resource_storage&	  stg	 = _storages[type_id<T>::index];
-			const resource_handle handle = stg.by_hashes.at(hash);
-			SFG_ASSERT(stg.storage.is_valid(handle));
-			return handle;
+			resource_storage& stg = _storages[type_id<T>::index];
+			try
+			{
+				const resource_handle handle = stg.by_hashes.at(hash);
+				SFG_ASSERT(stg.storage.is_valid(handle));
+				return handle;
+			}
+			catch (std::exception e)
+			{
+				SFG_ASSERT(false);
+			}
+
+			return {};
 		}
 
 		template <typename T> resource_handle add_resource(string_id hash)
@@ -110,7 +119,7 @@ namespace SFG
 		{
 			const uint16 idx = type_id<T>::index;
 			SFG_ASSERT(idx < _storages.size());
-			return _storages[type_id<T>::index].storage.get<T>(handle);
+			return _storages[idx].storage.get<T>(handle);
 		}
 
 		template <typename T> string_id get_resource_hash(resource_handle handle) const
@@ -145,9 +154,19 @@ namespace SFG
 
 		template <typename T> T& get_resource_by_hash(string_id hash) const
 		{
-			SFG_ASSERT(type_id<T>::index < _storages.size());
-			resource_storage&	  stg	 = _storages[type_id<T>::index];
-			const resource_handle handle = stg.by_hashes.at(hash);
+			const uint16 idx = type_id<T>::index;
+			SFG_ASSERT(idx < _storages.size());
+			resource_storage& stg	 = _storages[idx];
+			resource_handle	  handle = {};
+			try
+			{
+				handle = stg.by_hashes.at(hash);
+			}
+			catch (std::exception e)
+			{
+				SFG_ASSERT(false);
+			}
+
 			return stg.storage.get<T>(handle);
 		}
 

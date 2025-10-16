@@ -26,6 +26,7 @@ namespace SFG
 		stream << source;
 		stream << defines;
 		stream << is_skinned;
+		stream << is_discard;
 		desc.serialize(stream);
 	}
 
@@ -35,6 +36,7 @@ namespace SFG
 		stream >> source;
 		stream >> defines;
 		stream >> is_skinned;
+		stream >> is_discard;
 		desc.deserialize(stream);
 
 		if (use_embedded_layout)
@@ -60,10 +62,18 @@ namespace SFG
 			json		  json_data = json::parse(f);
 			f.close();
 
-			source	   = json_data.value<string>("source", "");
-			desc	   = json_data.value<shader_desc>("desc", {});
-			defines	   = json_data.value<vector<string>>("defines", {});
-			is_skinned = json_data.value<uint8>("is_skinned", 0);
+			source	= json_data.value<string>("source", "");
+			desc	= json_data.value<shader_desc>("desc", {});
+			defines = json_data.value<vector<string>>("defines", {});
+
+			for (const string& def : defines)
+			{
+				if (def.compare("USE_SKINNING"))
+					is_skinned = 1;
+
+				if (def.compare("USE_DISCARD"))
+					is_discard = 1;
+			}
 
 			const string& wd = engine_data::get().get_working_dir();
 			const string  p	 = path;

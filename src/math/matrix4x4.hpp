@@ -51,6 +51,7 @@ namespace SFG
 		static matrix4x4 scale(const vector3& s);
 		static matrix4x4 rotation(const quat& q);
 		static matrix4x4 ortho(float left, float right, float top, float bottom, float near_plane, float far_plane);
+		static matrix4x4 perspective_reverse_z(float fov_y_degrees, float aspect_ratio, float near_plane, float far_plane);
 		static matrix4x4 perspective(float fov_y_degrees, float aspect_ratio, float near_plane, float far_plane);
 		static matrix4x4 transform(const vector3& position, const quat& rotation, const vector3& scale);
 		static matrix4x4 look_at(const vector3& eye, const vector3& target, const vector3& up);

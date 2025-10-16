@@ -137,29 +137,12 @@ namespace SFG
 		for (const renderable_object& obj : wrd.objects)
 		{
 			const render_proxy_material& proxy_material = pm.get_material(obj.material);
+			const bool					 is_discard		= proxy_material.flags.is_set(material_flags::material_flags_is_gbuffer_transparent);
 
-			if (!proxy_material.flags.is_set(material_flags::material_flags_is_gbuffer))
+			if (!proxy_material.flags.is_set(material_flags::material_flags_is_gbuffer) && !is_discard)
 				continue;
 
-			gfx_id target_shader = NULL_GFX_ID;
-
-			for (gfx_id shader : proxy_material.shader_handles)
-			{
-				const render_proxy_shader& proxy_shader	 = pm.get_shader(shader);
-				const bitmask<uint8>&	   flags		 = proxy_shader.flags;
-				const bool				   is_sh_skinned = proxy_shader.flags.is_set(res_shader_flags::res_shader_flags_is_skinned);
-				if (obj.is_skinned && is_sh_skinned)
-				{
-					target_shader = proxy_shader.hw;
-					break;
-				}
-				else if (!obj.is_skinned && !is_sh_skinned)
-				{
-					target_shader = proxy_shader.hw;
-					break;
-				}
-			}
-
+			const gfx_id target_shader = pm.get_shader_variant(proxy_material, obj.is_skinned);
 			SFG_ASSERT(target_shader != NULL_GFX_ID);
 
 			rd.draws.push_back({
@@ -178,6 +161,8 @@ namespace SFG
 				.idx_buffer		= obj.index_buffer->get_hw_gpu(),
 			});
 		}
+
+		std::sort(rd.draws.begin(), rd.draws.end(), [](const indexed_draw& d1, const indexed_draw& d2) -> bool { return d1.pipeline < d2.pipeline; });
 
 		per_frame_data& pfd		 = _pfd[frame_index];
 		const ubo		ubo_data = {
@@ -318,7 +303,7 @@ namespace SFG
 													 {
 														 .texture		 = depth_texture,
 														 .clear_stencil	 = 0,
-														 .clear_depth	 = 1.0f,
+														 .clear_depth	 = 0.0f,
 														 .depth_load_op	 = load_op::clear,
 														 .depth_store_op = store_op::store,
 														 .view_index	 = 0,

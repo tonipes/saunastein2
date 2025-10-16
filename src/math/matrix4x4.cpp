@@ -166,14 +166,36 @@ namespace SFG
 		return matrix4x4(2.0f * inv_width, 0.0f, 0.0f, 0.0f, 0.0f, 2.0f * inv_height, 0.0f, 0.0f, 0.0f, 0.0f, inv_depth, 0.0f, -(right + left) * inv_width, -(top + bottom) * inv_height, near_plane * inv_depth, 1.0f);
 	}
 
+	matrix4x4 matrix4x4::perspective_reverse_z(float fov_y_degrees, float aspect_ratio, float near_plane, float far_plane)
+	{
+		const float fov_rad		 = math::degrees_to_radians(fov_y_degrees);
+		const float tan_half_fov = math::tan(0.5f * fov_rad);
+		const float f			 = 1.0f / tan_half_fov;
+		const float inv_nf		 = 1.0f / (far_plane - near_plane); // RH - reverse
+
+		// clang-format off
+		return matrix4x4(
+			f / aspect_ratio, 0.0f, 0.0f, 0.0f, 
+			0.0f, f, 0.0f, 0.0f, 
+			0.0f, 0.0f, near_plane * inv_nf, -1.0f,
+			0.0f, 0.0f, near_plane * far_plane * inv_nf, 0.0f);
+		// clang-format on
+	}
+
 	matrix4x4 matrix4x4::perspective(float fov_y_degrees, float aspect_ratio, float near_plane, float far_plane)
 	{
 		const float fov_rad		 = math::degrees_to_radians(fov_y_degrees);
 		const float tan_half_fov = math::tan(0.5f * fov_rad);
 		const float f			 = 1.0f / tan_half_fov;
-		const float inv_nf		 = 1.0f / (near_plane - far_plane); // RH
+		const float inv_nf		 = 1.0f / (near_plane - far_plane); // RH - reverse
 
-		return matrix4x4(f / aspect_ratio, 0.0f, 0.0f, 0.0f, 0.0f, f, 0.0f, 0.0f, 0.0f, 0.0f, far_plane * inv_nf, -1.0f, 0.0f, 0.0f, near_plane * far_plane * inv_nf, 0.0f);
+		// clang-format off
+		return matrix4x4(
+			f / aspect_ratio, 0.0f, 0.0f, 0.0f, 
+			0.0f, f, 0.0f, 0.0f, 
+			0.0f, 0.0f, far_plane * inv_nf, -1.0f,
+			0.0f, 0.0f, near_plane * far_plane * inv_nf, 0.0f);
+		// clang-format on
 	}
 
 	matrix4x4 matrix4x4::transform(const vector3& position, const quat& rotation, const vector3& scale_vec)
