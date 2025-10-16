@@ -527,7 +527,7 @@ namespace SFG
 				const float	  metallic	   = static_cast<float>(tmat.pbrMetallicRoughness.metallicFactor);
 				const float	  roughness	   = static_cast<float>(tmat.pbrMetallicRoughness.roughnessFactor);
 				const float	  alpha_cutoff = static_cast<float>(tmat.alphaCutoff);
-				raw.pass_mode			   = tmat.alphaMode.compare("OPAQUE") == 0 ? material_pass_mode::gbuffer : material_pass_mode::gbuffer_transparent;
+				raw.pass_mode			   = tmat.alphaMode.compare("OPAQUE") == 0 ? material_pass_mode::gbuffer : (tmat.alphaMode.compare("MASK") == 0 ? material_pass_mode::gbuffer_transparent : material_pass_mode::forward);
 				raw.material_data << base_color;
 				raw.material_data << emissive;
 				raw.material_data << metallic;

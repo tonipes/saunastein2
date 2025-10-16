@@ -90,7 +90,7 @@ namespace SFG
 
 		world&				  w			= *world_ptr;
 		world_resources&	  resources = w.get_resources();
-		const resource_handle boombox	= resources.get_resource_handle_by_hash<model>(TO_SIDC("assets/boombox/boombox.stkmodel"));
+		const resource_handle boombox	= resources.get_resource_handle_by_hash<model>(TO_SIDC("assets/test_scene/test_scene.stkmodel"));
 
 		if (!resources.is_valid<model>(boombox))
 			return;
