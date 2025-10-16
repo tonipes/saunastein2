@@ -2,6 +2,7 @@
 
 #pragma once
 #include "math/matrix4x3.hpp"
+#include "math/matrix3x3.hpp"
 #include "math/vector3.hpp"
 #include "math/quat.hpp"
 #include "data/bitmask.hpp"
@@ -19,6 +20,7 @@ namespace SFG
 	struct render_proxy_entity
 	{
 		matrix4x3			model	 = {};
+		matrix3x3			normal	 = {};
 		quat				rotation = quat::identity;
 		vector3				position = vector3::zero;
 		vector3				scale	 = vector3::one;

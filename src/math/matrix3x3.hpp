@@ -68,8 +68,8 @@ namespace SFG
 		}
 
 		// Algebra
-		matrix3x3 transpose() const;
-		matrix3x3 inverse() const; // general 3x3 (handles shear / non-uniform scale if invertible)
+		matrix3x3 transposed() const;
+		matrix3x3 inversed() const; // general 3x3 (handles shear / non-uniform scale if invertible)
 		float	  determinant() const;
 
 		// Element-wise abs (useful for conservative extent transforms)

@@ -213,6 +213,7 @@ namespace SFG
 			proxy.status			   = render_proxy_status::rps_active;
 			proxy.handle			   = index;
 			proxy.model				   = ev.abs_model;
+			proxy.normal			   = ev.abs_model.to_linear3x3().inversed().transposed();
 			proxy.position			   = ev.position;
 			proxy.rotation			   = ev.rotation;
 			proxy.scale				   = ev.scale;

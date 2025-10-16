@@ -49,7 +49,7 @@ namespace SFG
 		return matrix3x3(x.x, x.y, x.z, y.x, y.y, y.z, z.x, z.y, z.z);
 	}
 
-	matrix3x3 matrix3x3::transpose() const
+	matrix3x3 matrix3x3::transposed() const
 	{
 		// swap rows/cols
 		return matrix3x3(m[0], m[3], m[6], m[1], m[4], m[7], m[2], m[5], m[8]);
@@ -65,7 +65,7 @@ namespace SFG
 		return a * (e * i - f * h) - d * (b * i - c * h) + g * (b * f - c * e);
 	}
 
-	matrix3x3 matrix3x3::inverse() const
+	matrix3x3 matrix3x3::inversed() const
 	{
 		const float a = m[0], d = m[3], g = m[6];
 		const float b = m[1], e = m[4], h = m[7];

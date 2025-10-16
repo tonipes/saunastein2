@@ -2,6 +2,7 @@
 
 #pragma once
 #include "math/matrix4x3.hpp"
+#include "math/matrix3x3.hpp"
 
 namespace SFG
 {
@@ -10,6 +11,7 @@ namespace SFG
 	struct gpu_entity
 	{
 		matrix4x3 model	 = matrix4x3::identity;
-		matrix4x3 normal = matrix4x3::identity;
+		matrix3x3 normal = matrix3x3::identity;
+		float	  padding[3];
 	};
 }

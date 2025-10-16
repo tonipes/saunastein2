@@ -85,7 +85,7 @@ namespace SFG
 
 		// projected radius of the OBB onto plane normal:
 		// r = |L^T * n| · e_local  (works for non-uniform scale and shear)
-		const vector3 v = linear_model.transpose() * p.normal;
+		const vector3 v = linear_model.transposed() * p.normal;
 		const float	  r = vector3::dot(vector3::abs(v), e_local);
 		const float	  s = vector3::dot(p.normal, c_world) + p.distance; // signed distance of center
 

@@ -277,7 +277,7 @@ namespace SFG
 			if (res == frustum_result::outside)
 				continue;
 
-			const uint32				  entity_index = create_gpu_entity({.model = proxy_entity.model});
+			const uint32				  entity_index = create_gpu_entity({.model = proxy_entity.model, .normal = proxy_entity.normal});
 			const render_proxy_model&	  proxy_model  = _proxy_manager.get_model(mesh_instance.model);
 			const render_proxy_primitive* primitives   = aux.get<render_proxy_primitive>(proxy_mesh.primitives);
 			const uint16*				  materials	   = aux.get<uint16>(proxy_model.materials);
