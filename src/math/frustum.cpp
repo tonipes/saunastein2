@@ -84,10 +84,10 @@ namespace SFG
 		const vector3 c_world = linear_model * c_local + position;
 
 		// projected radius of the OBB onto plane normal:
-		// r = |L^T * n| · e_local  (works for non-uniform scale and shear)
+		// r = |L^T * n| · e_local
 		const vector3 v = linear_model.transposed() * p.normal;
 		const float	  r = vector3::dot(vector3::abs(v), e_local);
-		const float	  s = vector3::dot(p.normal, c_world) + p.distance; // signed distance of center
+		const float	  s = vector3::dot(p.normal, c_world) + p.distance;
 
 		if (s < -r)
 			return frustum_result::outside;

@@ -10,8 +10,8 @@ namespace SFG
 		Global Layout Definition:
 
 		// Param 0 - Root CBV, Global Data [b0, space0]
-		// Param 1 - Descriptor Table, Render Pass Data: 2x CBV + 4 SRVs + 4 Textures [b0, b1, space1] - [t0, t3, space1] - [t4, t7, space1]
-		// Param 2 - Descriptor Table, Material Data: CBV + SSBO + 4 textures, [b0, space2] - [t0, space2] - [t1, t4, space2]
+		// Param 1 - Descriptor Table, Render Pass Data: 2x CBV + 5 SRVs + 4 Textures + 2 arrays + 1 cube [b0, b1, space1] - [t0, t4, space1] - [t5, t9, space1]
+		// Param 2 - Descriptor Table, Material Data: CBV + SSBO + 5 textures [b0, space2] - [t0, space2] - [t1, t8, space2]
 		// Param 3 - Descriptor Table, Object Data: CBV x 2 + Texture, [b0, b1, space3] - [t0, space3]
 		// Param 4 - Descriptor Table, Dynamic Samplers: [s0, s4, space0]
 		// Param 5 - Immutable Sampler, Anisotropic, s5, space0
@@ -19,6 +19,8 @@ namespace SFG
 		// Param 7 - Immutable Sampler, Nearest, s7, space0
 		// Param 8 - Immutable Sampler, GUI Default, s8, space0
 		// Param 9 - Immutable Sampler, GUI Text, s9, space0
+		// Param 10 - Immutable Sampler, Shadow sampler 2d, s10, space0
+		// Param 11 - Immutable Sampler, Shadow sampler cube, s11, space0
 	*/
 
 	gfx_id gfx_util::create_bind_layout_global()
@@ -33,12 +35,14 @@ namespace SFG
 		// Param 1 - Global CBV, [b1, space0]
 		backend->bind_layout_add_descriptor(layout, binding_type::ubo, 0, 1, shader_stage::all);
 
-		// Param 2 - Render Pass Table -> 2x CBV + 4 SRVs + 4 Textures [b0, b1, space1] - [t0, t3, space1] - [t4, t7, space1]
+		// Param 2 - Render Pass Table -> 2x CBV + 5 SRVs + 4 Textures + 2 texture arrays + 1 texture cube_array [b0, b1, space1] - [t0, t4, space1] - [t4, t8, space1] - [t9 - t10, space1] - [t11, space1]
 		backend->bind_layout_add_pointer(layout,
 										 {
 											 {.type = binding_type::ubo, .set = 1, .binding = 0, .count = 2, .is_volatile = 1},
-											 {.type = binding_type::ssbo, .set = 1, .binding = 0, .count = 4, .is_volatile = 1},
-											 {.type = binding_type::texture_binding, .set = 1, .binding = 4, .count = 4, .is_volatile = 1},
+											 {.type = binding_type::ssbo, .set = 1, .binding = 0, .count = 5, .is_volatile = 1},
+											 {.type = binding_type::texture_binding, .set = 1, .binding = 5, .count = 5, .is_volatile = 1},
+											 {.type = binding_type::texture_binding, .set = 1, .binding = 11, .count = 2, .is_volatile = 1},
+											 {.type = binding_type::texture_binding, .set = 1, .binding = 13, .count = 1, .is_volatile = 1},
 										 },
 										 shader_stage::all);
 
@@ -66,19 +70,21 @@ namespace SFG
 										 },
 										 shader_stage::fragment);
 
-		// Param [6,10] - Immutable Samplers [s5, s9, space0]
+		// Param [6,11] - Immutable Samplers [s5, s11, space0]
 		backend->bind_layout_add_immutable_sampler(layout, 0, 5, gfx_util::get_sampler_desc_anisotropic(), shader_stage::fragment);
 		backend->bind_layout_add_immutable_sampler(layout, 0, 6, gfx_util::get_sampler_desc_linear(), shader_stage::fragment);
 		backend->bind_layout_add_immutable_sampler(layout, 0, 7, gfx_util::get_sampler_desc_nearest(), shader_stage::fragment);
 		backend->bind_layout_add_immutable_sampler(layout, 0, 8, gfx_util::get_sampler_desc_gui_default(), shader_stage::fragment);
 		backend->bind_layout_add_immutable_sampler(layout, 0, 9, gfx_util::get_sampler_desc_gui_text(), shader_stage::fragment);
+		backend->bind_layout_add_immutable_sampler(layout, 0, 10, gfx_util::get_sampler_desc_shadow_2d(), shader_stage::fragment);
+		backend->bind_layout_add_immutable_sampler(layout, 0, 11, gfx_util::get_sampler_desc_shadow_cube(), shader_stage::fragment);
 
 		backend->finalize_bind_layout(layout, false, "global_layout");
 
 		return layout;
 	}
 
-	void gfx_util::update_dummy_bind_group(gfx_id group, gfx_id dummy_texture, gfx_id dummy_sampler, gfx_id dummy_ssbo, gfx_id dummy_ubo)
+	void gfx_util::update_dummy_bind_group(gfx_id group, gfx_id dummy_texture, gfx_id dummy_texture_array, gfx_id dummy_texture_cube, gfx_id dummy_sampler, gfx_id dummy_ssbo, gfx_id dummy_ubo)
 	{
 		gfx_backend* backend = gfx_backend::get();
 
@@ -92,10 +98,15 @@ namespace SFG
 											   {.resource = dummy_ssbo, .pointer_index = upi_render_pass_ssbo1, .type = binding_type::ssbo},
 											   {.resource = dummy_ssbo, .pointer_index = upi_render_pass_ssbo2, .type = binding_type::ssbo},
 											   {.resource = dummy_ssbo, .pointer_index = upi_render_pass_ssbo3, .type = binding_type::ssbo},
+											   {.resource = dummy_ssbo, .pointer_index = upi_render_pass_ssbo4, .type = binding_type::ssbo},
 											   {.resource = dummy_texture, .pointer_index = upi_render_pass_texture0, .type = binding_type::texture_binding},
 											   {.resource = dummy_texture, .pointer_index = upi_render_pass_texture1, .type = binding_type::texture_binding},
 											   {.resource = dummy_texture, .pointer_index = upi_render_pass_texture2, .type = binding_type::texture_binding},
 											   {.resource = dummy_texture, .pointer_index = upi_render_pass_texture3, .type = binding_type::texture_binding},
+											   {.resource = dummy_texture, .pointer_index = upi_render_pass_texture4, .type = binding_type::texture_binding},
+											   {.resource = dummy_texture_array, .pointer_index = upi_render_pass_texture_array0, .type = binding_type::texture_binding},
+											   {.resource = dummy_texture_array, .pointer_index = upi_render_pass_texture_array1, .type = binding_type::texture_binding},
+											   {.resource = dummy_texture_cube, .pointer_index = upi_render_pass_texture_cube_array0, .type = binding_type::texture_binding},
 										   });
 
 		// Materials
@@ -108,6 +119,8 @@ namespace SFG
 											   {.resource = dummy_texture, .pointer_index = upi_material_texture1, .type = binding_type::texture_binding},
 											   {.resource = dummy_texture, .pointer_index = upi_material_texture2, .type = binding_type::texture_binding},
 											   {.resource = dummy_texture, .pointer_index = upi_material_texture3, .type = binding_type::texture_binding},
+											   {.resource = dummy_texture, .pointer_index = upi_material_texture4, .type = binding_type::texture_binding},
+
 										   });
 
 		// Objects
@@ -197,6 +210,30 @@ namespace SFG
 			.max_lod	= 1.0f,
 			.lod_bias	= 0.0f,
 			.flags		= sampler_flags::saf_min_linear | sampler_flags::saf_mag_linear | sampler_flags::saf_address_mode_clamp | sampler_flags::saf_mip_linear | sampler_flags::saf_border_white,
+		};
+	}
+
+	sampler_desc gfx_util::get_sampler_desc_shadow_2d()
+	{
+		return {
+			.anisotropy = 0,
+			.min_lod	= 0.0f,
+			.max_lod	= 0.0f,
+			.lod_bias	= 0.0f,
+			.flags		= sampler_flags::saf_compare | sampler_flags::saf_min_linear | sampler_flags::saf_mag_linear | sampler_flags::saf_mip_nearest | sampler_flags::saf_address_mode_clamp | sampler_flags::saf_border_white,
+			.compare	= compare_op::less,
+		};
+	}
+
+	sampler_desc gfx_util::get_sampler_desc_shadow_cube()
+	{
+		return {
+			.anisotropy = 0,
+			.min_lod	= 0.0f,
+			.max_lod	= 0.0f,
+			.lod_bias	= 0.0f,
+			.flags		= sampler_flags::saf_compare | sampler_flags::saf_min_linear | sampler_flags::saf_mag_linear | sampler_flags::saf_mip_nearest | sampler_flags::saf_address_mode_clamp | sampler_flags::saf_border_white,
+			.compare	= compare_op::less,
 		};
 	}
 

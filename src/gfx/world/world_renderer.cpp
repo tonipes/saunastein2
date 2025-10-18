@@ -27,6 +27,7 @@ namespace SFG
 #define SHARED_BUMP_ALLOC_SZ 1024 * 512
 
 	world_renderer::world_renderer(proxy_manager& pm, world& w) : _proxy_manager(pm), _world(w){};
+
 	void world_renderer::init(const vector2ui16& size, texture_queue* tq, buffer_queue* bq)
 	{
 		_texture_queue = tq;
@@ -217,38 +218,6 @@ namespace SFG
 		const uint16	   i  = static_cast<uint16>(rd.objects.size());
 		rd.objects.push_back(e);
 		return i;
-	}
-
-	void world_renderer::push_barrier_ps(gfx_id id, static_vector<barrier, MAX_BARRIERS>& barriers)
-	{
-		barriers.push_back({
-			.resource	= id,
-			.flags		= barrier_flags::baf_is_texture,
-			.from_state = resource_state::render_target,
-			.to_state	= resource_state::ps_resource,
-		});
-	}
-
-	void world_renderer::push_barrier_rt(gfx_id id, static_vector<barrier, MAX_BARRIERS>& barriers)
-	{
-		barriers.push_back({
-			.resource	= id,
-			.flags		= barrier_flags::baf_is_texture,
-			.from_state = resource_state::ps_resource,
-			.to_state	= resource_state::render_target,
-		});
-	}
-
-	void world_renderer::send_barriers(gfx_id cmd_list, static_vector<barrier, MAX_BARRIERS>& barriers)
-	{
-		gfx_backend* backend = gfx_backend::get();
-		backend->cmd_barrier(cmd_list,
-							 {
-								 .barriers		= barriers.data(),
-								 .barrier_count = static_cast<uint16>(barriers.size()),
-							 });
-
-		barriers.clear();
 	}
 
 	void world_renderer::collect_model_instances()

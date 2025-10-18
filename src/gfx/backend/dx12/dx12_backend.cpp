@@ -70,27 +70,28 @@ namespace SFG
 
 		D3D12_FILTER get_filter(bitmask<uint16> sampler_flags)
 		{
+			const bool compare = sampler_flags.is_set(sampler_flags::saf_compare);
 
 			if (sampler_flags.is_set(saf_min_anisotropic) && sampler_flags.is_set(saf_mag_anisotropic))
-				return D3D12_FILTER_ANISOTROPIC;
+				return compare ? D3D12_FILTER_COMPARISON_ANISOTROPIC : D3D12_FILTER_ANISOTROPIC;
 			else if (sampler_flags.is_set(saf_mip_linear) && sampler_flags.is_set(saf_min_linear) && sampler_flags.is_set(saf_mag_linear))
-				return D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+				return compare ? D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR : D3D12_FILTER_MIN_MAG_MIP_LINEAR;
 			else if (sampler_flags.is_set(saf_mip_nearest) && sampler_flags.is_set(saf_min_linear) && sampler_flags.is_set(saf_mag_linear))
-				return D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT;
+				return compare ? D3D12_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT : D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT;
 			else if (sampler_flags.is_set(saf_mip_linear) && sampler_flags.is_set(saf_min_linear) && sampler_flags.is_set(saf_mag_nearest))
-				return D3D12_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR;
+				return compare ? D3D12_FILTER_COMPARISON_MIN_LINEAR_MAG_POINT_MIP_LINEAR : D3D12_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR;
 			else if (sampler_flags.is_set(saf_mip_nearest) && sampler_flags.is_set(saf_min_linear) && sampler_flags.is_set(saf_mag_nearest))
-				return D3D12_FILTER_MIN_LINEAR_MAG_MIP_POINT;
+				return compare ? D3D12_FILTER_COMPARISON_MIN_LINEAR_MAG_MIP_POINT : D3D12_FILTER_MIN_LINEAR_MAG_MIP_POINT;
 			else if (sampler_flags.is_set(saf_mip_linear) && sampler_flags.is_set(saf_min_nearest) && sampler_flags.is_set(saf_mag_linear))
-				return D3D12_FILTER_MIN_POINT_MAG_MIP_LINEAR;
+				return compare ? D3D12_FILTER_COMPARISON_MIN_POINT_MAG_MIP_LINEAR : D3D12_FILTER_MIN_POINT_MAG_MIP_LINEAR;
 			else if (sampler_flags.is_set(saf_mip_nearest) && sampler_flags.is_set(saf_min_nearest) && sampler_flags.is_set(saf_mag_linear))
-				return D3D12_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT;
+				return compare ? D3D12_FILTER_COMPARISON_MIN_POINT_MAG_LINEAR_MIP_POINT : D3D12_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT;
 			else if (sampler_flags.is_set(saf_mip_linear) && sampler_flags.is_set(saf_min_nearest) && sampler_flags.is_set(saf_mag_nearest))
-				return D3D12_FILTER_MIN_MAG_POINT_MIP_LINEAR;
+				return compare ? D3D12_FILTER_COMPARISON_MIN_MAG_POINT_MIP_LINEAR : D3D12_FILTER_MIN_MAG_POINT_MIP_LINEAR;
 			else if (sampler_flags.is_set(saf_mip_nearest) && sampler_flags.is_set(saf_min_nearest) && sampler_flags.is_set(saf_mag_nearest))
-				return D3D12_FILTER_MIN_MAG_MIP_POINT;
+				return compare ? D3D12_FILTER_COMPARISON_MIN_MAG_MIP_POINT : D3D12_FILTER_MIN_MAG_MIP_POINT;
 
-			return D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+			return compare ? D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR : D3D12_FILTER_MIN_MAG_MIP_LINEAR;
 		}
 
 		void border_color(bitmask<uint16> flags, float* color)
@@ -1010,7 +1011,7 @@ namespace SFG
 		resource_desc.SampleDesc.Quality  = 0;
 		resource_desc.Layout			  = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 		resource_desc.Flags				  = D3D12_RESOURCE_FLAG_NONE;
-		resource_desc.Format			  = color_format;
+		resource_desc.Format			  = desc.flags.is_set(texture_flags::tf_typeless) ? DXGI_FORMAT_R32_TYPELESS : color_format;
 		resource_desc.Dimension			  = desc.flags.is_set(texture_flags::tf_is_1d) ? D3D12_RESOURCE_DIMENSION_TEXTURE1D : (desc.flags.is_set(texture_flags::tf_is_3d) ? D3D12_RESOURCE_DIMENSION_TEXTURE3D : D3D12_RESOURCE_DIMENSION_TEXTURE2D);
 
 		D3D12_CLEAR_VALUE  clear_value	   = {};
@@ -1196,8 +1197,6 @@ namespace SFG
 			_device->CreateDepthStencilView(txt.ptr->GetResource(), &depthStencilDesc, {targetDescriptor.cpu});
 		};
 
-		const DXGI_FORMAT srv_format = (desc.flags.is_set(texture_flags::tf_depth_texture) || desc.flags.is_set(texture_flags::tf_stencil_texture)) ? depth_format : color_format;
-
 		for (uint8 i = 0; i < static_cast<uint8>(desc.views.size()); i++)
 		{
 			const view_desc& view			 = desc.views[i];
@@ -1212,7 +1211,7 @@ namespace SFG
 				txt.srvs[i]			  = _descriptors.add();
 				descriptor_handle& dh = _descriptors.get(txt.srvs[i]);
 				dh					  = _heap_texture.get_heap_handle_block(1);
-				create_srv(srv_format, view.is_cubemap, base_level, remaining_level, base_mip, remaining_mip, dh);
+				create_srv(color_format, view.is_cubemap, base_level, remaining_level, base_mip, remaining_mip, dh);
 			}
 			if (desc.flags.is_set(texture_flags::tf_depth_texture) || desc.flags.is_set(texture_flags::tf_stencil_texture))
 			{
@@ -1289,7 +1288,7 @@ namespace SFG
 			.AddressW		= address_mode,
 			.MipLODBias		= static_cast<FLOAT>(desc.lod_bias),
 			.MaxAnisotropy	= desc.anisotropy,
-			.ComparisonFunc = D3D12_COMPARISON_FUNC_NONE,
+			.ComparisonFunc = desc.flags.is_set(sampler_flags::saf_compare) ? get_compare_op(desc.compare) : D3D12_COMPARISON_FUNC_NONE,
 			.MinLOD			= desc.min_lod,
 			.MaxLOD			= desc.max_lod,
 		};
@@ -2263,7 +2262,7 @@ namespace SFG
 			.AddressW		  = address_mode,
 			.MipLODBias		  = static_cast<FLOAT>(desc.lod_bias),
 			.MaxAnisotropy	  = desc.anisotropy,
-			.ComparisonFunc	  = D3D12_COMPARISON_FUNC_NONE,
+			.ComparisonFunc	  = desc.flags.is_set(sampler_flags::saf_compare) ? get_compare_op(desc.compare) : D3D12_COMPARISON_FUNC_NONE,
 			.MinLOD			  = desc.min_lod,
 			.MaxLOD			  = desc.max_lod,
 			.ShaderRegister	  = binding,

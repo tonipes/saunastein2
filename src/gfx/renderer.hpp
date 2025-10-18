@@ -90,13 +90,15 @@ namespace SFG
 
 		struct gfx_data
 		{
-			gfx_id swapchain		  = 0;
-			gfx_id bind_layout_global = 0;
-			gfx_id dummy_ubo		  = 0;
-			gfx_id dummy_ssbo		  = 0;
-			gfx_id dummy_sampler	  = 0;
-			gfx_id dummy_texture	  = 0;
-			uint8  frame_index		  = 0;
+			gfx_id swapchain		   = 0;
+			gfx_id bind_layout_global  = 0;
+			gfx_id dummy_ubo		   = 0;
+			gfx_id dummy_ssbo		   = 0;
+			gfx_id dummy_sampler	   = 0;
+			gfx_id dummy_texture	   = 0;
+			gfx_id dummy_texture_array = 0;
+			gfx_id dummy_texture_cube  = 0;
+			uint8  frame_index		   = 0;
 		};
 
 		struct shader_data

@@ -446,7 +446,7 @@ namespace SFG
 					});
 
 				proxy.bind_groups[i] = backend->create_empty_bind_group();
-				backend->bind_group_add_pointer(proxy.bind_groups[i], root_param_index::rpi_table_material, 6, false);
+				backend->bind_group_add_pointer(proxy.bind_groups[i], root_param_index::rpi_table_material, upi_material_texture4 + 1, false);
 
 				vector<bind_group_pointer> updates;
 				updates.push_back({

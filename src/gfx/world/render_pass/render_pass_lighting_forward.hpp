@@ -29,15 +29,20 @@ namespace SFG
 
 		struct per_frame_data
 		{
+			static_vector<barrier, MAX_BARRIERS>  barriers = {};
+			buffer								  ubo_lighting;
+			buffer								  ubo_forward;
+			buffer								  entities;
+			buffer								  bones;
+			buffer								  dir_lights;
+			buffer								  point_lights;
+			buffer								  spot_lights;
+			static_vector<gfx_id, COLOR_TEXTURES> color_textures;
+			semaphore_data						  semaphore;
 			gfx_id								  cmd_buffer;
 			gfx_id								  bind_group_lighting;
 			gfx_id								  bind_group_forward;
-			buffer								  ubo_lighting;
-			buffer								  ubo_forward;
-			semaphore_data						  semaphore;
-			static_vector<gfx_id, COLOR_TEXTURES> color_textures;
 			gfx_id								  depth_texture = 0;
-			static_vector<barrier, MAX_BARRIERS>  barriers		= {};
 		};
 
 		struct render_data
@@ -51,9 +56,6 @@ namespace SFG
 			const vector2ui16& size;
 			uint8*			   alloc;
 			size_t			   alloc_size;
-			gfx_id*			   entity_buffers;
-			gfx_id*			   bone_buffers;
-			gfx_id*			   light_buffers;
 			gfx_id*			   opaque_textures;
 			gfx_id*			   depth_textures;
 		};

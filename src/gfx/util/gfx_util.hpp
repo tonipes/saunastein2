@@ -23,16 +23,21 @@ namespace SFG
 
 	enum update_pointer_index : uint8
 	{
-		upi_render_pass_ubo0	 = 0,
-		upi_render_pass_ubo1	 = 1,
-		upi_render_pass_ssbo0	 = 2,
-		upi_render_pass_ssbo1	 = 3,
-		upi_render_pass_ssbo2	 = 4,
-		upi_render_pass_ssbo3	 = 5,
-		upi_render_pass_texture0 = 6,
-		upi_render_pass_texture1 = 7,
-		upi_render_pass_texture2 = 8,
-		upi_render_pass_texture3 = 9,
+		upi_render_pass_ubo0				= 0,
+		upi_render_pass_ubo1				= 1,
+		upi_render_pass_ssbo0				= 2,
+		upi_render_pass_ssbo1				= 3,
+		upi_render_pass_ssbo2				= 4,
+		upi_render_pass_ssbo3				= 5,
+		upi_render_pass_ssbo4				= 6,
+		upi_render_pass_texture0			= 7,
+		upi_render_pass_texture1			= 8,
+		upi_render_pass_texture2			= 9,
+		upi_render_pass_texture3			= 10,
+		upi_render_pass_texture4			= 11,
+		upi_render_pass_texture_array0		= 12,
+		upi_render_pass_texture_array1		= 13,
+		upi_render_pass_texture_cube_array0 = 14,
 
 		upi_material_ubo0	  = 0,
 		upi_material_ssbo0	  = 1,
@@ -40,6 +45,7 @@ namespace SFG
 		upi_material_texture1 = 3,
 		upi_material_texture2 = 4,
 		upi_material_texture3 = 5,
+		upi_material_texture4 = 6,
 
 		upi_object_ubo0		= 0,
 		upi_object_texture0 = 1,
@@ -54,13 +60,15 @@ namespace SFG
 	{
 	public:
 		static gfx_id				  create_bind_layout_global();
-		static void					  update_dummy_bind_group(gfx_id group, gfx_id dummy_texture, gfx_id dummy_sampler, gfx_id dummy_ssbo, gfx_id dummy_ubo);
+		static void					  update_dummy_bind_group(gfx_id group, gfx_id dummy_texture, gfx_id dummy_texture_array, gfx_id dummy_texture_cube, gfx_id dummy_sampler, gfx_id dummy_ssbo, gfx_id dummy_ubo);
 		static gfx_id				  create_bind_group_global();
 		static sampler_desc			  get_sampler_desc_anisotropic();
 		static sampler_desc			  get_sampler_desc_linear();
 		static sampler_desc			  get_sampler_desc_nearest();
 		static sampler_desc			  get_sampler_desc_gui_default();
 		static sampler_desc			  get_sampler_desc_gui_text();
+		static sampler_desc			  get_sampler_desc_shadow_2d();
+		static sampler_desc			  get_sampler_desc_shadow_cube();
 		static color_blend_attachment get_blend_attachment_alpha_blending();
 		static vector<vertex_input>	  get_input_layout(input_layout_type type);
 	};

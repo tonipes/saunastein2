@@ -100,6 +100,7 @@ namespace SFG
 		tf_is_3d					= 1 << 11,
 		tf_is_1d					= 1 << 12,
 		tf_shared					= 1 << 13,
+		tf_typeless					= 1 << 14,
 	};
 
 	enum sampler_flags
@@ -119,6 +120,7 @@ namespace SFG
 		saf_address_mode_mirrored_clamp	 = 1 << 12,
 		saf_border_transparent			 = 1 << 13,
 		saf_border_white				 = 1 << 14,
+		saf_compare						 = 1 << 15,
 	};
 
 	struct swapchain_desc
@@ -174,12 +176,13 @@ namespace SFG
 
 	struct sampler_desc
 	{
+		string			debug_name = "sampler";
 		uint32			anisotropy = 0;
 		float			min_lod	   = 0.0f;
 		float			max_lod	   = 1.0f;
 		float			lod_bias   = 0.0f;
 		bitmask<uint16> flags	   = 0;
-		string			debug_name = "sampler";
+		compare_op		compare	   = {};
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);

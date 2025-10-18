@@ -58,7 +58,7 @@ namespace SFG
 				});
 
 			pfd.bind_group = backend->create_empty_bind_group();
-			backend->bind_group_add_pointer(pfd.bind_group, rpi_table_render_pass, 4, false);
+			backend->bind_group_add_pointer(pfd.bind_group, rpi_table_render_pass, upi_render_pass_ssbo1 + 1, false);
 			backend->bind_group_update_pointer(pfd.bind_group,
 											   0,
 											   {
@@ -89,44 +89,6 @@ namespace SFG
 
 		destroy_textures();
 	}
-
-	/*
-
-	void render_pass_opaque::populate_render_data(world* w, const view& v, const world_render_data& wd, uint8 data_index)
-	{
-		render_data& rd = _render_data[data_index];
-		rd.proj			= v.proj_matrix;
-		rd.view			= v.view_matrix;
-		rd.view_proj	= v.view_proj_matrix;
-		rd.draws.clear();
-
-		world_resources& resources = w->get_resources();
-
-		for (const renderable_object& obj : wd.renderables)
-		{
-			const material&		  mat	= resources.get_resource<material>(obj.material);
-			const bitmask<uint8>& flags = mat.get_flags();
-
-			if (!flags.is_set(material::flags::is_opaque))
-				continue;
-
-			rd.draws.push_back({
-				.constants =
-					{
-						.constant0 = obj.gpu_entity,
-					},
-				.base_vertex	= obj.vertex_start,
-				.index_count	= obj.index_count,
-				.instance_count = 1,
-				.start_index	= obj.index_start,
-				.start_instance = 0,
-				.pipeline		= mat.get_shader(resources, obj.is_skinned ? shader::flags::is_skinned : 0),
-				.vertex_buffer	= obj.vertex_buffer->get_hw_gpu(),
-				.idx_buffer		= obj.index_buffer->get_hw_gpu(),
-			});
-		}
-	}
-	*/
 
 	void render_pass_opaque::prepare(proxy_manager& pm, view& camera_view, uint8 frame_index, world_render_data& wrd)
 	{
@@ -224,7 +186,7 @@ namespace SFG
 			.resource	= depth_texture,
 			.flags		= barrier_flags::baf_is_texture,
 			.from_state = resource_state::depth_write,
-			.to_state	= resource_state::common,
+			.to_state	= resource_state::ps_resource,
 		});
 
 		backend->reset_command_buffer(cmd_buffer);
@@ -426,10 +388,10 @@ namespace SFG
 			}
 
 			pfd.depth_texture = backend->create_texture({
-				.texture_format		  = format::d16_unorm,
-				.depth_stencil_format = format::d16_unorm,
+				.texture_format		  = format::r32_sfloat,
+				.depth_stencil_format = format::d32_sfloat,
 				.size				  = sz,
-				.flags				  = texture_flags::tf_depth_texture | texture_flags::tf_is_2d,
+				.flags				  = texture_flags::tf_depth_texture | texture_flags::tf_typeless | texture_flags::tf_is_2d | texture_flags::tf_sampled,
 				.debug_name			  = "opaque_rt_depth",
 			});
 		}

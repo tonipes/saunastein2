@@ -34,15 +34,15 @@ namespace SFG
 
 		struct per_frame_data
 		{
-			gfx_id								  cmd_buffer;
-			gfx_id								  bind_group;
 			buffer								  ubo;
 			buffer								  entities;
 			buffer								  bones;
-			semaphore_data						  semaphore;
 			static_vector<gfx_id, COLOR_TEXTURES> color_textures;
+			static_vector<barrier, MAX_BARRIERS>  barriers = {};
+			semaphore_data						  semaphore;
+			gfx_id								  cmd_buffer;
+			gfx_id								  bind_group;
 			gfx_id								  depth_texture = 0;
-			static_vector<barrier, MAX_BARRIERS>  barriers		= {};
 		};
 
 		struct render_data

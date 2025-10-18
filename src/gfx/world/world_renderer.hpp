@@ -64,9 +64,6 @@ namespace SFG
 
 	private:
 		void collect_model_instances();
-		void push_barrier_ps(gfx_id id, static_vector<barrier, MAX_BARRIERS>& barriers);
-		void push_barrier_rt(gfx_id id, static_vector<barrier, MAX_BARRIERS>& barriers);
-		void send_barriers(gfx_id cmd_list, static_vector<barrier, MAX_BARRIERS>& barriers);
 
 	private:
 		proxy_manager& _proxy_manager;

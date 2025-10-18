@@ -19,6 +19,7 @@ namespace SFG
 		j["min_lod"]	= s.min_lod;
 		j["max_lod"]	= s.max_lod;
 		j["lod_bias"]	= s.lod_bias;
+		j["compare"]	= s.compare;
 
 		// --- min filter ---
 		if (s.flags.is_set(sampler_flags::saf_min_anisotropic))
@@ -59,15 +60,21 @@ namespace SFG
 			j["border"] = "transparent";
 		else if (s.flags.is_set(sampler_flags::saf_border_white))
 			j["border"] = "white";
+
+		if (s.flags.is_set(sampler_flags::saf_compare))
+			j["use_compare"] = 1;
 	}
 
 	void from_json(const nlohmann::json& j, sampler_desc& s)
 	{
-		s.anisotropy = j.value<uint32>("anisotropy", 0);
-		s.min_lod	 = j.value<float>("min_lod", .0f);
-		s.max_lod	 = j.value<float>("max_lod", .0f);
-		s.lod_bias	 = j.value<float>("lod_bias", .0f);
-		s.flags		 = j.value<uint16>("flags", 0);
+		s.anisotropy			= j.value<uint32>("anisotropy", 0);
+		s.min_lod				= j.value<float>("min_lod", .0f);
+		s.max_lod				= j.value<float>("max_lod", .0f);
+		s.lod_bias				= j.value<float>("lod_bias", .0f);
+		s.flags					= j.value<uint16>("flags", 0);
+		s.compare				= j.value<compare_op>("compare", compare_op::less);
+		const uint8 use_compare = j.value<uint8>("use_compare", 0);
+		s.flags.set(sampler_flags::saf_compare, use_compare);
 
 		const string min		  = j.value<string>("min", "anisotropic");
 		const string mag		  = j.value<string>("mag", "anisotropic");

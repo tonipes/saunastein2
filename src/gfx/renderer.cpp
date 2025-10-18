@@ -58,8 +58,21 @@ namespace SFG
 			.size			= vector2ui16(1, 1),
 			.flags			= texture_flags::tf_is_2d | texture_flags::tf_sampled,
 		});
-		_gfx_data.dummy_ubo		= backend->create_resource({.size = 4, .flags = resource_flags::rf_constant_buffer | resource_flags::rf_gpu_only});
-		_gfx_data.dummy_ssbo	= backend->create_resource({.size = 4, .flags = resource_flags::rf_storage_buffer | resource_flags::rf_gpu_only});
+
+		_gfx_data.dummy_texture_array = backend->create_texture({
+			.texture_format = format::r8_unorm,
+			.size			= vector2ui16(1, 1),
+			.flags			= texture_flags::tf_is_2d | texture_flags::tf_sampled,
+			.array_length	= 2,
+		});
+
+		_gfx_data.dummy_texture_cube = backend->create_texture({
+			.texture_format = format::r8_unorm,
+			.size			= vector2ui16(1, 1),
+			.flags			= texture_flags::tf_is_2d | texture_flags::tf_sampled | tf_cubemap,
+		});
+		_gfx_data.dummy_ubo			 = backend->create_resource({.size = 4, .flags = resource_flags::rf_constant_buffer | resource_flags::rf_gpu_only});
+		_gfx_data.dummy_ssbo		 = backend->create_resource({.size = 4, .flags = resource_flags::rf_storage_buffer | resource_flags::rf_gpu_only});
 
 		shader_raw raw = {};
 		raw.cook_from_file("assets/engine/shaders/swapchain/swapchain.stkfrg", false, _gfx_data.bind_layout_global);
@@ -92,7 +105,7 @@ namespace SFG
 			pfd.bind_group_global = gfx_util::create_bind_group_global();
 
 			backend->bind_group_update_descriptor(pfd.bind_group_global, 0, pfd.buf_engine_global.get_hw_gpu());
-			gfx_util::update_dummy_bind_group(pfd.bind_group_global, _gfx_data.dummy_texture, _gfx_data.dummy_sampler, _gfx_data.dummy_ssbo, _gfx_data.dummy_ubo);
+			gfx_util::update_dummy_bind_group(pfd.bind_group_global, _gfx_data.dummy_texture, _gfx_data.dummy_texture_array, _gfx_data.dummy_texture_cube, _gfx_data.dummy_sampler, _gfx_data.dummy_ssbo, _gfx_data.dummy_ubo);
 
 			pfd.bind_group_swapchain = backend->create_empty_bind_group();
 			backend->bind_group_add_pointer(pfd.bind_group_swapchain, rpi_table_material, upi_material_texture1 + 1, false);
@@ -143,6 +156,8 @@ namespace SFG
 		backend->destroy_resource(_gfx_data.dummy_ssbo);
 		backend->destroy_sampler(_gfx_data.dummy_sampler);
 		backend->destroy_texture(_gfx_data.dummy_texture);
+		backend->destroy_texture(_gfx_data.dummy_texture_array);
+		backend->destroy_texture(_gfx_data.dummy_texture_cube);
 
 		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{

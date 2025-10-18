@@ -6,6 +6,10 @@
 #include "gfx/common/commands.hpp"
 #include "gfx/util/gfx_util.hpp"
 
+#include "gfx/world/gpu_bone.hpp"
+#include "gfx/world/gpu_entity.hpp"
+#include "gfx/world/gpu_light.hpp"
+
 namespace SFG
 {
 	void render_pass_lighting_forward::init(const init_data& data)
@@ -25,6 +29,66 @@ namespace SFG
 			pfd.ubo_lighting.create_hw({.size = sizeof(ubo_lighting), .flags = resource_flags::rf_constant_buffer | resource_flags::rf_cpu_visible, .debug_name = "lighting_ubo"});
 			pfd.ubo_forward.create_hw({.size = sizeof(ubo_forward), .flags = resource_flags::rf_constant_buffer | resource_flags::rf_cpu_visible, .debug_name = "forward_ubo"});
 
+			pfd.bones.create_staging_hw(
+				{
+					.size		= sizeof(gpu_bone) * MAX_GPU_BONES,
+					.flags		= resource_flags::rf_cpu_visible,
+					.debug_name = "opaque_bones_cpu",
+				},
+				{
+					.size		= sizeof(gpu_bone) * MAX_GPU_BONES,
+					.flags		= resource_flags::rf_gpu_only | resource_flags::rf_storage_buffer,
+					.debug_name = "opaque_bones_gpu",
+				});
+
+			pfd.entities.create_staging_hw(
+				{
+					.size		= sizeof(gpu_entity) * MAX_GPU_ENTITIES,
+					.flags		= resource_flags::rf_cpu_visible,
+					.debug_name = "opaque_entities_cpu",
+				},
+				{
+					.size		= sizeof(gpu_entity) * MAX_GPU_ENTITIES,
+					.flags		= resource_flags::rf_gpu_only | resource_flags::rf_storage_buffer,
+					.debug_name = "opaque_entities_gpu",
+				});
+
+			pfd.dir_lights.create_staging_hw(
+				{
+					.size		= sizeof(gpu_dir_light) * MAX_GPU_DIR_LIGHTS,
+					.flags		= resource_flags::rf_cpu_visible,
+					.debug_name = "lighting_dir_lights_cpu",
+				},
+				{
+					.size		= sizeof(gpu_dir_light) * MAX_GPU_DIR_LIGHTS,
+					.flags		= resource_flags::rf_gpu_only | resource_flags::rf_storage_buffer,
+					.debug_name = "lighting_dir_lights_gpu",
+				});
+
+			pfd.point_lights.create_staging_hw(
+				{
+					.size		= sizeof(gpu_point_light) * MAX_GPU_POINT_LIGHTS,
+					.flags		= resource_flags::rf_cpu_visible,
+					.debug_name = "lighting_point_lights_cpu",
+				},
+				{
+					.size		= sizeof(gpu_point_light) * MAX_GPU_POINT_LIGHTS,
+					.flags		= resource_flags::rf_gpu_only | resource_flags::rf_storage_buffer,
+					.debug_name = "lighting_point_lights_gpu",
+				});
+
+			pfd.spot_lights.create_staging_hw(
+				{
+					.size		= sizeof(gpu_spot_light) * MAX_GPU_SPOT_LIGHTS,
+					.flags		= resource_flags::rf_cpu_visible,
+					.debug_name = "lighting_spot_lights_cpu",
+				},
+				{
+					.size		= sizeof(gpu_spot_light) * MAX_GPU_SPOT_LIGHTS,
+					.flags		= resource_flags::rf_gpu_only | resource_flags::rf_storage_buffer,
+					.debug_name = "lighting_spot_lights_cpu",
+				});
+
 			const uint32 base		= i == 0 ? 0 : 4;
 			pfd.bind_group_lighting = backend->create_empty_bind_group();
 			backend->bind_group_add_pointer(pfd.bind_group_lighting, rpi_table_render_pass, 10, false);
@@ -32,11 +96,15 @@ namespace SFG
 											   0,
 											   {
 												   {.resource = pfd.ubo_lighting.get_hw_gpu(), .view = 0, .pointer_index = upi_render_pass_ubo0, .type = binding_type::ubo},
-												   {.resource = data.light_buffers[i], .view = 0, .pointer_index = upi_render_pass_ssbo0, .type = binding_type::ssbo},
+												   {.resource = pfd.bones.get_hw_gpu(), .view = 0, .pointer_index = upi_render_pass_ssbo0, .type = binding_type::ssbo},
+												   {.resource = pfd.dir_lights.get_hw_gpu(), .view = 0, .pointer_index = upi_render_pass_ssbo1, .type = binding_type::ssbo},
+												   {.resource = pfd.point_lights.get_hw_gpu(), .view = 0, .pointer_index = upi_render_pass_ssbo2, .type = binding_type::ssbo},
+												   {.resource = pfd.spot_lights.get_hw_gpu(), .view = 0, .pointer_index = upi_render_pass_ssbo3, .type = binding_type::ssbo},
 												   {.resource = data.opaque_textures[base], .view = 0, .pointer_index = upi_render_pass_texture0, .type = binding_type::texture_binding},
 												   {.resource = data.opaque_textures[base + 1], .view = 0, .pointer_index = upi_render_pass_texture1, .type = binding_type::texture_binding},
 												   {.resource = data.opaque_textures[base + 2], .view = 0, .pointer_index = upi_render_pass_texture2, .type = binding_type::texture_binding},
 												   {.resource = data.opaque_textures[base + 3], .view = 0, .pointer_index = upi_render_pass_texture3, .type = binding_type::texture_binding},
+												   {.resource = data.depth_textures[i], .view = 0, .pointer_index = upi_render_pass_texture4, .type = binding_type::texture_binding},
 											   });
 
 			pfd.bind_group_forward = backend->create_empty_bind_group();
@@ -45,9 +113,11 @@ namespace SFG
 											   0,
 											   {
 												   {.resource = pfd.ubo_forward.get_hw_gpu(), .view = 0, .pointer_index = upi_render_pass_ubo0, .type = binding_type::ubo},
-												   {.resource = data.entity_buffers[i], .view = 0, .pointer_index = upi_render_pass_ssbo0, .type = binding_type::ssbo},
-												   {.resource = data.bone_buffers[i], .view = 0, .pointer_index = upi_render_pass_ssbo1, .type = binding_type::ssbo},
-												   {.resource = data.light_buffers[i], .view = 0, .pointer_index = upi_render_pass_ssbo2, .type = binding_type::ssbo},
+												   {.resource = pfd.entities.get_hw_gpu(), .view = 0, .pointer_index = upi_render_pass_ssbo0, .type = binding_type::ssbo},
+												   {.resource = pfd.bones.get_hw_gpu(), .view = 0, .pointer_index = upi_render_pass_ssbo1, .type = binding_type::ssbo},
+												   {.resource = pfd.dir_lights.get_hw_gpu(), .view = 0, .pointer_index = upi_render_pass_ssbo2, .type = binding_type::ssbo},
+												   {.resource = pfd.point_lights.get_hw_gpu(), .view = 0, .pointer_index = upi_render_pass_ssbo3, .type = binding_type::ssbo},
+												   {.resource = pfd.spot_lights.get_hw_gpu(), .view = 0, .pointer_index = upi_render_pass_ssbo4, .type = binding_type::ssbo},
 											   });
 
 			pfd.depth_texture = data.depth_textures[i];
@@ -70,6 +140,9 @@ namespace SFG
 			backend->destroy_semaphore(pfd.semaphore.semaphore);
 			pfd.ubo_lighting.destroy();
 			pfd.ubo_forward.destroy();
+			pfd.dir_lights.destroy();
+			pfd.spot_lights.destroy();
+			pfd.point_lights.destroy();
 		}
 
 		destroy_textures();
@@ -92,12 +165,9 @@ namespace SFG
 												   {.resource = opaque_textures[base + 1], .view = 0, .pointer_index = upi_render_pass_texture1, .type = binding_type::texture_binding},
 												   {.resource = opaque_textures[base + 2], .view = 0, .pointer_index = upi_render_pass_texture2, .type = binding_type::texture_binding},
 												   {.resource = opaque_textures[base + 3], .view = 0, .pointer_index = upi_render_pass_texture3, .type = binding_type::texture_binding},
+												   {.resource = opaque_textures[i], .view = 0, .pointer_index = upi_render_pass_texture4, .type = binding_type::texture_binding},
 											   });
 		}
-	}
-
-	void render_pass_lighting_forward::populate_render_data(world* w)
-	{
 	}
 
 	void render_pass_lighting_forward::render(uint8 frame_index, const vector2ui16& size, gfx_id global_layout, gfx_id global_group)
@@ -122,59 +192,22 @@ namespace SFG
 			att.texture						  = textures[i];
 		}
 
-		backend->cmd_begin_render_pass_depth(cmd_buffer,
-											 {
-												 .color_attachments = attachments,
-												 .depth_stencil_attachment =
-													 {
-														 .texture		 = depth_texture,
-														 .clear_stencil	 = 0,
-														 .clear_depth	 = 1.0f,
-														 .depth_load_op	 = load_op::clear,
-														 .depth_store_op = store_op::store,
-														 .view_index	 = 0,
-													 },
-												 .color_attachment_count = COLOR_TEXTURES,
-											 });
+		backend->cmd_begin_render_pass(cmd_buffer,
+									   {
+										   .color_attachments	   = attachments,
+										   .color_attachment_count = COLOR_TEXTURES,
+									   });
 
 		backend->cmd_bind_layout(cmd_buffer, {.layout = global_layout});
 		backend->cmd_bind_group(cmd_buffer, {.group = global_group});
 		backend->cmd_bind_group(cmd_buffer, {.group = rp_bind_group_lighting});
 		backend->cmd_set_scissors(cmd_buffer, {.width = static_cast<uint16>(size.x), .height = static_cast<uint16>(size.y)});
-		backend->cmd_set_viewport(cmd_buffer, {.width = static_cast<uint16>(size.x), .height = static_cast<uint16>(size.y)});
+		backend->cmd_set_viewport(cmd_buffer, {.min_depth = 0.0f, .max_depth = 0.0f, .width = static_cast<uint16>(size.x), .height = static_cast<uint16>(size.y)});
 
-		gfx_id last_bound_group	   = std::numeric_limits<gfx_id>::max();
-		gfx_id last_bound_pipeline = std::numeric_limits<gfx_id>::max();
-
-		auto bind = [&](gfx_id group, gfx_id pipeline) {
-			if (pipeline != last_bound_pipeline)
-			{
-				last_bound_pipeline = pipeline;
-				backend->cmd_bind_pipeline(cmd_buffer, {.pipeline = pipeline});
-			}
-
-			if (group != last_bound_group)
-			{
-				last_bound_group = group;
-				backend->cmd_bind_group(cmd_buffer, {.group = group});
-			}
-		};
-
-		for (const indexed_draw& draw : rd.draws)
-		{
-			bind(draw.bind_group, draw.pipeline);
-
-			backend->cmd_bind_constants(cmd_buffer, {.data = (void*)&draw.constants, .offset = 0, .count = 4});
-			backend->cmd_draw_indexed_instanced(cmd_buffer,
-												{
-													.index_count_per_instance = draw.index_count,
-													.instance_count			  = draw.instance_count,
-													.start_index_location	  = draw.start_index,
-													.base_vertex_location	  = draw.base_vertex,
-													.start_instance_location  = draw.start_instance,
-												});
-		}
-
+		backend->cmd_draw_instanced(cmd_buffer,
+									{
+										.vertex_count_per_instance = 4,
+									});
 		backend->cmd_end_render_pass(cmd_buffer, {});
 	}
 
