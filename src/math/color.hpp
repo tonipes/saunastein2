@@ -3,6 +3,10 @@
 #pragma once
 #include "vector4.hpp"
 
+#ifdef SFG_TOOLMODE
+#include "vendor/nhlohmann/json_fwd.hpp"
+#endif
+
 namespace SFG
 {
 	class ostream;
@@ -12,7 +16,7 @@ namespace SFG
 	{
 
 	public:
-		color(float rv = 1.0f, float gv = 1.0f, float bv = 1.0f, float av = 1.0f) : x(rv), y(gv), z(bv), w(av){};
+		color(float rv = 1.0f, float gv = 1.0f, float bv = 1.0f, float av = 1.0f) : x(rv), y(gv), z(bv), w(av) {};
 		static color from255(float r, float g, float b, float a);
 		static color linear_to_srgb(const color& linear_color);
 		static color srgb_to_linear(const color& srgb_color);
@@ -79,5 +83,10 @@ namespace SFG
 
 		float x, y, z, w = 1.0f;
 	};
+
+#ifdef SFG_TOOLMODE
+	void to_json(nlohmann::json& j, color& c);
+	void from_json(nlohmann::json& j, color& c);
+#endif
 
 } // namespace SFG

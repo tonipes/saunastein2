@@ -18,7 +18,9 @@ namespace SFG
 	{
 		trait_type_mesh_instance = 0,
 		trait_type_model_instance,
-		trait_type_light,
+		trait_type_point_light,
+		trait_type_spot_light,
+		trait_type_dir_light,
 		trait_type_camera,
 		trait_type_max = 32,
 	};

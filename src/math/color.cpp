@@ -5,6 +5,11 @@
 #include "data/istream.hpp"
 #include "data/ostream.hpp"
 
+#ifdef SFG_TOOLMODE
+#include <vendor/nhlohmann/json.hpp>
+using json = nlohmann::json;
+#endif
+
 namespace SFG
 {
 	color color::red	= color(1, 0, 0, 1);
@@ -79,5 +84,24 @@ namespace SFG
 	{
 		return vector4(x, y, z, w);
 	}
+
+#ifdef SFG_TOOLMODE
+
+	void to_json(nlohmann::json& j, color& c)
+	{
+		j["x"] = c.x;
+		j["y"] = c.y;
+		j["z"] = c.z;
+		j["w"] = c.w;
+	}
+
+	void from_json(nlohmann::json& j, color& c)
+	{
+		c.x = j.value<float>("x", 0.0f);
+		c.y = j.value<float>("y", 0.0f);
+		c.z = j.value<float>("z", 0.0f);
+		c.w = j.value<float>("w", 0.0f);
+	}
+#endif
 
 } // namespace SFG

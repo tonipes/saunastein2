@@ -15,19 +15,22 @@ namespace SFG
 	class istream;
 	class world;
 
-	struct trait_light_reflection
+	struct trait_dir_light_reflection
 	{
-		trait_light_reflection();
+		trait_dir_light_reflection();
 	};
 
-	enum class light_type : uint8
+	struct trait_point_light_reflection
 	{
-		light_type_directional = 0,
-		light_type_point,
-		light_type_spot,
+		trait_point_light_reflection();
 	};
 
-	class trait_light
+	struct trait_spot_light_reflection
+	{
+		trait_spot_light_reflection();
+	};
+
+	class trait_dir_light
 	{
 	public:
 		void serialize(ostream& stream, world& w) const;
@@ -40,14 +43,63 @@ namespace SFG
 
 	private:
 		friend class entity_manager;
-		friend class trait_light_reflection;
+		friend class trait_dir_light_reflection;
 
 		void on_add(world& w);
 		void on_remove(world& w);
 
 	private:
-		trait_header _header = {};
+		trait_header _header	 = {};
+		color		 _base_color = color::white;
 	};
 
-	REGISTER_TRAIT(trait_light, trait_types::trait_type_light, trait_light_reflection);
+	class trait_spot_light
+	{
+	public:
+		void serialize(ostream& stream, world& w) const;
+		void deserialize(istream& stream, world& w);
+
+#ifdef SFG_TOOLMODE
+		void serialize_json(nlohmann::json& j, world& w) const;
+		void deserialize_json(nlohmann::json& j, world& w);
+#endif
+
+	private:
+		friend class entity_manager;
+		friend class trait_spot_light_reflection;
+
+		void on_add(world& w);
+		void on_remove(world& w);
+
+	private:
+		trait_header _header	 = {};
+		color		 _base_color = color::white;
+	};
+
+	class trait_point_light
+	{
+	public:
+		void serialize(ostream& stream, world& w) const;
+		void deserialize(istream& stream, world& w);
+
+#ifdef SFG_TOOLMODE
+		void serialize_json(nlohmann::json& j, world& w) const;
+		void deserialize_json(nlohmann::json& j, world& w);
+#endif
+
+	private:
+		friend class entity_manager;
+		friend class trait_point_light_reflection;
+
+		void on_add(world& w);
+		void on_remove(world& w);
+
+	private:
+		trait_header _header	 = {};
+		color		 _base_color = color::white;
+	};
+
+	REGISTER_TRAIT(trait_dir_light, trait_types::trait_type_dir_light, trait_dir_light_reflection);
+	REGISTER_TRAIT(trait_spot_light, trait_types::trait_type_spot_light, trait_dir_light_reflection);
+	REGISTER_TRAIT(trait_point_light, trait_types::trait_type_point_light, trait_dir_light_reflection);
 }
