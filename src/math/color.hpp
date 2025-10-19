@@ -85,8 +85,8 @@ namespace SFG
 	};
 
 #ifdef SFG_TOOLMODE
-	void to_json(nlohmann::json& j, color& c);
-	void from_json(nlohmann::json& j, color& c);
+	void to_json(nlohmann::json& j, const color& c);
+	void from_json(const nlohmann::json& j, color& c);
 #endif
 
 } // namespace SFG

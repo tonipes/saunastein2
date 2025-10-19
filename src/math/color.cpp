@@ -87,7 +87,7 @@ namespace SFG
 
 #ifdef SFG_TOOLMODE
 
-	void to_json(nlohmann::json& j, color& c)
+	void to_json(nlohmann::json& j, const color& c)
 	{
 		j["x"] = c.x;
 		j["y"] = c.y;
@@ -95,7 +95,7 @@ namespace SFG
 		j["w"] = c.w;
 	}
 
-	void from_json(nlohmann::json& j, color& c)
+	void from_json(const nlohmann::json& j, color& c)
 	{
 		c.x = j.value<float>("x", 0.0f);
 		c.y = j.value<float>("y", 0.0f);
