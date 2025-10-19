@@ -1,27 +1,28 @@
 // Copyright (c) 2025 Inan Evin
 
-#include "render_pass_opaque.hpp"
+#include "render_pass_pre_depth.hpp"
 #include "gfx/backend/backend.hpp"
 #include "gfx/common/descriptions.hpp"
 #include "gfx/common/commands.hpp"
 #include "gfx/util/gfx_util.hpp"
-#include "gfx/buffer_queue.hpp"
 #include "gfx/world/world_render_data.hpp"
 #include "gfx/proxy/proxy_manager.hpp"
 #include "gfx/common/barrier_description.hpp"
+#include "gfx/renderer.hpp"
 #include "world/world.hpp"
 #include "resources/vertex.hpp"
 #include "math/vector2ui16.hpp"
+#include "resources/shader_raw.hpp"
 
 namespace SFG
 {
-	void render_pass_opaque::init(const init_params& params)
+	void render_pass_pre_depth::init(const init_params& params)
 	{
 		_alloc.init(params.alloc, params.alloc_size);
 
 		gfx_backend* backend = gfx_backend::get();
 
-		create_textures(params.size, params.depth_textures);
+		create_textures(params.size);
 
 		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
@@ -30,7 +31,6 @@ namespace SFG
 			pfd.cmd_buffer			= backend->create_command_buffer({.type = command_type::graphics, .debug_name = "opaque_cmd"});
 			pfd.semaphore.semaphore = backend->create_semaphore();
 			pfd.ubo.create_hw({.size = sizeof(ubo), .flags = resource_flags::rf_constant_buffer | resource_flags::rf_cpu_visible, .debug_name = "opaque_ubo"});
-			pfd.depth_texture = params.depth_textures[i];
 
 			pfd.bind_group = backend->create_empty_bind_group();
 			backend->bind_group_add_pointer(pfd.bind_group, rpi_table_render_pass, upi_render_pass_ssbo1 + 1, false);
@@ -44,7 +44,7 @@ namespace SFG
 		}
 	}
 
-	void render_pass_opaque::uninit()
+	void render_pass_pre_depth::uninit()
 	{
 		_alloc.uninit();
 
@@ -63,7 +63,7 @@ namespace SFG
 		destroy_textures();
 	}
 
-	void render_pass_opaque::prepare(proxy_manager& pm, view& camera_view, uint8 frame_index, world_render_data& wrd)
+	void render_pass_pre_depth::prepare(proxy_manager& pm, view& camera_view, uint8 frame_index, world_render_data& wrd)
 	{
 		render_data& rd = _render_data;
 		rd.draws.clear();
@@ -79,8 +79,9 @@ namespace SFG
 			bitmask<uint8> target_flags = 0;
 			target_flags.set(res_shader_flags::res_shader_flags_is_skinned, obj.is_skinned);
 			target_flags.set(res_shader_flags::res_shader_flags_is_discard, is_discard);
+			target_flags.set(res_shader_flags::res_shader_flags_is_discard);
+
 			const gfx_id target_shader = pm.get_shader_variant(proxy_material, target_flags.value());
-			SFG_ASSERT(target_shader != NULL_GFX_ID);
 
 			rd.draws.push_back({
 				.constants =
@@ -110,46 +111,31 @@ namespace SFG
 		pfd.ubo.buffer_data(0, &ubo_data, sizeof(ubo));
 	}
 
-	void render_pass_opaque::render(const render_params& p)
+	void render_pass_pre_depth::render(const render_params& p)
 	{
 		gfx_backend*	backend		  = gfx_backend::get();
 		per_frame_data& pfd			  = _pfd[p.frame_index];
 		render_data&	rd			  = _render_data;
-		const gfx_id*	textures	  = pfd.color_textures.data();
 		const gfx_id	cmd_buffer	  = pfd.cmd_buffer;
 		const gfx_id	depth_texture = pfd.depth_texture;
 		const gfx_id	rp_bind_group = pfd.bind_group;
-		_alloc.reset();
 
-		render_pass_color_attachment* attachments = _alloc.allocate<render_pass_color_attachment>(COLOR_TEXTURES);
+		static_vector<barrier, 1> barriers;
+		static_vector<barrier, 1> barriers_after;
 
-		static_vector<barrier, 8> barriers;
-		static_vector<barrier, 8> barriers_after;
+		barriers.push_back({
+			.resource	= depth_texture,
+			.flags		= barrier_flags::baf_is_texture,
+			.from_state = resource_state::common,
+			.to_state	= resource_state::depth_write,
+		});
 
-		for (uint8 i = 0; i < COLOR_TEXTURES; i++)
-		{
-			const gfx_id txt = textures[i];
-
-			render_pass_color_attachment& att = attachments[i];
-			att.clear_color					  = vector4(0, 0, 0, 1.0f);
-			att.load_op						  = load_op::clear;
-			att.store_op					  = store_op::store;
-			att.texture						  = txt;
-
-			barriers.push_back({
-				.resource	= txt,
-				.flags		= barrier_flags::baf_is_texture,
-				.from_state = resource_state::ps_resource,
-				.to_state	= resource_state::render_target,
-			});
-
-			barriers_after.push_back({
-				.resource	= txt,
-				.flags		= barrier_flags::baf_is_texture,
-				.from_state = resource_state::render_target,
-				.to_state	= resource_state::ps_resource,
-			});
-		}
+		barriers_after.push_back({
+			.resource	= depth_texture,
+			.flags		= barrier_flags::baf_is_texture,
+			.from_state = resource_state::depth_write,
+			.to_state	= resource_state::depth_read,
+		});
 
 		backend->reset_command_buffer(cmd_buffer);
 		backend->cmd_barrier(cmd_buffer,
@@ -157,20 +143,21 @@ namespace SFG
 								 .barriers		= barriers.data(),
 								 .barrier_count = static_cast<uint16>(barriers.size()),
 							 });
-		backend->cmd_begin_render_pass_depth(cmd_buffer,
-											 {
-												 .color_attachments = attachments,
-												 .depth_stencil_attachment =
-													 {
-														 .texture		 = depth_texture,
-														 .clear_stencil	 = 0,
-														 .clear_depth	 = 0.0f,
-														 .depth_load_op	 = load_op::load,
-														 .depth_store_op = store_op::store,
-														 .view_index	 = 0,
-													 },
-												 .color_attachment_count = COLOR_TEXTURES,
-											 });
+
+		barriers.resize(0);
+
+		backend->cmd_begin_render_pass_depth_only(cmd_buffer,
+												  {
+													  .depth_stencil_attachment =
+														  {
+															  .texture		  = depth_texture,
+															  .clear_stencil  = 0,
+															  .clear_depth	  = 0.0f,
+															  .depth_load_op  = load_op::clear,
+															  .depth_store_op = store_op::store,
+															  .view_index	  = 0,
+														  },
+												  });
 
 		backend->cmd_bind_layout(cmd_buffer, {.layout = p.global_layout});
 		backend->cmd_bind_group(cmd_buffer, {.group = p.global_group});
@@ -241,52 +228,38 @@ namespace SFG
 		backend->close_command_buffer(cmd_buffer);
 	}
 
-	void render_pass_opaque::resize(const vector2ui16& size, gfx_id* depth_textures)
+	void render_pass_pre_depth::resize(const vector2ui16& size)
 	{
 		destroy_textures();
-		create_textures(size, depth_textures);
+		create_textures(size);
 	}
 
-	void render_pass_opaque::destroy_textures()
+	void render_pass_pre_depth::destroy_textures()
 	{
 		gfx_backend* backend = gfx_backend::get();
 
 		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
 			per_frame_data& pfd = _pfd[i];
-
-			for (uint32 i = 0; i < COLOR_TEXTURES; i++)
-				backend->destroy_texture(pfd.color_textures[i]);
-			pfd.color_textures.clear();
+			backend->destroy_texture(pfd.depth_texture);
 		}
 	}
 
-	void render_pass_opaque::create_textures(const vector2ui16& sz, gfx_id* depth_textures)
+	void render_pass_pre_depth::create_textures(const vector2ui16& sz)
 	{
 		gfx_backend* backend = gfx_backend::get();
-
-		static_vector<const char*, COLOR_TEXTURES> names;
-		names.push_back("opaque_rt_albedo");
-		names.push_back("opaque_rt_normal");
-		names.push_back("opaque_rt_orm");
-		names.push_back("opaque_rt_emissive");
 
 		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
 			per_frame_data& pfd = _pfd[i];
-			pfd.color_textures.clear();
 
-			for (uint32 j = 0; j < COLOR_TEXTURES; j++)
-			{
-				pfd.color_textures.push_back(backend->create_texture({
-					.texture_format = format::r8g8b8a8_srgb,
-					.size			= sz,
-					.flags			= texture_flags::tf_render_target | texture_flags::tf_is_2d | texture_flags::tf_sampled,
-					.debug_name		= names[j],
-				}));
-
-				pfd.depth_texture = depth_textures[i];
-			}
+			pfd.depth_texture = backend->create_texture({
+				.texture_format		  = format::r32_sfloat,
+				.depth_stencil_format = format::d32_sfloat,
+				.size				  = sz,
+				.flags				  = texture_flags::tf_depth_texture | texture_flags::tf_typeless | texture_flags::tf_is_2d | texture_flags::tf_sampled,
+				.debug_name			  = "prepass_depth",
+			});
 		}
 	}
 }

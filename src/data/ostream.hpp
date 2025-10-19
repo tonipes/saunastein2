@@ -7,7 +7,6 @@
 #include "data/vector.hpp"
 #include "data/string.hpp"
 #include "memory/memory.hpp"
-#include "data/hash_map.hpp"
 #include "io/assert.hpp"
 #include "common/types.hpp"
 #include <fstream>

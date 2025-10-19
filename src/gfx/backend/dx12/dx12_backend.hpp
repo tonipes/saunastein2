@@ -40,6 +40,7 @@ namespace SFG
 
 	struct command_begin_render_pass;
 	struct command_begin_render_pass_depth;
+	struct command_begin_render_pass_depth_only;
 	struct command_begin_render_pass_swapchain;
 	struct command_begin_render_pass_swapchain_depth;
 	struct command_end_render_pass;
@@ -82,10 +83,10 @@ namespace SFG
 
 		struct texture
 		{
-			D3D12MA::Allocation* ptr = nullptr;
-			gfx_id				 srvs[6];
-			gfx_id				 dsvs[6];
-			gfx_id				 rtvs[6];
+			D3D12MA::Allocation* ptr		   = nullptr;
+			gfx_id				 srvs[6]	   = {};
+			gfx_id				 dsvs[6]	   = {};
+			gfx_id				 rtvs[6]	   = {};
 			gfx_id				 shared_handle = 0;
 #ifdef ENABLE_MEMORY_TRACER
 			uint32 size = 0;
@@ -193,8 +194,7 @@ namespace SFG
 		uint8 get_back_buffer_index(gfx_id swapchain);
 		void  wait_for_swapchain_latency(gfx_id swapchain);
 
-		bool compile_shader_vertex_pixel(
-			const string& source, const vector<string>& defines, const char* source_path, const char* vertex_entry, const char* pixel_entry, span<uint8>& vertex_out, span<uint8>& pixel_out, bool compile_layout, span<uint8>& out_layout) const;
+		bool compile_shader_vertex_pixel(uint8 stage, const string& source, const vector<string>& defines, const char* source_path, const char* entry, span<uint8>& out, bool compile_layout, span<uint8>& out_layout) const;
 		bool compile_shader_compute(const string& source, const char* source_path, const char* entry, span<uint8>& out, bool compile_layout, span<uint8>& out_layout) const;
 
 		gfx_id create_resource(const resource_desc& desc);
@@ -252,6 +252,7 @@ namespace SFG
 
 		void cmd_begin_render_pass(gfx_id cmd_list, const command_begin_render_pass& command);
 		void cmd_begin_render_pass_depth(gfx_id cmd_list, const command_begin_render_pass_depth& command);
+		void cmd_begin_render_pass_depth_only(gfx_id cmd_list, const command_begin_render_pass_depth_only& command);
 		void cmd_begin_render_pass_swapchain(gfx_id cmd_list, const command_begin_render_pass_swapchain& command);
 		void cmd_begin_render_pass_swapchain_depth(gfx_id cmd_list, const command_begin_render_pass_swapchain_depth& command);
 		void cmd_end_render_pass(gfx_id cmd_list, const command_end_render_pass& command) const;

@@ -77,6 +77,7 @@ namespace SFG
 
 		_flags.set(res_shader_flags::res_shader_flags_is_skinned, raw.is_skinned);
 		_flags.set(res_shader_flags::res_shader_flags_is_discard, raw.is_discard);
+		_flags.set(res_shader_flags::res_shader_flags_is_zprepass, raw.is_z_prepass);
 
 		render_event_shader ev = {};
 		ev.desc				   = raw.desc;

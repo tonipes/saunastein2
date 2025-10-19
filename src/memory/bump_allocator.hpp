@@ -21,7 +21,7 @@ namespace SFG
 		bump_allocator(const bump_allocator& other)			   = delete;
 		~bump_allocator()
 		{
-			SFG_ASSERT(_raw == nullptr);
+			SFG_ASSERT(!_owns || _raw == nullptr);
 		}
 
 		void* allocate(size_t size, size_t alignment = 1);

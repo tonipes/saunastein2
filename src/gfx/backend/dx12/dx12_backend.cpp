@@ -628,7 +628,8 @@ namespace SFG
 			ID3D12InfoQueue1* infoQueue = nullptr;
 			if (SUCCEEDED(_device->QueryInterface<ID3D12InfoQueue1>(&infoQueue)))
 			{
-				infoQueue->RegisterMessageCallback(&msg_callback, D3D12_MESSAGE_CALLBACK_IGNORE_FILTERS, nullptr, &msgcallback);
+				if (infoQueue)
+					infoQueue->RegisterMessageCallback(&msg_callback, D3D12_MESSAGE_CALLBACK_IGNORE_FILTERS, nullptr, &msgcallback);
 			}
 		}
 #endif
@@ -1519,10 +1520,8 @@ namespace SFG
 		_semaphores.remove(id);
 	}
 
-	bool dx12_backend::compile_shader_vertex_pixel(
-		const string& source, const vector<string>& defines, const char* source_path, const char* vertex_entry, const char* pixel_entry, span<uint8>& vertex_out, span<uint8>& pixel_out, bool compile_root_sig, span<uint8>& out_signature_data) const
+	bool dx12_backend::compile_shader_vertex_pixel(uint8 stage, const string& source, const vector<string>& defines, const char* source_path, const char* entry, span<uint8>& out, bool compile_root_sig, span<uint8>& out_signature_data) const
 	{
-
 		Microsoft::WRL::ComPtr<IDxcCompiler3> idxc_compiler;
 		throw_if_failed(DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&idxc_compiler)));
 
@@ -1650,28 +1649,22 @@ namespace SFG
 			return true;
 		};
 
-		const wchar_t* target_entry_vertex = string_util::char_to_wchar(vertex_entry);
-		const wchar_t* target_entry_pixel  = string_util::char_to_wchar(pixel_entry);
-
 		auto clean = [&]() {
 			source_blob.Reset();
-			delete[] target_entry_vertex;
-			delete[] target_entry_pixel;
 			delete[] include_path;
 		};
 
-		if (!compile(L"vs_6_0", target_entry_vertex, vertex_out, compile_root_sig))
+		const wchar_t* target_entry = string_util::char_to_wchar(entry);
+
+		const wchar_t* t = stage == shader_stage::vertex ? L"vs_6_0" : L"ps_6_0";
+		if (!compile(t, target_entry, out, compile_root_sig))
 		{
+			delete[] target_entry;
 			clean();
 			return false;
 		}
 
-		if (!compile(L"ps_6_0", target_entry_pixel, pixel_out, false))
-		{
-			clean();
-			return false;
-		}
-
+		delete[] target_entry;
 		clean();
 		return true;
 	}
@@ -2409,6 +2402,21 @@ namespace SFG
 		const D3D12_RENDER_PASS_ENDING_ACCESS	   stencil_end{get_store_op(cmd.depth_stencil_attachment.stencil_store_op), {}};
 		const D3D12_RENDER_PASS_DEPTH_STENCIL_DESC depth_stencil_desc{depth_dh.cpu, depth_begin, stencil_begin, depth_end, stencil_end};
 		cmd_list->BeginRenderPass(cmd.color_attachment_count, color_attachments.data(), &depth_stencil_desc, D3D12_RENDER_PASS_FLAG_NONE);
+	}
+
+	void dx12_backend::cmd_begin_render_pass_depth_only(gfx_id cmd_id, const command_begin_render_pass_depth_only& cmd)
+	{
+		command_buffer&							   buffer	 = _command_buffers.get(cmd_id);
+		ID3D12GraphicsCommandList4*				   cmd_list	 = buffer.ptr.Get();
+		const texture&							   depth_txt = _textures.get(cmd.depth_stencil_attachment.texture);
+		const descriptor_handle&				   depth_dh	 = _descriptors.get(depth_txt.dsvs[cmd.depth_stencil_attachment.view_index]);
+		const CD3DX12_CLEAR_VALUE				   clear_depth_stencil{static_cast<DXGI_FORMAT>(depth_txt.format), cmd.depth_stencil_attachment.clear_depth, cmd.depth_stencil_attachment.clear_stencil};
+		const D3D12_RENDER_PASS_BEGINNING_ACCESS   depth_begin{get_load_op(cmd.depth_stencil_attachment.depth_load_op), {clear_depth_stencil}};
+		const D3D12_RENDER_PASS_BEGINNING_ACCESS   stencil_begin{get_load_op(cmd.depth_stencil_attachment.stencil_load_op), {clear_depth_stencil}};
+		const D3D12_RENDER_PASS_ENDING_ACCESS	   depth_end{get_store_op(cmd.depth_stencil_attachment.depth_store_op), {}};
+		const D3D12_RENDER_PASS_ENDING_ACCESS	   stencil_end{get_store_op(cmd.depth_stencil_attachment.stencil_store_op), {}};
+		const D3D12_RENDER_PASS_DEPTH_STENCIL_DESC depth_stencil_desc{depth_dh.cpu, depth_begin, stencil_begin, depth_end, stencil_end};
+		cmd_list->BeginRenderPass(0, NULL, &depth_stencil_desc, D3D12_RENDER_PASS_FLAG_NONE);
 	}
 
 	void dx12_backend::cmd_begin_render_pass_swapchain(gfx_id cmd_id, const command_begin_render_pass_swapchain& cmd)

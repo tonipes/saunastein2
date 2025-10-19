@@ -313,4 +313,11 @@ namespace SFG
 		size_t size		   = 0;
 	};
 
+	struct command_begin_render_pass_depth_only
+	{
+		static constexpr uint8 TID = 26;
+
+		render_pass_depth_stencil_attachment depth_stencil_attachment = {};
+	};
+
 }

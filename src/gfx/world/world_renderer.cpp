@@ -26,7 +26,7 @@ namespace SFG
 #define DEPTH_FORMAT		 format::d16_unorm
 #define SHARED_BUMP_ALLOC_SZ 1024 * 512
 
-	world_renderer::world_renderer(proxy_manager& pm, world& w) : _proxy_manager(pm), _world(w){};
+	world_renderer::world_renderer(proxy_manager& pm, world& w) : _proxy_manager(pm), _world(w) {};
 
 	void world_renderer::init(const vector2ui16& size, texture_queue* tq, buffer_queue* bq)
 	{
@@ -39,11 +39,83 @@ namespace SFG
 
 		_base_size = size;
 
+		static_vector<gfx_id, BACK_BUFFER_COUNT> entities_ptr;
+		static_vector<gfx_id, BACK_BUFFER_COUNT> bones_ptr;
+		static_vector<gfx_id, BACK_BUFFER_COUNT> dir_lights_ptr;
+		static_vector<gfx_id, BACK_BUFFER_COUNT> point_lights_ptr;
+		static_vector<gfx_id, BACK_BUFFER_COUNT> spot_lights_ptr;
+
 		// pfd
 		for (uint8 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
-			per_frame_data& pfd	  = _pfd[i];
-			pfd.sem_gfx.semaphore = backend->create_semaphore();
+			per_frame_data& pfd = _pfd[i];
+			pfd.cmd_upload		= backend->create_command_buffer({.type = command_type::graphics, .debug_name = "wr_upload"});
+
+			pfd.bones_buffer.create_staging_hw(
+				{
+					.size		= sizeof(gpu_bone) * MAX_GPU_BONES,
+					.flags		= resource_flags::rf_cpu_visible,
+					.debug_name = "opaque_bones_cpu",
+				},
+				{
+					.size		= sizeof(gpu_bone) * MAX_GPU_BONES,
+					.flags		= resource_flags::rf_gpu_only | resource_flags::rf_storage_buffer,
+					.debug_name = "opaque_bones_gpu",
+				});
+
+			pfd.entity_buffer.create_staging_hw(
+				{
+					.size		= sizeof(gpu_entity) * MAX_GPU_ENTITIES,
+					.flags		= resource_flags::rf_cpu_visible,
+					.debug_name = "opaque_entities_cpu",
+				},
+				{
+					.size		= sizeof(gpu_entity) * MAX_GPU_ENTITIES,
+					.flags		= resource_flags::rf_gpu_only | resource_flags::rf_storage_buffer,
+					.debug_name = "opaque_entities_gpu",
+				});
+
+			pfd.dir_lights_buffer.create_staging_hw(
+				{
+					.size		= sizeof(gpu_dir_light) * MAX_GPU_DIR_LIGHTS,
+					.flags		= resource_flags::rf_cpu_visible,
+					.debug_name = "lighting_dir_lights_cpu",
+				},
+				{
+					.size		= sizeof(gpu_dir_light) * MAX_GPU_DIR_LIGHTS,
+					.flags		= resource_flags::rf_gpu_only | resource_flags::rf_storage_buffer,
+					.debug_name = "lighting_dir_lights_gpu",
+				});
+
+			pfd.point_lights_buffer.create_staging_hw(
+				{
+					.size		= sizeof(gpu_point_light) * MAX_GPU_POINT_LIGHTS,
+					.flags		= resource_flags::rf_cpu_visible,
+					.debug_name = "lighting_point_lights_cpu",
+				},
+				{
+					.size		= sizeof(gpu_point_light) * MAX_GPU_POINT_LIGHTS,
+					.flags		= resource_flags::rf_gpu_only | resource_flags::rf_storage_buffer,
+					.debug_name = "lighting_point_lights_gpu",
+				});
+
+			pfd.spot_lights_buffer.create_staging_hw(
+				{
+					.size		= sizeof(gpu_spot_light) * MAX_GPU_SPOT_LIGHTS,
+					.flags		= resource_flags::rf_cpu_visible,
+					.debug_name = "lighting_spot_lights_cpu",
+				},
+				{
+					.size		= sizeof(gpu_spot_light) * MAX_GPU_SPOT_LIGHTS,
+					.flags		= resource_flags::rf_gpu_only | resource_flags::rf_storage_buffer,
+					.debug_name = "lighting_spot_lights_cpu",
+				});
+
+			entities_ptr.push_back(pfd.entity_buffer.get_hw_gpu());
+			bones_ptr.push_back(pfd.bones_buffer.get_hw_gpu());
+			dir_lights_ptr.push_back(pfd.dir_lights_buffer.get_hw_gpu());
+			point_lights_ptr.push_back(pfd.point_lights_buffer.get_hw_gpu());
+			spot_lights_ptr.push_back(pfd.spot_lights_buffer.get_hw_gpu());
 		}
 
 		// Command allocations
@@ -55,16 +127,30 @@ namespace SFG
 			PUSH_ALLOCATION_SZ(total_shared_size);
 
 			uint8* alloc_head = _shared_command_alloc;
-			_pass_opaque.init({
+
+			_pass_pre_depth.init({
 				.size		= size,
 				.alloc		= alloc_head,
 				.alloc_size = size_per_lane,
+				.entities	= entities_ptr.data(),
+				.bones		= bones_ptr.data(),
 			});
+			alloc_head += size_per_lane;
+			static_vector<gfx_id, BACK_BUFFER_COUNT> depth_textures;
+			for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
+				depth_textures.push_back(_pass_pre_depth.get_depth_texture(i));
 
+			_pass_opaque.init({
+				.size			= size,
+				.alloc			= alloc_head,
+				.alloc_size		= size_per_lane,
+				.entities		= entities_ptr.data(),
+				.bones			= bones_ptr.data(),
+				.depth_textures = depth_textures.data(),
+			});
 			alloc_head += size_per_lane;
 
 			static_vector<gfx_id, BACK_BUFFER_COUNT * 4> opaque_textures;
-			static_vector<gfx_id, BACK_BUFFER_COUNT>	 depth_textures;
 
 			for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 			{
@@ -72,7 +158,6 @@ namespace SFG
 				opaque_textures.push_back(_pass_opaque.get_color_texture(i, 1));
 				opaque_textures.push_back(_pass_opaque.get_color_texture(i, 2));
 				opaque_textures.push_back(_pass_opaque.get_color_texture(i, 3));
-				depth_textures.push_back(_pass_opaque.get_depth_texture(i));
 			}
 
 			//_pass_lighting_fw.init({
@@ -91,6 +176,7 @@ namespace SFG
 
 	void world_renderer::uninit()
 	{
+		_pass_pre_depth.uninit();
 		_pass_opaque.uninit();
 		// _pass_lighting_fw.uninit();
 		// _pass_post_combiner.uninit();
@@ -105,31 +191,55 @@ namespace SFG
 		for (uint8 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
 			per_frame_data& pfd = _pfd[i];
-			backend->destroy_semaphore(pfd.sem_gfx.semaphore);
+			backend->destroy_command_buffer(pfd.cmd_upload);
+			pfd.entity_buffer.destroy();
+			pfd.bones_buffer.destroy();
+			pfd.dir_lights_buffer.destroy();
+			pfd.spot_lights_buffer.destroy();
+			pfd.point_lights_buffer.destroy();
 		}
 	}
 
 	void world_renderer::prepare(uint8 frame_index)
 	{
-		world_render_data& rd = _render_data;
+		per_frame_data&	   pfd = _pfd[frame_index];
+		world_render_data& rd  = _render_data;
 		rd.reset();
 
+		// Handle main camera.
 		const world_id main_cam_trait = _proxy_manager.get_main_camera();
-		if (main_cam_trait == NULL_WORLD_ID)
-			return;
-
-		const render_proxy_camera& cam_proxy  = _proxy_manager.get_camera(main_cam_trait);
-		const render_proxy_entity& cam_entity = _proxy_manager.get_entity(cam_proxy.entity);
-		const matrix4x3&		   cam_abs	  = cam_entity.model;
-		_main_camera_view					  = {
-								.view_matrix = matrix4x4::view(cam_entity.rotation, cam_entity.position),
-								.proj_matrix = matrix4x4::perspective_reverse_z(cam_proxy.fov_degrees, static_cast<float>(_base_size.x) / static_cast<float>(_base_size.y), cam_proxy.near_plane, cam_proxy.far_plane),
-		};
+		_main_camera_view			  = {};
+		if (main_cam_trait != NULL_WORLD_ID)
+		{
+			const render_proxy_camera& cam_proxy  = _proxy_manager.get_camera(main_cam_trait);
+			const render_proxy_entity& cam_entity = _proxy_manager.get_entity(cam_proxy.entity);
+			const matrix4x3&		   cam_abs	  = cam_entity.model;
+			_main_camera_view					  = {
+									.view_matrix = matrix4x4::view(cam_entity.rotation, cam_entity.position),
+									.proj_matrix = matrix4x4::perspective_reverse_z(cam_proxy.fov_degrees, static_cast<float>(_base_size.x) / static_cast<float>(_base_size.y), cam_proxy.near_plane, cam_proxy.far_plane),
+			};
+		}
 		_main_camera_view.view_proj_matrix = _main_camera_view.proj_matrix * _main_camera_view.view_matrix;
 		_main_camera_view.view_frustum	   = frustum::extract(_main_camera_view.view_proj_matrix);
 
 		collect_model_instances();
 
+		if (!rd.entities.empty())
+			pfd.entity_buffer.buffer_data(0, rd.entities.data(), rd.entities.size() * sizeof(gpu_entity));
+
+		if (!rd.bones.empty())
+			pfd.bones_buffer.buffer_data(0, rd.bones.data(), rd.bones.size() * sizeof(gpu_bone));
+
+		if (!rd.dir_lights.empty())
+			pfd.dir_lights_buffer.buffer_data(0, rd.dir_lights.data(), rd.dir_lights.size() * sizeof(gpu_dir_light));
+
+		if (!rd.point_lights.empty())
+			pfd.point_lights_buffer.buffer_data(0, rd.point_lights.data(), rd.point_lights.size() * sizeof(gpu_point_light));
+
+		if (!rd.spot_lights.empty())
+			pfd.spot_lights_buffer.buffer_data(0, rd.spot_lights.data(), rd.spot_lights.size() * sizeof(gpu_spot_light));
+
+		_pass_pre_depth.prepare(_proxy_manager, _main_camera_view, frame_index, _render_data);
 		_pass_opaque.prepare(_proxy_manager, _main_camera_view, frame_index, rd);
 	}
 
@@ -155,8 +265,23 @@ namespace SFG
 		const gfx_id	cmd_lighting_fw		= _pass_lighting_fw.get_cmd_buffer(frame_index);
 		const gfx_id	cmd_post			= _pass_post_combiner.get_cmd_buffer(frame_index);
 
-		// Single task; avoid parallel overhead.
-		_pass_opaque.render(frame_index, rd, resolution, layout_global, bind_group_global);
+		upload(frame_index);
+
+		_pass_pre_depth.render({
+			.frame_index   = frame_index,
+			.wrd		   = _render_data,
+			.size		   = resolution,
+			.global_layout = layout_global,
+			.global_group  = bind_group_global,
+		});
+
+		_pass_opaque.render({
+			.frame_index   = frame_index,
+			.wrd		   = _render_data,
+			.size		   = resolution,
+			.global_layout = layout_global,
+			.global_group  = bind_group_global,
+		});
 
 		//	tasks.push_back([&] { _pass_lighting_fw.render(data_index, frame_index, resolution, layout_global, bind_group_global); });
 		//	tasks.push_back([&] { _pass_post_combiner.render(data_index, frame_index, resolution, layout_global, bind_group_global); });
@@ -184,13 +309,17 @@ namespace SFG
 	{
 		_base_size			 = size;
 		gfx_backend* backend = gfx_backend::get();
+		_pass_pre_depth.resize(size);
 
-		_pass_opaque.resize(size);
+		static_vector<gfx_id, BACK_BUFFER_COUNT> depths;
+		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
+			depths.push_back(_pass_pre_depth.get_depth_texture(i));
+
+		_pass_opaque.resize(size, depths.data());
 		// _pass_lighting_fw.resize(size);
 		// _pass_post_combiner.resize(size);
 
 		static_vector<gfx_id, BACK_BUFFER_COUNT * 4> opaque_textures;
-		static_vector<gfx_id, BACK_BUFFER_COUNT>	 depth_textures;
 
 		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
@@ -198,7 +327,6 @@ namespace SFG
 			opaque_textures.push_back(_pass_opaque.get_color_texture(i, 1));
 			opaque_textures.push_back(_pass_opaque.get_color_texture(i, 2));
 			opaque_textures.push_back(_pass_opaque.get_color_texture(i, 3));
-			depth_textures.push_back(_pass_opaque.get_depth_texture(i));
 		}
 
 		// _pass_lighting_fw.reset_target_textures(opaque_textures.data(), depth_textures.data());
@@ -218,6 +346,113 @@ namespace SFG
 		const uint16	   i  = static_cast<uint16>(rd.objects.size());
 		rd.objects.push_back(e);
 		return i;
+	}
+
+	void world_renderer::upload(uint8 frame_index)
+	{
+		gfx_backend*	   backend = gfx_backend::get();
+		per_frame_data&	   pfd	   = _pfd[frame_index];
+		world_render_data& wrd	   = _render_data;
+
+		const gfx_id queue_gfx = backend->get_queue_gfx();
+		const gfx_id cmd	   = pfd.cmd_upload;
+
+		backend->reset_command_buffer(cmd);
+
+		static_vector<barrier, 20> barriers;
+
+		barriers.push_back({
+			.resource	= pfd.bones_buffer.get_hw_gpu(),
+			.flags		= barrier_flags::baf_is_resource,
+			.from_state = resource_state::non_ps_resource,
+			.to_state	= resource_state::copy_dest,
+		});
+
+		barriers.push_back({
+			.resource	= pfd.entity_buffer.get_hw_gpu(),
+			.flags		= barrier_flags::baf_is_resource,
+			.from_state = resource_state::non_ps_resource,
+			.to_state	= resource_state::copy_dest,
+		});
+
+		barriers.push_back({
+			.resource	= pfd.dir_lights_buffer.get_hw_gpu(),
+			.flags		= barrier_flags::baf_is_resource,
+			.from_state = resource_state::ps_resource,
+			.to_state	= resource_state::copy_dest,
+		});
+
+		barriers.push_back({
+			.resource	= pfd.spot_lights_buffer.get_hw_gpu(),
+			.flags		= barrier_flags::baf_is_resource,
+			.from_state = resource_state::ps_resource,
+			.to_state	= resource_state::copy_dest,
+		});
+
+		barriers.push_back({
+			.resource	= pfd.point_lights_buffer.get_hw_gpu(),
+			.flags		= barrier_flags::baf_is_resource,
+			.from_state = resource_state::ps_resource,
+			.to_state	= resource_state::copy_dest,
+		});
+
+		backend->cmd_barrier(cmd, {.barriers = barriers.data(), .barrier_count = static_cast<uint16>(barriers.size())});
+
+		if (!wrd.entities.empty())
+			pfd.entity_buffer.copy_region(cmd, 0, wrd.entities.size() * sizeof(gpu_entity));
+
+		if (!wrd.bones.empty())
+			pfd.bones_buffer.copy_region(cmd, 0, wrd.bones.size() * sizeof(gpu_bone));
+
+		if (!wrd.dir_lights.empty())
+			pfd.dir_lights_buffer.copy_region(cmd, 0, wrd.dir_lights.size() * sizeof(gpu_dir_light));
+
+		if (!wrd.point_lights.empty())
+			pfd.point_lights_buffer.copy_region(cmd, 0, wrd.point_lights.size() * sizeof(gpu_point_light));
+
+		if (!wrd.spot_lights.empty())
+			pfd.spot_lights_buffer.copy_region(cmd, 0, wrd.spot_lights.size() * sizeof(gpu_spot_light));
+
+		barriers.resize(0);
+
+		barriers.push_back({
+			.resource	= pfd.bones_buffer.get_hw_gpu(),
+			.flags		= barrier_flags::baf_is_resource,
+			.from_state = resource_state::copy_dest,
+			.to_state	= resource_state::non_ps_resource,
+		});
+
+		barriers.push_back({
+			.resource	= pfd.entity_buffer.get_hw_gpu(),
+			.flags		= barrier_flags::baf_is_resource,
+			.from_state = resource_state::copy_dest,
+			.to_state	= resource_state::non_ps_resource,
+		});
+
+		barriers.push_back({
+			.resource	= pfd.dir_lights_buffer.get_hw_gpu(),
+			.flags		= barrier_flags::baf_is_resource,
+			.from_state = resource_state::copy_dest,
+			.to_state	= resource_state::ps_resource,
+		});
+
+		barriers.push_back({
+			.resource	= pfd.spot_lights_buffer.get_hw_gpu(),
+			.flags		= barrier_flags::baf_is_resource,
+			.from_state = resource_state::copy_dest,
+			.to_state	= resource_state::ps_resource,
+		});
+
+		barriers.push_back({
+			.resource	= pfd.point_lights_buffer.get_hw_gpu(),
+			.flags		= barrier_flags::baf_is_resource,
+			.from_state = resource_state::copy_dest,
+			.to_state	= resource_state::ps_resource,
+		});
+
+		backend->cmd_barrier(cmd, {.barriers = barriers.data(), .barrier_count = static_cast<uint16>(barriers.size())});
+		backend->close_command_buffer(cmd);
+		backend->submit_commands(queue_gfx, &cmd, 1);
 	}
 
 	void world_renderer::collect_model_instances()

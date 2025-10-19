@@ -202,7 +202,7 @@ namespace SFG
 		}
 
 	private:
-		T	   _data[N];
-		size_t _head;
+		T	   _data[N] = {};
+		size_t _head	= 0;
 	};
 }

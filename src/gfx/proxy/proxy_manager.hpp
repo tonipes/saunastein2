@@ -22,14 +22,14 @@ namespace SFG
 	class proxy_manager
 	{
 	public:
-		proxy_manager(buffer_queue& b, texture_queue& t) : _buffer_queue(b), _texture_queue(t){};
+		proxy_manager(buffer_queue& b, texture_queue& t) : _buffer_queue(b), _texture_queue(t) {};
 
 		void   init();
 		void   uninit();
 		void   fetch_render_events(render_event_stream& stream);
 		void   flush_material_updates(uint8 frame_index);
 		void   flush_destroys(bool force);
-		gfx_id get_shader_variant(const render_proxy_material& mat, bool is_skinned);
+		gfx_id get_shader_variant(const render_proxy_material& mat, uint8 target_flags);
 
 		inline render_proxy_texture& get_texture(resource_id idx)
 		{

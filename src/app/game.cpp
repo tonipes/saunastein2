@@ -63,7 +63,6 @@ namespace SFG
 #ifdef SFG_TOOLMODE
 
 		_world->init();
-
 		// const string& last_world = engine_data::get().get_last_world();
 		// if (file_system::exists(last_world.c_str()))
 		// 	_world->load(last_world.c_str());

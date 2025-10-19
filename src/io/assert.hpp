@@ -22,6 +22,6 @@ namespace SFG
 #define SFG_ASSERT(x, ...)
 #endif
 
-#define SFG_NOTIMPLEMENTED SFG_ASSERT(false, "Implementation missing!")
+#define SFG_NOTIMPLEMENTED static_assert(false, "Implementation missing!")
 
 }

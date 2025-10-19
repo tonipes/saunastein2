@@ -14,6 +14,7 @@
 #include "memory/bump_allocator.hpp"
 #include "world_render_data.hpp"
 #include "render_pass/render_pass_opaque.hpp"
+#include "render_pass/render_pass_pre_depth.hpp"
 #include "render_pass/render_pass_lighting_forward.hpp"
 #include "render_pass/render_pass_post_combiner.hpp"
 
@@ -33,7 +34,12 @@ namespace SFG
 	private:
 		struct per_frame_data
 		{
-			semaphore_data sem_gfx = {};
+			gfx_id cmd_upload = 0;
+			buffer entity_buffer;
+			buffer bones_buffer;
+			buffer point_lights_buffer;
+			buffer dir_lights_buffer;
+			buffer spot_lights_buffer;
 		};
 
 	public:
@@ -63,6 +69,7 @@ namespace SFG
 		}
 
 	private:
+		void upload(uint8 frame_index);
 		void collect_model_instances();
 
 	private:
@@ -77,6 +84,7 @@ namespace SFG
 		render_pass_opaque			 _pass_opaque		 = {};
 		render_pass_lighting_forward _pass_lighting_fw	 = {};
 		render_pass_post_combiner	 _pass_post_combiner = {};
+		render_pass_pre_depth		 _pass_pre_depth	 = {};
 
 		per_frame_data _pfd[BACK_BUFFER_COUNT];
 		vector2ui16	   _base_size			 = vector2ui16::zero;

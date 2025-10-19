@@ -15,12 +15,13 @@ namespace SFG
 
 	struct shader_raw
 	{
-		string		   name		  = "";
-		string		   source	  = "";
-		shader_desc	   desc		  = {};
-		vector<string> defines	  = {};
-		uint8		   is_skinned = 0;
-		uint8		   is_discard = 0;
+		string		   name			= "";
+		string		   source		= "";
+		shader_desc	   desc			= {};
+		vector<string> defines		= {};
+		uint8		   is_skinned	= 0;
+		uint8		   is_discard	= 0;
+		uint8		   is_z_prepass = 0;
 
 		void destroy();
 		void serialize(ostream& stream) const;

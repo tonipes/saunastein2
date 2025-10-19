@@ -27,6 +27,7 @@ namespace SFG
 		stream << defines;
 		stream << is_skinned;
 		stream << is_discard;
+		stream << is_z_prepass;
 		desc.serialize(stream);
 	}
 
@@ -37,6 +38,7 @@ namespace SFG
 		stream >> defines;
 		stream >> is_skinned;
 		stream >> is_discard;
+		stream >> is_z_prepass;
 		desc.deserialize(stream);
 
 		if (use_embedded_layout)
@@ -73,6 +75,9 @@ namespace SFG
 
 				if (def.compare("USE_DISCARD") == 0)
 					is_discard = 1;
+
+				if (def.compare("ZPREPASS") == 0)
+					is_z_prepass = 1;
 			}
 
 			const string& wd = engine_data::get().get_working_dir();
@@ -90,10 +95,6 @@ namespace SFG
 				return false;
 
 			desc.debug_name = name;
-			desc.blobs		= {
-				 {.stage = shader_stage::vertex},
-				 {.stage = shader_stage::fragment},
-			 };
 
 			if (use_embedded_layout)
 				desc.flags.set(shader_flags::shf_use_embedded_layout);
@@ -105,8 +106,22 @@ namespace SFG
 
 			gfx_backend* backend	 = gfx_backend::get();
 			const string folder_path = file_system::get_directory_of_file(full_source.c_str());
-			if (!backend->compile_shader_vertex_pixel(shader_text, defines, folder_path.c_str(), desc.vertex_entry.c_str(), desc.pixel_entry.c_str(), desc.blobs[0].data, desc.blobs[1].data, compile_layout, desc.layout_data))
-				return false;
+
+			if (!desc.vertex_entry.empty())
+			{
+				desc.blobs.push_back({.stage = shader_stage::vertex});
+				shader_blob& blob = desc.blobs.back();
+				if (!backend->compile_shader_vertex_pixel(shader_stage::vertex, shader_text, defines, folder_path.c_str(), desc.vertex_entry.c_str(), blob.data, compile_layout, desc.layout_data))
+					return false;
+			}
+
+			if (!desc.pixel_entry.empty())
+			{
+				desc.blobs.push_back({.stage = shader_stage::fragment});
+				shader_blob& blob = desc.blobs.back();
+				if (!backend->compile_shader_vertex_pixel(shader_stage::fragment, shader_text, defines, folder_path.c_str(), desc.pixel_entry.c_str(), blob.data, compile_layout, desc.layout_data))
+					return false;
+			}
 		}
 		catch (std::exception e)
 		{

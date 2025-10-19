@@ -45,6 +45,7 @@ namespace SFG
 	void buffer::buffer_data(size_t padding, const void* data, size_t size)
 	{
 		SFG_ASSERT(padding + size <= _total_size);
+		SFG_ASSERT(size != 0);
 		SFG_MEMCPY(_mapped + padding, data, size);
 		_flags.set(buf_dirty);
 	}
@@ -67,6 +68,7 @@ namespace SFG
 	{
 		SFG_ASSERT(_flags.is_set(buffer_flags::buf_has_staging));
 		SFG_ASSERT(_flags.is_set(buffer_flags::buf_dirty));
+		SFG_ASSERT(size != 0);
 
 		gfx_backend* backend = gfx_backend::get();
 		backend->cmd_copy_resource_region(cmd_buffer,
