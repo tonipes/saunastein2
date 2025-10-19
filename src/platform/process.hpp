@@ -26,6 +26,8 @@ namespace SFG
 	class process
 	{
 	public:
+		static void	  init();
+		static void	  uninit();
 		static void	  pump_os_messages();
 		static void	  open_url(const char* url);
 		static void	  message_box(const char* msg);

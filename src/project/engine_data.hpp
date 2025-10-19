@@ -17,7 +17,7 @@ namespace SFG
 			return inst;
 		}
 
-		void init();
+		bool init();
 		void uninit();
 		void load();
 		void save();

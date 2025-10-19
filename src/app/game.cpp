@@ -22,14 +22,23 @@
 namespace SFG
 {
 
-	void game_app::init(const vector2ui16& render_target_size)
+	int32 game_app::init(const vector2ui16& render_target_size)
 	{
 
 		SET_INIT(true);
 		REGISTER_THREAD_MAIN();
 
-		time::init();
 		debug_console::init();
+		time::init();
+
+#ifdef SFG_TOOLMODE
+		if (!engine_data::get().init())
+		{
+			time::uninit();
+			debug_console::uninit();
+			return init_status::working_directory_dont_exist;
+		}
+#endif
 
 		_render_stream.init();
 		_world = new world(_render_stream);
@@ -52,8 +61,6 @@ namespace SFG
 		_renderer->init(_main_window, _world);
 
 #ifdef SFG_TOOLMODE
-
-		engine_data::get().init();
 
 		_world->init();
 
@@ -121,6 +128,8 @@ namespace SFG
 		kick_off_render();
 
 		SET_INIT(false);
+
+		return init_status::ok;
 	}
 
 	void game_app::uninit()

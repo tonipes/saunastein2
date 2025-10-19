@@ -27,7 +27,7 @@ namespace SFG
 		void deserialize(istream& stream, bool use_embedded_layout, gfx_id layout);
 
 #ifdef SFG_TOOLMODE
-		bool cook_from_file(const char* file, bool use_embedded_layout, gfx_id layout);
+		bool cook_from_file(const char* file, bool use_embedded_layout, gfx_id layout, bool use_working_dir = true);
 #endif
 	};
 }

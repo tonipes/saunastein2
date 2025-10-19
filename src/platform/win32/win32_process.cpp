@@ -76,6 +76,26 @@ namespace SFG
 		return result;
 	}
 
+	void process::init()
+	{
+		SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+		SetProcessPriorityBoost(GetCurrentProcess(), FALSE);
+
+		// Avoid over-constraining scheduling which can cause hitches.
+		// Do not pin to a single CPU and avoid realtime priority.
+		if (!SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS))
+		{
+			DWORD dwError = GetLastError();
+			SFG_ERR("Failed setting process priority: {0}", dwError);
+		}
+
+		CoInitialize(nullptr);
+	}
+
+	void process::uninit()
+	{
+	}
+
 	void process::pump_os_messages()
 	{
 		MSG msg	   = {0};

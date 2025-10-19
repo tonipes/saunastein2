@@ -15,7 +15,7 @@ using json = nlohmann::json;
 
 namespace SFG
 {
-	void engine_data::init()
+	bool engine_data::init()
 	{
 		debug_console::get()->register_console_function<>("ed_set_work_dir", [this]() {
 			const string dir = process::select_folder("Select working directory") + "/";
@@ -35,9 +35,12 @@ namespace SFG
 
 		if (!file_system::exists(_working_dir.c_str()))
 		{
-			_working_dir = process::select_folder("Select working directory") + "/";
-			SFG_ASSERT(file_system::exists(_working_dir.c_str()));
+			const string folder = process::select_folder("Select working directory");
 
+			if (folder.empty() || !file_system::exists(folder.c_str()))
+				return false;
+
+			_working_dir = folder + "/";
 			save();
 		}
 
@@ -45,6 +48,8 @@ namespace SFG
 
 		if (!file_system::exists(_cache_dir.c_str()))
 			file_system::create_directory(_cache_dir.c_str());
+
+		return true;
 	}
 
 	void engine_data::uninit()

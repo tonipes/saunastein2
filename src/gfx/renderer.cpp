@@ -75,7 +75,7 @@ namespace SFG
 		_gfx_data.dummy_ssbo		 = backend->create_resource({.size = 4, .flags = resource_flags::rf_storage_buffer | resource_flags::rf_gpu_only});
 
 		shader_raw raw = {};
-		raw.cook_from_file("assets/engine/shaders/swapchain/swapchain.stkfrg", false, _gfx_data.bind_layout_global);
+		raw.cook_from_file("assets/engine/shaders/swapchain/swapchain.stkfrg", false, _gfx_data.bind_layout_global, false);
 		_shaders.swapchain.create_from_raw(raw);
 		raw.destroy();
 

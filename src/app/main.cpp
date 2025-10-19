@@ -14,16 +14,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	{
 		SFG_ERR("Failed allocating console!");
 	}
-	SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
-	SetProcessPriorityBoost(GetCurrentProcess(), FALSE);
-
-	// Avoid over-constraining scheduling which can cause hitches.
-	// Do not pin to a single CPU and avoid realtime priority.
-	if (!SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS))
-	{
-		DWORD dwError = GetLastError();
-		SFG_ERR("Failed setting process priority: {0}", dwError);
-	}
+	SFG::process::init();
 
 	PUSH_MEMORY_CATEGORY("General");
 
@@ -32,7 +23,15 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
 		try
 		{
-			app.init(SFG::vector2ui16(1920, 1080));
+
+			if (app.init(SFG::vector2ui16(1920, 1080)) != SFG::game_app::init_status::ok)
+			{
+				SFG::process::message_box("Toolmode requires a valid working directory!");
+				SFG::process::uninit();
+				POP_MEMORY_CATEGORY();
+				FreeConsole();
+				return 0;
+			}
 		}
 		catch (std::exception e)
 		{
@@ -48,6 +47,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	POP_MEMORY_CATEGORY();
 
 	FreeConsole();
+
+	SFG::process::uninit();
 
 	return 0;
 }

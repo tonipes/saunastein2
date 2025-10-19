@@ -186,7 +186,7 @@ namespace SFG
 			.resource	= depth_texture,
 			.flags		= barrier_flags::baf_is_texture,
 			.from_state = resource_state::depth_write,
-			.to_state	= resource_state::ps_resource,
+			.to_state	= resource_state::common,
 		});
 
 		backend->reset_command_buffer(cmd_buffer);

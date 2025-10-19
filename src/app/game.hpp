@@ -24,15 +24,21 @@ namespace SFG
 			gaf_should_exit = 1 << 0,
 		};
 
-		game_app(){
+		enum init_status : int32
+		{
+			ok							 = 1,
+			working_directory_dont_exist = -1,
+		};
+
+		game_app() {
 
 		};
 
-		void init(const vector2ui16& render_target_size);
-		void uninit();
-		void tick();
-		void join_render();
-		void set_swapchain_flags(uint8 flags);
+		int32 init(const vector2ui16& render_target_size);
+		void  uninit();
+		void  tick();
+		void  join_render();
+		void  set_swapchain_flags(uint8 flags);
 
 		inline bool get_should_exit() const
 		{
