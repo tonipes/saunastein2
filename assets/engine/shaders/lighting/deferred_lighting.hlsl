@@ -44,15 +44,12 @@ vs_output VSMain(uint vertexID : SV_VertexID)
     return OUT;
 }
 
-
-
 //------------------------------------------------------------------------------
 // Pixel Shader 
 //------------------------------------------------------------------------------
-
 float4 PSMain(vs_output IN) : SV_TARGET
 {
     float4 out_color = tex_gbuffer_color.SampleLevel(smp_linear, IN.uv, 0);
-    return out_color;
+    return out_color ;
 }
 

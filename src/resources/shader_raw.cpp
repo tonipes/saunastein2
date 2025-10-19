@@ -51,7 +51,7 @@ namespace SFG
 
 #ifdef SFG_TOOLMODE
 
-	bool shader_raw::cook_from_file(const char* path, bool use_embedded_layout, gfx_id layout, bool use_working_dir)
+	bool shader_raw::cook_from_file(const char* path, bool use_embedded_layout, gfx_id layout, const char* base_directory_for_source)
 	{
 		if (!file_system::exists(path))
 		{
@@ -84,7 +84,7 @@ namespace SFG
 			const string  p	 = path;
 			name			 = p.substr(wd.size(), p.size() - wd.size());
 
-			const string full_source = use_working_dir ? (engine_data::get().get_working_dir() + source) : (source);
+			const string full_source = base_directory_for_source == nullptr ? (engine_data::get().get_working_dir() + source) : (string(base_directory_for_source) + source);
 			if (!file_system::exists(full_source.c_str()))
 			{
 				SFG_ERR("File don't exist! {0}", full_source.c_str());

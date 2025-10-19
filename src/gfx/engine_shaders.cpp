@@ -16,35 +16,41 @@ namespace SFG
 
 		_shaders.resize(engine_shader_type::engine_shader_type_max);
 
-		static_vector<string, engine_shader_type::engine_shader_type_max> paths;
+		static_vector<const char*, engine_shader_type::engine_shader_type_max> paths;
 
 		// ordered!
-		paths.push_back(root + "assets/engine/shaders/debug_controller/console_draw.stkshader");
-		paths.push_back(root + "assets/engine/shaders/gui/gui_default.stkshader");
-		paths.push_back(root + "assets/engine/shaders/gui/gui_sdf.stkshader");
-		paths.push_back(root + "assets/engine/shaders/gui/gui_text.stkshader");
-		paths.push_back(root + "assets/engine/shaders/swapchain/swapchain.stkshader");
-		paths.push_back(root + "assets/engine/shaders/lighting/deferred_lighting.stkshader");
+		paths.push_back("assets/engine/shaders/debug_controller/console_draw.stkshader");
+		paths.push_back("assets/engine/shaders/gui/gui_default.stkshader");
+		paths.push_back("assets/engine/shaders/gui/gui_sdf.stkshader");
+		paths.push_back("assets/engine/shaders/gui/gui_text.stkshader");
+		paths.push_back("assets/engine/shaders/swapchain/swapchain.stkshader");
+		paths.push_back("assets/engine/shaders/lighting/deferred_lighting.stkshader");
 
 		shader_raw raw = {};
 
 		for (uint8 i = 0; i < engine_shader_type_max; i++)
 		{
-			const string p = paths[i];
-			raw			   = {};
+			const string  p = root + paths[i];
+			shader_entry& e = _shaders[i];
+			raw				= {};
 
 #ifdef SFG_TOOLMODE
-			if (!raw.cook_from_file(p.c_str(), false, bind_layout, false))
+			if (!raw.cook_from_file(p.c_str(), false, bind_layout, SFG_ROOT_DIRECTORY))
 			{
 				raw.destroy();
 				return false;
 			}
+
+			e.src_path = p;
 #else
 			SFG_NOTIMPLEMENTED();
 #endif
 
-			_shaders[i].create_from_raw(raw);
+			const string src = root + raw.source.c_str();
+			e.direct.create_from_raw(raw);
+
 			_file_watcher.add_path(p.c_str(), static_cast<uint16>(i));
+			_file_watcher.add_path(src.c_str(), static_cast<uint16>(i));
 			raw.destroy();
 		}
 
@@ -55,8 +61,8 @@ namespace SFG
 
 	void engine_shaders::uninit()
 	{
-		for (shader_direct& sh : _shaders)
-			sh.destroy();
+		for (shader_entry& e : _shaders)
+			e.direct.destroy();
 	}
 #ifdef SFG_TOOLMODE
 
@@ -72,17 +78,20 @@ namespace SFG
 
 	void engine_shaders::on_shader_reloaded(const char* p, uint64 last_modified, uint16 id)
 	{
+		const engine_shader_type type  = static_cast<engine_shader_type>(id);
+		shader_entry&			 entry = _shaders[id];
+		shader_raw				 raw   = {};
+		if (!raw.cook_from_file(entry.src_path.c_str(), false, _bind_layout, SFG_ROOT_DIRECTORY))
+		{
+			return;
+		}
+
 		game_app::get()->join_render();
-		const engine_shader_type type = static_cast<engine_shader_type>(id);
-		shader_direct&			 sha  = _shaders[engine_shader_type_debug_console];
-		sha.destroy();
-		shader_raw raw = {};
-		raw.cook_from_file(p, false, _bind_layout, false);
-		sha.create_from_raw(raw);
-
+		entry.direct.destroy();
+		entry.direct.create_from_raw(raw);
+		raw.destroy();
 		for (auto cb : _reload_callbacks)
-			cb(type, sha);
-
+			cb(type, entry.direct);
 		game_app::get()->kick_off_render();
 	}
 

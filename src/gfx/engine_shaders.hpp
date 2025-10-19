@@ -46,8 +46,18 @@ namespace SFG
 
 		inline const shader_direct& get_shader(uint8 type) const
 		{
-			return _shaders[type];
+			return _shaders[type].direct;
 		}
+
+	private:
+		struct shader_entry
+		{
+			shader_direct direct = {};
+
+#ifdef SFG_TOOLMODE
+			string src_path = "";
+#endif
+		};
 
 	private:
 #ifdef SFG_TOOLMODE
@@ -55,9 +65,9 @@ namespace SFG
 #endif
 
 	private:
-		static_vector<shader_direct, engine_shader_type_max> _shaders;
-		simple_file_watcher									 _file_watcher;
-		gfx_id												 _bind_layout = 0;
+		static_vector<shader_entry, engine_shader_type_max> _shaders;
+		simple_file_watcher									_file_watcher;
+		gfx_id												_bind_layout = 0;
 
 #ifdef SFG_TOOLMODE
 		static_vector<reload_callback, engine_shader_type_max> _reload_callbacks;
