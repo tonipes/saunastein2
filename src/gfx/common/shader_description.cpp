@@ -615,7 +615,7 @@ namespace SFG
 		const uint8 depth_write	 = j.value<uint8>("depth_write", 0);
 		const uint8 depth_test	 = j.value<uint8>("depth_test", 0);
 		att.flags.set(depth_stencil_flags::dsf_depth_write, depth_write);
-		att.flags.set(depth_stencil_flags::dsf_depth_test, depth_write);
+		att.flags.set(depth_stencil_flags::dsf_depth_test, depth_test);
 	}
 #endif
 

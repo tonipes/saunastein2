@@ -156,6 +156,7 @@ namespace SFG
 		uint8 base_mip_level = 0;
 		uint8 mip_count		 = 1;
 		uint8 is_cubemap	 = 0;
+		uint8 read_only		 = 0;
 	};
 
 	struct texture_desc

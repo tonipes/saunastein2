@@ -79,9 +79,10 @@ namespace SFG
 			bitmask<uint8> target_flags = 0;
 			target_flags.set(res_shader_flags::res_shader_flags_is_skinned, obj.is_skinned);
 			target_flags.set(res_shader_flags::res_shader_flags_is_discard, is_discard);
-			target_flags.set(res_shader_flags::res_shader_flags_is_discard);
+			target_flags.set(res_shader_flags::res_shader_flags_is_zprepass);
 
 			const gfx_id target_shader = pm.get_shader_variant(proxy_material, target_flags.value());
+			SFG_ASSERT(target_shader != NULL_GFX_ID);
 
 			rd.draws.push_back({
 				.constants =
@@ -116,6 +117,7 @@ namespace SFG
 		gfx_backend*	backend		  = gfx_backend::get();
 		per_frame_data& pfd			  = _pfd[p.frame_index];
 		render_data&	rd			  = _render_data;
+		const gfx_id	queue_gfx	  = backend->get_queue_gfx();
 		const gfx_id	cmd_buffer	  = pfd.cmd_buffer;
 		const gfx_id	depth_texture = pfd.depth_texture;
 		const gfx_id	rp_bind_group = pfd.bind_group;
@@ -130,13 +132,6 @@ namespace SFG
 			.to_state	= resource_state::depth_write,
 		});
 
-		barriers_after.push_back({
-			.resource	= depth_texture,
-			.flags		= barrier_flags::baf_is_texture,
-			.from_state = resource_state::depth_write,
-			.to_state	= resource_state::depth_read,
-		});
-
 		backend->reset_command_buffer(cmd_buffer);
 		backend->cmd_barrier(cmd_buffer,
 							 {
@@ -145,6 +140,8 @@ namespace SFG
 							 });
 
 		barriers.resize(0);
+
+		BEGIN_DEBUG_EVENT(backend, cmd_buffer, "depth_pre_pass");
 
 		backend->cmd_begin_render_pass_depth_only(cmd_buffer,
 												  {
@@ -219,13 +216,11 @@ namespace SFG
 
 		backend->cmd_end_render_pass(cmd_buffer, {});
 
-		backend->cmd_barrier(cmd_buffer,
-							 {
-								 .barriers		= barriers_after.data(),
-								 .barrier_count = static_cast<uint16>(barriers_after.size()),
-							 });
+		END_DEBUG_EVENT(backend, cmd_buffer);
 
 		backend->close_command_buffer(cmd_buffer);
+
+		backend->submit_commands(queue_gfx, &cmd_buffer, 1);
 	}
 
 	void render_pass_pre_depth::resize(const vector2ui16& size)
@@ -258,7 +253,14 @@ namespace SFG
 				.depth_stencil_format = format::d32_sfloat,
 				.size				  = sz,
 				.flags				  = texture_flags::tf_depth_texture | texture_flags::tf_typeless | texture_flags::tf_is_2d | texture_flags::tf_sampled,
-				.debug_name			  = "prepass_depth",
+				.views =
+					{
+						{},
+						{
+							.read_only = 1,
+						},
+					},
+				.debug_name = "prepass_depth",
 			});
 		}
 	}

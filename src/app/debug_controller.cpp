@@ -690,6 +690,7 @@ namespace SFG
 		backend->cmd_bind_group(cmd_buffer, {.group = bg_rp});
 		backend->cmd_set_viewport(cmd_buffer, {.width = static_cast<uint16>(rt_size.x), .height = static_cast<uint16>(rt_size.y)});
 
+		BEGIN_DEBUG_EVENT(backend, cmd_buffer, "debug_controller_draw");
 		backend->cmd_begin_render_pass(cmd_buffer, {.color_attachments = attachment_console_rt, .color_attachment_count = 1});
 		backend->cmd_bind_vertex_buffers(cmd_buffer, {.buffer = gui_vertex, .vertex_size = sizeof(vekt::vertex)});
 		backend->cmd_bind_index_buffers(cmd_buffer, {.buffer = gui_index, .index_size = sizeof(vekt::index)});
@@ -718,6 +719,7 @@ namespace SFG
 		}
 
 		backend->cmd_end_render_pass(cmd_buffer, {});
+		END_DEBUG_EVENT(backend, cmd_buffer);
 
 		const barrier br_rt = {
 			.resource	= rt_console,
@@ -727,6 +729,8 @@ namespace SFG
 		};
 
 		backend->cmd_barrier(cmd_buffer, {.barriers = &br_rt, .barrier_count = 1});
+
+		BEGIN_DEBUG_EVENT(backend, cmd_buffer, "debug_controller_post");
 
 		backend->cmd_begin_render_pass(cmd_buffer, {.color_attachments = attachment_fullscreen_rt, .color_attachment_count = 1});
 		backend->cmd_set_scissors(cmd_buffer, {.width = static_cast<uint16>(rt_size.x), .height = static_cast<uint16>(rt_size.y)});
@@ -738,6 +742,7 @@ namespace SFG
 		backend->cmd_draw_instanced(cmd_buffer, {.vertex_count_per_instance = 6, .instance_count = 1, .start_vertex_location = 0, .start_instance_location = 0});
 
 		backend->cmd_end_render_pass(cmd_buffer, {});
+		END_DEBUG_EVENT(backend, cmd_buffer);
 
 		const barrier br_rt_fs = {
 			.resource	= rt_fullscreen,

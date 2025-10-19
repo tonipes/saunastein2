@@ -69,6 +69,14 @@ namespace SFG
 
 	struct command_bind_group;
 
+#ifndef SFG_PRODUCTION
+#define BEGIN_DEBUG_EVENT(backend, CMD_BUF, LABEL) backend->cmd_begin_event(CMD_BUF, LABEL)
+#define END_DEBUG_EVENT(backend, CMD_BUF)		   backend->cmd_end_event(CMD_BUF)
+#else
+#define BEGIN_DEBUG_EVENT()
+#define END_DEBUG_EVENT()
+#endif
+
 	typedef std::function<void(ID3D12GraphicsCommandList4* cmd_list, uint8* data)> command_function;
 
 	class dx12_backend
@@ -250,8 +258,11 @@ namespace SFG
 		uint32 align_texture_size(uint32 size) const;
 		void*  adjust_buffer_pitch(void* data, uint32 width, uint32 height, uint8 bpp, uint32& out_total_size) const;
 
+		void cmd_begin_event(gfx_id cmd_list, const char* label);
+		void cmd_end_event(gfx_id cmd_list);
 		void cmd_begin_render_pass(gfx_id cmd_list, const command_begin_render_pass& command);
 		void cmd_begin_render_pass_depth(gfx_id cmd_list, const command_begin_render_pass_depth& command);
+		void cmd_begin_render_pass_depth_read_only(gfx_id cmd_list, const command_begin_render_pass_depth& command);
 		void cmd_begin_render_pass_depth_only(gfx_id cmd_list, const command_begin_render_pass_depth_only& command);
 		void cmd_begin_render_pass_swapchain(gfx_id cmd_list, const command_begin_render_pass_swapchain& command);
 		void cmd_begin_render_pass_swapchain_depth(gfx_id cmd_list, const command_begin_render_pass_swapchain_depth& command);

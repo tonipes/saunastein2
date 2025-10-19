@@ -151,26 +151,41 @@ namespace SFG
 			});
 		}
 
+		barriers.push_back({
+			.resource	= depth_texture,
+			.flags		= barrier_flags::baf_is_texture,
+			.from_state = resource_state::depth_write,
+			.to_state	= resource_state::depth_read,
+		});
+
+		barriers_after.push_back({
+			.resource	= depth_texture,
+			.flags		= barrier_flags::baf_is_texture,
+			.from_state = resource_state::depth_read,
+			.to_state	= resource_state::common,
+		});
+
 		backend->reset_command_buffer(cmd_buffer);
 		backend->cmd_barrier(cmd_buffer,
 							 {
 								 .barriers		= barriers.data(),
 								 .barrier_count = static_cast<uint16>(barriers.size()),
 							 });
-		backend->cmd_begin_render_pass_depth(cmd_buffer,
-											 {
-												 .color_attachments = attachments,
-												 .depth_stencil_attachment =
-													 {
-														 .texture		 = depth_texture,
-														 .clear_stencil	 = 0,
-														 .clear_depth	 = 0.0f,
-														 .depth_load_op	 = load_op::load,
-														 .depth_store_op = store_op::store,
-														 .view_index	 = 0,
-													 },
-												 .color_attachment_count = COLOR_TEXTURES,
-											 });
+
+		BEGIN_DEBUG_EVENT(backend, cmd_buffer, "opaque_pass");
+
+		backend->cmd_begin_render_pass_depth_read_only(cmd_buffer,
+													   {
+														   .color_attachments = attachments,
+														   .depth_stencil_attachment =
+															   {
+																   .texture		   = depth_texture,
+																   .depth_load_op  = load_op::load,
+																   .depth_store_op = store_op::dont_care,
+																   .view_index	   = 1,
+															   },
+														   .color_attachment_count = COLOR_TEXTURES,
+													   });
 
 		backend->cmd_bind_layout(cmd_buffer, {.layout = p.global_layout});
 		backend->cmd_bind_group(cmd_buffer, {.group = p.global_group});
@@ -239,6 +254,8 @@ namespace SFG
 							 });
 
 		backend->close_command_buffer(cmd_buffer);
+
+		END_DEBUG_EVENT(backend, cmd_buffer);
 	}
 
 	void render_pass_opaque::resize(const vector2ui16& size, gfx_id* depth_textures)
