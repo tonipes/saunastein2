@@ -34,7 +34,7 @@ namespace SFG
 			raw			   = {};
 
 #ifdef SFG_TOOLMODE
-			if (!raw.cook_from_file(p.c_str(), false, bind_layout, true))
+			if (!raw.cook_from_file(p.c_str(), false, bind_layout, false))
 			{
 				raw.destroy();
 				return false;
@@ -43,7 +43,7 @@ namespace SFG
 			SFG_NOTIMPLEMENTED();
 #endif
 
-			_shaders[engine_shader_type_debug_console].create_from_raw(raw);
+			_shaders[i].create_from_raw(raw);
 			_file_watcher.add_path(p.c_str(), static_cast<uint16>(i));
 			raw.destroy();
 		}
