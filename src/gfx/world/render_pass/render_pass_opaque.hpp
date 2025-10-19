@@ -34,9 +34,9 @@ namespace SFG
 			buffer ubo;
 
 			static_vector<gfx_id, COLOR_TEXTURES> color_textures;
-			semaphore_data						  semaphore;
-			gfx_id								  cmd_buffer;
-			gfx_id								  bind_group;
+			semaphore_data						  semaphore		= {};
+			gfx_id								  cmd_buffer	= 0;
+			gfx_id								  bind_group	= 0;
 			gfx_id								  depth_texture = 0;
 		};
 

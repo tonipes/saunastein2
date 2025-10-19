@@ -2,7 +2,7 @@
 
 #include "editor.hpp"
 
-#include "app/game.hpp"
+#include "app/game_app.hpp"
 #include "world/world.hpp"
 #include "world/entity_manager.hpp"
 #include "world/traits/trait_camera.hpp"

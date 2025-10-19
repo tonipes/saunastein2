@@ -35,7 +35,7 @@ namespace SFG
 	public:
 		renderer();
 
-		void init(window* main_window, world* world);
+		bool init(window* main_window, world* world);
 		void uninit(render_event_stream& stream);
 		void wait_backend();
 		void tick();
@@ -103,7 +103,7 @@ namespace SFG
 
 		struct shader_data
 		{
-			shader_direct swapchain = {};
+			gfx_id swapchain = 0;
 		};
 
 	private:

@@ -1,17 +1,16 @@
 // Copyright (c) 2025 Inan Evin
-#include "game.hpp"
+#include "game_app.hpp"
 #include "platform/window.hpp"
 #include "gfx/renderer.hpp"
+#include "common/system_info.hpp"
+#include "gfx/backend/backend.hpp"
+#include "gfx/engine_shaders.hpp"
 #include "platform/time.hpp"
 #include "platform/process.hpp"
 #include "memory/memory_tracer.hpp"
-#include "common/system_info.hpp"
-#include "gfx/common/render_data.hpp"
-#include "gfx/backend/backend.hpp"
 #include "io/log.hpp"
 #include "debug_console.hpp"
 #include "world/world.hpp"
-#include "gfx/world/world_renderer.hpp"
 
 #ifdef SFG_TOOLMODE
 #include "io/file_system.hpp"
@@ -21,9 +20,11 @@
 
 namespace SFG
 {
+	game_app* game_app::s_instance = nullptr;
 
-	int32 game_app::init(const vector2ui16& render_target_size)
+	game_app::init_status game_app::init(const vector2ui16& render_target_size)
 	{
+		s_instance = this;
 
 		SET_INIT(true);
 		REGISTER_THREAD_MAIN();
@@ -58,20 +59,21 @@ namespace SFG
 		backend->init();
 
 		_renderer = new renderer();
-		_renderer->init(_main_window, _world);
+		if (!_renderer->init(_main_window, _world))
+		{
+			time::uninit();
+			debug_console::uninit();
+			_render_stream.uninit();
+			_main_window->destroy();
+			backend->uninit();
+			delete _world;
+			delete _renderer;
+			delete backend;
+			delete _main_window;
+			return init_status::renderer_failed;
+		}
 
 #ifdef SFG_TOOLMODE
-
-		_world->init();
-		// const string& last_world = engine_data::get().get_last_world();
-		// if (file_system::exists(last_world.c_str()))
-		// 	_world->load(last_world.c_str());
-		// else
-		// {
-		// 	engine_data::get().set_last_world("");
-		// 	engine_data::get().save();
-		// 	_world->load("");
-		// }
 
 		/*************** CONSOLE *************/
 		debug_console::get()->register_console_function("app_new_world", [this]() {
@@ -92,7 +94,9 @@ namespace SFG
 
 			SFG_INFO("Setting VSync: {0}, Tearing: {1}", v, tearing);
 
-			set_swapchain_flags(flags);
+			join_render();
+			_renderer->on_swapchain_flags(flags);
+			kick_off_render();
 		});
 
 		debug_console::get()->register_console_function<const char*>("app_save_world", [this](const char* path) {
@@ -113,6 +117,8 @@ namespace SFG
 		});
 
 #endif
+
+		_world->init();
 
 		/*************** DEBUG *************/
 		_world->load_debug();
@@ -223,6 +229,7 @@ namespace SFG
 
 #ifdef SFG_TOOLMODE
 			_editor->on_post_tick(interpolation);
+			engine_shaders::get().tick();
 #endif
 
 			_render_stream.publish();
@@ -283,13 +290,6 @@ namespace SFG
 
 		frame_info::s_is_render_active = false;
 		_renderer->wait_backend();
-	}
-
-	void game_app::set_swapchain_flags(uint8 flags)
-	{
-		join_render();
-		_renderer->on_swapchain_flags(flags);
-		kick_off_render();
 	}
 
 	void game_app::kick_off_render()

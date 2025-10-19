@@ -28,17 +28,23 @@ namespace SFG
 		{
 			ok							 = 1,
 			working_directory_dont_exist = -1,
+			renderer_failed				 = -2,
 		};
 
 		game_app() {
 
 		};
 
-		int32 init(const vector2ui16& render_target_size);
-		void  uninit();
-		void  tick();
-		void  join_render();
-		void  set_swapchain_flags(uint8 flags);
+		static game_app* get()
+		{
+			return s_instance;
+		}
+
+		init_status init(const vector2ui16& render_target_size);
+		void		uninit();
+		void		tick();
+		void		join_render();
+		void		kick_off_render();
 
 		inline bool get_should_exit() const
 		{
@@ -66,11 +72,11 @@ namespace SFG
 		}
 
 	private:
-		void kick_off_render();
 		void render_loop();
 		void on_window_event(const window_event& ev);
 
 	private:
+		static game_app*	s_instance;
 		window*				_main_window = nullptr;
 		renderer*			_renderer	 = nullptr;
 		world*				_world		 = nullptr;

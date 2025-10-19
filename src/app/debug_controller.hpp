@@ -1,6 +1,5 @@
 // Copyright (c) 2025 Inan Evin
 #pragma once
-#include "resources/shader_direct.hpp"
 #include "math/matrix4x4.hpp"
 #include "math/vector4ui16.hpp"
 #include "data/vector.hpp"
@@ -134,10 +133,10 @@ namespace SFG
 
 		struct shaders
 		{
-			shader_direct gui_default					= {};
-			shader_direct gui_text						= {};
-			shader_direct gui_sdf						= {};
-			shader_direct debug_controller_console_draw = {};
+			gfx_id gui_default					 = {};
+			gfx_id gui_text						 = {};
+			gfx_id gui_sdf						 = {};
+			gfx_id debug_controller_console_draw = {};
 		};
 
 		struct gfx_data

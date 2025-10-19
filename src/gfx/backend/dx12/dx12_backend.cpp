@@ -594,7 +594,7 @@ namespace SFG
 	dx12_backend* dx12_backend::s_instance = nullptr;
 
 	DWORD msgcallback = 0;
-	void  dx12_backend::init()
+	bool  dx12_backend::init()
 	{
 		UINT dxgiFactoryFlags = 0;
 
@@ -654,7 +654,8 @@ namespace SFG
 			HRESULT hr = DxcCreateInstance(CLSID_DxcLibrary, IID_PPV_ARGS(&s_idxcLib));
 			if (FAILED(hr))
 			{
-				SFG_FATAL("DX12 -> Failed to create DXC library!");
+				SFG_ERR("DX12 -> Failed to create DXC library!");
+				return false;
 			}
 		}
 
@@ -691,6 +692,7 @@ namespace SFG
 		_reuse_root_params.reserve(100);
 		_reuse_root_ranges.reserve(100);
 		_reuse_static_samplers.reserve(100);
+		return true;
 	}
 
 	void dx12_backend::uninit()
@@ -2697,7 +2699,7 @@ namespace SFG
 
 	void dx12_backend::cmd_end_event(gfx_id cmd_id)
 	{
-		command_buffer& buffer = _command_buffers.get(cmd_id);
+		command_buffer&				buffer	 = _command_buffers.get(cmd_id);
 		ID3D12GraphicsCommandList4* cmd_list = buffer.ptr.Get();
 		PIXEndEvent(cmd_list);
 	}

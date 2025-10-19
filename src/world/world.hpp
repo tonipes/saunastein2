@@ -16,7 +16,6 @@ namespace SFG
 	struct vector2ui16;
 	struct world_raw;
 
-	class world_renderer;
 	class render_event_stream;
 
 	class world
@@ -68,16 +67,6 @@ namespace SFG
 			return _text_allocator;
 		}
 
-		inline world_renderer* get_renderer() const
-		{
-			return _world_renderer;
-		}
-
-		inline void set_world_renderer(world_renderer* wr)
-		{
-			_world_renderer = wr;
-		}
-
 		inline vekt::font_manager& get_font_manager()
 		{
 			return _vekt_fonts;
@@ -90,7 +79,6 @@ namespace SFG
 
 	private:
 		render_event_stream& _render_stream;
-		world_renderer*		 _world_renderer = nullptr;
 		world_resources		 _resources;
 		text_allocator		 _text_allocator;
 		bitmask<uint8>		 _flags = 0;

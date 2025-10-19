@@ -15,9 +15,8 @@
 #include "memory/memory_tracer.hpp"
 #include "io/log.hpp"
 #include "common/system_info.hpp"
-#include "world/world.hpp"
-#include "resources/shader_raw.hpp"
 #include "resources/common_resources.hpp"
+#include "engine_shaders.hpp"
 
 namespace SFG
 {
@@ -31,13 +30,24 @@ namespace SFG
 		_reuse_upload_barriers.reserve(32);
 	}
 
-	void renderer::init(window* main_window, world* w)
+	bool renderer::init(window* main_window, world* w)
 	{
 		_world				 = w;
 		gfx_backend* backend = gfx_backend::get();
 
-		_swapchain_flags = swapchain_flags::sf_vsync_every_v_blank;
+		// global render data.
+		_gfx_data.bind_layout_global = gfx_util::create_bind_layout_global();
+		s_bind_layout_global		 = _gfx_data.bind_layout_global;
 
+		// kick off system shaders.
+		if (!engine_shaders::get().init(s_bind_layout_global))
+		{
+			backend->destroy_bind_layout(s_bind_layout_global);
+			return false;
+		}
+
+		// swapchain
+		_swapchain_flags	= swapchain_flags::sf_vsync_every_v_blank;
 		_gfx_data.swapchain = backend->create_swapchain({
 			.window	   = main_window->get_window_handle(),
 			.os_handle = main_window->get_platform_handle(),
@@ -49,9 +59,7 @@ namespace SFG
 		});
 		_base_size			= main_window->get_size();
 
-		_gfx_data.bind_layout_global = gfx_util::create_bind_layout_global();
-		s_bind_layout_global		 = _gfx_data.bind_layout_global;
-
+		// dummy data
 		_gfx_data.dummy_sampler = backend->create_sampler({});
 		_gfx_data.dummy_texture = backend->create_texture({
 			.texture_format = format::r8_unorm,
@@ -74,18 +82,13 @@ namespace SFG
 		_gfx_data.dummy_ubo			 = backend->create_resource({.size = 4, .flags = resource_flags::rf_constant_buffer | resource_flags::rf_gpu_only});
 		_gfx_data.dummy_ssbo		 = backend->create_resource({.size = 4, .flags = resource_flags::rf_storage_buffer | resource_flags::rf_gpu_only});
 
-		shader_raw raw = {};
-		raw.cook_from_file("assets/engine/shaders/swapchain/swapchain.stkfrg", false, _gfx_data.bind_layout_global, false);
-		_shaders.swapchain.create_from_raw(raw);
-		raw.destroy();
-
 #ifdef USE_DEBUG_CONTROLLER
 		_debug_controller.init(&_texture_queue, _gfx_data.bind_layout_global, main_window->get_size());
 #endif
 		_world_renderer = new world_renderer(_proxy_manager, *w);
 		_world_renderer->init(main_window->get_size(), &_texture_queue, &_buffer_queue);
-		w->set_world_renderer(_world_renderer);
 
+		// pfd
 		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
 			per_frame_data& pfd		= _pfd[i];
@@ -122,13 +125,25 @@ namespace SFG
 											   });
 
 			_frame_allocator[i].init(1024 * 1024, 4);
-
 			s_bind_group_global[i] = pfd.bind_group_global;
 		}
 
 		_buffer_queue.init();
 		_texture_queue.init();
 		_proxy_manager.init();
+
+		_shaders.swapchain = engine_shaders::get().get_shader(engine_shader_type::engine_shader_type_renderer_swapchain).get_hw();
+
+#ifdef SFG_TOOLMODE
+		engine_shaders::get().add_reload_listener([this](engine_shader_type type, shader_direct& sh) {
+			if (type == engine_shader_type::engine_shader_type_renderer_swapchain)
+			{
+				_shaders.swapchain = sh.get_hw();
+				return;
+			}
+		});
+#endif
+		return true;
 	}
 
 	void renderer::uninit(render_event_stream& stream)
@@ -140,8 +155,6 @@ namespace SFG
 		_proxy_manager.uninit();
 		_world_renderer->uninit();
 		delete _world_renderer;
-
-		_shaders.swapchain.destroy();
 
 #ifdef USE_DEBUG_CONTROLLER
 		_debug_controller.uninit();
@@ -174,6 +187,8 @@ namespace SFG
 		}
 
 		backend->destroy_swapchain(_gfx_data.swapchain);
+
+		engine_shaders::get().uninit();
 	}
 
 	void renderer::wait_backend()
@@ -231,7 +246,7 @@ namespace SFG
 		const gfx_id cmd_list_copy	  = pfd.cmd_copy;
 		const gfx_id bg_global		  = pfd.bind_group_global;
 		const gfx_id bg_swapchain	  = pfd.bind_group_swapchain;
-		const gfx_id shader_swp		  = _shaders.swapchain.get_hw();
+		const gfx_id shader_swp		  = _shaders.swapchain;
 		const gfx_id sem_frame		  = pfd.sem_frame.semaphore;
 		const gfx_id sem_copy		  = pfd.sem_copy.semaphore;
 		const uint64 prev_copy_value  = pfd.sem_copy.value;

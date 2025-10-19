@@ -5,7 +5,6 @@
 #include "gfx/buffer.hpp"
 #include "gfx/world/draws.hpp"
 #include "memory/bump_allocator.hpp"
-#include "resources/shader_direct.hpp"
 
 namespace SFG
 {
@@ -78,7 +77,7 @@ namespace SFG
 
 	private:
 		per_frame_data _pfd[BACK_BUFFER_COUNT];
-		shader_direct  _shader_lighting;
-		bump_allocator _alloc = {};
+		gfx_id		   _shader_lighting = 0;
+		bump_allocator _alloc			= {};
 	};
 }

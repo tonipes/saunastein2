@@ -191,7 +191,7 @@ namespace SFG
 			return s_instance;
 		}
 
-		void  init();
+		bool  init();
 		void  uninit();
 		void  reset_command_buffer(gfx_id cmd_buffer);
 		void  close_command_buffer(gfx_id cmd_buffer);

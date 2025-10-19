@@ -11,6 +11,7 @@
 #include "gfx/common/commands.hpp"
 #include "gfx/util/gfx_util.hpp"
 #include "gfx/texture_queue.hpp"
+#include "gfx/engine_shaders.hpp"
 #include "common/system_info.hpp"
 #include "platform/window_common.hpp"
 #include "io/log.hpp"
@@ -24,7 +25,6 @@
 #include "data/istream.hpp"
 #include "serialization/serialization.hpp"
 #include "io/file_system.hpp"
-#include "resources/shader_raw.hpp"
 
 #define VEKT_STRING_CSTR
 #define VEKT_VEC4 SFG::vector4
@@ -353,37 +353,38 @@ namespace SFG
 
 		gfx_backend* backend = gfx_backend::get();
 
-		// gui default
-		{
-			shader_raw raw = {};
-			raw.cook_from_file("assets/engine/shaders/gui/gui_default.stkfrg", false, global_bind_layout, false);
-			_shaders.gui_default.create_from_raw(raw);
-			raw.destroy();
-		}
+		_shaders.gui_default				   = engine_shaders::get().get_shader(engine_shader_type::engine_shader_type_gui_default).get_hw();
+		_shaders.gui_sdf					   = engine_shaders::get().get_shader(engine_shader_type::engine_shader_type_gui_sdf).get_hw();
+		_shaders.gui_text					   = engine_shaders::get().get_shader(engine_shader_type::engine_shader_type_gui_text).get_hw();
+		_shaders.debug_controller_console_draw = engine_shaders::get().get_shader(engine_shader_type::engine_shader_type_debug_console).get_hw();
 
-		// gui text
-		{
-			shader_raw raw = {};
-			raw.cook_from_file("assets/engine/shaders/gui/gui_text.stkfrg", false, global_bind_layout, false);
-			_shaders.gui_text.create_from_raw(raw);
-			raw.destroy();
-		}
+#ifdef SFG_TOOLMODE
+		engine_shaders::get().add_reload_listener([this](engine_shader_type type, shader_direct& sh) {
+			if (type == engine_shader_type::engine_shader_type_gui_default)
+			{
+				_shaders.gui_default = sh.get_hw();
+				return;
+			}
 
-		// gui sdf
-		{
-			shader_raw raw = {};
-			raw.cook_from_file("assets/engine/shaders/gui/gui_sdf.stkfrg", false, global_bind_layout, false);
-			_shaders.gui_sdf.create_from_raw(raw);
-			raw.destroy();
-		}
+			if (type == engine_shader_type::engine_shader_type_gui_text)
+			{
+				_shaders.gui_text = sh.get_hw();
+				return;
+			}
 
-		// console draw
-		{
-			shader_raw raw = {};
-			raw.cook_from_file("assets/engine/shaders/debug_controller/console_draw.stkfrg", false, global_bind_layout, false);
-			_shaders.debug_controller_console_draw.create_from_raw(raw);
-			raw.destroy();
-		}
+			if (type == engine_shader_type::engine_shader_type_gui_sdf)
+			{
+				_shaders.gui_sdf = sh.get_hw();
+				return;
+			}
+
+			if (type == engine_shader_type::engine_shader_type_debug_console)
+			{
+				_shaders.debug_controller_console_draw = sh.get_hw();
+				return;
+			}
+		});
+#endif
 
 		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
@@ -543,11 +544,6 @@ namespace SFG
 
 		gfx_backend* backend = gfx_backend::get();
 
-		_shaders.gui_default.destroy();
-		_shaders.gui_text.destroy();
-		_shaders.gui_sdf.destroy();
-		_shaders.debug_controller_console_draw.destroy();
-
 		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
 			per_frame_data& pfd = _pfd[i];
@@ -650,7 +646,7 @@ namespace SFG
 		const gfx_id	  gui_index			= pfd.buf_gui_idx.get_hw_gpu();
 		const gfx_id	  bg_rp				= pfd.bind_group_gui_render_pass;
 		const gfx_id	  bg_fullscreen		= pfd.bind_group_fullscreen;
-		const gfx_id	  shader_fullscreen = _shaders.debug_controller_console_draw.get_hw();
+		const gfx_id	  shader_fullscreen = _shaders.debug_controller_console_draw;
 		const uint16	  dc_count			= pfd.draw_call_count;
 
 		// Copy vtx idx buffers. First transition barriers will be executed via collect_barriers
@@ -764,6 +760,9 @@ namespace SFG
 		const vector4		  clip			   = buffer.clip;
 		const uint32		  buffer_idx_count = buffer.index_count;
 		const uint32		  buffer_vtx_count = buffer.vertex_count;
+		const gfx_id		  sdf_shader	   = _shaders.gui_sdf;
+		const gfx_id		  text_shader	   = _shaders.gui_text;
+		const gfx_id		  default_shader   = _shaders.gui_default;
 
 		per_frame_data& pfd			= _pfd[_gfx_data.frame_index];
 		const uint32	vtx_counter = pfd.counter_vtx;
@@ -806,14 +805,14 @@ namespace SFG
 
 		if (font)
 		{
-			dc.shader = font_type == vekt::font_type::sdf ? _shaders.gui_sdf.get_hw() : _shaders.gui_text.get_hw();
+			dc.shader = font_type == vekt::font_type::sdf ? sdf_shader : text_shader;
 			auto it	  = vector_util::find_if(_gfx_data.atlases, [&](const atlas_ref& ref) -> bool { return ref.atlas == atlas; });
 			SFG_ASSERT(it != _gfx_data.atlases.end());
 			dc.bind_group = SET_BIT(it->bind_group, 15);
 		}
 		else
 		{
-			dc.shader = _shaders.gui_default.get_hw();
+			dc.shader = default_shader;
 		}
 	}
 

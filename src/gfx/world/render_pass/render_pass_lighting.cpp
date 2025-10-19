@@ -10,6 +10,7 @@
 #include "gfx/proxy/proxy_manager.hpp"
 #include "gfx/common/barrier_description.hpp"
 #include "gfx/renderer.hpp"
+#include "gfx/engine_shaders.hpp"
 #include "world/world.hpp"
 #include "resources/vertex.hpp"
 #include "math/vector2ui16.hpp"
@@ -48,21 +49,21 @@ namespace SFG
 
 		create_textures(params.size, params.gbuffer_textures);
 
+		_shader_lighting = engine_shaders::get().get_shader(engine_shader_type::engine_shader_type_world_lighting).get_hw();
+
 #ifdef SFG_TOOLMODE
-		{
-			shader_raw raw = {};
-			raw.cook_from_file("assets/engine/shaders/lighting/deferred_lighting.stkshader", false, renderer::get_bind_layout_global(), false);
-			_shader_lighting.create_from_raw(raw);
-			raw.destroy();
-		}
-#else
-		SFG_NOTIMPLEMENTED();
+		engine_shaders::get().add_reload_listener([this](engine_shader_type type, shader_direct& sh) {
+			if (type == engine_shader_type::engine_shader_type_world_lighting)
+			{
+				_shader_lighting = sh.get_hw();
+				return;
+			}
+		});
 #endif
 	}
 
 	void render_pass_lighting::uninit()
 	{
-		_shader_lighting.destroy();
 		_alloc.uninit();
 
 		gfx_backend* backend = gfx_backend::get();
@@ -97,6 +98,7 @@ namespace SFG
 		const gfx_id	cmd_buffer	  = pfd.cmd_buffer;
 		const gfx_id	color_texture = pfd.render_target;
 		const gfx_id	rp_bind_group = pfd.bind_group;
+		const gfx_id	sh			  = _shader_lighting;
 		_alloc.reset();
 
 		static_vector<barrier, 1> barriers;
@@ -150,7 +152,7 @@ namespace SFG
 									  .height	 = static_cast<uint16>(p.size.y),
 
 								  });
-		backend->cmd_bind_pipeline(cmd_buffer, {.pipeline = _shader_lighting.get_hw()});
+		backend->cmd_bind_pipeline(cmd_buffer, {.pipeline = sh});
 		backend->cmd_draw_instanced(cmd_buffer,
 									{
 										.vertex_count_per_instance = 6,

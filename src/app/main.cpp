@@ -3,7 +3,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include "Windows.h"
 
-#include "game.hpp"
+#include "game_app.hpp"
 #include "io/log.hpp"
 #include "memory/memory_tracer.hpp"
 #include "platform/process.hpp"
@@ -23,10 +23,13 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
 		try
 		{
-
-			if (app.init(SFG::vector2ui16(1920, 1080)) != SFG::game_app::init_status::ok)
+			const SFG::game_app::init_status status = app.init(SFG::vector2ui16(1920, 1080));
+			if (status != SFG::game_app::init_status::ok)
 			{
-				SFG::process::message_box("Toolmode requires a valid working directory!");
+				if (status == SFG::game_app::init_status::working_directory_dont_exist)
+					SFG::process::message_box("Toolmode requires a valid working directory!");
+				else if (status == SFG::game_app::init_status::renderer_failed)
+					SFG::process::message_box("Renderer failed initializing!");
 				SFG::process::uninit();
 				POP_MEMORY_CATEGORY();
 				FreeConsole();

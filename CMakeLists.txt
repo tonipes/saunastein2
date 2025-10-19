@@ -52,6 +52,7 @@ add_compile_definitions($<$<CONFIG:Profile>:SFG_DEBUG>)
 add_compile_definitions($<$<CONFIG:Release>:_ITERATOR_DEBUG_LEVEL=0>)
 
 add_definitions(-DSFG_CONFIGURATION="$<CONFIGURATION>")
+add_definitions(-DSFG_ROOT_DIRECTORY="${CMAKE_SOURCE_DIR}/")
 
 if (TOOLMODE)
     add_compile_definitions(SFG_TOOLMODE=1)
@@ -167,9 +168,6 @@ list(APPEND HEADERS ${EDITOR_HEADERS})
 endif()
 
 if(WIN32)
-file(GLOB_RECURSE SHADERS
-assets/engine/shaders/*.hlsl
-)
 
 file(GLOB PLATFORM_SOURCES 
 src/platform/win32/*.cpp
@@ -259,12 +257,6 @@ PUBLIC lz4
 )
 
 set_target_properties(lz4 PROPERTIES FOLDER "Dependencies")
-
-add_custom_command(
-TARGET ${PROJECT_NAME}
-POST_BUILD
-COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/assets" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIGURATION>/assets")
-
 
 include(${CMAKE_SOURCE_DIR}/utils/cmake/common_functions.cmake)
 group_sources(HEADERS SOURCES SHADERS PLATFORM_HEADERS PLATFORM_SOURCES)
