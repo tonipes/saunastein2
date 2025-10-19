@@ -36,4 +36,44 @@ namespace SFG
 		stream >> fov_degrees;
 	}
 
+	void render_event_ambient::serialize(ostream& stream) const
+	{
+		stream << base_color;
+	}
+
+	void render_event_ambient::deserialize(istream& stream)
+	{
+		stream >> base_color;
+	}
+
+	void render_event_point_light::serialize(ostream& stream) const
+	{
+		stream << base_color;
+	}
+
+	void render_event_point_light::deserialize(istream& stream)
+	{
+		stream >> base_color;
+	}
+
+	void render_event_dir_light::serialize(ostream& stream) const
+	{
+		stream << base_color;
+	}
+
+	void render_event_dir_light::deserialize(istream& stream)
+	{
+		stream >> base_color;
+	}
+
+	void render_event_spot_light::serialize(ostream& stream) const
+	{
+		stream << base_color;
+	}
+
+	void render_event_spot_light::deserialize(istream& stream)
+	{
+		stream >> base_color;
+	}
+
 }

@@ -96,14 +96,54 @@ namespace SFG
 			return _cameras;
 		}
 
+		inline pool_allocator_simple<render_proxy_point_light>& get_point_lights()
+		{
+			return _point_lights;
+		}
+
+		inline pool_allocator_simple<render_proxy_spot_light>& get_spot_lights()
+		{
+			return _spot_lights;
+		}
+
+		inline pool_allocator_simple<render_proxy_dir_light>& get_dir_lights()
+		{
+			return _dir_lights;
+		}
+
+		inline render_proxy_ambient& get_ambient()
+		{
+			return _ambients.get(0);
+		}
+
 		inline world_id get_main_camera() const
 		{
 			return _main_camera_trait;
 		}
 
-		inline uint32 get_mesh_instances_peak() const
+		inline uint32 get_peak_mesh_instances() const
 		{
-			return _mesh_instances_peak;
+			return _peak_mesh_instances;
+		}
+
+		inline uint32 get_peak_ambients() const
+		{
+			return _peak_mesh_instances;
+		}
+
+		inline uint32 get_peak_dir_lights() const
+		{
+			return _peak_mesh_instances;
+		}
+
+		inline uint32 get_peak_spot_lights() const
+		{
+			return _peak_spot_lights;
+		}
+
+		inline uint32 get_peak_point_lights() const
+		{
+			return _peak_point_lights;
 		}
 
 	private:
@@ -162,9 +202,17 @@ namespace SFG
 		pool_allocator_simple<render_proxy_entity>		  _entities;
 		pool_allocator_simple<render_proxy_mesh_instance> _mesh_instances;
 		pool_allocator_simple<render_proxy_camera>		  _cameras;
+		pool_allocator_simple<render_proxy_ambient>		  _ambients;
+		pool_allocator_simple<render_proxy_dir_light>	  _dir_lights;
+		pool_allocator_simple<render_proxy_spot_light>	  _spot_lights;
+		pool_allocator_simple<render_proxy_point_light>	  _point_lights;
 		world_id										  _main_camera_trait = 0;
 
-		uint32 _mesh_instances_peak = 0;
+		uint32 _peak_mesh_instances = 0;
+		uint32 _peak_ambients		= 0;
+		uint32 _peak_point_lights	= 0;
+		uint32 _peak_spot_lights	= 0;
+		uint32 _peak_dir_lights		= 0;
 
 		static_vector<material_update_bucket, BACK_BUFFER_COUNT> _material_update_buckets;
 		destroy_bucket											 _destroy_bucket[BACK_BUFFER_COUNT + 1];

@@ -14,6 +14,7 @@
 #include "common/system_info.hpp"
 #include "data/istream.hpp"
 #include "world/world_constants.hpp"
+#include "math/math.hpp"
 
 namespace SFG
 {
@@ -30,6 +31,10 @@ namespace SFG
 		_entities.init(MAX_ENTITIES);
 		_mesh_instances.init(MAX_ENTITIES);
 		_cameras.init(MAX_ENTITIES);
+		_ambients.init(1);
+		_point_lights.init(MAX_ENTITIES);
+		_spot_lights.init(MAX_ENTITIES);
+		_dir_lights.init(MAX_ENTITIES);
 
 		for (uint8 i = 0; i < BACK_BUFFER_COUNT + 1; i++)
 		{
@@ -94,6 +99,10 @@ namespace SFG
 		_samplers.uninit();
 		_materials.uninit();
 		_meshes.uninit();
+		_ambients.uninit();
+		_spot_lights.uninit();
+		_point_lights.uninit();
+		_dir_lights.uninit();
 
 		_aux_memory.uninit();
 	}
@@ -180,8 +189,8 @@ namespace SFG
 
 		for (gfx_id shader : mat.shader_handles)
 		{
-			const render_proxy_shader& proxy_shader	 = get_shader(shader);
-			const bitmask<uint8>&	   flags		 = proxy_shader.flags;
+			const render_proxy_shader& proxy_shader = get_shader(shader);
+			const bitmask<uint8>&	   flags		= proxy_shader.flags;
 
 			if (proxy_shader.flags.is_all_set(target_flags))
 			{
@@ -221,15 +230,77 @@ namespace SFG
 			proxy.handle			   = index;
 			proxy.flags.set(render_proxy_entity_flags::render_proxy_entity_invisible, !ev.visible);
 		}
+		else if (type == render_event_type::render_event_update_ambient)
+		{
+			render_event_ambient ev = {};
+			ev.deserialize(stream);
+			_peak_ambients = math::max(_peak_ambients, index);
+
+			render_proxy_ambient& proxy = get_ambient();
+			proxy.status				= render_proxy_status::rps_active;
+			proxy.entity				= index;
+		}
+		else if (type == render_event_type::render_event_update_spot_light)
+		{
+			render_event_spot_light ev = {};
+			ev.deserialize(stream);
+			_peak_spot_lights = math::max(_peak_spot_lights, index);
+
+			render_proxy_spot_light& proxy = _spot_lights.get(index);
+			proxy.status				   = render_proxy_status::rps_active;
+			proxy.entity				   = index;
+		}
+		else if (type == render_event_type::render_event_update_point_light)
+		{
+			render_event_point_light ev = {};
+			ev.deserialize(stream);
+			_peak_point_lights = math::max(_peak_point_lights, index);
+
+			render_proxy_point_light& proxy = _point_lights.get(index);
+			proxy.status					= render_proxy_status::rps_active;
+			proxy.entity					= index;
+		}
+		else if (type == render_event_type::render_event_update_dir_light)
+		{
+			render_event_dir_light ev = {};
+			ev.deserialize(stream);
+			_peak_dir_lights = math::max(_peak_dir_lights, index);
+
+			render_proxy_dir_light& proxy = _dir_lights.get(index);
+			proxy.status				  = render_proxy_status::rps_active;
+			proxy.entity				  = index;
+		}
+		else if (type == render_event_type::render_event_remove_ambient)
+		{
+			render_proxy_ambient& proxy = get_ambient();
+			proxy.status				= render_proxy_status::rps_active;
+			proxy						= {};
+		}
+		else if (type == render_event_type::render_event_remove_point_light)
+		{
+			render_proxy_point_light& proxy = _point_lights.get(index);
+			proxy.status					= render_proxy_status::rps_active;
+			proxy							= {};
+		}
+		else if (type == render_event_type::render_event_remove_spot_light)
+		{
+			render_proxy_spot_light& proxy = _spot_lights.get(index);
+			proxy.status				   = render_proxy_status::rps_active;
+			proxy						   = {};
+		}
+		else if (type == render_event_type::render_event_remove_dir_light)
+		{
+			render_proxy_dir_light& proxy = _dir_lights.get(index);
+			proxy.status				  = render_proxy_status::rps_active;
+			proxy						  = {};
+		}
 		else if (type == render_event_type::render_event_update_mesh_instance)
 		{
 			render_event_mesh_instance ev = {};
 			ev.deserialize(stream);
+			_peak_mesh_instances = math::max(_peak_mesh_instances, index);
 
 			render_proxy_mesh_instance& proxy = get_mesh_instance(index);
-
-			if (proxy.status != render_proxy_status::rps_active)
-				_mesh_instances_peak++;
 
 			proxy.status = render_proxy_status::rps_active;
 			proxy.entity = ev.entity_index;

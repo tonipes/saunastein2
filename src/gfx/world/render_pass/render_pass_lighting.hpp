@@ -5,11 +5,11 @@
 #include "gfx/buffer.hpp"
 #include "gfx/world/draws.hpp"
 #include "memory/bump_allocator.hpp"
+#include "math/color.hpp"
 
 namespace SFG
 {
 	struct view;
-	class buffer_queue;
 	class proxy_manager;
 	struct vector2ui16;
 	struct view;
@@ -20,6 +20,7 @@ namespace SFG
 	private:
 		struct ubo
 		{
+			color ambient_color = color::white;
 		};
 
 		struct per_frame_data
@@ -52,7 +53,7 @@ namespace SFG
 		void init(const init_params& params);
 		void uninit();
 
-		void prepare(view& camera_view, uint8 frame_index);
+		void prepare(proxy_manager& pm, view& camera_view, uint8 frame_index);
 		void render(const render_params& params);
 		void resize(const vector2ui16& size, gfx_id* gbuffer_textures);
 

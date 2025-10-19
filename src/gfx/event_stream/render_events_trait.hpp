@@ -5,6 +5,7 @@
 #include "common/size_definitions.hpp"
 #include "data/vector.hpp"
 #include "world/world_constants.hpp"
+#include "math/color.hpp"
 
 namespace SFG
 {
@@ -33,4 +34,39 @@ namespace SFG
 		void deserialize(istream& stream);
 	};
 
+	struct render_event_ambient
+	{
+		world_id entity_index = 0;
+		color	 base_color	  = color::white;
+
+		void serialize(ostream& stream) const;
+		void deserialize(istream& stream);
+	};
+
+	struct render_event_point_light
+	{
+		world_id entity_index = 0;
+		color	 base_color	  = color::white;
+
+		void serialize(ostream& stream) const;
+		void deserialize(istream& stream);
+	};
+
+	struct render_event_dir_light
+	{
+		world_id entity_index = 0;
+		color	 base_color	  = color::white;
+
+		void serialize(ostream& stream) const;
+		void deserialize(istream& stream);
+	};
+
+	struct render_event_spot_light
+	{
+		world_id entity_index = 0;
+		color	 base_color	  = color::white;
+
+		void serialize(ostream& stream) const;
+		void deserialize(istream& stream);
+	};
 }

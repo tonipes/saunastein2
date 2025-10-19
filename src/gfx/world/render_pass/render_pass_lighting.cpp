@@ -81,7 +81,7 @@ namespace SFG
 		destroy_textures();
 	}
 
-	void render_pass_lighting::prepare(view& camera_view, uint8 frame_index)
+	void render_pass_lighting::prepare(proxy_manager& pm, view& camera_view, uint8 frame_index)
 	{
 		per_frame_data& pfd		 = _pfd[frame_index];
 		const ubo		ubo_data = {

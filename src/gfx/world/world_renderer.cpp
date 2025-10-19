@@ -241,7 +241,7 @@ namespace SFG
 
 		_pass_pre_depth.prepare(_proxy_manager, _main_camera_view, frame_index, _render_data);
 		_pass_opaque.prepare(_proxy_manager, _main_camera_view, frame_index, rd);
-		_pass_lighting.prepare(_main_camera_view, frame_index);
+		_pass_lighting.prepare(_proxy_manager, _main_camera_view, frame_index);
 	}
 
 	void world_renderer::render(uint8 frame_index, gfx_id layout_global, gfx_id bind_group_global, uint64 prev_copy, uint64 next_copy, gfx_id sem_copy)
@@ -460,7 +460,7 @@ namespace SFG
 
 	void world_renderer::collect_model_instances()
 	{
-		const uint32	   mesh_instances_peak = _proxy_manager.get_mesh_instances_peak();
+		const uint32	   mesh_instances_peak = _proxy_manager.get_peak_mesh_instances();
 		auto&			   mesh_instances	   = _proxy_manager.get_mesh_instances();
 		auto&			   entities			   = _proxy_manager.get_entities();
 		chunk_allocator32& aux				   = _proxy_manager.get_aux();
