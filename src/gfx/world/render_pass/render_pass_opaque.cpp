@@ -172,7 +172,7 @@ namespace SFG
 								 .barrier_count = static_cast<uint16>(barriers.size()),
 							 });
 
-		BEGIN_DEBUG_EVENT(backend, cmd_buffer, "opaque_pass");
+		BEGIN_DEBUG_EVENT(backend, cmd_buffer, L"opaque_pass");
 
 		backend->cmd_begin_render_pass_depth_read_only(cmd_buffer,
 													   {
@@ -246,6 +246,7 @@ namespace SFG
 		}
 
 		backend->cmd_end_render_pass(cmd_buffer, {});
+		END_DEBUG_EVENT(backend, cmd_buffer);
 
 		backend->cmd_barrier(cmd_buffer,
 							 {
@@ -255,7 +256,6 @@ namespace SFG
 
 		backend->close_command_buffer(cmd_buffer);
 
-		END_DEBUG_EVENT(backend, cmd_buffer);
 	}
 
 	void render_pass_opaque::resize(const vector2ui16& size, gfx_id* depth_textures)

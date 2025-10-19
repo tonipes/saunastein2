@@ -303,7 +303,7 @@ namespace SFG
 			attachment->store_op					 = store_op::store;
 			attachment->texture						 = render_target;
 
-			BEGIN_DEBUG_EVENT(backend, cmd_list, "swapchain_pass");
+			BEGIN_DEBUG_EVENT(backend, cmd_list, L"swapchain_pass");
 			backend->cmd_begin_render_pass_swapchain(cmd_list, {.color_attachments = attachment, .color_attachment_count = 1});
 			backend->cmd_set_scissors(cmd_list, {.width = static_cast<uint16>(size.x), .height = static_cast<uint16>(size.y)});
 			backend->cmd_set_viewport(cmd_list, {.width = static_cast<uint16>(size.x), .height = static_cast<uint16>(size.y)});

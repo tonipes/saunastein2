@@ -2684,10 +2684,12 @@ namespace SFG
 		return buffer;
 	}
 
-	void dx12_backend::cmd_begin_event(gfx_id cmd_id, const char* label)
+	void dx12_backend::cmd_begin_event(gfx_id cmd_id, const wchar_t* label)
 	{
 		command_buffer& buffer = _command_buffers.get(cmd_id);
-		buffer.ptr->BeginEvent(0, label, (UINT)strlen(label) + 1);
+		auto			ff	   = (UINT)lstrlenW(label) ;
+		buffer.ptr->BeginEvent(0, label, ff);
+
 	}
 
 	void dx12_backend::cmd_end_event(gfx_id cmd_id)
