@@ -87,7 +87,7 @@ namespace SFG
 			const string full_source = use_working_dir ? (engine_data::get().get_working_dir() + source) : (source);
 			if (!file_system::exists(full_source.c_str()))
 			{
-				SFG_ERR("File don't exist! {0}", path);
+				SFG_ERR("File don't exist! {0}", full_source.c_str());
 				return false;
 			}
 			const string shader_text = file_system::read_file_as_string(full_source.c_str());

@@ -119,7 +119,6 @@ namespace SFG
 		bump_allocator	_frame_allocator[BACK_BUFFER_COUNT] = {};
 		buffer_queue	_buffer_queue						= {};
 		texture_queue	_texture_queue						= {};
-		render_data		_render_data[2];
 		proxy_manager	_proxy_manager;
 		vector<barrier> _reuse_upload_barriers = {};
 		vector2ui16		_base_size			   = {};

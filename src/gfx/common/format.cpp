@@ -23,6 +23,8 @@ namespace SFG
 			return 2;
 		case format::d32_sfloat:
 			return 4;
+		case format::r16g16b16a16_sfloat:
+			return 8;
 		default:
 			break;
 		}
@@ -39,6 +41,8 @@ namespace SFG
 			return 1;
 		case format::r8g8b8a8_unorm:
 		case format::r8g8b8a8_srgb:
+			return 4;
+		case format::r16g16b16a16_sfloat:
 			return 4;
 		default:
 			break;
@@ -82,6 +86,9 @@ namespace SFG
 			return;
 		case format::r32g32b32_sfloat:
 			j = "r32g32b32_sfloat";
+			return;
+		case format::r16g16b16a16_sfloat:
+			j = "r16g16b16a16_sfloat";
 			return;
 		case format::r32g32b32a32_sfloat:
 			j = "r32g32b32a32_sfloat";
@@ -132,6 +139,11 @@ namespace SFG
 		if (str.compare("r32g32b32a32_sfloat") == 0)
 		{
 			f = format::r32g32b32a32_sfloat;
+			return;
+		}
+		if (str.compare("r16g16b16a16_sfloat") == 0)
+		{
+			f = format::r16g16b16a16_sfloat;
 			return;
 		}
 		if (str.compare("r32g32b32a32_uint") == 0)

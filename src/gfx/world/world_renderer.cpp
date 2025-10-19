@@ -16,6 +16,7 @@
 #include "resources/primitive.hpp"
 #include "gfx/proxy/proxy_manager.hpp"
 #include <algorithm>
+#include <execution>
 
 /* DEBUG */
 #include "serialization/serialization.hpp"
@@ -121,7 +122,7 @@ namespace SFG
 		// Command allocations
 		{
 			const size_t total_shared_size = SHARED_BUMP_ALLOC_SZ;
-			const size_t lane_count		   = 2;
+			const size_t lane_count		   = 3;
 			const size_t size_per_lane	   = total_shared_size / lane_count;
 			_shared_command_alloc		   = (uint8*)SFG_MALLOC(total_shared_size);
 			PUSH_ALLOCATION_SZ(total_shared_size);
@@ -136,6 +137,7 @@ namespace SFG
 				.bones		= bones_ptr.data(),
 			});
 			alloc_head += size_per_lane;
+
 			static_vector<gfx_id, BACK_BUFFER_COUNT> depth_textures;
 			for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 				depth_textures.push_back(_pass_pre_depth.get_depth_texture(i));
@@ -150,27 +152,25 @@ namespace SFG
 			});
 			alloc_head += size_per_lane;
 
-			static_vector<gfx_id, BACK_BUFFER_COUNT * 4> opaque_textures;
-
+			static_vector<gfx_id, BACK_BUFFER_COUNT * 4> gbuffer_textures;
 			for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 			{
-				opaque_textures.push_back(_pass_opaque.get_color_texture(i, 0));
-				opaque_textures.push_back(_pass_opaque.get_color_texture(i, 1));
-				opaque_textures.push_back(_pass_opaque.get_color_texture(i, 2));
-				opaque_textures.push_back(_pass_opaque.get_color_texture(i, 3));
+				gbuffer_textures.push_back(_pass_opaque.get_color_texture(i, 0));
+				gbuffer_textures.push_back(_pass_opaque.get_color_texture(i, 1));
+				gbuffer_textures.push_back(_pass_opaque.get_color_texture(i, 2));
+				gbuffer_textures.push_back(_pass_opaque.get_color_texture(i, 3));
 			}
 
-			//_pass_lighting_fw.init({
-			//	.size			 = size,
-			//	.alloc			 = alloc_head,
-			//	.alloc_size		 = size_per_lane,
-			//	.entity_buffers	 = entity_buffers.data(),
-			//	.bone_buffers	 = bone_buffers.data(),
-			//	.light_buffers	 = light_buffers.data(),
-			//	.opaque_textures = opaque_textures.data(),
-			//	.depth_textures	 = depth_textures.data(),
-			//});
-			// alloc_head += size_per_lane;
+			_pass_lighting.init({
+				.size			  = size,
+				.alloc			  = alloc_head,
+				.alloc_size		  = size_per_lane,
+				.entities		  = entities_ptr.data(),
+				.bones			  = bones_ptr.data(),
+				.gbuffer_textures = gbuffer_textures.data(),
+			});
+
+			alloc_head += size_per_lane;
 		}
 	}
 
@@ -178,7 +178,7 @@ namespace SFG
 	{
 		_pass_pre_depth.uninit();
 		_pass_opaque.uninit();
-		// _pass_lighting_fw.uninit();
+		_pass_lighting.uninit();
 		// _pass_post_combiner.uninit();
 
 		PUSH_DEALLOCATION_SZ(SHARED_BUMP_ALLOC_SZ);
@@ -241,6 +241,7 @@ namespace SFG
 
 		_pass_pre_depth.prepare(_proxy_manager, _main_camera_view, frame_index, _render_data);
 		_pass_opaque.prepare(_proxy_manager, _main_camera_view, frame_index, rd);
+		_pass_lighting.prepare(_main_camera_view, frame_index);
 	}
 
 	void world_renderer::render(uint8 frame_index, gfx_id layout_global, gfx_id bind_group_global, uint64 prev_copy, uint64 next_copy, gfx_id sem_copy)
@@ -252,84 +253,86 @@ namespace SFG
 		world_render_data& rd		  = _render_data;
 		const vector2ui16  resolution = _base_size;
 
-		semaphore_data& sd_opaque			= _pass_opaque.get_semaphore(frame_index);
-		semaphore_data& sd_lighting_fw		= _pass_lighting_fw.get_semaphore(frame_index);
-		semaphore_data& sd_post				= _pass_post_combiner.get_semaphore(frame_index);
-		const gfx_id	sem_opaque			= sd_opaque.semaphore;
-		const gfx_id	sem_lighting_fw		= sd_lighting_fw.semaphore;
-		const gfx_id	sem_post			= sd_post.semaphore;
-		const uint64	sem_opaque_val		= ++sd_opaque.value;
-		const uint64	sem_lighting_fw_val = ++sd_lighting_fw.value;
-		const uint64	sem_post_val		= ++sd_post.value;
-		const gfx_id	cmd_opaque			= _pass_opaque.get_cmd_buffer(frame_index);
-		const gfx_id	cmd_lighting_fw		= _pass_lighting_fw.get_cmd_buffer(frame_index);
-		const gfx_id	cmd_post			= _pass_post_combiner.get_cmd_buffer(frame_index);
+		semaphore_data& sd_opaque		 = _pass_opaque.get_semaphore(frame_index);
+		semaphore_data& sd_lighting		 = _pass_lighting.get_semaphore(frame_index);
+		semaphore_data& sd_post			 = _pass_post_combiner.get_semaphore(frame_index);
+		const gfx_id	sem_opaque		 = sd_opaque.semaphore;
+		const gfx_id	sem_lighting	 = sd_lighting.semaphore;
+		const gfx_id	sem_post		 = sd_post.semaphore;
+		const uint64	sem_opaque_val	 = ++sd_opaque.value;
+		const uint64	sem_lighting_val = ++sd_lighting.value;
+		const uint64	sem_post_val	 = ++sd_post.value;
+		const gfx_id	cmd_opaque		 = _pass_opaque.get_cmd_buffer(frame_index);
+		const gfx_id	cmd_lighting	 = _pass_lighting.get_cmd_buffer(frame_index);
+		const gfx_id	cmd_post		 = _pass_post_combiner.get_cmd_buffer(frame_index);
 
 		upload(frame_index);
 
 		_pass_pre_depth.render({
 			.frame_index   = frame_index,
-			.wrd		   = _render_data,
 			.size		   = resolution,
 			.global_layout = layout_global,
 			.global_group  = bind_group_global,
 		});
 
-		_pass_opaque.render({
-			.frame_index   = frame_index,
-			.wrd		   = _render_data,
-			.size		   = resolution,
-			.global_layout = layout_global,
-			.global_group  = bind_group_global,
+		static_vector<std::function<void()>, 2> tasks;
+		tasks.push_back([&] {
+			_pass_opaque.render({
+				.frame_index   = frame_index,
+				.size		   = resolution,
+				.global_layout = layout_global,
+				.global_group  = bind_group_global,
+			});
+		});
+		tasks.push_back([&] {
+			_pass_lighting.render({
+				.frame_index   = frame_index,
+				.size		   = resolution,
+				.global_layout = layout_global,
+				.global_group  = bind_group_global,
+			});
 		});
 
-		//	tasks.push_back([&] { _pass_lighting_fw.render(data_index, frame_index, resolution, layout_global, bind_group_global); });
-		//	tasks.push_back([&] { _pass_post_combiner.render(data_index, frame_index, resolution, layout_global, bind_group_global); });
+		std::for_each(std::execution::par, tasks.begin(), tasks.end(), [](auto&& task) { task(); });
 
 		if (prev_copy != next_copy)
 			backend->queue_wait(queue_gfx, &sem_copy, &next_copy, 1);
 
-		// Submit opaque, signals itself
+		// submit opaque
 		backend->submit_commands(queue_gfx, &cmd_opaque, 1);
-
 		backend->queue_signal(queue_gfx, &sem_opaque, &sem_opaque_val, 1);
 
-		// Submit lighting + forward, waits on opaque, signals itself
-		// backend->queue_wait(queue_gfx, &sem_opaque, &sem_opaque_val, 1);
-		// backend->submit_commands(queue_gfx, &cmd_lighting_fw, 1);
-		// backend->queue_signal(queue_gfx, &sem_lighting_fw, &sem_lighting_fw_val, 1);
-		//
-		// // Submit post combiner, waits on lighting + forward, signals itself
-		// backend->queue_wait(queue_gfx, &sem_lighting_fw, &sem_lighting_fw_val, 1);
-		// backend->submit_commands(queue_gfx, &cmd_post, 1);
-		// backend->queue_signal(queue_gfx, &sem_post, &sem_post_val, 1);
+		// submit lighting, wait opaque
+		backend->queue_wait(queue_gfx, &sem_opaque, &sem_opaque_val, 1);
+		backend->submit_commands(queue_gfx, &cmd_lighting, 1);
+		backend->queue_signal(queue_gfx, &sem_lighting, &sem_lighting_val, 1);
 	}
 
 	void world_renderer::resize(const vector2ui16& size)
 	{
 		_base_size			 = size;
 		gfx_backend* backend = gfx_backend::get();
+
+		// depth prepass
 		_pass_pre_depth.resize(size);
 
+		// gbuffer
 		static_vector<gfx_id, BACK_BUFFER_COUNT> depths;
 		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 			depths.push_back(_pass_pre_depth.get_depth_texture(i));
 
 		_pass_opaque.resize(size, depths.data());
-		// _pass_lighting_fw.resize(size);
-		// _pass_post_combiner.resize(size);
 
-		static_vector<gfx_id, BACK_BUFFER_COUNT * 4> opaque_textures;
-
+		// lighting
+		static_vector<gfx_id, BACK_BUFFER_COUNT * 4> gbuffer_textures;
 		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
-			opaque_textures.push_back(_pass_opaque.get_color_texture(i, 0));
-			opaque_textures.push_back(_pass_opaque.get_color_texture(i, 1));
-			opaque_textures.push_back(_pass_opaque.get_color_texture(i, 2));
-			opaque_textures.push_back(_pass_opaque.get_color_texture(i, 3));
+			gbuffer_textures.push_back(_pass_opaque.get_color_texture(i, 0));
+			gbuffer_textures.push_back(_pass_opaque.get_color_texture(i, 1));
+			gbuffer_textures.push_back(_pass_opaque.get_color_texture(i, 2));
+			gbuffer_textures.push_back(_pass_opaque.get_color_texture(i, 3));
 		}
-
-		// _pass_lighting_fw.reset_target_textures(opaque_textures.data(), depth_textures.data());
+		_pass_lighting.resize(size, gbuffer_textures.data());
 	}
 
 	uint32 world_renderer::create_gpu_entity(const gpu_entity& e)

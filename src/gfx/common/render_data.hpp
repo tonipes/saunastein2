@@ -3,8 +3,5 @@
 
 namespace SFG
 {
-	struct render_data
-	{
-	};
 
 }

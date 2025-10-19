@@ -59,7 +59,6 @@ namespace SFG
 		struct render_params
 		{
 			uint8			   frame_index;
-			world_render_data& wrd;
 			const vector2ui16& size;
 			gfx_id			   global_layout;
 			gfx_id			   global_group;

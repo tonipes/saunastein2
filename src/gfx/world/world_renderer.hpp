@@ -15,7 +15,7 @@
 #include "world_render_data.hpp"
 #include "render_pass/render_pass_opaque.hpp"
 #include "render_pass/render_pass_pre_depth.hpp"
-#include "render_pass/render_pass_lighting_forward.hpp"
+#include "render_pass/render_pass_lighting.hpp"
 #include "render_pass/render_pass_post_combiner.hpp"
 
 namespace SFG
@@ -58,14 +58,12 @@ namespace SFG
 
 		inline gfx_id get_output(uint8 frame_index)
 		{
-			// return _pass_post_combiner.get_color_texture(frame_index);
-			return _pass_opaque.get_color_texture(frame_index, 0);
+			return _pass_lighting.get_color_texture(frame_index);
 		}
 
 		inline const semaphore_data& get_final_semaphore(uint8 frame_index)
 		{
-			// return _pass_post_combiner.get_semaphore(frame_index);
-			return _pass_opaque.get_semaphore(frame_index);
+			return _pass_lighting.get_semaphore(frame_index);
 		}
 
 	private:
@@ -81,10 +79,10 @@ namespace SFG
 		buffer_queue*	  _buffer_queue	 = nullptr;
 		world_render_data _render_data	 = {};
 
-		render_pass_opaque			 _pass_opaque		 = {};
-		render_pass_lighting_forward _pass_lighting_fw	 = {};
-		render_pass_post_combiner	 _pass_post_combiner = {};
-		render_pass_pre_depth		 _pass_pre_depth	 = {};
+		render_pass_opaque		  _pass_opaque		  = {};
+		render_pass_lighting	  _pass_lighting	  = {};
+		render_pass_post_combiner _pass_post_combiner = {};
+		render_pass_pre_depth	  _pass_pre_depth	  = {};
 
 		per_frame_data _pfd[BACK_BUFFER_COUNT];
 		vector2ui16	   _base_size			 = vector2ui16::zero;
