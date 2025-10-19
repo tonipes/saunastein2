@@ -16,6 +16,10 @@
 #include "common/system_info.hpp"
 
 #ifndef SFG_PRODUCTION
+#include <WinPixEventRuntime/pix3.h>
+#endif
+
+#ifndef SFG_PRODUCTION
 #define SERIALIZE_DEBUG_INFORMATION 1
 #endif
 
@@ -2684,18 +2688,18 @@ namespace SFG
 		return buffer;
 	}
 
-	void dx12_backend::cmd_begin_event(gfx_id cmd_id, const wchar_t* label)
+	void dx12_backend::cmd_begin_event(gfx_id cmd_id, const char* label)
 	{
-		command_buffer& buffer = _command_buffers.get(cmd_id);
-		auto			ff	   = (UINT)lstrlenW(label) ;
-		buffer.ptr->BeginEvent(0, label, ff);
-
+		command_buffer&				buffer	 = _command_buffers.get(cmd_id);
+		ID3D12GraphicsCommandList4* cmd_list = buffer.ptr.Get();
+		PIXBeginEvent(cmd_list, PIX_COLOR(120, 255, 100), label);
 	}
 
 	void dx12_backend::cmd_end_event(gfx_id cmd_id)
 	{
 		command_buffer& buffer = _command_buffers.get(cmd_id);
-		buffer.ptr->EndEvent();
+		ID3D12GraphicsCommandList4* cmd_list = buffer.ptr.Get();
+		PIXEndEvent(cmd_list);
 	}
 
 	void dx12_backend::cmd_copy_buffer_to_texture(gfx_id cmd_id, const command_copy_buffer_to_texture& cmd)

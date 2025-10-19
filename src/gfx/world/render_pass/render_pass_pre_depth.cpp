@@ -141,7 +141,7 @@ namespace SFG
 
 		barriers.resize(0);
 
-		BEGIN_DEBUG_EVENT(backend, cmd_buffer, L"depth_pre_pass");
+		BEGIN_DEBUG_EVENT(backend, cmd_buffer, "depth_pre_pass");
 
 		backend->cmd_begin_render_pass_depth_only(cmd_buffer,
 												  {
@@ -260,7 +260,8 @@ namespace SFG
 							.read_only = 1,
 						},
 					},
-				.debug_name = "prepass_depth",
+				.clear_values = {0.0f, 0.0f, 0.0f, 1.0f},
+				.debug_name	  = "prepass_depth",
 			});
 		}
 	}

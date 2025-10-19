@@ -172,7 +172,7 @@ namespace SFG
 								 .barrier_count = static_cast<uint16>(barriers.size()),
 							 });
 
-		BEGIN_DEBUG_EVENT(backend, cmd_buffer, L"opaque_pass");
+		BEGIN_DEBUG_EVENT(backend, cmd_buffer, "opaque_pass");
 
 		backend->cmd_begin_render_pass_depth_read_only(cmd_buffer,
 													   {
@@ -255,7 +255,6 @@ namespace SFG
 							 });
 
 		backend->close_command_buffer(cmd_buffer);
-
 	}
 
 	void render_pass_opaque::resize(const vector2ui16& size, gfx_id* depth_textures)
@@ -299,6 +298,7 @@ namespace SFG
 					.texture_format = format::r8g8b8a8_srgb,
 					.size			= sz,
 					.flags			= texture_flags::tf_render_target | texture_flags::tf_is_2d | texture_flags::tf_sampled,
+					.clear_values	= {0.0f, 0.0f, 0.0f, 1.0f},
 					.debug_name		= names[j],
 				}));
 

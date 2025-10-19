@@ -122,12 +122,12 @@ namespace SFG
 #ifdef ENABLE_MEMORY_TRACER
 			uint32 size = 0;
 #endif
-			gfx_id rtv_indices[BACK_BUFFER_COUNT];
-			uint8  format				  = 0;
-			uint8  image_index			  = 0;
-			uint8  vsync				  = 0;
-			uint8  tearing				  = 0;
-			HANDLE frame_latency_waitable = NULL;
+			gfx_id rtv_indices[BACK_BUFFER_COUNT] = {};
+			uint8  format						  = 0;
+			uint8  image_index					  = 0;
+			uint8  vsync						  = 0;
+			uint8  tearing						  = 0;
+			HANDLE frame_latency_waitable		  = NULL;
 		};
 
 		struct semaphore
@@ -258,7 +258,7 @@ namespace SFG
 		uint32 align_texture_size(uint32 size) const;
 		void*  adjust_buffer_pitch(void* data, uint32 width, uint32 height, uint8 bpp, uint32& out_total_size) const;
 
-		void cmd_begin_event(gfx_id cmd_list, const wchar_t* label);
+		void cmd_begin_event(gfx_id cmd_list, const char* label);
 		void cmd_end_event(gfx_id cmd_list);
 		void cmd_begin_render_pass(gfx_id cmd_list, const command_begin_render_pass& command);
 		void cmd_begin_render_pass_depth(gfx_id cmd_list, const command_begin_render_pass_depth& command);

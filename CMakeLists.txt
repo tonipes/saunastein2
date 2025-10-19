@@ -232,13 +232,25 @@ add_subdirectory(deps/lz4-1.9.4)
 if(WIN32)
 
 include(deps/dxc/link.cmake)
+include(deps/pix/link.cmake)
 link_dxc()
+link_pix()
 
 target_link_libraries(${PROJECT_NAME} 
 			PRIVATE d3d12.lib
 			PRIVATE dxgi.lib
 			PRIVATE dxguid.lib
 		)
+
+add_custom_command(
+TARGET ${PROJECT_NAME}
+POST_BUILD
+COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/deps/dx12_bin" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIGURATION>")
+
+add_custom_command(
+TARGET ${PROJECT_NAME}
+POST_BUILD
+COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/deps/pix/bin" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIGURATION>")
 
 endif()
 
@@ -253,12 +265,6 @@ TARGET ${PROJECT_NAME}
 POST_BUILD
 COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/assets" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIGURATION>/assets")
 
-if(WIN32)
-add_custom_command(
-TARGET ${PROJECT_NAME}
-POST_BUILD
-COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/deps/dx12_bin" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIGURATION>")
-endif()
 
 include(${CMAKE_SOURCE_DIR}/utils/cmake/common_functions.cmake)
 group_sources(HEADERS SOURCES SHADERS PLATFORM_HEADERS PLATFORM_SOURCES)

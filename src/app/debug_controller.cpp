@@ -393,7 +393,7 @@ namespace SFG
 				.texture_format = RT_FORMAT,
 				.size			= vector2ui16(screen_size.x, screen_size.y / 2),
 				.flags			= texture_flags::tf_sampled | texture_flags::tf_is_2d | texture_flags::tf_render_target,
-				.clear_values	= {0.0f, 0.0f, 0.0f, 0.0f},
+				.clear_values	= {0.0f, 0.0f, 0.0f, 1.0f},
 				.debug_name		= "console_rt",
 			});
 
@@ -401,7 +401,7 @@ namespace SFG
 				.texture_format = RT_FORMAT,
 				.size			= vector2ui16(screen_size.x, screen_size.y),
 				.flags			= texture_flags::tf_sampled | texture_flags::tf_is_2d | texture_flags::tf_render_target,
-				.clear_values	= {0.0f, 0.0f, 0.0f, 0.0f},
+				.clear_values	= {0.0f, 0.0f, 0.0f, 1.0f},
 				.debug_name		= "debug_rt",
 			});
 
@@ -690,7 +690,7 @@ namespace SFG
 		backend->cmd_bind_group(cmd_buffer, {.group = bg_rp});
 		backend->cmd_set_viewport(cmd_buffer, {.width = static_cast<uint16>(rt_size.x), .height = static_cast<uint16>(rt_size.y)});
 
-		BEGIN_DEBUG_EVENT(backend, cmd_buffer, L"debug_controller_draw");
+		BEGIN_DEBUG_EVENT(backend, cmd_buffer, "debug_controller_draw");
 		backend->cmd_begin_render_pass(cmd_buffer, {.color_attachments = attachment_console_rt, .color_attachment_count = 1});
 		backend->cmd_bind_vertex_buffers(cmd_buffer, {.buffer = gui_vertex, .vertex_size = sizeof(vekt::vertex)});
 		backend->cmd_bind_index_buffers(cmd_buffer, {.buffer = gui_index, .index_size = sizeof(vekt::index)});
@@ -730,8 +730,7 @@ namespace SFG
 
 		backend->cmd_barrier(cmd_buffer, {.barriers = &br_rt, .barrier_count = 1});
 
-		BEGIN_DEBUG_EVENT(backend, cmd_buffer, L"debug_controller_post");
-
+		BEGIN_DEBUG_EVENT(backend, cmd_buffer, "debug_controller_post");
 		backend->cmd_begin_render_pass(cmd_buffer, {.color_attachments = attachment_fullscreen_rt, .color_attachment_count = 1});
 		backend->cmd_set_scissors(cmd_buffer, {.width = static_cast<uint16>(rt_size.x), .height = static_cast<uint16>(rt_size.y)});
 		backend->cmd_set_viewport(cmd_buffer, {.width = static_cast<uint16>(rt_size.x), .height = static_cast<uint16>(rt_size.y)});
@@ -1224,7 +1223,7 @@ namespace SFG
 				.texture_format = RT_FORMAT,
 				.size			= vector2ui16(size.x, size.y / 2),
 				.flags			= texture_flags::tf_sampled | texture_flags::tf_is_2d | texture_flags::tf_render_target,
-				.clear_values	= {0.0f, 0.0f, 0.0f, 0.0f},
+				.clear_values	= {0.0f, 0.0f, 0.0f, 1.0f},
 				.debug_name		= "console_rt",
 			});
 
@@ -1232,7 +1231,7 @@ namespace SFG
 				.texture_format = RT_FORMAT,
 				.size			= vector2ui16(size.x, size.y),
 				.flags			= texture_flags::tf_sampled | texture_flags::tf_is_2d | texture_flags::tf_render_target,
-				.clear_values	= {0.0f, 0.0f, 0.0f, 0.0f},
+				.clear_values	= {0.0f, 0.0f, 0.0f, 1.0f},
 				.debug_name		= "debug_rt",
 			});
 
