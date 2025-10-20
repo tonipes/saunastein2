@@ -36,6 +36,21 @@ namespace SFG
 	class meta;
 	struct sampler_desc;
 
+	template <typename RES, typename LOADER, int MAX_COUNT> class resource_cache
+	{
+	public:
+		LOADER* load_from_file(const char* p, world& w)
+		{
+			LOADER loader = new LOADER();
+			if (!loader->load_from_file(p, w))
+				return nullptr;
+			return loader;
+		}
+
+
+	private:
+		static_vector<RES, MAX_COUNT> _resources;
+	};
 	class world_resources
 	{
 	public:

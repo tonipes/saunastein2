@@ -66,7 +66,7 @@ namespace SFG
 		// Param 5 - 4x Dynamic Samplers, [s0, s4, space0]
 		backend->bind_layout_add_pointer(layout,
 										 {
-											 {.type = binding_type::sampler, .set = 0, .binding = 0, .count = 4},
+											 {.type = binding_type::sampler, .set = 0, .binding = 0, .count = 4, .is_volatile = 1},
 										 },
 										 shader_stage::fragment);
 

@@ -60,7 +60,7 @@ namespace SFG
 		_base_size			= main_window->get_size();
 
 		// dummy data
-		_gfx_data.dummy_sampler = backend->create_sampler({});
+		_gfx_data.dummy_sampler = backend->create_sampler({.address_u = address_mode::repeat, .address_v = address_mode::repeat});
 		_gfx_data.dummy_texture = backend->create_texture({
 			.texture_format = format::r8_unorm,
 			.size			= vector2ui16(1, 1),

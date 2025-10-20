@@ -53,6 +53,7 @@ namespace SFG
 		});
 
 		m.add_function<void, world&>("init_resource_storage"_hs, [](world& w) -> void { w.get_resources().init_storage<audio>(MAX_WORLD_AUDIO); });
+		m.add_function<void, world&>("uninit_resource_storage"_hs, [](world& w) -> void { w.get_resources().uninit_storage<audio>(); });
 
 		m.add_function<void, world&, resource_handle>("destroy"_hs, [](world& w, resource_handle h) -> void {
 			world_resources& res = w.get_resources();

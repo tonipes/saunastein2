@@ -1976,17 +1976,18 @@ namespace SFG
 		gbinding.descriptor_index = _descriptors.add();
 		gbinding.root_param_index = root_param_index;
 		gbinding.count			  = count;
-		gbinding.binding_type	  = binding_type::pointer;
 
 		if (is_sampler)
 		{
 			descriptor_handle& dh = _descriptors.get(gbinding.descriptor_index);
 			dh					  = _heap_gpu_sampler.get_heap_handle_block(count);
+			gbinding.binding_type = binding_type::sampler;
 		}
 		else
 		{
 			descriptor_handle& dh = _descriptors.get(gbinding.descriptor_index);
 			dh					  = _heap_gpu_buffer.get_heap_handle_block(count);
+			gbinding.binding_type = binding_type::pointer;
 		}
 	}
 
@@ -2250,7 +2251,7 @@ namespace SFG
 	{
 		VERIFY_RENDER_NOT_RUNNING_OR_RENDER_THREAD();
 
-		const D3D12_SHADER_VISIBILITY	 visibility	  = get_visibility(static_cast<shader_stage>(vis));
+		const D3D12_SHADER_VISIBILITY visibility = get_visibility(static_cast<shader_stage>(vis));
 
 		_reuse_static_samplers.push_back({
 			.Filter			  = get_filter(desc.flags),

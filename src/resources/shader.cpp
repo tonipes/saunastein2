@@ -55,6 +55,7 @@ namespace SFG
 		});
 
 		m.add_function<void, world&>("init_resource_storage"_hs, [](world& w) -> void { w.get_resources().init_storage<shader>(MAX_WORLD_SHADERS); });
+		m.add_function<void, world&>("uninit_resource_storage"_hs, [](world& w) -> void { w.get_resources().uninit_storage<shader>(); });
 
 		m.add_function<void, world&, resource_handle>("destroy"_hs, [](world& w, resource_handle handle) -> void {
 			world_resources& res = w.get_resources();

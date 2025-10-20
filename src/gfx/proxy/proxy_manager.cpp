@@ -537,14 +537,15 @@ namespace SFG
 
 				if (ev.use_sampler)
 				{
-					backend->bind_group_add_pointer(proxy.bind_groups[i], root_param_index::rpi_table_dyn_sampler, 1, true);
+					backend->bind_group_add_pointer(proxy.bind_groups[i], root_param_index::rpi_table_dyn_sampler, 4, true);
 					backend->bind_group_update_pointer(proxy.bind_groups[i],
 													   1,
-													   {{
-														   .resource	  = _samplers.get(ev.sampler_index).hw,
-														   .pointer_index = static_cast<uint8>(upi_dyn_sampler0),
-														   .type		  = binding_type::sampler,
-													   }});
+													   {
+														   {.resource = _samplers.get(ev.sampler_index).hw, .pointer_index = static_cast<uint8>(upi_dyn_sampler0), .type = binding_type::sampler},
+														   {.resource = _samplers.get(ev.sampler_index).hw, .pointer_index = static_cast<uint8>(upi_dyn_sampler1), .type = binding_type::sampler},
+														   {.resource = _samplers.get(ev.sampler_index).hw, .pointer_index = static_cast<uint8>(upi_dyn_sampler2), .type = binding_type::sampler},
+														   {.resource = _samplers.get(ev.sampler_index).hw, .pointer_index = static_cast<uint8>(upi_dyn_sampler3), .type = binding_type::sampler},
+													   });
 				}
 
 				proxy.buffers[i].buffer_data(0, ev.data.data, ev.data.size);

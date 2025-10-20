@@ -69,6 +69,7 @@ namespace SFG
 		});
 
 		m.add_function<void, world&>("init_resource_storage"_hs, [](world& w) -> void { w.get_resources().init_storage<texture>(MAX_WORLD_TEXTURES); });
+		m.add_function<void, world&>("uninit_resource_storage"_hs, [](world& w) -> void { w.get_resources().init_storage<texture>(); });
 
 		m.add_function<void, void*, ostream&>("serialize"_hs, [](void* loader, ostream& stream) -> void {
 			texture_raw* raw = reinterpret_cast<texture_raw*>(loader);

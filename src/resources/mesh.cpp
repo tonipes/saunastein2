@@ -16,6 +16,7 @@ namespace SFG
 	{
 		meta& m = reflection::get().register_meta(type_id<mesh>::value, type_id<mesh>::index, "");
 		m.add_function<void, world&>("init_resource_storage"_hs, [](world& w) -> void { w.get_resources().init_storage<mesh>(MAX_WORLD_MESHES); });
+		m.add_function<void, world&>("uninit_resource_storage"_hs, [](world& w) -> void { w.get_resources().uninit_storage<mesh>(); });
 	}
 
 	void mesh::create_from_raw(const mesh_raw& raw, chunk_allocator32& alloc, render_event_stream& stream, resource_handle handle)

@@ -12,6 +12,7 @@ namespace SFG
 	{
 		meta& m = reflection::get().register_meta(type_id<skin>::value, type_id<skin>::index, "");
 		m.add_function<void, world&>("init_resource_storage"_hs, [](world& w) -> void { w.get_resources().init_storage<skin>(MAX_WORLD_SKINS); });
+		m.add_function<void, world&>("uninit_resource_storage"_hs, [](world& w) -> void { w.get_resources().uninit_storage<skin>(); });
 	}
 
 	void skin::create_from_raw(const skin_raw& raw, chunk_allocator32& alloc)

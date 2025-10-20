@@ -27,11 +27,13 @@ namespace SFG
 
 		reference operator[](size_type index)
 		{
+			SFG_ASSERT(index < _head);
 			return _data[index];
 		}
 
 		const_reference operator[](size_type index) const
 		{
+			SFG_ASSERT(index < _head);
 			return _data[index];
 		}
 
