@@ -183,6 +183,10 @@ namespace SFG
 			SFG_ASSERT(idx < _head);
 			for (size_t i = idx; i < _head - 1; i++)
 				_data[i] = _data[i + 1];
+
+			if (idx == _head - 1)
+				_data[idx] = T();
+
 			_head--;
 		}
 
@@ -192,6 +196,8 @@ namespace SFG
 
 			if (idx < _head - 1)
 				_data[idx] = _data[_head - 1];
+			else
+				_data[idx] = T();
 
 			_head--;
 		}

@@ -43,17 +43,22 @@ namespace SFG
 		else if (s.flags.is_set(sampler_flags::saf_mip_linear))
 			j["mip"] = "linear";
 
-		// --- address mode ---
-		if (s.flags.is_set(sampler_flags::saf_address_mode_border))
-			j["address_mode"] = "border";
-		else if (s.flags.is_set(sampler_flags::saf_address_mode_clamp))
-			j["address_mode"] = "clamp";
-		else if (s.flags.is_set(sampler_flags::saf_address_mode_mirrored_clamp))
-			j["address_mode"] = "mirrored_clamp";
-		else if (s.flags.is_set(sampler_flags::saf_address_mode_mirrored_repeat))
-			j["address_mode"] = "mirrored_repeat";
-		else if (s.flags.is_set(sampler_flags::saf_address_mode_repeat))
-			j["address_mode"] = "repeat";
+		auto write_addr = [&](const char* name, address_mode mode) {
+			if (mode == address_mode::repeat)
+				j[name] = "repeat";
+			else if (mode == address_mode::border)
+				j[name] = "border";
+			else if (mode == address_mode::clamp)
+				j[name] = "clamp";
+			else if (mode == address_mode::mirrored_repeat)
+				j[name] = "mirrored_repeat";
+			else if (mode == address_mode::mirrored_clamp)
+				j[name] = "mirrored_clamp";
+		};
+
+		write_addr("address_u", s.address_u);
+		write_addr("address_v", s.address_v);
+		write_addr("address_w", s.address_w);
 
 		// --- border color ---
 		if (s.flags.is_set(sampler_flags::saf_border_transparent))
@@ -76,11 +81,10 @@ namespace SFG
 		const uint8 use_compare = j.value<uint8>("use_compare", 0);
 		s.flags.set(sampler_flags::saf_compare, use_compare);
 
-		const string min		  = j.value<string>("min", "anisotropic");
-		const string mag		  = j.value<string>("mag", "anisotropic");
-		const string mip		  = j.value<string>("mip", "linear");
-		const string address_mode = j.value<string>("address_mode", "clamp");
-		const string border		  = j.value<string>("border", "transparent");
+		const string min	= j.value<string>("min", "anisotropic");
+		const string mag	= j.value<string>("mag", "anisotropic");
+		const string mip	= j.value<string>("mip", "linear");
+		const string border = j.value<string>("border", "transparent");
 
 		if (min.compare("anisotropic") == 0)
 			s.flags.set(sampler_flags::saf_min_anisotropic);
@@ -101,16 +105,24 @@ namespace SFG
 		else if (mip.compare("linear") == 0)
 			s.flags.set(sampler_flags::saf_mip_linear);
 
-		if (address_mode.compare("border") == 0)
-			s.flags.set(sampler_flags::saf_address_mode_border);
-		else if (address_mode.compare("clamp") == 0)
-			s.flags.set(sampler_flags::saf_address_mode_clamp);
-		else if (address_mode.compare("mirrored_clamp") == 0)
-			s.flags.set(sampler_flags::saf_address_mode_mirrored_clamp);
-		else if (address_mode.compare("mirrored_repeat") == 0)
-			s.flags.set(sampler_flags::saf_address_mode_mirrored_repeat);
-		else if (address_mode.compare("repeat") == 0)
-			s.flags.set(sampler_flags::saf_address_mode_repeat);
+		auto read_addr = [&](const char* name, address_mode& out_mode) {
+			const string s = j.value<string>(name, "clamp");
+
+			if (s.compare("repeat") == 0)
+				out_mode = address_mode::repeat;
+			else if (s.compare("border") == 0)
+				out_mode = address_mode::border;
+			else if (s.compare("clamp") == 0)
+				out_mode = address_mode::clamp;
+			else if (s.compare("mirrored_repeat") == 0)
+				out_mode = address_mode::mirrored_repeat;
+			else if (s.compare("mirrored_clamp") == 0)
+				out_mode = address_mode::mirrored_clamp;
+		};
+
+		read_addr("address_u", s.address_u);
+		read_addr("address_v", s.address_v);
+		read_addr("address_w", s.address_w);
 
 		if (border.compare("transparent") == 0)
 			s.flags.set(sampler_flags::saf_border_transparent);
@@ -128,18 +140,30 @@ namespace SFG
 		stream << max_lod;
 		stream << flags.value();
 		stream << debug_name;
+		stream << address_u;
+		stream << address_v;
+		stream << address_w;
 	}
 
 	void sampler_desc::deserialize(istream& stream)
 	{
-		uint16 val = 0;
+		uint16 val	  = 0;
+		uint8  addr_u = 0;
+		uint8  addr_v = 0;
+		uint8  addr_w = 0;
 		stream >> anisotropy;
 		stream >> lod_bias;
 		stream >> min_lod;
 		stream >> max_lod;
 		stream >> val;
 		stream >> debug_name;
-		flags = val;
+		stream >> addr_u;
+		stream >> addr_v;
+		stream >> addr_w;
+		flags	  = val;
+		address_u = static_cast<address_mode>(addr_u);
+		address_v = static_cast<address_mode>(addr_v);
+		address_w = static_cast<address_mode>(addr_w);
 	}
 
 }

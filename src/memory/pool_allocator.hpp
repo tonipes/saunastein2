@@ -154,7 +154,9 @@ namespace SFG
 		template <typename T> inline T& get(pool_handle<SIZE_TYPE> handle) const
 		{
 			SFG_ASSERT(is_valid(handle));
-			const size_t pos  = sizeof(T) * handle.index;
+			const size_t aligned = (sizeof(T) + alignof(T) + 1) & ~(alignof(T) - 1);
+			SFG_ASSERT(aligned == static_cast<size_t>(_item_size_aligned));
+			const size_t pos  = _item_size_aligned * handle.index;
 			T*			 item = reinterpret_cast<T*>(_raw + pos);
 			return *item;
 		}

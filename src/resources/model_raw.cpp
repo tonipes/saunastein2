@@ -5,7 +5,7 @@
 #include "data/ostream.hpp"
 
 #ifdef SFG_TOOLMODE
-
+#include "data/bitmask.hpp"
 #include "io/log.hpp"
 #include "io/file_system.hpp"
 #include "data/vector_util.hpp"
@@ -140,6 +140,12 @@ namespace SFG
 				{
 					SFG_MEMCPY(prim.indices.data() + start_indices * sizeof(primitive_index), &index_b.data[index_a.byteOffset + index_bv.byteOffset], num_indices * sizeof(uint32));
 				}
+			}
+
+			auto vtx_colors_attribute = tprim.attributes.find("COLOR");
+			if (vtx_colors_attribute != tprim.attributes.end())
+			{
+				SFG_WARN("GLTF model has vertex colors. welp they are not supported.");
 			}
 
 			auto normals_attribute = tprim.attributes.find("NORMAL");
@@ -443,6 +449,8 @@ namespace SFG
 			}
 		}
 
+		vector<int32> loaded_indices;
+
 		if (import_textures)
 		{
 			const size_t all_textures_sz = model.textures.size();
@@ -478,28 +486,96 @@ namespace SFG
 			{
 				tinygltf::Texture& ttexture = model.textures[i];
 
-				if (ttexture.source != -1)
+				if (ttexture.source < loaded_textures.size())
 				{
-					tinygltf::Image& img = model.images[ttexture.source];
-					if (!img.image.empty())
-					{
-						SFG_ASSERT(img.bits == 8 && img.component == 4);
-						loaded_textures.push_back({});
-						texture_raw& raw = loaded_textures.back();
-
-						const string	hash_path = string(relative_path) + "/" + (img.name.empty() ? ttexture.name : img.name);
-						const string_id hash	  = TO_SID(hash_path);
-						raw.sid					  = hash;
-						raw.name				  = hash_path;
-
-						uint8* data = reinterpret_cast<uint8*>(SFG_MALLOC(img.image.size()));
-						SFG_MEMCPY(data, img.image.data(), img.image.size());
-						const vector2ui16 size = vector2ui16(static_cast<uint16>(img.width), static_cast<uint16>(img.height));
-						// const uint8		  bpp  = img.bits / 8 * img.component;
-						const format fmt = check_if_linear(i) ? format::r8g8b8a8_unorm : format::r8g8b8a8_srgb;
-						raw.cook_from_data(data, size, static_cast<uint8>(fmt), false);
-					}
+					loaded_indices.push_back(ttexture.source);
+					continue;
 				}
+
+				tinygltf::Image& img = model.images[ttexture.source];
+
+				SFG_ASSERT(ttexture.source != -1);
+				SFG_ASSERT(!img.image.empty());
+				loaded_indices.push_back(loaded_textures.size());
+
+				/*
+				if (ttexture.sampler != -1)
+				{
+					const tinygltf::Sampler& smp = model.samplers[ttexture.sampler];
+
+					const int min_filter = smp.minFilter;
+					const int mag_filter = smp.magFilter;
+
+					texture_sampler_raw raw = loaded_samplers.back();
+					raw.name				= smp.name;
+
+					bitmask<uint16> flags = 0;
+					if (min_filter == TINYGLTF_TEXTURE_FILTER_NEAREST)
+						flags.set(sampler_flags::saf_min_nearest);
+					else if (min_filter == TINYGLTF_TEXTURE_FILTER_LINEAR)
+						flags.set(sampler_flags::saf_min_linear);
+					if (min_filter == TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_NEAREST)
+						flags.set(sampler_flags::saf_min_nearest | sampler_flags::saf_mip_nearest);
+					if (min_filter == TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_NEAREST)
+						flags.set(sampler_flags::saf_min_linear | sampler_flags::saf_mip_nearest);
+					if (min_filter == TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_LINEAR)
+						flags.set(sampler_flags::saf_min_nearest | sampler_flags::saf_mip_linear);
+					if (min_filter == TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_LINEAR)
+						flags.set(sampler_flags::saf_min_linear | sampler_flags::saf_mip_linear);
+
+					if (mag_filter == 0)
+						flags.set(sampler_flags::saf_mag_nearest);
+					else if (mag_filter == 1)
+						flags.set(sampler_flags::saf_mag_linear);
+
+					raw.desc.flags = flags;
+
+					const int address_u = smp.wrapS;
+					const int address_v = smp.wrapT;
+
+					if (address_u == TINYGLTF_TEXTURE_WRAP_REPEAT)
+						raw.desc.address_u = address_mode::repeat;
+					else if (address_u == TINYGLTF_TEXTURE_WRAP_CLAMP_TO_EDGE)
+						raw.desc.address_u = address_mode::clamp;
+					else if (address_u == TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT)
+						raw.desc.address_u = address_mode::mirrored_repeat;
+
+					if (address_v == TINYGLTF_TEXTURE_WRAP_REPEAT)
+						raw.desc.address_v = address_mode::repeat;
+					else if (address_v == TINYGLTF_TEXTURE_WRAP_CLAMP_TO_EDGE)
+						raw.desc.address_v = address_mode::clamp;
+					else if (address_v == TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT)
+						raw.desc.address_v = address_mode::mirrored_repeat;
+
+					bool found = false;
+					for (const texture_sampler_raw& smp : loaded_samplers)
+					{
+						if (smp.desc.flags == raw.desc.flags && smp.desc.address_u == raw.desc.address_u && smp.desc.address_v == raw.desc.address_v && smp.desc.address_w == raw.desc.address_w)
+						{
+							found = true;
+							break;
+						}
+					}
+
+					if (!found)
+						loaded_samplers.push_back(raw);
+				}*/
+
+				SFG_ASSERT(img.bits == 8 && img.component == 4);
+				loaded_textures.push_back({});
+				texture_raw& raw = loaded_textures.back();
+
+				const string	hash_path = string(relative_path) + "/" + (img.name.empty() ? ttexture.name : img.name);
+				const string_id hash	  = TO_SID(hash_path);
+				raw.sid					  = hash;
+				raw.name				  = hash_path;
+
+				uint8* data = reinterpret_cast<uint8*>(SFG_MALLOC(img.image.size()));
+				SFG_MEMCPY(data, img.image.data(), img.image.size());
+				const vector2ui16 size = vector2ui16(static_cast<uint16>(img.width), static_cast<uint16>(img.height));
+				// const uint8		  bpp  = img.bits / 8 * img.component;
+				const format fmt = check_if_linear(i) ? format::r8g8b8a8_unorm : format::r8g8b8a8_srgb;
+				raw.cook_from_data(data, size, static_cast<uint8>(fmt), false);
 			}
 		}
 
@@ -538,16 +614,23 @@ namespace SFG
 				raw.material_data << pad;
 				raw.material_data << pad;
 
-				const int base_index	 = tmat.pbrMetallicRoughness.baseColorTexture.index;
-				const int normal_index	 = tmat.normalTexture.index;
-				const int orm_index		 = tmat.pbrMetallicRoughness.metallicRoughnessTexture.index;
+				const int base_index   = tmat.pbrMetallicRoughness.baseColorTexture.index;
+				const int normal_index = tmat.normalTexture.index;
+
+				// if orm is missing but occlusion is there, use occlusion as orm.
+				const int orm_index		 = tmat.pbrMetallicRoughness.metallicRoughnessTexture.index == -1 ? (tmat.occlusionTexture.index != -1 ? tmat.occlusionTexture.index : -1) : tmat.pbrMetallicRoughness.metallicRoughnessTexture.index;
 				const int emissive_index = tmat.emissiveTexture.index;
 
+				if (tmat.pbrMetallicRoughness.metallicRoughnessTexture.index == -1 && tmat.occlusionTexture.index != -1)
+				{
+					SFG_WARN("GTLF material {0} is missing ORM texture but has seperate occlusion texture. Occlusion texture will be used for ORM slot, might lead to inaccuracies in roughness & metallic implementation.", tmat.name);
+				}
+
 				raw.textures.resize(4);
-				raw.textures[0] = base_index == -1 ? DUMMY_COLOR_TEXTURE_SID : loaded_textures[base_index].sid;
-				raw.textures[1] = normal_index == -1 ? DUMMY_NORMAL_TEXTURE_SID : loaded_textures[normal_index].sid;
-				raw.textures[2] = orm_index == -1 ? DUMMY_ORM_TEXTURE_SID : loaded_textures[orm_index].sid;
-				raw.textures[3] = emissive_index == -1 ? DUMMY_COLOR_TEXTURE_SID : loaded_textures[emissive_index].sid;
+				raw.textures[0] = base_index == -1 ? DUMMY_COLOR_TEXTURE_SID : loaded_textures[loaded_indices.at(base_index)].sid;
+				raw.textures[1] = normal_index == -1 ? DUMMY_NORMAL_TEXTURE_SID : loaded_textures[loaded_indices.at(normal_index)].sid;
+				raw.textures[2] = orm_index == -1 ? DUMMY_ORM_TEXTURE_SID : loaded_textures[loaded_indices.at(orm_index)].sid;
+				raw.textures[3] = emissive_index == -1 ? DUMMY_COLOR_TEXTURE_SID : loaded_textures[loaded_indices.at(emissive_index)].sid;
 
 				for (string_id sh : material_shaders)
 					raw.shaders.push_back(sh);
@@ -700,6 +783,12 @@ namespace SFG
 				{
 				}
 			}
+		}
+
+		const size_t all_lights_sz = model.lights.size();
+		for (size_t i = 0; i < all_lights_sz; i++)
+		{
+			tinygltf::Light& light = model.lights[i];
 		}
 		total_aabb.update_half_extents();
 		return true;

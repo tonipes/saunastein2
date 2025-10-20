@@ -71,11 +71,11 @@ namespace SFG
 		for (const renderable_object& obj : wrd.objects)
 		{
 			const render_proxy_material& proxy_material = pm.get_material(obj.material);
-			const bool					 is_discard		= proxy_material.flags.is_set(material_flags::material_flags_is_gbuffer_discard);
 
-			if (!proxy_material.flags.is_set(material_flags::material_flags_is_gbuffer) && !is_discard)
+			if (proxy_material.flags.is_set(material_flags::material_flags_is_forward))
 				continue;
 
+			const bool	   is_discard	= proxy_material.flags.is_set(material_flags::material_flags_is_gbuffer_discard);
 			bitmask<uint8> target_flags = 0;
 			target_flags.set(res_shader_flags::res_shader_flags_is_skinned, obj.is_skinned);
 			target_flags.set(res_shader_flags::res_shader_flags_is_discard, is_discard);

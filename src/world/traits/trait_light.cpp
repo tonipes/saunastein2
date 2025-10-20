@@ -22,9 +22,9 @@ namespace SFG
 
 		m.add_function<void, world&, world_handle, world_handle>("construct_add"_hs, [](world& w, world_handle entity, world_handle own_handle) {
 			trait_dir_light& t	 = w.get_entity_manager().get_trait<trait_dir_light>(own_handle);
+			t					 = trait_dir_light();
 			t._header.entity	 = entity;
 			t._header.own_handle = own_handle;
-			t					 = trait_dir_light();
 			t.on_add(w);
 		});
 
@@ -42,9 +42,9 @@ namespace SFG
 
 		m.add_function<void, world&, world_handle, world_handle>("construct_add"_hs, [](world& w, world_handle entity, world_handle own_handle) {
 			trait_point_light& t = w.get_entity_manager().get_trait<trait_point_light>(own_handle);
+			t					 = trait_point_light();
 			t._header.entity	 = entity;
 			t._header.own_handle = own_handle;
-			t					 = trait_point_light();
 			t.on_add(w);
 		});
 
@@ -62,9 +62,9 @@ namespace SFG
 
 		m.add_function<void, world&, world_handle, world_handle>("construct_add"_hs, [](world& w, world_handle entity, world_handle own_handle) {
 			trait_spot_light& t	 = w.get_entity_manager().get_trait<trait_spot_light>(own_handle);
+			t					 = trait_spot_light();
 			t._header.entity	 = entity;
 			t._header.own_handle = own_handle;
-			t					 = trait_spot_light();
 			t.on_add(w);
 		});
 

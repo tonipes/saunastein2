@@ -56,17 +56,17 @@ namespace SFG
 
 	namespace
 	{
-		D3D12_TEXTURE_ADDRESS_MODE get_address_mode(bitmask<uint16> sampler_flags)
+		D3D12_TEXTURE_ADDRESS_MODE get_address_mode(address_mode mode)
 		{
-			if (sampler_flags.is_set(saf_address_mode_repeat))
+			if (mode == address_mode::repeat)
 				return D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-			else if (sampler_flags.is_set(saf_address_mode_border))
+			else if (mode == address_mode::border)
 				return D3D12_TEXTURE_ADDRESS_MODE_BORDER;
-			else if (sampler_flags.is_set(saf_address_mode_clamp))
+			else if (mode == address_mode::clamp)
 				return D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
-			else if (sampler_flags.is_set(saf_address_mode_mirrored_clamp))
+			else if (mode == address_mode::mirrored_clamp)
 				return D3D12_TEXTURE_ADDRESS_MODE_MIRROR_ONCE;
-			else if (sampler_flags.is_set(saf_address_mode_mirrored_repeat))
+			else if (mode == address_mode::mirrored_repeat)
 				return D3D12_TEXTURE_ADDRESS_MODE_MIRROR;
 
 			return D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
@@ -1287,13 +1287,11 @@ namespace SFG
 	{
 		VERIFY_RENDER_NOT_RUNNING_OR_RENDER_THREAD();
 
-		const D3D12_TEXTURE_ADDRESS_MODE address_mode = get_address_mode(desc.flags);
-
 		D3D12_SAMPLER_DESC samplerDesc = {
 			.Filter			= get_filter(desc.flags),
-			.AddressU		= address_mode,
-			.AddressV		= address_mode,
-			.AddressW		= address_mode,
+			.AddressU		= get_address_mode(desc.address_u),
+			.AddressV		= get_address_mode(desc.address_v),
+			.AddressW		= get_address_mode(desc.address_w),
 			.MipLODBias		= static_cast<FLOAT>(desc.lod_bias),
 			.MaxAnisotropy	= desc.anisotropy,
 			.ComparisonFunc = desc.flags.is_set(sampler_flags::saf_compare) ? get_compare_op(desc.compare) : D3D12_COMPARISON_FUNC_NONE,
@@ -2252,14 +2250,13 @@ namespace SFG
 	{
 		VERIFY_RENDER_NOT_RUNNING_OR_RENDER_THREAD();
 
-		const D3D12_TEXTURE_ADDRESS_MODE address_mode = get_address_mode(desc.flags);
 		const D3D12_SHADER_VISIBILITY	 visibility	  = get_visibility(static_cast<shader_stage>(vis));
 
 		_reuse_static_samplers.push_back({
 			.Filter			  = get_filter(desc.flags),
-			.AddressU		  = address_mode,
-			.AddressV		  = address_mode,
-			.AddressW		  = address_mode,
+			.AddressU		  = get_address_mode(desc.address_u),
+			.AddressV		  = get_address_mode(desc.address_v),
+			.AddressW		  = get_address_mode(desc.address_w),
 			.MipLODBias		  = static_cast<FLOAT>(desc.lod_bias),
 			.MaxAnisotropy	  = desc.anisotropy,
 			.ComparisonFunc	  = desc.flags.is_set(sampler_flags::saf_compare) ? get_compare_op(desc.compare) : D3D12_COMPARISON_FUNC_NONE,

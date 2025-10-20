@@ -9,6 +9,8 @@
 #include "material_raw.hpp"
 #include "texture_raw.hpp"
 #include "model_node_raw.hpp"
+#include "light_raw.hpp"
+#include "texture_sampler_raw.hpp"
 
 namespace SFG
 {
@@ -25,8 +27,13 @@ namespace SFG
 		vector<animation_raw>  loaded_animations;
 		vector<texture_raw>	   loaded_textures;
 		vector<material_raw>   loaded_materials;
+		vector<light_raw>	   loaded_lights;
 		aabb				   total_aabb;
 		vector<string_id>	   material_shaders;
+
+		/*
+		vector<texture_sampler_raw> loaded_samplers;
+		*/
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);

@@ -133,7 +133,6 @@ namespace SFG
 			tr._header.entity		  = entity;
 			tr._header.own_handle	  = handle;
 			tr.on_add(_world);
-
 			reg.traits.push_back({
 				.trait_type		  = type_id<T>::value,
 				.trait_type_index = type_id<T>::index,

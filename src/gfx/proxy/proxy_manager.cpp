@@ -234,7 +234,7 @@ namespace SFG
 		{
 			render_event_ambient ev = {};
 			ev.deserialize(stream);
-			_peak_ambients = math::max(_peak_ambients, index);
+			_peak_ambients = math::max(_peak_ambients, index) + 1;
 
 			render_proxy_ambient& proxy = get_ambient();
 			proxy.status				= render_proxy_status::rps_active;
@@ -244,7 +244,7 @@ namespace SFG
 		{
 			render_event_spot_light ev = {};
 			ev.deserialize(stream);
-			_peak_spot_lights = math::max(_peak_spot_lights, index);
+			_peak_spot_lights = math::max(_peak_spot_lights, index) + 1;
 
 			render_proxy_spot_light& proxy = _spot_lights.get(index);
 			proxy.status				   = render_proxy_status::rps_active;
@@ -254,7 +254,7 @@ namespace SFG
 		{
 			render_event_point_light ev = {};
 			ev.deserialize(stream);
-			_peak_point_lights = math::max(_peak_point_lights, index);
+			_peak_point_lights = math::max(_peak_point_lights, index) + 1;
 
 			render_proxy_point_light& proxy = _point_lights.get(index);
 			proxy.status					= render_proxy_status::rps_active;
@@ -264,7 +264,7 @@ namespace SFG
 		{
 			render_event_dir_light ev = {};
 			ev.deserialize(stream);
-			_peak_dir_lights = math::max(_peak_dir_lights, index);
+			_peak_dir_lights = math::max(_peak_dir_lights, index) + 1;
 
 			render_proxy_dir_light& proxy = _dir_lights.get(index);
 			proxy.status				  = render_proxy_status::rps_active;
@@ -298,7 +298,7 @@ namespace SFG
 		{
 			render_event_mesh_instance ev = {};
 			ev.deserialize(stream);
-			_peak_mesh_instances = math::max(_peak_mesh_instances, index);
+			_peak_mesh_instances = math::max(_peak_mesh_instances, index) + 1;
 
 			render_proxy_mesh_instance& proxy = get_mesh_instance(index);
 
@@ -531,6 +531,8 @@ namespace SFG
 						.pointer_index = static_cast<uint8>(upi_material_texture0 + k),
 						.type		   = binding_type::texture_binding,
 					});
+
+				
 				}
 
 				backend->bind_group_update_pointer(proxy.bind_groups[i], 0, updates);

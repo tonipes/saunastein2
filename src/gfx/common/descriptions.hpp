@@ -105,22 +105,26 @@ namespace SFG
 
 	enum sampler_flags
 	{
-		saf_min_anisotropic				 = 1 << 0,
-		saf_min_nearest					 = 1 << 1,
-		saf_min_linear					 = 1 << 2,
-		saf_mag_anisotropic				 = 1 << 3,
-		saf_mag_nearest					 = 1 << 4,
-		saf_mag_linear					 = 1 << 5,
-		saf_mip_nearest					 = 1 << 6,
-		saf_mip_linear					 = 1 << 7,
-		saf_address_mode_repeat			 = 1 << 8,
-		saf_address_mode_border			 = 1 << 9,
-		saf_address_mode_clamp			 = 1 << 10,
-		saf_address_mode_mirrored_repeat = 1 << 11,
-		saf_address_mode_mirrored_clamp	 = 1 << 12,
-		saf_border_transparent			 = 1 << 13,
-		saf_border_white				 = 1 << 14,
-		saf_compare						 = 1 << 15,
+		saf_min_anisotropic	   = 1 << 0,
+		saf_min_nearest		   = 1 << 1,
+		saf_min_linear		   = 1 << 2,
+		saf_mag_anisotropic	   = 1 << 3,
+		saf_mag_nearest		   = 1 << 4,
+		saf_mag_linear		   = 1 << 5,
+		saf_mip_nearest		   = 1 << 6,
+		saf_mip_linear		   = 1 << 7,
+		saf_border_transparent = 1 << 8,
+		saf_border_white	   = 1 << 9,
+		saf_compare			   = 1 << 10,
+	};
+
+	enum class address_mode : uint8
+	{
+		repeat,
+		border,
+		clamp,
+		mirrored_repeat,
+		mirrored_clamp,
 	};
 
 	struct swapchain_desc
@@ -183,6 +187,9 @@ namespace SFG
 		float			max_lod	   = 1.0f;
 		float			lod_bias   = 0.0f;
 		bitmask<uint16> flags	   = 0;
+		address_mode	address_u  = address_mode::clamp;
+		address_mode	address_v  = address_mode::clamp;
+		address_mode	address_w  = address_mode::clamp;
 		compare_op		compare	   = {};
 
 		void serialize(ostream& stream) const;

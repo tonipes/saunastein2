@@ -24,9 +24,9 @@ namespace SFG
 
 		m.add_function<void, world&, world_handle, world_handle>("construct_add"_hs, [](world& w, world_handle entity, world_handle own_handle) {
 			trait_mesh_instance& t = w.get_entity_manager().get_trait<trait_mesh_instance>(own_handle);
+			t					   = trait_mesh_instance();
 			t._header.entity	   = entity;
 			t._header.own_handle   = own_handle;
-			t					   = trait_mesh_instance();
 			t.on_add(w);
 		});
 
@@ -39,6 +39,7 @@ namespace SFG
 
 	void trait_mesh_instance::on_add(world& w)
 	{
+
 		w.get_entity_manager().on_add_render_proxy(_header.entity);
 	}
 

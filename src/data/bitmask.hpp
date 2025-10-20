@@ -12,7 +12,7 @@ namespace SFG
 		bitmask()  = default;
 		~bitmask() = default;
 
-		bitmask(T m) : _mask(m){};
+		bitmask(T m) : _mask(m) {};
 
 		inline bool is_set(T m) const
 		{
@@ -45,6 +45,11 @@ namespace SFG
 		inline T value() const
 		{
 			return _mask;
+		}
+
+		inline bool operator==(const bitmask<T>& other)
+		{
+			return _mask == other._mask;
 		}
 
 	private:
