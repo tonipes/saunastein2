@@ -14,32 +14,18 @@ struct VSOutput
 // Vertex Shader
 //------------------------------------------------------------------------------
 
-// half quad
-static const float2 NDC_POS[6] =
-{
-	float2(-1.0f, 1.0f),
-    float2(1.0f, 1.0f),
-	 float2(-1.0f, -1.0f),
-	 float2(1.0f, 1.0f),
-    float2(1.0f, -1.0f),
-    float2(-1.0f, -1.0f)
-};
-
-static const float2 NDC_UV[6] =
-{
-	float2(0.0f, 0.0f),
-    float2(1.0f, 0.0f),
-	 float2(0.0f, 1.0f),
-	 float2(1.0f, 0.0f),
-    float2(1.0f, 1.0f),
-    float2(0.0f, 1.0f)
-};
-
 VSOutput VSMain(uint vertexID : SV_VertexID)
 {
 	VSOutput OUT;
-	OUT.pos = float4(NDC_POS[vertexID], 0.0f, 1.0f);
-	OUT.uv = NDC_UV[vertexID];
+	
+	float2 pos = float2(
+        (vertexID == 2) ? 3.0 : -1.0,
+        (vertexID == 1) ? -3.0 : 1.0
+    );
+	
+	OUT.pos = float4(pos, 0.0f, 1.0f);
+	OUT.uv = 0.5f * (pos + 1.0f);
+	OUT.uv.y = 1.0f - OUT.uv.y;
 	return OUT;
 }
 
@@ -49,7 +35,7 @@ cbuffer MaterialCBV : material_ubo0
 }
 
 Texture2D _txt_render_target : material_texture0;
-SamplerState _smp_base : static_sampler_anisotropic;
+SamplerState _smp_base : static_sampler_linear;
 
 //------------------------------------------------------------------------------
 // Pixel Shader: just output the interpolated vertex color
@@ -68,7 +54,7 @@ float4 PSMain(VSOutput IN) : SV_TARGET
 
     // --- Chromatic aberration (edge only) ---
 	float edgeFactor = saturate((r2 - 0.85));
-    // 0.0 near center, 1.0 near corners — tweak the 0.2/0.8
+    // 0.0 near center, 1.0 near corners ï¿½ tweak the 0.2/0.8
 
 	float2 aberration_offset = centeredUV * baseAberration * edgeFactor;
 	const float2 uvR = (centeredUV + aberration_offset) * 0.5f + 0.5f;

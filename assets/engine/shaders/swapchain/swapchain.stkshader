@@ -4,8 +4,8 @@
     {
         "vertex_entry": "VSMain",
         "pixel_entry": "PSMain",
-        "cull": "none",
-        "front": "cw",
+        "cull": "back",
+        "front": "ccw",
         "color_attachments": [
             {
                 "format":"r8g8b8a8_srgb",

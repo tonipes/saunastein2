@@ -2,6 +2,7 @@
 #include "descriptions.hpp"
 #include "data/ostream.hpp"
 #include "data/istream.hpp"
+#include "math/math.hpp"
 
 #ifdef SFG_TOOLMODE
 #include "io/assert.hpp"
@@ -131,6 +132,12 @@ namespace SFG
 	}
 
 #endif
+
+	bool sampler_desc::operator==(const sampler_desc& other) const
+	{
+		return other.anisotropy == anisotropy && other.flags == flags && other.address_u == address_u && other.address_v == address_v && other.address_w == address_w && other.compare == compare && math::almost_equal(min_lod, other.min_lod) &&
+			   math::almost_equal(max_lod, other.max_lod) && math::almost_equal(lod_bias, other.lod_bias);
+	}
 
 	void sampler_desc::serialize(ostream& stream) const
 	{

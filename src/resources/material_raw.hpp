@@ -7,6 +7,7 @@
 #include "common/string_id.hpp"
 #include "resources/common_resources.hpp"
 #include "gfx/common/gfx_constants.hpp"
+#include "gfx/common/descriptions.hpp"
 
 #ifdef SFG_TOOLMODE
 #include "data/string.hpp"
@@ -44,8 +45,10 @@ namespace SFG
 		vector<string>	   shaders_path;
 		vector<string>	   textures_path;
 		material_pass_mode pass_mode;
-		string			   name = "";
-		string_id		   sid	= 0;
+		string			   name					  = "";
+		string_id		   sid					  = 0;
+		sampler_desc	   sampler_definition	  = {};
+		uint8			   use_sampler_definition = 0;
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);

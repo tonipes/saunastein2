@@ -31,10 +31,6 @@ namespace SFG
 		aabb				   total_aabb;
 		vector<string_id>	   material_shaders;
 
-		/*
-		vector<texture_sampler_raw> loaded_samplers;
-		*/
-
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);
 

@@ -26,7 +26,7 @@ namespace SFG
 	class material
 	{
 	public:
-		void create_from_raw(const material_raw& raw, world_resources& resources, chunk_allocator32& alloc, render_event_stream& stream, resource_handle handle);
+		void create_from_raw(const material_raw& raw, world_resources& resources, chunk_allocator32& alloc, render_event_stream& stream, resource_handle handle, resource_handle sampler_handle);
 		void destroy(render_event_stream& stream, chunk_allocator32& alloc, resource_handle handle);
 		void update_data(render_event_stream& stream, resource_handle handle);
 

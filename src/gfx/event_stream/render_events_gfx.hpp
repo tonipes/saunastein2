@@ -59,7 +59,9 @@ namespace SFG
 		string name = "";
 #endif
 		uint8														 flags;
-		span<uint8>													 data = {};
+		uint8														 use_sampler   = 0;
+		resource_id													 sampler_index = 0;
+		span<uint8>													 data		   = {};
 		static_vector<resource_handle, MAX_MATERIAL_TEXTURES>		 textures;
 		static_vector<resource_handle, MAX_MATERIAL_SHADER_VARIANTS> shaders;
 

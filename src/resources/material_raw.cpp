@@ -33,6 +33,8 @@ namespace SFG
 		stream << pass_mode;
 		stream << name;
 		stream << sid;
+		stream << use_sampler_definition;
+		sampler_definition.serialize(stream);
 	}
 
 	void material_raw::deserialize(istream& stream)
@@ -51,6 +53,8 @@ namespace SFG
 		stream >> pass_mode;
 		stream >> name;
 		stream >> sid;
+		stream >> use_sampler_definition;
+		sampler_definition.deserialize(stream);
 
 		SFG_INFO("Created material from buffer: {0}", name);
 	}

@@ -166,9 +166,9 @@ namespace SFG
 			.min_lod	= 0.0f,
 			.max_lod	= 10.0f,
 			.lod_bias	= 0.0f,
-			.flags	   = sampler_flags::saf_min_anisotropic | sampler_flags::saf_mag_anisotropic | sampler_flags::saf_mip_linear | sampler_flags::saf_border_transparent,
-			.address_u = address_mode::clamp,
-			.address_v = address_mode::clamp,
+			.flags		= sampler_flags::saf_min_anisotropic | sampler_flags::saf_mag_anisotropic | sampler_flags::saf_mip_linear | sampler_flags::saf_border_transparent,
+			.address_u	= address_mode::clamp,
+			.address_v	= address_mode::clamp,
 		};
 	}
 	sampler_desc gfx_util::get_sampler_desc_linear()

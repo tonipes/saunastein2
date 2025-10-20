@@ -46,8 +46,6 @@ namespace SFG
 
 			if (_raw != nullptr)
 			{
-				T* ptr = reinterpret_cast<T*>(_raw);
-
 				SIZE_TYPE* generations	= get_generations();
 				SIZE_TYPE* free_indices = get_free_indices();
 				uint8*	   actives		= get_actives();
@@ -57,7 +55,8 @@ namespace SFG
 					free_indices[i] = 0;
 					generations[i]	= 1;
 					actives[i]		= 0;
-					ptr[i]			= T();
+					T* ptr			= reinterpret_cast<T*>(_raw + i * _item_size_aligned);
+					new (ptr) T();
 				}
 			}
 		}

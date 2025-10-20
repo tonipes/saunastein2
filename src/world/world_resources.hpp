@@ -34,6 +34,7 @@ namespace SFG
 	class mesh;
 	class render_event_stream;
 	class meta;
+	struct sampler_desc;
 
 	class world_resources
 	{
@@ -66,7 +67,8 @@ namespace SFG
 		bool load_from_cache(meta* reflection_meta, void*& loader, const char* relative_path);
 #endif
 
-		void load_resources(istream& in);
+		void			load_resources(istream& in);
+		resource_handle get_or_add_sampler(const sampler_desc& desc);
 
 		template <typename T> void remove_resource(resource_handle handle)
 		{
@@ -194,6 +196,8 @@ namespace SFG
 
 	private:
 		world& _world;
+
+		string_id _dynamic_sampler_counter = 0;
 
 		mutable static_vector<resource_storage, resource_type_max> _storages;
 		chunk_allocator32										   _aux_memory;

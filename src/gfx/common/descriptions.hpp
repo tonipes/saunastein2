@@ -192,6 +192,8 @@ namespace SFG
 		address_mode	address_w  = address_mode::clamp;
 		compare_op		compare	   = {};
 
+		bool operator==(const sampler_desc& other) const;
+
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);
 	};

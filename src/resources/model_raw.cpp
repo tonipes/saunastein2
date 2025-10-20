@@ -449,7 +449,9 @@ namespace SFG
 			}
 		}
 
-		vector<int32> loaded_indices;
+		vector<int32>		 loaded_indices;
+		vector<int32>		 loaded_sampler_indices;
+		vector<sampler_desc> samplers;
 
 		if (import_textures)
 		{
@@ -482,6 +484,63 @@ namespace SFG
 				return 0;
 			};
 
+			auto load_smp = [&](int32 smp_index) {
+				const tinygltf::Sampler& smp = model.samplers[smp_index];
+
+				if (smp_index < samplers.size())
+				{
+					loaded_sampler_indices.push_back(smp_index);
+					return;
+				}
+
+				loaded_sampler_indices.push_back(samplers.size());
+
+				const int min_filter = smp.minFilter;
+				const int mag_filter = smp.magFilter;
+
+				samplers.push_back({});
+				sampler_desc& raw = samplers.back();
+
+				bitmask<uint16> flags = 0;
+				if (min_filter == TINYGLTF_TEXTURE_FILTER_NEAREST)
+					flags.set(sampler_flags::saf_min_nearest);
+				else if (min_filter == TINYGLTF_TEXTURE_FILTER_LINEAR)
+					flags.set(sampler_flags::saf_min_linear);
+				if (min_filter == TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_NEAREST)
+					flags.set(sampler_flags::saf_min_nearest | sampler_flags::saf_mip_nearest);
+				if (min_filter == TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_NEAREST)
+					flags.set(sampler_flags::saf_min_linear | sampler_flags::saf_mip_nearest);
+				if (min_filter == TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_LINEAR)
+					flags.set(sampler_flags::saf_min_nearest | sampler_flags::saf_mip_linear);
+				if (min_filter == TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_LINEAR)
+					flags.set(sampler_flags::saf_min_linear | sampler_flags::saf_mip_linear);
+
+				if (mag_filter == 0)
+					flags.set(sampler_flags::saf_mag_nearest);
+				else if (mag_filter == 1)
+					flags.set(sampler_flags::saf_mag_linear);
+
+				raw.flags = flags;
+
+				const int address_u = smp.wrapS;
+				const int address_v = smp.wrapT;
+
+				if (address_u == TINYGLTF_TEXTURE_WRAP_REPEAT)
+					raw.address_u = address_mode::repeat;
+				else if (address_u == TINYGLTF_TEXTURE_WRAP_CLAMP_TO_EDGE)
+					raw.address_u = address_mode::clamp;
+				else if (address_u == TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT)
+					raw.address_u = address_mode::mirrored_repeat;
+
+				if (address_v == TINYGLTF_TEXTURE_WRAP_REPEAT)
+					raw.address_v = address_mode::repeat;
+				else if (address_v == TINYGLTF_TEXTURE_WRAP_CLAMP_TO_EDGE)
+					raw.address_v = address_mode::clamp;
+				else if (address_v == TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT)
+					raw.address_v = address_mode::mirrored_repeat;
+
+			};
+
 			for (size_t i = 0; i < all_textures_sz; i++)
 			{
 				tinygltf::Texture& ttexture = model.textures[i];
@@ -492,74 +551,14 @@ namespace SFG
 					continue;
 				}
 
+				if (ttexture.sampler != -1)
+					load_smp(ttexture.sampler);
+
 				tinygltf::Image& img = model.images[ttexture.source];
 
 				SFG_ASSERT(ttexture.source != -1);
 				SFG_ASSERT(!img.image.empty());
 				loaded_indices.push_back(loaded_textures.size());
-
-				/*
-				if (ttexture.sampler != -1)
-				{
-					const tinygltf::Sampler& smp = model.samplers[ttexture.sampler];
-
-					const int min_filter = smp.minFilter;
-					const int mag_filter = smp.magFilter;
-
-					texture_sampler_raw raw = loaded_samplers.back();
-					raw.name				= smp.name;
-
-					bitmask<uint16> flags = 0;
-					if (min_filter == TINYGLTF_TEXTURE_FILTER_NEAREST)
-						flags.set(sampler_flags::saf_min_nearest);
-					else if (min_filter == TINYGLTF_TEXTURE_FILTER_LINEAR)
-						flags.set(sampler_flags::saf_min_linear);
-					if (min_filter == TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_NEAREST)
-						flags.set(sampler_flags::saf_min_nearest | sampler_flags::saf_mip_nearest);
-					if (min_filter == TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_NEAREST)
-						flags.set(sampler_flags::saf_min_linear | sampler_flags::saf_mip_nearest);
-					if (min_filter == TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_LINEAR)
-						flags.set(sampler_flags::saf_min_nearest | sampler_flags::saf_mip_linear);
-					if (min_filter == TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_LINEAR)
-						flags.set(sampler_flags::saf_min_linear | sampler_flags::saf_mip_linear);
-
-					if (mag_filter == 0)
-						flags.set(sampler_flags::saf_mag_nearest);
-					else if (mag_filter == 1)
-						flags.set(sampler_flags::saf_mag_linear);
-
-					raw.desc.flags = flags;
-
-					const int address_u = smp.wrapS;
-					const int address_v = smp.wrapT;
-
-					if (address_u == TINYGLTF_TEXTURE_WRAP_REPEAT)
-						raw.desc.address_u = address_mode::repeat;
-					else if (address_u == TINYGLTF_TEXTURE_WRAP_CLAMP_TO_EDGE)
-						raw.desc.address_u = address_mode::clamp;
-					else if (address_u == TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT)
-						raw.desc.address_u = address_mode::mirrored_repeat;
-
-					if (address_v == TINYGLTF_TEXTURE_WRAP_REPEAT)
-						raw.desc.address_v = address_mode::repeat;
-					else if (address_v == TINYGLTF_TEXTURE_WRAP_CLAMP_TO_EDGE)
-						raw.desc.address_v = address_mode::clamp;
-					else if (address_v == TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT)
-						raw.desc.address_v = address_mode::mirrored_repeat;
-
-					bool found = false;
-					for (const texture_sampler_raw& smp : loaded_samplers)
-					{
-						if (smp.desc.flags == raw.desc.flags && smp.desc.address_u == raw.desc.address_u && smp.desc.address_v == raw.desc.address_v && smp.desc.address_w == raw.desc.address_w)
-						{
-							found = true;
-							break;
-						}
-					}
-
-					if (!found)
-						loaded_samplers.push_back(raw);
-				}*/
 
 				SFG_ASSERT(img.bits == 8 && img.component == 4);
 				loaded_textures.push_back({});
@@ -581,7 +580,23 @@ namespace SFG
 
 		if (create_materials)
 		{
+			// gotta have something.
+			if (samplers.empty())
+			{
+				samplers.push_back({
+					.anisotropy = 0,
+					.min_lod	= 0.0f,
+					.max_lod	= 1.0f,
+					.lod_bias	= 0.0f,
+					.flags		= sampler_flags::saf_min_anisotropic | sampler_flags::saf_mag_anisotropic | sampler_flags::saf_mip_linear,
+					.address_u	= address_mode::clamp,
+					.address_v	= address_mode::clamp,
+					.address_w	= address_mode::clamp,
+				});
+			}
 			SFG_ASSERT(!material_shaders.empty());
+
+			auto find_sampler = [&](int32 texture_index) -> int32 { return loaded_sampler_indices.at(model.textures.at(texture_index).sampler); };
 
 			const size_t all_materials_sz = model.materials.size();
 			for (size_t i = 0; i < all_materials_sz; i++)
@@ -625,6 +640,20 @@ namespace SFG
 				{
 					SFG_WARN("GTLF material {0} is missing ORM texture but has seperate occlusion texture. Occlusion texture will be used for ORM slot, might lead to inaccuracies in roughness & metallic implementation.", tmat.name);
 				}
+
+				int32 sampler_index = 0;
+
+				if (base_index != -1)
+					sampler_index = find_sampler(base_index);
+				else if (normal_index != -1)
+					sampler_index = find_sampler(normal_index);
+				else if (orm_index != -1)
+					sampler_index = find_sampler(orm_index);
+				else if (emissive_index != -1)
+					sampler_index = find_sampler(emissive_index);
+
+				raw.use_sampler_definition = 1;
+				raw.sampler_definition	   = samplers.at(sampler_index);
 
 				raw.textures.resize(4);
 				raw.textures[0] = base_index == -1 ? DUMMY_COLOR_TEXTURE_SID : loaded_textures[loaded_indices.at(base_index)].sid;

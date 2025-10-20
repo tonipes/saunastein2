@@ -734,7 +734,7 @@ namespace SFG
 		// fullscreen draw
 		backend->cmd_bind_group(cmd_buffer, {.group = bg_fullscreen});
 		backend->cmd_bind_pipeline(cmd_buffer, {.pipeline = shader_fullscreen});
-		backend->cmd_draw_instanced(cmd_buffer, {.vertex_count_per_instance = 6, .instance_count = 1, .start_vertex_location = 0, .start_instance_location = 0});
+		backend->cmd_draw_instanced(cmd_buffer, {.vertex_count_per_instance = 3, .instance_count = 1, .start_vertex_location = 0, .start_instance_location = 0});
 
 		backend->cmd_end_render_pass(cmd_buffer, {});
 		END_DEBUG_EVENT(backend, cmd_buffer);

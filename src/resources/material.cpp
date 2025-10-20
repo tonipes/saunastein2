@@ -47,7 +47,12 @@ namespace SFG
 			world_resources& resources = w.get_resources();
 			resource_handle	 handle	   = resources.add_resource<material>(TO_SID(raw_ptr->name));
 			material&		 res	   = resources.get_resource<material>(handle);
-			res.create_from_raw(*raw_ptr, resources, resources.get_aux(), w.get_render_stream(), handle);
+
+			resource_handle sampler_handle = {};
+			if (raw_ptr->use_sampler_definition)
+				sampler_handle = resources.get_or_add_sampler(raw_ptr->sampler_definition);
+
+			res.create_from_raw(*raw_ptr, resources, resources.get_aux(), w.get_render_stream(), handle, sampler_handle);
 			delete raw_ptr;
 			return handle;
 		});
@@ -66,7 +71,7 @@ namespace SFG
 		});
 	}
 
-	void material::create_from_raw(const material_raw& raw, world_resources& resources, chunk_allocator32& alloc, render_event_stream& stream, resource_handle handle)
+	void material::create_from_raw(const material_raw& raw, world_resources& resources, chunk_allocator32& alloc, render_event_stream& stream, resource_handle handle, resource_handle sampler_handle)
 	{
 #ifndef SFG_STRIP_DEBUG_NAMES
 		if (!raw.name.empty())
@@ -84,8 +89,10 @@ namespace SFG
 		render_event_material stg = {};
 		stg.data.data			  = reinterpret_cast<uint8*>(SFG_MALLOC(_material_data.get_size()));
 		SFG_MEMCPY(stg.data.data, _material_data.get_raw(), _material_data.get_size());
-		stg.data.size = _material_data.get_size();
-		stg.flags	  = _flags.value();
+		stg.data.size	  = _material_data.get_size();
+		stg.flags		  = _flags.value();
+		stg.use_sampler	  = !sampler_handle.is_null();
+		stg.sampler_index = sampler_handle.index;
 
 		for (string_id sid : raw.textures)
 		{

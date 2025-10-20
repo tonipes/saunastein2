@@ -67,6 +67,7 @@ namespace SFG
 
 	void texture_sampler::create_from_raw(const texture_sampler_raw& raw, render_event_stream& stream, chunk_allocator32& alloc, resource_handle handle)
 	{
+		_desc = raw.desc;
 #ifndef SFG_STRIP_DEBUG_NAMES
 		if (!raw.name.empty())
 			_name = alloc.allocate_text(raw.name);

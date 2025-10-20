@@ -188,7 +188,12 @@ namespace SFG
 
 				ev.materials.push_back(handle.index);
 				material& created = resources.get_resource<material>(handle);
-				created.create_from_raw(loaded, resources, resources.get_aux(), stream, handle);
+
+				resource_handle sampler_handle = {};
+				if (loaded.use_sampler_definition)
+					sampler_handle = resources.get_or_add_sampler(loaded.sampler_definition);
+
+				created.create_from_raw(loaded, resources, resources.get_aux(), stream, handle, sampler_handle);
 			}
 		}
 

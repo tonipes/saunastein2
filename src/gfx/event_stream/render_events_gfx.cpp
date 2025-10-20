@@ -71,6 +71,8 @@ namespace SFG
 		stream << txt_sz;
 		stream << shaders_sz;
 		stream << flags;
+		stream << use_sampler;
+		stream << sampler_index;
 
 		for (resource_handle h : textures)
 		{
@@ -100,6 +102,8 @@ namespace SFG
 		stream >> txt_sz;
 		stream >> shaders_sz;
 		stream >> flags;
+		stream >> use_sampler;
+		stream >> sampler_index;
 		textures.resize(txt_sz);
 		shaders.resize(shaders_sz);
 

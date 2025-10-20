@@ -47,7 +47,7 @@ namespace SFG
 			return _mask;
 		}
 
-		inline bool operator==(const bitmask<T>& other)
+		inline bool operator==(const bitmask<T>& other) const
 		{
 			return _mask == other._mask;
 		}

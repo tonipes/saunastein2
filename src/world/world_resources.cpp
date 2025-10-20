@@ -15,6 +15,8 @@
 #include "reflection/reflection.hpp"
 #include "data/pair.hpp"
 #include "resources/texture_raw.hpp"
+#include "resources/texture_sampler.hpp"
+#include "resources/texture_sampler_raw.hpp"
 #include "resources/texture.hpp"
 #include "resources/shader.hpp"
 #include "resources/model.hpp"
@@ -116,6 +118,7 @@ namespace SFG
 
 		_aux_memory.reset();
 		_file_watch.clear();
+		_dynamic_sampler_counter = 0;
 	}
 
 	void world_resources::tick()
@@ -451,6 +454,30 @@ namespace SFG
 			if (reflection_meta.has_function("create_from_raw_2"_hs))
 				reflection_meta.invoke_function<void, void*, world&>("create_from_raw_2"_hs, loader, _world);
 		}
+	}
+
+	resource_handle world_resources::get_or_add_sampler(const sampler_desc& desc)
+	{
+		auto			  idx = type_id<texture_sampler>::index;
+		pool_allocator16& stg = _storages[idx].storage;
+
+		for (pool_handle16 handle : stg)
+		{
+			texture_sampler&	smp = get_resource<texture_sampler>(handle);
+			const sampler_desc& dd	= smp.get_desc();
+			if (dd == desc)
+				return handle;
+		}
+
+		const resource_handle added = add_resource<texture_sampler>(_dynamic_sampler_counter);
+		_dynamic_sampler_counter++;
+
+		texture_sampler&	added_smp = get_resource<texture_sampler>(added);
+		texture_sampler_raw raw		  = {};
+		raw.desc					  = desc;
+
+		added_smp.create_from_raw(raw, _world.get_render_stream(), _aux_memory, added);
+		return added;
 	}
 
 }

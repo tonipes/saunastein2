@@ -5,7 +5,7 @@
         "vertex_entry": "VSMain",
         "pixel_entry": "PSMain",
         "cull": "back",
-        "front": "cw",
+        "front": "ccw",
         "color_attachments": [
             {
                 "format":"r8g8b8a8_srgb",
