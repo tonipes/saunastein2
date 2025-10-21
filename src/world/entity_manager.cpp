@@ -130,9 +130,7 @@ namespace SFG
 
 		trait_manager& tm = _world.get_trait_manager();
 		for (const entity_trait& t : copied_traits)
-		{
 			tm.remove_trait(t.trait_type, handle, t.trait_handle);
-		}
 
 		_aabbs.reset(id);
 		_metas.reset(id);
