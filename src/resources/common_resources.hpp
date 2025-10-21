@@ -6,9 +6,9 @@
 #include "memory/pool_handle.hpp"
 #include "common/string_id.hpp"
 #include <limits>
+
 namespace SFG
 {
-
 #define MAX_WORLD_MODEL_INSTANCES	 5000
 #define MAX_WORLD_TEXTURES			 32
 #define MAX_WORLD_MODELS			 32
@@ -26,22 +26,6 @@ namespace SFG
 #define DUMMY_NORMAL_TEXTURE_SID UINT64_MAX - 999
 #define DUMMY_ORM_TEXTURE_SID	 UINT64_MAX - 998
 
-	enum resource_type : uint8
-	{
-		resource_type_texture = 0,
-		resource_type_texture_sampler,
-		resource_type_model,
-		resource_type_animation,
-		resource_type_skin,
-		resource_type_material,
-		resource_type_shader,
-		resource_type_audio,
-		resource_type_font,
-		resource_type_mesh,
-		resource_type_physical_material,
-		resource_type_max,
-	};
-
 	typedef pool_handle16 resource_handle;
 	typedef uint16		  resource_id;
 
@@ -49,9 +33,9 @@ namespace SFG
 
 	enum material_flags
 	{
-		material_flags_is_gbuffer			  = 1 << 0,
+		material_flags_is_gbuffer		  = 1 << 0,
 		material_flags_is_gbuffer_discard = 1 << 1,
-		material_flags_is_forward			  = 1 << 2,
+		material_flags_is_forward		  = 1 << 2,
 	};
 
 	enum res_shader_flags

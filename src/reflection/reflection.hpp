@@ -166,7 +166,7 @@ namespace SFG
 			return _metas;
 		}
 
-		meta* find_by_tag(const char* tag);
+		const meta* find_by_tag(const char* tag) const;
 
 	private:
 		alloc_map _metas;

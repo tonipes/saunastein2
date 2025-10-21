@@ -21,5 +21,10 @@ namespace SFG
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);
+		bool load_from_file(const char* file)
+		{
+			return false;
+		};
+		void get_dependencies(vector<string>& out_deps) const {};
 	};
 }

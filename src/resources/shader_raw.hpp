@@ -25,10 +25,12 @@ namespace SFG
 
 		void destroy();
 		void serialize(ostream& stream) const;
-		void deserialize(istream& stream, bool use_embedded_layout, gfx_id layout);
+		void deserialize(istream& stream);
 
 #ifdef SFG_TOOLMODE
-		bool cook_from_file(const char* file, bool use_embedded_layout, gfx_id layout, const char* base_directory_for_source = nullptr);
+		bool load_from_file(const char* file);
+		bool load_from_file(const char* file, bool use_embedded_layout, gfx_id layout, const char* base_directory_for_source = nullptr);
+		void get_dependencies(vector<string>& out_deps) const;
 #endif
 	};
 }

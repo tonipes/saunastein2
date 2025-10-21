@@ -9,16 +9,8 @@
 
 namespace SFG
 {
-	class world_resources;
-	class chunk_allocator32;
 	struct model_raw;
-
-	struct model_reflection
-	{
-		model_reflection();
-	};
-
-	class render_event_stream;
+	class world;
 
 	class model
 	{
@@ -31,8 +23,8 @@ namespace SFG
 
 		~model();
 
-		void create_from_raw(const model_raw& raw, render_event_stream& stream, world_resources& resources, chunk_allocator32& alloc, resource_handle handle);
-		void destroy(world_resources& resources, render_event_stream& stream, chunk_allocator32& alloc, resource_handle handle);
+		void create_from_loader(const model_raw& raw, world& w, resource_handle handle);
+		void destroy(world& w, resource_handle handle);
 
 		inline bitmask<uint8>& get_flags()
 		{
@@ -117,6 +109,6 @@ namespace SFG
 		bitmask<uint8> _flags;
 	};
 
-	REGISTER_RESOURCE(model, resource_type::resource_type_model, model_reflection);
+	REGISTER_RESOURCE(model, "stkmodel");
 
 }

@@ -5,10 +5,9 @@
 #include "common_world.hpp"
 #include "data/vector.hpp"
 #include "memory/text_allocator.hpp"
-#include "world/world_resources.hpp"
 #include "entity_manager.hpp"
 #include "gui/vekt.hpp"
-#include <resources/world_raw.hpp>
+#include "resources/resource_manager.hpp"
 
 namespace SFG
 {
@@ -33,7 +32,7 @@ namespace SFG
 
 		void init();
 		void uninit();
-		void create_from_raw(world_raw& raw);
+		void create_from_loader(world_raw& raw);
 
 		void tick(const vector2ui16& res, float dt);
 		void post_tick(double interpolation);
@@ -57,11 +56,6 @@ namespace SFG
 			return _flags;
 		}
 
-		inline world_resources& get_resources()
-		{
-			return _resources;
-		}
-
 		inline text_allocator& get_text_allocator()
 		{
 			return _text_allocator;
@@ -77,12 +71,17 @@ namespace SFG
 			return _render_stream;
 		}
 
+		inline resource_manager& get_resource_manager()
+		{
+			return _resource_manager;
+		}
+
 	private:
 		render_event_stream& _render_stream;
-		world_resources		 _resources;
 		text_allocator		 _text_allocator;
 		bitmask<uint8>		 _flags = 0;
 		entity_manager		 _entity_manager;
+		resource_manager	 _resource_manager;
 		vekt::font_manager	 _vekt_fonts = {};
 	};
 }

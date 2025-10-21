@@ -12,18 +12,27 @@ namespace SFG
 {
 	template <typename T, typename SIZE_TYPE, int N> struct pool_allocator_gen
 	{
+
+		~pool_allocator_gen()
+		{
+			reset();
+		}
+
 		pool_allocator_gen()
 		{
-			SFG_MEMSET(_generations, 1, sizeof(SIZE_TYPE) * N);
-			SFG_MEMSET(_free_list, 0, sizeof(SIZE_TYPE) * N);
-			SFG_MEMSET(_actives, 0, sizeof(uint8) * N);
+			for (uint32 i = 0; i < N; i++)
+			{
+				_generations[i] = 1;
+				_free_list[i]	= 0;
+				_actives[i]		= 0;
+			}
 		}
 
 		inline pool_handle<SIZE_TYPE> add()
 		{
 			if (_free_count > 0)
 			{
-				const SIZE_TYPE index = _free_list[_free_count];
+				const SIZE_TYPE index = _free_list[_free_count - 1];
 				new (&_items[index]) T();
 				_free_count--;
 				_actives[index] = 1;
@@ -34,7 +43,8 @@ namespace SFG
 			}
 
 			const SIZE_TYPE index = _head;
-			_actives[index]		  = 1;
+			new (&_items[index]) T();
+			_actives[index] = 1;
 			_head++;
 			SFG_ASSERT(_head < N);
 			return {
@@ -74,14 +84,144 @@ namespace SFG
 		{
 			for (int i = 0; i < N; i++)
 			{
-				if (_actives[i])
-					_items[i].~T();
+				_items[i].~T();
+				_free_list[i] = 0;
+				_actives[i]	  = 0;
+				_generations[i]++;
 			}
 
-			SFG_MEMSET(_free_list, 0, sizeof(SIZE_TYPE) * N);
-			SFG_MEMSET(_actives, 0, sizeof(uint8) * N);
 			_head		= 0;
 			_free_count = 0;
+		}
+
+		template <typename TYPE> struct iterator
+		{
+			using reference = TYPE&;
+			using pointer	= TYPE*;
+
+			iterator(pointer ptr, const uint8* actives, SIZE_TYPE begin, SIZE_TYPE end) : _ptr(ptr), _actives(actives), _current(begin), _end(end)
+			{
+				while (_current != end && actives[_current] == 0)
+					++_current;
+			}
+
+			reference operator*() const
+			{
+				return *_ptr;
+			};
+			pointer operator->()
+			{
+				return _ptr;
+			}
+
+			iterator& operator++()
+			{
+				do
+				{
+					_current++;
+				} while (_actives[_current] == 0 && _current != _end);
+				return *this;
+			}
+
+			iterator& operator++(int)
+			{
+				iterator tmp = *this;
+				++(*this);
+				return tmp;
+			}
+
+			friend bool operator==(const iterator& a, const iterator& b)
+			{
+				return a._current == b._current;
+			}
+
+			friend bool operator!=(const iterator& a, const iterator& b)
+			{
+				return a._current != b._current;
+			}
+
+			pointer		 _ptr	  = nullptr;
+			const uint8* _actives = nullptr;
+			SIZE_TYPE	 _current = 0;
+			SIZE_TYPE	 _end	  = 0;
+		};
+
+		struct handle_iterator
+		{
+			handle_iterator(const SIZE_TYPE* gens, const uint8* actives, SIZE_TYPE begin, SIZE_TYPE end) : _gens(gens), _actives(actives), _current(begin), _end(end)
+			{
+				while (_current != end && actives[_current] == 0)
+					++_current;
+			}
+
+			pool_handle<SIZE_TYPE> operator*() const
+			{
+				return {
+					.generation = _gens[_current],
+					.index		= _current,
+				};
+			}
+
+			handle_iterator& operator++()
+			{
+				do
+				{
+					_current++;
+				} while (_actives[_current] == 0 && _current != _end);
+				return *this;
+			}
+
+			handle_iterator& operator++(int)
+			{
+				iterator tmp = *this;
+				++(*this);
+				return tmp;
+			}
+
+			friend bool operator==(const handle_iterator& a, const handle_iterator& b)
+			{
+				return a._current == b._current;
+			}
+
+			friend bool operator!=(const handle_iterator& a, const handle_iterator& b)
+			{
+				return a._current != b._current;
+			}
+
+			const uint8*	 _actives = nullptr;
+			const SIZE_TYPE* _gens	  = nullptr;
+			SIZE_TYPE		 _current = 0;
+			SIZE_TYPE		 _end	  = 0;
+		};
+
+		iterator<const T> begin() const
+		{
+			return iterator<const T>(_items, _actives, 0, _head);
+		}
+
+		iterator<const T> end() const
+		{
+			return iterator<const T>(_items, _actives, _head, _head);
+		}
+
+		iterator<T> begin()
+		{
+			return iterator<T>(_items, _actives, 0, _head);
+		}
+
+		iterator<T> end()
+		{
+			return iterator<T>(_items, _actives, _head, _head);
+		}
+
+		handle_iterator handles_begin() const
+		{
+			return handle_iterator(_generations, _actives, 0, _head);
+		}
+
+		handle_iterator handles_end() const
+		{
+			return handle_iterator(_generations, _actives, _head, _head);
 		}
 
 	private:

@@ -12,23 +12,15 @@
 
 namespace SFG
 {
-	class world_resources;
 	struct material_raw;
-
-	struct material_reflection
-	{
-		material_reflection();
-	};
-
-	class render_event_stream;
-	class chunk_allocator32;
+	class world;
 
 	class material
 	{
 	public:
-		void create_from_raw(const material_raw& raw, world_resources& resources, chunk_allocator32& alloc, render_event_stream& stream, resource_handle handle, resource_handle sampler_handle);
-		void destroy(render_event_stream& stream, chunk_allocator32& alloc, resource_handle handle);
-		void update_data(render_event_stream& stream, resource_handle handle);
+		void create_from_loader(const material_raw& raw, world& w, resource_handle handle);
+		void destroy(world& w, resource_handle handle);
+		void update_data(world& w, resource_handle handle);
 
 		inline const bitmask<uint8>& get_flags() const
 		{
@@ -48,6 +40,6 @@ namespace SFG
 #endif
 	};
 
-	REGISTER_RESOURCE(material, resource_type::resource_type_material, material_reflection);
+	REGISTER_RESOURCE(material, "stkmat");
 
 }

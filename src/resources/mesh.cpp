@@ -5,22 +5,19 @@
 #include "primitive_raw.hpp"
 #include "primitive.hpp"
 #include "memory/chunk_allocator.hpp"
-#include "reflection/reflection.hpp"
 #include "world/world.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"
 #include "gfx/event_stream/render_events_gfx.hpp"
 
 namespace SFG
 {
-	mesh_reflection::mesh_reflection()
-	{
-		meta& m = reflection::get().register_meta(type_id<mesh>::value, type_id<mesh>::index, "");
-		m.add_function<void, world&>("init_resource_storage"_hs, [](world& w) -> void { w.get_resources().init_storage<mesh>(MAX_WORLD_MESHES); });
-		m.add_function<void, world&>("uninit_resource_storage"_hs, [](world& w) -> void { w.get_resources().uninit_storage<mesh>(); });
-	}
 
-	void mesh::create_from_raw(const mesh_raw& raw, chunk_allocator32& alloc, render_event_stream& stream, resource_handle handle)
+	void mesh::create_from_loader(const mesh_raw& raw, world& w, resource_handle handle)
 	{
+		render_event_stream& stream = w.get_render_stream();
+		resource_manager&	 rm		= w.get_resource_manager();
+		chunk_allocator32&	 alloc	= rm.get_aux();
+
 #ifndef SFG_STRIP_DEBUG_NAMES
 		if (!raw.name.empty())
 			_name = alloc.allocate_text(raw.name);
@@ -47,8 +44,12 @@ namespace SFG
 			ev);
 	}
 
-	void mesh::destroy(chunk_allocator32& alloc, render_event_stream& stream, resource_handle handle)
+	void mesh::destroy(world& w, resource_handle handle)
 	{
+		render_event_stream& stream = w.get_render_stream();
+		resource_manager&	 rm		= w.get_resource_manager();
+		chunk_allocator32&	 alloc	= rm.get_aux();
+
 #ifndef SFG_STRIP_DEBUG_NAMES
 		if (_name.size != 0)
 			alloc.free(_name);

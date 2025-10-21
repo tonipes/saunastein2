@@ -35,15 +35,21 @@ namespace SFG
 
 	struct animation_raw
 	{
-		string							 name	  = "";
-		string_id						 sid	  = 0;
-		float							 duration = 0.0f;
+		string							 name = "";
 		vector<animation_channel_v3_raw> position_channels;
 		vector<animation_channel_q_raw>	 rotation_channels;
 		vector<animation_channel_v3_raw> scale_channels;
+		string_id						 sid	  = 0;
+		float							 duration = 0.0f;
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);
+
+		bool load_from_file(const char* file)
+		{
+			return false;
+		};
+		void get_dependencies(vector<string>& out_deps) const {};
 	};
 
 }

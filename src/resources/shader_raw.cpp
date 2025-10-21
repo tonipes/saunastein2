@@ -3,6 +3,7 @@
 #include "shader_raw.hpp"
 #include "data/ostream.hpp"
 #include "data/istream.hpp"
+#include "gfx/renderer.hpp"
 
 #ifdef SFG_TOOLMODE
 #include "io/file_system.hpp"
@@ -31,7 +32,7 @@ namespace SFG
 		desc.serialize(stream);
 	}
 
-	void shader_raw::deserialize(istream& stream, bool use_embedded_layout, gfx_id layout)
+	void shader_raw::deserialize(istream& stream)
 	{
 		stream >> name;
 		stream >> source;
@@ -41,17 +42,18 @@ namespace SFG
 		stream >> is_z_prepass;
 		desc.deserialize(stream);
 
-		if (use_embedded_layout)
-			desc.flags.set(shader_flags::shf_use_embedded_layout);
-		else
-			desc.layout = layout;
-
+		desc.layout = renderer::get_bind_layout_global();
 		SFG_INFO("Created shader from buffer: {0}", name);
 	}
 
 #ifdef SFG_TOOLMODE
 
-	bool shader_raw::cook_from_file(const char* path, bool use_embedded_layout, gfx_id layout, const char* base_directory_for_source)
+	bool shader_raw::load_from_file(const char* path)
+	{
+		return load_from_file(path, false, renderer::get_bind_layout_global(), nullptr);
+	}
+
+	bool shader_raw::load_from_file(const char* path, bool use_embedded_layout, gfx_id layout, const char* base_directory_for_source)
 	{
 		if (!file_system::exists(path))
 		{
@@ -95,11 +97,7 @@ namespace SFG
 				return false;
 
 			desc.debug_name = name;
-
-			if (use_embedded_layout)
-				desc.flags.set(shader_flags::shf_use_embedded_layout);
-			else
-				desc.layout = layout;
+			desc.layout		= renderer::get_bind_layout_global();
 
 			span<uint8> layout_data	   = {};
 			const bool	compile_layout = desc.flags.is_set(shader_flags::shf_use_embedded_layout);
@@ -131,6 +129,10 @@ namespace SFG
 
 		SFG_INFO("Created shader from file: {0}", name);
 		return true;
+	}
+	void shader_raw::get_dependencies(vector<string>& out_deps) const
+	{
+		out_deps.push_back(source);
 	}
 #endif
 }

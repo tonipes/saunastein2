@@ -3,20 +3,16 @@
 #include "skin.hpp"
 #include "skin_raw.hpp"
 #include "memory/chunk_allocator.hpp"
-#include "reflection/reflection.hpp"
 #include "world/world.hpp"
 
 namespace SFG
 {
-	skin_reflection::skin_reflection()
-	{
-		meta& m = reflection::get().register_meta(type_id<skin>::value, type_id<skin>::index, "");
-		m.add_function<void, world&>("init_resource_storage"_hs, [](world& w) -> void { w.get_resources().init_storage<skin>(MAX_WORLD_SKINS); });
-		m.add_function<void, world&>("uninit_resource_storage"_hs, [](world& w) -> void { w.get_resources().uninit_storage<skin>(); });
-	}
 
-	void skin::create_from_raw(const skin_raw& raw, chunk_allocator32& alloc)
+	void skin::create_from_loader(const skin_raw& raw, world& w, resource_handle handle)
 	{
+		resource_manager&  rm	 = w.get_resource_manager();
+		chunk_allocator32& alloc = rm.get_aux();
+
 #ifndef SFG_STRIP_DEBUG_NAMES
 		if (!raw.name.empty())
 			_name = alloc.allocate_text(raw.name);
@@ -33,8 +29,11 @@ namespace SFG
 			ptr[i] = raw.joints[i];
 	}
 
-	void skin::destroy(chunk_allocator32& alloc)
+	void skin::destroy(world& w, resource_handle handle)
 	{
+		resource_manager&  rm	 = w.get_resource_manager();
+		chunk_allocator32& alloc = rm.get_aux();
+
 #ifndef SFG_STRIP_DEBUG_NAMES
 		if (_name.size != 0)
 			alloc.free(_name);

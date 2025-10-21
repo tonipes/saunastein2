@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "common/size_definitions.hpp"
 #include "data/bitmask.hpp"
 #include "resources/common_resources.hpp"
 #include "reflection/resource_reflection.hpp"
@@ -14,20 +13,13 @@
 namespace SFG
 {
 	struct shader_raw;
-
-	struct shader_reflection
-	{
-		shader_reflection();
-	};
-
-	class render_event_stream;
-	class chunk_allocator32;
+	class world;
 
 	class shader
 	{
 	public:
-		void create_from_raw(const shader_raw& raw, render_event_stream& stream, chunk_allocator32& alloc, resource_handle handle);
-		void destroy(render_event_stream& stream, chunk_allocator32& alloc, resource_handle handle);
+		void create_from_loader(const shader_raw& raw, world& w, resource_handle handle);
+		void destroy(world& w, resource_handle handle);
 
 		inline const bitmask<uint8>& get_flags() const
 		{
@@ -41,6 +33,6 @@ namespace SFG
 #endif
 	};
 
-	REGISTER_RESOURCE(shader, resource_type::resource_type_shader, shader_reflection);
+	REGISTER_RESOURCE(shader, "stkshader");
 
 }

@@ -28,7 +28,7 @@ namespace SFG
 	}
 
 #ifdef SFG_TOOLMODE
-	bool world_raw::cook_from_file(const char* path)
+	bool world_raw::load_from_file(const char* path)
 	{
 		if (!file_system::exists(path))
 		{

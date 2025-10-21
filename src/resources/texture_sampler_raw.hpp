@@ -13,14 +13,15 @@ namespace SFG
 
 	struct texture_sampler_raw
 	{
+		sampler_desc desc = {};
+		string		 name = "";
+
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);
 
 #ifdef SFG_TOOLMODE
-		bool cook_from_file(const char* file);
+		bool load_from_file(const char* file);
+		void get_dependencies(vector<string>& out_deps) const {};
 #endif
-
-		sampler_desc desc = {};
-		string		 name = "";
 	};
 }

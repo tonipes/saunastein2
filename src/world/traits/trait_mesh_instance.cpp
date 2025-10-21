@@ -73,12 +73,12 @@ namespace SFG
 
 	void trait_mesh_instance::serialize(ostream& stream, world& w) const
 	{
-		world_resources& resources = w.get_resources();
+		resource_manager& rm = w.get_resource_manager();
 
 		string_id		  target_model_hash = 0;
 		string_id		  target_mesh_hash	= 0;
 		vector<string_id> target_materials	= {};
-		fetch_refs(resources, target_model_hash, target_mesh_hash);
+		fetch_refs(rm, target_model_hash, target_mesh_hash);
 
 		stream << target_model_hash;
 		stream << target_mesh_hash;
@@ -90,19 +90,19 @@ namespace SFG
 		string_id target_mesh_hash	= 0;
 		stream >> target_model_hash;
 		stream >> target_mesh_hash;
-		fill_refs(w.get_resources(), target_model_hash, target_mesh_hash);
+		fill_refs(w.get_resource_manager(), target_model_hash, target_mesh_hash);
 	}
 
 #ifdef SFG_TOOLMODE
 
 	void trait_mesh_instance::serialize_json(nlohmann::json& j, world& w) const
 	{
-		world_resources& resources = w.get_resources();
+		resource_manager& rm = w.get_resource_manager();
 
 		string_id		  target_model_hash = 0;
 		string_id		  target_mesh_hash	= 0;
 		vector<string_id> target_materials	= {};
-		fetch_refs(resources, target_model_hash, target_mesh_hash);
+		fetch_refs(rm, target_model_hash, target_mesh_hash);
 
 		j["target_model"] = target_model_hash;
 		j["target_mesh"]  = target_mesh_hash;
@@ -110,24 +110,24 @@ namespace SFG
 
 	void trait_mesh_instance::deserialize_json(nlohmann::json& j, world& w)
 	{
-		world_resources& resources = w.get_resources();
+		resource_manager& rm = w.get_resource_manager();
 
 		const string_id target_model_hash = j.value<string_id>("target_model", 0);
 		const string_id target_mesh_hash  = j.value<string_id>("target_mesh", 0);
-		fill_refs(w.get_resources(), target_model_hash, target_mesh_hash);
+		fill_refs(w.get_resource_manager(), target_model_hash, target_mesh_hash);
 	}
 #endif
 
-	void trait_mesh_instance::fetch_refs(world_resources& resources, string_id& out_target, string_id& out_target_mesh) const
+	void trait_mesh_instance::fetch_refs(resource_manager& rm, string_id& out_target, string_id& out_target_mesh) const
 	{
-		out_target		= resources.get_resource_hash<model>(_target_model);
-		out_target_mesh = resources.get_resource_hash<mesh>(_target_mesh);
+		out_target		= rm.get_resource_hash<model>(_target_model);
+		out_target_mesh = rm.get_resource_hash<mesh>(_target_mesh);
 	}
 
-	void trait_mesh_instance::fill_refs(world_resources& resources, string_id target_model, string_id target_mesh)
+	void trait_mesh_instance::fill_refs(resource_manager& rm, string_id target_model, string_id target_mesh)
 	{
-		_target_model = resources.get_resource_handle_by_hash<model>(target_model);
-		_target_mesh  = resources.get_resource_handle_by_hash<mesh>(target_mesh);
+		_target_model = rm.get_resource_handle_by_hash<model>(target_model);
+		_target_mesh  = rm.get_resource_handle_by_hash<mesh>(target_mesh);
 	}
 
 }

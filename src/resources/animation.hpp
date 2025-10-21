@@ -1,7 +1,6 @@
 // Copyright (c) 2025 Inan Evin
 #pragma once
 
-#include "common/type_id.hpp"
 #include "animation_common.hpp"
 #include "memory/chunk_handle.hpp"
 #include "resources/common_resources.hpp"
@@ -9,15 +8,11 @@
 
 namespace SFG
 {
-	class chunk_allocator32;
 	struct animation_channel_v3_raw;
 	struct animation_channel_q_raw;
 	struct animation_raw;
-
-	struct animation_reflection
-	{
-		animation_reflection();
-	};
+	class chunk_allocator32;
+	class world;
 
 	struct animation_channel_v3
 	{
@@ -26,7 +21,7 @@ namespace SFG
 		chunk_handle32			keyframes_spline;
 		int16					node_index = -1;
 
-		void	create_from_raw(const animation_channel_v3_raw& raw, chunk_allocator32& alloc);
+		void	create_from_loader(const animation_channel_v3_raw& raw, chunk_allocator32& alloc);
 		void	destroy(chunk_allocator32& alloc);
 		vector3 sample(float time, chunk_allocator32& alloc) const;
 	};
@@ -38,7 +33,7 @@ namespace SFG
 		chunk_handle32			keyframes_spline;
 		int16					node_index = -1;
 
-		void create_from_raw(const animation_channel_q_raw& raw, chunk_allocator32& alloc);
+		void create_from_loader(const animation_channel_q_raw& raw, chunk_allocator32& alloc);
 		void destroy(chunk_allocator32& alloc);
 		quat sample(float time, chunk_allocator32& alloc) const;
 	};
@@ -46,8 +41,8 @@ namespace SFG
 	class animation
 	{
 	public:
-		void create_from_raw(const animation_raw& raw, chunk_allocator32& alloc);
-		void destroy(chunk_allocator32& alloc);
+		void create_from_loader(const animation_raw& raw, world& w, resource_handle handle);
+		void destroy(world& w, resource_handle handle);
 
 	private:
 		float _duration = 0.0f;
@@ -62,5 +57,5 @@ namespace SFG
 		uint16		   _scale_count	   = 0;
 	};
 
-	REGISTER_RESOURCE(animation, resource_type::resource_type_animation, animation_reflection);
+	REGISTER_RESOURCE(animation, "");
 }

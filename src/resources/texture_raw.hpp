@@ -8,6 +8,7 @@
 #include "data/static_vector.hpp"
 #include "gfx/common/texture_buffer.hpp"
 #include "gfx/common/gfx_constants.hpp"
+#include "data/vector.hpp"
 
 namespace SFG
 {
@@ -26,10 +27,11 @@ namespace SFG
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);
 
-		void cook_from_data(uint8* base, const vector2ui16& size, uint8 format, bool generate_mips);
+		void load_from_data(uint8* base, const vector2ui16& size, uint8 format, bool generate_mips);
 
 #ifdef SFG_TOOLMODE
-		bool cook_from_file(const char* file);
+		bool load_from_file(const char* file);
+		void get_dependencies(vector<string>& out_deps) const;
 #endif
 	};
 

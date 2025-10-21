@@ -35,7 +35,7 @@ namespace SFG
 	}
 
 #ifdef SFG_TOOLMODE
-	bool physical_material_raw::cook_from_file(const char* path)
+	bool physical_material_raw::load_from_file(const char* path)
 	{
 		if (!file_system::exists(path))
 		{

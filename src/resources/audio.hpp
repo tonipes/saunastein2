@@ -2,8 +2,6 @@
 
 #pragma once
 
-#include "common/type_id.hpp"
-#include "common/size_definitions.hpp"
 #include "resources/common_resources.hpp"
 #include "data/bitmask.hpp"
 #include "memory/chunk_handle.hpp"
@@ -13,12 +11,7 @@
 namespace SFG
 {
 	struct audio_raw;
-	class chunk_allocator32;
-
-	struct audio_reflection
-	{
-		audio_reflection();
-	};
+	class world;
 
 	class audio
 	{
@@ -29,8 +22,8 @@ namespace SFG
 			is_streaming = 1 << 1,
 		};
 
-		void create_from_raw(const audio_raw& raw, chunk_allocator32& alloc, ma_engine* engine);
-		void destroy(chunk_allocator32& alloc);
+		void create_from_loader(const audio_raw& raw, world& w, resource_handle handle);
+		void destroy(world& w, resource_handle handle);
 
 		inline const ma_decoder& get_decoder() const
 		{
@@ -52,5 +45,5 @@ namespace SFG
 #endif
 	};
 
-	REGISTER_RESOURCE(audio, resource_type::resource_type_audio, audio_reflection);
+	REGISTER_RESOURCE(audio, "stkaud");
 }

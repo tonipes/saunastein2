@@ -6,7 +6,6 @@
 #include "memory/memory_tracer.hpp"
 
 #ifdef SFG_TOOLMODE
-
 #include "io/file_system.hpp"
 #include "io/log.hpp"
 #include "io/assert.hpp"
@@ -67,7 +66,7 @@ namespace SFG
 		SFG_INFO("Created texture from buffer: {0}", name);
 	}
 
-	void texture_raw::cook_from_data(uint8* base, const vector2ui16& size, uint8 txt_format, bool generate_mips)
+	void texture_raw::load_from_data(uint8* base, const vector2ui16& size, uint8 txt_format, bool generate_mips)
 	{
 		const format fmt	   = static_cast<format>(txt_format);
 		const uint8	 bpp	   = format_get_bpp(fmt);
@@ -92,7 +91,7 @@ namespace SFG
 	}
 
 #ifdef SFG_TOOLMODE
-	bool texture_raw::cook_from_file(const char* file)
+	bool texture_raw::load_from_file(const char* file)
 	{
 		if (!file_system::exists(file))
 		{
@@ -159,5 +158,11 @@ namespace SFG
 		return true;
 	}
 
+	void texture_raw::get_dependencies(vector<string>& out_deps) const
+	{
+		out_deps.push_back(source);
+	}
+
 #endif
+
 }

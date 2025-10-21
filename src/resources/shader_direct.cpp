@@ -12,7 +12,7 @@ namespace SFG
 		SFG_ASSERT(_hw == NULL_GFX_ID);
 	}
 
-	void shader_direct::create_from_raw(shader_raw& raw)
+	void shader_direct::create_from_loader(shader_raw& raw)
 	{
 		gfx_backend* backend = gfx_backend::get();
 		_hw					 = backend->create_shader(raw.desc);

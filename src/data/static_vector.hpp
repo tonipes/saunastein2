@@ -27,7 +27,7 @@ namespace SFG
 
 		reference operator[](size_type index)
 		{
-			SFG_ASSERT(index < _head);
+			SFG_ASSERT(index < capacity);
 			return _data[index];
 		}
 

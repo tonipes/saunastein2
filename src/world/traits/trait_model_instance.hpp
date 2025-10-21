@@ -16,7 +16,7 @@ namespace SFG
 	class ostream;
 	class istream;
 	class world;
-	class world_resources;
+	class resource_manager;
 	class render_event_stream;
 
 	struct trait_model_instance_reflection
@@ -54,8 +54,8 @@ namespace SFG
 
 		void on_add(world& we);
 		void on_remove(world& w);
-		void fetch_refs(world_resources& res, string_id& out_target) const;
-		void fill_refs(world_resources& res, string_id target);
+		void fetch_refs(resource_manager& res, string_id& out_target) const;
+		void fill_refs(resource_manager& res, string_id target);
 
 	private:
 		trait_header	_header				 = {};

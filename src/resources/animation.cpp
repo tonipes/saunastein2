@@ -3,19 +3,12 @@
 #include "animation.hpp"
 #include "animation_raw.hpp"
 #include "memory/chunk_allocator.hpp"
-#include "reflection/reflection.hpp"
 #include "world/world.hpp"
 
 namespace SFG
 {
-	animation_reflection::animation_reflection()
-	{
-		meta& m = reflection::get().register_meta(type_id<animation>::value, type_id<animation>::index, "");
-		m.add_function<void, world&>("init_resource_storage"_hs, [](world& w) -> void { w.get_resources().init_storage<animation>(MAX_WORLD_ANIMS); });
-		m.add_function<void, world&>("uninit_resource_storage"_hs, [](world& w) -> void { w.get_resources().uninit_storage<animation>(); });
-	}
 
-	void animation_channel_v3::create_from_raw(const animation_channel_v3_raw& raw, chunk_allocator32& alloc)
+	void animation_channel_v3::create_from_loader(const animation_channel_v3_raw& raw, chunk_allocator32& alloc)
 	{
 		interpolation = raw.interpolation;
 		node_index	  = raw.node_index;
@@ -133,7 +126,7 @@ namespace SFG
 		return vector3::zero;
 	}
 
-	void animation_channel_q::create_from_raw(const animation_channel_q_raw& raw, chunk_allocator32& alloc)
+	void animation_channel_q::create_from_loader(const animation_channel_q_raw& raw, chunk_allocator32& alloc)
 	{
 		interpolation = interpolation;
 		node_index	  = node_index;
@@ -261,8 +254,11 @@ namespace SFG
 		}
 	}
 
-	void animation::create_from_raw(const animation_raw& raw, chunk_allocator32& alloc)
+	void animation::create_from_loader(const animation_raw& raw, world& w, resource_handle handle)
 	{
+		resource_manager&	 rm		= w.get_resource_manager();
+		chunk_allocator32&	 alloc	= rm.get_aux();
+
 #ifndef SFG_STRIP_DEBUG_NAMES
 		if (!raw.name.empty())
 			_name = alloc.allocate_text(raw.name);
@@ -281,7 +277,7 @@ namespace SFG
 			{
 				const animation_channel_v3_raw& ch = raw.position_channels[i];
 				animation_channel_v3&			rt = ptr[i];
-				rt.create_from_raw(ch, alloc);
+				rt.create_from_loader(ch, alloc);
 			}
 		}
 
@@ -296,7 +292,7 @@ namespace SFG
 			{
 				const animation_channel_q_raw& ch = raw.rotation_channels[i];
 				animation_channel_q&		   rt = ptr[i];
-				rt.create_from_raw(ch, alloc);
+				rt.create_from_loader(ch, alloc);
 			}
 		}
 		const uint32 scale_count = static_cast<uint32>(raw.scale_channels.size());
@@ -310,7 +306,7 @@ namespace SFG
 			{
 				const animation_channel_v3_raw& ch = raw.scale_channels[i];
 				animation_channel_v3&			rt = ptr[i];
-				rt.create_from_raw(ch, alloc);
+				rt.create_from_loader(ch, alloc);
 			}
 		}
 
@@ -319,8 +315,11 @@ namespace SFG
 		_scale_count	= static_cast<uint16>(scale_count);
 	}
 
-	void animation::destroy(chunk_allocator32& alloc)
+	void animation::destroy(world& w, resource_handle handle)
 	{
+		resource_manager&	 rm		= w.get_resource_manager();
+		chunk_allocator32&	 alloc	= rm.get_aux();
+
 #ifndef SFG_STRIP_DEBUG_NAMES
 		if (_name.size != 0)
 			alloc.free(_name);

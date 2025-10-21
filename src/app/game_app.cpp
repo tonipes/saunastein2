@@ -16,6 +16,7 @@
 #include "io/file_system.hpp"
 #include "project/engine_data.hpp"
 #include "editor/editor.hpp"
+#include "gfx/common/descriptions.hpp"
 #endif
 
 namespace SFG

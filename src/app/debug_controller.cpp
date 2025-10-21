@@ -476,8 +476,15 @@ namespace SFG
 		_vekt_data.font_manager->set_atlas_created_callback(std::bind(&debug_controller::on_atlas_created, this, std::placeholders::_1));
 		_vekt_data.font_manager->set_atlas_updated_callback(std::bind(&debug_controller::on_atlas_updated, this, std::placeholders::_1));
 		_vekt_data.font_manager->set_atlas_destroyed_callback(std::bind(&debug_controller::on_atlas_destroyed, this, std::placeholders::_1));
-		_vekt_data.font_debug = _vekt_data.font_manager->load_font_from_file("assets/engine/fonts/VT323-Regular.ttf", DEBUG_FONT_SIZE);
-		_vekt_data.font_icon  = _vekt_data.font_manager->load_font_from_file("assets/engine/fonts/icons.ttf", 12, 32, 128, vekt::font_type::sdf);
+
+#ifdef SFG_TOOLMODE
+		const string p		  = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/VT323-Regular.ttf");
+		const string p2		  = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/VT323-Regular.ttf");
+		_vekt_data.font_debug = _vekt_data.font_manager->load_font_from_file(p.c_str(), DEBUG_FONT_SIZE);
+		_vekt_data.font_icon  = _vekt_data.font_manager->load_font_from_file(p2.c_str(), 12, 32, 128, vekt::font_type::sdf);
+#else
+		SFG_NOTIMPLEMENTED();
+#endif
 
 		_vekt_data.console_texts.reserve(MAX_CONSOLE_TEXT);
 		_input_field.history.reserve(MAX_CONSOLE_TEXT);

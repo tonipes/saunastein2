@@ -1,6 +1,5 @@
 // Copyright (c) 2025 Inan Evin
 #pragma once
-#include "common/size_definitions.hpp"
 #include "resources/common_resources.hpp"
 #include "reflection/resource_reflection.hpp"
 
@@ -10,22 +9,14 @@
 
 namespace SFG
 {
-	class chunk_allocator32;
-
 	struct mesh_raw;
-
-	struct mesh_reflection
-	{
-		mesh_reflection();
-	};
-
-	class render_event_stream;
+	class world;
 
 	class mesh
 	{
 	public:
-		void create_from_raw(const mesh_raw& raw, chunk_allocator32& alloc, render_event_stream& stream, resource_handle handle);
-		void destroy(chunk_allocator32& alloc, render_event_stream& stream, resource_handle handle);
+		void create_from_loader(const mesh_raw& raw, world& w, resource_handle handle);
+		void destroy(world& w, resource_handle handle);
 
 		inline uint16 get_node_index() const
 		{
@@ -54,6 +45,6 @@ namespace SFG
 		string_id _sid		  = 0;
 	};
 
-	REGISTER_RESOURCE(mesh, resource_type::resource_type_mesh, mesh_reflection);
+	REGISTER_RESOURCE(mesh, "");
 
 }

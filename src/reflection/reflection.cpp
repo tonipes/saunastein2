@@ -4,10 +4,10 @@
 
 namespace SFG
 {
-	meta* reflection::find_by_tag(const char* tag)
+	const meta* reflection::find_by_tag(const char* tag) const
 	{
 		const string_id tagsid = TO_SID(tag);
-		for (auto& [sid, m] : _metas)
+		for (const auto& [sid, m] : _metas)
 		{
 			if (m.get_tag() == tagsid)
 			{

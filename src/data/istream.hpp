@@ -50,7 +50,7 @@ namespace SFG
 	class istream
 	{
 	public:
-		istream(){};
+		istream() {};
 		istream(uint8* data, size_t size)
 		{
 			_data = data;
@@ -133,11 +133,8 @@ namespace SFG
 		{
 			uint32 sz = 0;
 			stream >> sz;
-			void* d = SFG_MALLOC(sz);
-			stream.read_to_raw_endian_safe(d, static_cast<size_t>(sz));
-			string s((char*)d, sz);
-			val = s;
-			SFG_FREE(d);
+			val = string((char*)stream.get_data_current(), sz);
+			stream.skip_by(sz);
 		}
 		else if constexpr (std::is_enum_v<T>)
 		{

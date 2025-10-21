@@ -13,7 +13,6 @@ namespace SFG
 	class ostream;
 	class istream;
 	class world;
-	class world_resources;
 	class render_event_stream;
 
 	struct trait_camera_reflection

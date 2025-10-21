@@ -7,12 +7,12 @@
 #include "world/entity_manager.hpp"
 #include "world/traits/trait_camera.hpp"
 #include "world/traits/trait_model_instance.hpp"
-#include "world/world_resources.hpp"
 #include "resources/model.hpp"
 #include "platform/window.hpp"
 #include "math/vector3.hpp"
 #include "math/quat.hpp"
 #include "common/string_id.hpp"
+#include "world/world.hpp"
 
 namespace SFG
 {
@@ -88,11 +88,11 @@ namespace SFG
 		if (!world_ptr)
 			return;
 
-		world&				  w			= *world_ptr;
-		world_resources&	  resources = w.get_resources();
-		const resource_handle boombox	= resources.get_resource_handle_by_hash<model>(TO_SIDC("assets/test_scene/test_scene.stkmodel"));
+		world&				  w		  = *world_ptr;
+		resource_manager&	  rm	  = w.get_resource_manager();
+		const resource_handle boombox = rm.get_resource_handle_by_hash<model>(TO_SIDC("assets/test_scene/test_scene.stkmodel"));
 
-		if (!resources.is_valid<model>(boombox))
+		if (!rm.is_valid<model>(boombox))
 			return;
 		entity_manager& em = w.get_entity_manager();
 

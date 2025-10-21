@@ -72,7 +72,7 @@ namespace SFG
 		p.value = j.at("value");
 	}
 
-	bool material_raw::cook_from_file(const char* file)
+	bool material_raw::load_from_file(const char* file)
 	{
 		if (!file_system::exists(file))
 		{

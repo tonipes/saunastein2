@@ -31,8 +31,7 @@ namespace SFG
 		stream >> audio_data;
 	}
 
-#ifdef SFG_TOOLMODE
-	bool audio_raw::cook_from_file(const char* path)
+	bool audio_raw::load_from_file(const char* path)
 	{
 		if (!file_system::exists(path))
 		{
@@ -76,5 +75,9 @@ namespace SFG
 		return true;
 	}
 
-#endif
+	void audio_raw::get_dependencies(vector<string>& out_deps) const
+	{
+		out_deps.push_back(source);
+	}
+
 }

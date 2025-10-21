@@ -30,7 +30,7 @@ namespace SFG
 	}
 
 #ifdef SFG_TOOLMODE
-	bool texture_sampler_raw::cook_from_file(const char* path)
+	bool texture_sampler_raw::load_from_file(const char* path)
 	{
 		if (!file_system::exists(path))
 		{

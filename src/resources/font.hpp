@@ -2,9 +2,8 @@
 
 #pragma once
 
-#include "common/size_definitions.hpp"
-#include "resources/common_resources.hpp"
 #include "reflection/resource_reflection.hpp"
+#include "resources/common_resources.hpp"
 
 #ifndef SFG_STRIP_DEBUG_NAMES
 #include "memory/chunk_handle.hpp"
@@ -12,27 +11,19 @@
 
 namespace vekt
 {
-	class font_manager;
 	struct font;
 }
 
 namespace SFG
 {
 	struct font_raw;
-
-	struct font_reflection
-	{
-		font_reflection();
-	};
-
 	class world;
-	class chunk_allocator32;
 
 	class font
 	{
 	public:
-		void create_from_raw(const font_raw& raw, vekt::font_manager& fm, chunk_allocator32& alloc);
-		void destroy(vekt::font_manager& fm, chunk_allocator32& alloc);
+		void create_from_loader(const font_raw& raw, world& w, resource_handle handle);
+		void destroy(world& w, resource_handle handle);
 
 	private:
 		vekt::font* _font = nullptr;
@@ -41,6 +32,6 @@ namespace SFG
 #endif
 	};
 
-	REGISTER_RESOURCE(font, resource_type::resource_type_font, font_reflection);
+	REGISTER_RESOURCE(font, "stkfont");
 
 }

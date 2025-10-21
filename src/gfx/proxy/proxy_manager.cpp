@@ -39,7 +39,9 @@ namespace SFG
 		for (uint8 i = 0; i < BACK_BUFFER_COUNT + 1; i++)
 		{
 			_destroy_bucket[i].list.reserve(1000);
-			_material_update_buckets[i].updates.reserve(256);
+
+			if (i < BACK_BUFFER_COUNT)
+				_material_update_buckets[i].updates.reserve(256);
 		}
 
 		_aux_memory.init(1024 * 1024 * 2);

@@ -4,17 +4,18 @@
 #include "common/size_definitions.hpp"
 #include "math/matrix4x3.hpp"
 #include "memory/chunk_handle.hpp"
+#include "resources/common_resources.hpp"
 
 namespace SFG
 {
-	class chunk_allocator32;
 	struct model_node_raw;
+	class world;
 
 	class model_node
 	{
 	public:
-		void create_from_raw(const model_node_raw& raw, chunk_allocator32& alloc);
-		void destroy(chunk_allocator32& alloc);
+		void create_from_loader(const model_node_raw& raw, world& w, resource_handle handle);
+		void destroy(world& w, resource_handle handle);
 
 		inline chunk_handle32 get_name() const
 		{

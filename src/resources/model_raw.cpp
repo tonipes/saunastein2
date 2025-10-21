@@ -574,7 +574,7 @@ namespace SFG
 				const vector2ui16 size = vector2ui16(static_cast<uint16>(img.width), static_cast<uint16>(img.height));
 				// const uint8		  bpp  = img.bits / 8 * img.component;
 				const format fmt = check_if_linear(i) ? format::r8g8b8a8_unorm : format::r8g8b8a8_srgb;
-				raw.cook_from_data(data, size, static_cast<uint8>(fmt), false);
+				raw.load_from_data(data, size, static_cast<uint8>(fmt), false);
 			}
 		}
 
@@ -823,7 +823,7 @@ namespace SFG
 		return true;
 	}
 
-	bool model_raw::cook_from_file(const char* file)
+	bool model_raw::load_from_file(const char* file)
 	{
 		if (!file_system::exists(file))
 		{
@@ -876,6 +876,10 @@ namespace SFG
 		}
 
 		return true;
+	}
+	void model_raw::get_dependencies(vector<string>& out_deps) const
+	{
+		out_deps.push_back(source);
 	}
 #endif
 }

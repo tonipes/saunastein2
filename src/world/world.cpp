@@ -5,6 +5,28 @@
 #include "io/file_system.hpp"
 #include "project/engine_data.hpp"
 #include "app/debug_console.hpp"
+#include "resources/texture.hpp"
+#include "resources/texture_raw.hpp"
+#include "resources/texture_sampler.hpp"
+#include "resources/texture_sampler_raw.hpp"
+#include "resources/shader.hpp"
+#include "resources/shader_raw.hpp"
+#include "resources/material.hpp"
+#include "resources/material_raw.hpp"
+#include "resources/model.hpp"
+#include "resources/model_raw.hpp"
+#include "resources/skin.hpp"
+#include "resources/skin_raw.hpp"
+#include "resources/mesh.hpp"
+#include "resources/mesh_raw.hpp"
+#include "resources/animation.hpp"
+#include "resources/animation_raw.hpp"
+#include "resources/audio.hpp"
+#include "resources/audio_raw.hpp"
+#include "resources/font.hpp"
+#include "resources/font_raw.hpp"
+#include "resources/physical_material.hpp"
+#include "resources/physical_material_raw.hpp"
 
 #ifdef SFG_TOOLMODE
 #include <fstream>
@@ -16,28 +38,33 @@ using json = nlohmann::json;
 #include <algorithm>
 #include <execution>
 #include "gfx/renderer.hpp"
-#include "resources/texture.hpp"
-#include "resources/texture_raw.hpp"
-#include "resources/shader.hpp"
-#include "resources/material.hpp"
-#include "resources/model.hpp"
-#include "resources/skin.hpp"
-#include "resources/mesh.hpp"
-#include "resources/animation.hpp"
+
 #include "platform/time.hpp"
 #include "gfx/world/world_renderer.hpp"
-#include "resources/model_raw.hpp"
 #include "resources/model_node.hpp"
 #include "resources/primitive.hpp"
 #include "traits/trait_mesh_instance.hpp"
 #include "math/math.hpp"
+#include "resources/world_raw.hpp"
 
 namespace SFG
 {
 
-	world::world(render_event_stream& rstream) : _entity_manager(*this), _resources(*this), _render_stream(rstream)
+	world::world(render_event_stream& rstream) : _entity_manager(*this), _render_stream(rstream), _resource_manager(*this)
 	{
 		_text_allocator.init(MAX_ENTITIES * 32);
+
+		_resource_manager.register_cache<texture, texture_raw, MAX_WORLD_TEXTURES, 0>();
+		_resource_manager.register_cache<texture_sampler, texture_sampler_raw, MAX_WORLD_SAMPLERS, 0>();
+		_resource_manager.register_cache<audio, audio_raw, MAX_WORLD_AUDIO, 0>();
+		_resource_manager.register_cache<font, font_raw, MAX_WORLD_FONTS, 0>();
+		_resource_manager.register_cache<material, material_raw, MAX_WORLD_MATERIALS, 1>();
+		_resource_manager.register_cache<mesh, mesh_raw, MAX_WORLD_MESHES, 0>();
+		_resource_manager.register_cache<model, model_raw, MAX_WORLD_MODELS, 1>();
+		_resource_manager.register_cache<animation, animation_raw, MAX_WORLD_ANIMS, 0>();
+		_resource_manager.register_cache<skin, skin_raw, MAX_WORLD_SKINS, 0>();
+		_resource_manager.register_cache<shader, shader_raw, MAX_WORLD_SHADERS, 0>();
+		_resource_manager.register_cache<physical_material, physical_material_raw, MAX_WORLD_PHYSICAL_MATERIALS, 0>();
 	};
 
 	world::~world()
@@ -51,21 +78,22 @@ namespace SFG
 
 		debug_console::get()->register_console_function<int>("world_set_play", [this](int b) { _flags.set(world_flags_is_playing, b != 0); });
 		_flags.set(world_flags_is_init);
-		_resources.init();
-		_entity_manager.init();
 
 		debug_console::get()->register_console_function<>("world_reload", [this]() {
 			world_raw	 raw = {};
 			const string p	 = engine_data::get().get_working_dir() + "assets/world/demo_world.stkworld";
-			raw.cook_from_file(p.c_str());
-			create_from_raw(raw);
+			raw.load_from_file(p.c_str());
+			create_from_loader(raw);
 		});
+
+		_resource_manager.init();
+		_entity_manager.init();
 	}
 
 	void world::uninit()
 	{
 		_entity_manager.uninit();
-		_resources.uninit();
+		_resource_manager.uninit();
 		_text_allocator.reset();
 
 		SFG_PROG("uninitializing world.");
@@ -81,23 +109,23 @@ namespace SFG
 
 		world_raw	 raw = {};
 		const string p	 = engine_data::get().get_working_dir() + "assets/world/demo_world.stkworld";
-		raw.cook_from_file(p.c_str());
-		create_from_raw(raw);
+		raw.load_from_file(p.c_str());
+		create_from_loader(raw);
 
 		const int64 mr_diff = time::get_cpu_microseconds() - mr_begin;
 		SFG_INFO("Resources took: {0} ms", mr_diff / 1000);
 	}
 
-	void world::create_from_raw(world_raw& raw)
+	void world::create_from_loader(world_raw& raw)
 	{
 		uninit();
 		init();
-		_resources.load_resources(raw.resources);
+		_resource_manager.load_resources(raw.resources);
 	}
 
 	void world::tick(const vector2ui16& res, float dt)
 	{
-		_resources.tick();
+		_resource_manager.tick();
 	}
 
 	void world::post_tick(double interpolation)

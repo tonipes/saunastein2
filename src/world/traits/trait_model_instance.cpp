@@ -9,6 +9,7 @@
 #include "resources/mesh.hpp"
 #include "resources/material.hpp"
 #include "reflection/reflection.hpp"
+#include "io/log.hpp"
 
 #ifdef SFG_TOOLMODE
 #include <vendor/nhlohmann/json.hpp>
@@ -60,7 +61,7 @@ namespace SFG
 		set_model(_target_model = model_handle);
 
 		entity_manager&	   em	   = w.get_entity_manager();
-		world_resources&   res	   = w.get_resources();
+		resource_manager&  res	   = w.get_resource_manager();
 		chunk_allocator32& em_aux  = em.get_traits_aux_memory();
 		chunk_allocator32& res_aux = res.get_aux();
 
@@ -173,10 +174,10 @@ namespace SFG
 
 	void trait_model_instance::serialize(ostream& stream, world& w) const
 	{
-		world_resources& resources = w.get_resources();
+		resource_manager& rm = w.get_resource_manager();
 
 		string_id target_model_hash = 0;
-		fetch_refs(resources, target_model_hash);
+		fetch_refs(rm, target_model_hash);
 
 		stream << target_model_hash;
 	}
@@ -185,38 +186,38 @@ namespace SFG
 	{
 		string_id target_model_hash = 0;
 		stream >> target_model_hash;
-		fill_refs(w.get_resources(), target_model_hash);
+		fill_refs(w.get_resource_manager(), target_model_hash);
 	}
 
 #ifdef SFG_TOOLMODE
 
 	void trait_model_instance::serialize_json(nlohmann::json& j, world& w) const
 	{
-		world_resources& resources = w.get_resources();
+		resource_manager& rm = w.get_resource_manager();
 
 		string_id target_model_hash = 0;
-		fetch_refs(resources, target_model_hash);
+		fetch_refs(rm, target_model_hash);
 
 		j["target_model"] = target_model_hash;
 	}
 
 	void trait_model_instance::deserialize_json(nlohmann::json& j, world& w)
 	{
-		world_resources& resources = w.get_resources();
+		resource_manager& rm = w.get_resource_manager();
 
 		const string_id target_model_hash = j.value<string_id>("target_model", 0);
-		fill_refs(w.get_resources(), target_model_hash);
+		fill_refs(w.get_resource_manager(), target_model_hash);
 	}
 #endif
 
-	void trait_model_instance::fetch_refs(world_resources& resources, string_id& out_target) const
+	void trait_model_instance::fetch_refs(resource_manager& rm, string_id& out_target) const
 	{
-		out_target = resources.get_resource_hash<model>(_target_model);
+		out_target = rm.get_resource_hash<model>(_target_model);
 	}
 
-	void trait_model_instance::fill_refs(world_resources& resources, string_id target_model)
+	void trait_model_instance::fill_refs(resource_manager& rm, string_id target_model)
 	{
-		_target_model = resources.get_resource_handle_by_hash<model>(target_model);
+		_target_model = rm.get_resource_handle_by_hash<model>(target_model);
 	}
 
 }

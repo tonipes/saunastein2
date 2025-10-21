@@ -15,7 +15,7 @@ namespace SFG
 	public:
 		~shader_direct();
 
-		void create_from_raw(shader_raw& raw);
+		void create_from_loader(shader_raw& raw);
 		void destroy();
 
 		inline uint16 get_hw() const

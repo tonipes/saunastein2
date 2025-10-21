@@ -41,7 +41,7 @@ namespace SFG
 	}
 
 #ifdef SFG_TOOLMODE
-	bool font_raw::cook_from_file(const char* path)
+	bool font_raw::load_from_file(const char* path)
 	{
 		if (!file_system::exists(path))
 		{
@@ -102,6 +102,11 @@ namespace SFG
 
 		SFG_INFO("Created font from file: {0}", path);
 		return true;
+	}
+
+	void font_raw::get_dependencies(vector<string>& out_deps) const
+	{
+		out_deps.push_back(source);
 	}
 
 #endif

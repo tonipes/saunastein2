@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "common/size_definitions.hpp"
 #include "resources/common_resources.hpp"
 #include "reflection/resource_reflection.hpp"
 
@@ -13,20 +12,13 @@
 namespace SFG
 {
 	struct physical_material_raw;
-
-	struct physical_material_reflection
-	{
-		physical_material_reflection();
-	};
-
 	class world;
-	class chunk_allocator32;
 
 	class physical_material
 	{
 	public:
-		void create_from_raw(const physical_material_raw& raw, chunk_allocator32& alloc);
-		void destroy(chunk_allocator32& alloc);
+		void create_from_loader(const physical_material_raw& raw, world& w, resource_handle handle);
+		void destroy(world& w, resource_handle handle);
 
 	private:
 #ifndef SFG_STRIP_DEBUG_NAMES
@@ -34,6 +26,6 @@ namespace SFG
 #endif
 	};
 
-	REGISTER_RESOURCE(physical_material, resource_type::resource_type_physical_material, physical_material_reflection);
+	REGISTER_RESOURCE(physical_material, "stkphymat");
 
 }
