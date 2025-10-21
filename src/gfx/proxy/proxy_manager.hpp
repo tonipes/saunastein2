@@ -9,6 +9,7 @@
 #include "memory/chunk_allocator.hpp"
 #include "data/vector.hpp"
 #include "gfx/common/gfx_constants.hpp"
+#include "world/world_max_defines.hpp"
 
 namespace SFG
 {
@@ -22,7 +23,9 @@ namespace SFG
 	class proxy_manager
 	{
 	public:
-		proxy_manager(buffer_queue& b, texture_queue& t) : _buffer_queue(b), _texture_queue(t) {};
+		proxy_manager() = delete;
+		proxy_manager(buffer_queue& b, texture_queue& t);
+		~proxy_manager();
 
 		void   init();
 		void   uninit();
@@ -33,47 +36,52 @@ namespace SFG
 
 		inline render_proxy_texture& get_texture(resource_id idx)
 		{
-			return _textures.get(idx);
+			return _textures->get(idx);
 		}
 
 		inline render_proxy_sampler& get_sampler(resource_id idx)
 		{
-			return _samplers.get(idx);
+			return _samplers->get(idx);
 		}
 
 		inline render_proxy_mesh& get_mesh(resource_id idx)
 		{
-			return _meshes.get(idx);
+			return _meshes->get(idx);
 		}
 
 		inline render_proxy_model& get_model(resource_id idx)
 		{
-			return _models.get(idx);
+			return _models->get(idx);
 		}
 
 		inline render_proxy_shader& get_shader(resource_id idx)
 		{
-			return _shaders.get(idx);
+			return _shaders->get(idx);
 		}
 
 		inline render_proxy_material& get_material(resource_id idx)
 		{
-			return _materials.get(idx);
+			return _materials->get(idx);
 		}
 
 		inline render_proxy_entity& get_entity(world_id idx)
 		{
-			return _entities.get(idx);
+			return _entities->get(idx);
 		}
 
 		inline render_proxy_mesh_instance& get_mesh_instance(world_id idx)
 		{
-			return _mesh_instances.get(idx);
+			return _mesh_instances->get(idx);
 		}
 
 		inline render_proxy_camera& get_camera(world_id idx)
 		{
-			return _cameras.get(idx);
+			return _cameras->get(idx);
+		}
+
+		inline render_proxy_ambient& get_ambient()
+		{
+			return _ambients->get(0);
 		}
 
 		inline chunk_allocator32& get_aux()
@@ -81,39 +89,34 @@ namespace SFG
 			return _aux_memory;
 		}
 
-		inline pool_allocator_simple<render_proxy_mesh_instance>& get_mesh_instances()
+		inline auto& get_mesh_instances()
 		{
 			return _mesh_instances;
 		}
 
-		inline pool_allocator_simple<render_proxy_entity>& get_entities()
+		inline auto& get_entities()
 		{
 			return _entities;
 		}
 
-		inline pool_allocator_simple<render_proxy_camera>& get_cameras()
+		inline auto& get_cameras()
 		{
 			return _cameras;
 		}
 
-		inline pool_allocator_simple<render_proxy_point_light>& get_point_lights()
+		inline auto& get_point_lights()
 		{
 			return _point_lights;
 		}
 
-		inline pool_allocator_simple<render_proxy_spot_light>& get_spot_lights()
+		inline auto& get_spot_lights()
 		{
 			return _spot_lights;
 		}
 
-		inline pool_allocator_simple<render_proxy_dir_light>& get_dir_lights()
+		inline auto& get_dir_lights()
 		{
 			return _dir_lights;
-		}
-
-		inline render_proxy_ambient& get_ambient()
-		{
-			return _ambients.get(0);
 		}
 
 		inline world_id get_main_camera() const
@@ -187,32 +190,47 @@ namespace SFG
 		void destroy_model(render_proxy_model& proxy);
 		void destroy_target_bucket(uint8 index);
 		void add_to_destroy_bucket(const destroy_data& data, uint8 bucket);
+		void reset();
 
 	private:
 		buffer_queue&  _buffer_queue;
 		texture_queue& _texture_queue;
 
-		chunk_allocator32								  _aux_memory;
-		pool_allocator_simple<render_proxy_texture>		  _textures;
-		pool_allocator_simple<render_proxy_sampler>		  _samplers;
-		pool_allocator_simple<render_proxy_material>	  _materials;
-		pool_allocator_simple<render_proxy_shader>		  _shaders;
-		pool_allocator_simple<render_proxy_mesh>		  _meshes;
-		pool_allocator_simple<render_proxy_model>		  _models;
-		pool_allocator_simple<render_proxy_entity>		  _entities;
-		pool_allocator_simple<render_proxy_mesh_instance> _mesh_instances;
-		pool_allocator_simple<render_proxy_camera>		  _cameras;
-		pool_allocator_simple<render_proxy_ambient>		  _ambients;
-		pool_allocator_simple<render_proxy_dir_light>	  _dir_lights;
-		pool_allocator_simple<render_proxy_spot_light>	  _spot_lights;
-		pool_allocator_simple<render_proxy_point_light>	  _point_lights;
-		world_id										  _main_camera_trait = 0;
+		using textures_type		  = pool_allocator_simple<render_proxy_texture, MAX_WORLD_TEXTURES>;
+		using samplers_type		  = pool_allocator_simple<render_proxy_sampler, MAX_WORLD_SAMPLERS>;
+		using materials_type	  = pool_allocator_simple<render_proxy_material, MAX_WORLD_MATERIALS>;
+		using shaders_type		  = pool_allocator_simple<render_proxy_shader, MAX_WORLD_SHADERS>;
+		using meshes_type		  = pool_allocator_simple<render_proxy_mesh, MAX_WORLD_MESHES>;
+		using models_type		  = pool_allocator_simple<render_proxy_model, MAX_WORLD_MODELS>;
+		using entity_type		  = pool_allocator_simple<render_proxy_entity, MAX_ENTITIES>;
+		using mesh_instances_type = pool_allocator_simple<render_proxy_mesh_instance, MAX_WORLD_TRAIT_MESH_INSTANCES>;
+		using cameras_type		  = pool_allocator_simple<render_proxy_camera, MAX_WORLD_TRAIT_CAMERAS>;
+		using ambients_type		  = pool_allocator_simple<render_proxy_ambient, MAX_WORLD_TRAIT_AMBIENTS>;
+		using point_lights_type	  = pool_allocator_simple<render_proxy_point_light, MAX_WORLD_TRAIT_POINT_LIGHTS>;
+		using spot_lights_type	  = pool_allocator_simple<render_proxy_spot_light, MAX_WORLD_TRAIT_SPOT_LIGHTS>;
+		using dir_lights_type	  = pool_allocator_simple<render_proxy_dir_light, MAX_WORLD_TRAIT_DIR_LIGHTS>;
 
-		uint32 _peak_mesh_instances = 0;
-		uint32 _peak_ambients		= 0;
-		uint32 _peak_point_lights	= 0;
-		uint32 _peak_spot_lights	= 0;
-		uint32 _peak_dir_lights		= 0;
+		chunk_allocator32	 _aux_memory;
+		textures_type*		 _textures		 = nullptr;
+		samplers_type*		 _samplers		 = nullptr;
+		materials_type*		 _materials		 = nullptr;
+		shaders_type*		 _shaders		 = nullptr;
+		meshes_type*		 _meshes		 = nullptr;
+		models_type*		 _models		 = nullptr;
+		entity_type*		 _entities		 = nullptr;
+		mesh_instances_type* _mesh_instances = nullptr;
+		cameras_type*		 _cameras		 = nullptr;
+		ambients_type*		 _ambients		 = nullptr;
+		point_lights_type*	 _point_lights	 = nullptr;
+		spot_lights_type*	 _spot_lights	 = nullptr;
+		dir_lights_type*	 _dir_lights	 = nullptr;
+
+		world_id _main_camera_trait	  = 0;
+		uint32	 _peak_mesh_instances = 0;
+		uint32	 _peak_ambients		  = 0;
+		uint32	 _peak_point_lights	  = 0;
+		uint32	 _peak_spot_lights	  = 0;
+		uint32	 _peak_dir_lights	  = 0;
 
 		static_vector<material_update_bucket, BACK_BUFFER_COUNT> _material_update_buckets;
 		destroy_bucket											 _destroy_bucket[BACK_BUFFER_COUNT + 1];

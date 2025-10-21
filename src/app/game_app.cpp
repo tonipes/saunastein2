@@ -161,6 +161,7 @@ namespace SFG
 		_render_stream.publish();
 		_renderer->uninit(_render_stream);
 		delete _renderer;
+		_renderer = nullptr;
 
 		_main_window->destroy();
 		delete _main_window;
@@ -265,7 +266,7 @@ namespace SFG
 		if (ev.type != window_event_type::focus && !_main_window->get_flags().is_set(window_flags::wf_has_focus))
 			return;
 
-		if (_renderer->on_window_event(ev))
+		if (_renderer && _renderer->on_window_event(ev))
 			return;
 
 #ifdef SFG_TOOLMODE

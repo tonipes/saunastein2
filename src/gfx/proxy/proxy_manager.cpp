@@ -14,27 +14,64 @@
 #include "common/system_info.hpp"
 #include "data/istream.hpp"
 #include "math/math.hpp"
-#include "world/world_max_defines.hpp"
 
 namespace SFG
 {
 
+	proxy_manager::proxy_manager(buffer_queue& b, texture_queue& t) : _buffer_queue(b), _texture_queue(t)
+	{
+		_textures		= new textures_type();
+		_samplers		= new samplers_type();
+		_materials		= new materials_type();
+		_shaders		= new shaders_type();
+		_meshes			= new meshes_type();
+		_models			= new models_type();
+		_entities		= new entity_type();
+		_mesh_instances = new mesh_instances_type();
+		_cameras		= new cameras_type();
+		_ambients		= new ambients_type();
+		_point_lights	= new point_lights_type();
+		_spot_lights	= new spot_lights_type();
+		_dir_lights		= new dir_lights_type();
+	}
+
+	proxy_manager::~proxy_manager()
+	{
+		delete _textures;
+		delete _samplers;
+		delete _materials;
+		delete _shaders;
+		delete _meshes;
+		delete _models;
+		delete _entities;
+		delete _mesh_instances;
+		delete _cameras;
+		delete _ambients;
+		delete _point_lights;
+		delete _spot_lights;
+		delete _dir_lights;
+	}
+
+	void proxy_manager::reset()
+	{
+		_textures->reset();
+		_samplers->reset();
+		_materials->reset();
+		_shaders->reset();
+		_meshes->reset();
+		_models->reset();
+		_entities->reset();
+		_mesh_instances->reset();
+		_cameras->reset();
+		_ambients->reset();
+		_point_lights->reset();
+		_spot_lights->reset();
+		_dir_lights->reset();
+	}
+
 	void proxy_manager::init()
 	{
-		_shaders.init(MAX_WORLD_SHADERS);
-		_textures.init(MAX_WORLD_TEXTURES);
-		_samplers.init(MAX_WORLD_SAMPLERS);
-		_materials.init(MAX_WORLD_MATERIALS);
-		_meshes.init(MAX_WORLD_MESHES);
-		_models.init(MAX_WORLD_MODELS);
-
-		_entities.init(MAX_ENTITIES);
-		_mesh_instances.init(MAX_ENTITIES);
-		_cameras.init(MAX_ENTITIES);
-		_ambients.init(1);
-		_point_lights.init(MAX_ENTITIES);
-		_spot_lights.init(MAX_ENTITIES);
-		_dir_lights.init(MAX_ENTITIES);
+		_material_update_buckets.resize(BACK_BUFFER_COUNT);
 
 		for (uint8 i = 0; i < BACK_BUFFER_COUNT + 1; i++)
 		{
@@ -49,7 +86,13 @@ namespace SFG
 
 	void proxy_manager::uninit()
 	{
-		for (auto& res : _textures)
+		auto& textures	= *_textures;
+		auto& samplers	= *_samplers;
+		auto& materials = *_materials;
+		auto& shaders	= *_shaders;
+		auto& meshes	= *_meshes;
+
+		for (auto& res : *_textures)
 		{
 			if (res.status == 0)
 				continue;
@@ -57,7 +100,7 @@ namespace SFG
 			destroy_texture(res);
 		}
 
-		for (auto& res : _samplers)
+		for (auto& res : samplers)
 		{
 			if (res.status == 0)
 				continue;
@@ -65,7 +108,7 @@ namespace SFG
 			destroy_sampler(res);
 		}
 
-		for (auto& res : _shaders)
+		for (auto& res : shaders)
 		{
 			if (res.status == 0)
 				continue;
@@ -73,7 +116,7 @@ namespace SFG
 			destroy_shader(res);
 		}
 
-		for (auto& res : _materials)
+		for (auto& res : materials)
 		{
 			if (res.status == 0)
 				continue;
@@ -81,7 +124,7 @@ namespace SFG
 			destroy_material(res);
 		}
 
-		for (auto& res : _meshes)
+		for (auto& res : meshes)
 		{
 			if (res.status == 0)
 				continue;
@@ -91,20 +134,7 @@ namespace SFG
 
 		flush_destroys(true);
 
-		_entities.uninit();
-		_cameras.uninit();
-		_mesh_instances.uninit();
-		_models.uninit();
-
-		_shaders.uninit();
-		_textures.uninit();
-		_samplers.uninit();
-		_materials.uninit();
-		_meshes.uninit();
-		_ambients.uninit();
-		_spot_lights.uninit();
-		_point_lights.uninit();
-		_dir_lights.uninit();
+		reset();
 
 		_aux_memory.uninit();
 	}
@@ -248,7 +278,7 @@ namespace SFG
 			ev.deserialize(stream);
 			_peak_spot_lights = math::max(_peak_spot_lights, index) + 1;
 
-			render_proxy_spot_light& proxy = _spot_lights.get(index);
+			render_proxy_spot_light& proxy = _spot_lights->get(index);
 			proxy.status				   = render_proxy_status::rps_active;
 			proxy.entity				   = index;
 		}
@@ -258,7 +288,7 @@ namespace SFG
 			ev.deserialize(stream);
 			_peak_point_lights = math::max(_peak_point_lights, index) + 1;
 
-			render_proxy_point_light& proxy = _point_lights.get(index);
+			render_proxy_point_light& proxy = _point_lights->get(index);
 			proxy.status					= render_proxy_status::rps_active;
 			proxy.entity					= index;
 		}
@@ -268,7 +298,7 @@ namespace SFG
 			ev.deserialize(stream);
 			_peak_dir_lights = math::max(_peak_dir_lights, index) + 1;
 
-			render_proxy_dir_light& proxy = _dir_lights.get(index);
+			render_proxy_dir_light& proxy = _dir_lights->get(index);
 			proxy.status				  = render_proxy_status::rps_active;
 			proxy.entity				  = index;
 		}
@@ -280,19 +310,19 @@ namespace SFG
 		}
 		else if (type == render_event_type::render_event_remove_point_light)
 		{
-			render_proxy_point_light& proxy = _point_lights.get(index);
+			render_proxy_point_light& proxy = _point_lights->get(index);
 			proxy.status					= render_proxy_status::rps_active;
 			proxy							= {};
 		}
 		else if (type == render_event_type::render_event_remove_spot_light)
 		{
-			render_proxy_spot_light& proxy = _spot_lights.get(index);
+			render_proxy_spot_light& proxy = _spot_lights->get(index);
 			proxy.status				   = render_proxy_status::rps_active;
 			proxy						   = {};
 		}
 		else if (type == render_event_type::render_event_remove_dir_light)
 		{
-			render_proxy_dir_light& proxy = _dir_lights.get(index);
+			render_proxy_dir_light& proxy = _dir_lights->get(index);
 			proxy.status				  = render_proxy_status::rps_active;
 			proxy						  = {};
 		}
@@ -386,7 +416,7 @@ namespace SFG
 			ev.deserialize(stream);
 			for (uint32 i = 0; i < MAX_WORLD_MATERIALS; i++)
 			{
-				render_proxy_material& mat = _materials.get(i);
+				render_proxy_material& mat = _materials->get(i);
 				if (mat.status != render_proxy_status::rps_active)
 					continue;
 
@@ -424,7 +454,8 @@ namespace SFG
 			// Invalidate materials using this texture.
 			// Materials are dependent on shaders & textures. Shaders already checked in runtime.
 			// This is to avoid checking textures too.
-			for (render_proxy_material& m : _materials)
+			auto& mats = *_materials;
+			for (render_proxy_material& m : mats)
 			{
 				for (uint16 txt : m.texture_handles)
 				{
@@ -467,7 +498,7 @@ namespace SFG
 			ev.deserialize(stream);
 			for (uint32 i = 0; i < MAX_WORLD_MATERIALS; i++)
 			{
-				render_proxy_material& mat = _materials.get(i);
+				render_proxy_material& mat = _materials->get(i);
 				if (mat.status != render_proxy_status::rps_active)
 					continue;
 
@@ -543,10 +574,10 @@ namespace SFG
 					backend->bind_group_update_pointer(proxy.bind_groups[i],
 													   1,
 													   {
-														   {.resource = _samplers.get(ev.sampler_index).hw, .pointer_index = static_cast<uint8>(upi_dyn_sampler0), .type = binding_type::sampler},
-														   {.resource = _samplers.get(ev.sampler_index).hw, .pointer_index = static_cast<uint8>(upi_dyn_sampler1), .type = binding_type::sampler},
-														   {.resource = _samplers.get(ev.sampler_index).hw, .pointer_index = static_cast<uint8>(upi_dyn_sampler2), .type = binding_type::sampler},
-														   {.resource = _samplers.get(ev.sampler_index).hw, .pointer_index = static_cast<uint8>(upi_dyn_sampler3), .type = binding_type::sampler},
+														   {.resource = _samplers->get(ev.sampler_index).hw, .pointer_index = static_cast<uint8>(upi_dyn_sampler0), .type = binding_type::sampler},
+														   {.resource = _samplers->get(ev.sampler_index).hw, .pointer_index = static_cast<uint8>(upi_dyn_sampler1), .type = binding_type::sampler},
+														   {.resource = _samplers->get(ev.sampler_index).hw, .pointer_index = static_cast<uint8>(upi_dyn_sampler2), .type = binding_type::sampler},
+														   {.resource = _samplers->get(ev.sampler_index).hw, .pointer_index = static_cast<uint8>(upi_dyn_sampler3), .type = binding_type::sampler},
 													   });
 				}
 

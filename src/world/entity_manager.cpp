@@ -2,34 +2,17 @@
 
 #include "entity_manager.hpp"
 #include "world.hpp"
-#include "world/traits/trait_mesh_instance.hpp"
-#include "world/traits/trait_light.hpp"
 #include "gfx/event_stream/render_event_common.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"
 #include "gfx/event_stream/render_events_entity.hpp"
 #include "reflection/reflection.hpp"
 #include "math/math.hpp"
-#include "world/world_max_defines.hpp"
 
 namespace SFG
 {
 	entity_manager::entity_manager(world& w) : _world(w)
 	{
-
-		_entities.init<world_id>(MAX_ENTITIES);
-		_metas.init(MAX_ENTITIES);
-		_positions.init(MAX_ENTITIES);
-		_prev_positions.init(MAX_ENTITIES);
-		_rotations.init(MAX_ENTITIES);
-		_rotations_abs.init(MAX_ENTITIES);
-		_prev_rotations.init(MAX_ENTITIES);
-		_scales.init(MAX_ENTITIES);
-		_prev_scales.init(MAX_ENTITIES);
-		_aabbs.init(MAX_ENTITIES);
-		_matrices.init(MAX_ENTITIES);
-		_abs_matrices.init(MAX_ENTITIES);
-		_families.init(MAX_ENTITIES);
-		_trait_registers.init(MAX_ENTITIES);
+		_entities = new pool_allocator_gen<world_id, world_id, MAX_ENTITIES>();
 
 		const auto& metas = reflection::get().get_metas();
 		for (const auto& [sid, meta] : metas)
@@ -43,7 +26,7 @@ namespace SFG
 
 	entity_manager::~entity_manager()
 	{
-		_entities.uninit();
+		delete _entities;
 	}
 
 	void entity_manager::init()
@@ -58,9 +41,10 @@ namespace SFG
 		render_event_stream& stream = _world.get_render_stream();
 
 		render_event_entity_transform update = {};
-		for (world_handle h : _entities)
+		for (auto it = _entities->handles_begin(); it != _entities->handles_end(); ++it)
 		{
-			entity_meta& m = metas[h.index];
+			const world_handle h = *it;
+			entity_meta&	   m = metas[h.index];
 			if (m.render_proxy_count != 0 && m.flags.is_set(entity_flags::entity_flags_render_proxy_dirty))
 			{
 				calculate_interpolated_transform_abs(h, i, update.position, update.rotation, update.scale);
@@ -79,7 +63,7 @@ namespace SFG
 
 	void entity_manager::on_trait_added(world_handle entity, world_handle trait_handle, string_id trait_type)
 	{
-		SFG_ASSERT(_entities.is_valid(entity));
+		SFG_ASSERT(_entities->is_valid(entity));
 		entity_trait_register& reg = _trait_registers.get(entity.index);
 
 		const entity_trait target = {
@@ -92,7 +76,7 @@ namespace SFG
 
 	void entity_manager::on_trait_removed(world_handle entity, world_handle trait_handle, string_id trait_type)
 	{
-		SFG_ASSERT(_entities.is_valid(entity));
+		SFG_ASSERT(_entities->is_valid(entity));
 		entity_trait_register& reg = _trait_registers.get(entity.index);
 
 		const entity_trait target = {
@@ -104,7 +88,7 @@ namespace SFG
 
 	void entity_manager::reset_all_entity_data()
 	{
-		_entities.reset();
+		_entities->reset();
 		_aabbs.reset();
 		_metas.reset();
 		_positions.reset();
@@ -150,7 +134,7 @@ namespace SFG
 
 	world_handle entity_manager::create_entity(const char* name)
 	{
-		world_handle handle = _entities.allocate<world_id>();
+		world_handle handle = _entities->add();
 		set_entity_scale(handle, vector3::one);
 		set_entity_prev_scale_abs(handle, vector3::one);
 
@@ -162,14 +146,14 @@ namespace SFG
 
 	void entity_manager::destroy_entity(world_handle entity)
 	{
-		SFG_ASSERT(_entities.is_valid(entity));
+		SFG_ASSERT(_entities->is_valid(entity));
 
 		entity_family& fam = _families.get(entity.index);
 
 		// If parent exists, we gotta check for first-child case.
 		if (!fam.parent.is_null())
 		{
-			SFG_ASSERT(_entities.is_valid(fam.parent));
+			SFG_ASSERT(_entities->is_valid(fam.parent));
 			entity_family& fam_parent = _families.get(fam.parent.index);
 
 			if (fam_parent.first_child == entity)
@@ -179,7 +163,7 @@ namespace SFG
 
 				if (!fam.next_sibling.is_null())
 				{
-					SFG_ASSERT(_entities.is_valid(fam.next_sibling));
+					SFG_ASSERT(_entities->is_valid(fam.next_sibling));
 					fam_parent.first_child = fam.next_sibling;
 				}
 			}
@@ -188,14 +172,14 @@ namespace SFG
 		// Assign next/prev siblings
 		if (!fam.prev_sibling.is_null())
 		{
-			SFG_ASSERT(_entities.is_valid(fam.prev_sibling));
+			SFG_ASSERT(_entities->is_valid(fam.prev_sibling));
 			entity_family& fam_prev = _families.get(fam.prev_sibling.index);
 			fam_prev.next_sibling	= fam.next_sibling;
 		}
 
 		if (!fam.next_sibling.is_null())
 		{
-			SFG_ASSERT(_entities.is_valid(fam.next_sibling));
+			SFG_ASSERT(_entities->is_valid(fam.next_sibling));
 			entity_family& fam_next = _families.get(fam.next_sibling.index);
 			fam_next.prev_sibling	= fam.prev_sibling;
 		}
@@ -211,24 +195,24 @@ namespace SFG
 
 		remove_all_entity_traits(entity);
 		reset_entity_data(entity);
-		_entities.free<world_id>(entity);
+		_entities->remove(entity);
 	}
 
 	const aabb& entity_manager::get_entity_aabb(world_handle entity)
 	{
-		SFG_ASSERT(_entities.is_valid(entity));
+		SFG_ASSERT(_entities->is_valid(entity));
 		return _aabbs.get(entity.index);
 	}
 
 	void entity_manager::add_child(world_handle parent, world_handle child_to_add)
 	{
-		SFG_ASSERT(_entities.is_valid(parent));
-		SFG_ASSERT(_entities.is_valid(child_to_add));
+		SFG_ASSERT(_entities->is_valid(parent));
+		SFG_ASSERT(_entities->is_valid(child_to_add));
 		entity_family& fam_parent = _families.get(parent.index);
 		entity_family& fam_child  = _families.get(child_to_add.index);
 
 		// remove from current parent if exists
-		if (_entities.is_valid(fam_child.parent))
+		if (_entities->is_valid(fam_child.parent))
 			remove_child(fam_child.parent, child_to_add);
 
 		fam_child.parent = parent;
@@ -241,7 +225,7 @@ namespace SFG
 		}
 		else
 		{
-			SFG_ASSERT(_entities.is_valid(fam_parent.first_child));
+			SFG_ASSERT(_entities->is_valid(fam_parent.first_child));
 			entity_family& fam_first_child = _families.get(fam_parent.first_child.index);
 
 			// We gotta find the last child. Start with the first one, iterate until next one is null.
@@ -249,14 +233,14 @@ namespace SFG
 			world_handle next_child = last_child;
 			while (!next_child.is_null())
 			{
-				SFG_ASSERT(_entities.is_valid(next_child));
+				SFG_ASSERT(_entities->is_valid(next_child));
 				entity_family& fam_current = _families.get(next_child.index);
 				last_child				   = next_child;
 				next_child				   = fam_current.next_sibling;
 			}
 
 			SFG_ASSERT(!last_child.is_null());
-			SFG_ASSERT(_entities.is_valid(last_child));
+			SFG_ASSERT(_entities->is_valid(last_child));
 			entity_family& fam_found_last_child = _families.get(last_child.index);
 			fam_found_last_child.next_sibling	= child_to_add;
 			fam_child.prev_sibling				= last_child;
@@ -265,8 +249,8 @@ namespace SFG
 
 	void entity_manager::remove_child(world_handle parent, world_handle child_to_remove)
 	{
-		SFG_ASSERT(_entities.is_valid(parent));
-		SFG_ASSERT(_entities.is_valid(child_to_remove));
+		SFG_ASSERT(_entities->is_valid(parent));
+		SFG_ASSERT(_entities->is_valid(child_to_remove));
 
 		entity_family& fam_parent = _families.get(parent.index);
 		entity_family& fam_child  = _families.get(child_to_remove.index);
@@ -279,7 +263,7 @@ namespace SFG
 
 			if (!fam_child.next_sibling.is_null())
 			{
-				SFG_ASSERT(_entities.is_valid(fam_child.next_sibling));
+				SFG_ASSERT(_entities->is_valid(fam_child.next_sibling));
 
 				fam_parent.first_child = fam_child.next_sibling;
 
@@ -293,7 +277,7 @@ namespace SFG
 			// If not the first, there must be a prev sibling.
 			// Find it, give it our current next sibling.
 			SFG_ASSERT(!fam_child.prev_sibling.is_null());
-			SFG_ASSERT(_entities.is_valid(fam_child.prev_sibling));
+			SFG_ASSERT(_entities->is_valid(fam_child.prev_sibling));
 
 			entity_family& fam_prev_sibling = _families.get(fam_child.prev_sibling.index);
 			fam_prev_sibling.next_sibling	= fam_child.next_sibling;
@@ -301,7 +285,7 @@ namespace SFG
 			// If our current next sibling is alive, give it our current prev sibling.
 			if (!fam_child.next_sibling.is_null())
 			{
-				SFG_ASSERT(_entities.is_valid(fam_child.next_sibling));
+				SFG_ASSERT(_entities->is_valid(fam_child.next_sibling));
 				entity_family& fam_next_sibling = _families.get(fam_child.next_sibling.index);
 				fam_next_sibling.prev_sibling	= fam_child.prev_sibling;
 			}
@@ -314,15 +298,15 @@ namespace SFG
 
 	void entity_manager::remove_from_parent(world_handle entity)
 	{
-		SFG_ASSERT(_entities.is_valid(entity));
+		SFG_ASSERT(_entities->is_valid(entity));
 		const entity_family& family = _families.get(entity.index);
-		SFG_ASSERT(_entities.is_valid(family.parent));
+		SFG_ASSERT(_entities->is_valid(family.parent));
 		remove_child(family.parent, entity);
 	}
 
 	world_handle entity_manager::get_child_by_index(world_handle entity, uint32 index)
 	{
-		SFG_ASSERT(_entities.is_valid(entity));
+		SFG_ASSERT(_entities->is_valid(entity));
 		const entity_family& family = _families.get(entity.index);
 
 		if (family.first_child.is_null())
@@ -344,19 +328,19 @@ namespace SFG
 
 	const entity_meta& entity_manager::get_entity_meta(world_handle entity) const
 	{
-		SFG_ASSERT(_entities.is_valid(entity));
+		SFG_ASSERT(_entities->is_valid(entity));
 		return _metas.get(entity.index);
 	}
 
 	const entity_family& entity_manager::get_entity_family(world_handle entity) const
 	{
-		SFG_ASSERT(_entities.is_valid(entity));
+		SFG_ASSERT(_entities->is_valid(entity));
 		return _families.get(entity.index);
 	}
 
 	void entity_manager::on_add_render_proxy(world_handle entity)
 	{
-		SFG_ASSERT(_entities.is_valid(entity));
+		SFG_ASSERT(_entities->is_valid(entity));
 		entity_meta& meta = _metas.get(entity.index);
 		meta.render_proxy_count++;
 		meta.flags.set(entity_flags::entity_flags_render_proxy_dirty);
@@ -364,7 +348,7 @@ namespace SFG
 
 	void entity_manager::on_remove_render_proxy(world_handle entity)
 	{
-		SFG_ASSERT(_entities.is_valid(entity));
+		SFG_ASSERT(_entities->is_valid(entity));
 
 		entity_meta& meta = _metas.get(entity.index);
 		SFG_ASSERT(meta.render_proxy_count > 0);
@@ -390,7 +374,7 @@ namespace SFG
 
 	void entity_manager::set_entity_position(world_handle entity, const vector3& pos)
 	{
-		SFG_ASSERT(_entities.is_valid(entity));
+		SFG_ASSERT(_entities->is_valid(entity));
 		_positions.get(entity.index) = pos;
 		_metas.get(entity.index).flags.set(entity_flags::entity_flags_local_transform_dirty | entity_flags::entity_flags_abs_transform_dirty | entity_flags::entity_flags_render_proxy_dirty);
 		visit_children(entity, [this](world_handle e) { _metas.get(e.index).flags.set(entity_flags::entity_flags_abs_transform_dirty); });
@@ -398,7 +382,7 @@ namespace SFG
 
 	void entity_manager::set_entity_position_abs(world_handle entity, const vector3& pos)
 	{
-		SFG_ASSERT(_entities.is_valid(entity));
+		SFG_ASSERT(_entities->is_valid(entity));
 		entity_family& fam = _families.get(entity.index);
 
 		if (fam.parent.is_null())
@@ -414,19 +398,19 @@ namespace SFG
 
 	const vector3& entity_manager::get_entity_position(world_handle entity) const
 	{
-		SFG_ASSERT(_entities.is_valid(entity));
+		SFG_ASSERT(_entities->is_valid(entity));
 		return _positions.get(entity.index);
 	}
 
 	vector3 entity_manager::get_entity_position_abs(world_handle entity)
 	{
-		SFG_ASSERT(_entities.is_valid(entity));
+		SFG_ASSERT(_entities->is_valid(entity));
 		return get_entity_transform_abs(entity).get_translation();
 	}
 
 	void entity_manager::set_entity_rotation(world_handle entity, const quat& rot)
 	{
-		SFG_ASSERT(_entities.is_valid(entity));
+		SFG_ASSERT(_entities->is_valid(entity));
 		_rotations.get(entity.index) = rot;
 		_metas.get(entity.index).flags.set(entity_flags::entity_flags_local_transform_dirty | entity_flags::entity_flags_abs_transform_dirty | entity_flags::entity_flags_abs_rotation_dirty | entity_flags::entity_flags_render_proxy_dirty);
 		visit_children(entity, [this](world_handle e) { _metas.get(e.index).flags.set(entity_flags::entity_flags_abs_transform_dirty | entity_flags::entity_flags_abs_rotation_dirty); });
@@ -434,7 +418,7 @@ namespace SFG
 
 	void entity_manager::set_entity_rotation_abs(world_handle entity, const quat& rot)
 	{
-		SFG_ASSERT(_entities.is_valid(entity));
+		SFG_ASSERT(_entities->is_valid(entity));
 
 		entity_family& fam	  = _families.get(entity.index);
 		world_handle   parent = fam.parent;
@@ -452,7 +436,7 @@ namespace SFG
 
 	const quat& entity_manager::get_entity_rotation(world_handle entity) const
 	{
-		SFG_ASSERT(_entities.is_valid(entity));
+		SFG_ASSERT(_entities->is_valid(entity));
 		return _rotations.get(entity.index);
 	}
 
@@ -479,19 +463,19 @@ namespace SFG
 
 	const vector3& entity_manager::get_entity_scale(world_handle entity) const
 	{
-		SFG_ASSERT(_entities.is_valid(entity));
+		SFG_ASSERT(_entities->is_valid(entity));
 		return _scales.get(entity.index);
 	}
 
 	vector3 entity_manager::get_entity_scale_abs(world_handle entity)
 	{
-		SFG_ASSERT(_entities.is_valid(entity));
+		SFG_ASSERT(_entities->is_valid(entity));
 		return get_entity_transform_abs(entity).get_scale();
 	}
 
 	void entity_manager::set_entity_scale(world_handle entity, const vector3& scale)
 	{
-		SFG_ASSERT(_entities.is_valid(entity));
+		SFG_ASSERT(_entities->is_valid(entity));
 		_scales.get(entity.index) = scale;
 		_metas.get(entity.index).flags.set(entity_flags::entity_flags_local_transform_dirty | entity_flags::entity_flags_abs_transform_dirty | entity_flags::entity_flags_render_proxy_dirty);
 		visit_children(entity, [this](world_handle e) { _metas.get(e.index).flags.set(entity_flags::entity_flags_abs_transform_dirty); });
@@ -499,7 +483,7 @@ namespace SFG
 
 	void entity_manager::set_entity_scale_abs(world_handle entity, const vector3& scale)
 	{
-		SFG_ASSERT(_entities.is_valid(entity));
+		SFG_ASSERT(_entities->is_valid(entity));
 
 		entity_family& fam	  = _families.get(entity.index);
 		world_handle   parent = fam.parent;
@@ -522,7 +506,7 @@ namespace SFG
 
 	const matrix4x3& entity_manager::get_entity_transform(world_handle entity)
 	{
-		SFG_ASSERT(_entities.is_valid(entity));
+		SFG_ASSERT(_entities->is_valid(entity));
 		matrix4x3&		 transform = _matrices.get(entity.index);
 		bitmask<uint16>& flags	   = _metas.get(entity.index).flags;
 
@@ -537,7 +521,7 @@ namespace SFG
 
 	const matrix4x3& entity_manager::get_entity_transform_abs(world_handle entity)
 	{
-		SFG_ASSERT(_entities.is_valid(entity));
+		SFG_ASSERT(_entities->is_valid(entity));
 
 		bitmask<uint16>& flags		= _metas.get(entity.index).flags;
 		matrix4x3&		 abs_matrix = _abs_matrices.get(entity.index);
@@ -556,43 +540,43 @@ namespace SFG
 
 	void entity_manager::set_entity_prev_position_abs(world_handle entity, const vector3& pos)
 	{
-		SFG_ASSERT(_entities.is_valid(entity));
+		SFG_ASSERT(_entities->is_valid(entity));
 		_prev_positions.get(entity.index) = pos;
 	}
 
 	void entity_manager::set_entity_prev_rotation_abs(world_handle entity, const quat& rot)
 	{
-		SFG_ASSERT(_entities.is_valid(entity));
+		SFG_ASSERT(_entities->is_valid(entity));
 		_prev_rotations.get(entity.index) = rot;
 	}
 
 	void entity_manager::set_entity_prev_scale_abs(world_handle entity, const vector3& scale)
 	{
-		SFG_ASSERT(_entities.is_valid(entity));
+		SFG_ASSERT(_entities->is_valid(entity));
 		_prev_scales.get(entity.index) = scale;
 	}
 
 	const vector3& entity_manager::get_entity_prev_position_abs(world_handle entity) const
 	{
-		SFG_ASSERT(_entities.is_valid(entity));
+		SFG_ASSERT(_entities->is_valid(entity));
 		return _prev_positions.get(entity.index);
 	}
 
 	const quat& entity_manager::get_entity_prev_rotation_abs(world_handle entity) const
 	{
-		SFG_ASSERT(_entities.is_valid(entity));
+		SFG_ASSERT(_entities->is_valid(entity));
 		return _prev_rotations.get(entity.index);
 	}
 
 	const vector3& entity_manager::get_entity_prev_scale_abs(world_handle entity) const
 	{
-		SFG_ASSERT(_entities.is_valid(entity));
+		SFG_ASSERT(_entities->is_valid(entity));
 		return _prev_scales.get(entity.index);
 	}
 
 	void entity_manager::calculate_interpolated_transform_abs(world_handle entity, float interpolation, vector3& out_position, quat& out_rotation, vector3& out_scale)
 	{
-		SFG_ASSERT(_entities.is_valid(entity));
+		SFG_ASSERT(_entities->is_valid(entity));
 
 		entity_meta&  meta			= _metas.get(entity.index);
 		const vector3 ent_pos_abs	= get_entity_position_abs(entity);
@@ -624,7 +608,7 @@ namespace SFG
 
 	void entity_manager::teleport_entity(world_handle entity)
 	{
-		SFG_ASSERT(_entities.is_valid(entity));
+		SFG_ASSERT(_entities->is_valid(entity));
 
 		auto sync_prev = [this](world_handle handle) {
 			entity_meta&  meta		= _metas.get(handle.index);

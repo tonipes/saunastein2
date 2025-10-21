@@ -28,6 +28,10 @@ namespace SFG
 			}
 		}
 
+		// -----------------------------------------------------------------------------
+		// lifecycle
+		// -----------------------------------------------------------------------------
+
 		inline pool_handle<SIZE_TYPE> add()
 		{
 			if (_free_count > 0)
@@ -63,18 +67,6 @@ namespace SFG
 			_actives[handle.index] = 0;
 		}
 
-		T& get(pool_handle<SIZE_TYPE> handle)
-		{
-			SFG_ASSERT(is_valid(handle));
-			return _items[handle.index];
-		}
-
-		const T& get(pool_handle<SIZE_TYPE> handle) const
-		{
-			SFG_ASSERT(is_valid(handle));
-			return _items[handle.index];
-		}
-
 		inline bool is_valid(pool_handle<SIZE_TYPE> handle) const
 		{
 			return _generations[handle.index] == handle.generation;
@@ -93,6 +85,26 @@ namespace SFG
 			_head		= 0;
 			_free_count = 0;
 		}
+
+		// -----------------------------------------------------------------------------
+		// accessors
+		// -----------------------------------------------------------------------------
+
+		T& get(pool_handle<SIZE_TYPE> handle)
+		{
+			SFG_ASSERT(is_valid(handle));
+			return _items[handle.index];
+		}
+
+		const T& get(pool_handle<SIZE_TYPE> handle) const
+		{
+			SFG_ASSERT(is_valid(handle));
+			return _items[handle.index];
+		}
+
+		// -----------------------------------------------------------------------------
+		// iterator
+		// -----------------------------------------------------------------------------
 
 		template <typename TYPE> struct iterator
 		{
@@ -146,6 +158,30 @@ namespace SFG
 			SIZE_TYPE	 _end	  = 0;
 		};
 
+		iterator<const T> begin() const
+		{
+			return iterator<const T>(_items, _actives, 0, _head);
+		}
+
+		iterator<const T> end() const
+		{
+			return iterator<const T>(_items, _actives, _head, _head);
+		}
+
+		iterator<T> begin()
+		{
+			return iterator<T>(_items, _actives, 0, _head);
+		}
+
+		iterator<T> end()
+		{
+			return iterator<T>(_items, _actives, _head, _head);
+		}
+
+		// -----------------------------------------------------------------------------
+		// handle iterators
+		// -----------------------------------------------------------------------------
+
 		struct handle_iterator
 		{
 			handle_iterator(const SIZE_TYPE* gens, const uint8* actives, SIZE_TYPE begin, SIZE_TYPE end) : _gens(gens), _actives(actives), _current(begin), _end(end)
@@ -193,26 +229,6 @@ namespace SFG
 			SIZE_TYPE		 _current = 0;
 			SIZE_TYPE		 _end	  = 0;
 		};
-
-		iterator<const T> begin() const
-		{
-			return iterator<const T>(_items, _actives, 0, _head);
-		}
-
-		iterator<const T> end() const
-		{
-			return iterator<const T>(_items, _actives, _head, _head);
-		}
-
-		iterator<T> begin()
-		{
-			return iterator<T>(_items, _actives, 0, _head);
-		}
-
-		iterator<T> end()
-		{
-			return iterator<T>(_items, _actives, _head, _head);
-		}
 
 		handle_iterator handles_begin() const
 		{

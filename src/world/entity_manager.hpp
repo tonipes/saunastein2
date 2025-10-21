@@ -3,27 +3,17 @@
 #pragma once
 #include "common_world.hpp"
 #include "common_entity.hpp"
-#include "common/type_id.hpp"
-#include "traits/common_trait.hpp"
 #include "memory/pool_allocator_simple.hpp"
-#include "memory/pool_allocator.hpp"
-#include "data/static_vector.hpp"
+#include "memory/pool_allocator_gen.hpp"
 #include "memory/chunk_allocator.hpp"
 #include "math/aabb.hpp"
 #include "math/matrix4x3.hpp"
 #include "math/quat.hpp"
-#include <gui/vekt.hpp>
-#include <functional>
+#include "world/world_max_defines.hpp"
 
 namespace SFG
 {
 	class world;
-
-	struct trait_storage
-	{
-		pool_allocator32 storage;
-		string_id		 type_id = 0;
-	};
 
 	class entity_manager
 	{
@@ -113,7 +103,7 @@ namespace SFG
 			return _world;
 		}
 
-		inline pool_allocator32& get_entities()
+		inline auto get_entities()
 		{
 			return _entities;
 		}
@@ -129,19 +119,19 @@ namespace SFG
 	private:
 		world& _world;
 
-		pool_allocator32							 _entities		  = {};
-		pool_allocator_simple<entity_meta>			 _metas			  = {};
-		pool_allocator_simple<entity_family>		 _families		  = {};
-		pool_allocator_simple<vector3>				 _positions		  = {};
-		pool_allocator_simple<vector3>				 _prev_positions  = {};
-		pool_allocator_simple<quat>					 _rotations		  = {};
-		pool_allocator_simple<quat>					 _rotations_abs	  = {};
-		pool_allocator_simple<quat>					 _prev_rotations  = {};
-		pool_allocator_simple<vector3>				 _scales		  = {};
-		pool_allocator_simple<vector3>				 _prev_scales	  = {};
-		pool_allocator_simple<aabb>					 _aabbs			  = {};
-		pool_allocator_simple<matrix4x3>			 _matrices		  = {};
-		pool_allocator_simple<matrix4x3>			 _abs_matrices	  = {};
-		pool_allocator_simple<entity_trait_register> _trait_registers = {};
+		pool_allocator_gen<world_id, world_id, MAX_ENTITIES>*	   _entities		= {};
+		pool_allocator_simple<entity_meta, MAX_ENTITIES>		   _metas			= {};
+		pool_allocator_simple<entity_family, MAX_ENTITIES>		   _families		= {};
+		pool_allocator_simple<vector3, MAX_ENTITIES>			   _positions		= {};
+		pool_allocator_simple<vector3, MAX_ENTITIES>			   _prev_positions	= {};
+		pool_allocator_simple<quat, MAX_ENTITIES>				   _rotations		= {};
+		pool_allocator_simple<quat, MAX_ENTITIES>				   _rotations_abs	= {};
+		pool_allocator_simple<quat, MAX_ENTITIES>				   _prev_rotations	= {};
+		pool_allocator_simple<vector3, MAX_ENTITIES>			   _scales			= {};
+		pool_allocator_simple<vector3, MAX_ENTITIES>			   _prev_scales		= {};
+		pool_allocator_simple<aabb, MAX_ENTITIES>				   _aabbs			= {};
+		pool_allocator_simple<matrix4x3, MAX_ENTITIES>			   _matrices		= {};
+		pool_allocator_simple<matrix4x3, MAX_ENTITIES>			   _abs_matrices	= {};
+		pool_allocator_simple<entity_trait_register, MAX_ENTITIES> _trait_registers = {};
 	};
 }

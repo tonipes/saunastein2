@@ -3,106 +3,125 @@
 #pragma once
 
 #include "common/size_definitions.hpp"
-#include "memory/memory.hpp"
 #include "io/assert.hpp"
-#include "math/math_common.hpp"
+#include "memory.hpp"
+#include "data/vector.hpp"
 
 namespace SFG
 {
-	template <typename T> class pool_allocator_simple
+	template <typename T, int N> struct pool_allocator_simple
 	{
-	public:
-		inline void init(size_t item_count)
+		~pool_allocator_simple()
 		{
-			SFG_ASSERT(_raw == nullptr);
-			_item_size_aligned = ALIGN_UP(sizeof(T), alignof(T));
-			_raw			   = reinterpret_cast<uint8*>(SFG_ALIGNED_MALLOC(alignof(T), _item_size_aligned * item_count));
-			_item_count		   = item_count;
-
-			if (_raw)
-			{
-				T* ptr = reinterpret_cast<T*>(_raw);
-				for (uint32 i = 0; i < item_count; i++)
-					ptr[i] = T();
-			}
 		}
 
+		pool_allocator_simple()
+		{
+		}
+
+		// -----------------------------------------------------------------------------
+		// lifecycle
+		// -----------------------------------------------------------------------------
 		inline void reset()
 		{
-			T* ptr = reinterpret_cast<T*>(_raw);
-			for (uint32 i = 0; i < _item_count; i++)
-				ptr[i] = T();
+			for (uint32 i = 0; i < N; i++)
+				_items[i] = T();
 		}
 
-		inline void reset(uint32 index)
+		inline void reset(uint32 idx)
 		{
-			T* ptr	   = reinterpret_cast<T*>(_raw);
-			ptr[index] = T();
+			SFG_ASSERT(idx < N);
+			_items[idx] = T();
 		}
 
-		inline void uninit()
+		// -----------------------------------------------------------------------------
+		// accessors
+		// -----------------------------------------------------------------------------
+
+		T& get(uint32 idx)
 		{
-			SFG_ASSERT(_raw != nullptr);
-			SFG_ALIGNED_FREE(_raw);
-			_raw = nullptr;
+			SFG_ASSERT(idx < N);
+			return _items[idx];
 		}
 
-		T& get(uint32 index)
+		const T& get(uint32 idx) const
 		{
-			T* t = reinterpret_cast<T*>(_raw + (_item_size_aligned * index));
-			return *t;
+			SFG_ASSERT(idx < N);
+			return _items[idx];
 		}
 
-		const T& get(uint32 index) const
+		// -----------------------------------------------------------------------------
+		// iterator
+		// -----------------------------------------------------------------------------
+
+		template <typename TYPE> struct iterator
 		{
-			T* t = reinterpret_cast<T*>(_raw + (_item_size_aligned * index));
-			return *t;
-		}
+			using reference = TYPE&;
+			using pointer	= TYPE*;
 
-		struct iterator
-		{
-			uint32 current = 0;
-			uint32 end	   = 0;
-			T*	   items   = nullptr;
-
-			iterator(T* raw, uint32 c, uint32 e) : items(raw), current(c), end(e) {};
-
-			T& operator*() const
+			iterator(pointer ptr, uint32 begin, uint32 end) : _ptr(ptr), _current(begin), _end(end)
 			{
-				return items[current];
+			}
+
+			reference operator*() const
+			{
+				return *_ptr;
+			};
+			pointer operator->()
+			{
+				return _ptr;
 			}
 
 			iterator& operator++()
 			{
-				++current;
+				_current++;
 				return *this;
 			}
 
-			bool operator==(const iterator& other) const
+			iterator& operator++(int)
 			{
-				return current == other.current;
+				iterator tmp = *this;
+				++(*this);
+				return tmp;
 			}
 
-			bool operator!=(const iterator& other) const
+			friend bool operator==(const iterator& a, const iterator& b)
 			{
-				return current != other.current;
+				return a._current == b._current;
 			}
+
+			friend bool operator!=(const iterator& a, const iterator& b)
+			{
+				return a._current != b._current;
+			}
+
+			pointer _ptr	 = nullptr;
+			uint32	_current = 0;
+			uint32	_end	 = 0;
 		};
 
-		iterator begin() const
+		iterator<const T> begin() const
 		{
-			return iterator(reinterpret_cast<T*>(_raw), 0, _item_count);
+			return iterator<const T>(_items, 0, N);
 		}
 
-		iterator end() const
+		iterator<const T> end() const
 		{
-			return iterator(reinterpret_cast<T*>(_raw), _item_count, _item_count);
+			return iterator<const T>(_items, N, N);
+		}
+
+		iterator<T> begin()
+		{
+			return iterator<T>(_items, 0, N);
+		}
+
+		iterator<T> end()
+		{
+			return iterator<T>(_items, N, N);
 		}
 
 	private:
-		uint8* _raw				  = nullptr;
-		uint32 _item_size_aligned = 0;
-		uint32 _item_count		  = 0;
+		T _items[N];
 	};
 
 }

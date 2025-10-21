@@ -27,27 +27,31 @@ namespace SFG
 
 		reference operator[](size_type index)
 		{
-			SFG_ASSERT(index < capacity);
-			return _data[index];
+			return at(index);
 		}
 
 		const_reference operator[](size_type index) const
 		{
-			SFG_ASSERT(index < _head);
-			return _data[index];
+			return at(index);
 		}
 
 		reference at(size_type index)
 		{
 			if (index >= size())
+			{
+				SFG_ASSERT(false, "");
 				throw std::out_of_range("static_vector::at");
+			}
 			return _data[index];
 		}
 
 		const_reference at(size_type index) const
 		{
 			if (index >= size())
+			{
+				SFG_ASSERT(false, "");
 				throw std::out_of_range("static_vector::at");
+			}
 			return _data[index];
 		}
 

@@ -461,8 +461,8 @@ namespace SFG
 	void world_renderer::collect_model_instances()
 	{
 		const uint32	   mesh_instances_peak = _proxy_manager.get_peak_mesh_instances();
-		auto&			   mesh_instances	   = _proxy_manager.get_mesh_instances();
-		auto&			   entities			   = _proxy_manager.get_entities();
+		auto&			   mesh_instances	   = *_proxy_manager.get_mesh_instances();
+		auto&			   entities			   = *_proxy_manager.get_entities();
 		chunk_allocator32& aux				   = _proxy_manager.get_aux();
 
 		for (uint32 i = 0; i < mesh_instances_peak; i++)
