@@ -5,7 +5,6 @@
 #include "world/world.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"
 #include "gfx/event_stream/render_events_trait.hpp"
-#include "reflection/reflection.hpp"
 
 #ifdef SFG_TOOLMODE
 #include <vendor/nhlohmann/json.hpp>
@@ -14,24 +13,6 @@ using json = nlohmann::json;
 
 namespace SFG
 {
-	trait_camera_reflection::trait_camera_reflection()
-	{
-		meta& m = reflection::get().register_meta(type_id<trait_camera>::value, type_id<trait_camera>::index, "");
-		m.add_function<void, world&>("init_trait_storage"_hs, [](world& w) -> void { w.get_entity_manager().init_trait_storage<trait_camera>(MAX_ENTITIES); });
-		m.add_function<void, world&, world_handle, world_handle>("construct_add"_hs, [](world& w, world_handle entity, world_handle own_handle) {
-			trait_camera& t = w.get_entity_manager().get_trait<trait_camera>(own_handle);
-			t				= trait_camera();
-			t._header.entity	 = entity;
-			t._header.own_handle = own_handle;
-			t.on_add(w);
-		});
-
-		m.add_function<void, world&, world_handle>("destruct_remove"_hs, [](world& w, world_handle own_handle) -> void {
-			trait_camera& t = w.get_entity_manager().get_trait<trait_camera>(own_handle);
-			t.on_remove(w);
-			t.~trait_camera();
-		});
-	}
 
 	void trait_camera::set_values(world& w, float near_plane, float far_plane, float fov_degrees)
 	{
@@ -114,7 +95,7 @@ namespace SFG
 		j["fov_degrees"] = _fov_degrees;
 	}
 
-	void trait_camera::deserialize_json(nlohmann::json& j, world& w)
+	void trait_camera::deserialize_json(const nlohmann::json& j, world& w)
 	{
 		_near		 = j.value<float>("near", 0.0f);
 		_far		 = j.value<float>("far", 0.0f);

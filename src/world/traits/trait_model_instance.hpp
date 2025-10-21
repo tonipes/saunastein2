@@ -17,16 +17,12 @@ namespace SFG
 	class istream;
 	class world;
 	class resource_manager;
-	class render_event_stream;
-
-	struct trait_model_instance_reflection
-	{
-		trait_model_instance_reflection();
-	};
 
 	class trait_model_instance
 	{
 	public:
+		void on_add(world& we);
+		void on_remove(world& w);
 		void set_model(resource_handle model);
 		void instantiate_model_to_world(world& w, resource_handle model, resource_handle* materials = nullptr, uint32 materials_count = 0);
 
@@ -35,7 +31,7 @@ namespace SFG
 
 #ifdef SFG_TOOLMODE
 		void serialize_json(nlohmann::json& j, world& w) const;
-		void deserialize_json(nlohmann::json& j, world& w);
+		void deserialize_json(const nlohmann::json& j, world& w);
 #endif
 
 		inline resource_handle get_model() const
@@ -49,11 +45,8 @@ namespace SFG
 		}
 
 	private:
-		friend class entity_manager;
-		friend struct trait_model_instance_reflection;
+		template <typename T, int> friend class trait_cache;
 
-		void on_add(world& we);
-		void on_remove(world& w);
 		void fetch_refs(resource_manager& res, string_id& out_target) const;
 		void fill_refs(resource_manager& res, string_id target);
 
@@ -64,5 +57,5 @@ namespace SFG
 		uint32			_root_entities_count = 0;
 	};
 
-	REGISTER_TRAIT(trait_model_instance, trait_types::trait_type_model_instance, trait_model_instance_reflection);
+	REGISTER_TRAIT(trait_model_instance);
 }

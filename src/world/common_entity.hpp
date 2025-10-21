@@ -37,18 +37,19 @@ namespace SFG
 
 	struct entity_trait
 	{
-		string_id	 trait_type		  = 0;
-		uint32		 trait_type_index = 0;
-		world_handle trait_handle	  = {};
+		string_id	 trait_type	  = 0;
+		world_handle trait_handle = {};
 
 		bool operator==(const entity_trait& other) const
 		{
-			return trait_type == other.trait_type && trait_type_index == other.trait_type_index && trait_handle == other.trait_handle;
+			return trait_type == other.trait_type && trait_handle == other.trait_handle;
 		}
 	};
 
+#define MAX_TRAITS_PER_ENTITY 8
+
 	struct entity_trait_register
 	{
-		static_vector<entity_trait, UINT8_MAX> traits;
+		static_vector<entity_trait, MAX_TRAITS_PER_ENTITY> traits;
 	};
 }

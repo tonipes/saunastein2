@@ -22,8 +22,6 @@ namespace SFG
 	class ostream;
 	class meta;
 
-	template <typename T> struct resource_loader_traits;
-
 	enum class view_result : uint8
 	{
 		cont,
@@ -40,7 +38,6 @@ namespace SFG
 		// Loader I/O
 		virtual void* load_from_file(const char* path)									   = 0;
 		virtual void* load_from_stream(istream& stream)									   = 0;
-		virtual void  delete_loader(void* loader_ptr)									   = 0;
 		virtual void  save_to_stream(const void* loader, ostream& stream) const			   = 0;
 		virtual void  get_dependencies(const void* loader, vector<string>& out_deps) const = 0;
 
@@ -95,12 +92,6 @@ namespace SFG
 			Loader* loader = new Loader();
 			loader->deserialize(stream);
 			return loader;
-		}
-
-		void delete_loader(void* loader_ptr) override
-		{
-			Loader* loader = static_cast<Loader*>(loader_ptr);
-			delete loader;
 		}
 
 		void save_to_stream(const void* loader, ostream& stream) const override
@@ -248,7 +239,7 @@ namespace SFG
 			return _resources.get(h);
 		}
 
-		inline const T& get_by_hash_const(string_id hash) const
+		inline const T& get_by_hash_const(string_id hash) const 
 		{
 			const resource_handle& h = _by_hashes.at(hash);
 			return _resources.get(h);
@@ -420,7 +411,6 @@ namespace SFG
 		void*			load_from_file(string_id type, const char* path) const;
 		void*			load_from_stream(string_id type, istream& stream) const;
 		void			save_to_stream(string_id type, const void* loader, ostream& stream) const;
-		void			delete_loader(string_id type, void* loader) const;
 		void			get_dependencies(string_id type, const void* loader, vector<string>& out_dependencies) const;
 		resource_handle add_from_loader(string_id type, void* loader, uint32 priority, string_id hash) const;
 		void			destroy(string_id type, resource_handle h);
@@ -441,12 +431,6 @@ namespace SFG
 		{
 			const string_id type = type_id<T>::value;
 			save_to_stream(type, loader, stream);
-		}
-
-		template <typename T> inline void delete_loader(const void* loader) const
-		{
-			const string_id type = type_id<T>::value;
-			delete_loader(type, const_cast<void*>(loader));
 		}
 
 		template <typename T> inline void get_dependencies(const void* loader, vector<string>& out_dependencies) const

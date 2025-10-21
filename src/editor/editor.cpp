@@ -68,10 +68,11 @@ namespace SFG
 
 		world&			w  = *world_ptr;
 		entity_manager& em = w.get_entity_manager();
+		trait_manager&	tm = w.get_trait_manager();
 		_camera_entity	   = em.create_entity("editor_camera");
-		_camera_trait	   = em.add_trait<trait_camera>(_camera_entity);
+		_camera_trait	   = tm.add_trait<trait_camera>(_camera_entity);
 
-		trait_camera& cam_trait = em.get_trait<trait_camera>(_camera_trait);
+		trait_camera& cam_trait = tm.get_trait<trait_camera>(_camera_trait);
 		cam_trait.set_values(w, 0.01f, 500.0f, 45.0f);
 		cam_trait.set_main(w);
 
@@ -95,13 +96,14 @@ namespace SFG
 		if (!rm.is_valid<model>(boombox))
 			return;
 		entity_manager& em = w.get_entity_manager();
+		trait_manager&	tm = w.get_trait_manager();
 
 		_demo_model_root = em.create_entity("boombox_root");
 		em.set_entity_position(_demo_model_root, vector3::zero);
 		em.set_entity_rotation(_demo_model_root, quat::identity);
 
-		const world_handle	  model_inst_handle = em.add_trait<trait_model_instance>(_demo_model_root);
-		trait_model_instance& mi				= em.get_trait<trait_model_instance>(model_inst_handle);
+		const world_handle	  model_inst_handle = tm.add_trait<trait_model_instance>(_demo_model_root);
+		trait_model_instance& mi				= tm.get_trait<trait_model_instance>(model_inst_handle);
 		mi.set_model(boombox);
 		mi.instantiate_model_to_world(w, boombox);
 	}
@@ -114,12 +116,13 @@ namespace SFG
 
 		world&			w  = *world_ptr;
 		entity_manager& em = w.get_entity_manager();
+		trait_manager&	tm = w.get_trait_manager();
 
 		_camera_controller.uninit();
 
 		if (!_camera_trait.is_null())
 		{
-			em.remove_trait<trait_camera>(_camera_trait);
+			tm.remove_trait<trait_camera>(_camera_entity, _camera_trait);
 			_camera_trait = {};
 		}
 

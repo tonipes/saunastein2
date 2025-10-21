@@ -14,7 +14,6 @@ namespace SFG
 {
 	entity_manager::entity_manager(world& w) : _world(w)
 	{
-		_traits_aux_memory.init(MAX_WORLD_TRAITS_AUX_MEMORY);
 
 		_entities.init<world_id>(MAX_ENTITIES);
 		_metas.init(MAX_ENTITIES);
@@ -43,14 +42,6 @@ namespace SFG
 
 	entity_manager::~entity_manager()
 	{
-		_traits_aux_memory.uninit();
-
-		for (trait_storage& stg : _traits)
-		{
-			if (stg.storage.get_raw())
-				stg.storage.uninit();
-		}
-
 		_entities.uninit();
 	}
 
@@ -82,10 +73,32 @@ namespace SFG
 
 	void entity_manager::uninit()
 	{
-		for (trait_storage& stg : _traits)
-			stg.storage.reset();
-		_traits_aux_memory.reset();
 		reset_all_entity_data();
+	}
+
+	void entity_manager::on_trait_added(world_handle entity, world_handle trait_handle, string_id trait_type)
+	{
+		SFG_ASSERT(_entities.is_valid(entity));
+		entity_trait_register& reg = _trait_registers.get(entity.index);
+
+		const entity_trait target = {
+			.trait_type	  = trait_type,
+			.trait_handle = trait_handle,
+		};
+
+		reg.traits.push_back(target);
+	}
+
+	void entity_manager::on_trait_removed(world_handle entity, world_handle trait_handle, string_id trait_type)
+	{
+		SFG_ASSERT(_entities.is_valid(entity));
+		entity_trait_register& reg = _trait_registers.get(entity.index);
+
+		const entity_trait target = {
+			.trait_type	  = trait_type,
+			.trait_handle = trait_handle,
+		};
+		reg.traits.remove_swap(target);
 	}
 
 	void entity_manager::reset_all_entity_data()
@@ -115,9 +128,10 @@ namespace SFG
 		entity_trait_register& reg			 = _trait_registers.get(id);
 		auto				   copied_traits = reg.traits;
 
+		trait_manager& tm = _world.get_trait_manager();
 		for (const entity_trait& t : copied_traits)
 		{
-			remove_trait_reflected(t.trait_type, t.trait_type_index, t.trait_handle, handle);
+			tm.remove_trait(t.trait_type, handle, t.trait_handle);
 		}
 
 		_aabbs.reset(id);
@@ -628,53 +642,6 @@ namespace SFG
 
 		sync_prev(entity);
 		visit_children(entity, sync_prev);
-	}
-
-	world_handle entity_manager::add_trait_reflected(string_id type_id, uint32 type_index, world_handle entity)
-	{
-		SFG_ASSERT(type_index < _traits.size());
-		trait_storage& stg = _traits.at(type_index);
-		SFG_ASSERT(stg.type_id == type_id);
-
-		pool_allocator32& storage		   = stg.storage;
-		world_handle	  allocated_handle = storage.allocate_no_construct();
-
-		meta& m = reflection::get().resolve(type_id);
-		SFG_ASSERT(m.has_function("construct_add"_hs));
-		m.invoke_function<void, world&, world_handle, world_handle>("construct_add"_hs, _world, entity, allocated_handle);
-
-		entity_trait_register& reg = _trait_registers.get(entity.index);
-		SFG_ASSERT(!reg.traits.full());
-
-		reg.traits.push_back({
-			.trait_type		  = type_id,
-			.trait_type_index = type_index,
-			.trait_handle	  = allocated_handle,
-		});
-
-		return allocated_handle;
-	}
-
-	void entity_manager::remove_trait_reflected(string_id type_id, uint32 type_index, world_handle trait, world_handle entity)
-	{
-		SFG_ASSERT(type_index < _traits.size());
-		trait_storage& stg = _traits.at(type_index);
-		SFG_ASSERT(stg.type_id == type_id);
-
-		meta& m = reflection::get().resolve(type_id);
-		SFG_ASSERT(m.has_function("destruct_remove"_hs));
-		m.invoke_function<void, world&, world_handle>("destruct_remove"_hs, _world, trait);
-
-		pool_allocator32& storage = stg.storage;
-		storage.free_no_destruct(trait);
-
-		entity_trait_register& reg = _trait_registers.get(entity.index);
-		SFG_ASSERT(!reg.traits.full());
-		reg.traits.remove_swap({
-			.trait_type		  = type_id,
-			.trait_type_index = type_index,
-			.trait_handle	  = trait,
-		});
 	}
 
 }

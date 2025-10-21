@@ -36,7 +36,9 @@ namespace SFG
 		void uninit();
 		void post_tick(double interpolation);
 
-		/* ---------------- entity api ---------------- */
+		// -----------------------------------------------------------------------------
+		// entity api
+		// -----------------------------------------------------------------------------
 		world_handle		 create_entity(const char* name = "entity");
 		void				 destroy_entity(world_handle handle);
 		void				 add_child(world_handle parent, world_handle child);
@@ -50,30 +52,6 @@ namespace SFG
 		void				 on_remove_render_proxy(world_handle entity);
 		void				 set_entity_visible(world_handle entity, bool is_visible);
 		void				 remove_all_entity_traits(world_handle entity);
-
-		/* ---------------- entity transforms ---------------- */
-		void			 set_entity_position(world_handle entity, const vector3& pos);
-		void			 set_entity_position_abs(world_handle entity, const vector3& pos);
-		const vector3&	 get_entity_position(world_handle entity) const;
-		vector3			 get_entity_position_abs(world_handle entity);
-		void			 set_entity_rotation(world_handle entity, const quat& rot);
-		void			 set_entity_rotation_abs(world_handle entity, const quat& rot);
-		const quat&		 get_entity_rotation(world_handle entity) const;
-		const quat&		 get_entity_rotation_abs(world_handle entity);
-		void			 set_entity_scale(world_handle entity, const vector3& scale);
-		void			 set_entity_scale_abs(world_handle entity, const vector3& scale);
-		const vector3&	 get_entity_scale(world_handle entity) const;
-		vector3			 get_entity_scale_abs(world_handle entity);
-		const matrix4x3& get_entity_transform(world_handle entity);
-		const matrix4x3& get_entity_transform_abs(world_handle entity);
-		void			 set_entity_prev_position_abs(world_handle entity, const vector3& pos);
-		void			 set_entity_prev_rotation_abs(world_handle entity, const quat& rot);
-		void			 set_entity_prev_scale_abs(world_handle entity, const vector3& scale);
-		const vector3&	 get_entity_prev_position_abs(world_handle entity) const;
-		const quat&		 get_entity_prev_rotation_abs(world_handle entity) const;
-		const vector3&	 get_entity_prev_scale_abs(world_handle entity) const;
-		void			 calculate_interpolated_transform_abs(world_handle entity, float interpolation, vector3& out_position, quat& out_rotation, vector3& out_scale);
-		void			 teleport_entity(world_handle entity);
 
 		template <typename VisitFunc> void visit_children(world_handle parent, VisitFunc f)
 		{
@@ -100,89 +78,35 @@ namespace SFG
 			}
 		}
 
-		/* ---------------- trait api ---------------- */
+		// -----------------------------------------------------------------------------
+		// transform api
+		// -----------------------------------------------------------------------------
+		void			 set_entity_position(world_handle entity, const vector3& pos);
+		void			 set_entity_position_abs(world_handle entity, const vector3& pos);
+		const vector3&	 get_entity_position(world_handle entity) const;
+		vector3			 get_entity_position_abs(world_handle entity);
+		void			 set_entity_rotation(world_handle entity, const quat& rot);
+		void			 set_entity_rotation_abs(world_handle entity, const quat& rot);
+		const quat&		 get_entity_rotation(world_handle entity) const;
+		const quat&		 get_entity_rotation_abs(world_handle entity);
+		void			 set_entity_scale(world_handle entity, const vector3& scale);
+		void			 set_entity_scale_abs(world_handle entity, const vector3& scale);
+		const vector3&	 get_entity_scale(world_handle entity) const;
+		vector3			 get_entity_scale_abs(world_handle entity);
+		const matrix4x3& get_entity_transform(world_handle entity);
+		const matrix4x3& get_entity_transform_abs(world_handle entity);
+		void			 set_entity_prev_position_abs(world_handle entity, const vector3& pos);
+		void			 set_entity_prev_rotation_abs(world_handle entity, const quat& rot);
+		void			 set_entity_prev_scale_abs(world_handle entity, const vector3& scale);
+		const vector3&	 get_entity_prev_position_abs(world_handle entity) const;
+		const quat&		 get_entity_prev_rotation_abs(world_handle entity) const;
+		const vector3&	 get_entity_prev_scale_abs(world_handle entity) const;
+		void			 calculate_interpolated_transform_abs(world_handle entity, float interpolation, vector3& out_position, quat& out_rotation, vector3& out_scale);
+		void			 teleport_entity(world_handle entity);
 
-		world_handle add_trait_reflected(string_id type_id, uint32 type_index, world_handle entity);
-		void		 remove_trait_reflected(string_id type_id, uint32 type_index, world_handle trait, world_handle entity);
-
-		template <typename T> void init_trait_storage(uint32 max_count)
-		{
-			auto idx = type_id<T>::index;
-			if (_traits.size() <= idx)
-				_traits.resize(idx + 1);
-
-			trait_storage& trst = _traits[idx];
-			trst.type_id		= type_id<T>::value;
-
-			pool_allocator32& stg = trst.storage;
-			stg.init<T>(max_count);
-		}
-
-		template <typename T> world_handle add_trait(world_handle entity)
-		{
-			auto idx = type_id<T>::index;
-			SFG_ASSERT(idx < _traits.size());
-
-			entity_trait_register& reg = _trait_registers.get(entity.index);
-			SFG_ASSERT(!reg.traits.full());
-
-			pool_allocator32& storage = _traits[idx].storage;
-			world_handle	  handle  = storage.allocate<T>();
-			T&				  tr	  = storage.get<T>(handle);
-			tr						  = T();
-			tr._header.entity		  = entity;
-			tr._header.own_handle	  = handle;
-			tr.on_add(_world);
-			reg.traits.push_back({
-				.trait_type		  = type_id<T>::value,
-				.trait_type_index = type_id<T>::index,
-				.trait_handle	  = handle,
-			});
-
-			return handle;
-		}
-
-		template <typename T> T& get_trait(world_handle handle)
-		{
-			pool_allocator32& storage = _traits[type_id<T>::index].storage;
-			return storage.get<T>(handle);
-		}
-		template <typename T> const pool_allocator32& get_trait_storage() const
-		{
-			const pool_allocator32& storage = _traits[type_id<T>::index].storage;
-			return storage;
-		}
-
-		template <typename T> void remove_trait(world_handle handle)
-		{
-			auto idx = type_id<T>::index;
-			SFG_ASSERT(idx < _traits.size());
-			pool_allocator32& storage = _traits[idx].storage;
-			T&				  tr	  = storage.get<T>(handle);
-
-			entity_trait_register& reg = _trait_registers.get(tr._header.entity.index);
-			reg.traits.remove_swap({
-				.trait_type		  = type_id<T>::value,
-				.trait_type_index = type_id<T>::index,
-				.trait_handle	  = handle,
-			});
-
-			tr.on_remove(_world);
-			tr.~T();
-			storage.free<T>(handle);
-		}
-
-		inline chunk_allocator32& get_traits_aux_memory()
-		{
-			return _traits_aux_memory;
-		}
-
-		inline static_vector<trait_storage, trait_types::trait_type_max>& get_traits()
-		{
-			return _traits;
-		}
-
-		/* ---------------- rest ---------------- */
+		// -----------------------------------------------------------------------------
+		// accessors
+		// -----------------------------------------------------------------------------
 
 		inline world& get_world()
 		{
@@ -195,6 +119,10 @@ namespace SFG
 		}
 
 	private:
+		friend class trait_manager;
+
+		void on_trait_added(world_handle entity, world_handle trait_handle, string_id trait_type);
+		void on_trait_removed(world_handle entity, world_handle trait_handle, string_id trait_type);
 		void reset_all_entity_data();
 		void reset_entity_data(world_handle handle);
 
@@ -215,8 +143,5 @@ namespace SFG
 		pool_allocator_simple<matrix4x3>			 _matrices		  = {};
 		pool_allocator_simple<matrix4x3>			 _abs_matrices	  = {};
 		pool_allocator_simple<entity_trait_register> _trait_registers = {};
-
-		static_vector<trait_storage, trait_types::trait_type_max> _traits;
-		chunk_allocator32										  _traits_aux_memory;
 	};
 }

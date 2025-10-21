@@ -4,11 +4,11 @@
 
 #include "common/size_definitions.hpp"
 #include "common/string_id.hpp"
+#include "common/type_id.hpp"
 #include "reflection/reflection.hpp"
 
 namespace SFG
 {
-	template <typename T> struct type_id;
 
 	template <typename T> struct ref_register
 	{

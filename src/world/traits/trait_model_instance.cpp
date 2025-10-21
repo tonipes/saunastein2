@@ -8,7 +8,6 @@
 #include "resources/model_node.hpp"
 #include "resources/mesh.hpp"
 #include "resources/material.hpp"
-#include "reflection/reflection.hpp"
 #include "io/log.hpp"
 
 #ifdef SFG_TOOLMODE
@@ -18,25 +17,6 @@ using json = nlohmann::json;
 
 namespace SFG
 {
-	trait_model_instance_reflection::trait_model_instance_reflection()
-	{
-		meta& m = reflection::get().register_meta(type_id<trait_model_instance>::value, type_id<trait_model_instance>::index, "");
-		m.add_function<void, world&>("init_trait_storage"_hs, [](world& w) -> void { w.get_entity_manager().init_trait_storage<trait_model_instance>(MAX_ENTITIES); });
-
-		m.add_function<void, world&, world_handle, world_handle>("construct_add"_hs, [](world& w, world_handle entity, world_handle own_handle) {
-			trait_model_instance& t = w.get_entity_manager().get_trait<trait_model_instance>(own_handle);
-			t						= trait_model_instance();
-			t._header.entity		= entity;
-			t._header.own_handle	= own_handle;
-			t.on_add(w);
-		});
-
-		m.add_function<void, world&, world_handle>("destruct_remove"_hs, [](world& w, world_handle own_handle) {
-			trait_model_instance& t = w.get_entity_manager().get_trait<trait_model_instance>(own_handle);
-			t.on_remove(w);
-			t.~trait_model_instance();
-		});
-	}
 
 	void trait_model_instance::on_add(world& w)
 	{
@@ -44,7 +24,8 @@ namespace SFG
 
 	void trait_model_instance::on_remove(world& w)
 	{
-		chunk_allocator32& aux = w.get_entity_manager().get_traits_aux_memory();
+		trait_manager&	   tm  = w.get_trait_manager();
+		chunk_allocator32& aux = tm.get_aux();
 
 		if (_root_entities.size != 0)
 			aux.free(_root_entities);
@@ -61,8 +42,9 @@ namespace SFG
 		set_model(_target_model = model_handle);
 
 		entity_manager&	   em	   = w.get_entity_manager();
+		trait_manager&	   tm	   = w.get_trait_manager();
 		resource_manager&  res	   = w.get_resource_manager();
-		chunk_allocator32& em_aux  = em.get_traits_aux_memory();
+		chunk_allocator32& em_aux  = tm.get_aux();
 		chunk_allocator32& res_aux = res.get_aux();
 
 		// Destroy all entities spawned for this previously.
@@ -141,8 +123,8 @@ namespace SFG
 			const resource_handle& mesh_handle	= ptr_meshes_handle[node.get_mesh_index()];
 			const mesh&			   m			= res.get_resource<mesh>(mesh_handle);
 			const world_handle	   entity		= created_node_entities[i];
-			const world_handle	   trait_handle = em.add_trait<trait_mesh_instance>(entity);
-			trait_mesh_instance&   mi			= em.get_trait<trait_mesh_instance>(trait_handle);
+			const world_handle	   trait_handle = tm.add_trait<trait_mesh_instance>(entity);
+			trait_mesh_instance&   mi			= tm.get_trait<trait_mesh_instance>(trait_handle);
 			mi.set_mesh(w, model_handle, mesh_handle);
 		}
 
@@ -201,7 +183,7 @@ namespace SFG
 		j["target_model"] = target_model_hash;
 	}
 
-	void trait_model_instance::deserialize_json(nlohmann::json& j, world& w)
+	void trait_model_instance::deserialize_json(const nlohmann::json& j, world& w)
 	{
 		resource_manager& rm = w.get_resource_manager();
 

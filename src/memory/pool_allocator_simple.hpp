@@ -19,9 +19,12 @@ namespace SFG
 			_raw			   = reinterpret_cast<uint8*>(SFG_ALIGNED_MALLOC(alignof(T), _item_size_aligned * item_count));
 			_item_count		   = item_count;
 
-			T* ptr = reinterpret_cast<T*>(_raw);
-			for (uint32 i = 0; i < item_count; i++)
-				ptr[i] = T();
+			if (_raw)
+			{
+				T* ptr = reinterpret_cast<T*>(_raw);
+				for (uint32 i = 0; i < item_count; i++)
+					ptr[i] = T();
+			}
 		}
 
 		inline void reset()
@@ -62,7 +65,7 @@ namespace SFG
 			uint32 end	   = 0;
 			T*	   items   = nullptr;
 
-			iterator(T* raw, uint32 c, uint32 e) : items(raw), current(c), end(e){};
+			iterator(T* raw, uint32 c, uint32 e) : items(raw), current(c), end(e) {};
 
 			T& operator*() const
 			{

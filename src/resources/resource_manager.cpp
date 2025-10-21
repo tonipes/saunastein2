@@ -63,9 +63,15 @@ namespace SFG
 			uint8 color_data[4]	 = {255, 255, 255, 255};
 			uint8 normal_data[4] = {128, 128, 255, 255};
 			uint8 orm_data[4]	 = {255, 255, 0, 255};
-			SFG_MEMCPY(dummy_color_data, color_data, 4);
-			SFG_MEMCPY(dummy_normal_data, normal_data, 4);
-			SFG_MEMCPY(dummy_orm_data, orm_data, 4);
+
+			if (dummy_color_data)
+				SFG_MEMCPY(dummy_color_data, color_data, 4);
+
+			if (dummy_normal_data)
+				SFG_MEMCPY(dummy_normal_data, normal_data, 4);
+
+			if (dummy_orm_data)
+				SFG_MEMCPY(dummy_orm_data, orm_data, 4);
 
 			dummy_color_raw.load_from_data(dummy_color_data, vector2ui16(1, 1), static_cast<uint8>(format::r8g8b8a8_srgb), false);
 			dummy_normal_raw.load_from_data(dummy_normal_data, vector2ui16(1, 1), static_cast<uint8>(format::r8g8b8a8_unorm), false);
@@ -109,7 +115,7 @@ namespace SFG
 
 		resource_handle out_handle = {};
 
-		auto			it		   = sampler_pool.handles_begin();
+		auto it = sampler_pool.handles_begin();
 		for (auto it = sampler_pool.handles_begin(); it != sampler_pool.handles_end(); ++it)
 		{
 			const resource_handle  h   = *it;
@@ -431,12 +437,10 @@ namespace SFG
 				}
 			}
 
-			entity_manager& em				= _world.get_entity_manager();
-			auto&			model_instances = em.get_trait_storage<trait_model_instance>();
-
-			for (world_handle handle : model_instances)
+			trait_manager& tm			   = _world.get_trait_manager();
+			auto&		   model_instances = tm.underlying_pool<trait_cache<trait_model_instance, MAX_WORLD_MODEL_INSTANCES>, trait_model_instance>();
+			for (trait_model_instance& mi : model_instances)
 			{
-				trait_model_instance& mi = em.get_trait<trait_model_instance>(handle);
 				if (mi.get_model() != prev_handle)
 					continue;
 
@@ -500,12 +504,6 @@ namespace SFG
 	{
 		const cache_storage& stg = get_storage(type);
 		stg.cache_ptr->save_to_stream(loader, stream);
-	}
-
-	void resource_manager::delete_loader(string_id type, void* loader) const
-	{
-		const cache_storage& stg = get_storage(type);
-		stg.cache_ptr->delete_loader(loader);
 	}
 
 	void resource_manager::get_dependencies(string_id type, const void* loader, vector<string>& out_dependencies) const

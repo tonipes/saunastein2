@@ -5,6 +5,8 @@
 #include "io/file_system.hpp"
 #include "project/engine_data.hpp"
 #include "app/debug_console.hpp"
+
+// resources
 #include "resources/texture.hpp"
 #include "resources/texture_raw.hpp"
 #include "resources/texture_sampler.hpp"
@@ -28,6 +30,12 @@
 #include "resources/physical_material.hpp"
 #include "resources/physical_material_raw.hpp"
 
+// traits
+#include "traits/trait_camera.hpp"
+#include "traits/trait_light.hpp"
+#include "traits/trait_mesh_instance.hpp"
+#include "traits/trait_model_instance.hpp"
+
 #ifdef SFG_TOOLMODE
 #include <fstream>
 #include <vendor/nhlohmann/json.hpp>
@@ -49,8 +57,7 @@ using json = nlohmann::json;
 
 namespace SFG
 {
-
-	world::world(render_event_stream& rstream) : _entity_manager(*this), _render_stream(rstream), _resource_manager(*this)
+	world::world(render_event_stream& rstream) : _entity_manager(*this), _trait_manager(*this), _render_stream(rstream), _resource_manager(*this)
 	{
 		_text_allocator.init(MAX_ENTITIES * 32);
 
@@ -65,6 +72,13 @@ namespace SFG
 		_resource_manager.register_cache<skin, skin_raw, MAX_WORLD_SKINS, 0>();
 		_resource_manager.register_cache<shader, shader_raw, MAX_WORLD_SHADERS, 0>();
 		_resource_manager.register_cache<physical_material, physical_material_raw, MAX_WORLD_PHYSICAL_MATERIALS, 0>();
+
+		_trait_manager.register_cache<trait_camera, 32>();
+		_trait_manager.register_cache<trait_point_light, 32>();
+		_trait_manager.register_cache<trait_spot_light, 32>();
+		_trait_manager.register_cache<trait_dir_light, 32>();
+		_trait_manager.register_cache<trait_model_instance, 32>();
+		_trait_manager.register_cache<trait_mesh_instance, 32>();
 	};
 
 	world::~world()
@@ -88,10 +102,12 @@ namespace SFG
 
 		_resource_manager.init();
 		_entity_manager.init();
+		_trait_manager.init();
 	}
 
 	void world::uninit()
 	{
+		_trait_manager.uninit();
 		_entity_manager.uninit();
 		_resource_manager.uninit();
 		_text_allocator.reset();

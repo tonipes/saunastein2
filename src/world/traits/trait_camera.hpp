@@ -13,16 +13,12 @@ namespace SFG
 	class ostream;
 	class istream;
 	class world;
-	class render_event_stream;
-
-	struct trait_camera_reflection
-	{
-		trait_camera_reflection();
-	};
 
 	class trait_camera
 	{
 	public:
+		void on_add(world& w);
+		void on_remove(world& w);
 		void set_values(world& w, float near_plane, float far_plane, float fov_degrees);
 		void set_main(world& w);
 
@@ -31,7 +27,7 @@ namespace SFG
 
 #ifdef SFG_TOOLMODE
 		void serialize_json(nlohmann::json& j, world& w) const;
-		void deserialize_json(nlohmann::json& j, world& w);
+		void deserialize_json(const nlohmann::json& j, world& w);
 #endif
 
 		inline float get_near() const
@@ -50,11 +46,7 @@ namespace SFG
 		}
 
 	private:
-		friend class entity_manager;
-		friend struct trait_camera_reflection;
-
-		void on_add(world& w);
-		void on_remove(world& w);
+		template <typename T, int> friend class trait_cache;
 
 	private:
 		trait_header _header = {};
@@ -64,5 +56,5 @@ namespace SFG
 		float _fov_degrees = 45.0f;
 	};
 
-	REGISTER_TRAIT(trait_camera, trait_types::trait_type_camera, trait_camera_reflection);
+	REGISTER_TRAIT(trait_camera);
 }

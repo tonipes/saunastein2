@@ -6,7 +6,6 @@
 #include "resources/model.hpp"
 #include "resources/mesh.hpp"
 #include "resources/material.hpp"
-#include "reflection/reflection.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"
 #include "gfx/event_stream/render_events_trait.hpp"
 
@@ -17,26 +16,6 @@ using json = nlohmann::json;
 
 namespace SFG
 {
-	trait_mesh_instance_reflection::trait_mesh_instance_reflection()
-	{
-		meta& m = reflection::get().register_meta(type_id<trait_mesh_instance>::value, type_id<trait_mesh_instance>::index, "");
-		m.add_function<void, world&>("init_trait_storage"_hs, [](world& w) -> void { w.get_entity_manager().init_trait_storage<trait_mesh_instance>(MAX_ENTITIES); });
-
-		m.add_function<void, world&, world_handle, world_handle>("construct_add"_hs, [](world& w, world_handle entity, world_handle own_handle) {
-			trait_mesh_instance& t = w.get_entity_manager().get_trait<trait_mesh_instance>(own_handle);
-			t					   = trait_mesh_instance();
-			t._header.entity	   = entity;
-			t._header.own_handle   = own_handle;
-			t.on_add(w);
-		});
-
-		m.add_function<void, world&, world_handle>("destruct_remove"_hs, [](world& w, world_handle own_handle) {
-			trait_mesh_instance& t = w.get_entity_manager().get_trait<trait_mesh_instance>(own_handle);
-			t.on_remove(w);
-			t.~trait_mesh_instance();
-		});
-	}
-
 	void trait_mesh_instance::on_add(world& w)
 	{
 
@@ -108,7 +87,7 @@ namespace SFG
 		j["target_mesh"]  = target_mesh_hash;
 	}
 
-	void trait_mesh_instance::deserialize_json(nlohmann::json& j, world& w)
+	void trait_mesh_instance::deserialize_json(const nlohmann::json& j, world& w)
 	{
 		resource_manager& rm = w.get_resource_manager();
 

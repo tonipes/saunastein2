@@ -6,6 +6,7 @@
 #include "data/vector.hpp"
 #include "memory/text_allocator.hpp"
 #include "entity_manager.hpp"
+#include "trait_manager.hpp"
 #include "gui/vekt.hpp"
 #include "resources/resource_manager.hpp"
 
@@ -51,6 +52,11 @@ namespace SFG
 			return _entity_manager;
 		}
 
+		inline trait_manager& get_trait_manager()
+		{
+			return _trait_manager;
+		}
+
 		inline bitmask<uint8>& get_flags()
 		{
 			return _flags;
@@ -81,6 +87,7 @@ namespace SFG
 		text_allocator		 _text_allocator;
 		bitmask<uint8>		 _flags = 0;
 		entity_manager		 _entity_manager;
+		trait_manager		 _trait_manager;
 		resource_manager	 _resource_manager;
 		vekt::font_manager	 _vekt_fonts = {};
 	};

@@ -15,38 +15,21 @@ namespace SFG
 	class istream;
 	class world;
 
-	struct trait_dir_light_reflection
-	{
-		trait_dir_light_reflection();
-	};
-
-	struct trait_point_light_reflection
-	{
-		trait_point_light_reflection();
-	};
-
-	struct trait_spot_light_reflection
-	{
-		trait_spot_light_reflection();
-	};
-
 	class trait_dir_light
 	{
 	public:
+		void on_add(world& w);
+		void on_remove(world& w);
 		void serialize(ostream& stream, world& w) const;
 		void deserialize(istream& stream, world& w);
 
 #ifdef SFG_TOOLMODE
 		void serialize_json(nlohmann::json& j, world& w) const;
-		void deserialize_json(nlohmann::json& j, world& w);
+		void deserialize_json(const nlohmann::json& j, world& w);
 #endif
 
 	private:
-		friend class entity_manager;
-		friend class trait_dir_light_reflection;
-
-		void on_add(world& w);
-		void on_remove(world& w);
+		template <typename T, int> friend class trait_cache;
 
 	private:
 		trait_header _header	 = {};
@@ -56,20 +39,18 @@ namespace SFG
 	class trait_spot_light
 	{
 	public:
+		void on_add(world& w);
+		void on_remove(world& w);
 		void serialize(ostream& stream, world& w) const;
 		void deserialize(istream& stream, world& w);
 
 #ifdef SFG_TOOLMODE
 		void serialize_json(nlohmann::json& j, world& w) const;
-		void deserialize_json(nlohmann::json& j, world& w);
+		void deserialize_json(const nlohmann::json& j, world& w);
 #endif
 
 	private:
-		friend class entity_manager;
-		friend class trait_spot_light_reflection;
-
-		void on_add(world& w);
-		void on_remove(world& w);
+		template <typename T, int> friend class trait_cache;
 
 	private:
 		trait_header _header	 = {};
@@ -79,27 +60,25 @@ namespace SFG
 	class trait_point_light
 	{
 	public:
+		void on_add(world& w);
+		void on_remove(world& w);
 		void serialize(ostream& stream, world& w) const;
 		void deserialize(istream& stream, world& w);
 
 #ifdef SFG_TOOLMODE
 		void serialize_json(nlohmann::json& j, world& w) const;
-		void deserialize_json(nlohmann::json& j, world& w);
+		void deserialize_json(const nlohmann::json& j, world& w);
 #endif
 
 	private:
-		friend class entity_manager;
-		friend class trait_point_light_reflection;
-
-		void on_add(world& w);
-		void on_remove(world& w);
+		template <typename T, int> friend class trait_cache;
 
 	private:
 		trait_header _header	 = {};
 		color		 _base_color = color::white;
 	};
 
-	REGISTER_TRAIT(trait_dir_light, trait_types::trait_type_dir_light, trait_dir_light_reflection);
-	REGISTER_TRAIT(trait_spot_light, trait_types::trait_type_spot_light, trait_dir_light_reflection);
-	REGISTER_TRAIT(trait_point_light, trait_types::trait_type_point_light, trait_dir_light_reflection);
+	REGISTER_TRAIT(trait_dir_light);
+	REGISTER_TRAIT(trait_spot_light);
+	REGISTER_TRAIT(trait_point_light);
 }
