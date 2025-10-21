@@ -13,8 +13,8 @@
 #include "gfx/util/gfx_util.hpp"
 #include "common/system_info.hpp"
 #include "data/istream.hpp"
-#include "world/world_constants.hpp"
 #include "math/math.hpp"
+#include "world/world_max_defines.hpp"
 
 namespace SFG
 {

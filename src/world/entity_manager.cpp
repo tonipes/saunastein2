@@ -9,6 +9,7 @@
 #include "gfx/event_stream/render_events_entity.hpp"
 #include "reflection/reflection.hpp"
 #include "math/math.hpp"
+#include "world/world_max_defines.hpp"
 
 namespace SFG
 {

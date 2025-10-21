@@ -10,10 +10,6 @@
 
 namespace SFG
 {
-#define MAX_ENTITIES				   16000
-#define MAX_WORLD_RESOURCES_AUX_MEMORY 1024 * 1024 * 4
-#define MAX_WORLD_TRAITS_AUX_MEMORY	   1024 * 512
-
 	typedef uint32		  world_id;
 	typedef pool_handle32 world_handle;
 
