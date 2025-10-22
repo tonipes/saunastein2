@@ -1525,7 +1525,7 @@ namespace SFG
 		_semaphores.remove(id);
 	}
 
-	bool dx12_backend::compile_shader_vertex_pixel(uint8 stage, const string& source, const vector<string>& defines, const char* source_path, const char* entry, span<uint8>& out, bool compile_root_sig, span<uint8>& out_signature_data) const
+	bool dx12_backend::compile_shader_vertex_pixel(uint8 stage, const string& source, const vector<string>& defines, const vector<string>& source_paths, const char* entry, span<uint8>& out, bool compile_root_sig, span<uint8>& out_signature_data) const
 	{
 		Microsoft::WRL::ComPtr<IDxcCompiler3> idxc_compiler;
 		throw_if_failed(DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&idxc_compiler)));
@@ -1543,7 +1543,12 @@ namespace SFG
 		source_buffer.Size	   = source_blob->GetBufferSize();
 		source_buffer.Encoding = 0;
 
-		const wchar_t* include_path = string_util::char_to_wchar(source_path);
+		vector<const wchar_t*> include_paths;
+		include_paths.reserve(source_paths.size());
+		for (const string& src_path : source_paths)
+		{
+			include_paths.push_back(string_util::char_to_wchar(src_path.c_str()));
+		}
 
 		auto compile = [&](const wchar_t* target_profile, const wchar_t* target_entry, span<uint8>& out, bool root_sig) -> bool {
 			std::vector<std::wstring> arg_storage;
@@ -1554,8 +1559,6 @@ namespace SFG
 												   DXC_ARG_WARNINGS_ARE_ERRORS,
 												   L"-HV",
 												   L"2021",
-												   L"-I",
-												   include_path,
 #ifdef SFG_DEBUG
 											  DXC_ARG_DEBUG,
 											  DXC_ARG_PREFER_FLOW_CONTROL,
@@ -1571,6 +1574,12 @@ namespace SFG
 			{
 				arg_storage.emplace_back(L"-D" + string_util::to_wstr(def));
 				arguments.push_back(arg_storage.back().c_str());
+			}
+
+			for (const wchar_t* include : include_paths)
+			{
+				arguments.push_back(L"-I");
+				arguments.push_back(include);
 			}
 
 			ComPtr<IDxcIncludeHandler> include_handler;
@@ -1656,7 +1665,8 @@ namespace SFG
 
 		auto clean = [&]() {
 			source_blob.Reset();
-			delete[] include_path;
+			for (const wchar_t* p : include_paths)
+				delete[] p;
 		};
 
 		const wchar_t* target_entry = string_util::char_to_wchar(entry);
@@ -1674,7 +1684,7 @@ namespace SFG
 		return true;
 	}
 
-	bool dx12_backend::compile_shader_compute(const string& source, const char* source_path, const char* entry, span<uint8>& out, bool compile_layout, span<uint8>& out_layout) const
+	bool dx12_backend::compile_shader_compute(const string& source, const vector<string>& source_paths, const char* entry, span<uint8>& out, bool compile_layout, span<uint8>& out_layout) const
 	{
 		VERIFY_RENDER_NOT_RUNNING_OR_RENDER_THREAD();
 
@@ -1694,10 +1704,20 @@ namespace SFG
 		source_buffer.Size	   = source_blob->GetBufferSize();
 		source_buffer.Encoding = 0;
 
-		const wchar_t* include_path = string_util::char_to_wchar(source_path);
-		const wchar_t* entry_point	= string_util::char_to_wchar(entry);
+		const wchar_t* entry_point = string_util::char_to_wchar(entry);
 
-		vector<LPCWSTR> arguments = {L"-T", L"cs_6_0", L"-E", entry_point, DXC_ARG_WARNINGS_ARE_ERRORS, L"-HV 2021", L"-I", include_path};
+		vector<LPCWSTR> arguments = {L"-T", L"cs_6_0", L"-E", entry_point, DXC_ARG_WARNINGS_ARE_ERRORS, L"-HV 2021"};
+
+		vector<const wchar_t*> include_paths;
+		include_paths.reserve(source_paths.size());
+		for (const string& src_path : source_paths)
+			include_paths.push_back(string_util::char_to_wchar(src_path.c_str()));
+
+		for (const wchar_t* include : include_paths)
+		{
+			arguments.push_back(L"-I");
+			arguments.push_back(include);
+		}
 
 #ifdef SFG_DEBUG
 		arguments.push_back(DXC_ARG_DEBUG);
@@ -1713,7 +1733,10 @@ namespace SFG
 		throw_if_failed(idxc_compiler->Compile(&source_buffer, arguments.data(), static_cast<uint32>(arguments.size()), NULL, IID_PPV_ARGS(result.GetAddressOf())));
 
 		delete[] entry_point;
-		delete[] include_path;
+
+		for (const wchar_t* p : include_paths)
+			delete[] p;
+
 #if SERIALIZE_DEBUG_INFORMATION
 		ComPtr<IDxcBlob>	  debug_data;
 		ComPtr<IDxcBlobUtf16> debug_data_path;

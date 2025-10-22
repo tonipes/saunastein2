@@ -23,7 +23,7 @@ namespace SFG
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);
 
-		bool compile_specialized(const string& shader_text, const string& folder_path, const string& variant_style);
+		bool compile_specialized(const string& shader_text, const vector<string>& folder_paths, const string& variant_style);
 		void destroy();
 
 #ifdef SFG_TOOLMODE

@@ -19,7 +19,7 @@ namespace SFG
 			span<uint8>&		  data;
 			const vector<string>& defines;
 			const string&		  text;
-			const string&		  folder_path;
+			const vector<string>& folder_paths;
 			bool				  compile_layout;
 			span<uint8>&		  out_layout;
 			const string&		  entry;
@@ -27,11 +27,12 @@ namespace SFG
 
 		/* actual compilation */
 		static bool compile(const compile_params& p);
+		static bool compile_compute(const compile_params& p);
 
 		/* compiles default pso based on desc. */
-		static bool compile_raw(shader_raw& raw, const string& shader_text, const string& folder_path, const shader_desc& desc);
+		static bool compile_raw(shader_raw& raw, const string& shader_text, const vector<string>& folder_path, const shader_desc& desc);
 
 		/* compiles variants suitable to use in gbuffer pass. */
-		static bool compile_style_gbuffer_object(shader_raw& raw, const string& shader_text, const string& folder_path);
+		static bool compile_style_gbuffer_object(shader_raw& raw, const string& shader_text, const vector<string>& folder_path);
 	};
 }

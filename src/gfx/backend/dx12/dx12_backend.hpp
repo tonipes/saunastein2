@@ -203,8 +203,8 @@ namespace SFG
 		uint8 get_back_buffer_index(gfx_id swapchain);
 		void  wait_for_swapchain_latency(gfx_id swapchain);
 
-		bool compile_shader_vertex_pixel(uint8 stage, const string& source, const vector<string>& defines, const char* source_path, const char* entry, span<uint8>& out, bool compile_layout, span<uint8>& out_layout) const;
-		bool compile_shader_compute(const string& source, const char* source_path, const char* entry, span<uint8>& out, bool compile_layout, span<uint8>& out_layout) const;
+		bool compile_shader_vertex_pixel(uint8 stage, const string& source, const vector<string>& defines, const vector<string>& source_paths, const char* entry, span<uint8>& out, bool compile_layout, span<uint8>& out_layout) const;
+		bool compile_shader_compute(const string& source, const vector<string>& source_paths, const char* entry, span<uint8>& out, bool compile_layout, span<uint8>& out_layout) const;
 
 		gfx_id create_resource(const resource_desc& desc);
 		gfx_id create_texture(const texture_desc& desc);

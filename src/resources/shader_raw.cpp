@@ -19,10 +19,10 @@ namespace SFG
 
 #ifdef SFG_TOOLMODE
 
-	bool shader_raw::compile_specialized(const string& shader_text, const string& folder_path, const string& variant_style)
+	bool shader_raw::compile_specialized(const string& shader_text, const vector<string>& folder_paths, const string& variant_style)
 	{
 		if (variant_style.compare("gbuffer_object") == 0)
-			return shader_variant_compiler::compile_style_gbuffer_object(*this, shader_text, folder_path);
+			return shader_variant_compiler::compile_style_gbuffer_object(*this, shader_text, folder_paths);
 
 		SFG_ERR("Unrecognize shader variant style: {0} {1}", variant_style, name);
 		return false;
@@ -65,12 +65,16 @@ namespace SFG
 				SFG_ERR("Failed reading shader text! {0}", full_source.c_str());
 				return false;
 			}
-			const string folder_path = file_system::get_directory_of_file(full_source.c_str());
+			const string   folder_path = file_system::get_directory_of_file(full_source.c_str());
+			const string   root		   = SFG_ROOT_DIRECTORY + string("assets/engine/shaders/");
+			vector<string> folder_paths;
+			folder_paths.push_back(folder_path);
+			folder_paths.push_back(root);
 
 			if (json_data.find("desc") != json_data.end())
 			{
 				const shader_desc default_desc = json_data.value<shader_desc>("desc", {});
-				return shader_variant_compiler::compile_raw(*this, shader_text, folder_path, default_desc);
+				return shader_variant_compiler::compile_raw(*this, shader_text, folder_paths, default_desc);
 			}
 			else
 			{
@@ -81,7 +85,7 @@ namespace SFG
 				}
 
 				const string variant_style = json_data.value<string>("variant_style", "");
-				return compile_specialized(shader_text, folder_path, variant_style);
+				return compile_specialized(shader_text, folder_paths, variant_style);
 			}
 		}
 		catch (std::exception e)

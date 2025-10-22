@@ -491,8 +491,6 @@ namespace SFG
 				variant.variant_flags = pso.variant_flags;
 				variant.hw			  = backend->create_shader(pso.desc, ev.compile_variants.at(pso.compile_variant).blobs, ev.layout);
 
-				SFG_TRACE("FLAGS: {0}", variant.variant_flags.value());
-
 #ifndef SFG_STRIP_DEBUG_NAMES
 				if (i == 0)
 				{

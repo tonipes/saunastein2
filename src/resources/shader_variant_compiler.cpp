@@ -13,10 +13,16 @@ namespace SFG
 	bool shader_variant_compiler::compile(const compile_params& params)
 	{
 		gfx_backend* backend = gfx_backend::get();
-		return backend->compile_shader_vertex_pixel(static_cast<shader_stage>(params.stage), params.text, params.defines, params.folder_path.c_str(), params.entry.c_str(), params.data, params.compile_layout, params.out_layout);
+		return backend->compile_shader_vertex_pixel(static_cast<shader_stage>(params.stage), params.text, params.defines, params.folder_paths, params.entry.c_str(), params.data, params.compile_layout, params.out_layout);
 	}
 
-	bool shader_variant_compiler::compile_raw(shader_raw& raw, const string& shader_text, const string& folder_path, const shader_desc& desc)
+	bool shader_variant_compiler::compile_compute(const compile_params& p)
+	{
+		gfx_backend* backend = gfx_backend::get();
+		return backend->compile_shader_compute(p.text, p.folder_paths, p.entry.c_str(), p.data, p.compile_layout, p.out_layout);
+	}
+
+	bool shader_variant_compiler::compile_raw(shader_raw& raw, const string& shader_text, const vector<string>& folder_paths, const shader_desc& desc)
 	{
 		/*
 			Compile one compile variant depending on shader entries.
@@ -34,7 +40,7 @@ namespace SFG
 				.data			= def_compile.blobs.back().data,
 				.defines		= {},
 				.text			= shader_text,
-				.folder_path	= folder_path,
+				.folder_paths	= folder_paths,
 				.compile_layout = false,
 				.out_layout		= dummy_layout,
 				.entry			= desc.vertex_entry,
@@ -55,7 +61,7 @@ namespace SFG
 				.data			= def_compile.blobs.back().data,
 				.defines		= {},
 				.text			= shader_text,
-				.folder_path	= folder_path,
+				.folder_paths	= folder_paths,
 				.compile_layout = false,
 				.out_layout		= dummy_layout,
 				.entry			= desc.pixel_entry,
@@ -71,12 +77,13 @@ namespace SFG
 		if (!desc.compute_entry.empty())
 		{
 			def_compile.blobs.push_back({.stage = shader_stage::compute});
-			const bool res = compile({
+
+			const bool res = compile_compute({
 				.stage			= static_cast<uint8>(shader_stage::compute),
 				.data			= def_compile.blobs.back().data,
 				.defines		= {},
 				.text			= shader_text,
-				.folder_path	= folder_path,
+				.folder_paths	= folder_paths,
 				.compile_layout = false,
 				.out_layout		= dummy_layout,
 				.entry			= desc.compute_entry,
@@ -97,7 +104,7 @@ namespace SFG
 		return true;
 	}
 
-	bool shader_variant_compiler::compile_style_gbuffer_object(shader_raw& raw, const string& shader_text, const string& folder_path)
+	bool shader_variant_compiler::compile_style_gbuffer_object(shader_raw& raw, const string& shader_text, const vector<string>& folder_paths)
 	{
 		color_blend_attachment blend_attachment = {};
 		blend_definitions::get_blend_attachment(blend_definition_style::none, blend_attachment);
@@ -137,7 +144,7 @@ namespace SFG
 				.data			= def_compile.blobs.back().data,
 				.defines		= defines,
 				.text			= shader_text,
-				.folder_path	= folder_path,
+				.folder_paths	= folder_paths,
 				.compile_layout = false,
 				.out_layout		= dummy_layout,
 				.entry			= "VSMain",
@@ -158,7 +165,7 @@ namespace SFG
 					.data			= def_compile.blobs.back().data,
 					.defines		= defines,
 					.text			= shader_text,
-					.folder_path	= folder_path,
+					.folder_paths	= folder_paths,
 					.compile_layout = false,
 					.out_layout		= dummy_layout,
 					.entry			= "PSMain",
