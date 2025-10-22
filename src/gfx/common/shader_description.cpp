@@ -619,52 +619,13 @@ namespace SFG
 	}
 #endif
 
-	void shader_desc::destroy()
-	{
-		for (const shader_blob& b : blobs)
-			delete[] b.data.data;
-
-		if (layout_data.size != 0)
-			delete[] layout_data.data;
-	}
-
-	void shader_desc::serialize(ostream& stream, bool write_addresses) const
+	void shader_desc::serialize(ostream& stream) const
 	{
 		stream << debug_name;
 		stream << vertex_entry;
 		stream << pixel_entry;
 		stream << compute_entry;
 		stream << flags.value();
-		stream << static_cast<uint32>(layout_data.size);
-
-		if (layout_data.size != 0)
-		{
-			if (write_addresses)
-			{
-				const uint64 addr = reinterpret_cast<uint64>(layout_data.data);
-				stream << addr;
-			}
-			else
-				stream.write_raw(layout_data.data, layout_data.size);
-		}
-
-		const uint16 blobs_count = static_cast<uint16>(blobs.size());
-		stream << blobs_count;
-
-		for (const shader_blob& b : blobs)
-		{
-			stream << b.stage;
-			stream << static_cast<uint32>(b.data.size);
-			SFG_ASSERT(b.data.size);
-
-			if (write_addresses)
-			{
-				const uint64 addr = reinterpret_cast<uint64>(b.data.data);
-				stream << addr;
-			}
-			else
-				stream.write_raw(b.data.data, b.data.size);
-		}
 
 		const uint16 att_count = static_cast<uint16>(attachments.size());
 		stream << att_count;
@@ -723,7 +684,7 @@ namespace SFG
 		stream << samples;
 	}
 
-	void shader_desc::deserialize(istream& stream, bool read_addresses)
+	void shader_desc::deserialize(istream& stream)
 	{
 		uint16 sh_flags	   = 0;
 		uint32 layout_size = 0;
@@ -733,51 +694,7 @@ namespace SFG
 		stream >> pixel_entry;
 		stream >> compute_entry;
 		stream >> sh_flags;
-		stream >> layout_size;
-		flags			 = sh_flags;
-		layout_data.size = static_cast<size_t>(layout_size);
-
-		if (layout_data.size != 0)
-		{
-			if (read_addresses)
-			{
-				uint64 addr = 0;
-				stream >> addr;
-				layout_data.data = reinterpret_cast<uint8*>(addr);
-			}
-			else
-			{
-				layout_data.data = new uint8[layout_data.size];
-				stream.read_to_raw(layout_data.data, layout_data.size);
-			}
-		}
-
-		uint16 blobs_count = 0;
-		stream >> blobs_count;
-
-		blobs.resize(static_cast<size_t>(blobs_count));
-
-		for (uint16 i = 0; i < blobs_count; i++)
-		{
-			shader_blob& b = blobs[i];
-			stream >> b.stage;
-			uint32 size = 0;
-			stream >> size;
-			b.data.size = static_cast<size_t>(size);
-
-			if (read_addresses)
-			{
-				uint64 addr = 0;
-				stream >> addr;
-				b.data.data = reinterpret_cast<uint8*>(addr);
-			}
-			else
-			{
-				b.data.data = new uint8[size];
-				stream.read_to_raw(b.data.data, b.data.size);
-			}
-		}
-
+	
 		uint16 att_count = 0;
 		stream >> att_count;
 		attachments.resize(att_count);
@@ -845,5 +762,89 @@ namespace SFG
 		stream >> front;
 		stream >> poly_mode;
 		stream >> samples;
+	}
+
+	void compile_variant::destroy()
+	{
+		for (shader_blob& b : blobs)
+		{
+			if (b.data.size != 0)
+				delete[] b.data.data;
+		}
+
+		blobs.clear();
+	}
+
+	void compile_variant::serialize(ostream& stream, bool address_only) const
+	{
+		const uint32 sz = static_cast<uint32>(blobs.size());
+		stream << sz;
+
+		for (const shader_blob& b : blobs)
+		{
+			const uint32 blob_sz = static_cast<uint32>(b.data.size);
+			stream << blob_sz;
+			stream << b.stage;
+
+			if (b.data.size != 0)
+			{
+				if (address_only)
+				{
+					const uint64 addr = reinterpret_cast<uint64>(b.data.data);
+					stream << addr;
+				}
+				else
+				{
+					stream.write_raw(b.data.data, b.data.size);
+				}
+			}
+		}
+	}
+
+	void compile_variant::deserialize(istream& stream, bool address_only)
+	{
+		uint32 sz = 0;
+		stream >> sz;
+		blobs.resize(sz);
+
+		for (uint32 i = 0; i < sz; i++)
+		{
+			shader_blob& b		 = blobs[i];
+			uint32		 blob_sz = 0;
+			stream >> blob_sz;
+			stream >> b.stage;
+			b.data.size = static_cast<size_t>(blob_sz);
+
+			if (blob_sz > 0)
+			{
+				if (address_only)
+				{
+					uint64 addr = 0;
+					stream >> addr;
+					b.data.data = reinterpret_cast<uint8*>(addr);
+				}
+				else
+				{
+					b.data.data = new uint8[b.data.size];
+					stream.read_to_raw(b.data.data, b.data.size);
+				}
+			}
+		}
+	}
+
+	void pso_variant::serialize(ostream& stream) const
+	{
+		stream << desc;
+		stream << compile_variant;
+		stream << variant_flags.value();
+	}
+
+	void pso_variant::deserialize(istream& stream)
+	{
+		uint32 flags_val = 0;
+		stream >> desc;
+		stream >> compile_variant;
+		stream >> flags_val;
+		variant_flags = flags_val;
 	}
 }

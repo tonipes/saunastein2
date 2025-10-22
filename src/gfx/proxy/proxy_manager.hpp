@@ -32,7 +32,7 @@ namespace SFG
 		void   fetch_render_events(render_event_stream& stream);
 		void   flush_material_updates(uint8 frame_index);
 		void   flush_destroys(bool force);
-		gfx_id get_shader_variant(const render_proxy_material& mat, uint8 target_flags);
+		gfx_id get_shader_variant(resource_id shader_handle, uint32 flags);
 
 		inline render_proxy_texture& get_texture(resource_id idx)
 		{

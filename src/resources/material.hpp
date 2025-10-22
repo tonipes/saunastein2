@@ -18,11 +18,11 @@ namespace SFG
 	class material
 	{
 	public:
-		void create_from_loader(const material_raw& raw, world& w, resource_handle handle);
+		void create_from_loader(const material_raw& raw, world& w, resource_handle handle, const vector<resource_handle>& samplers = {});
 		void destroy(world& w, resource_handle handle);
 		void update_data(world& w, resource_handle handle);
 
-		inline const bitmask<uint8>& get_flags() const
+		inline const bitmask<uint32>& get_flags() const
 		{
 			return _flags;
 		}
@@ -33,8 +33,8 @@ namespace SFG
 		}
 
 	private:
-		ostream		   _material_data = {};
-		bitmask<uint8> _flags		  = 0;
+		ostream			_material_data = {};
+		bitmask<uint32> _flags		   = 0;
 #ifndef SFG_STRIP_DEBUG_NAMES
 		chunk_handle32 _name;
 #endif

@@ -35,7 +35,7 @@ namespace SFG
 			raw				= {};
 
 #ifdef SFG_TOOLMODE
-			if (!raw.load_from_file(p.c_str(), false, bind_layout, SFG_ROOT_DIRECTORY))
+			if (!raw.load_from_file(p.c_str(), SFG_ROOT_DIRECTORY))
 			{
 				raw.destroy();
 				return false;
@@ -47,7 +47,7 @@ namespace SFG
 #endif
 
 			const string src = root + raw.source.c_str();
-			e.direct.create_from_loader(raw);
+			e.direct.create_from_loader(raw, bind_layout);
 
 			_file_watcher.add_path(p.c_str(), static_cast<uint16>(i));
 			_file_watcher.add_path(src.c_str(), static_cast<uint16>(i));
@@ -81,14 +81,14 @@ namespace SFG
 		const engine_shader_type type  = static_cast<engine_shader_type>(id);
 		shader_entry&			 entry = _shaders[id];
 		shader_raw				 raw   = {};
-		if (!raw.load_from_file(entry.src_path.c_str(), false, _bind_layout, SFG_ROOT_DIRECTORY))
+		if (!raw.load_from_file(entry.src_path.c_str(), SFG_ROOT_DIRECTORY))
 		{
 			return;
 		}
 
 		game_app::get()->join_render();
 		entry.direct.destroy();
-		entry.direct.create_from_loader(raw);
+		entry.direct.create_from_loader(raw, _bind_layout);
 		raw.destroy();
 		for (auto cb : _reload_callbacks)
 			cb(type, entry.direct);

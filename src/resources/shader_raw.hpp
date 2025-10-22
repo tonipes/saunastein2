@@ -15,21 +15,20 @@ namespace SFG
 
 	struct shader_raw
 	{
-		string		   name			= "";
-		string		   source		= "";
-		shader_desc	   desc			= {};
-		vector<string> defines		= {};
-		uint8		   is_skinned	= 0;
-		uint8		   is_discard	= 0;
-		uint8		   is_z_prepass = 0;
+		string					name			 = "";
+		string					source			 = "";
+		vector<compile_variant> compile_variants = {};
+		vector<pso_variant>		pso_variants	 = {};
 
-		void destroy();
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);
 
+		bool compile_specialized(const string& shader_text, const string& folder_path, const string& variant_style);
+		void destroy();
+
 #ifdef SFG_TOOLMODE
 		bool load_from_file(const char* file);
-		bool load_from_file(const char* file, bool use_embedded_layout, gfx_id layout, const char* base_directory_for_source = nullptr);
+		bool load_from_file(const char* file, const char* base_directory_for_source);
 		void get_dependencies(vector<string>& out_deps) const;
 #endif
 	};

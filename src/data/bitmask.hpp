@@ -6,6 +6,7 @@
 
 namespace SFG
 {
+	
 	template <typename T> class bitmask
 	{
 	public:

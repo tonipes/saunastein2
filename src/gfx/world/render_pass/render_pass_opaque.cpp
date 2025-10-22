@@ -9,6 +9,7 @@
 #include "gfx/world/world_render_data.hpp"
 #include "gfx/proxy/proxy_manager.hpp"
 #include "gfx/common/barrier_description.hpp"
+#include "gfx/common/render_target_definitions.hpp"
 #include "world/world.hpp"
 #include "resources/vertex.hpp"
 #include "math/vector2ui16.hpp"
@@ -71,15 +72,22 @@ namespace SFG
 		for (const renderable_object& obj : wrd.objects)
 		{
 			const render_proxy_material& proxy_material = pm.get_material(obj.material);
-			const bool					 is_discard		= proxy_material.flags.is_set(material_flags::material_flags_is_gbuffer_discard);
 
-			if (!proxy_material.flags.is_set(material_flags::material_flags_is_gbuffer) && !is_discard)
+			if (proxy_material.flags.is_set(material_flags::material_flags_is_forward))
 				continue;
 
-			bitmask<uint8> target_flags = 0;
-			target_flags.set(res_shader_flags::res_shader_flags_is_skinned, obj.is_skinned);
-			target_flags.set(res_shader_flags::res_shader_flags_is_discard, is_discard);
-			const gfx_id target_shader = pm.get_shader_variant(proxy_material, target_flags.value());
+			const gfx_id	bg				= proxy_material.bind_groups[frame_index];
+			const gfx_id	base_shader		= proxy_material.shader_handle;
+			const bitmask32 mat_flags		= proxy_material.flags;
+			const bool		is_alpha_cutoff = mat_flags.is_set(material_flags::material_flags_is_alpha_cutoff);
+			const bool		is_double_sided = mat_flags.is_set(material_flags::material_flags_is_double_sided);
+
+			bitmask<uint32> variant_flags = 0;
+			variant_flags.set(shader_variant_flags::variant_flag_alpha_cutoff, is_alpha_cutoff);
+			variant_flags.set(shader_variant_flags::variant_flag_skinned, obj.is_skinned);
+			variant_flags.set(shader_variant_flags::variant_flag_double_sided, is_double_sided);
+
+			const gfx_id target_shader = pm.get_shader_variant(base_shader, variant_flags.value());
 			SFG_ASSERT(target_shader != NULL_GFX_ID);
 
 			rd.draws.push_back({
@@ -93,7 +101,7 @@ namespace SFG
 				.start_index	= obj.index_start,
 				.start_instance = 0,
 				.pipeline		= target_shader,
-				.bind_group		= proxy_material.bind_groups[frame_index],
+				.bind_group		= bg,
 				.vertex_buffer	= obj.vertex_buffer->get_hw_gpu(),
 				.idx_buffer		= obj.index_buffer->get_hw_gpu(),
 			});
@@ -287,6 +295,12 @@ namespace SFG
 		names.push_back("opaque_rt_orm");
 		names.push_back("opaque_rt_emissive");
 
+		static_vector<format, COLOR_TEXTURES> formats;
+
+		formats.push_back(render_target_definitions::get_format_gbuffer_albedo());
+		formats.push_back(render_target_definitions::get_format_gbuffer_normal());
+		formats.push_back(render_target_definitions::get_format_gbuffer_orm());
+		formats.push_back(render_target_definitions::get_format_gbuffer_emissive());
 		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
 			per_frame_data& pfd = _pfd[i];
@@ -295,7 +309,7 @@ namespace SFG
 			for (uint32 j = 0; j < COLOR_TEXTURES; j++)
 			{
 				pfd.color_textures.push_back(backend->create_texture({
-					.texture_format = format::r8g8b8a8_srgb,
+					.texture_format = formats[j],
 					.size			= sz,
 					.flags			= texture_flags::tf_render_target | texture_flags::tf_is_2d | texture_flags::tf_sampled,
 					.clear_values	= {0.0f, 0.0f, 0.0f, 1.0f},

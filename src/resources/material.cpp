@@ -19,7 +19,7 @@
 namespace SFG
 {
 
-	void material::create_from_loader(const material_raw& raw, world& w, resource_handle handle)
+	void material::create_from_loader(const material_raw& raw, world& w, resource_handle handle, const vector<resource_handle>& samplers)
 	{
 		render_event_stream& stream = w.get_render_stream();
 		resource_manager&	 rm		= w.get_resource_manager();
@@ -34,29 +34,29 @@ namespace SFG
 		const uint8 texture_count = static_cast<uint8>(raw.textures.size());
 		_material_data			  = raw.material_data;
 		_flags.set(material_flags::material_flags_is_gbuffer, raw.pass_mode == material_pass_mode::gbuffer);
-		_flags.set(material_flags::material_flags_is_gbuffer_discard, raw.pass_mode == material_pass_mode::gbuffer_transparent);
 		_flags.set(material_flags::material_flags_is_forward, raw.pass_mode == material_pass_mode::forward);
-		SFG_ASSERT(!raw.shaders.empty());
+		_flags.set(material_flags::material_flags_is_alpha_cutoff, raw.use_alpha_cutoff);
+		_flags.set(material_flags::material_flags_is_double_sided, raw.double_sided);
+		SFG_ASSERT(raw.shader != 0);
 
 		render_event_material stg = {};
 		stg.data.data			  = reinterpret_cast<uint8*>(SFG_MALLOC(_material_data.get_size()));
-		SFG_MEMCPY(stg.data.data, _material_data.get_raw(), _material_data.get_size());
-		stg.data.size	  = _material_data.get_size();
-		stg.flags		  = _flags.value();
-		// stg.use_sampler	  = !sampler_handle.is_null();
-		//stg.sampler_index = sampler_handle.index;
+
+		if (stg.data.data)
+			SFG_MEMCPY(stg.data.data, _material_data.get_raw(), _material_data.get_size());
+		stg.data.size = _material_data.get_size();
+		stg.flags	  = _flags.value();
+
+		for (const resource_handle& h : samplers)
+			stg.samplers.push_back(h);
 
 		for (string_id sid : raw.textures)
 		{
 			const resource_handle handle = rm.get_resource_handle_by_hash<texture>(sid);
 			stg.textures.push_back(handle);
 		}
-
-		for (string_id sid : raw.shaders)
-		{
-			const resource_handle handle = rm.get_resource_handle_by_hash<shader>(sid);
-			stg.shaders.push_back(handle);
-		}
+		const resource_handle shader_handle = rm.get_resource_handle_by_hash<shader>(raw.shader);
+		stg.shader_index					= shader_handle.index;
 
 #ifndef SFG_STRIP_DEBUG_NAMES
 		stg.name = raw.name;

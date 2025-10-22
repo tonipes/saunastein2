@@ -54,25 +54,42 @@ namespace SFG
 
 	void render_event_shader::serialize(ostream& stream) const
 	{
-		desc.serialize(stream, true);
-		stream << flags;
+		stream << layout;
+		stream << pso_variants;
+
+		const uint32 compile_variants_sz = static_cast<uint32>(compile_variants.size());
+		stream << compile_variants_sz;
+
+		for (const compile_variant& v : compile_variants)
+		{
+			v.serialize(stream, true);
+		}
 	}
 
 	void render_event_shader::deserialize(istream& stream)
 	{
-		desc.deserialize(stream, true);
-		stream >> flags;
+		stream >> layout;
+		stream >> pso_variants;
+
+		uint32 compile_variants_size = 0;
+		stream >> compile_variants_size;
+
+		compile_variants.resize(compile_variants_size);
+		for (uint32 i = 0; i < compile_variants_size; i++)
+		{
+			compile_variant& v = compile_variants[i];
+			v.deserialize(stream, true);
+		}
 	}
 
 	void render_event_material::serialize(ostream& stream) const
 	{
-		const uint32 txt_sz		= static_cast<uint32>(textures.size());
-		const uint32 shaders_sz = static_cast<uint32>(shaders.size());
+		const uint32 txt_sz = static_cast<uint32>(textures.size());
+		const uint32 smp_sz = static_cast<uint32>(samplers.size());
 		stream << txt_sz;
-		stream << shaders_sz;
+		stream << smp_sz;
 		stream << flags;
-		stream << use_sampler;
-		stream << sampler_index;
+		stream << shader_index;
 
 		for (resource_handle h : textures)
 		{
@@ -80,7 +97,7 @@ namespace SFG
 			stream << h.generation;
 		}
 
-		for (resource_handle h : shaders)
+		for (resource_handle h : samplers)
 		{
 			stream << h.index;
 			stream << h.generation;
@@ -97,15 +114,14 @@ namespace SFG
 
 	void render_event_material::deserialize(istream& stream)
 	{
-		uint32 txt_sz	  = 0;
-		uint32 shaders_sz = 0;
+		uint32 txt_sz = 0;
+		uint32 smp_sz = 0;
 		stream >> txt_sz;
-		stream >> shaders_sz;
+		stream >> smp_sz;
 		stream >> flags;
-		stream >> use_sampler;
-		stream >> sampler_index;
+		stream >> shader_index;
 		textures.resize(txt_sz);
-		shaders.resize(shaders_sz);
+		samplers.resize(smp_sz);
 
 		for (uint32 i = 0; i < txt_sz; i++)
 		{
@@ -114,9 +130,9 @@ namespace SFG
 			stream >> h.generation;
 		}
 
-		for (uint32 i = 0; i < shaders_sz; i++)
+		for (uint32 i = 0; i < smp_sz; i++)
 		{
-			resource_handle& h = shaders[i];
+			resource_handle& h = samplers[i];
 			stream >> h.index;
 			stream >> h.generation;
 		}

@@ -25,21 +25,27 @@ namespace SFG
 
 	struct render_proxy_material
 	{
-		buffer													 buffers[BACK_BUFFER_COUNT];
-		static_vector<resource_id, MAX_MATERIAL_SHADER_VARIANTS> shader_handles;
-		static_vector<resource_id, MAX_MATERIAL_TEXTURES>		 texture_handles;
-		resource_id												 handle = {};
-		gfx_id													 bind_groups[BACK_BUFFER_COUNT];
-		uint8													 status = render_proxy_status::rps_inactive;
-		bitmask<uint8>											 flags	= 0;
+		buffer											  buffers[BACK_BUFFER_COUNT];
+		resource_id										  shader_handle	  = 0;
+		static_vector<resource_id, MAX_MATERIAL_TEXTURES> texture_handles = {};
+		resource_id										  handle		  = {};
+		gfx_id											  bind_groups[BACK_BUFFER_COUNT];
+		uint8											  status = render_proxy_status::rps_inactive;
+		bitmask<uint32>									  flags	 = 0;
+	};
+
+	struct render_proxy_shader_variant
+	{
+		gfx_id			hw = 0;
+		bitmask<uint32> variant_flags;
 	};
 
 	struct render_proxy_shader
 	{
-		resource_id	   handle = {};
-		gfx_id		   hw	  = 0;
-		uint8		   status = render_proxy_status::rps_inactive;
-		bitmask<uint8> flags  = 0;
+		resource_id	   handle		 = {};
+		chunk_handle32 variants		 = {};
+		uint32		   variant_count = 0;
+		uint8		   status		 = render_proxy_status::rps_inactive;
 	};
 
 	struct render_proxy_sampler

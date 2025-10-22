@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "data/bitmask.hpp"
 #include "resources/common_resources.hpp"
 #include "reflection/resource_reflection.hpp"
 
@@ -21,13 +20,7 @@ namespace SFG
 		void create_from_loader(const shader_raw& raw, world& w, resource_handle handle);
 		void destroy(world& w, resource_handle handle);
 
-		inline const bitmask<uint8>& get_flags() const
-		{
-			return _flags;
-		}
-
 	private:
-		bitmask<uint8> _flags = 0;
 #ifndef SFG_STRIP_DEBUG_NAMES
 		chunk_handle32 _name;
 #endif

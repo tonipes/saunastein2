@@ -12,10 +12,12 @@ namespace SFG
 		SFG_ASSERT(_hw == NULL_GFX_ID);
 	}
 
-	void shader_direct::create_from_loader(shader_raw& raw)
+	void shader_direct::create_from_loader(shader_raw& raw, gfx_id layout)
 	{
 		gfx_backend* backend = gfx_backend::get();
-		_hw					 = backend->create_shader(raw.desc);
+
+		shader_desc desc = raw.pso_variants.at(0).desc;
+		_hw				 = backend->create_shader(desc, raw.compile_variants.at(0).blobs, layout);
 	}
 
 	void shader_direct::destroy()

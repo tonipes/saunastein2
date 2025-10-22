@@ -138,10 +138,11 @@ namespace SFG
 				material& created = rm.get_resource<material>(sub_handle);
 
 				resource_handle sampler_handle = {};
-				if (loaded.use_sampler_definition)
-					sampler_handle = rm.get_or_add_sampler(loaded.sampler_definition);
+				vector<resource_handle> sampler_handles = {};
+				for (const sampler_desc& desc : loaded.sampler_definitions)
+					sampler_handles.push_back(rm.get_or_add_sampler(desc));
 
-				created.create_from_loader(loaded, w, sub_handle);
+				created.create_from_loader(loaded, w, sub_handle, sampler_handles);
 			}
 		}
 

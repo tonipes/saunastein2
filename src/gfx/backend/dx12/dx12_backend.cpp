@@ -1790,7 +1790,7 @@ namespace SFG
 		return true;
 	}
 
-	gfx_id dx12_backend::create_shader(const shader_desc& desc)
+	gfx_id dx12_backend::create_shader(const shader_desc& desc, const vector<shader_blob>& blobs, gfx_id existing_layout, span<uint8> layout_data)
 	{
 		VERIFY_RENDER_NOT_RUNNING_OR_RENDER_THREAD();
 
@@ -1798,17 +1798,17 @@ namespace SFG
 		shader&		 sh = _shaders.get(id);
 		sh.topology		= static_cast<uint8>(get_topology(desc.topo));
 
-		if (desc.flags.is_set(shader_flags::shf_use_embedded_layout))
+		if (layout_data.size != 0)
 		{
-			throw_if_failed(_device->CreateRootSignature(0, desc.layout_data.data, desc.layout_data.size, IID_PPV_ARGS(&sh.root_signature)));
+			throw_if_failed(_device->CreateRootSignature(0, layout_data.data, layout_data.size, IID_PPV_ARGS(&sh.root_signature)));
 			sh.owns_root_sig = true;
 		}
 		else
-			sh.root_signature = _bind_layouts.get(desc.layout).root_signature;
+			sh.root_signature = _bind_layouts.get(existing_layout).root_signature;
 
 		/* Early out if compute */
-		const auto it = vector_util::find_if(desc.blobs, [](const shader_blob& b) -> bool { return b.stage == shader_stage::compute; });
-		if (it != desc.blobs.end())
+		const auto it = vector_util::find_if(blobs, [](const shader_blob& b) -> bool { return b.stage == shader_stage::compute; });
+		if (it != blobs.end())
 		{
 			D3D12_COMPUTE_PIPELINE_STATE_DESC cpsd = {};
 			cpsd.pRootSignature					   = sh.root_signature.Get();
@@ -1890,7 +1890,7 @@ namespace SFG
 		pso_desc.RasterizerState.SlopeScaledDepthBias  = desc.depth_bias_slope;
 		pso_desc.DSVFormat							   = get_format(desc.depth_stencil_desc.attachment_format);
 
-		for (const shader_blob& bl : desc.blobs)
+		for (const shader_blob& bl : blobs)
 		{
 			const void*	 byte_code = (void*)bl.data.data;
 			const SIZE_T length	   = static_cast<SIZE_T>(bl.data.size);

@@ -538,7 +538,6 @@ namespace SFG
 					raw.address_v = address_mode::clamp;
 				else if (address_v == TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT)
 					raw.address_v = address_mode::mirrored_repeat;
-
 			};
 
 			for (size_t i = 0; i < all_textures_sz; i++)
@@ -594,7 +593,7 @@ namespace SFG
 					.address_w	= address_mode::clamp,
 				});
 			}
-			SFG_ASSERT(!material_shaders.empty());
+			SFG_ASSERT(material_shader != 0);
 
 			auto find_sampler = [&](int32 texture_index) -> int32 { return loaded_sampler_indices.at(model.textures.at(texture_index).sampler); };
 
@@ -618,7 +617,9 @@ namespace SFG
 				const float	  metallic	   = static_cast<float>(tmat.pbrMetallicRoughness.metallicFactor);
 				const float	  roughness	   = static_cast<float>(tmat.pbrMetallicRoughness.roughnessFactor);
 				const float	  alpha_cutoff = static_cast<float>(tmat.alphaCutoff);
-				raw.pass_mode			   = tmat.alphaMode.compare("OPAQUE") == 0 ? material_pass_mode::gbuffer : (tmat.alphaMode.compare("MASK") == 0 ? material_pass_mode::gbuffer_transparent : material_pass_mode::forward);
+				raw.pass_mode			   = tmat.alphaMode.compare("BLEND") == 0 ? material_pass_mode::forward : material_pass_mode::gbuffer;
+				raw.use_alpha_cutoff	   = tmat.alphaMode.compare("MASK") == 0;
+				raw.double_sided		   = tmat.doubleSided;
 				raw.material_data << base_color;
 				raw.material_data << emissive;
 				raw.material_data << metallic;
@@ -641,28 +642,24 @@ namespace SFG
 					SFG_WARN("GTLF material {0} is missing ORM texture but has seperate occlusion texture. Occlusion texture will be used for ORM slot, might lead to inaccuracies in roughness & metallic implementation.", tmat.name);
 				}
 
-				int32 sampler_index = 0;
-
 				if (base_index != -1)
-					sampler_index = find_sampler(base_index);
-				else if (normal_index != -1)
-					sampler_index = find_sampler(normal_index);
-				else if (orm_index != -1)
-					sampler_index = find_sampler(orm_index);
-				else if (emissive_index != -1)
-					sampler_index = find_sampler(emissive_index);
+					raw.sampler_definitions.push_back(samplers.at(find_sampler(base_index)));
 
-				raw.use_sampler_definition = 1;
-				raw.sampler_definition	   = samplers.at(sampler_index);
+				if (normal_index != -1)
+					raw.sampler_definitions.push_back(samplers.at(find_sampler(normal_index)));
+
+				if (orm_index != -1)
+					raw.sampler_definitions.push_back(samplers.at(find_sampler(orm_index)));
+
+				if (emissive_index != -1)
+					raw.sampler_definitions.push_back(samplers.at(find_sampler(emissive_index)));
 
 				raw.textures.resize(4);
 				raw.textures[0] = base_index == -1 ? DUMMY_COLOR_TEXTURE_SID : loaded_textures[loaded_indices.at(base_index)].sid;
 				raw.textures[1] = normal_index == -1 ? DUMMY_NORMAL_TEXTURE_SID : loaded_textures[loaded_indices.at(normal_index)].sid;
 				raw.textures[2] = orm_index == -1 ? DUMMY_ORM_TEXTURE_SID : loaded_textures[loaded_indices.at(orm_index)].sid;
 				raw.textures[3] = emissive_index == -1 ? DUMMY_COLOR_TEXTURE_SID : loaded_textures[loaded_indices.at(emissive_index)].sid;
-
-				for (string_id sh : material_shaders)
-					raw.shaders.push_back(sh);
+				raw.shader		= material_shader;
 
 				SFG_INFO("Created material from gltf: {0}", raw.name);
 			}
@@ -849,16 +846,14 @@ namespace SFG
 				return false;
 			}
 
-			const uint8			 import_pbr_materials = json_data.value<uint8>("import_pbr_materials", 0);
-			const vector<string> shaders			  = json_data.value<vector<string>>("shaders", {});
-			const uint8			 import_textures	  = import_pbr_materials;
+			const uint8	 import_pbr_materials = json_data.value<uint8>("import_pbr_materials", 0);
+			const string shader				  = json_data.value<string>("shader", "");
+			const uint8	 import_textures	  = import_pbr_materials;
 
 			if (import_pbr_materials == 1)
 			{
-				SFG_ASSERT(!shaders.empty());
-
-				for (const string& sh : shaders)
-					material_shaders.push_back(TO_SID(sh));
+				SFG_ASSERT(!shader.empty());
+				material_shader = TO_SID(shader);
 			}
 
 			const bool success = import_gtlf(full_source.c_str(), name.c_str(), import_pbr_materials, import_textures);

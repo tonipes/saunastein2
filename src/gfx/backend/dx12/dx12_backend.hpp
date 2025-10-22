@@ -37,6 +37,7 @@ namespace SFG
 	struct bind_layout_desc;
 	struct bind_layout_pointer_param;
 	struct bind_group_pointer;
+	struct shader_blob;
 
 	struct command_begin_render_pass;
 	struct command_begin_render_pass_depth;
@@ -211,7 +212,7 @@ namespace SFG
 		gfx_id create_swapchain(const swapchain_desc&);
 		gfx_id recreate_swapchain(const swapchain_recreate_desc& desc);
 		gfx_id create_semaphore();
-		gfx_id create_shader(const shader_desc& desc);
+		gfx_id create_shader(const shader_desc& desc, const vector<shader_blob>& blobs, gfx_id existing_layout, span<uint8> layout_data = {});
 		gfx_id create_empty_bind_group();
 		gfx_id create_command_buffer(const command_buffer_desc& desc);
 		gfx_id create_command_allocator(uint8 ctype);

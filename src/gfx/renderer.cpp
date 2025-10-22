@@ -9,6 +9,7 @@
 #include "gfx/world/world_renderer.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"
 #include "gfx/event_stream/render_events_gfx.hpp"
+#include "gfx/common/render_target_definitions.hpp"
 #include "platform/window.hpp"
 #include "platform/time.hpp"
 #include "math/vector4.hpp"
@@ -20,7 +21,7 @@
 
 namespace SFG
 {
-#define RT_FORMAT format::r8g8b8a8_srgb
+
 
 	gfx_id renderer::s_bind_group_global[BACK_BUFFER_COUNT] = {};
 	gfx_id renderer::s_bind_layout_global					= 0;
@@ -52,7 +53,7 @@ namespace SFG
 			.window	   = main_window->get_window_handle(),
 			.os_handle = main_window->get_platform_handle(),
 			.scaling   = 1.0f,
-			.format	   = RT_FORMAT,
+			.format	   = render_target_definitions::get_format_swapchain(),
 			.pos	   = vector2ui16::zero,
 			.size	   = main_window->get_size(),
 			.flags	   = _swapchain_flags,
@@ -60,7 +61,7 @@ namespace SFG
 		_base_size			= main_window->get_size();
 
 		// dummy data
-		_gfx_data.dummy_sampler = backend->create_sampler({.address_u = address_mode::repeat, .address_v = address_mode::repeat});
+		_gfx_data.dummy_sampler = backend->create_sampler({});
 		_gfx_data.dummy_texture = backend->create_texture({
 			.texture_format = format::r8_unorm,
 			.size			= vector2ui16(1, 1),

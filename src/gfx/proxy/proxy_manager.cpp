@@ -215,22 +215,20 @@ namespace SFG
 		}
 	}
 
-	gfx_id proxy_manager::get_shader_variant(const render_proxy_material& mat, uint8 target_flags)
+	gfx_id proxy_manager::get_shader_variant(resource_id shader_handle, uint32 flags)
 	{
-		gfx_id target_shader = NULL_GFX_ID;
+		const render_proxy_shader&		   proxy_shader	  = get_shader(shader_handle);
+		const uint32					   variants_count = proxy_shader.variant_count;
+		const render_proxy_shader_variant* var			  = _aux_memory.get<const render_proxy_shader_variant>(proxy_shader.variants);
 
-		for (gfx_id shader : mat.shader_handles)
+		for (uint32 i = 0; i < variants_count; i++)
 		{
-			const render_proxy_shader& proxy_shader = get_shader(shader);
-			const bitmask<uint8>&	   flags		= proxy_shader.flags;
-
-			if (proxy_shader.flags.is_all_set(target_flags))
-			{
-				target_shader = proxy_shader.hw;
-				break;
-			}
+			const render_proxy_shader_variant& v = var[i];
+			if (v.variant_flags.is_all_set(flags))
+				return v.hw;
 		}
-		return target_shader;
+
+		return NULL_GFX_ID;
 	}
 
 	void proxy_manager::process_event(const render_event_header& header, istream& stream)
@@ -448,7 +446,6 @@ namespace SFG
 
 #ifndef SFG_STRIP_DEBUG_NAMES
 			SFG_TRACE("Created sampler proxy for: {0}", ev.desc.debug_name);
-
 #endif
 
 			// Invalidate materials using this texture.
@@ -479,18 +476,41 @@ namespace SFG
 			render_proxy_shader& proxy = get_shader(index);
 			proxy.status			   = render_proxy_status::rps_active;
 			proxy.handle			   = index;
-			proxy.hw				   = backend->create_shader(ev.desc);
-			proxy.flags				   = ev.flags;
+
+			const uint32 pso_count = static_cast<uint32>(ev.pso_variants.size());
+			proxy.variants		   = _aux_memory.allocate<render_proxy_shader_variant>(pso_count);
+			proxy.variant_count	   = pso_count;
+
+			render_proxy_shader_variant* proxy_vars = _aux_memory.get<render_proxy_shader_variant>(proxy.variants);
+
+			for (uint32 i = 0; i < pso_count; i++)
+			{
+				render_proxy_shader_variant& variant = proxy_vars[i];
+				pso_variant&				 pso	 = ev.pso_variants[i];
+
+				variant.variant_flags = pso.variant_flags;
+				variant.hw			  = backend->create_shader(pso.desc, ev.compile_variants.at(pso.compile_variant).blobs, ev.layout);
+
+				SFG_TRACE("FLAGS: {0}", variant.variant_flags.value());
 
 #ifndef SFG_STRIP_DEBUG_NAMES
-			SFG_TRACE("Created shader proxy for: {0}", ev.desc.debug_name);
+				if (i == 0)
+				{
+					SFG_TRACE("Created sampler proxy for: {0} variants: {1}", pso.desc.debug_name, pso_count);
+				}
 #endif
-			ev.desc.destroy();
+			}
+
+			for (compile_variant& cv : ev.compile_variants)
+				cv.destroy();
+			ev.compile_variants.clear();
 		}
 		else if (type == render_event_type::render_event_destroy_shader)
 		{
 			render_proxy_shader& proxy = get_shader(index);
+			const chunk_handle32 vars  = proxy.variants;
 			destroy_shader(proxy);
+			_aux_memory.free(vars);
 		}
 		else if (type == render_event_type::render_event_reload_shader)
 		{
@@ -502,11 +522,8 @@ namespace SFG
 				if (mat.status != render_proxy_status::rps_active)
 					continue;
 
-				for (resource_id& shader : mat.shader_handles)
-				{
-					if (shader == ev.prev_id)
-						shader = ev.new_id;
-				}
+				if (mat.shader_handle == ev.prev_id)
+					mat.shader_handle = ev.new_id;
 			}
 		}
 		else if (type == render_event_type::render_event_create_material)
@@ -518,9 +535,7 @@ namespace SFG
 			proxy.status				 = render_proxy_status::rps_active;
 			proxy.handle				 = index;
 			proxy.flags					 = ev.flags;
-
-			for (resource_handle h : ev.shaders)
-				proxy.shader_handles.push_back(h.index);
+			proxy.shader_handle			 = ev.shader_index;
 
 			for (resource_handle h : ev.textures)
 				proxy.texture_handles.push_back(h.index);
@@ -568,14 +583,21 @@ namespace SFG
 				}
 				backend->bind_group_update_pointer(proxy.bind_groups[i], 0, updates);
 
-				if (ev.use_sampler)
+				if (!ev.samplers.empty())
 				{
-					backend->bind_group_add_pointer(proxy.bind_groups[i], root_param_index::rpi_table_dyn_sampler, 1, true);
-					backend->bind_group_update_pointer(proxy.bind_groups[i],
-													   1,
-													   {
-														   {.resource = _samplers->get(ev.sampler_index).hw, .pointer_index = static_cast<uint8>(upi_dyn_sampler0), .type = binding_type::sampler},
-													   });
+					backend->bind_group_add_pointer(proxy.bind_groups[i], root_param_index::rpi_table_dyn_sampler, upi_dyn_sampler3 + 1, true);
+
+					vector<bind_group_pointer> updates;
+					updates.resize(4);
+
+					// Update samplers, use first one if not enough samplers are encoded.
+					for (uint32 i = 0; i < 4; i++)
+					{
+						const uint32 index = ev.samplers.size() > i ? i : 0;
+						updates[i]		   = {.resource = _samplers->get(ev.samplers[index].index).hw, .pointer_index = static_cast<uint8>(upi_dyn_sampler0 + i), .type = binding_type::sampler};
+					}
+
+					backend->bind_group_update_pointer(proxy.bind_groups[i], 1, updates);
 				}
 
 				proxy.buffers[i].buffer_data(0, ev.data.data, ev.data.size);
@@ -787,7 +809,10 @@ namespace SFG
 	void proxy_manager::destroy_shader(render_proxy_shader& proxy)
 	{
 		const uint8 safe_bucket = frame_info::get_render_frame() % (BACK_BUFFER_COUNT + 1);
-		add_to_destroy_bucket({.id = proxy.hw, .type = destroy_data_type::shader}, safe_bucket);
+
+		render_proxy_shader_variant* vars = _aux_memory.get<render_proxy_shader_variant>(proxy.variants);
+		for (uint32 i = 0; i < proxy.variant_count; i++)
+			add_to_destroy_bucket({.id = vars[i].hw, .type = destroy_data_type::shader}, safe_bucket);
 		proxy = {};
 	}
 

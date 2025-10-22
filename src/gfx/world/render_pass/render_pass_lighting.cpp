@@ -11,6 +11,7 @@
 #include "gfx/common/barrier_description.hpp"
 #include "gfx/renderer.hpp"
 #include "gfx/engine_shaders.hpp"
+#include "gfx/common/render_target_definitions.hpp"
 #include "world/world.hpp"
 #include "resources/vertex.hpp"
 #include "math/vector2ui16.hpp"
@@ -198,7 +199,7 @@ namespace SFG
 			per_frame_data& pfd = _pfd[i];
 
 			pfd.render_target = backend->create_texture({
-				.texture_format = format::r16g16b16a16_sfloat,
+				.texture_format = render_target_definitions::get_format_lighting(),
 				.size			= sz,
 				.flags			= texture_flags::tf_render_target | texture_flags::tf_is_2d | texture_flags::tf_sampled,
 				.clear_values	= {0.0f, 0.0f, 0.0f, 1.0f},

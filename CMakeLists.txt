@@ -153,6 +153,8 @@ src/vendor/nhlohmann/*.hpp
 src/vendor/util/*.hpp
 src/vendor/syoyo/*.h
 src/vendor/miniaudio/*.h
+src/vendor/um/*.h
+src/vendor/um/*.inl
 src/sfg_api.hpp
 )
 

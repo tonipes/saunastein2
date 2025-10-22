@@ -46,8 +46,9 @@ namespace SFG
 
 	struct render_event_shader
 	{
-		shader_desc desc  = {};
-		uint8		flags = 0;
+		vector<compile_variant> compile_variants;
+		vector<pso_variant>		pso_variants;
+		gfx_id					layout = 0;
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);
@@ -58,12 +59,11 @@ namespace SFG
 #ifndef SFG_STRIP_DEBUG_NAMES
 		string name = "";
 #endif
-		uint8														 flags;
-		uint8														 use_sampler   = 0;
-		resource_id													 sampler_index = 0;
-		span<uint8>													 data		   = {};
-		static_vector<resource_handle, MAX_MATERIAL_TEXTURES>		 textures;
-		static_vector<resource_handle, MAX_MATERIAL_SHADER_VARIANTS> shaders;
+		static_vector<resource_handle, MAX_MATERIAL_TEXTURES> textures;
+		static_vector<resource_handle, MAX_MATERIAL_TEXTURES> samplers;
+		span<uint8>											  data = {};
+		uint32												  flags;
+		resource_id											  shader_index;
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);
@@ -108,16 +108,4 @@ namespace SFG
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);
 	};
-
-	struct render_event_model_reloaded
-	{
-		resource_id			prev_id;
-		resource_id			new_id;
-		vector<resource_id> prev_meshes;
-		vector<resource_id> new_meshes;
-
-		void serialize(ostream& stream) const;
-		void deserialize(istream& stream);
-	};
-
 }

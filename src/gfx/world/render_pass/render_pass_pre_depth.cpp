@@ -9,6 +9,7 @@
 #include "gfx/proxy/proxy_manager.hpp"
 #include "gfx/common/barrier_description.hpp"
 #include "gfx/renderer.hpp"
+#include "gfx/common/render_target_definitions.hpp"
 #include "world/world.hpp"
 #include "resources/vertex.hpp"
 #include "math/vector2ui16.hpp"
@@ -71,17 +72,20 @@ namespace SFG
 		for (const renderable_object& obj : wrd.objects)
 		{
 			const render_proxy_material& proxy_material = pm.get_material(obj.material);
-
 			if (proxy_material.flags.is_set(material_flags::material_flags_is_forward))
 				continue;
+			const gfx_id	bg				= proxy_material.bind_groups[frame_index];
+			const gfx_id	base_shader		= proxy_material.shader_handle;
+			const bitmask32 mat_flags		= proxy_material.flags;
+			const bool		is_alpha_cutoff = mat_flags.is_set(material_flags::material_flags_is_alpha_cutoff);
+			const bool		is_double_sided = mat_flags.is_set(material_flags::material_flags_is_double_sided);
 
-			const bool	   is_discard	= proxy_material.flags.is_set(material_flags::material_flags_is_gbuffer_discard);
-			bitmask<uint8> target_flags = 0;
-			target_flags.set(res_shader_flags::res_shader_flags_is_skinned, obj.is_skinned);
-			target_flags.set(res_shader_flags::res_shader_flags_is_discard, is_discard);
-			target_flags.set(res_shader_flags::res_shader_flags_is_zprepass);
+			bitmask<uint32> variant_flags = shader_variant_flags::variant_flag_z_prepass;
+			variant_flags.set(shader_variant_flags::variant_flag_alpha_cutoff, is_alpha_cutoff);
+			variant_flags.set(shader_variant_flags::variant_flag_skinned, obj.is_skinned);
+			variant_flags.set(shader_variant_flags::variant_flag_double_sided, is_double_sided);
 
-			const gfx_id target_shader = pm.get_shader_variant(proxy_material, target_flags.value());
+			const gfx_id target_shader = pm.get_shader_variant(base_shader, variant_flags.value());
 			SFG_ASSERT(target_shader != NULL_GFX_ID);
 
 			rd.draws.push_back({
@@ -95,7 +99,7 @@ namespace SFG
 				.start_index	= obj.index_start,
 				.start_instance = 0,
 				.pipeline		= target_shader,
-				.bind_group		= proxy_material.bind_groups[frame_index],
+				.bind_group		= bg,
 				.vertex_buffer	= obj.vertex_buffer->get_hw_gpu(),
 				.idx_buffer		= obj.index_buffer->get_hw_gpu(),
 			});
@@ -249,8 +253,8 @@ namespace SFG
 			per_frame_data& pfd = _pfd[i];
 
 			pfd.depth_texture = backend->create_texture({
-				.texture_format		  = format::r32_sfloat,
-				.depth_stencil_format = format::d32_sfloat,
+				.texture_format		  = render_target_definitions::get_format_depth_default_read(),
+				.depth_stencil_format = render_target_definitions::get_format_depth_default(),
 				.size				  = sz,
 				.flags				  = texture_flags::tf_depth_texture | texture_flags::tf_typeless | texture_flags::tf_is_2d | texture_flags::tf_sampled,
 				.views =

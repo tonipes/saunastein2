@@ -14,12 +14,6 @@ using json = nlohmann::json;
 #endif
 namespace SFG
 {
-	ostream			  material_data = {};
-	vector<string_id> shaders;
-	vector<string_id> textures;
-	uint8			  is_opaque	 = 0;
-	uint8			  is_forward = 0;
-
 	void material_raw::serialize(ostream& stream) const
 	{
 		const uint32 sz = static_cast<uint32>(material_data.get_size());
@@ -28,13 +22,14 @@ namespace SFG
 		if (sz != 0)
 			stream.write_raw(material_data.get_raw(), material_data.get_size());
 
-		stream << shaders;
+		stream << shader;
 		stream << textures;
 		stream << pass_mode;
 		stream << name;
 		stream << sid;
-		stream << use_sampler_definition;
-		sampler_definition.serialize(stream);
+		stream << double_sided;
+		stream << use_alpha_cutoff;
+		stream << sampler_definitions;
 	}
 
 	void material_raw::deserialize(istream& stream)
@@ -48,13 +43,14 @@ namespace SFG
 			material_data.shrink(static_cast<size_t>(sz));
 		}
 
-		stream >> shaders;
+		stream >> shader;
 		stream >> textures;
 		stream >> pass_mode;
 		stream >> name;
 		stream >> sid;
-		stream >> use_sampler_definition;
-		sampler_definition.deserialize(stream);
+		stream >> double_sided;
+		stream >> use_alpha_cutoff;
+		stream >> sampler_definitions;
 
 		SFG_INFO("Created material from buffer: {0}", name);
 	}
@@ -88,22 +84,25 @@ namespace SFG
 
 			const string pass = json_data.value<string>("pass", "gbuffer");
 
-			if (pass.compare("gbuffer_transparent") == 0)
-				pass_mode = material_pass_mode::gbuffer_transparent;
+			if (pass.compare("gbuffer") == 0)
+				pass_mode = material_pass_mode::gbuffer;
 			else if (pass.compare("forward"))
-				pass_mode = material_pass_mode::gbuffer_transparent;
+				pass_mode = material_pass_mode::forward;
 			else
 				pass_mode = material_pass_mode::gbuffer;
 
-			sid			  = TO_SID(file);
-			shaders_path  = json_data.value<vector<string>>("shaders", {});
-			textures_path = json_data.value<vector<string>>("textures", {});
+			sid					= TO_SID(file);
+			shader_path			= json_data.value<string>("shader", "");
+			textures_path		= json_data.value<vector<string>>("textures", {});
+			double_sided		= json_data.value<uint8>("double_sided", 0);
+			use_alpha_cutoff	= json_data.value<uint8>("use_alpha_cutoff", 1);
+			sampler_definitions = json_data.value<vector<sampler_desc>>("sampler_definitions", {});
 
 			vector<parameter_entry> parameters;
 			if (json_data.contains("parameters"))
 				parameters = json_data.at("parameters").get<std::vector<parameter_entry>>();
 
-			SFG_ASSERT(!shaders_path.empty());
+			SFG_ASSERT(!shader_path.empty());
 
 			const string& wd = engine_data::get().get_working_dir();
 			const string  p	 = file;
@@ -122,16 +121,13 @@ namespace SFG
 				textures.push_back(TO_SID(txt));
 			}
 
-			for (const string& sh : shaders_path)
+			const string full_shader_path = engine_path + shader_path;
+			if (!file_system::exists(full_shader_path.c_str()))
 			{
-				const string full = engine_path + sh;
-				if (!file_system::exists(full.c_str()))
-				{
-					SFG_ERR("File doesn't exists! {0}", full.c_str());
-					return false;
-				}
-				shaders.push_back(TO_SID(sh));
+				SFG_ERR("File doesn't exists! {0}", full_shader_path.c_str());
+				return false;
 			}
+			shader = TO_SID(shader_path);
 
 			for (const parameter_entry& p : parameters)
 			{

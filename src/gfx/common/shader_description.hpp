@@ -138,7 +138,6 @@ namespace SFG
 		shf_enable_depth_bias	  = 1 << 1,
 		shf_enable_alpha_to_cov	  = 1 << 2,
 		shf_enable_blend_logic_op = 1 << 3,
-		shf_use_embedded_layout	  = 1 << 4,
 	};
 
 	struct vertex_input
@@ -217,8 +216,6 @@ namespace SFG
 		string							pixel_entry	  = "PSMain";
 		string							compute_entry = "CSMain";
 		bitmask<uint16>					flags		  = 0;
-		span<uint8>						layout_data	  = {};
-		vector<shader_blob>				blobs		  = {};
 		vector<shader_color_attachment> attachments	  = {};
 		vector<vertex_input>			inputs		  = {};
 
@@ -228,7 +225,6 @@ namespace SFG
 		cull_mode				  cull				 = cull_mode::back;
 		front_face				  front				 = front_face::cw;
 		polygon_mode			  poly_mode			 = polygon_mode::fill;
-		gfx_id					  layout			 = 0;
 
 		uint32 samples			   = 1;
 		float  depth_bias_constant = 0.0f;
@@ -237,9 +233,27 @@ namespace SFG
 
 		string debug_name = "shader";
 
-		void destroy();
-		void serialize(ostream& stream, bool write_addresses = false) const;
-		void deserialize(istream& stream, bool read_addresses = false);
+		void serialize(ostream& stream) const;
+		void deserialize(istream& stream);
+	};
+
+	struct compile_variant
+	{
+		vector<shader_blob> blobs;
+		void				destroy();
+
+		void serialize(ostream& stream, bool address_only = false) const;
+		void deserialize(istream& stream, bool address_only = false);
+	};
+
+	struct pso_variant
+	{
+		shader_desc		desc;
+		uint32			compile_variant = 0;
+		bitmask<uint32> variant_flags	= 0;
+
+		void serialize(ostream& stream) const;
+		void deserialize(istream& stream);
 	};
 
 #ifdef SFG_TOOLMODE
