@@ -3,6 +3,7 @@
 #include "model_raw.hpp"
 #include "data/istream.hpp"
 #include "data/ostream.hpp"
+#include "common/packed_size.hpp"
 
 #ifdef SFG_TOOLMODE
 #include "data/bitmask.hpp"
@@ -571,8 +572,7 @@ namespace SFG
 				uint8* data = reinterpret_cast<uint8*>(SFG_MALLOC(img.image.size()));
 				SFG_MEMCPY(data, img.image.data(), img.image.size());
 				const vector2ui16 size = vector2ui16(static_cast<uint16>(img.width), static_cast<uint16>(img.height));
-				// const uint8		  bpp  = img.bits / 8 * img.component;
-				const format fmt = check_if_linear(i) ? format::r8g8b8a8_unorm : format::r8g8b8a8_srgb;
+				const format	  fmt  = check_if_linear(i) ? format::r8g8b8a8_unorm : format::r8g8b8a8_srgb;
 				raw.load_from_data(data, size, static_cast<uint8>(fmt), false);
 			}
 		}
@@ -597,6 +597,31 @@ namespace SFG
 
 			auto find_sampler = [&](int32 texture_index) -> int32 { return loaded_sampler_indices.at(model.textures.at(texture_index).sampler); };
 
+			auto get_tiling_offet_for_texture = [](tinygltf::ExtensionMap& map, uint32& out_tiling, uint32& out_offset) {
+				auto ext_transform_base = map.find("KHR_texture_transform");
+				if (ext_transform_base != map.end())
+				{
+					const tinygltf::Value& val = ext_transform_base->second;
+
+					if (val.IsObject())
+					{
+						if (val.Has("offset"))
+						{
+							const tinygltf::Value&		  offset = val.Get("offset");
+							const tinygltf::Value::Array& array	 = offset.Get<tinygltf::Value::Array>();
+							out_offset							 = packed_size::pack_half2x16(static_cast<float>(array[0].GetNumberAsDouble()), static_cast<float>(array[1].GetNumberAsDouble()));
+						}
+
+						if (val.Has("scale"))
+						{
+							const tinygltf::Value&		  scale = val.Get("scale");
+							const tinygltf::Value::Array& array = scale.Get<tinygltf::Value::Array>();
+							out_tiling							= packed_size::pack_half2x16(static_cast<float>(array[0].GetNumberAsDouble()), static_cast<float>(array[1].GetNumberAsDouble()));
+						}
+					}
+				}
+			};
+
 			const size_t all_materials_sz = model.materials.size();
 			for (size_t i = 0; i < all_materials_sz; i++)
 			{
@@ -607,6 +632,23 @@ namespace SFG
 				const string_id hash	  = TO_SID(hash_path);
 				raw.sid					  = hash;
 				raw.name				  = hash_path;
+
+				// if orm is missing but occlusion is there, use occlusion as orm.
+				const int base_index	 = tmat.pbrMetallicRoughness.baseColorTexture.index;
+				const int normal_index	 = tmat.normalTexture.index;
+				const int orm_index		 = tmat.pbrMetallicRoughness.metallicRoughnessTexture.index == -1 ? (tmat.occlusionTexture.index != -1 ? tmat.occlusionTexture.index : -1) : tmat.pbrMetallicRoughness.metallicRoughnessTexture.index;
+				const int emissive_index = tmat.emissiveTexture.index;
+
+				// get tiling and offset.
+				uint32 base_tiling	   = packed_size::pack_half2x16(1.0f, 1.0f);
+				uint32 orm_tiling	   = base_tiling;
+				uint32 normal_tiling   = base_tiling;
+				uint32 emissive_tiling = base_tiling;
+				uint32 base_offset = 0, normal_offset = 0, orm_offset = 0, emissive_offset = 0;
+				get_tiling_offet_for_texture(tmat.pbrMetallicRoughness.baseColorTexture.extensions, base_tiling, base_offset);
+				get_tiling_offet_for_texture(tmat.normalTexture.extensions, normal_tiling, normal_offset);
+				get_tiling_offet_for_texture(tmat.pbrMetallicRoughness.metallicRoughnessTexture.extensions, orm_tiling, orm_offset);
+				get_tiling_offet_for_texture(tmat.emissiveTexture.extensions, emissive_tiling, emissive_offset);
 
 				const vector4 base_color = vector4(static_cast<float>(tmat.pbrMetallicRoughness.baseColorFactor[0]),
 												   static_cast<float>(tmat.pbrMetallicRoughness.baseColorFactor[1]),
@@ -625,17 +667,14 @@ namespace SFG
 				raw.material_data << metallic;
 				raw.material_data << roughness;
 				raw.material_data << alpha_cutoff;
+				raw.material_data << base_tiling << base_offset;
+				raw.material_data << normal_tiling << normal_offset;
+				raw.material_data << orm_tiling << orm_offset;
+				raw.material_data << emissive_tiling << emissive_offset;
 
 				float pad = 0;
 				raw.material_data << pad;
 				raw.material_data << pad;
-
-				const int base_index   = tmat.pbrMetallicRoughness.baseColorTexture.index;
-				const int normal_index = tmat.normalTexture.index;
-
-				// if orm is missing but occlusion is there, use occlusion as orm.
-				const int orm_index		 = tmat.pbrMetallicRoughness.metallicRoughnessTexture.index == -1 ? (tmat.occlusionTexture.index != -1 ? tmat.occlusionTexture.index : -1) : tmat.pbrMetallicRoughness.metallicRoughnessTexture.index;
-				const int emissive_index = tmat.emissiveTexture.index;
 
 				if (tmat.pbrMetallicRoughness.metallicRoughnessTexture.index == -1 && tmat.occlusionTexture.index != -1)
 				{

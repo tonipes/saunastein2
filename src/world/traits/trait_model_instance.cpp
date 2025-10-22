@@ -47,6 +47,13 @@ namespace SFG
 		chunk_allocator32& em_aux  = tm.get_aux();
 		chunk_allocator32& res_aux = res.get_aux();
 
+		model& mdl = res.get_resource<model>(model_handle);
+		if (mdl.get_material_count() == 0 && materials == nullptr)
+		{
+			SFG_ERR("No materials are provided for given model, this is not supported!");
+			return;
+		}
+
 		// Destroy all entities spawned for this previously.
 		if (_root_entities_count != 0)
 		{
@@ -58,8 +65,6 @@ namespace SFG
 				em_aux.free(_root_entities);
 			_root_entities_count = 0;
 		}
-
-		model& mdl = res.get_resource<model>(model_handle);
 
 		const chunk_handle32 meshes		  = mdl.get_created_meshes();
 		const chunk_handle32 nodes		  = mdl.get_created_nodes();
