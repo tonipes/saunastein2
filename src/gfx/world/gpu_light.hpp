@@ -11,17 +11,28 @@ namespace SFG
 
 	struct gpu_dir_light
 	{
-		vector4 color = vector4::one;
+		vector4 color	   = vector4::one;
+		float	range	   = 0.0f;
+		float	intensity  = 0;
+		float	padding[3] = {};
 	};
 
 	struct gpu_point_light
 	{
-		vector4 color = vector4::one;
+		vector4 color	   = vector4::one;
+		float	range	   = 0.0f;
+		float	intensity  = 0;
+		float	padding[3] = {};
 	};
 
 	struct gpu_spot_light
 	{
-		vector4 color = vector4::one;
+		vector4 color		= vector4::one;
+		float	range		= 0.0f;
+		float	intensity	= 0;
+		float	innter_cone = 0.0f;
+		float	outer_cone	= 0.0f;
+		float	padding		= 0.0f;
 	};
 
 }

@@ -5,7 +5,7 @@
 #include "gfx/buffer.hpp"
 #include "gfx/world/draws.hpp"
 #include "memory/bump_allocator.hpp"
-#include "math/color.hpp"
+#include "math/vector4.hpp"
 
 namespace SFG
 {
@@ -20,7 +20,11 @@ namespace SFG
 	private:
 		struct ubo
 		{
-			color ambient_color = color::white;
+			vector4 ambient_color	   = vector4::one;
+			uint32	point_lights_count = 0;
+			uint32	spot_lights_count  = 0;
+			uint32	dir_lights_count   = 0;
+			uint32	padding			   = 0;
 		};
 
 		struct per_frame_data

@@ -28,8 +28,9 @@ namespace SFG
 		vector<texture_raw>	   loaded_textures;
 		vector<material_raw>   loaded_materials;
 		vector<light_raw>	   loaded_lights;
-		aabb				   total_aabb;
-		string_id			   material_shader;
+
+		aabb	  total_aabb;
+		string_id material_shader;
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);

@@ -48,32 +48,54 @@ namespace SFG
 
 	void render_event_point_light::serialize(ostream& stream) const
 	{
+		stream << entity_index;
 		stream << base_color;
+		stream << range;
+		stream << intensity;
 	}
 
 	void render_event_point_light::deserialize(istream& stream)
 	{
+		stream >> entity_index;
 		stream >> base_color;
+		stream >> range;
+		stream >> intensity;
 	}
 
 	void render_event_dir_light::serialize(ostream& stream) const
 	{
+		stream << entity_index;
 		stream << base_color;
+		stream << range;
+		stream << intensity;
 	}
 
 	void render_event_dir_light::deserialize(istream& stream)
 	{
+		stream >> entity_index;
 		stream >> base_color;
+		stream >> range;
+		stream >> intensity;
 	}
 
 	void render_event_spot_light::serialize(ostream& stream) const
 	{
+		stream << entity_index;
 		stream << base_color;
+		stream << range;
+		stream << intensity;
+		stream << inner_cone;
+		stream << outer_cone;
 	}
 
 	void render_event_spot_light::deserialize(istream& stream)
 	{
+		stream >> entity_index;
 		stream >> base_color;
+		stream >> range;
+		stream >> intensity;
+		stream >> inner_cone;
+		stream >> outer_cone;
 	}
 
 }

@@ -56,6 +56,11 @@ namespace SFG
 			return _meshes_count;
 		}
 
+		inline uint16 get_light_count() const
+		{
+			return _lights_count;
+		}
+
 		inline chunk_handle32 get_created_meshes() const
 		{
 			return _created_meshes;
@@ -86,6 +91,11 @@ namespace SFG
 			return _created_textures;
 		}
 
+		inline chunk_handle32 get_created_lights() const
+		{
+			return _created_lights;
+		}
+
 	private:
 #ifdef SFG_TOOLMODE
 		friend struct model_raw;
@@ -99,6 +109,7 @@ namespace SFG
 		chunk_handle32 _created_anims;
 		chunk_handle32 _created_materials;
 		chunk_handle32 _created_textures;
+		chunk_handle32 _created_lights;
 		aabb		   _total_aabb;
 		uint16		   _nodes_count		= 0;
 		uint16		   _meshes_count	= 0;
@@ -106,6 +117,7 @@ namespace SFG
 		uint16		   _anims_count		= 0;
 		uint16		   _materials_count = 0;
 		uint16		   _textures_count	= 0;
+		uint16		   _lights_count	= 0;
 		bitmask<uint8> _flags;
 	};
 

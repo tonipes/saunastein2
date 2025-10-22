@@ -38,6 +38,7 @@ namespace SFG
 		stream << loaded_meshes;
 		stream << loaded_skins;
 		stream << loaded_animations;
+		stream << loaded_lights;
 		stream << total_aabb;
 	}
 
@@ -51,6 +52,7 @@ namespace SFG
 		stream >> loaded_meshes;
 		stream >> loaded_skins;
 		stream >> loaded_animations;
+		stream >> loaded_lights;
 		stream >> total_aabb;
 
 		SFG_INFO("Created model from buffer: {0}", name);
@@ -427,6 +429,8 @@ namespace SFG
 			node.name					= tnode.name;
 			node.mesh_index				= static_cast<int16>(tnode.mesh);
 			node.skin_index				= static_cast<int16>(tnode.skin);
+			node.light_index			= static_cast<int16>(tnode.light);
+
 
 			if (tnode.matrix.empty())
 			{
@@ -853,8 +857,26 @@ namespace SFG
 		const size_t all_lights_sz = model.lights.size();
 		for (size_t i = 0; i < all_lights_sz; i++)
 		{
-			tinygltf::Light& light = model.lights[i];
+			tinygltf::Light& gltf_light = model.lights[i];
+
+			light_raw_type type = {};
+			if (gltf_light.type.compare("point") == 0)
+				type = light_raw_type::point;
+			else if (gltf_light.type.compare("spot") == 0)
+				type = light_raw_type::spot;
+			else
+				type = light_raw_type::sun;
+
+			loaded_lights.push_back(light_raw{
+				.base_color = color(gltf_light.color[0], gltf_light.color[1], gltf_light.color[2], 1.0f),
+				.intensity	= static_cast<float>(gltf_light.intensity),
+				.range		= static_cast<float>(gltf_light.range),
+				.inner_cone = static_cast<float>(gltf_light.spot.innerConeAngle),
+				.outer_cone = static_cast<float>(gltf_light.spot.outerConeAngle),
+				.type		= type,
+			});
 		}
+
 		total_aabb.update_half_extents();
 		return true;
 	}

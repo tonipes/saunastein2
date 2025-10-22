@@ -278,7 +278,11 @@ namespace SFG
 
 			render_proxy_spot_light& proxy = _spot_lights->get(index);
 			proxy.status				   = render_proxy_status::rps_active;
-			proxy.entity				   = index;
+			proxy.entity				   = ev.entity_index;
+			proxy.base_color			   = ev.base_color;
+			proxy.intensity				   = ev.intensity;
+			proxy.inner_cone			   = ev.inner_cone;
+			proxy.outer_cone			   = ev.outer_cone;
 		}
 		else if (type == render_event_type::render_event_update_point_light)
 		{
@@ -288,7 +292,10 @@ namespace SFG
 
 			render_proxy_point_light& proxy = _point_lights->get(index);
 			proxy.status					= render_proxy_status::rps_active;
-			proxy.entity					= index;
+			proxy.entity					= ev.entity_index;
+			proxy.base_color				= ev.base_color;
+			proxy.range						= ev.range;
+			proxy.intensity					= ev.intensity;
 		}
 		else if (type == render_event_type::render_event_update_dir_light)
 		{
@@ -298,7 +305,10 @@ namespace SFG
 
 			render_proxy_dir_light& proxy = _dir_lights->get(index);
 			proxy.status				  = render_proxy_status::rps_active;
-			proxy.entity				  = index;
+			proxy.entity				  = ev.entity_index;
+			proxy.base_color			  = ev.base_color;
+			proxy.range					  = ev.range;
+			proxy.intensity				  = ev.intensity;
 		}
 		else if (type == render_event_type::render_event_remove_ambient)
 		{

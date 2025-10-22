@@ -32,6 +32,11 @@ namespace SFG
 			return _mesh_index;
 		}
 
+		inline int16 get_light_index() const
+		{
+			return _light_index;
+		}
+
 		inline const matrix4x3& get_local_matrix() const
 		{
 			return _local_matrix;
@@ -42,6 +47,7 @@ namespace SFG
 		chunk_handle32 _name;
 #endif
 		int16	  _parent_index = -1;
+		int16	  _light_index	= -1;
 		int16	  _mesh_index	= -1;
 		matrix4x3 _local_matrix = {};
 	};

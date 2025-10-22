@@ -69,6 +69,7 @@ namespace SFG
 	private:
 		void upload(uint8 frame_index);
 		void collect_model_instances();
+		void collect_lights();
 
 	private:
 		proxy_manager& _proxy_manager;

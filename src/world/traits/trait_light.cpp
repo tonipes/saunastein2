@@ -18,16 +18,7 @@ namespace SFG
 	void trait_dir_light::on_add(world& w)
 	{
 		w.get_entity_manager().on_add_render_proxy(_header.entity);
-
-		render_event_dir_light ev = {};
-		ev.entity_index			  = _header.entity.index;
-		ev.base_color			  = _base_color;
-		w.get_render_stream().add_event(
-			{
-				.index		= _header.own_handle.index,
-				.event_type = render_event_type::render_event_update_dir_light,
-			},
-			ev);
+		send_event(w);
 	}
 
 	void trait_dir_light::on_remove(world& w)
@@ -39,50 +30,20 @@ namespace SFG
 		});
 	}
 
-	void trait_spot_light::on_add(world& w)
+	void trait_dir_light::send_event(world& w)
 	{
-		w.get_entity_manager().on_add_render_proxy(_header.entity);
+		render_event_dir_light ev = {};
+		ev.entity_index			  = _header.entity.index;
+		ev.base_color			  = _base_color;
+		ev.range				  = _range;
+		ev.intensity			  = _intensity;
 
-		render_event_spot_light ev = {};
-		ev.entity_index			   = _header.entity.index;
-		ev.base_color			   = _base_color;
 		w.get_render_stream().add_event(
 			{
 				.index		= _header.own_handle.index,
-				.event_type = render_event_type::render_event_update_spot_light,
+				.event_type = render_event_type::render_event_update_dir_light,
 			},
 			ev);
-	}
-	void trait_spot_light::on_remove(world& w)
-	{
-		w.get_entity_manager().on_remove_render_proxy(_header.entity);
-		w.get_render_stream().add_event({
-			.index		= _header.own_handle.index,
-			.event_type = render_event_type::render_event_remove_spot_light,
-		});
-	}
-
-	void trait_point_light::on_add(world& w)
-	{
-		w.get_entity_manager().on_add_render_proxy(_header.entity);
-
-		render_event_point_light ev = {};
-		ev.entity_index				= _header.entity.index;
-		ev.base_color				= _base_color;
-		w.get_render_stream().add_event(
-			{
-				.index		= _header.own_handle.index,
-				.event_type = render_event_type::render_event_update_point_light,
-			},
-			ev);
-	}
-	void trait_point_light::on_remove(world& w)
-	{
-		w.get_entity_manager().on_remove_render_proxy(_header.entity);
-		w.get_render_stream().add_event({
-			.index		= _header.own_handle.index,
-			.event_type = render_event_type::render_event_remove_point_light,
-		});
 	}
 
 	void trait_dir_light::serialize(ostream& stream, world& w) const
@@ -95,6 +56,28 @@ namespace SFG
 		stream >> _base_color;
 	}
 
+	void trait_dir_light::set_values(world& w, const color& c, float range, float intensity)
+	{
+		_base_color = c;
+		_range		= range;
+		_intensity	= intensity;
+		send_event(w);
+	}
+
+	void trait_spot_light::on_add(world& w)
+	{
+		w.get_entity_manager().on_add_render_proxy(_header.entity);
+		send_event(w);
+	}
+	void trait_spot_light::on_remove(world& w)
+	{
+		w.get_entity_manager().on_remove_render_proxy(_header.entity);
+		w.get_render_stream().add_event({
+			.index		= _header.own_handle.index,
+			.event_type = render_event_type::render_event_remove_spot_light,
+		});
+	}
+
 	void trait_spot_light::serialize(ostream& stream, world& w) const
 	{
 		stream << _base_color;
@@ -104,6 +87,48 @@ namespace SFG
 		stream >> _base_color;
 	}
 
+	void trait_spot_light::set_values(world& w, const color& c, float range, float intensity, float inner_cone, float outer_cone)
+	{
+		_base_color = c;
+		_range		= range;
+		_intensity	= intensity;
+		_inner_cone = inner_cone;
+		_outer_cone = outer_cone;
+		send_event(w);
+	}
+
+	void trait_spot_light::send_event(world& w)
+	{
+		render_event_spot_light ev = {};
+		ev.entity_index			   = _header.entity.index;
+		ev.base_color			   = _base_color;
+		ev.range				   = _range;
+		ev.intensity			   = _intensity;
+		ev.inner_cone			   = _inner_cone;
+		ev.outer_cone			   = _outer_cone;
+
+		w.get_render_stream().add_event(
+			{
+				.index		= _header.own_handle.index,
+				.event_type = render_event_type::render_event_update_spot_light,
+			},
+			ev);
+	}
+
+	void trait_point_light::on_add(world& w)
+	{
+		w.get_entity_manager().on_add_render_proxy(_header.entity);
+		send_event(w);
+	}
+	void trait_point_light::on_remove(world& w)
+	{
+		w.get_entity_manager().on_remove_render_proxy(_header.entity);
+		w.get_render_stream().add_event({
+			.index		= _header.own_handle.index,
+			.event_type = render_event_type::render_event_remove_point_light,
+		});
+	}
+
 	void trait_point_light::serialize(ostream& stream, world& w) const
 	{
 		stream << _base_color;
@@ -111,6 +136,30 @@ namespace SFG
 	void trait_point_light::deserialize(istream& stream, world& w)
 	{
 		stream >> _base_color;
+	}
+
+	void trait_point_light::set_values(world& w, const color& c, float range, float intensity)
+	{
+		_base_color = c;
+		_range		= range;
+		_intensity	= intensity;
+		send_event(w);
+	}
+
+	void trait_point_light::send_event(world& w)
+	{
+		render_event_point_light ev = {};
+		ev.entity_index				= _header.entity.index;
+		ev.base_color				= _base_color;
+		ev.range					= _range;
+		ev.intensity				= _intensity;
+
+		w.get_render_stream().add_event(
+			{
+				.index		= _header.own_handle.index,
+				.event_type = render_event_type::render_event_update_point_light,
+			},
+			ev);
 	}
 
 #ifdef SFG_TOOLMODE

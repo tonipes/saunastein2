@@ -16,6 +16,7 @@ namespace SFG
 		stream << mesh_index;
 		stream << skin_index;
 		stream << local_matrix;
+		stream << light_index;
 	}
 
 	void model_node_raw::deserialize(istream& stream)
@@ -25,7 +26,7 @@ namespace SFG
 		stream >> mesh_index;
 		stream >> skin_index;
 		stream >> local_matrix;
-
+		stream >> light_index;
 		SFG_INFO("Created model node from buffer: {0}", name);
 	}
 }

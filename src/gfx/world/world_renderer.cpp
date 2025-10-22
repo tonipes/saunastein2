@@ -223,6 +223,7 @@ namespace SFG
 		_main_camera_view.view_frustum	   = frustum::extract(_main_camera_view.view_proj_matrix);
 
 		collect_model_instances();
+		collect_lights();
 
 		if (!rd.entities.empty())
 			pfd.entity_buffer.buffer_data(0, rd.entities.data(), rd.entities.size() * sizeof(gpu_entity));
@@ -507,6 +508,16 @@ namespace SFG
 				});
 			}
 		}
+	}
+
+	void world_renderer::collect_lights()
+	{
+		const uint32 points_peak = _proxy_manager.get_peak_point_lights();
+		const uint32 spots_peak	 = _proxy_manager.get_peak_spot_lights();
+		const uint32 dirs_peak	 = _proxy_manager.get_peak_dir_lights();
+		auto&		 points		 = *_proxy_manager.get_point_lights();
+		auto&		 spots		 = *_proxy_manager.get_spot_lights();
+		auto&		 dirs		 = *_proxy_manager.get_dir_lights();
 	}
 
 }

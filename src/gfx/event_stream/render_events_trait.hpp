@@ -47,6 +47,8 @@ namespace SFG
 	{
 		world_id entity_index = 0;
 		color	 base_color	  = color::white;
+		float	 range		  = 0.0f;
+		float	 intensity	  = 0.0f;
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);
@@ -56,6 +58,8 @@ namespace SFG
 	{
 		world_id entity_index = 0;
 		color	 base_color	  = color::white;
+		float	 range		  = 0.0f;
+		float	 intensity	  = 0.0f;
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);
@@ -65,6 +69,10 @@ namespace SFG
 	{
 		world_id entity_index = 0;
 		color	 base_color	  = color::white;
+		float	 range		  = 0.0f;
+		float	 intensity	  = 0.0f;
+		float	 inner_cone	  = 0.0f;
+		float	 outer_cone	  = 0.0f;
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);

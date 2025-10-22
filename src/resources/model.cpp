@@ -9,6 +9,7 @@
 #include "texture.hpp"
 #include "material.hpp"
 #include "world/world.hpp"
+#include "light_raw.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"
 #include "gfx/event_stream/render_events_gfx.hpp"
 
@@ -45,6 +46,7 @@ namespace SFG
 		const uint16 anims_count	 = static_cast<uint16>(raw.loaded_animations.size());
 		const uint16 materials_count = static_cast<uint16>(raw.loaded_materials.size());
 		const uint16 textures_count	 = static_cast<uint16>(raw.loaded_textures.size());
+		const uint16 lights_count	 = static_cast<uint16>(raw.loaded_lights.size());
 
 		if (node_count != 0)
 		{
@@ -137,12 +139,24 @@ namespace SFG
 				ev.materials.push_back(sub_handle.index);
 				material& created = rm.get_resource<material>(sub_handle);
 
-				resource_handle sampler_handle = {};
+				resource_handle			sampler_handle	= {};
 				vector<resource_handle> sampler_handles = {};
 				for (const sampler_desc& desc : loaded.sampler_definitions)
 					sampler_handles.push_back(rm.get_or_add_sampler(desc));
 
 				created.create_from_loader(loaded, w, sub_handle, sampler_handles);
+			}
+		}
+
+		if (lights_count != 0)
+		{
+			_created_lights = alloc.allocate<light_raw>(lights_count);
+			light_raw* ptr	= alloc.get<light_raw>(_created_lights);
+
+			for (uint16 i = 0; i < lights_count; i++)
+			{
+				const light_raw& loaded = raw.loaded_lights[i];
+				ptr[i]					= raw.loaded_lights[i];
 			}
 		}
 
@@ -163,6 +177,7 @@ namespace SFG
 		_nodes_count	 = node_count;
 		_materials_count = materials_count;
 		_textures_count	 = textures_count;
+		_lights_count	 = lights_count;
 		_flags.set(model::flags::pending_upload | model::flags::hw_exists);
 	}
 
@@ -278,6 +293,11 @@ namespace SFG
 			alloc.free(_created_materials);
 		}
 
+		if (_created_lights.size != 0)
+		{
+			alloc.free(_created_lights);
+		}
+
 		stream.add_event({
 			.index		= handle.index,
 			.event_type = render_event_type::render_event_destroy_model,
@@ -289,6 +309,7 @@ namespace SFG
 		_nodes			   = {};
 		_created_skins	   = {};
 		_created_anims	   = {};
+		_created_lights	   = {};
 		_flags.remove(model::flags::hw_exists);
 	}
 }

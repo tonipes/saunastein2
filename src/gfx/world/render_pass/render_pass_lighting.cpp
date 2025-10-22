@@ -86,8 +86,9 @@ namespace SFG
 	{
 		per_frame_data& pfd		 = _pfd[frame_index];
 		const ubo		ubo_data = {
+				  .ambient_color = vector4(0.5f, 0.0f, 0.0f, 1.0f),
+		  };
 
-		};
 		pfd.ubo.buffer_data(0, &ubo_data, sizeof(ubo));
 	}
 

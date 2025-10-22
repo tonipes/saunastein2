@@ -38,6 +38,8 @@ namespace SFG
 	{
 		world_id			entity	   = 0;
 		color				base_color = color::white;
+		float				range	   = 0.0f;
+		float				intensity  = 0;
 		render_proxy_status status	   = render_proxy_status::rps_inactive;
 	};
 
@@ -45,6 +47,8 @@ namespace SFG
 	{
 		world_id			entity	   = 0;
 		color				base_color = color::white;
+		float				range	   = 0.0f;
+		float				intensity  = 0;
 		render_proxy_status status	   = render_proxy_status::rps_inactive;
 	};
 
@@ -52,6 +56,10 @@ namespace SFG
 	{
 		world_id			entity	   = 0;
 		color				base_color = color::white;
-		render_proxy_status status	   = render_proxy_status::rps_inactive;
+		float				range	   = 0.0f;
+		float				intensity  = 0;
+		float				inner_cone = 0.0f;
+		float				outer_cone;
+		render_proxy_status status = render_proxy_status::rps_inactive;
 	};
 }

@@ -4,10 +4,12 @@
 #include "data/istream.hpp"
 #include "world/world.hpp"
 #include "world/traits/trait_mesh_instance.hpp"
+#include "world/traits/trait_light.hpp"
 #include "resources/model.hpp"
 #include "resources/model_node.hpp"
 #include "resources/mesh.hpp"
 #include "resources/material.hpp"
+#include "resources/light_raw.hpp"
 #include "io/log.hpp"
 
 #ifdef SFG_TOOLMODE
@@ -118,16 +120,47 @@ namespace SFG
 			em.set_entity_scale(created_node_entities[i], out_scale);
 		}
 
-		// add meshes.
+		const uint16 lights_count = mdl.get_light_count();
+		light_raw*	 lights_ptr	  = nullptr;
+		if (lights_count != 0)
+			lights_ptr = res_aux.get<light_raw>(mdl.get_created_lights());
+
+		// add components.
 		for (uint16 i = 0; i < nodes_count; i++)
 		{
-			model_node& node = ptr_nodes[i];
+			model_node&		   node		   = ptr_nodes[i];
+			const world_handle entity	   = created_node_entities[i];
+			const int16		   light_index = node.get_light_index();
+			if (lights_ptr && light_index != -1)
+			{
+				SFG_ASSERT(light_index < static_cast<int16>(lights_count));
+				light_raw& lr = lights_ptr[light_index];
+
+				if (lr.type == light_raw_type::point)
+				{
+					const world_handle light_handle = tm.add_trait<trait_point_light>(entity);
+					trait_point_light& trait_light	= tm.get_trait<trait_point_light>(light_handle);
+					trait_light.set_values(w, lr.base_color, lr.range, lr.intensity);
+				}
+				else if (lr.type == light_raw_type::spot)
+				{
+					const world_handle light_handle = tm.add_trait<trait_spot_light>(entity);
+					trait_spot_light&  trait_light	= tm.get_trait<trait_spot_light>(light_handle);
+					trait_light.set_values(w, lr.base_color, lr.range, lr.intensity, lr.outer_cone, lr.inner_cone);
+				}
+				else if (lr.type == light_raw_type::sun)
+				{
+					const world_handle light_handle = tm.add_trait<trait_dir_light>(entity);
+					trait_dir_light&   trait_light	= tm.get_trait<trait_dir_light>(light_handle);
+					trait_light.set_values(w, lr.base_color, lr.range, lr.intensity);
+				}
+			}
+
 			if (node.get_mesh_index() == -1)
 				continue;
 
 			const resource_handle& mesh_handle	= ptr_meshes_handle[node.get_mesh_index()];
 			const mesh&			   m			= res.get_resource<mesh>(mesh_handle);
-			const world_handle	   entity		= created_node_entities[i];
 			const world_handle	   trait_handle = tm.add_trait<trait_mesh_instance>(entity);
 			trait_mesh_instance&   mi			= tm.get_trait<trait_mesh_instance>(trait_handle);
 			mi.set_mesh(w, model_handle, mesh_handle);
