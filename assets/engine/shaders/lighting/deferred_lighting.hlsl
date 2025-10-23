@@ -1,4 +1,6 @@
-#include "../layout_defines.hlsl"
+#include "layout_defines.hlsl"
+#include "entity.hlsl"
+#include "light.hlsl"
 
 //------------------------------------------------------------------------------
 // In & Outs
@@ -21,40 +23,6 @@ cbuffer render_pass : render_pass_ubo0
     uint spot_lights_count;
     uint dir_lights_count;
     uint pad[2];
-};
-
-struct gpu_point_light
-{
-    uint entity_index;
-    float3 color;
-    float range;
-    float intensity;
-    float2 pad;
-};
-
-struct gpu_spot_light
-{
-    uint entity_index;
-    float3 color;
-    float range;
-    float intensity;
-    float inner_cone;
-    float outer_cone;
-};
-
-struct gpu_dir_light
-{
-    uint entity_index;
-    float3 color;
-    float intensity;
-    float3 pad;
-};
-
-struct gpu_entity
-{
-    float3x4 model;
-    float3x3 normal_matrix;
-    float3 pad;
 };
 
 StructuredBuffer<gpu_entity> entity_buffer : render_pass_ssbo0;
