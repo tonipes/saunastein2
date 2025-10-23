@@ -416,6 +416,10 @@ namespace SFG
 
 			_world.get_render_stream().add_event({.event_type = render_event_type::render_event_reload_texture}, ev);
 		}
+		else if (w.type_id == type_id<texture_sampler>::value)
+		{
+			SFG_ASSERT(false);
+		}
 		else if (w.type_id == type_id<model>::value)
 		{
 			vector<resource_handle> new_sub_handles;

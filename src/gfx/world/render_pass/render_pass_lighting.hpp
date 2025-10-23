@@ -5,7 +5,7 @@
 #include "gfx/buffer.hpp"
 #include "gfx/world/draws.hpp"
 #include "memory/bump_allocator.hpp"
-#include "math/vector4.hpp"
+#include "math/vector3.hpp"
 
 namespace SFG
 {
@@ -20,11 +20,11 @@ namespace SFG
 	private:
 		struct ubo
 		{
-			vector4 ambient_color	   = vector4::one;
+			vector3 ambient_color	   = vector3::one;
 			uint32	point_lights_count = 0;
 			uint32	spot_lights_count  = 0;
 			uint32	dir_lights_count   = 0;
-			uint32	padding			   = 0;
+			uint32	padding[2]		   = {};
 		};
 
 		struct per_frame_data
@@ -43,7 +43,9 @@ namespace SFG
 			uint8*			   alloc;
 			size_t			   alloc_size;
 			gfx_id*			   entities;
-			gfx_id*			   bones;
+			gfx_id*			   point_lights;
+			gfx_id*			   spot_lights;
+			gfx_id*			   dir_lights;
 			gfx_id*			   gbuffer_textures;
 		};
 

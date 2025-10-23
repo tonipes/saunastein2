@@ -33,17 +33,23 @@ namespace SFG
 
 	world_handle trait_manager::add_trait(string_id type, world_handle entity)
 	{
+		entity_manager& em = _world.get_entity_manager();
+		SFG_ASSERT(em.is_valid(entity));
+
 		trait_cache_storage& stg	= get_storage(type);
 		const world_handle	 handle = stg.cache_ptr->add(entity, _world);
-		_world.get_entity_manager().on_trait_added(entity, handle, type);
+		em.on_trait_added(entity, handle, type);
 		return handle;
 	}
 
 	world_handle trait_manager::add_trait_from_stream(string_id type, istream& stream, world_handle entity)
 	{
+		entity_manager& em = _world.get_entity_manager();
+		SFG_ASSERT(em.is_valid(entity));
+
 		trait_cache_storage& stg	= get_storage(type);
 		const world_handle	 handle = stg.cache_ptr->add_from_stream(stream, entity, _world);
-		_world.get_entity_manager().on_trait_added(entity, handle, type);
+		em.on_trait_added(entity, handle, type);
 		return handle;
 	}
 
@@ -55,8 +61,11 @@ namespace SFG
 
 	void trait_manager::remove_trait(string_id type, world_handle entity, world_handle handle)
 	{
+		entity_manager& em = _world.get_entity_manager();
+		SFG_ASSERT(em.is_valid(entity));
+
 		trait_cache_storage& stg = get_storage(type);
-		_world.get_entity_manager().on_trait_removed(entity, handle, type);
+		em.on_trait_removed(entity, handle, type);
 		stg.cache_ptr->remove(handle, _world);
 	}
 

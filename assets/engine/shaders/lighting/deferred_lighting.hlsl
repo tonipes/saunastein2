@@ -16,42 +16,51 @@ struct vs_output
 
 cbuffer render_pass : render_pass_ubo0
 {
-    float4 ambient_color;
+    float3 ambient_color;
     uint point_lights_count;
     uint spot_lights_count;
     uint dir_lights_count;
-    uint pad;
+    uint pad[2];
 };
 
 struct gpu_point_light
 {
+    uint entity_index;
     float3 color;
     float range;
     float intensity;
-    float3 pad;
+    float2 pad;
 };
 
 struct gpu_spot_light
 {
+    uint entity_index;
     float3 color;
     float range;
     float intensity;
     float inner_cone;
     float outer_cone;
-    float pad;
 };
 
 struct gpu_dir_light
 {
+    uint entity_index;
     float3 color;
-    float range;
     float intensity;
     float3 pad;
 };
 
-StructuredBuffer<gpu_point_light> point_light_buffer : render_pass_ssbo0;
-StructuredBuffer<gpu_spot_light> spot_light_buffer : render_pass_ssbo0;
-StructuredBuffer<gpu_dir_light> dir_light_buffer : render_pass_ssbo0;
+struct gpu_entity
+{
+    float3x4 model;
+    float3x3 normal_matrix;
+    float3 pad;
+};
+
+StructuredBuffer<gpu_entity> entity_buffer : render_pass_ssbo0;
+StructuredBuffer<gpu_point_light> point_light_buffer : render_pass_ssbo1;
+StructuredBuffer<gpu_spot_light> spot_light_buffer : render_pass_ssbo2;
+StructuredBuffer<gpu_dir_light> dir_light_buffer : render_pass_ssbo3;
 
 Texture2D tex_gbuffer_color : render_pass_texture0;
 Texture2D tex_gbuffer_normal: render_pass_texture1;
@@ -83,7 +92,7 @@ vs_output VSMain(uint vertexID : SV_VertexID)
 //------------------------------------------------------------------------------
 float4 PSMain(vs_output IN) : SV_TARGET
 {
-    float4 out_color = tex_gbuffer_color.SampleLevel(smp_linear, IN.uv, 0) * ambient_color;
+    float4 out_color = tex_gbuffer_color.SampleLevel(smp_linear, IN.uv, 0) * float4(ambient_color, 1);
     return out_color ;
 }
 

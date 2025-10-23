@@ -46,6 +46,38 @@ namespace SFG
 		return test;
 	}
 
+	frustum_result frustum::test(const frustum& fr, const vector3& position, float sphere_radius)
+	{
+		auto performTest = [&](const plane& p) {
+			const float distance = vector3::dot(p.normal, position) + p.distance;
+
+			if (distance < -sphere_radius)
+				return frustum_result::outside;
+
+			return frustum_result::inside; 
+		};
+
+		if (performTest(fr.left) == frustum_result::outside)
+			return frustum_result::outside;
+
+		if (performTest(fr.right) == frustum_result::outside)
+			return frustum_result::outside;
+
+		if (performTest(fr.top) == frustum_result::outside)
+			return frustum_result::outside;
+
+		if (performTest(fr.bottom) == frustum_result::outside)
+			return frustum_result::outside;
+
+		if (performTest(fr.near) == frustum_result::outside)
+			return frustum_result::outside;
+
+		if (performTest(fr.far) == frustum_result::outside)
+			return frustum_result::outside;
+
+		return frustum_result::inside;
+	}
+
 	frustum_result frustum::test(const frustum& fr, const aabb& local_box, const matrix3x3& linear_model, const vector3& position)
 	{
 		const vector3 c_local = (local_box.bounds_min + local_box.bounds_max) * 0.5f;

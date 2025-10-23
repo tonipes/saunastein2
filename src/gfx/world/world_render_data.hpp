@@ -7,6 +7,7 @@
 #include "renderable.hpp"
 #include "math/matrix4x4.hpp"
 #include "math/frustum.hpp"
+#include "world/world_max_defines.hpp"
 
 namespace SFG
 {
@@ -22,17 +23,20 @@ namespace SFG
 
 	struct world_render_data
 	{
-		static_vector<renderable_object, MAX_RENDERABLES>	 objects;
-		static_vector<gpu_entity, MAX_GPU_ENTITIES>			 entities;
-		static_vector<gpu_dir_light, MAX_GPU_DIR_LIGHTS>	 dir_lights;
-		static_vector<gpu_point_light, MAX_GPU_POINT_LIGHTS> point_lights;
-		static_vector<gpu_spot_light, MAX_GPU_SPOT_LIGHTS>	 spot_lights;
-		static_vector<gpu_bone, MAX_GPU_BONES>				 bones;
+		static_vector<renderable_object, MAX_RENDERABLES>			 objects;
+		static_vector<gpu_entity, MAX_GPU_ENTITIES>					 entities;
+		static_vector<gpu_dir_light, MAX_WORLD_TRAIT_DIR_LIGHTS>	 dir_lights;
+		static_vector<gpu_point_light, MAX_WORLD_TRAIT_POINT_LIGHTS> point_lights;
+		static_vector<gpu_spot_light, MAX_WORLD_TRAIT_SPOT_LIGHTS>	 spot_lights;
+		static_vector<gpu_bone, MAX_GPU_BONES>						 bones;
 
 		inline void reset()
 		{
 			objects.clear();
 			entities.clear();
+			dir_lights.clear();
+			spot_lights.clear();
+			point_lights.clear();
 		}
 	};
 }

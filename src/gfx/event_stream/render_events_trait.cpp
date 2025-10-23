@@ -38,11 +38,13 @@ namespace SFG
 
 	void render_event_ambient::serialize(ostream& stream) const
 	{
+		stream << entity_index;
 		stream << base_color;
 	}
 
 	void render_event_ambient::deserialize(istream& stream)
 	{
+		stream >> entity_index;
 		stream >> base_color;
 	}
 
@@ -66,7 +68,6 @@ namespace SFG
 	{
 		stream << entity_index;
 		stream << base_color;
-		stream << range;
 		stream << intensity;
 	}
 
@@ -74,7 +75,6 @@ namespace SFG
 	{
 		stream >> entity_index;
 		stream >> base_color;
-		stream >> range;
 		stream >> intensity;
 	}
 

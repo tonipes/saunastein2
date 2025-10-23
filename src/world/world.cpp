@@ -42,6 +42,7 @@
 #include "traits/trait_light.hpp"
 #include "traits/trait_mesh_instance.hpp"
 #include "traits/trait_model_instance.hpp"
+#include "traits/trait_ambient.hpp"
 
 #ifdef SFG_TOOLMODE
 #include <fstream>
@@ -78,6 +79,7 @@ namespace SFG
 		_trait_manager.register_cache<trait_dir_light, MAX_WORLD_TRAIT_DIR_LIGHTS>();
 		_trait_manager.register_cache<trait_model_instance, MAX_WORLD_TRAIT_MODEL_INSTANCES>();
 		_trait_manager.register_cache<trait_mesh_instance, MAX_WORLD_TRAIT_MESH_INSTANCES>();
+		_trait_manager.register_cache<trait_ambient, MAX_WORLD_TRAIT_AMBIENTS>();
 	};
 
 	world::~world()

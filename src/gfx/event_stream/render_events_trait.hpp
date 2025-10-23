@@ -5,7 +5,7 @@
 #include "common/size_definitions.hpp"
 #include "data/vector.hpp"
 #include "world/world_constants.hpp"
-#include "math/color.hpp"
+#include "math/vector3.hpp"
 
 namespace SFG
 {
@@ -36,8 +36,8 @@ namespace SFG
 
 	struct render_event_ambient
 	{
+		vector3	 base_color	  = vector3::one;
 		world_id entity_index = 0;
-		color	 base_color	  = color::white;
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);
@@ -45,8 +45,8 @@ namespace SFG
 
 	struct render_event_point_light
 	{
+		vector3	 base_color	  = vector3::one;
 		world_id entity_index = 0;
-		color	 base_color	  = color::white;
 		float	 range		  = 0.0f;
 		float	 intensity	  = 0.0f;
 
@@ -56,9 +56,8 @@ namespace SFG
 
 	struct render_event_dir_light
 	{
+		vector3	 base_color	  = vector3::one;
 		world_id entity_index = 0;
-		color	 base_color	  = color::white;
-		float	 range		  = 0.0f;
 		float	 intensity	  = 0.0f;
 
 		void serialize(ostream& stream) const;
@@ -67,8 +66,8 @@ namespace SFG
 
 	struct render_event_spot_light
 	{
+		vector3	 base_color	  = vector3::one;
 		world_id entity_index = 0;
-		color	 base_color	  = color::white;
 		float	 range		  = 0.0f;
 		float	 intensity	  = 0.0f;
 		float	 inner_cone	  = 0.0f;

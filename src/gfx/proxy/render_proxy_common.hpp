@@ -10,6 +10,5 @@ namespace SFG
 	{
 		rps_inactive = 0,
 		rps_active	 = 1,
-		rps_obsolete,
 	};
 }

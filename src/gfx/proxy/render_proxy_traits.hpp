@@ -29,37 +29,36 @@ namespace SFG
 
 	struct render_proxy_ambient
 	{
-		world_id			entity		  = 0;
-		color				ambient_color = color::white;
-		render_proxy_status status		  = render_proxy_status::rps_inactive;
+		vector3				base_color = vector3::one;
+		world_id			entity	   = 0;
+		render_proxy_status status	   = render_proxy_status::rps_inactive;
 	};
 
 	struct render_proxy_dir_light
 	{
-		world_id			entity	   = 0;
-		color				base_color = color::white;
-		float				range	   = 0.0f;
+		vector3				base_color = vector3::one;
 		float				intensity  = 0;
+		world_id			entity	   = 0;
 		render_proxy_status status	   = render_proxy_status::rps_inactive;
 	};
 
 	struct render_proxy_point_light
 	{
-		world_id			entity	   = 0;
-		color				base_color = color::white;
+		vector3				base_color = vector3::one;
 		float				range	   = 0.0f;
 		float				intensity  = 0;
+		world_id			entity	   = 0;
 		render_proxy_status status	   = render_proxy_status::rps_inactive;
 	};
 
 	struct render_proxy_spot_light
 	{
-		world_id			entity	   = 0;
-		color				base_color = color::white;
+		vector3				base_color = vector3::one;
 		float				range	   = 0.0f;
 		float				intensity  = 0;
 		float				inner_cone = 0.0f;
 		float				outer_cone;
+		world_id			entity = 0;
 		render_proxy_status status = render_proxy_status::rps_inactive;
 	};
 }

@@ -50,7 +50,7 @@ namespace SFG
 			new (&_items[index]) T();
 			_actives[index] = 1;
 			_head++;
-			SFG_ASSERT(_head < N);
+			SFG_ASSERT(_head <= N);
 			return {
 				.generation = _generations[index],
 				.index		= index,

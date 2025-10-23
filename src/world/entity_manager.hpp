@@ -43,6 +43,11 @@ namespace SFG
 		void				 set_entity_visible(world_handle entity, bool is_visible);
 		void				 remove_all_entity_traits(world_handle entity);
 
+		inline bool is_valid(world_handle entity) const
+		{
+			return _entities->is_valid(entity);
+		}
+
 		template <typename VisitFunc> void visit_children(world_handle parent, VisitFunc f)
 		{
 			const entity_family& fam	= get_entity_family(parent);

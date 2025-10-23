@@ -264,11 +264,12 @@ namespace SFG
 		{
 			render_event_ambient ev = {};
 			ev.deserialize(stream);
-			_peak_ambients = math::max(_peak_ambients, index) + 1;
+			_ambient_exists = 1;
 
 			render_proxy_ambient& proxy = get_ambient();
 			proxy.status				= render_proxy_status::rps_active;
-			proxy.entity				= index;
+			proxy.entity				= ev.entity_index;
+			proxy.base_color			= ev.base_color;
 		}
 		else if (type == render_event_type::render_event_update_spot_light)
 		{
@@ -277,12 +278,16 @@ namespace SFG
 			_peak_spot_lights = math::max(_peak_spot_lights, index) + 1;
 
 			render_proxy_spot_light& proxy = _spot_lights->get(index);
-			proxy.status				   = render_proxy_status::rps_active;
-			proxy.entity				   = ev.entity_index;
-			proxy.base_color			   = ev.base_color;
-			proxy.intensity				   = ev.intensity;
-			proxy.inner_cone			   = ev.inner_cone;
-			proxy.outer_cone			   = ev.outer_cone;
+
+			if (proxy.status != render_proxy_status::rps_active)
+				_count_spot_lights++;
+
+			proxy.status	 = render_proxy_status::rps_active;
+			proxy.entity	 = ev.entity_index;
+			proxy.base_color = ev.base_color;
+			proxy.intensity	 = ev.intensity;
+			proxy.inner_cone = ev.inner_cone;
+			proxy.outer_cone = ev.outer_cone;
 		}
 		else if (type == render_event_type::render_event_update_point_light)
 		{
@@ -291,11 +296,15 @@ namespace SFG
 			_peak_point_lights = math::max(_peak_point_lights, index) + 1;
 
 			render_proxy_point_light& proxy = _point_lights->get(index);
-			proxy.status					= render_proxy_status::rps_active;
-			proxy.entity					= ev.entity_index;
-			proxy.base_color				= ev.base_color;
-			proxy.range						= ev.range;
-			proxy.intensity					= ev.intensity;
+
+			if (proxy.status != render_proxy_status::rps_active)
+				_count_point_lights++;
+
+			proxy.status	 = render_proxy_status::rps_active;
+			proxy.entity	 = ev.entity_index;
+			proxy.base_color = ev.base_color;
+			proxy.range		 = ev.range;
+			proxy.intensity	 = ev.intensity;
 		}
 		else if (type == render_event_type::render_event_update_dir_light)
 		{
@@ -304,35 +313,51 @@ namespace SFG
 			_peak_dir_lights = math::max(_peak_dir_lights, index) + 1;
 
 			render_proxy_dir_light& proxy = _dir_lights->get(index);
-			proxy.status				  = render_proxy_status::rps_active;
-			proxy.entity				  = ev.entity_index;
-			proxy.base_color			  = ev.base_color;
-			proxy.range					  = ev.range;
-			proxy.intensity				  = ev.intensity;
+
+			if (proxy.status != render_proxy_status::rps_active)
+				_count_dir_lights++;
+
+			proxy.status	 = render_proxy_status::rps_active;
+			proxy.entity	 = ev.entity_index;
+			proxy.base_color = ev.base_color;
+			proxy.intensity	 = ev.intensity;
 		}
 		else if (type == render_event_type::render_event_remove_ambient)
 		{
 			render_proxy_ambient& proxy = get_ambient();
 			proxy.status				= render_proxy_status::rps_active;
 			proxy						= {};
+			_ambient_exists				= 0;
 		}
 		else if (type == render_event_type::render_event_remove_point_light)
 		{
 			render_proxy_point_light& proxy = _point_lights->get(index);
-			proxy.status					= render_proxy_status::rps_active;
-			proxy							= {};
+
+			if (proxy.status != render_proxy_status::rps_inactive)
+				_count_point_lights--;
+
+			proxy.status = render_proxy_status::rps_active;
+			proxy		 = {};
 		}
 		else if (type == render_event_type::render_event_remove_spot_light)
 		{
 			render_proxy_spot_light& proxy = _spot_lights->get(index);
-			proxy.status				   = render_proxy_status::rps_active;
-			proxy						   = {};
+
+			if (proxy.status != render_proxy_status::rps_inactive)
+				_count_spot_lights--;
+
+			proxy.status = render_proxy_status::rps_active;
+			proxy		 = {};
 		}
 		else if (type == render_event_type::render_event_remove_dir_light)
 		{
 			render_proxy_dir_light& proxy = _dir_lights->get(index);
-			proxy.status				  = render_proxy_status::rps_active;
-			proxy						  = {};
+
+			if (proxy.status != render_proxy_status::rps_inactive)
+				_count_dir_lights--;
+
+			proxy.status = render_proxy_status::rps_active;
+			proxy		 = {};
 		}
 		else if (type == render_event_type::render_event_update_mesh_instance)
 		{
@@ -457,22 +482,6 @@ namespace SFG
 #ifndef SFG_STRIP_DEBUG_NAMES
 			SFG_TRACE("Created sampler proxy for: {0}", ev.desc.debug_name);
 #endif
-
-			// Invalidate materials using this texture.
-			// Materials are dependent on shaders & textures. Shaders already checked in runtime.
-			// This is to avoid checking textures too.
-			auto& mats = *_materials;
-			for (render_proxy_material& m : mats)
-			{
-				for (uint16 txt : m.texture_handles)
-				{
-					if (txt == index)
-					{
-						m.status = render_proxy_status::rps_obsolete;
-						break;
-					}
-				}
-			}
 		}
 		else if (type == render_event_type::render_event_destroy_sampler)
 		{

@@ -41,6 +41,10 @@ namespace SFG
 											   0,
 											   {
 												   {.resource = pfd.ubo.get_hw_gpu(), .view = 0, .pointer_index = upi_render_pass_ubo0, .type = binding_type::ubo},
+												   {.resource = params.entities[i], .view = 0, .pointer_index = upi_render_pass_ssbo0, .type = binding_type::ssbo},
+												   {.resource = params.point_lights[i], .view = 0, .pointer_index = upi_render_pass_ssbo1, .type = binding_type::ssbo},
+												   {.resource = params.spot_lights[i], .view = 0, .pointer_index = upi_render_pass_ssbo2, .type = binding_type::ssbo},
+												   {.resource = params.dir_lights[i], .view = 0, .pointer_index = upi_render_pass_ssbo3, .type = binding_type::ssbo},
 												   {.resource = params.gbuffer_textures[base + 0], .view = 0, .pointer_index = upi_render_pass_texture0, .type = binding_type::texture_binding},
 												   {.resource = params.gbuffer_textures[base + 1], .view = 0, .pointer_index = upi_render_pass_texture1, .type = binding_type::texture_binding},
 												   {.resource = params.gbuffer_textures[base + 2], .view = 0, .pointer_index = upi_render_pass_texture2, .type = binding_type::texture_binding},
@@ -84,9 +88,13 @@ namespace SFG
 
 	void render_pass_lighting::prepare(proxy_manager& pm, view& camera_view, uint8 frame_index)
 	{
+		const uint8					ambient_exists = pm.get_ambient_exists();
+		const render_proxy_ambient& ambient		   = pm.get_ambient();
+		const vector3				ambient_color  = ambient_exists ? ambient.base_color : vector3(0.1f, 0.1f, 0.1f);
+
 		per_frame_data& pfd		 = _pfd[frame_index];
 		const ubo		ubo_data = {
-				  .ambient_color = vector4(0.5f, 0.0f, 0.0f, 1.0f),
+				  .ambient_color = ambient_color,
 		  };
 
 		pfd.ubo.buffer_data(0, &ubo_data, sizeof(ubo));
@@ -211,7 +219,6 @@ namespace SFG
 			backend->bind_group_update_pointer(pfd.bind_group,
 											   0,
 											   {
-												   {.resource = pfd.ubo.get_hw_gpu(), .view = 0, .pointer_index = upi_render_pass_ubo0, .type = binding_type::ubo},
 												   {.resource = gbuffer_textures[base + 0], .view = 0, .pointer_index = upi_render_pass_texture0, .type = binding_type::texture_binding},
 												   {.resource = gbuffer_textures[base + 1], .view = 0, .pointer_index = upi_render_pass_texture1, .type = binding_type::texture_binding},
 												   {.resource = gbuffer_textures[base + 2], .view = 0, .pointer_index = upi_render_pass_texture2, .type = binding_type::texture_binding},

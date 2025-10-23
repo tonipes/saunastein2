@@ -34,8 +34,7 @@ namespace SFG
 	{
 		render_event_dir_light ev = {};
 		ev.entity_index			  = _header.entity.index;
-		ev.base_color			  = _base_color;
-		ev.range				  = _range;
+		ev.base_color			  = vector3(_base_color.x, _base_color.y, _base_color.z);
 		ev.intensity			  = _intensity;
 
 		w.get_render_stream().add_event(
@@ -101,7 +100,7 @@ namespace SFG
 	{
 		render_event_spot_light ev = {};
 		ev.entity_index			   = _header.entity.index;
-		ev.base_color			   = _base_color;
+		ev.base_color			   = vector3(_base_color.x, _base_color.y, _base_color.z);
 		ev.range				   = _range;
 		ev.intensity			   = _intensity;
 		ev.inner_cone			   = _inner_cone;
@@ -150,7 +149,7 @@ namespace SFG
 	{
 		render_event_point_light ev = {};
 		ev.entity_index				= _header.entity.index;
-		ev.base_color				= _base_color;
+		ev.base_color				= vector3(_base_color.x, _base_color.y, _base_color.z);
 		ev.range					= _range;
 		ev.intensity				= _intensity;
 

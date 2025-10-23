@@ -7,12 +7,12 @@
 #include "world/entity_manager.hpp"
 #include "world/traits/trait_camera.hpp"
 #include "world/traits/trait_model_instance.hpp"
+#include "world/traits/trait_ambient.hpp"
 #include "resources/model.hpp"
 #include "platform/window.hpp"
 #include "math/vector3.hpp"
 #include "math/quat.hpp"
 #include "common/string_id.hpp"
-#include "world/world.hpp"
 
 namespace SFG
 {
@@ -73,10 +73,10 @@ namespace SFG
 		_camera_trait	   = tm.add_trait<trait_camera>(_camera_entity);
 
 		trait_camera& cam_trait = tm.get_trait<trait_camera>(_camera_trait);
-		cam_trait.set_values(w, 0.01f, 500.0f, 45.0f);
+		cam_trait.set_values(w, 0.01f, 500.0f, 60.0f);
 		cam_trait.set_main(w);
 
-		em.set_entity_position(_camera_entity, vector3(0.0f, 0.5f, 27.5f));
+		em.set_entity_position(_camera_entity, vector3(0.0f, 1.5f, 10.0f));
 		em.set_entity_rotation(_camera_entity, quat::identity);
 
 		window* main_window = _game.get_main_window();
@@ -106,6 +106,11 @@ namespace SFG
 		trait_model_instance& mi				= tm.get_trait<trait_model_instance>(model_inst_handle);
 		mi.set_model(boombox);
 		mi.instantiate_model_to_world(w, boombox);
+
+		_ambient_entity			 = em.create_entity("ambient");
+		_ambient_trait			 = tm.add_trait<trait_ambient>(_ambient_entity);
+		trait_ambient& trait_amb = tm.get_trait<trait_ambient>(_ambient_trait);
+		trait_amb.set_values(w, color(0.6f, 0.1f, 0.1f));
 	}
 
 	void editor::destroy_demo_content()
@@ -117,6 +122,14 @@ namespace SFG
 		world&			w  = *world_ptr;
 		entity_manager& em = w.get_entity_manager();
 		trait_manager&	tm = w.get_trait_manager();
+
+		if (!_ambient_entity.is_null())
+		{
+			tm.remove_trait<trait_ambient>(_ambient_entity, _ambient_trait);
+			em.destroy_entity(_ambient_entity);
+			_ambient_entity = {};
+			_ambient_trait	= {};
+		}
 
 		_camera_controller.uninit();
 

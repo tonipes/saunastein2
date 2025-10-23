@@ -89,12 +89,12 @@ namespace SFG
 			return _aux_memory;
 		}
 
-		inline auto& get_mesh_instances()
+		inline auto get_mesh_instances()
 		{
 			return _mesh_instances;
 		}
 
-		inline auto& get_entities()
+		inline auto get_entities()
 		{
 			return _entities;
 		}
@@ -104,17 +104,17 @@ namespace SFG
 			return _cameras;
 		}
 
-		inline auto& get_point_lights()
+		inline auto get_point_lights()
 		{
 			return _point_lights;
 		}
 
-		inline auto& get_spot_lights()
+		inline auto get_spot_lights()
 		{
 			return _spot_lights;
 		}
 
-		inline auto& get_dir_lights()
+		inline auto get_dir_lights()
 		{
 			return _dir_lights;
 		}
@@ -129,14 +129,14 @@ namespace SFG
 			return _peak_mesh_instances;
 		}
 
-		inline uint32 get_peak_ambients() const
+		inline uint32 get_ambient_exists() const
 		{
-			return _peak_mesh_instances;
+			return _ambient_exists;
 		}
 
 		inline uint32 get_peak_dir_lights() const
 		{
-			return _peak_mesh_instances;
+			return _peak_dir_lights;
 		}
 
 		inline uint32 get_peak_spot_lights() const
@@ -147,6 +147,21 @@ namespace SFG
 		inline uint32 get_peak_point_lights() const
 		{
 			return _peak_point_lights;
+		}
+
+		inline uint32 get_count_dir_lights() const
+		{
+			return _count_dir_lights;
+		}
+
+		inline uint32 get_count_spot_lights() const
+		{
+			return _count_spot_lights;
+		}
+
+		inline uint32 get_count_point_lights() const
+		{
+			return _count_point_lights;
 		}
 
 	private:
@@ -227,10 +242,13 @@ namespace SFG
 
 		world_id _main_camera_trait	  = 0;
 		uint32	 _peak_mesh_instances = 0;
-		uint32	 _peak_ambients		  = 0;
 		uint32	 _peak_point_lights	  = 0;
 		uint32	 _peak_spot_lights	  = 0;
 		uint32	 _peak_dir_lights	  = 0;
+		uint32	 _count_dir_lights	  = 0;
+		uint32	 _count_spot_lights	  = 0;
+		uint32	 _count_point_lights  = 0;
+		uint8	 _ambient_exists	  = 0;
 
 		static_vector<material_update_bucket, BACK_BUFFER_COUNT> _material_update_buckets;
 		destroy_bucket											 _destroy_bucket[BACK_BUFFER_COUNT + 1];

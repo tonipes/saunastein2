@@ -25,6 +25,7 @@ namespace SFG
 	struct frustum
 	{
 		static frustum_result test(const frustum& fr, const aabb& local_box);
+		static frustum_result test(const frustum& fr, const vector3& position, float sphere_radius);
 		static frustum_result test(const frustum& fr, const aabb& local_box, const matrix3x3& linear_model, const vector3& position);
 		static frustum_result classify_obb_vs_plane(const plane& p, const vector3& c_local, const vector3& e_local, const matrix3x3& linear_model, const vector3& position);
 		static frustum		  extract(const matrix4x4& view_proj);

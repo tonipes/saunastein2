@@ -3,6 +3,7 @@
 #include "world_renderer.hpp"
 #include "common/system_info.hpp"
 #include "memory/memory_tracer.hpp"
+#include "math/math.hpp"
 #include "gfx/backend/backend.hpp"
 #include "gfx/common/descriptions.hpp"
 #include "gfx/common/commands.hpp"
@@ -78,36 +79,36 @@ namespace SFG
 
 			pfd.dir_lights_buffer.create_staging_hw(
 				{
-					.size		= sizeof(gpu_dir_light) * MAX_GPU_DIR_LIGHTS,
+					.size		= sizeof(gpu_dir_light) * MAX_WORLD_TRAIT_DIR_LIGHTS,
 					.flags		= resource_flags::rf_cpu_visible,
 					.debug_name = "lighting_dir_lights_cpu",
 				},
 				{
-					.size		= sizeof(gpu_dir_light) * MAX_GPU_DIR_LIGHTS,
+					.size		= sizeof(gpu_dir_light) * MAX_WORLD_TRAIT_DIR_LIGHTS,
 					.flags		= resource_flags::rf_gpu_only | resource_flags::rf_storage_buffer,
 					.debug_name = "lighting_dir_lights_gpu",
 				});
 
 			pfd.point_lights_buffer.create_staging_hw(
 				{
-					.size		= sizeof(gpu_point_light) * MAX_GPU_POINT_LIGHTS,
+					.size		= sizeof(gpu_point_light) * MAX_WORLD_TRAIT_POINT_LIGHTS,
 					.flags		= resource_flags::rf_cpu_visible,
 					.debug_name = "lighting_point_lights_cpu",
 				},
 				{
-					.size		= sizeof(gpu_point_light) * MAX_GPU_POINT_LIGHTS,
+					.size		= sizeof(gpu_point_light) * MAX_WORLD_TRAIT_POINT_LIGHTS,
 					.flags		= resource_flags::rf_gpu_only | resource_flags::rf_storage_buffer,
 					.debug_name = "lighting_point_lights_gpu",
 				});
 
 			pfd.spot_lights_buffer.create_staging_hw(
 				{
-					.size		= sizeof(gpu_spot_light) * MAX_GPU_SPOT_LIGHTS,
+					.size		= sizeof(gpu_spot_light) * MAX_WORLD_TRAIT_SPOT_LIGHTS,
 					.flags		= resource_flags::rf_cpu_visible,
 					.debug_name = "lighting_spot_lights_cpu",
 				},
 				{
-					.size		= sizeof(gpu_spot_light) * MAX_GPU_SPOT_LIGHTS,
+					.size		= sizeof(gpu_spot_light) * MAX_WORLD_TRAIT_SPOT_LIGHTS,
 					.flags		= resource_flags::rf_gpu_only | resource_flags::rf_storage_buffer,
 					.debug_name = "lighting_spot_lights_cpu",
 				});
@@ -166,7 +167,9 @@ namespace SFG
 				.alloc			  = alloc_head,
 				.alloc_size		  = size_per_lane,
 				.entities		  = entities_ptr.data(),
-				.bones			  = bones_ptr.data(),
+				.point_lights	  = point_lights_ptr.data(),
+				.spot_lights	  = spot_lights_ptr.data(),
+				.dir_lights		  = dir_lights_ptr.data(),
 				.gbuffer_textures = gbuffer_textures.data(),
 			});
 
@@ -512,12 +515,83 @@ namespace SFG
 
 	void world_renderer::collect_lights()
 	{
-		const uint32 points_peak = _proxy_manager.get_peak_point_lights();
-		const uint32 spots_peak	 = _proxy_manager.get_peak_spot_lights();
-		const uint32 dirs_peak	 = _proxy_manager.get_peak_dir_lights();
-		auto&		 points		 = *_proxy_manager.get_point_lights();
-		auto&		 spots		 = *_proxy_manager.get_spot_lights();
-		auto&		 dirs		 = *_proxy_manager.get_dir_lights();
+		const uint32 points_peak  = _proxy_manager.get_peak_point_lights();
+		const uint32 points_count = _proxy_manager.get_count_point_lights();
+		const uint32 spots_peak	  = _proxy_manager.get_peak_spot_lights();
+		const uint32 spots_count  = _proxy_manager.get_count_spot_lights();
+		const uint32 dirs_peak	  = _proxy_manager.get_peak_dir_lights();
+		const uint32 dirs_count	  = _proxy_manager.get_count_dir_lights();
+		auto&		 points		  = *_proxy_manager.get_point_lights();
+		auto&		 spots		  = *_proxy_manager.get_spot_lights();
+		auto&		 dirs		  = *_proxy_manager.get_dir_lights();
+		auto&		 entities	  = *_proxy_manager.get_entities();
+
+		world_render_data& wrd = _render_data;
+
+		for (uint32 i = 0; i < dirs_peak; i++)
+		{
+			const render_proxy_dir_light& light = dirs.get(i);
+			if (light.status != render_proxy_status::rps_active)
+				continue;
+
+			const render_proxy_entity& proxy_entity = entities.get(light.entity);
+			SFG_ASSERT(proxy_entity.status == render_proxy_status::rps_active);
+			if (proxy_entity.flags.is_set(render_proxy_entity_flags::render_proxy_entity_invisible))
+				continue;
+
+			wrd.dir_lights.push_back({
+				.entity_index = proxy_entity.handle,
+				.color		  = light.base_color,
+				.intensity	  = light.intensity,
+			});
+		}
+
+		for (uint32 i = 0; i < points_peak; i++)
+		{
+			const render_proxy_point_light& light = points.get(i);
+			if (light.status != render_proxy_status::rps_active)
+				continue;
+
+			const render_proxy_entity& proxy_entity = entities.get(light.entity);
+			SFG_ASSERT(proxy_entity.status == render_proxy_status::rps_active);
+			if (proxy_entity.flags.is_set(render_proxy_entity_flags::render_proxy_entity_invisible))
+				continue;
+
+			constexpr float energy_thresh = LIGHT_CULLING_ENERGY_THRESHOLD;
+			const float		radius		  = math::sqrt(light.intensity / (4.0f * M_PI * energy_thresh));
+
+			const frustum_result res = frustum::test(_main_camera_view.view_frustum, proxy_entity.position, radius);
+			if (res == frustum_result::outside)
+				continue;
+
+			wrd.point_lights.push_back({
+				.entity_index = proxy_entity.handle,
+				.color		  = light.base_color,
+				.range		  = light.range,
+				.intensity	  = light.intensity,
+			});
+		}
+
+		for (uint32 i = 0; i < spots_peak; i++)
+		{
+			const render_proxy_spot_light& light = spots.get(i);
+			if (light.status != render_proxy_status::rps_active)
+				continue;
+
+			const render_proxy_entity& proxy_entity = entities.get(light.entity);
+			SFG_ASSERT(proxy_entity.status == render_proxy_status::rps_active);
+			if (proxy_entity.flags.is_set(render_proxy_entity_flags::render_proxy_entity_invisible))
+				continue;
+
+			wrd.spot_lights.push_back({
+				.entity_index = proxy_entity.handle,
+				.color		  = light.base_color,
+				.range		  = light.range,
+				.intensity	  = light.intensity,
+				.inner_cone	  = light.inner_cone,
+				.outer_cone	  = light.outer_cone,
+			});
+		}
 	}
 
 }

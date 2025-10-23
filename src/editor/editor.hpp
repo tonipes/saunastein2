@@ -34,6 +34,8 @@ namespace SFG
 		world_handle				   _camera_entity	= {};
 		world_handle				   _camera_trait	= {};
 		world_handle				   _demo_model_root = {};
+		world_handle				   _ambient_entity	= {};
+		world_handle				   _ambient_trait	= {};
 		editor_first_person_controller _camera_controller;
 	};
 }
