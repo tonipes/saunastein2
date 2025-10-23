@@ -353,6 +353,12 @@ namespace SFG
 		SFG_ASSERT(id < _watched_resources.size());
 		resource_watch& w = _watched_resources[id];
 
+		// load new resource
+		const string full_path = engine_data::get().get_working_dir() + w.path;
+		void*		 loader	   = load_from_file(w.type_id, full_path.c_str());
+		if (loader == nullptr)
+			return;
+
 		const resource_handle	prev_handle = w.base_handle;
 		vector<resource_handle> prev_sub_handles;
 		vector<string_id>		prev_sub_ids;
@@ -377,11 +383,6 @@ namespace SFG
 
 		destroy(w.type_id, w.base_handle);
 		remove_resource(w.type_id, w.base_handle);
-		const string full_path = engine_data::get().get_working_dir() + w.path;
-		void*		 loader	   = load_from_file(w.type_id, full_path.c_str());
-
-		if (loader == nullptr)
-			return;
 
 		save_to_cache(w.type_id, loader, w.path.c_str());
 

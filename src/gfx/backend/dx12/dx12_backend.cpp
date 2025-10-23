@@ -239,6 +239,8 @@ namespace SFG
 				return DXGI_FORMAT_R11G11B10_FLOAT;
 			case format::r10g0b10a2_int:
 				return DXGI_FORMAT_R10G10B10A2_UINT;
+			case format::r10g0b10a2_unorm:
+				return DXGI_FORMAT_R10G10B10A2_UNORM;
 			case format::bc3_block_srgb:
 				return DXGI_FORMAT_BC3_UNORM_SRGB;
 			case format::bc3_block_unorm:

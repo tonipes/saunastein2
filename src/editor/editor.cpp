@@ -110,7 +110,7 @@ namespace SFG
 		_ambient_entity			 = em.create_entity("ambient");
 		_ambient_trait			 = tm.add_trait<trait_ambient>(_ambient_entity);
 		trait_ambient& trait_amb = tm.get_trait<trait_ambient>(_ambient_trait);
-		trait_amb.set_values(w, color(0.6f, 0.1f, 0.1f));
+		trait_amb.set_values(w, color(0.3f, 0.3f, 0.3f));
 	}
 
 	void editor::destroy_demo_content()

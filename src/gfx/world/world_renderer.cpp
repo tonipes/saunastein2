@@ -171,6 +171,7 @@ namespace SFG
 				.spot_lights	  = spot_lights_ptr.data(),
 				.dir_lights		  = dir_lights_ptr.data(),
 				.gbuffer_textures = gbuffer_textures.data(),
+				.depth_textures	  = depth_textures.data(),
 			});
 
 			alloc_head += size_per_lane;
@@ -220,10 +221,12 @@ namespace SFG
 			_main_camera_view					  = {
 									.view_matrix = matrix4x4::view(cam_entity.rotation, cam_entity.position),
 									.proj_matrix = matrix4x4::perspective_reverse_z(cam_proxy.fov_degrees, static_cast<float>(_base_size.x) / static_cast<float>(_base_size.y), cam_proxy.near_plane, cam_proxy.far_plane),
+									.position	 = cam_entity.position,
 			};
 		}
-		_main_camera_view.view_proj_matrix = _main_camera_view.proj_matrix * _main_camera_view.view_matrix;
-		_main_camera_view.view_frustum	   = frustum::extract(_main_camera_view.view_proj_matrix);
+		_main_camera_view.view_proj_matrix	   = _main_camera_view.proj_matrix * _main_camera_view.view_matrix;
+		_main_camera_view.inv_view_proj_matrix = _main_camera_view.view_proj_matrix.inverse();
+		_main_camera_view.view_frustum		   = frustum::extract(_main_camera_view.view_proj_matrix);
 
 		collect_model_instances();
 		collect_lights();
@@ -336,7 +339,7 @@ namespace SFG
 			gbuffer_textures.push_back(_pass_opaque.get_color_texture(i, 2));
 			gbuffer_textures.push_back(_pass_opaque.get_color_texture(i, 3));
 		}
-		_pass_lighting.resize(size, gbuffer_textures.data());
+		_pass_lighting.resize(size, gbuffer_textures.data(), depths.data());
 	}
 
 	uint32 world_renderer::create_gpu_entity(const gpu_entity& e)
@@ -488,7 +491,7 @@ namespace SFG
 			if (res == frustum_result::outside)
 				continue;
 
-			const uint32				  entity_index = create_gpu_entity({.model = proxy_entity.model, .normal = proxy_entity.normal});
+			const uint32				  entity_index = create_gpu_entity({.model = proxy_entity.model, .normal = proxy_entity.normal, .position = proxy_entity.position});
 			const render_proxy_model&	  proxy_model  = _proxy_manager.get_model(mesh_instance.model);
 			const render_proxy_primitive* primitives   = aux.get<render_proxy_primitive>(proxy_mesh.primitives);
 			const uint16*				  materials	   = aux.get<uint16>(proxy_model.materials);
@@ -540,9 +543,7 @@ namespace SFG
 				continue;
 
 			wrd.dir_lights.push_back({
-				.entity_index = proxy_entity.handle,
-				.color		  = light.base_color,
-				.intensity	  = light.intensity,
+				.color_entity_index = vector4(light.base_color.x, light.base_color.y, light.base_color.z, static_cast<float>(light.entity)),
 			});
 		}
 
@@ -565,10 +566,8 @@ namespace SFG
 				continue;
 
 			wrd.point_lights.push_back({
-				.entity_index = proxy_entity.handle,
-				.color		  = light.base_color,
-				.range		  = light.range,
-				.intensity	  = light.intensity,
+				.color_entity_index = vector4(light.base_color.x, light.base_color.y, light.base_color.z, static_cast<float>(light.entity)),
+				.intensity_range	= vector4(light.intensity, light.range, 0.0f, 0.0f),
 			});
 		}
 
@@ -584,12 +583,8 @@ namespace SFG
 				continue;
 
 			wrd.spot_lights.push_back({
-				.entity_index = proxy_entity.handle,
-				.color		  = light.base_color,
-				.range		  = light.range,
-				.intensity	  = light.intensity,
-				.inner_cone	  = light.inner_cone,
-				.outer_cone	  = light.outer_cone,
+				.color_entity_index			 = vector4(light.base_color.x, light.base_color.y, light.base_color.z, static_cast<float>(light.entity)),
+				.intensity_range_inner_outer = vector4(light.intensity, light.range, light.inner_cone, light.outer_cone),
 			});
 		}
 	}

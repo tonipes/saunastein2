@@ -11,12 +11,12 @@ namespace SFG
 
 	format render_target_definitions::get_format_gbuffer_normal()
 	{
-		return format::r8g8b8a8_srgb;
+		return format::r10g0b10a2_unorm;
 	}
 
 	format render_target_definitions::get_format_gbuffer_orm()
 	{
-		return format::r8g8b8a8_srgb;
+		return format::r8g8b8a8_unorm;
 	}
 
 	format render_target_definitions::get_format_lighting()

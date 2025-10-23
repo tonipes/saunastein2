@@ -1,26 +1,17 @@
 struct gpu_point_light
 {
-    uint entity_index;
-    float3 color;
-    float range;
-    float intensity;
-    float2 pad;
+    float4 color_entity_index;
+    float4 intensity_range;
 };
 
 struct gpu_spot_light
 {
-    uint entity_index;
-    float3 color;
-    float range;
-    float intensity;
-    float inner_cone;
-    float outer_cone;
+   float4 color_entity_index;
+   float4 intensity_range_inner_outer;
 };
 
 struct gpu_dir_light
 {
-    uint entity_index;
-    float3 color;
-    float intensity;
-    float3 pad;
+    float4 color_entity_index;
+    float4 intensity_range;
 };

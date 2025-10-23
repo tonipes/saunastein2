@@ -25,6 +25,8 @@ namespace SFG
 			return 4;
 		case format::r16g16b16a16_sfloat:
 			return 8;
+		case format::r10g0b10a2_unorm:
+			return 4;
 		default:
 			break;
 		}
@@ -102,6 +104,9 @@ namespace SFG
 		case format::d32_sfloat:
 			j = "d32_sfloat";
 			return;
+		case format::r10g0b10a2_unorm:
+			j = "r10g10b10a2_unorm";
+			return;
 		}
 
 		j = "undefined";
@@ -160,6 +165,12 @@ namespace SFG
 		if (str.compare("d16_unorm") == 0)
 		{
 			f = format::d16_unorm;
+			return;
+		}
+
+		if (str.compare("r10g0b10a2_unorm") == 0)
+		{
+			f = format::r10g0b10a2_unorm;
 			return;
 		}
 

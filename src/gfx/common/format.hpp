@@ -77,6 +77,7 @@ namespace SFG
 		// misc
 		r11g11b10_sfloat,
 		r10g0b10a2_int,
+		r10g0b10a2_unorm,
 		bc3_block_srgb,
 		bc3_block_unorm,
 		format_max,

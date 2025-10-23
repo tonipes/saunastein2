@@ -49,10 +49,11 @@ namespace SFG
 												   {.resource = params.gbuffer_textures[base + 1], .view = 0, .pointer_index = upi_render_pass_texture1, .type = binding_type::texture_binding},
 												   {.resource = params.gbuffer_textures[base + 2], .view = 0, .pointer_index = upi_render_pass_texture2, .type = binding_type::texture_binding},
 												   {.resource = params.gbuffer_textures[base + 3], .view = 0, .pointer_index = upi_render_pass_texture3, .type = binding_type::texture_binding},
+												   {.resource = params.depth_textures[i], .view = 0, .pointer_index = upi_render_pass_texture4, .type = binding_type::texture_binding},
 											   });
 		}
 
-		create_textures(params.size, params.gbuffer_textures);
+		create_textures(params.size, params.gbuffer_textures, params.depth_textures);
 
 		_shader_lighting = engine_shaders::get().get_shader(engine_shader_type::engine_shader_type_world_lighting).get_hw();
 
@@ -94,7 +95,10 @@ namespace SFG
 
 		per_frame_data& pfd		 = _pfd[frame_index];
 		const ubo		ubo_data = {
-				  .ambient_color = ambient_color,
+				  .inverse_view_proj		   = camera_view.inv_view_proj_matrix,
+				  .ambient_color_plights_count = vector4(ambient_color.x, ambient_color.y, ambient_color.z, static_cast<float>(pm.get_count_point_lights())),
+				  .view_position_slights_count = vector4(camera_view.position.x, camera_view.position.y, camera_view.position.z, static_cast<float>(pm.get_count_spot_lights())),
+				  .dir_lights_count			   = static_cast<float>(pm.get_count_dir_lights()),
 		  };
 
 		pfd.ubo.buffer_data(0, &ubo_data, sizeof(ubo));
@@ -181,10 +185,10 @@ namespace SFG
 		backend->close_command_buffer(cmd_buffer);
 	}
 
-	void render_pass_lighting::resize(const vector2ui16& size, gfx_id* depth_textures)
+	void render_pass_lighting::resize(const vector2ui16& size, gfx_id* gbuffer_textures, gfx_id* depth_textures)
 	{
 		destroy_textures();
-		create_textures(size, depth_textures);
+		create_textures(size, gbuffer_textures, depth_textures);
 	}
 
 	void render_pass_lighting::destroy_textures()
@@ -199,7 +203,7 @@ namespace SFG
 		}
 	}
 
-	void render_pass_lighting::create_textures(const vector2ui16& sz, gfx_id* gbuffer_textures)
+	void render_pass_lighting::create_textures(const vector2ui16& sz, gfx_id* gbuffer_textures, gfx_id* depth_textures)
 	{
 		gfx_backend* backend = gfx_backend::get();
 
@@ -223,6 +227,8 @@ namespace SFG
 												   {.resource = gbuffer_textures[base + 1], .view = 0, .pointer_index = upi_render_pass_texture1, .type = binding_type::texture_binding},
 												   {.resource = gbuffer_textures[base + 2], .view = 0, .pointer_index = upi_render_pass_texture2, .type = binding_type::texture_binding},
 												   {.resource = gbuffer_textures[base + 3], .view = 0, .pointer_index = upi_render_pass_texture3, .type = binding_type::texture_binding},
+												   {.resource = depth_textures[i], .view = 0, .pointer_index = upi_render_pass_texture4, .type = binding_type::texture_binding},
+
 											   });
 		}
 	}

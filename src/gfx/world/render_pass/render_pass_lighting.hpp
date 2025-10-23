@@ -5,7 +5,8 @@
 #include "gfx/buffer.hpp"
 #include "gfx/world/draws.hpp"
 #include "memory/bump_allocator.hpp"
-#include "math/vector3.hpp"
+#include "math/vector4.hpp"
+#include "math/matrix4x4.hpp"
 
 namespace SFG
 {
@@ -20,11 +21,11 @@ namespace SFG
 	private:
 		struct ubo
 		{
-			vector3 ambient_color	   = vector3::one;
-			uint32	point_lights_count = 0;
-			uint32	spot_lights_count  = 0;
-			uint32	dir_lights_count   = 0;
-			uint32	padding[2]		   = {};
+			matrix4x4 inverse_view_proj			  = {};
+			vector4	  ambient_color_plights_count = vector4::zero;
+			vector4	  view_position_slights_count = vector4::zero;
+			float	  dir_lights_count			  = 0;
+			uint32	  padding[3]				  = {};
 		};
 
 		struct per_frame_data
@@ -47,6 +48,7 @@ namespace SFG
 			gfx_id*			   spot_lights;
 			gfx_id*			   dir_lights;
 			gfx_id*			   gbuffer_textures;
+			gfx_id*			   depth_textures;
 		};
 
 		struct render_params
@@ -61,7 +63,7 @@ namespace SFG
 
 		void prepare(proxy_manager& pm, view& camera_view, uint8 frame_index);
 		void render(const render_params& params);
-		void resize(const vector2ui16& size, gfx_id* gbuffer_textures);
+		void resize(const vector2ui16& size, gfx_id* gbuffer_textures, gfx_id* depth_textures);
 
 		inline gfx_id get_color_texture(uint8 frame_index) const
 		{
@@ -80,7 +82,7 @@ namespace SFG
 
 	private:
 		void destroy_textures();
-		void create_textures(const vector2ui16& sz, gfx_id* gbuffer_textures);
+		void create_textures(const vector2ui16& sz, gfx_id* gbuffer_textures, gfx_id* depth_textures);
 
 	private:
 		per_frame_data _pfd[BACK_BUFFER_COUNT];

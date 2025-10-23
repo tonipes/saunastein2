@@ -1,36 +1,27 @@
 // Copyright (c) 2025 Inan Evin
 
 #pragma once
-#include "math/vector3.hpp"
+#include "math/vector4.hpp"
 #include "common/size_definitions.hpp"
 
 namespace SFG
 {
 	struct gpu_dir_light
 	{
-		uint32	entity_index = 0;
-		vector3 color		 = vector3::one;
-		float	intensity	 = 0;
-		float	padding[3]	 = {};
+		vector4 color_entity_index = vector4::zero;
+		vector4 intensity		   = vector4::zero;
 	};
 
 	struct gpu_point_light
 	{
-		uint32	entity_index = 0;
-		vector3 color		 = vector3::one;
-		float	range		 = 0.0f;
-		float	intensity	 = 0;
-		float	padding[2]	 = {};
+		vector4 color_entity_index = vector4::zero;
+		vector4 intensity_range	   = vector4::zero;
 	};
 
 	struct gpu_spot_light
 	{
-		uint32	entity_index = 0;
-		vector3 color		 = vector3::one;
-		float	range		 = 0.0f;
-		float	intensity	 = 0;
-		float	inner_cone	 = 0.0f;
-		float	outer_cone	 = 0.0f;
+		vector4 color_entity_index			= vector4::zero;
+		vector4 intensity_range_inner_outer = vector4::zero;
 	};
 
 }
