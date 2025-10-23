@@ -22,7 +22,6 @@
 namespace SFG
 {
 
-
 	gfx_id renderer::s_bind_group_global[BACK_BUFFER_COUNT] = {};
 	gfx_id renderer::s_bind_layout_global					= 0;
 
@@ -117,10 +116,10 @@ namespace SFG
 			backend->bind_group_update_pointer(pfd.bind_group_swapchain,
 											   0,
 											   {
-												   {.resource = _world_renderer->get_output(i), .view = 0, .pointer_index = upi_material_texture0, .type = binding_type::texture_binding},
+												   {.resource = _world_renderer->get_output(i), .view = 1, .pointer_index = upi_material_texture0, .type = binding_type::texture_binding},
 
 #ifdef USE_DEBUG_CONTROLLER
-												   {.resource = _debug_controller.get_final_rt(i), .view = 0, .pointer_index = upi_material_texture1, .type = binding_type::texture_binding},
+												   {.resource = _debug_controller.get_final_rt(i), .view = 1, .pointer_index = upi_material_texture1, .type = binding_type::texture_binding},
 #endif
 
 											   });
@@ -409,9 +408,9 @@ namespace SFG
 			backend->bind_group_update_pointer(pfd.bind_group_swapchain,
 											   0,
 											   {
-												   {.resource = _world_renderer->get_output(i), .view = 0, .pointer_index = upi_material_texture0, .type = binding_type::texture_binding},
+												   {.resource = _world_renderer->get_output(i), .view = 1, .pointer_index = upi_material_texture0, .type = binding_type::texture_binding},
 #ifdef USE_DEBUG_CONTROLLER
-												   {.resource = _debug_controller.get_final_rt(i), .view = 0, .pointer_index = upi_material_texture1, .type = binding_type::texture_binding},
+												   {.resource = _debug_controller.get_final_rt(i), .view = 1, .pointer_index = upi_material_texture1, .type = binding_type::texture_binding},
 #endif
 											   });
 		}

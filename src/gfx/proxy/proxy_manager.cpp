@@ -417,7 +417,6 @@ namespace SFG
 				.texture_format = static_cast<format>(ev.format),
 				.size			= ev.size,
 				.flags			= texture_flags::tf_is_2d | texture_flags::tf_sampled,
-				.views			= {{}},
 				.mip_levels		= static_cast<uint8>(ev.buffers.size()),
 				.array_length	= 1,
 				.samples		= 1,

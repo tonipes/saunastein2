@@ -170,7 +170,7 @@ namespace SFG
 			.resource	= depth_texture,
 			.flags		= barrier_flags::baf_is_texture,
 			.from_state = resource_state::depth_read,
-			.to_state	= resource_state::common,
+			.to_state	= resource_state::ps_resource,
 		});
 
 		backend->reset_command_buffer(cmd_buffer);
@@ -312,6 +312,7 @@ namespace SFG
 					.texture_format = formats[j],
 					.size			= sz,
 					.flags			= texture_flags::tf_render_target | texture_flags::tf_is_2d | texture_flags::tf_sampled,
+					.views			= {{.type = view_type::render_target}, {.type = view_type::sampled}},
 					.clear_values	= {0.0f, 0.0f, 0.0f, 1.0f},
 					.debug_name		= names[j],
 				}));

@@ -36,7 +36,7 @@ namespace SFG
 			const uint32 base = i * 4;
 
 			pfd.bind_group = backend->create_empty_bind_group();
-			backend->bind_group_add_pointer(pfd.bind_group, rpi_table_render_pass, upi_render_pass_texture3 + 1, false);
+			backend->bind_group_add_pointer(pfd.bind_group, rpi_table_render_pass, upi_render_pass_texture4 + 1, false);
 			backend->bind_group_update_pointer(pfd.bind_group,
 											   0,
 											   {
@@ -45,11 +45,11 @@ namespace SFG
 												   {.resource = params.point_lights[i], .view = 0, .pointer_index = upi_render_pass_ssbo1, .type = binding_type::ssbo},
 												   {.resource = params.spot_lights[i], .view = 0, .pointer_index = upi_render_pass_ssbo2, .type = binding_type::ssbo},
 												   {.resource = params.dir_lights[i], .view = 0, .pointer_index = upi_render_pass_ssbo3, .type = binding_type::ssbo},
-												   {.resource = params.gbuffer_textures[base + 0], .view = 0, .pointer_index = upi_render_pass_texture0, .type = binding_type::texture_binding},
-												   {.resource = params.gbuffer_textures[base + 1], .view = 0, .pointer_index = upi_render_pass_texture1, .type = binding_type::texture_binding},
-												   {.resource = params.gbuffer_textures[base + 2], .view = 0, .pointer_index = upi_render_pass_texture2, .type = binding_type::texture_binding},
-												   {.resource = params.gbuffer_textures[base + 3], .view = 0, .pointer_index = upi_render_pass_texture3, .type = binding_type::texture_binding},
-												   {.resource = params.depth_textures[i], .view = 0, .pointer_index = upi_render_pass_texture4, .type = binding_type::texture_binding},
+												   {.resource = params.gbuffer_textures[base + 0], .view = 1, .pointer_index = upi_render_pass_texture0, .type = binding_type::texture_binding},
+												   {.resource = params.gbuffer_textures[base + 1], .view = 1, .pointer_index = upi_render_pass_texture1, .type = binding_type::texture_binding},
+												   {.resource = params.gbuffer_textures[base + 2], .view = 1, .pointer_index = upi_render_pass_texture2, .type = binding_type::texture_binding},
+												   {.resource = params.gbuffer_textures[base + 3], .view = 1, .pointer_index = upi_render_pass_texture3, .type = binding_type::texture_binding},
+												   {.resource = params.depth_textures[i], .view = 2, .pointer_index = upi_render_pass_texture4, .type = binding_type::texture_binding},
 											   });
 		}
 
@@ -96,6 +96,7 @@ namespace SFG
 		per_frame_data& pfd		 = _pfd[frame_index];
 		const ubo		ubo_data = {
 				  .inverse_view_proj		   = camera_view.inv_view_proj_matrix,
+				  .proj						   = camera_view.proj_matrix,
 				  .ambient_color_plights_count = vector4(ambient_color.x, ambient_color.y, ambient_color.z, static_cast<float>(pm.get_count_point_lights())),
 				  .view_position_slights_count = vector4(camera_view.position.x, camera_view.position.y, camera_view.position.z, static_cast<float>(pm.get_count_spot_lights())),
 				  .dir_lights_count			   = static_cast<float>(pm.get_count_dir_lights()),
@@ -147,6 +148,7 @@ namespace SFG
 		att.load_op								  = load_op::clear;
 		att.store_op							  = store_op::store;
 		att.texture								  = color_texture;
+		att.view_index							  = 0;
 
 		backend->cmd_begin_render_pass(cmd_buffer,
 									   {
@@ -215,6 +217,7 @@ namespace SFG
 				.texture_format = render_target_definitions::get_format_lighting(),
 				.size			= sz,
 				.flags			= texture_flags::tf_render_target | texture_flags::tf_is_2d | texture_flags::tf_sampled,
+				.views			= {{.type = view_type::render_target}, {.type = view_type::sampled}},
 				.clear_values	= {0.0f, 0.0f, 0.0f, 1.0f},
 				.debug_name		= "lighting_rt",
 			});
@@ -223,11 +226,11 @@ namespace SFG
 			backend->bind_group_update_pointer(pfd.bind_group,
 											   0,
 											   {
-												   {.resource = gbuffer_textures[base + 0], .view = 0, .pointer_index = upi_render_pass_texture0, .type = binding_type::texture_binding},
-												   {.resource = gbuffer_textures[base + 1], .view = 0, .pointer_index = upi_render_pass_texture1, .type = binding_type::texture_binding},
-												   {.resource = gbuffer_textures[base + 2], .view = 0, .pointer_index = upi_render_pass_texture2, .type = binding_type::texture_binding},
-												   {.resource = gbuffer_textures[base + 3], .view = 0, .pointer_index = upi_render_pass_texture3, .type = binding_type::texture_binding},
-												   {.resource = depth_textures[i], .view = 0, .pointer_index = upi_render_pass_texture4, .type = binding_type::texture_binding},
+												   {.resource = gbuffer_textures[base + 0], .view = 1, .pointer_index = upi_render_pass_texture0, .type = binding_type::texture_binding},
+												   {.resource = gbuffer_textures[base + 1], .view = 1, .pointer_index = upi_render_pass_texture1, .type = binding_type::texture_binding},
+												   {.resource = gbuffer_textures[base + 2], .view = 1, .pointer_index = upi_render_pass_texture2, .type = binding_type::texture_binding},
+												   {.resource = gbuffer_textures[base + 3], .view = 1, .pointer_index = upi_render_pass_texture3, .type = binding_type::texture_binding},
+												   {.resource = depth_textures[i], .view = 2, .pointer_index = upi_render_pass_texture4, .type = binding_type::texture_binding},
 
 											   });
 		}

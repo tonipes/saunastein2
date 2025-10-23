@@ -394,6 +394,7 @@ namespace SFG
 				.texture_format = RT_FORMAT,
 				.size			= vector2ui16(screen_size.x, screen_size.y / 2),
 				.flags			= texture_flags::tf_sampled | texture_flags::tf_is_2d | texture_flags::tf_render_target,
+				.views			= {{.type = view_type::render_target}, {.type = view_type::sampled}},
 				.clear_values	= {0.0f, 0.0f, 0.0f, 1.0f},
 				.debug_name		= "console_rt",
 			});
@@ -402,6 +403,7 @@ namespace SFG
 				.texture_format = RT_FORMAT,
 				.size			= vector2ui16(screen_size.x, screen_size.y),
 				.flags			= texture_flags::tf_sampled | texture_flags::tf_is_2d | texture_flags::tf_render_target,
+				.views			= {{.type = view_type::render_target}, {.type = view_type::sampled}},
 				.clear_values	= {0.0f, 0.0f, 0.0f, 1.0f},
 				.debug_name		= "debug_rt",
 			});
@@ -432,7 +434,7 @@ namespace SFG
 											   0,
 											   {
 												   {.resource = pfd.buf_fullscreen_pass_view.get_hw_gpu(), .pointer_index = upi_material_ubo0, .type = binding_type::ubo},
-												   {.resource = pfd.rt_console, .pointer_index = upi_material_texture0, .type = binding_type::texture_binding},
+												   {.resource = pfd.rt_console, .view = 1, .pointer_index = upi_material_texture0, .type = binding_type::texture_binding},
 											   });
 
 			pfd.buf_gui_vtx.create_staging_hw(
@@ -683,12 +685,14 @@ namespace SFG
 		attachment_console_rt->load_op						= load_op::clear;
 		attachment_console_rt->store_op						= store_op::store;
 		attachment_console_rt->texture						= rt_console;
+		attachment_console_rt->view_index					= 0;
 
 		render_pass_color_attachment* attachment_fullscreen_rt = alloc.allocate<render_pass_color_attachment>(1);
 		attachment_fullscreen_rt->clear_color				   = vector4(0.0f, 0.0f, 0.0f, 1.0f);
 		attachment_fullscreen_rt->load_op					   = load_op::clear;
 		attachment_fullscreen_rt->store_op					   = store_op::store;
 		attachment_fullscreen_rt->texture					   = rt_fullscreen;
+		attachment_fullscreen_rt->view_index				   = 0;
 
 		backend->cmd_bind_group(cmd_buffer, {.group = bg_rp});
 		backend->cmd_set_viewport(cmd_buffer, {.width = static_cast<uint16>(rt_size.x), .height = static_cast<uint16>(rt_size.y)});
@@ -836,11 +840,7 @@ namespace SFG
 			   .texture_format = atlas->get_is_lcd() ? format::r8g8b8a8_srgb : format::r8_unorm,
 			   .size		   = vector2ui16(static_cast<uint16>(atlas->get_width()), static_cast<uint16>(atlas->get_height())),
 			   .flags		   = texture_flags::tf_is_2d | texture_flags::tf_sampled,
-			   .views =
-				   {
-					   {},
-				   },
-			   .debug_name = "vekt_atlas",
+			   .debug_name	   = "vekt_atlas",
 		   });
 
 		const uint32 txt_size	   = backend->get_texture_size(atlas->get_width(), atlas->get_height(), atlas->get_is_lcd() ? 3 : 1);
@@ -1229,6 +1229,7 @@ namespace SFG
 				.texture_format = RT_FORMAT,
 				.size			= vector2ui16(size.x, size.y / 2),
 				.flags			= texture_flags::tf_sampled | texture_flags::tf_is_2d | texture_flags::tf_render_target,
+				.views			= {{.type = view_type::render_target}, {.type = view_type::sampled}},
 				.clear_values	= {0.0f, 0.0f, 0.0f, 1.0f},
 				.debug_name		= "console_rt",
 			});
@@ -1237,6 +1238,7 @@ namespace SFG
 				.texture_format = RT_FORMAT,
 				.size			= vector2ui16(size.x, size.y),
 				.flags			= texture_flags::tf_sampled | texture_flags::tf_is_2d | texture_flags::tf_render_target,
+				.views			= {{.type = view_type::render_target}, {.type = view_type::sampled}},
 				.clear_values	= {0.0f, 0.0f, 0.0f, 1.0f},
 				.debug_name		= "debug_rt",
 			});

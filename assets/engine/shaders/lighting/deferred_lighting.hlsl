@@ -2,7 +2,7 @@
 #include "entity.hlsl"
 #include "light.hlsl"
 #include "pbr.hlsl"
-
+#include "depth.hlsl"
 //------------------------------------------------------------------------------
 // In & Outs
 //------------------------------------------------------------------------------
@@ -20,10 +20,11 @@ struct vs_output
 cbuffer render_pass : render_pass_ubo0
 {
     float4x4 invViewProj;
+    float4x4 proj;
     float4 ambient_color_plights_count;
     float4 view_pos_slights_count;
     float dir_lights_count;
-    uint pad[3];
+    uint pad[23];
 };
 
 StructuredBuffer<gpu_entity> entity_buffer : render_pass_ssbo0;
@@ -67,6 +68,9 @@ float4 PSMain(vs_output IN) : SV_TARGET
 
     float4 normal_data = tex_gbuffer_normal.Load(int3(ip, 0));
     float  d     = tex_gbuffer_depth.Load(int3(ip, 0)).r;
+    // d = linear_eye_depth(d, proj[2][2], proj[2][3]);
+    return float4(d,0,0, 1.0f);
+
     float3 n = normal_data.xyz * 2.0f - 1.0;
     n = (dot(n,n) > 0.0f) ? normalize(n) : float3(0,0,1);
 
@@ -79,7 +83,6 @@ float4 PSMain(vs_output IN) : SV_TARGET
     float3 world_pos   = float3(0.0, 0.0, 0.0);
     float3 albedo      = albedo_data.xyz;
 
-    return float4(d, d,d, 1.0f);
 
 
     // renormalize, kill quantization error.

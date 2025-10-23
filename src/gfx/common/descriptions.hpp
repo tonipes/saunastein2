@@ -153,14 +153,21 @@ namespace SFG
 		const char*	   debug_name = "resource";
 	};
 
+	enum class view_type : uint8
+	{
+		sampled,
+		render_target,
+		depth_stencil,
+	};
 	struct view_desc
 	{
-		uint8 base_arr_level = 0;
-		uint8 level_count	 = 1;
-		uint8 base_mip_level = 0;
-		uint8 mip_count		 = 1;
-		uint8 is_cubemap	 = 0;
-		uint8 read_only		 = 0;
+		view_type type			 = view_type::sampled;
+		uint8	  base_arr_level = 0;
+		uint8	  level_count	 = 1;
+		uint8	  base_mip_level = 0;
+		uint8	  mip_count		 = 1;
+		uint8	  is_cubemap	 = 0;
+		uint8	  read_only		 = 0;
 	};
 
 	struct texture_desc

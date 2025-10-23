@@ -90,20 +90,22 @@ namespace SFG
 			uint32				 size			  = 0;
 		};
 
+		struct texture_view
+		{
+			gfx_id handle = 0;
+			uint8  type	  = 0;
+		};
+
 		struct texture
 		{
-			D3D12MA::Allocation* ptr		   = nullptr;
-			gfx_id				 srvs[6]	   = {};
-			gfx_id				 dsvs[6]	   = {};
-			gfx_id				 rtvs[6]	   = {};
-			gfx_id				 shared_handle = 0;
+			D3D12MA::Allocation* ptr = nullptr;
+			texture_view		 views[8];
 #ifdef ENABLE_MEMORY_TRACER
 			uint32 size = 0;
 #endif
-			uint8 rtv_count = 0;
-			uint8 srv_count = 0;
-			uint8 dsv_count = 0;
-			uint8 format	= 0;
+			gfx_id shared_handle = 0;
+			uint8  format		 = 0;
+			uint8  view_count	 = 0;
 		};
 
 		struct texture_shared_handle

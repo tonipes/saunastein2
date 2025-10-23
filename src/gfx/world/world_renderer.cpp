@@ -260,15 +260,19 @@ namespace SFG
 		world_render_data& rd		  = _render_data;
 		const vector2ui16  resolution = _base_size;
 
+		semaphore_data& sd_depth		 = _pass_pre_depth.get_semaphore(frame_index);
 		semaphore_data& sd_opaque		 = _pass_opaque.get_semaphore(frame_index);
 		semaphore_data& sd_lighting		 = _pass_lighting.get_semaphore(frame_index);
 		semaphore_data& sd_post			 = _pass_post_combiner.get_semaphore(frame_index);
+		const gfx_id	sem_depth		 = sd_depth.semaphore;
 		const gfx_id	sem_opaque		 = sd_opaque.semaphore;
 		const gfx_id	sem_lighting	 = sd_lighting.semaphore;
 		const gfx_id	sem_post		 = sd_post.semaphore;
+		const uint64	sem_depth_val	 = ++sd_depth.value;
 		const uint64	sem_opaque_val	 = ++sd_opaque.value;
 		const uint64	sem_lighting_val = ++sd_lighting.value;
 		const uint64	sem_post_val	 = ++sd_post.value;
+		const gfx_id	cmd_depth		 = _pass_pre_depth.get_cmd_buffer(frame_index);
 		const gfx_id	cmd_opaque		 = _pass_opaque.get_cmd_buffer(frame_index);
 		const gfx_id	cmd_lighting	 = _pass_lighting.get_cmd_buffer(frame_index);
 		const gfx_id	cmd_post		 = _pass_post_combiner.get_cmd_buffer(frame_index);
@@ -282,30 +286,39 @@ namespace SFG
 			.global_group  = bind_group_global,
 		});
 
-		static_vector<std::function<void()>, 2> tasks;
-		tasks.push_back([&] {
+		//static_vector<std::function<void()>, 2> tasks;
+		//tasks.push_back([&] {
+		//
+		//});
+		//tasks.push_back([&] {
+		//	
+		//});
+
 			_pass_opaque.render({
-				.frame_index   = frame_index,
-				.size		   = resolution,
-				.global_layout = layout_global,
-				.global_group  = bind_group_global,
-			});
-		});
-		tasks.push_back([&] {
-			_pass_lighting.render({
-				.frame_index   = frame_index,
-				.size		   = resolution,
-				.global_layout = layout_global,
-				.global_group  = bind_group_global,
-			});
+			.frame_index   = frame_index,
+			.size		   = resolution,
+			.global_layout = layout_global,
+			.global_group  = bind_group_global,
 		});
 
-		std::for_each(std::execution::par, tasks.begin(), tasks.end(), [](auto&& task) { task(); });
+		_pass_lighting.render({
+			.frame_index   = frame_index,
+			.size		   = resolution,
+			.global_layout = layout_global,
+			.global_group  = bind_group_global,
+		});
+
+		//std::for_each(std::execution::par, tasks.begin(), tasks.end(), [](auto&& task) { task(); });
 
 		if (prev_copy != next_copy)
 			backend->queue_wait(queue_gfx, &sem_copy, &next_copy, 1);
 
-		// submit opaque
+		// submit depth
+		backend->submit_commands(queue_gfx, &cmd_depth, 1);
+		backend->queue_signal(queue_gfx, &sem_depth, &sem_depth_val, 1);
+
+		// submit opaque, wait for depth
+		backend->queue_wait(queue_gfx, &sem_depth, &sem_depth_val, 1);
 		backend->submit_commands(queue_gfx, &cmd_opaque, 1);
 		backend->queue_signal(queue_gfx, &sem_opaque, &sem_opaque_val, 1);
 

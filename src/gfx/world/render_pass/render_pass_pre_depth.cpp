@@ -121,7 +121,6 @@ namespace SFG
 		gfx_backend*	backend		  = gfx_backend::get();
 		per_frame_data& pfd			  = _pfd[p.frame_index];
 		render_data&	rd			  = _render_data;
-		const gfx_id	queue_gfx	  = backend->get_queue_gfx();
 		const gfx_id	cmd_buffer	  = pfd.cmd_buffer;
 		const gfx_id	depth_texture = pfd.depth_texture;
 		const gfx_id	rp_bind_group = pfd.bind_group;
@@ -132,7 +131,7 @@ namespace SFG
 		barriers.push_back({
 			.resource	= depth_texture,
 			.flags		= barrier_flags::baf_is_texture,
-			.from_state = resource_state::common,
+			.from_state = resource_state::ps_resource,
 			.to_state	= resource_state::depth_write,
 		});
 
@@ -223,8 +222,6 @@ namespace SFG
 		END_DEBUG_EVENT(backend, cmd_buffer);
 
 		backend->close_command_buffer(cmd_buffer);
-
-		backend->submit_commands(queue_gfx, &cmd_buffer, 1);
 	}
 
 	void render_pass_pre_depth::resize(const vector2ui16& size)
@@ -257,15 +254,9 @@ namespace SFG
 				.depth_stencil_format = render_target_definitions::get_format_depth_default(),
 				.size				  = sz,
 				.flags				  = texture_flags::tf_depth_texture | texture_flags::tf_typeless | texture_flags::tf_is_2d | texture_flags::tf_sampled,
-				.views =
-					{
-						{},
-						{
-							.read_only = 1,
-						},
-					},
-				.clear_values = {0.0f, 0.0f, 0.0f, 1.0f},
-				.debug_name	  = "prepass_depth",
+				.views				  = {{.type = view_type::depth_stencil}, {.type = view_type::depth_stencil, .read_only = 1}, {.type = view_type::sampled}},
+				.clear_values		  = {0.0f, 0.0f, 0.0f, 1.0f},
+				.debug_name			  = "prepass_depth",
 			});
 		}
 	}
