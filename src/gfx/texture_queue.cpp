@@ -68,10 +68,10 @@ namespace SFG
 												});
 
 			out_barriers.push_back({
-				.resource	= buf.texture,
-				.flags		= barrier_flags::baf_is_texture,
-				.from_state = resource_state::copy_dest,
-				.to_state	= buf.to_state,
+				.resource	 = buf.texture,
+				.flags		 = barrier_flags::baf_is_texture,
+				.from_states = resource_state::resource_state_copy_dest,
+				.to_states	 = buf.to_state,
 			});
 
 			for (const texture_buffer& b : buf.buffers)

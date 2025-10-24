@@ -20,8 +20,6 @@ namespace SFG
 
 		struct ubo
 		{
-			matrix4x4 view		= matrix4x4::identity;
-			matrix4x4 proj		= matrix4x4::identity;
 			matrix4x4 view_proj = matrix4x4::identity;
 		};
 

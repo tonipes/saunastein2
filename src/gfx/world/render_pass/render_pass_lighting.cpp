@@ -95,8 +95,7 @@ namespace SFG
 
 		per_frame_data& pfd		 = _pfd[frame_index];
 		const ubo		ubo_data = {
-				  .inverse_view_proj		   = camera_view.inv_view_proj_matrix,
-				  .proj						   = camera_view.proj_matrix,
+				  .inverse_view_proj		   = camera_view.view_proj_matrix.inverse(),
 				  .ambient_color_plights_count = vector4(ambient_color.x, ambient_color.y, ambient_color.z, static_cast<float>(pm.get_count_point_lights())),
 				  .view_position_slights_count = vector4(camera_view.position.x, camera_view.position.y, camera_view.position.z, static_cast<float>(pm.get_count_spot_lights())),
 				  .dir_lights_count			   = static_cast<float>(pm.get_count_dir_lights()),
@@ -112,25 +111,18 @@ namespace SFG
 		const gfx_id	queue_gfx	  = backend->get_queue_gfx();
 		const gfx_id	cmd_buffer	  = pfd.cmd_buffer;
 		const gfx_id	color_texture = pfd.render_target;
+		const gfx_id	depth_texture = pfd.depth_texture;
 		const gfx_id	rp_bind_group = pfd.bind_group;
 		const gfx_id	sh			  = _shader_lighting;
 		_alloc.reset();
 
-		static_vector<barrier, 1> barriers;
-		static_vector<barrier, 1> barriers_after;
+		static_vector<barrier, 2> barriers;
 
 		barriers.push_back({
-			.resource	= color_texture,
-			.flags		= barrier_flags::baf_is_texture,
-			.from_state = resource_state::ps_resource,
-			.to_state	= resource_state::render_target,
-		});
-
-		barriers_after.push_back({
-			.resource	= color_texture,
-			.flags		= barrier_flags::baf_is_texture,
-			.from_state = resource_state::render_target,
-			.to_state	= resource_state::ps_resource,
+			.resource	 = color_texture,
+			.flags		 = barrier_flags::baf_is_texture,
+			.from_states = resource_state::resource_state_ps_resource,
+			.to_states	 = resource_state::resource_state_render_target,
 		});
 
 		backend->reset_command_buffer(cmd_buffer);
@@ -171,17 +163,33 @@ namespace SFG
 		backend->cmd_bind_pipeline(cmd_buffer, {.pipeline = sh});
 		backend->cmd_draw_instanced(cmd_buffer,
 									{
-										.vertex_count_per_instance = 6,
+										.vertex_count_per_instance = 3,
 										.instance_count			   = 1,
 									});
 
 		backend->cmd_end_render_pass(cmd_buffer, {});
 		END_DEBUG_EVENT(backend, cmd_buffer);
 
+		barriers.resize(0);
+
+		barriers.push_back({
+			.resource	 = color_texture,
+			.flags		 = barrier_flags::baf_is_texture,
+			.from_states = resource_state::resource_state_render_target,
+			.to_states	 = resource_state::resource_state_ps_resource,
+		});
+
+		barriers.push_back({
+			.resource	 = depth_texture,
+			.flags		 = barrier_flags::baf_is_texture,
+			.from_states = resource_state::resource_state_depth_read | resource_state::resource_state_ps_resource,
+			.to_states	 = resource_state::resource_state_common,
+		});
+
 		backend->cmd_barrier(cmd_buffer,
 							 {
-								 .barriers		= barriers_after.data(),
-								 .barrier_count = static_cast<uint16>(barriers_after.size()),
+								 .barriers		= barriers.data(),
+								 .barrier_count = static_cast<uint16>(barriers.size()),
 							 });
 
 		backend->close_command_buffer(cmd_buffer);
@@ -221,6 +229,8 @@ namespace SFG
 				.clear_values	= {0.0f, 0.0f, 0.0f, 1.0f},
 				.debug_name		= "lighting_rt",
 			});
+
+			pfd.depth_texture = depth_textures[i];
 
 			const uint32 base = i * 4;
 			backend->bind_group_update_pointer(pfd.bind_group,

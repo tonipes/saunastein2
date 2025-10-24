@@ -1,13 +1,23 @@
-// projA = P[2][2], projB = P[3][2]
-float linear_eye_depth(float deviceDepth, float projA, float projB)
+float linearize_depth(float depth, float nearZ, float farZ) 
 {
-    return projB / max(deviceDepth - projA, 1e-6);
+    float z = (1.0 - depth) * 2.0 - 1.0; // reverse z flip
+    return (2.0 * nearZ * farZ) / (farZ + nearZ - z * (farZ - nearZ));
 }
 
-float3 world_pos_from_depth(float2 uv, float depth, float4x4 invViewProj)
+static float3 reconstruct_world_position(float2 uv, float device_depth, float4x4 inv_view_proj)
 {
-    // from UV+depth to clip
-    float4 clip = float4(uv * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
-    float4 world = mul(invViewProj, clip);
-    return world.xyz / world.w;
+    // NDC y is Y up, uv Y is Y down.
+    float2 ndcXY = float2(uv.x * 2.0f - 1.0f,
+                      1.0f - uv.y * 2.0f);
+                      
+    // depth is 0-1 already DX NDC.
+    float  ndcZ  = device_depth;
+    
+    float4 ndc = float4(ndcXY, ndcZ, 1.0);
+
+    // in world space
+    ndc = mul(inv_view_proj, ndc);
+    ndc /= ndc.w;
+
+    return ndc.xyz;
 }

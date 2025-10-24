@@ -3,6 +3,8 @@
 #include "light.hlsl"
 #include "pbr.hlsl"
 #include "depth.hlsl"
+#include "normal.hlsl"
+
 //------------------------------------------------------------------------------
 // In & Outs
 //------------------------------------------------------------------------------
@@ -19,12 +21,11 @@ struct vs_output
 
 cbuffer render_pass : render_pass_ubo0
 {
-    float4x4 invViewProj;
-    float4x4 proj;
+    float4x4 inv_view_proj;
     float4 ambient_color_plights_count;
     float4 view_pos_slights_count;
     float dir_lights_count;
-    uint pad[23];
+    float pad[7];
 };
 
 StructuredBuffer<gpu_entity> entity_buffer : render_pass_ssbo0;
@@ -48,15 +49,21 @@ vs_output VSMain(uint vertexID : SV_VertexID)
 {
     vs_output OUT;
 	
-    float2 pos = float2(
-        (vertexID == 2) ? 3.0 : -1.0,
-        (vertexID == 1) ? -3.0 : 1.0
-    );
-	
-    OUT.pos = float4(pos, 0.0f, 1.0f);
-    OUT.uv = 0.5f * (pos + 1.0f);
-    OUT.uv.y = 1.0f - OUT.uv.y;
+    float2 pos;
+    if (vertexID == 0) pos = float2(-1.0, -1.0);
+    else if (vertexID == 1) pos = float2(-1.0,  3.0);
+    else                  pos = float2( 3.0, -1.0);
+
+    OUT.pos = float4(pos, 0.0, 1.0);
+    OUT.uv  = pos * float2(0.5, -0.5) + 0.5;
     return OUT;
+}
+
+// Very small epsilon guard
+static bool is_background(float deviceDepth)
+{
+    // Reversed-Z: far = 0, near = 1. Treat ~0 as background
+    return deviceDepth <= 1e-6;
 }
 
 //------------------------------------------------------------------------------
@@ -64,49 +71,65 @@ vs_output VSMain(uint vertexID : SV_VertexID)
 //------------------------------------------------------------------------------
 float4 PSMain(vs_output IN) : SV_TARGET
 {
-    int2 ip = int2(IN.pos.xy);  
+     // pixel for .Load()
+    int2 ip = int2(IN.pos.xy);
 
-    float4 normal_data = tex_gbuffer_normal.Load(int3(ip, 0));
-    float  d     = tex_gbuffer_depth.Load(int3(ip, 0)).r;
-    // d = linear_eye_depth(d, proj[2][2], proj[2][3]);
-    return float4(d,0,0, 1.0f);
+    // fetch depth
+    float device_depth = tex_gbuffer_depth.Load(int3(ip, 0)).r;
 
-    float3 n = normal_data.xyz * 2.0f - 1.0;
-    n = (dot(n,n) > 0.0f) ? normalize(n) : float3(0,0,1);
+    // background early-out (reversed-Z)
+    if (is_background(device_depth))
+        return float4(0,0,0,1);
 
-    // gbuffer fetch
-    float4 albedo_data    = tex_gbuffer_color.SampleLevel(smp_linear, IN.uv, 0);
-    float4 orm_data       = tex_gbuffer_orm.SampleLevel(smp_linear, IN.uv, 0);
-    float4 emissive_data  = tex_gbuffer_emissive.SampleLevel(smp_linear, IN.uv, 0);
+    // reconstruct world position
+    float2 uv = IN.uv;
+    float3 world_pos = reconstruct_world_position(uv, device_depth, inv_view_proj);
+    float3 V = normalize(view_pos_slights_count.xyz - world_pos);
 
-    // unpack
-    float3 world_pos   = float3(0.0, 0.0, 0.0);
-    float3 albedo      = albedo_data.xyz;
+    // decode gbuffer
+    float4 albedo_data   = tex_gbuffer_color.SampleLevel(smp_nearest, uv, 0);      // sRGB RT was linearized when written; this is now linear
+    float4 normal_data = tex_gbuffer_normal.Load(int3(ip, 0));          // RGB10A2_UNORM -> oct encode
+    float4 orm_data      = tex_gbuffer_orm   .Load(int3(ip, 0));      // [ao, rough, metal, _]
+    float4 emissive_data = tex_gbuffer_emissive.Load(int3(ip, 0));    // linear
+    float3 albedo = albedo_data.xyz;
+    float3 emissive = emissive_data.xyz;
+    float  ao        = saturate(orm_data.r);
+    float  roughness = saturate(orm_data.g);
+    float  metallic  = saturate(orm_data.b);
+    float3 N = oct_decode(normal_data.xy);
 
+    float3 ambientColor = ambient_color_plights_count.xyz;
+    float3 lighting = ambientColor * albedo * ao;
 
-
-    // renormalize, kill quantization error.
-    float  ao          = orm_data.x;
-    float3 emissive    = emissive_data.xyz;
-
-    // ambient (keep it simple; modulate by AO)
-    float3 ambient_color = ambient_color_plights_count.xyz;
-    float3 final_color   = albedo * ambient_color * ao + emissive;
-
-    // view vector (not needed for pure lambert; kept if you add spec later)
-    float3 view_pos = view_pos_slights_count.xyz;
-    float3 V        = normalize(view_pos - world_pos);
-
-    // point lights
-    uint point_lights_count = (uint)ambient_color_plights_count.w;
+    // fetch light prep
+    uint point_light_count = uint(ambient_color_plights_count.w);
+    uint spot_light_count = uint(view_pos_slights_count.w);
+    uint dir_light_count = uint(dir_lights_count);
 
     [loop]
-    for (uint i = 0; i < point_lights_count; ++i)
+    for(uint i = 0; i < point_light_count; i++)
     {
         gpu_point_light light = point_light_buffer[i];
+        gpu_entity entity = entity_buffer[uint(light.color_entity_index.w)];
+        float3 light_col = light.color_entity_index.xyz;
+        float3 light_pos = entity.position.xyz;
+        float3 color = light.color_entity_index.xyz;
+        float intensity = light.intensity_range.x;
+        float range = light.intensity_range.y;
+
+        float3 Lvec = light_pos - world_pos;
+        float  d  = length(light_pos - world_pos);
+        float  dist = max(d, 1e-4);
+        float3 L    = Lvec / dist;
+        
+        float  att = attenuation(range, d);
+        float3 radiance  = light_col * (intensity * att);
+        lighting += calculate_pbr(V, N, L, albedo, ao, roughness, metallic, radiance);
     }
 
-    return float4(final_color, 1.0f);
+    lighting += emissive;
+
+    return float4(lighting, 1.0f);
 }
 
 

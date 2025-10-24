@@ -35,14 +35,14 @@ namespace SFG
 		// Param 1 - Global CBV, [b1, space0]
 		backend->bind_layout_add_descriptor(layout, binding_type::ubo, 0, 1, shader_stage::all);
 
-		// Param 2 - Render Pass Table -> 2x CBV + 5 SRVs + 4 Textures + 2 texture arrays + 1 texture cube_array [b0, b1, space1] - [t0, t4, space1] - [t4, t8, space1] - [t9 - t10, space1] - [t11, space1]
+		// Param 2 - Render Pass Table -> 2x CBV + 5 SRVs + 5 Textures + 2 texture arrays + 1 texture cube_array [b0, b1, space1] - [t0, t4, space1] - [t4, t8, space1] - [t9 - t10, space1] - [t11, space1]
 		backend->bind_layout_add_pointer(layout,
 										 {
 											 {.type = binding_type::ubo, .set = 1, .binding = 0, .count = 2, .is_volatile = 1},
 											 {.type = binding_type::ssbo, .set = 1, .binding = 0, .count = 5, .is_volatile = 1},
 											 {.type = binding_type::texture_binding, .set = 1, .binding = 5, .count = 5, .is_volatile = 1},
-											 {.type = binding_type::texture_binding, .set = 1, .binding = 11, .count = 2, .is_volatile = 1},
-											 {.type = binding_type::texture_binding, .set = 1, .binding = 13, .count = 1, .is_volatile = 1},
+											 {.type = binding_type::texture_binding, .set = 1, .binding = 10, .count = 2, .is_volatile = 1},
+											 {.type = binding_type::texture_binding, .set = 1, .binding = 12, .count = 1, .is_volatile = 1},
 										 },
 										 shader_stage::all);
 

@@ -148,9 +148,11 @@ namespace SFG
 
 	struct resource_desc
 	{
-		uint32		   size		  = 0;
-		bitmask<uint8> flags	  = 0;
-		const char*	   debug_name = "resource";
+		uint32		   size			   = 0;
+		uint32		   structure_size  = 0;
+		uint32		   structure_count = 0;
+		bitmask<uint8> flags		   = 0;
+		const char*	   debug_name	   = "resource";
 	};
 
 	enum class view_type : uint8

@@ -292,8 +292,8 @@ namespace SFG
 			barriers.push_back({
 				.resource	= render_target,
 				.flags		= barrier_flags::baf_is_swapchain,
-				.from_state = resource_state::present,
-				.to_state	= resource_state::render_target,
+				.from_states = resource_state::resource_state_present,
+				.to_states	= resource_state::resource_state_render_target,
 			});
 			_debug_controller.collect_barriers(barriers);
 			backend->cmd_barrier(cmd_list,
@@ -336,8 +336,8 @@ namespace SFG
 			barriers.push_back({
 				.resource	= render_target,
 				.flags		= barrier_flags::baf_is_swapchain,
-				.from_state = resource_state::render_target,
-				.to_state	= resource_state::present,
+				.from_states = resource_state::resource_state_render_target,
+				.to_states	= resource_state::resource_state_present,
 			});
 
 			backend->cmd_barrier(cmd_list,

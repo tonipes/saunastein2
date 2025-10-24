@@ -1,93 +1,80 @@
-//------------------------------------------------------------------------------
-// PBR Core Functions (Cook-Torrance BRDF)
-//------------------------------------------------------------------------------
-
-// Global constant for PBR calculations
 static const float PI = 3.14159265359;
 
-// D: Distribution function - Trowbridge-Reitz GGX
 float distribution_ggx(float NdotH, float roughness)
 {
-    float a = roughness * roughness;
+    float a  = max(roughness * roughness, 1e-4); // α
     float a2 = a * a;
-    float NdotH2 = NdotH * NdotH;
-    float nom = a2;
-    float denom = (NdotH2 * (a2 - 1.0) + 1.0);
-    denom = PI * denom * denom;
-    return nom / denom;
+    float nh = saturate(NdotH);
+    float nh2 = nh * nh;
+
+    float denom = nh2 * (a2 - 1.0) + 1.0;
+    return a2 / (PI * denom * denom + 1e-7);
 }
 
-// G: Geometry function - Schlick approximation of GGX
-float geometry_schlick_ggx(float NdotV, float roughness)
+float geometry_schlick_ggx(float NdotX, float roughness)
 {
-    float r = (roughness + 1.0);
-    float k = (r * r) / 8.0;
-    float nom = NdotV;
-    float denom = NdotV * (1.0 - k) + k;
-    return nom / denom;
+    float a = roughness * roughness;                 // α
+    float k = (a + 1.0) * (a + 1.0) * 0.125;        // (α+1)^2 / 8  (direct lighting)
+    float nx = max(NdotX, 1e-4);
+    return nx / (nx * (1.0 - k) + k);
 }
 
 float geometry_smith(float NdotV, float NdotL, float roughness)
 {
-    float ggx2 = geometry_schlick_ggx(NdotV, roughness);
-    float ggx1 = geometry_schlick_ggx(NdotL, roughness);
-    return ggx1 * ggx2;
+    return geometry_schlick_ggx(NdotV, roughness) *
+           geometry_schlick_ggx(NdotL, roughness);
 }
 
-// F: Fresnel function - Schlick approximation
 float3 fresnel_schlick(float cosTheta, float3 F0)
 {
-    // F0 is the base reflectivity at normal incidence (0 degrees)
-    return F0 + (1.0 - F0) * pow(saturate(1.0 - cosTheta), 5.0);
+    float c = saturate(cosTheta);
+    return F0 + (1.0 - F0) * pow(1.0 - c, 5.0);
 }
 
-
-
-//------------------------------------------------------------------------------
-// PBR Lighting Function (for a single light source)
-//------------------------------------------------------------------------------
+// Cook–Torrance BRDF (direct light)
 float3 calculate_pbr(
-    float3 V, // View direction (to camera)
-    float3 N, // World Normal
-    float3 L, // Light direction (from light)
-    float3 albedo,
-    float ao,
-    float roughness,
-    float metallic,
-    float3 radiance, // Light color/intensity
-    float NdotL
+    float3 V,          // from surface to camera (normalized)
+    float3 N,          // world normal (normalized)
+    float3 L,          // from surface to light (normalized)
+    float3 albedo,     // linear baseColor
+    float  ao,
+    float  roughness,  // perceptual [0,1]
+    float  metallic,   // [0,1]
+    float3 radiance    // lightColor * attenuation * intensity
 )
 {
-    // 1. Calculate base reflectivity F0
-    float3 F0 = float3(0.04, 0.04, 0.04);
-    F0 = lerp(F0, albedo, metallic);
+    float NdotL = saturate(dot(N, L));
+    if (NdotL <= 0.0) return 0.0.xxx;
 
-    // 2. Halfway vector H
-    float3 H = normalize(V + L);
-    float NdotH = saturate(dot(N, H));
     float NdotV = saturate(dot(N, V));
+    float3 H    = normalize(V + L);
+    float NdotH = saturate(dot(N, H));
+    float VdotH = saturate(dot(V, H));
 
-    // 3. PBR Terms
-    float D = distribution_ggx(NdotH, roughness); 
-    float G = geometry_smith(NdotV, NdotL, roughness);
-    float3 F = fresnel_schlick(NdotH, F0);
-    
-    // 4. Specular term (Microfacet BRDF)
-    float3 nominator = D * G * F;
-    float denominator = 4.0 * NdotV * NdotL + 0.001; // Avoid divide by zero
-    float3 specular = nominator / denominator;
-    
-    // 5. Diffuse term (Energy Conservation)
-    float3 kS = F; // Fresnel is the amount of light reflected (specular)
-    float3 kD = (float3(1.0, 1.0, 1.0) - kS) * (1.0 - metallic); // Remaining light is diffuse
+    // Base reflectance
+    float3 F0 = lerp(float3(0.04, 0.04, 0.04), albedo, metallic);
 
-    // 6. Final Radiance (BRDF * L dot N * Radiance)
-    float3 Lo = (kD * albedo / PI + specular) * radiance * NdotL;
-    
-    // 7. Apply Ambient Occlusion (AO) to the diffuse term only
-    // Note: A more advanced approach applies AO to both diffuse and specular IBL, 
-    // but for simple point lights, this approximation is common.
-    float3 final_light = Lo * ao;
+    // Microfacet terms
+    float  D  = distribution_ggx(NdotH, roughness);
+    float  G  = geometry_smith(NdotV, NdotL, roughness);
+    float3 F  = fresnel_schlick(VdotH, F0);
 
-    return final_light;
+    // Specular
+    float  denom = max(4.0 * NdotL * NdotV, 1e-4);
+    float3 spec  = (D * G * F) / denom;
+
+    // Diffuse (Lambert) with energy conservation
+    float3 kS = F;
+    float3 kD = (1.0.xxx - kS) * (1.0 - metallic);
+    float3 diff = (albedo / PI) * kD;
+
+    // BRDF * NdotL * radiance
+    float3 Lo = (diff + spec) * (NdotL * radiance);
+
+    // Apply AO to the diffuse part of direct only (simple approximation)
+    // If you want AO on direct spec too, multiply Lo by ao instead.
+    float3 Lo_diff = (albedo / PI) * kD * (NdotL * radiance) * ao;
+    float3 Lo_spec = spec * (NdotL * radiance);
+
+    return Lo_diff + Lo_spec;
 }

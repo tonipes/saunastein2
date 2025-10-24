@@ -25,7 +25,7 @@ namespace SFG
 			uint64											added_frame	 = 0;
 			uint8											cleared		 = 0;
 			uint8											use_free	 = 0;
-			resource_state									to_state	 = resource_state::ps_resource;
+			resource_state									to_state	 = resource_state::resource_state_ps_resource;
 		};
 
 	public:

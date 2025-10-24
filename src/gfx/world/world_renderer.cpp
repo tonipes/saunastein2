@@ -72,9 +72,11 @@ namespace SFG
 					.debug_name = "opaque_entities_cpu",
 				},
 				{
-					.size		= sizeof(gpu_entity) * MAX_GPU_ENTITIES,
-					.flags		= resource_flags::rf_gpu_only | resource_flags::rf_storage_buffer,
-					.debug_name = "opaque_entities_gpu",
+					.size			 = sizeof(gpu_entity) * MAX_GPU_ENTITIES,
+					.structure_size	 = sizeof(gpu_entity),
+					.structure_count = MAX_GPU_ENTITIES,
+					.flags			 = resource_flags::rf_gpu_only | resource_flags::rf_storage_buffer,
+					.debug_name		 = "opaque_entities_gpu",
 				});
 
 			pfd.dir_lights_buffer.create_staging_hw(
@@ -153,7 +155,7 @@ namespace SFG
 			});
 			alloc_head += size_per_lane;
 
-			static_vector<gfx_id, BACK_BUFFER_COUNT * 4> gbuffer_textures;
+			static_vector<gfx_id, BACK_BUFFER_COUNT * render_pass_opaque::COLOR_TEXTURES> gbuffer_textures;
 			for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 			{
 				gbuffer_textures.push_back(_pass_opaque.get_color_texture(i, 0));
@@ -223,10 +225,10 @@ namespace SFG
 									.proj_matrix = matrix4x4::perspective_reverse_z(cam_proxy.fov_degrees, static_cast<float>(_base_size.x) / static_cast<float>(_base_size.y), cam_proxy.near_plane, cam_proxy.far_plane),
 									.position	 = cam_entity.position,
 			};
+			_main_camera_view.view_proj_matrix	   = _main_camera_view.proj_matrix * _main_camera_view.view_matrix;
+			_main_camera_view.inv_view_proj_matrix = _main_camera_view.view_proj_matrix.inverse();
+			_main_camera_view.view_frustum		   = frustum::extract(_main_camera_view.view_proj_matrix);
 		}
-		_main_camera_view.view_proj_matrix	   = _main_camera_view.proj_matrix * _main_camera_view.view_matrix;
-		_main_camera_view.inv_view_proj_matrix = _main_camera_view.view_proj_matrix.inverse();
-		_main_camera_view.view_frustum		   = frustum::extract(_main_camera_view.view_proj_matrix);
 
 		collect_model_instances();
 		collect_lights();
@@ -286,44 +288,40 @@ namespace SFG
 			.global_group  = bind_group_global,
 		});
 
-		//static_vector<std::function<void()>, 2> tasks;
-		//tasks.push_back([&] {
-		//
-		//});
-		//tasks.push_back([&] {
-		//	
-		//});
-
+		static_vector<std::function<void()>, 2> tasks;
+		tasks.push_back([&] {
 			_pass_opaque.render({
-			.frame_index   = frame_index,
-			.size		   = resolution,
-			.global_layout = layout_global,
-			.global_group  = bind_group_global,
+				.frame_index   = frame_index,
+				.size		   = resolution,
+				.global_layout = layout_global,
+				.global_group  = bind_group_global,
+			});
+		});
+		tasks.push_back([&] {
+			_pass_lighting.render({
+				.frame_index   = frame_index,
+				.size		   = resolution,
+				.global_layout = layout_global,
+				.global_group  = bind_group_global,
+			});
 		});
 
-		_pass_lighting.render({
-			.frame_index   = frame_index,
-			.size		   = resolution,
-			.global_layout = layout_global,
-			.global_group  = bind_group_global,
-		});
-
-		//std::for_each(std::execution::par, tasks.begin(), tasks.end(), [](auto&& task) { task(); });
+		std::for_each(std::execution::par, tasks.begin(), tasks.end(), [](auto&& task) { task(); });
 
 		if (prev_copy != next_copy)
 			backend->queue_wait(queue_gfx, &sem_copy, &next_copy, 1);
 
 		// submit depth
 		backend->submit_commands(queue_gfx, &cmd_depth, 1);
-		backend->queue_signal(queue_gfx, &sem_depth, &sem_depth_val, 1);
+		// backend->queue_signal(queue_gfx, &sem_depth, &sem_depth_val, 1);
 
 		// submit opaque, wait for depth
-		backend->queue_wait(queue_gfx, &sem_depth, &sem_depth_val, 1);
+		// backend->queue_wait(queue_gfx, &sem_depth, &sem_depth_val, 1);
 		backend->submit_commands(queue_gfx, &cmd_opaque, 1);
-		backend->queue_signal(queue_gfx, &sem_opaque, &sem_opaque_val, 1);
+		// backend->queue_signal(queue_gfx, &sem_opaque, &sem_opaque_val, 1);
 
 		// submit lighting, wait opaque
-		backend->queue_wait(queue_gfx, &sem_opaque, &sem_opaque_val, 1);
+		// backend->queue_wait(queue_gfx, &sem_opaque, &sem_opaque_val, 1);
 		backend->submit_commands(queue_gfx, &cmd_lighting, 1);
 		backend->queue_signal(queue_gfx, &sem_lighting, &sem_lighting_val, 1);
 	}
@@ -344,7 +342,7 @@ namespace SFG
 		_pass_opaque.resize(size, depths.data());
 
 		// lighting
-		static_vector<gfx_id, BACK_BUFFER_COUNT * 4> gbuffer_textures;
+		static_vector<gfx_id, BACK_BUFFER_COUNT * render_pass_opaque::COLOR_TEXTURES> gbuffer_textures;
 		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
 			gbuffer_textures.push_back(_pass_opaque.get_color_texture(i, 0));
@@ -385,38 +383,38 @@ namespace SFG
 		static_vector<barrier, 20> barriers;
 
 		barriers.push_back({
-			.resource	= pfd.bones_buffer.get_hw_gpu(),
-			.flags		= barrier_flags::baf_is_resource,
-			.from_state = resource_state::non_ps_resource,
-			.to_state	= resource_state::copy_dest,
+			.resource	 = pfd.bones_buffer.get_hw_gpu(),
+			.flags		 = barrier_flags::baf_is_resource,
+			.from_states = resource_state::resource_state_non_ps_resource,
+			.to_states	 = resource_state::resource_state_copy_dest,
 		});
 
 		barriers.push_back({
-			.resource	= pfd.entity_buffer.get_hw_gpu(),
-			.flags		= barrier_flags::baf_is_resource,
-			.from_state = resource_state::non_ps_resource,
-			.to_state	= resource_state::copy_dest,
+			.resource	 = pfd.entity_buffer.get_hw_gpu(),
+			.flags		 = barrier_flags::baf_is_resource,
+			.from_states = resource_state::resource_state_non_ps_resource,
+			.to_states	 = resource_state::resource_state_copy_dest,
 		});
 
 		barriers.push_back({
-			.resource	= pfd.dir_lights_buffer.get_hw_gpu(),
-			.flags		= barrier_flags::baf_is_resource,
-			.from_state = resource_state::ps_resource,
-			.to_state	= resource_state::copy_dest,
+			.resource	 = pfd.dir_lights_buffer.get_hw_gpu(),
+			.flags		 = barrier_flags::baf_is_resource,
+			.from_states = resource_state::resource_state_ps_resource,
+			.to_states	 = resource_state::resource_state_copy_dest,
 		});
 
 		barriers.push_back({
-			.resource	= pfd.spot_lights_buffer.get_hw_gpu(),
-			.flags		= barrier_flags::baf_is_resource,
-			.from_state = resource_state::ps_resource,
-			.to_state	= resource_state::copy_dest,
+			.resource	 = pfd.spot_lights_buffer.get_hw_gpu(),
+			.flags		 = barrier_flags::baf_is_resource,
+			.from_states = resource_state::resource_state_ps_resource,
+			.to_states	 = resource_state::resource_state_copy_dest,
 		});
 
 		barriers.push_back({
-			.resource	= pfd.point_lights_buffer.get_hw_gpu(),
-			.flags		= barrier_flags::baf_is_resource,
-			.from_state = resource_state::ps_resource,
-			.to_state	= resource_state::copy_dest,
+			.resource	 = pfd.point_lights_buffer.get_hw_gpu(),
+			.flags		 = barrier_flags::baf_is_resource,
+			.from_states = resource_state::resource_state_ps_resource,
+			.to_states	 = resource_state::resource_state_copy_dest,
 		});
 
 		backend->cmd_barrier(cmd, {.barriers = barriers.data(), .barrier_count = static_cast<uint16>(barriers.size())});
@@ -439,38 +437,38 @@ namespace SFG
 		barriers.resize(0);
 
 		barriers.push_back({
-			.resource	= pfd.bones_buffer.get_hw_gpu(),
-			.flags		= barrier_flags::baf_is_resource,
-			.from_state = resource_state::copy_dest,
-			.to_state	= resource_state::non_ps_resource,
+			.resource	 = pfd.bones_buffer.get_hw_gpu(),
+			.flags		 = barrier_flags::baf_is_resource,
+			.from_states = resource_state::resource_state_copy_dest,
+			.to_states	 = resource_state::resource_state_non_ps_resource,
 		});
 
 		barriers.push_back({
-			.resource	= pfd.entity_buffer.get_hw_gpu(),
-			.flags		= barrier_flags::baf_is_resource,
-			.from_state = resource_state::copy_dest,
-			.to_state	= resource_state::non_ps_resource,
+			.resource	 = pfd.entity_buffer.get_hw_gpu(),
+			.flags		 = barrier_flags::baf_is_resource,
+			.from_states = resource_state::resource_state_copy_dest,
+			.to_states	 = resource_state::resource_state_non_ps_resource,
 		});
 
 		barriers.push_back({
-			.resource	= pfd.dir_lights_buffer.get_hw_gpu(),
-			.flags		= barrier_flags::baf_is_resource,
-			.from_state = resource_state::copy_dest,
-			.to_state	= resource_state::ps_resource,
+			.resource	 = pfd.dir_lights_buffer.get_hw_gpu(),
+			.flags		 = barrier_flags::baf_is_resource,
+			.from_states = resource_state::resource_state_copy_dest,
+			.to_states	 = resource_state::resource_state_ps_resource,
 		});
 
 		barriers.push_back({
-			.resource	= pfd.spot_lights_buffer.get_hw_gpu(),
-			.flags		= barrier_flags::baf_is_resource,
-			.from_state = resource_state::copy_dest,
-			.to_state	= resource_state::ps_resource,
+			.resource	 = pfd.spot_lights_buffer.get_hw_gpu(),
+			.flags		 = barrier_flags::baf_is_resource,
+			.from_states = resource_state::resource_state_copy_dest,
+			.to_states	 = resource_state::resource_state_ps_resource,
 		});
 
 		barriers.push_back({
-			.resource	= pfd.point_lights_buffer.get_hw_gpu(),
-			.flags		= barrier_flags::baf_is_resource,
-			.from_state = resource_state::copy_dest,
-			.to_state	= resource_state::ps_resource,
+			.resource	 = pfd.point_lights_buffer.get_hw_gpu(),
+			.flags		 = barrier_flags::baf_is_resource,
+			.from_states = resource_state::resource_state_copy_dest,
+			.to_states	 = resource_state::resource_state_ps_resource,
 		});
 
 		backend->cmd_barrier(cmd, {.barriers = barriers.data(), .barrier_count = static_cast<uint16>(barriers.size())});
@@ -504,7 +502,7 @@ namespace SFG
 			if (res == frustum_result::outside)
 				continue;
 
-			const uint32				  entity_index = create_gpu_entity({.model = proxy_entity.model, .normal = proxy_entity.normal, .position = proxy_entity.position});
+			const uint32				  entity_index = create_gpu_entity({.model = proxy_entity.model, .normal = proxy_entity.normal, .position = vector3(proxy_entity.position.x, proxy_entity.position.y, proxy_entity.position.z)});
 			const render_proxy_model&	  proxy_model  = _proxy_manager.get_model(mesh_instance.model);
 			const render_proxy_primitive* primitives   = aux.get<render_proxy_primitive>(proxy_mesh.primitives);
 			const uint16*				  materials	   = aux.get<uint16>(proxy_model.materials);

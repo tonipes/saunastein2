@@ -18,14 +18,14 @@ namespace SFG
 
 	class render_pass_opaque
 	{
-	private:
-		static constexpr uint32 MAX_DRAWS	   = 512;
+	public:
 		static constexpr uint32 COLOR_TEXTURES = 4;
+
+	private:
+		static constexpr uint32 MAX_DRAWS = 512;
 
 		struct ubo
 		{
-			matrix4x4 view		= matrix4x4::identity;
-			matrix4x4 proj		= matrix4x4::identity;
 			matrix4x4 view_proj = matrix4x4::identity;
 		};
 

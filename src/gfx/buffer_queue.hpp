@@ -16,7 +16,7 @@ namespace SFG
 		struct buffer_request
 		{
 			buffer*		   buffer	= nullptr;
-			resource_state to_state = resource_state::ps_resource;
+			resource_state to_state = resource_state::resource_state_ps_resource;
 		};
 
 		struct update_request
@@ -24,7 +24,7 @@ namespace SFG
 			buffer*		   buffer	 = nullptr;
 			uint8*		   data		 = nullptr;
 			size_t		   data_size = 0;
-			resource_state to_state	 = resource_state::ps_resource;
+			resource_state to_state	 = resource_state::resource_state_ps_resource;
 		};
 
 		struct per_frame_data

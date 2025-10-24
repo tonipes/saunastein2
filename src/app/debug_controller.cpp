@@ -607,29 +607,29 @@ namespace SFG
 		out_barriers.push_back({
 			.resource	= pfd.rt_console,
 			.flags		= barrier_flags::baf_is_texture,
-			.from_state = resource_state::ps_resource,
-			.to_state	= resource_state::render_target,
+			.from_states = resource_state::resource_state_ps_resource,
+			.to_states	= resource_state::resource_state_render_target,
 		});
 
 		out_barriers.push_back({
 			.resource	= pfd.rt_fullscreen,
 			.flags		= barrier_flags::baf_is_texture,
-			.from_state = resource_state::ps_resource,
-			.to_state	= resource_state::render_target,
+			.from_states = resource_state::resource_state_ps_resource,
+			.to_states	= resource_state::resource_state_render_target,
 		});
 
 		out_barriers.push_back({
 			.resource	= pfd.buf_gui_idx.get_hw_gpu(),
 			.flags		= barrier_flags::baf_is_resource,
-			.from_state = resource_state::index_buffer,
-			.to_state	= resource_state::copy_dest,
+			.from_states = resource_state::resource_state_index_buffer,
+			.to_states	= resource_state::resource_state_copy_dest,
 		});
 
 		out_barriers.push_back({
 			.resource	= pfd.buf_gui_vtx.get_hw_gpu(),
 			.flags		= barrier_flags::baf_is_resource,
-			.from_state = resource_state::vertex_cbv,
-			.to_state	= resource_state::copy_dest,
+			.from_states = resource_state::resource_state_vertex_cbv,
+			.to_states	= resource_state::resource_state_copy_dest,
 		});
 	}
 
@@ -667,15 +667,15 @@ namespace SFG
 			barriers_bufs.push_back({
 				.resource	= pfd.buf_gui_idx.get_hw_gpu(),
 				.flags		= barrier_flags::baf_is_resource,
-				.from_state = resource_state::copy_dest,
-				.to_state	= resource_state::index_buffer,
+				.from_states = resource_state::resource_state_copy_dest,
+				.to_states	= resource_state::resource_state_index_buffer,
 			});
 
 			barriers_bufs.push_back({
 				.resource	= pfd.buf_gui_vtx.get_hw_gpu(),
 				.flags		= barrier_flags::baf_is_resource,
-				.from_state = resource_state::copy_dest,
-				.to_state	= resource_state::vertex_cbv,
+				.from_states = resource_state::resource_state_copy_dest,
+				.to_states	= resource_state::resource_state_vertex_cbv,
 			});
 			backend->cmd_barrier(cmd_buffer, {.barriers = barriers_bufs.data(), .barrier_count = 2});
 		}
@@ -731,8 +731,8 @@ namespace SFG
 		const barrier br_rt = {
 			.resource	= rt_console,
 			.flags		= barrier_flags::baf_is_texture,
-			.from_state = resource_state::render_target,
-			.to_state	= resource_state::ps_resource,
+			.from_states = resource_state::resource_state_render_target,
+			.to_states	= resource_state::resource_state_ps_resource,
 		};
 
 		backend->cmd_barrier(cmd_buffer, {.barriers = &br_rt, .barrier_count = 1});
@@ -753,8 +753,8 @@ namespace SFG
 		const barrier br_rt_fs = {
 			.resource	= rt_fullscreen,
 			.flags		= barrier_flags::baf_is_texture,
-			.from_state = resource_state::render_target,
-			.to_state	= resource_state::ps_resource,
+			.from_states = resource_state::resource_state_render_target,
+			.to_states	= resource_state::resource_state_ps_resource,
 		};
 		backend->cmd_barrier(cmd_buffer, {.barriers = &br_rt_fs, .barrier_count = 1});
 	}
@@ -880,7 +880,7 @@ namespace SFG
 
 		static_vector<texture_buffer, MAX_TEXTURE_MIPS> buffers;
 		buffers.push_back(ref.buffer);
-		_gfx_data.texture_queue->add_request(buffers, ref.texture, ref.intermediate_buffer, 0, resource_state::ps_resource);
+		_gfx_data.texture_queue->add_request(buffers, ref.texture, ref.intermediate_buffer, 0, resource_state::resource_state_ps_resource);
 
 		const int32 index  = std::distance(it, _gfx_data.atlases.begin());
 		uint8*		pixels = ref.buffer.pixels;
@@ -1246,7 +1246,7 @@ namespace SFG
 			backend->bind_group_update_pointer(pfd.bind_group_fullscreen,
 											   0,
 											   {
-												   {.resource = pfd.rt_console, .pointer_index = upi_material_texture0, .type = binding_type::texture_binding},
+												   {.resource = pfd.rt_console, .view = 1, .pointer_index = upi_material_texture0, .type = binding_type::texture_binding},
 											   });
 		}
 	}

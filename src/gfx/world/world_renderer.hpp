@@ -68,6 +68,7 @@ namespace SFG
 
 	private:
 		void upload(uint8 frame_index);
+		void collect_entities();
 		void collect_model_instances();
 		void collect_lights();
 

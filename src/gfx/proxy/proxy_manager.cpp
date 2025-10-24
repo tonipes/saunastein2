@@ -225,7 +225,13 @@ namespace SFG
 		{
 			const render_proxy_shader_variant& v = var[i];
 			if (v.variant_flags.is_all_set(flags))
+			{
+				if (v.variant_flags.is_set(variant_flag_z_prepass))
+				{
+					int a = 5;
+				}
 				return v.hw;
+			}
 		}
 
 		return NULL_GFX_ID;
@@ -250,6 +256,8 @@ namespace SFG
 			proxy.position			   = ev.position;
 			proxy.rotation			   = ev.rotation;
 			proxy.scale				   = ev.scale;
+
+			_peak_entities = math::max(_peak_entities, index) + 1;
 		}
 		else if (type == render_event_type::render_event_update_entity_visibility)
 		{
@@ -431,7 +439,7 @@ namespace SFG
 				.debug_name = "texture_intermediate",
 			});
 
-			_texture_queue.add_request(ev.buffers, proxy.hw, proxy.intermediate, 1, resource_state::ps_resource);
+			_texture_queue.add_request(ev.buffers, proxy.hw, proxy.intermediate, 1, resource_state::resource_state_ps_resource);
 
 #ifndef SFG_STRIP_DEBUG_NAMES
 			SFG_TRACE("Created texture proxy for: {0}", ev.name);
@@ -619,7 +627,7 @@ namespace SFG
 				proxy.buffers[i].buffer_data(0, ev.data.data, ev.data.size);
 				_buffer_queue.add_request({
 					.buffer	  = &proxy.buffers[i],
-					.to_state = resource_state::vertex_cbv,
+					.to_state = resource_state::resource_state_vertex_cbv,
 				});
 			}
 
@@ -643,7 +651,7 @@ namespace SFG
 						.buffer	   = &proxy.buffers[i],
 						.data	   = ev.data.data,
 						.data_size = ev.data.size,
-						.to_state  = resource_state::vertex_cbv,
+						.to_state  = resource_state::resource_state_vertex_cbv,
 					},
 					i);
 			}
@@ -773,11 +781,11 @@ namespace SFG
 
 				_buffer_queue.add_request({
 					.buffer	  = &proxy.vertex_buffer,
-					.to_state = resource_state::vertex_cbv,
+					.to_state = resource_state::resource_state_vertex_cbv,
 				});
 				_buffer_queue.add_request({
 					.buffer	  = &proxy.index_buffer,
-					.to_state = resource_state::index_buffer,
+					.to_state = resource_state::resource_state_index_buffer,
 				});
 			};
 

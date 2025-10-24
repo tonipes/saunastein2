@@ -111,8 +111,6 @@ namespace SFG
 
 		per_frame_data& pfd		 = _pfd[frame_index];
 		const ubo		ubo_data = {
-				  .view		 = camera_view.view_matrix,
-				  .proj		 = camera_view.proj_matrix,
 				  .view_proj = camera_view.view_proj_matrix,
 		  };
 		pfd.ubo.buffer_data(0, &ubo_data, sizeof(ubo));
@@ -147,31 +145,17 @@ namespace SFG
 			barriers.push_back({
 				.resource	= txt,
 				.flags		= barrier_flags::baf_is_texture,
-				.from_state = resource_state::ps_resource,
-				.to_state	= resource_state::render_target,
+				.from_states = resource_state::resource_state_ps_resource,
+				.to_states	= resource_state::resource_state_render_target,
 			});
 
 			barriers_after.push_back({
 				.resource	= txt,
 				.flags		= barrier_flags::baf_is_texture,
-				.from_state = resource_state::render_target,
-				.to_state	= resource_state::ps_resource,
+				.from_states = resource_state::resource_state_render_target,
+				.to_states	= resource_state::resource_state_ps_resource,
 			});
 		}
-
-		barriers.push_back({
-			.resource	= depth_texture,
-			.flags		= barrier_flags::baf_is_texture,
-			.from_state = resource_state::depth_write,
-			.to_state	= resource_state::depth_read,
-		});
-
-		barriers_after.push_back({
-			.resource	= depth_texture,
-			.flags		= barrier_flags::baf_is_texture,
-			.from_state = resource_state::depth_read,
-			.to_state	= resource_state::ps_resource,
-		});
 
 		backend->reset_command_buffer(cmd_buffer);
 		backend->cmd_barrier(cmd_buffer,
@@ -189,7 +173,7 @@ namespace SFG
 															   {
 																   .texture		   = depth_texture,
 																   .depth_load_op  = load_op::load,
-																   .depth_store_op = store_op::dont_care,
+																   .depth_store_op = store_op::store,
 																   .view_index	   = 1,
 															   },
 														   .color_attachment_count = COLOR_TEXTURES,

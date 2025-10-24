@@ -22,11 +22,10 @@ namespace SFG
 		struct ubo
 		{
 			matrix4x4 inverse_view_proj			  = {};
-			matrix4x4 proj						  = {};
 			vector4	  ambient_color_plights_count = vector4::zero;
 			vector4	  view_position_slights_count = vector4::zero;
 			float	  dir_lights_count			  = 0;
-			uint32	  padding[23]				  = {};
+			float	  padding[7]				  = {};
 		};
 
 		struct per_frame_data
@@ -36,6 +35,7 @@ namespace SFG
 			gfx_id		   cmd_buffer;
 			gfx_id		   bind_group;
 			gfx_id		   render_target = 0;
+			gfx_id		   depth_texture = 0;
 		};
 
 	public:

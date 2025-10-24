@@ -29,7 +29,7 @@ namespace SFG
 		{
 			per_frame_data& pfd = _pfd[i];
 
-			pfd.cmd_buffer			= backend->create_command_buffer({.type = command_type::graphics, .debug_name = "opaque_cmd"});
+			pfd.cmd_buffer			= backend->create_command_buffer({.type = command_type::graphics, .debug_name = "depth_cmd"});
 			pfd.semaphore.semaphore = backend->create_semaphore();
 			pfd.ubo.create_hw({.size = sizeof(ubo), .flags = resource_flags::rf_constant_buffer | resource_flags::rf_cpu_visible, .debug_name = "opaque_ubo"});
 
@@ -109,8 +109,6 @@ namespace SFG
 
 		per_frame_data& pfd		 = _pfd[frame_index];
 		const ubo		ubo_data = {
-				  .view		 = camera_view.view_matrix,
-				  .proj		 = camera_view.proj_matrix,
 				  .view_proj = camera_view.view_proj_matrix,
 		  };
 		pfd.ubo.buffer_data(0, &ubo_data, sizeof(ubo));
@@ -129,10 +127,10 @@ namespace SFG
 		static_vector<barrier, 1> barriers_after;
 
 		barriers.push_back({
-			.resource	= depth_texture,
-			.flags		= barrier_flags::baf_is_texture,
-			.from_state = resource_state::ps_resource,
-			.to_state	= resource_state::depth_write,
+			.resource	 = depth_texture,
+			.flags		 = barrier_flags::baf_is_texture,
+			.from_states = resource_state::resource_state_common,
+			.to_states	 = resource_state::resource_state_depth_write,
 		});
 
 		backend->reset_command_buffer(cmd_buffer);
@@ -141,8 +139,6 @@ namespace SFG
 								 .barriers		= barriers.data(),
 								 .barrier_count = static_cast<uint16>(barriers.size()),
 							 });
-
-		barriers.resize(0);
 
 		BEGIN_DEBUG_EVENT(backend, cmd_buffer, "depth_pre_pass");
 
@@ -218,6 +214,20 @@ namespace SFG
 		}
 
 		backend->cmd_end_render_pass(cmd_buffer, {});
+
+		barriers.resize(0);
+		barriers.push_back({
+			.resource	 = depth_texture,
+			.flags		 = barrier_flags::baf_is_texture,
+			.from_states = resource_state::resource_state_depth_write,
+			.to_states	 = resource_state::resource_state_depth_read | resource_state::resource_state_ps_resource,
+		});
+
+		backend->cmd_barrier(cmd_buffer,
+							 {
+								 .barriers		= barriers.data(),
+								 .barrier_count = static_cast<uint16>(barriers.size()),
+							 });
 
 		END_DEBUG_EVENT(backend, cmd_buffer);
 

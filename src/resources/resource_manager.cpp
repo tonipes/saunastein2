@@ -452,6 +452,8 @@ namespace SFG
 				mi.instantiate_model_to_world(_world, w.base_handle);
 			}
 		}
+
+		SFG_INFO("Reloaded resource: {0}", path);
 	}
 #endif
 

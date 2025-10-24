@@ -42,8 +42,8 @@ namespace SFG
 			out_barriers.push_back({
 				.resource	= buf.buffer->get_hw_gpu(),
 				.flags		= barrier_flags::baf_is_resource,
-				.from_state = resource_state::copy_dest,
-				.to_state	= buf.to_state,
+				.from_states = resource_state::resource_state_copy_dest,
+				.to_states	= buf.to_state,
 			});
 		}
 
@@ -56,8 +56,8 @@ namespace SFG
 			out_barriers.push_back({
 				.resource	= buf.buffer->get_hw_gpu(),
 				.flags		= barrier_flags::baf_is_resource,
-				.from_state = resource_state::copy_dest,
-				.to_state	= buf.to_state,
+				.from_states = resource_state::resource_state_copy_dest,
+				.to_states	= buf.to_state,
 			});
 		}
 

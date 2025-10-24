@@ -240,7 +240,7 @@ namespace SFG
 		spot_lights_type*	 _spot_lights	 = nullptr;
 		dir_lights_type*	 _dir_lights	 = nullptr;
 
-		world_id _main_camera_trait	  = 0;
+		world_id _main_camera_trait	  = NULL_WORLD_ID;
 		uint32	 _peak_mesh_instances = 0;
 		uint32	 _peak_point_lights	  = 0;
 		uint32	 _peak_spot_lights	  = 0;

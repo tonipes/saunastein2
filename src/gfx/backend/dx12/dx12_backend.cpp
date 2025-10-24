@@ -467,45 +467,45 @@ namespace SFG
 			}
 		}
 
-		D3D12_RESOURCE_STATES get_resource_state(resource_state state)
+		D3D12_RESOURCE_STATES get_resource_state(uint32 states)
 		{
-			switch (state)
-			{
-			case SFG::resource_state::common:
-				return D3D12_RESOURCE_STATE_COMMON;
-			case SFG::resource_state::vertex_cbv:
-				return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
-			case SFG::resource_state::index_buffer:
-				return D3D12_RESOURCE_STATE_INDEX_BUFFER;
-			case SFG::resource_state::render_target:
-				return D3D12_RESOURCE_STATE_RENDER_TARGET;
-			case SFG::resource_state::uav:
-				return D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-			case SFG::resource_state::depth_write:
-				return D3D12_RESOURCE_STATE_DEPTH_WRITE;
-			case SFG::resource_state::depth_read:
-				return D3D12_RESOURCE_STATE_DEPTH_READ;
-			case SFG::resource_state::non_ps_resource:
-				return D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
-			case SFG::resource_state::ps_resource:
-				return D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-			case SFG::resource_state::indirect_arg:
-				return D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT;
-			case SFG::resource_state::copy_dest:
-				return D3D12_RESOURCE_STATE_COPY_DEST;
-			case SFG::resource_state::copy_source:
-				return D3D12_RESOURCE_STATE_COPY_SOURCE;
-			case SFG::resource_state::resolve_dest:
-				return D3D12_RESOURCE_STATE_RESOLVE_DEST;
-			case SFG::resource_state::resolve_source:
-				return D3D12_RESOURCE_STATE_RESOLVE_SOURCE;
-			case SFG::resource_state::generic_read:
-				return D3D12_RESOURCE_STATE_GENERIC_READ;
-			case SFG::resource_state::present:
-				return D3D12_RESOURCE_STATE_PRESENT;
-			default:
-				return D3D12_RESOURCE_STATE_COMMON;
-			}
+			bitmask<uint32>		  mask			= states;
+			D3D12_RESOURCE_STATES target_states = {};
+
+			if (mask.is_set((uint32)resource_state::resource_state_common))
+				target_states |= D3D12_RESOURCE_STATE_COMMON;
+			if (mask.is_set((uint32)resource_state::resource_state_vertex_cbv))
+				target_states |= D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+			if (mask.is_set((uint32)resource_state::resource_state_index_buffer))
+				target_states |= D3D12_RESOURCE_STATE_INDEX_BUFFER;
+			if (mask.is_set((uint32)resource_state::resource_state_render_target))
+				target_states |= D3D12_RESOURCE_STATE_RENDER_TARGET;
+			if (mask.is_set((uint32)resource_state::resource_state_uav))
+				target_states |= D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+			if (mask.is_set((uint32)resource_state::resource_state_depth_write))
+				target_states |= D3D12_RESOURCE_STATE_DEPTH_WRITE;
+			if (mask.is_set((uint32)resource_state::resource_state_depth_read))
+				target_states |= D3D12_RESOURCE_STATE_DEPTH_READ;
+			if (mask.is_set((uint32)resource_state::resource_state_non_ps_resource))
+				target_states |= D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+			if (mask.is_set((uint32)resource_state::resource_state_ps_resource))
+				target_states |= D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+			if (mask.is_set((uint32)resource_state::resource_state_indirect_arg))
+				target_states |= D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT;
+			if (mask.is_set((uint32)resource_state::resource_state_copy_dest))
+				target_states |= D3D12_RESOURCE_STATE_COPY_DEST;
+			if (mask.is_set((uint32)resource_state::resource_state_copy_source))
+				target_states |= D3D12_RESOURCE_STATE_COPY_SOURCE;
+			if (mask.is_set((uint32)resource_state::resource_state_resolve_dest))
+				target_states |= D3D12_RESOURCE_STATE_RESOLVE_DEST;
+			if (mask.is_set((uint32)resource_state::resource_state_resolve_source))
+				target_states |= D3D12_RESOURCE_STATE_RESOLVE_SOURCE;
+			if (mask.is_set((uint32)resource_state::resource_state_generic_read))
+				target_states |= D3D12_RESOURCE_STATE_GENERIC_READ;
+			if (mask.is_set((uint32)resource_state::resource_state_present))
+				target_states |= D3D12_RESOURCE_STATE_PRESENT;
+
+			return target_states;
 		}
 
 		D3D12_SHADER_VISIBILITY get_visibility(shader_stage stage)
@@ -890,24 +890,23 @@ namespace SFG
 		}
 		else if (desc.flags.is_set(resource_flags::rf_storage_buffer))
 		{
-			const D3D12_SHADER_RESOURCE_VIEW_DESC desc = {
-				.Format					 = DXGI_FORMAT_R32_TYPELESS,
+			const D3D12_SHADER_RESOURCE_VIEW_DESC srv = {
+				.Format					 = desc.structure_size == 0 ? DXGI_FORMAT_R32_TYPELESS : DXGI_FORMAT_UNKNOWN,
 				.ViewDimension			 = D3D12_SRV_DIMENSION_BUFFER,
 				.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
 				.Buffer =
 					{
 						.FirstElement		 = 0,
-						.NumElements		 = static_cast<UINT>(final_size / 4),
-						.StructureByteStride = 0,
-						.Flags				 = D3D12_BUFFER_SRV_FLAG_RAW,
+						.NumElements		 = desc.structure_count == 0 ? desc.size / 4 : desc.structure_count,
+						.StructureByteStride = desc.structure_size,
+						.Flags				 = desc.structure_size == 0 ? D3D12_BUFFER_SRV_FLAG_RAW : D3D12_BUFFER_SRV_FLAG_NONE,
 					},
 
 			};
-
 			res.descriptor_index  = static_cast<int16>(_descriptors.add());
 			descriptor_handle& dh = _descriptors.get(res.descriptor_index);
 			dh					  = _heap_buffer.get_heap_handle_block(1);
-			_device->CreateShaderResourceView(res.ptr->GetResource(), &desc, {dh.cpu});
+			_device->CreateShaderResourceView(res.ptr->GetResource(), &srv, {dh.cpu});
 		}
 		else if (desc.flags.is_set(resource_flags::rf_gpu_write))
 		{
@@ -2910,7 +2909,7 @@ namespace SFG
 				res			 = txt.ptr->GetResource();
 			}
 
-			barriers.push_back(CD3DX12_RESOURCE_BARRIER::Transition(res, get_resource_state(barrier.from_state), get_resource_state(barrier.to_state)));
+			barriers.push_back(CD3DX12_RESOURCE_BARRIER::Transition(res, get_resource_state(barrier.from_states), get_resource_state(barrier.to_states)));
 		}
 
 		if (!barriers.empty())
