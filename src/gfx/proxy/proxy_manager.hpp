@@ -164,6 +164,11 @@ namespace SFG
 			return _count_point_lights;
 		}
 
+		inline uint32 get_peak_entities() const
+		{
+			return _peak_entities;
+		}
+
 	private:
 		enum destroy_data_type : uint8
 		{
@@ -249,6 +254,7 @@ namespace SFG
 		uint32	 _count_spot_lights	  = 0;
 		uint32	 _count_point_lights  = 0;
 		uint8	 _ambient_exists	  = 0;
+		uint32	 _peak_entities		  = 0;
 
 		static_vector<material_update_bucket, BACK_BUFFER_COUNT> _material_update_buckets;
 		destroy_bucket											 _destroy_bucket[BACK_BUFFER_COUNT + 1];

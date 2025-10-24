@@ -230,6 +230,7 @@ namespace SFG
 			_main_camera_view.view_frustum		   = frustum::extract(_main_camera_view.view_proj_matrix);
 		}
 
+		collect_entities();
 		collect_model_instances();
 		collect_lights();
 
@@ -476,6 +477,31 @@ namespace SFG
 		backend->submit_commands(queue_gfx, &cmd, 1);
 	}
 
+	void world_renderer::collect_entities()
+	{
+		auto&		 entities	   = *_proxy_manager.get_entities();
+		const uint32 entities_peak = _proxy_manager.get_peak_entities();
+
+		for (uint32 i = 0; i < entities_peak; i++)
+		{
+			render_proxy_entity& e = entities.get(i);
+			if (e.status != render_proxy_status::rps_active)
+				continue;
+
+			if (e.flags.is_set(render_proxy_entity_flags::render_proxy_entity_invisible))
+			{
+				e._current_buffer_index = MAX_GPU_ENTITIES;
+				continue;
+			}
+
+			e._current_buffer_index = create_gpu_entity({
+				.model	  = e.model,
+				.normal	  = e.normal,
+				.position = vector3(e.position.x, e.position.y, e.position.z),
+			});
+		}
+	}
+
 	void world_renderer::collect_model_instances()
 	{
 		const uint32	   mesh_instances_peak = _proxy_manager.get_peak_mesh_instances();
@@ -492,9 +518,6 @@ namespace SFG
 			const render_proxy_entity& proxy_entity = entities.get(mesh_instance.entity);
 			SFG_ASSERT(proxy_entity.status == render_proxy_status::rps_active);
 
-			if (proxy_entity.flags.is_set(render_proxy_entity_flags::render_proxy_entity_invisible))
-				continue;
-
 			const render_proxy_mesh& proxy_mesh	  = _proxy_manager.get_mesh(mesh_instance.mesh);
 			aabb					 frustum_aabb = proxy_mesh.local_aabb;
 
@@ -502,10 +525,9 @@ namespace SFG
 			if (res == frustum_result::outside)
 				continue;
 
-			const uint32				  entity_index = create_gpu_entity({.model = proxy_entity.model, .normal = proxy_entity.normal, .position = vector3(proxy_entity.position.x, proxy_entity.position.y, proxy_entity.position.z)});
-			const render_proxy_model&	  proxy_model  = _proxy_manager.get_model(mesh_instance.model);
-			const render_proxy_primitive* primitives   = aux.get<render_proxy_primitive>(proxy_mesh.primitives);
-			const uint16*				  materials	   = aux.get<uint16>(proxy_model.materials);
+			const render_proxy_model&	  proxy_model = _proxy_manager.get_model(mesh_instance.model);
+			const render_proxy_primitive* primitives  = aux.get<render_proxy_primitive>(proxy_mesh.primitives);
+			const uint16*				  materials	  = aux.get<uint16>(proxy_model.materials);
 
 			for (uint32 i = 0; i < proxy_mesh.primitive_count; i++)
 			{
@@ -519,7 +541,7 @@ namespace SFG
 					.vertex_start  = prim.vertex_start,
 					.index_start   = prim.index_start,
 					.index_count   = prim.index_count,
-					.gpu_entity	   = entity_index,
+					.gpu_entity	   = proxy_entity._current_buffer_index,
 					.material	   = mat,
 					.is_skinned	   = proxy_mesh.is_skinned,
 				});
@@ -550,11 +572,12 @@ namespace SFG
 
 			const render_proxy_entity& proxy_entity = entities.get(light.entity);
 			SFG_ASSERT(proxy_entity.status == render_proxy_status::rps_active);
-			if (proxy_entity.flags.is_set(render_proxy_entity_flags::render_proxy_entity_invisible))
+
+			if (proxy_entity._current_buffer_index == MAX_GPU_ENTITIES)
 				continue;
 
 			wrd.dir_lights.push_back({
-				.color_entity_index = vector4(light.base_color.x, light.base_color.y, light.base_color.z, static_cast<float>(light.entity)),
+				.color_entity_index = vector4(light.base_color.x, light.base_color.y, light.base_color.z, static_cast<float>(proxy_entity._current_buffer_index)),
 			});
 		}
 
@@ -566,7 +589,7 @@ namespace SFG
 
 			const render_proxy_entity& proxy_entity = entities.get(light.entity);
 			SFG_ASSERT(proxy_entity.status == render_proxy_status::rps_active);
-			if (proxy_entity.flags.is_set(render_proxy_entity_flags::render_proxy_entity_invisible))
+			if (proxy_entity._current_buffer_index == MAX_GPU_ENTITIES)
 				continue;
 
 			constexpr float energy_thresh = LIGHT_CULLING_ENERGY_THRESHOLD;
@@ -577,7 +600,7 @@ namespace SFG
 				continue;
 
 			wrd.point_lights.push_back({
-				.color_entity_index = vector4(light.base_color.x, light.base_color.y, light.base_color.z, static_cast<float>(light.entity)),
+				.color_entity_index = vector4(light.base_color.x, light.base_color.y, light.base_color.z, static_cast<float>(proxy_entity._current_buffer_index)),
 				.intensity_range	= vector4(light.intensity, light.range, 0.0f, 0.0f),
 			});
 		}
@@ -590,11 +613,11 @@ namespace SFG
 
 			const render_proxy_entity& proxy_entity = entities.get(light.entity);
 			SFG_ASSERT(proxy_entity.status == render_proxy_status::rps_active);
-			if (proxy_entity.flags.is_set(render_proxy_entity_flags::render_proxy_entity_invisible))
+			if (proxy_entity._current_buffer_index == MAX_GPU_ENTITIES)
 				continue;
 
 			wrd.spot_lights.push_back({
-				.color_entity_index			 = vector4(light.base_color.x, light.base_color.y, light.base_color.z, static_cast<float>(light.entity)),
+				.color_entity_index			 = vector4(light.base_color.x, light.base_color.y, light.base_color.z, static_cast<float>(proxy_entity._current_buffer_index)),
 				.intensity_range_inner_outer = vector4(light.intensity, light.range, light.inner_cone, light.outer_cone),
 			});
 		}
