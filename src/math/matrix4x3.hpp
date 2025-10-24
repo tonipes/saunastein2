@@ -2,6 +2,7 @@
 #pragma once
 
 #include "vector4.hpp"
+#include "vector3.hpp"
 #include "matrix3x3.hpp"
 
 namespace SFG
@@ -58,6 +59,16 @@ namespace SFG
 			return m[index];
 		}
 
+		inline vector3 get_column(uint8_t idx) const
+		{
+			return vector3(m[idx * 3], m[idx * 3 + 1], m[idx * 3 + 2]);
+		}
+
+		inline vector4 get_column_v4(uint8_t idx) const
+		{
+			return vector4(m[idx * 3], m[idx * 3 + 1], m[idx * 3 + 2], 0.0f);
+		}
+
 		// Matrix × Matrix (composition)
 		inline matrix4x3 operator*(const matrix4x3& other) const
 		{
@@ -78,13 +89,11 @@ namespace SFG
 			return result;
 		}
 
-		// Transform a point (applies rotation, scale, translation)
 		inline vector3 operator*(const vector3& v) const
 		{
 			return vector3(m[0] * v.x + m[3] * v.y + m[6] * v.z + m[9], m[1] * v.x + m[4] * v.y + m[7] * v.z + m[10], m[2] * v.x + m[5] * v.y + m[8] * v.z + m[11]);
 		}
 
-		// Scale whole matrix
 		inline matrix4x3 operator*(float scalar) const
 		{
 			matrix4x3 result;

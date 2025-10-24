@@ -55,9 +55,9 @@ namespace SFG
 	matrix4x4 matrix4x4::transpose() const
 	{
 		matrix4x4 result;
-		for (int i = 0; i < 4; ++i) // Col of result
+		for (int i = 0; i < 4; ++i)
 		{
-			for (int j = 0; j < 4; ++j) // Row of result
+			for (int j = 0; j < 4; ++j)
 			{
 				result.m[i * 4 + j] = m[j * 4 + i]; // Swap col and row indices
 			}

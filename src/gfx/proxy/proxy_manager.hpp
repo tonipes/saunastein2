@@ -126,7 +126,7 @@ namespace SFG
 
 		inline uint32 get_peak_mesh_instances() const
 		{
-			return _peak_mesh_instances;
+			return _peak_mesh_instances + 1;
 		}
 
 		inline uint32 get_ambient_exists() const
@@ -136,17 +136,17 @@ namespace SFG
 
 		inline uint32 get_peak_dir_lights() const
 		{
-			return _peak_dir_lights;
+			return _peak_dir_lights + 1;
 		}
 
 		inline uint32 get_peak_spot_lights() const
 		{
-			return _peak_spot_lights;
+			return _peak_spot_lights +  1;
 		}
 
 		inline uint32 get_peak_point_lights() const
 		{
-			return _peak_point_lights;
+			return _peak_point_lights + 1;
 		}
 
 		inline uint32 get_count_dir_lights() const
@@ -166,7 +166,7 @@ namespace SFG
 
 		inline uint32 get_peak_entities() const
 		{
-			return _peak_entities;
+			return _peak_entities + 1;
 		}
 
 	private:

@@ -257,7 +257,7 @@ namespace SFG
 			proxy.rotation			   = ev.rotation;
 			proxy.scale				   = ev.scale;
 
-			_peak_entities = math::max(_peak_entities, index) + 1;
+			_peak_entities = math::max(_peak_entities, index);
 		}
 		else if (type == render_event_type::render_event_update_entity_visibility)
 		{
@@ -283,7 +283,7 @@ namespace SFG
 		{
 			render_event_spot_light ev = {};
 			ev.deserialize(stream);
-			_peak_spot_lights = math::max(_peak_spot_lights, index) + 1;
+			_peak_spot_lights = math::max(_peak_spot_lights, index);
 
 			render_proxy_spot_light& proxy = _spot_lights->get(index);
 
@@ -301,7 +301,7 @@ namespace SFG
 		{
 			render_event_point_light ev = {};
 			ev.deserialize(stream);
-			_peak_point_lights = math::max(_peak_point_lights, index) + 1;
+			_peak_point_lights = math::max(_peak_point_lights, index);
 
 			render_proxy_point_light& proxy = _point_lights->get(index);
 
@@ -318,7 +318,7 @@ namespace SFG
 		{
 			render_event_dir_light ev = {};
 			ev.deserialize(stream);
-			_peak_dir_lights = math::max(_peak_dir_lights, index) + 1;
+			_peak_dir_lights = math::max(_peak_dir_lights, index);
 
 			render_proxy_dir_light& proxy = _dir_lights->get(index);
 
@@ -371,7 +371,7 @@ namespace SFG
 		{
 			render_event_mesh_instance ev = {};
 			ev.deserialize(stream);
-			_peak_mesh_instances = math::max(_peak_mesh_instances, index) + 1;
+			_peak_mesh_instances = math::max(_peak_mesh_instances, index);
 
 			render_proxy_mesh_instance& proxy = get_mesh_instance(index);
 

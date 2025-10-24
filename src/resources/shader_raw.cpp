@@ -85,7 +85,10 @@ namespace SFG
 				}
 
 				const string variant_style = json_data.value<string>("variant_style", "");
-				return compile_specialized(shader_text, folder_paths, variant_style);
+				const bool	 res		   = compile_specialized(shader_text, folder_paths, variant_style);
+				if (!res)
+					destroy();
+				return res;
 			}
 		}
 		catch (std::exception e)

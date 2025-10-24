@@ -77,26 +77,9 @@ namespace SFG
 	{
 		matrix4x3 result;
 
-		// 1. Get the squared inverse scale for the inversion of the 3x3 block
-		// We assume get_scale() is already correct and non-zero
 		vector3 s = get_scale();
 		vector3 inv_s_sq(1.0f / (s.x * s.x), 1.0f / (s.y * s.y), 1.0f / (s.z * s.z));
 
-		// For simplicity and robustness against extreme scale values, we'll decompose and invert explicitly:
-		// M_inv_3x3 = (R*S)^-1 = S^-1 * R^-1 = S^-1 * R_T
-
-		// The transpose of the Rotation part is needed (R_T)
-		// R_T is stored in result.m[i*3 + j] where the original R was at m[j*3 + i]
-
-		// 2. Compute the Inverse 3x3 Matrix (Rotation * Scale)^-1
-		// M_inv_3x3 = M_3x3_T * S_inv_sq (THIS IS THE FAST WAY IF NO SHEAR IS PRESENT)
-		// The columns of the original matrix are the scaled-rotated basis vectors.
-		// The inverse is found by transposing and scaling by 1/(scale^2)
-
-		// For a non-sheared matrix M = R * S, M_inv = S_inv * R_T.
-		// However, since we don't have R and S separately, we use this:
-
-		// Transpose the original 3x3 block (R*S)
 		result.m[0] = m[0];
 		result.m[1] = m[3];
 		result.m[2] = m[6]; // Row 0 -> Col 0
@@ -107,8 +90,6 @@ namespace SFG
 		result.m[7] = m[5];
 		result.m[8] = m[8]; // Row 2 -> Col 2
 
-		// Apply Inverse Scale Squared (to perform the M_inv_3x3 operation)
-		// This is the fastest way to correctly invert the R*S block for a non-sheared matrix.
 		result.m[0] *= inv_s_sq.x;
 		result.m[1] *= inv_s_sq.x;
 		result.m[2] *= inv_s_sq.x;
@@ -119,17 +100,14 @@ namespace SFG
 		result.m[7] *= inv_s_sq.z;
 		result.m[8] *= inv_s_sq.z;
 
-		// 3. Compute the Inverse Translation
-		// t_inv = -M_inv_3x3 * t
+	
 		vector3 t(m[9], m[10], m[11]);
 
-		// Use the resulting result.m[0..8] (the M_inv_3x3) to transform the original translation t
 		vector3 inv_t;
 		inv_t.x = result.m[0] * t.x + result.m[3] * t.y + result.m[6] * t.z;
 		inv_t.y = result.m[1] * t.x + result.m[4] * t.y + result.m[7] * t.z;
 		inv_t.z = result.m[2] * t.x + result.m[5] * t.y + result.m[8] * t.z;
 
-		// Store the negative of the transformed translation
 		result.m[9]	 = -inv_t.x;
 		result.m[10] = -inv_t.y;
 		result.m[11] = -inv_t.z;
@@ -139,7 +117,6 @@ namespace SFG
 
 	void matrix4x3::decompose(vector3& out_translation, quat& out_rotation, vector3& out_scale) const
 	{
-		// --- 1. Extract Translation ---
 		out_translation = get_translation();
 
 		// --- 2. Extract Scale ---
@@ -155,7 +132,6 @@ namespace SFG
 		vector3 inv_scale(out_scale.x != 0.0f ? 1.0f / out_scale.x : 0.0f, out_scale.y != 0.0f ? 1.0f / out_scale.y : 0.0f, out_scale.z != 0.0f ? 1.0f / out_scale.z : 0.0f);
 
 		// --- 3. Extract Rotation ---
-		// Normalize the axes (remove scaling)
 		vector3 nx = x_axis * inv_scale.x;
 		vector3 ny = y_axis * inv_scale.y;
 		vector3 nz = z_axis * inv_scale.z;
@@ -222,7 +198,6 @@ namespace SFG
 
 	matrix4x3 matrix4x3::from_matrix4x4(const matrix4x4& mat)
 	{
-		// Just copy the top-left 3x3 + translation column
 		return matrix4x3(mat.m[0],
 						 mat.m[1],
 						 mat.m[2], // Col 0

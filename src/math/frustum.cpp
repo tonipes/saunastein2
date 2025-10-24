@@ -115,7 +115,6 @@ namespace SFG
 		// world-space center
 		const vector3 c_world = linear_model * c_local + position;
 
-		// projected radius of the OBB onto plane normal:
 		// r = |L^T * n| · e_local
 		const vector3 v = linear_model.transposed() * p.normal;
 		const float	  r = vector3::dot(vector3::abs(v), e_local);

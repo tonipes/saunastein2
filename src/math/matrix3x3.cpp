@@ -1,5 +1,6 @@
 // Copyright (c) 2025 Inan Evin
 #include "matrix3x3.hpp"
+#include "matrix4x4.hpp"
 #include "quat.hpp"
 #include "math.hpp" // for sqrtf, etc.
 #include "data/ostream.hpp"
@@ -29,7 +30,6 @@ namespace SFG
 
 	matrix3x3 matrix3x3::rotation(const quat& q)
 	{
-		// Same convention as matrix4x3::rotation(), 3x3 part only.
 		const float x2 = q.x * q.x;
 		const float y2 = q.y * q.y;
 		const float z2 = q.z * q.z;
@@ -45,19 +45,21 @@ namespace SFG
 
 	matrix3x3 matrix3x3::from_axes(const vector3& x, const vector3& y, const vector3& z)
 	{
-		// x,y,z as columns
 		return matrix3x3(x.x, x.y, x.z, y.x, y.y, y.z, z.x, z.y, z.z);
+	}
+
+	matrix4x4 matrix3x3::to_matrix4x4() const
+	{
+		return matrix4x4(m[0], m[1], m[2], 0.0f, m[3], m[4], m[5], 0.0f, m[6], m[7], m[8], 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
 	}
 
 	matrix3x3 matrix3x3::transposed() const
 	{
-		// swap rows/cols
 		return matrix3x3(m[0], m[3], m[6], m[1], m[4], m[7], m[2], m[5], m[8]);
 	}
 
 	float matrix3x3::determinant() const
 	{
-		// Using column-major indices
 		const float a = m[0], d = m[3], g = m[6];
 		const float b = m[1], e = m[4], h = m[7];
 		const float c = m[2], f = m[5], i = m[8];
@@ -85,11 +87,10 @@ namespace SFG
 
 		const float det = a * A + d * D + g * G;
 		if (fabsf(det) <= 1e-8f)
-			return identity; // or assert/return zero; choose policy
+			return identity;
 
 		const float invDet = 1.0f / det;
 
-		// adjugate / det, write back in column-major
 		return matrix3x3(A * invDet, D * invDet, G * invDet, B * invDet, E * invDet, H * invDet, C * invDet, F * invDet, I * invDet);
 	}
 

@@ -91,32 +91,20 @@ namespace SFG
 	{
 		vector3 euler_angles;
 
-		// Y-axis (Pitch) - The middle rotation in Z-Y-X is Pitch (Y)
 		float sin_p			= 2.0f * (q.w * q.y - q.z * q.x); // Pitch formula
 		float clamped_sin_p = math::clamp(sin_p, -1.0f, 1.0f);
 
 		// Check for Gimbal Lock (singularity) near +/- 90 degrees
 		if (math::abs(clamped_sin_p) >= 0.999f)
 		{
-			// Gimbal Lock: Pitch is +/- 90 degrees
 			euler_angles.y = math::radians_to_degrees(math::copysign(MATH_PI * 0.5f, clamped_sin_p));
-
-			// When locked, we only calculate Roll (Z) and Yaw (X) is zero.
-			// Formula for Roll (Z)
 			euler_angles.z = math::radians_to_degrees(std::atan2(2.0f * q.w * q.z + 2.0f * q.x * q.y, 1.0f - 2.0f * q.y * q.y - 2.0f * q.z * q.z));
-
-			// Yaw (X) is zero.
 			euler_angles.x = 0.0f;
 		}
 		else
 		{
-			// Normal Case:
 			euler_angles.y = math::radians_to_degrees(std::asin(clamped_sin_p));
-
-			// Z-axis (Roll)
 			euler_angles.z = math::radians_to_degrees(std::atan2(2.0f * (q.w * q.z + q.x * q.y), 1.0f - 2.0f * (q.y * q.y + q.z * q.z)));
-
-			// X-axis (Yaw) - The outer rotation in Z-Y-X
 			euler_angles.x = math::radians_to_degrees(std::atan2(2.0f * (q.w * q.x + q.y * q.z), 1.0f - 2.0f * (q.x * q.x + q.y * q.y)));
 		}
 
@@ -237,43 +225,38 @@ namespace SFG
 
 		if (trace > 0.0f)
 		{
-			// Case 1: Trace is positive (most common)
 			float s = std::sqrt(trace + 1.0f) * 2.0f; // s = 4w
 			q.w		= 0.25f * s;
-			// The indices below access the corresponding row/column elements:
-			q.x = (R_m[7] - R_m[5]) / s; // R[2,1] - R[1,2]
-			q.y = (R_m[2] - R_m[6]) / s; // R[0,2] - R[2,0]
-			q.z = (R_m[3] - R_m[1]) / s; // R[1,0] - R[0,1]
+			q.x		= (R_m[7] - R_m[5]) / s;
+			q.y		= (R_m[2] - R_m[6]) / s;
+			q.z		= (R_m[3] - R_m[1]) / s;
 		}
 		else if ((R_m[0] > R_m[4]) && (R_m[0] > R_m[8]))
 		{
-			// Case 2: R[0,0] is the largest diagonal element
-			float s = std::sqrt(1.0f + R_m[0] - R_m[4] - R_m[8]) * 2.0f; // s = 4x
-			q.w		= (R_m[7] - R_m[5]) / s;							 // R[2,1] - R[1,2]
+			float s = std::sqrt(1.0f + R_m[0] - R_m[4] - R_m[8]) * 2.0f;
+			q.w		= (R_m[7] - R_m[5]) / s;
 			q.x		= 0.25f * s;
-			q.y		= (R_m[3] + R_m[1]) / s; // R[1,0] + R[0,1]
-			q.z		= (R_m[2] + R_m[6]) / s; // R[0,2] + R[2,0]
+			q.y		= (R_m[3] + R_m[1]) / s;
+			q.z		= (R_m[2] + R_m[6]) / s;
 		}
 		else if (R_m[4] > R_m[8])
 		{
-			// Case 3: R[1,1] is the largest diagonal element
-			float s = std::sqrt(1.0f + R_m[4] - R_m[0] - R_m[8]) * 2.0f; // s = 4y
-			q.w		= (R_m[2] - R_m[6]) / s;							 // R[0,2] - R[2,0]
-			q.x		= (R_m[3] + R_m[1]) / s;							 // R[1,0] + R[0,1]
+			float s = std::sqrt(1.0f + R_m[4] - R_m[0] - R_m[8]) * 2.0f;
+			q.w		= (R_m[2] - R_m[6]) / s;
+			q.x		= (R_m[3] + R_m[1]) / s;
 			q.y		= 0.25f * s;
-			q.z		= (R_m[7] + R_m[5]) / s; // R[2,1] + R[1,2]
+			q.z		= (R_m[7] + R_m[5]) / s;
 		}
 		else
 		{
-			// Case 4: R[2,2] is the largest diagonal element
-			float s = std::sqrt(1.0f + R_m[8] - R_m[0] - R_m[4]) * 2.0f; // s = 4z
-			q.w		= (R_m[3] - R_m[1]) / s;							 // R[1,0] - R[0,1]
-			q.x		= (R_m[2] + R_m[6]) / s;							 // R[0,2] + R[2,0]
-			q.y		= (R_m[7] + R_m[5]) / s;							 // R[2,1] + R[1,2]
+			float s = std::sqrt(1.0f + R_m[8] - R_m[0] - R_m[4]) * 2.0f;
+			q.w		= (R_m[3] - R_m[1]) / s;
+			q.x		= (R_m[2] + R_m[6]) / s;
+			q.y		= (R_m[7] + R_m[5]) / s;
 			q.z		= 0.25f * s;
 		}
 
-		return q.normalized(); // Always return a normalized quaternion
+		return q.normalized();
 	}
 
 	quat quat::operator/(float scalar) const

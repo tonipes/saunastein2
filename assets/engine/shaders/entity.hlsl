@@ -1,6 +1,7 @@
 struct gpu_entity
 {
-    float3x4 model;
-    float3x3 normal_matrix;
-    float3 position;
+    float4x4 model;
+    float4x4 normal_matrix;
+    float4 position;
+    float4 rotation;
 };

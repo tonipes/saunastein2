@@ -60,10 +60,10 @@ vs_output VSMain(uint vertexID : SV_VertexID)
 }
 
 // Very small epsilon guard
-static bool is_background(float deviceDepth)
+static bool is_background(float device_depth)
 {
     // Reversed-Z: far = 0, near = 1. Treat ~0 as background
-    return deviceDepth <= 1e-6;
+    return device_depth <= 1e-6;
 }
 
 //------------------------------------------------------------------------------
@@ -113,7 +113,6 @@ float4 PSMain(vs_output IN) : SV_TARGET
         gpu_entity entity = entity_buffer[uint(light.color_entity_index.w)];
         float3 light_col = light.color_entity_index.xyz;
         float3 light_pos = entity.position.xyz;
-        float3 color = light.color_entity_index.xyz;
         float intensity = light.intensity_range.x;
         float range = light.intensity_range.y;
 
@@ -125,6 +124,19 @@ float4 PSMain(vs_output IN) : SV_TARGET
         float  att = attenuation(range, d);
         float3 radiance  = light_col * (intensity * att);
         lighting += calculate_pbr(V, N, L, albedo, ao, roughness, metallic, radiance);
+    }
+
+    [loop]
+    for(uint i = 0; i < spot_light_count; i++)
+    {
+        gpu_spot_light light = spot_light_buffer[i];
+        gpu_entity entity = entity_buffer[uint(light.color_entity_index.w)];
+        float3 light_col = light.color_entity_index.xyz;
+        float3 light_pos = entity.position.xyz;
+        float intensity = light.intensity_range_inner_outer.x;
+        float range = light.intensity_range_inner_outer.y;
+        float inner_cone = light.intensity_range_inner_outer.z;
+        float outer_cone = light.intensity_range_inner_outer.w;
     }
 
     lighting += emissive;

@@ -60,9 +60,11 @@ namespace SFG
 					.debug_name = "opaque_bones_cpu",
 				},
 				{
-					.size		= sizeof(gpu_bone) * MAX_GPU_BONES,
-					.flags		= resource_flags::rf_gpu_only | resource_flags::rf_storage_buffer,
-					.debug_name = "opaque_bones_gpu",
+					.size			 = sizeof(gpu_bone) * MAX_GPU_BONES,
+					.structure_size	 = sizeof(gpu_bone),
+					.structure_count = MAX_GPU_BONES,
+					.flags			 = resource_flags::rf_gpu_only | resource_flags::rf_storage_buffer,
+					.debug_name		 = "opaque_bones_gpu",
 				});
 
 			pfd.entity_buffer.create_staging_hw(
@@ -86,9 +88,11 @@ namespace SFG
 					.debug_name = "lighting_dir_lights_cpu",
 				},
 				{
-					.size		= sizeof(gpu_dir_light) * MAX_WORLD_TRAIT_DIR_LIGHTS,
-					.flags		= resource_flags::rf_gpu_only | resource_flags::rf_storage_buffer,
-					.debug_name = "lighting_dir_lights_gpu",
+					.size			 = sizeof(gpu_dir_light) * MAX_WORLD_TRAIT_DIR_LIGHTS,
+					.structure_size	 = sizeof(gpu_dir_light),
+					.structure_count = MAX_WORLD_TRAIT_DIR_LIGHTS,
+					.flags			 = resource_flags::rf_gpu_only | resource_flags::rf_storage_buffer,
+					.debug_name		 = "lighting_dir_lights_gpu",
 				});
 
 			pfd.point_lights_buffer.create_staging_hw(
@@ -98,9 +102,11 @@ namespace SFG
 					.debug_name = "lighting_point_lights_cpu",
 				},
 				{
-					.size		= sizeof(gpu_point_light) * MAX_WORLD_TRAIT_POINT_LIGHTS,
-					.flags		= resource_flags::rf_gpu_only | resource_flags::rf_storage_buffer,
-					.debug_name = "lighting_point_lights_gpu",
+					.size			 = sizeof(gpu_point_light) * MAX_WORLD_TRAIT_POINT_LIGHTS,
+					.structure_size	 = sizeof(gpu_point_light),
+					.structure_count = MAX_WORLD_TRAIT_POINT_LIGHTS,
+					.flags			 = resource_flags::rf_gpu_only | resource_flags::rf_storage_buffer,
+					.debug_name		 = "lighting_point_lights_gpu",
 				});
 
 			pfd.spot_lights_buffer.create_staging_hw(
@@ -110,9 +116,11 @@ namespace SFG
 					.debug_name = "lighting_spot_lights_cpu",
 				},
 				{
-					.size		= sizeof(gpu_spot_light) * MAX_WORLD_TRAIT_SPOT_LIGHTS,
-					.flags		= resource_flags::rf_gpu_only | resource_flags::rf_storage_buffer,
-					.debug_name = "lighting_spot_lights_cpu",
+					.size			 = sizeof(gpu_spot_light) * MAX_WORLD_TRAIT_SPOT_LIGHTS,
+					.structure_size	 = sizeof(gpu_spot_light),
+					.structure_count = MAX_WORLD_TRAIT_SPOT_LIGHTS,
+					.flags			 = resource_flags::rf_gpu_only | resource_flags::rf_storage_buffer,
+					.debug_name		 = "lighting_spot_lights_cpu",
 				});
 
 			entities_ptr.push_back(pfd.entity_buffer.get_hw_gpu());
@@ -495,10 +503,12 @@ namespace SFG
 			}
 
 			e._current_buffer_index = create_gpu_entity({
-				.model	  = e.model,
-				.normal	  = e.normal,
-				.position = vector3(e.position.x, e.position.y, e.position.z),
+				.model	  = e.model.to_matrix4x4(),
+				.normal	  = e.normal.to_matrix4x4(),
+				.position = vector4(e.position.x, e.position.y, e.position.z, 0),
+				.rotation = vector4(e.rotation.x, e.rotation.y, e.rotation.z, e.rotation.w),
 			});
+			int a					= 5;
 		}
 	}
 
