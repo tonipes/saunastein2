@@ -63,16 +63,13 @@ float3 calculate_pbr(
     float  denom = max(4.0 * NdotL * NdotV, 1e-4);
     float3 spec  = (D * G * F) / denom;
 
-    // Diffuse (Lambert) with energy conservation
+    // diffuse (Lambert) with energy conservation
     float3 kS = F;
     float3 kD = (1.0.xxx - kS) * (1.0 - metallic);
     float3 diff = (albedo / PI) * kD;
 
     // BRDF * NdotL * radiance
     float3 Lo = (diff + spec) * (NdotL * radiance);
-
-    // Apply AO to the diffuse part of direct only (simple approximation)
-    // If you want AO on direct spec too, multiply Lo by ao instead.
     float3 Lo_diff = (albedo / PI) * kD * (NdotL * radiance) * ao;
     float3 Lo_spec = spec * (NdotL * radiance);
 

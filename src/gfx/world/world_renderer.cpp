@@ -502,11 +502,14 @@ namespace SFG
 				continue;
 			}
 
+			const vector3 forward = e.rotation.get_forward();
+
 			e._current_buffer_index = create_gpu_entity({
 				.model	  = e.model.to_matrix4x4(),
 				.normal	  = e.normal.to_matrix4x4(),
 				.position = vector4(e.position.x, e.position.y, e.position.z, 0),
 				.rotation = vector4(e.rotation.x, e.rotation.y, e.rotation.z, e.rotation.w),
+				.forward  = vector4(forward.x, forward.y, forward.z, 0.0f),
 			});
 			int a					= 5;
 		}
@@ -528,16 +531,20 @@ namespace SFG
 			const render_proxy_entity& proxy_entity = entities.get(mesh_instance.entity);
 			SFG_ASSERT(proxy_entity.status == render_proxy_status::rps_active);
 
-			const render_proxy_mesh& proxy_mesh	  = _proxy_manager.get_mesh(mesh_instance.mesh);
-			aabb					 frustum_aabb = proxy_mesh.local_aabb;
+			const render_proxy_mesh& proxy_mesh = _proxy_manager.get_mesh(mesh_instance.mesh);
+			if (proxy_mesh.primitives.size == 0)
+				continue;
+
+			aabb frustum_aabb = proxy_mesh.local_aabb;
 
 			const frustum_result res = frustum::test(_main_camera_view.view_frustum, proxy_mesh.local_aabb, proxy_entity.model.to_linear3x3(), proxy_entity.position);
 			if (res == frustum_result::outside)
 				continue;
 
-			const render_proxy_model&	  proxy_model = _proxy_manager.get_model(mesh_instance.model);
-			const render_proxy_primitive* primitives  = aux.get<render_proxy_primitive>(proxy_mesh.primitives);
-			const uint16*				  materials	  = aux.get<uint16>(proxy_model.materials);
+			const render_proxy_model& proxy_model = _proxy_manager.get_model(mesh_instance.model);
+
+			const render_proxy_primitive* primitives = aux.get<render_proxy_primitive>(proxy_mesh.primitives);
+			const uint16*				  materials	 = aux.get<uint16>(proxy_model.materials);
 
 			for (uint32 i = 0; i < proxy_mesh.primitive_count; i++)
 			{
@@ -588,6 +595,7 @@ namespace SFG
 
 			wrd.dir_lights.push_back({
 				.color_entity_index = vector4(light.base_color.x, light.base_color.y, light.base_color.z, static_cast<float>(proxy_entity._current_buffer_index)),
+				.intensity			= vector4(light.intensity, 0.0f, 0.0f, 0.0f),
 			});
 		}
 
@@ -628,7 +636,7 @@ namespace SFG
 
 			wrd.spot_lights.push_back({
 				.color_entity_index			 = vector4(light.base_color.x, light.base_color.y, light.base_color.z, static_cast<float>(proxy_entity._current_buffer_index)),
-				.intensity_range_inner_outer = vector4(light.intensity, light.range, light.inner_cone, light.outer_cone),
+				.intensity_range_inner_outer = vector4(light.intensity, light.range, math::cos(light.inner_cone), math::cos(light.outer_cone)),
 			});
 		}
 	}

@@ -117,7 +117,7 @@ float4 PSMain(vs_output IN) : SV_TARGET
         float range = light.intensity_range.y;
 
         float3 Lvec = light_pos - world_pos;
-        float  d  = length(light_pos - world_pos);
+        float  d  = length(Lvec);
         float  dist = max(d, 1e-4);
         float3 L    = Lvec / dist;
         
@@ -129,14 +129,52 @@ float4 PSMain(vs_output IN) : SV_TARGET
     [loop]
     for(uint i = 0; i < spot_light_count; i++)
     {
-        gpu_spot_light light = spot_light_buffer[i];
-        gpu_entity entity = entity_buffer[uint(light.color_entity_index.w)];
+        gpu_spot_light light = spot_light_buffer[i];                    // FIXED
+        gpu_entity e = entity_buffer[uint(light.color_entity_index.w)];
         float3 light_col = light.color_entity_index.xyz;
-        float3 light_pos = entity.position.xyz;
-        float intensity = light.intensity_range_inner_outer.x;
-        float range = light.intensity_range_inner_outer.y;
-        float inner_cone = light.intensity_range_inner_outer.z;
-        float outer_cone = light.intensity_range_inner_outer.w;
+        float3 light_pos = e.position.xyz;
+        float  intensity = light.intensity_range_inner_outer.x;
+        float  range     = light.intensity_range_inner_outer.y;
+        float  cosInner  = saturate(light.intensity_range_inner_outer.z);
+        float  cosOuter  = saturate(light.intensity_range_inner_outer.w);
+
+        // To the shaded point
+        float3 Lvec = light_pos - world_pos;
+        float  d    = length(Lvec);
+        float  dist = max(d, 1e-4);
+        float3 L    = Lvec / dist;
+
+        // Distance attenuation (your helper)
+        float  attDist = attenuation(range, d);
+
+        // Angular attenuation
+        float  cosTheta = dot(normalize(-L), e.forward.xyz); 
+        float cosInnerEff = compute_cosInner(cosInner, cosOuter, g_default_spot_blend);
+        float cone = spot_blend_hermite(cosTheta, cosOuter, cosInnerEff, g_softness_exp);
+
+        // Final spotlight attenuation
+        float  att = attDist * cone;
+
+        if (att > 0.0f)
+        {
+            float3 radiance = light_col * (intensity * att);
+            lighting += calculate_pbr(V, N, L, albedo, ao, roughness, metallic, radiance);
+        }
+    }
+
+    [loop]
+    for (uint i = 0; i < dir_light_count; i++)
+    {
+        gpu_dir_light light = dir_light_buffer[i];
+        gpu_entity e = entity_buffer[uint(light.color_entity_index.w)];
+        float3 light_col = light.color_entity_index.xyz;
+
+        float3 L = normalize(-e.forward.xyz);       
+
+        float intensity = light.intensity.x; 
+
+        float3 radiance = light_col * intensity; 
+        lighting += calculate_pbr(V, N, L, albedo, ao, roughness, metallic, radiance);
     }
 
     lighting += emissive;

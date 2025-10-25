@@ -19,5 +19,7 @@ namespace SFG
 		matrix4x4 normal   = matrix4x4::identity;
 		vector4	  position = vector4::zero;
 		vector4	  rotation = vector4::zero;
+		vector4	  forward  = vector4::zero;
+		vector4	  padding  = vector4::zero;
 	};
 }
