@@ -6,6 +6,7 @@
 #include "data/vector.hpp"
 #include "world/world_constants.hpp"
 #include "math/vector3.hpp"
+#include "math/vector2ui16.hpp"
 
 namespace SFG
 {
@@ -45,10 +46,12 @@ namespace SFG
 
 	struct render_event_point_light
 	{
-		vector3	 base_color	  = vector3::one;
-		world_id entity_index = 0;
-		float	 range		  = 0.0f;
-		float	 intensity	  = 0.0f;
+		vector3		base_color		  = vector3::one;
+		vector2ui16 shadow_resolution = vector2ui16(256, 256);
+		world_id	entity_index	  = 0;
+		float		range			  = 0.0f;
+		float		intensity		  = 0.0f;
+		uint8		cast_shadows	  = 0;
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);
@@ -56,9 +59,11 @@ namespace SFG
 
 	struct render_event_dir_light
 	{
-		vector3	 base_color	  = vector3::one;
-		world_id entity_index = 0;
-		float	 intensity	  = 0.0f;
+		vector3		base_color		  = vector3::one;
+		vector2ui16 shadow_resolution = vector2ui16(256, 256);
+		world_id	entity_index	  = 0;
+		float		intensity		  = 0.0f;
+		uint8		cast_shadows	  = 0;
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);
@@ -66,12 +71,14 @@ namespace SFG
 
 	struct render_event_spot_light
 	{
-		vector3	 base_color	  = vector3::one;
-		world_id entity_index = 0;
-		float	 range		  = 0.0f;
-		float	 intensity	  = 0.0f;
-		float	 inner_cone	  = 0.0f;
-		float	 outer_cone	  = 0.0f;
+		vector3		base_color		  = vector3::one;
+		vector2ui16 shadow_resolution = vector2ui16(256, 256);
+		world_id	entity_index	  = 0;
+		float		range			  = 0.0f;
+		float		intensity		  = 0.0f;
+		float		inner_cone		  = 0.0f;
+		float		outer_cone		  = 0.0f;
+		uint8		cast_shadows	  = 0;
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);

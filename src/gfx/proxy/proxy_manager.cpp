@@ -290,12 +290,14 @@ namespace SFG
 			if (proxy.status != render_proxy_status::rps_active)
 				_count_spot_lights++;
 
-			proxy.status	 = render_proxy_status::rps_active;
-			proxy.entity	 = ev.entity_index;
-			proxy.base_color = ev.base_color;
-			proxy.intensity	 = ev.intensity;
-			proxy.inner_cone = ev.inner_cone;
-			proxy.outer_cone = ev.outer_cone;
+			proxy.status			= render_proxy_status::rps_active;
+			proxy.entity			= ev.entity_index;
+			proxy.base_color		= ev.base_color;
+			proxy.intensity			= ev.intensity;
+			proxy.inner_cone		= ev.inner_cone;
+			proxy.outer_cone		= ev.outer_cone;
+			proxy.cast_shadows		= ev.cast_shadows;
+			proxy.shadow_resoltuion = ev.shadow_resolution;
 		}
 		else if (type == render_event_type::render_event_update_point_light)
 		{
@@ -308,11 +310,13 @@ namespace SFG
 			if (proxy.status != render_proxy_status::rps_active)
 				_count_point_lights++;
 
-			proxy.status	 = render_proxy_status::rps_active;
-			proxy.entity	 = ev.entity_index;
-			proxy.base_color = ev.base_color;
-			proxy.range		 = ev.range;
-			proxy.intensity	 = ev.intensity;
+			proxy.status	   = render_proxy_status::rps_active;
+			proxy.entity	   = ev.entity_index;
+			proxy.base_color   = ev.base_color;
+			proxy.range		   = ev.range;
+			proxy.intensity	   = ev.intensity;
+			proxy.cast_shadows = ev.cast_shadows;
+			proxy.shadow_resolution = ev.shadow_resolution;
 		}
 		else if (type == render_event_type::render_event_update_dir_light)
 		{
@@ -325,10 +329,11 @@ namespace SFG
 			if (proxy.status != render_proxy_status::rps_active)
 				_count_dir_lights++;
 
-			proxy.status	 = render_proxy_status::rps_active;
-			proxy.entity	 = ev.entity_index;
-			proxy.base_color = ev.base_color;
-			proxy.intensity	 = ev.intensity;
+			proxy.status	   = render_proxy_status::rps_active;
+			proxy.entity	   = ev.entity_index;
+			proxy.base_color   = ev.base_color;
+			proxy.intensity	   = ev.intensity;
+			proxy.cast_shadows = ev.cast_shadows;
 		}
 		else if (type == render_event_type::render_event_remove_ambient)
 		{

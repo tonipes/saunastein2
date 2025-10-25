@@ -161,9 +161,9 @@ namespace SFG
 	{
 		const float inv_width  = 1.0f / (right - left);
 		const float inv_height = 1.0f / (top - bottom);
-		const float inv_depth  = 1.0f / (near_plane - far_plane); // RH: note near - far
+		const float inv_depth  = 1.0f / (far_plane - near_plane); // RH - reverse
 
-		return matrix4x4(2.0f * inv_width, 0.0f, 0.0f, 0.0f, 0.0f, 2.0f * inv_height, 0.0f, 0.0f, 0.0f, 0.0f, inv_depth, 0.0f, -(right + left) * inv_width, -(top + bottom) * inv_height, near_plane * inv_depth, 1.0f);
+		return matrix4x4(2.0f * inv_width, 0.0f, 0.0f, 0.0f, 0.0f, 2.0f * inv_height, 0.0f, 0.0f, 0.0f, 0.0f, inv_depth, 0.0f, -(right + left) * inv_width, -(top + bottom) * inv_height, far_plane * inv_depth, 1.0f);
 	}
 
 	matrix4x4 matrix4x4::perspective_reverse_z(float fov_y_degrees, float aspect_ratio, float near_plane, float far_plane)

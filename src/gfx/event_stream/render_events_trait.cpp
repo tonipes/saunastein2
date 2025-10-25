@@ -50,6 +50,8 @@ namespace SFG
 
 	void render_event_point_light::serialize(ostream& stream) const
 	{
+		stream << shadow_resolution;
+		stream << cast_shadows;
 		stream << entity_index;
 		stream << base_color;
 		stream << range;
@@ -58,6 +60,8 @@ namespace SFG
 
 	void render_event_point_light::deserialize(istream& stream)
 	{
+		stream >> shadow_resolution;
+		stream >> cast_shadows;
 		stream >> entity_index;
 		stream >> base_color;
 		stream >> range;
@@ -66,6 +70,8 @@ namespace SFG
 
 	void render_event_dir_light::serialize(ostream& stream) const
 	{
+		stream << shadow_resolution;
+		stream << cast_shadows;
 		stream << entity_index;
 		stream << base_color;
 		stream << intensity;
@@ -73,6 +79,8 @@ namespace SFG
 
 	void render_event_dir_light::deserialize(istream& stream)
 	{
+		stream >> shadow_resolution;
+		stream >> cast_shadows;
 		stream >> entity_index;
 		stream >> base_color;
 		stream >> intensity;
@@ -80,6 +88,8 @@ namespace SFG
 
 	void render_event_spot_light::serialize(ostream& stream) const
 	{
+		stream << shadow_resolution;
+		stream << cast_shadows;
 		stream << entity_index;
 		stream << base_color;
 		stream << range;
@@ -90,6 +100,8 @@ namespace SFG
 
 	void render_event_spot_light::deserialize(istream& stream)
 	{
+		stream >> shadow_resolution;
+		stream >> cast_shadows;
 		stream >> entity_index;
 		stream >> base_color;
 		stream >> range;

@@ -228,10 +228,12 @@ namespace SFG
 			const render_proxy_camera& cam_proxy  = _proxy_manager.get_camera(main_cam_trait);
 			const render_proxy_entity& cam_entity = _proxy_manager.get_entity(cam_proxy.entity);
 			const matrix4x3&		   cam_abs	  = cam_entity.model;
-			_main_camera_view					  = {
-									.view_matrix = matrix4x4::view(cam_entity.rotation, cam_entity.position),
-									.proj_matrix = matrix4x4::perspective_reverse_z(cam_proxy.fov_degrees, static_cast<float>(_base_size.x) / static_cast<float>(_base_size.y), cam_proxy.near_plane, cam_proxy.far_plane),
-									.position	 = cam_entity.position,
+
+			// matrix4x4::ortho(-10, 10, 10, -10, 1, 10),
+			_main_camera_view = {
+				.view_matrix = matrix4x4::view(cam_entity.rotation, cam_entity.position),
+				.proj_matrix = matrix4x4::perspective_reverse_z(cam_proxy.fov_degrees, static_cast<float>(_base_size.x) / static_cast<float>(_base_size.y), cam_proxy.near_plane, cam_proxy.far_plane),
+				.position	 = cam_entity.position,
 			};
 			_main_camera_view.view_proj_matrix	   = _main_camera_view.proj_matrix * _main_camera_view.view_matrix;
 			_main_camera_view.inv_view_proj_matrix = _main_camera_view.view_proj_matrix.inverse();
@@ -511,7 +513,6 @@ namespace SFG
 				.rotation = vector4(e.rotation.x, e.rotation.y, e.rotation.z, e.rotation.w),
 				.forward  = vector4(forward.x, forward.y, forward.z, 0.0f),
 			});
-			int a					= 5;
 		}
 	}
 
@@ -581,24 +582,6 @@ namespace SFG
 
 		world_render_data& wrd = _render_data;
 
-		for (uint32 i = 0; i < dirs_peak; i++)
-		{
-			const render_proxy_dir_light& light = dirs.get(i);
-			if (light.status != render_proxy_status::rps_active)
-				continue;
-
-			const render_proxy_entity& proxy_entity = entities.get(light.entity);
-			SFG_ASSERT(proxy_entity.status == render_proxy_status::rps_active);
-
-			if (proxy_entity._current_buffer_index == MAX_GPU_ENTITIES)
-				continue;
-
-			wrd.dir_lights.push_back({
-				.color_entity_index = vector4(light.base_color.x, light.base_color.y, light.base_color.z, static_cast<float>(proxy_entity._current_buffer_index)),
-				.intensity			= vector4(light.intensity, 0.0f, 0.0f, 0.0f),
-			});
-		}
-
 		for (uint32 i = 0; i < points_peak; i++)
 		{
 			const render_proxy_point_light& light = points.get(i);
@@ -637,6 +620,24 @@ namespace SFG
 			wrd.spot_lights.push_back({
 				.color_entity_index			 = vector4(light.base_color.x, light.base_color.y, light.base_color.z, static_cast<float>(proxy_entity._current_buffer_index)),
 				.intensity_range_inner_outer = vector4(light.intensity, light.range, math::cos(light.inner_cone), math::cos(light.outer_cone)),
+			});
+		}
+
+		for (uint32 i = 0; i < dirs_peak; i++)
+		{
+			const render_proxy_dir_light& light = dirs.get(i);
+			if (light.status != render_proxy_status::rps_active)
+				continue;
+
+			const render_proxy_entity& proxy_entity = entities.get(light.entity);
+			SFG_ASSERT(proxy_entity.status == render_proxy_status::rps_active);
+
+			if (proxy_entity._current_buffer_index == MAX_GPU_ENTITIES)
+				continue;
+
+			wrd.dir_lights.push_back({
+				.color_entity_index = vector4(light.base_color.x, light.base_color.y, light.base_color.z, static_cast<float>(proxy_entity._current_buffer_index)),
+				.intensity			= vector4(light.intensity, 0.0f, 0.0f, 0.0f),
 			});
 		}
 	}

@@ -36,6 +36,8 @@ namespace SFG
 		ev.entity_index			  = _header.entity.index;
 		ev.base_color			  = vector3(_base_color.x, _base_color.y, _base_color.z);
 		ev.intensity			  = _intensity;
+		ev.cast_shadows			  = _cast_shadows;
+		ev.shadow_resolution	  = _shadow_resolution;
 
 		w.get_render_stream().add_event(
 			{
@@ -60,6 +62,13 @@ namespace SFG
 		_base_color = c;
 		_range		= range;
 		_intensity	= intensity;
+		send_event(w);
+	}
+
+	void trait_dir_light::set_shadow_values(world& w, uint8 cast_shadows, const vector2ui16& resolution)
+	{
+		_cast_shadows	   = cast_shadows;
+		_shadow_resolution = resolution;
 		send_event(w);
 	}
 
@@ -96,6 +105,13 @@ namespace SFG
 		send_event(w);
 	}
 
+	void trait_spot_light::set_shadow_values(world& w, uint8 cast_shadows, const vector2ui16& resolution)
+	{
+		_cast_shadows	   = cast_shadows;
+		_shadow_resolution = resolution;
+		send_event(w);
+	}
+
 	void trait_spot_light::send_event(world& w)
 	{
 		render_event_spot_light ev = {};
@@ -105,6 +121,8 @@ namespace SFG
 		ev.intensity			   = _intensity;
 		ev.inner_cone			   = _inner_cone;
 		ev.outer_cone			   = _outer_cone;
+		ev.cast_shadows			   = _cast_shadows;
+		ev.shadow_resolution	   = _shadow_resolution;
 
 		w.get_render_stream().add_event(
 			{
@@ -145,6 +163,13 @@ namespace SFG
 		send_event(w);
 	}
 
+	void trait_point_light::set_shadow_values(world& w, uint8 cast_shadows, const vector2ui16& resolution)
+	{
+		_cast_shadows	   = cast_shadows;
+		_shadow_resolution = resolution;
+		send_event(w);
+	}
+
 	void trait_point_light::send_event(world& w)
 	{
 		render_event_point_light ev = {};
@@ -152,6 +177,8 @@ namespace SFG
 		ev.base_color				= vector3(_base_color.x, _base_color.y, _base_color.z);
 		ev.range					= _range;
 		ev.intensity				= _intensity;
+		ev.cast_shadows				= _cast_shadows;
+		ev.shadow_resolution		= _shadow_resolution;
 
 		w.get_render_stream().add_event(
 			{
