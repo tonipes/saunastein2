@@ -27,6 +27,5 @@ namespace SFG
 		world_id			handle				  = 0;
 		render_proxy_status status				  = render_proxy_status::rps_inactive;
 		bitmask<uint8>		flags				  = 0;
-		uint32				_current_buffer_index = 0;
 	};
 }

@@ -11,7 +11,7 @@
 #include "memory/bump_allocator.hpp"
 #include "math/vector4.hpp"
 #include "math/matrix4x4.hpp"
-#include "data/vector.hpp"
+#include "data/static_vector.hpp"
 
 namespace SFG
 {
@@ -25,6 +25,8 @@ namespace SFG
 	{
 
 	private:
+		static constexpr size_t SHADOW_PASSES_COUNT = MAX_SHADOW_CASTING_DIR_LIGHTS * SHADOWS_CASCADES + MAX_SHADOW_CASTING_POINT_LIGHTS * 6 + MAX_SHADOW_CASTING_SPOT_LIGHTS;
+
 		struct ubo
 		{
 			matrix4x4 view_proj = matrix4x4::identity;
@@ -32,7 +34,6 @@ namespace SFG
 
 		struct per_frame_data
 		{
-			buffer ubo;
 			gfx_id cmd_buffers[SHADOWS_MAX_CMD_BUFFERS];
 			gfx_id bind_group;
 			uint8  active_cmd_buffers = 0;
@@ -41,9 +42,10 @@ namespace SFG
 		struct pass
 		{
 			static_vector<indexed_draw, MAX_WORLD_DRAW_CALLS> draws;
-			ubo												  uniforms	= {};
-			renderable_collector							  collector = {};
-			gfx_id											  texture	= 0;
+			buffer											  ubos[BACK_BUFFER_COUNT]		 = {};
+			gfx_id											  bind_groups[BACK_BUFFER_COUNT] = {};
+			renderable_collector							  collector						 = {};
+			gfx_id											  texture						 = 0;
 		};
 
 	public:
@@ -86,8 +88,8 @@ namespace SFG
 		void render_passes(gfx_id cmd_buffer, pass* p, uint8 pass_count);
 
 	private:
-		per_frame_data _pfd[BACK_BUFFER_COUNT];
-		bump_allocator _alloc  = {};
-		vector<pass>   _passes = {};
+		per_frame_data							 _pfd[BACK_BUFFER_COUNT];
+		bump_allocator							 _alloc	 = {};
+		static_vector<pass, SHADOW_PASSES_COUNT> _passes = {};
 	};
 }

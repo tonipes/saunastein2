@@ -154,7 +154,6 @@ float4 PSMain(vs_output IN) : SV_TARGET
 
         // Final spotlight attenuation
         float  att = attDist * cone;
-
         if (att > 0.0f)
         {
             float3 radiance = light_col * (intensity * att);

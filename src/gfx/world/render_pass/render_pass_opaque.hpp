@@ -23,7 +23,6 @@ namespace SFG
 		static constexpr uint32 COLOR_TEXTURES = 4;
 
 	private:
-
 		struct ubo
 		{
 			matrix4x4 view_proj = matrix4x4::identity;
@@ -37,11 +36,6 @@ namespace SFG
 			gfx_id								  cmd_buffer	= 0;
 			gfx_id								  bind_group	= 0;
 			gfx_id								  depth_texture = 0;
-		};
-
-		struct render_data
-		{
-			static_vector<indexed_draw, MAX_WORLD_DRAW_CALLS> draws;
 		};
 
 	public:
@@ -90,8 +84,8 @@ namespace SFG
 		void create_textures(const vector2ui16& sz, gfx_id* depth_textures);
 
 	private:
-		per_frame_data _pfd[BACK_BUFFER_COUNT];
-		render_data	   _render_data;
-		bump_allocator _alloc = {};
+		static_vector<indexed_draw, MAX_WORLD_DRAW_CALLS> _draws;
+		per_frame_data									  _pfd[BACK_BUFFER_COUNT];
+		bump_allocator									  _alloc = {};
 	};
 }

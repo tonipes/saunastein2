@@ -8,6 +8,7 @@
 #include "renderable.hpp"
 #include "world/world_max_defines.hpp"
 #include "data/static_vector.hpp"
+#include "data/hash_map.hpp"
 
 namespace SFG
 {
@@ -78,5 +79,6 @@ namespace SFG
 		static_vector<gpu_point_light, MAX_WORLD_TRAIT_POINT_LIGHTS>   _point_lights;
 		static_vector<gpu_spot_light, MAX_WORLD_TRAIT_SPOT_LIGHTS>	   _spot_lights;
 		static_vector<gpu_bone, MAX_GPU_BONES>						   _bones;
+		hash_map<uint32, uint32>									   _entity_index_to_buffer_index;
 	};
 }

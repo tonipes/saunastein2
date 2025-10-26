@@ -37,36 +37,36 @@ namespace SFG
 
 	struct render_proxy_dir_light
 	{
-		vector3				base_color		  = vector3::one;
-		vector2ui16			shadow_res		  = vector2ui16(256, 256);
-		float				intensity		  = 0;
-		world_id			entity			  = 0;
+		vector3				base_color							 = vector3::one;
+		vector2ui16			shadow_res							 = vector2ui16(256, 256);
+		float				intensity							 = 0;
+		world_id			entity								 = 0;
 		gfx_id				shadow_texture_hw[BACK_BUFFER_COUNT] = {NULL_GFX_ID};
-		uint8				cast_shadows	  = 0;
-		render_proxy_status status			  = render_proxy_status::rps_inactive;
+		uint8				cast_shadows						 = 0;
+		render_proxy_status status								 = render_proxy_status::rps_inactive;
 	};
 
 	struct render_proxy_point_light
 	{
-		vector3				base_color	 = vector3::one;
-		vector2ui16			shadow_res	 = vector2ui16(256, 256);
-		float				range		 = 0.0f;
-		float				intensity	 = 0;
-		world_id			entity		 = 0;
-		uint8				cast_shadows = 0;
-		render_proxy_status status		 = render_proxy_status::rps_inactive;
+		vector3				base_color		  = vector3::one;
+		vector2ui16			shadow_res		  = vector2ui16(256, 256);
+		float				range			  = 0.0f;
+		float				intensity		  = 0;
+		world_id			entity			  = 0;
+		uint8				cast_shadows	  = 0;
+		render_proxy_status status			  = render_proxy_status::rps_inactive;
 	};
 
 	struct render_proxy_spot_light
 	{
-		vector3				base_color	 = vector3::one;
-		vector2ui16			shadow_res	 = vector2ui16(256, 256);
-		float				range		 = 0.0f;
-		float				intensity	 = 0;
-		float				inner_cone	 = 0.0f;
-		float				outer_cone	 = 0.0f;
-		world_id			entity		 = 0;
-		uint8				cast_shadows = 0;
-		render_proxy_status status		 = render_proxy_status::rps_inactive;
+		vector3				base_color		  = vector3::one;
+		vector2ui16			shadow_res		  = vector2ui16(256, 256);
+		float				range			  = 0.0f;
+		float				intensity		  = 0;
+		float				inner_cone		  = 0.0f;
+		float				outer_cone		  = 0.0f;
+		world_id			entity			  = 0;
+		uint8				cast_shadows	  = 0;
+		render_proxy_status status			  = render_proxy_status::rps_inactive;
 	};
 }

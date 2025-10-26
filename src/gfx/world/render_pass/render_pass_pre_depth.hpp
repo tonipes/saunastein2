@@ -31,11 +31,6 @@ namespace SFG
 			gfx_id depth_texture = 0;
 		};
 
-		struct render_data
-		{
-			static_vector<indexed_draw, MAX_WORLD_DRAW_CALLS> draws;
-		};
-
 	public:
 		struct init_params
 		{
@@ -76,8 +71,8 @@ namespace SFG
 		void create_textures(const vector2ui16& sz);
 
 	private:
-		per_frame_data _pfd[BACK_BUFFER_COUNT];
-		render_data	   _render_data;
-		bump_allocator _alloc = {};
+		static_vector<indexed_draw, MAX_WORLD_DRAW_CALLS> _draws;
+		per_frame_data									  _pfd[BACK_BUFFER_COUNT];
+		bump_allocator									  _alloc = {};
 	};
 }

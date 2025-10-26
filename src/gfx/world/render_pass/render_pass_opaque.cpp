@@ -64,8 +64,7 @@ namespace SFG
 
 	void render_pass_opaque::prepare(proxy_manager& pm, const renderable_collector& collector, uint8 frame_index)
 	{
-		render_data& rd = _render_data;
-		rd.draws.clear();
+		_draws.clear();
 
 		const auto& renderables = collector.get_renderables();
 
@@ -90,7 +89,7 @@ namespace SFG
 			const gfx_id target_shader = pm.get_shader_variant(base_shader, variant_flags.value());
 			SFG_ASSERT(target_shader != NULL_GFX_ID);
 
-			rd.draws.push_back({
+			_draws.push_back({
 				.constants =
 					{
 						.constant0 = obj.gpu_entity,
@@ -107,7 +106,7 @@ namespace SFG
 			});
 		}
 
-		std::sort(rd.draws.begin(), rd.draws.end(), [](const indexed_draw& d1, const indexed_draw& d2) -> bool { return d1.pipeline < d2.pipeline; });
+		std::sort(_draws.begin(), _draws.end(), [](const indexed_draw& d1, const indexed_draw& d2) -> bool { return d1.pipeline < d2.pipeline; });
 
 		per_frame_data& pfd		 = _pfd[frame_index];
 		const ubo		ubo_data = {
@@ -120,7 +119,6 @@ namespace SFG
 	{
 		gfx_backend*	backend		  = gfx_backend::get();
 		per_frame_data& pfd			  = _pfd[p.frame_index];
-		render_data&	rd			  = _render_data;
 		const gfx_id*	textures	  = pfd.color_textures.data();
 		const gfx_id	cmd_buffer	  = pfd.cmd_buffer;
 		const gfx_id	depth_texture = pfd.depth_texture;
@@ -192,10 +190,10 @@ namespace SFG
 
 								  });
 
-		gfx_id last_bound_group	   = std::numeric_limits<gfx_id>::max();
-		gfx_id last_bound_pipeline = std::numeric_limits<gfx_id>::max();
-		gfx_id last_vtx			   = std::numeric_limits<gfx_id>::max();
-		gfx_id last_idx			   = std::numeric_limits<gfx_id>::max();
+		gfx_id last_bound_group	   = NULL_GFX_ID;
+		gfx_id last_bound_pipeline = NULL_GFX_ID;
+		gfx_id last_vtx			   = NULL_GFX_ID;
+		gfx_id last_idx			   = NULL_GFX_ID;
 
 		auto bind = [&](gfx_id group, gfx_id pipeline, gfx_id vtx, gfx_id idx) {
 			if (vtx != last_vtx)
@@ -222,7 +220,7 @@ namespace SFG
 			}
 		};
 
-		for (const indexed_draw& draw : rd.draws)
+		for (const indexed_draw& draw : _draws)
 		{
 			bind(draw.bind_group, draw.pipeline, draw.vertex_buffer, draw.idx_buffer);
 
