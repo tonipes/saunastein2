@@ -5,8 +5,6 @@
 
 namespace SFG
 {
-#define MAX_GPU_BONES 256
-
 	struct gpu_bone
 	{
 		matrix4x3 mat = matrix4x3::identity;

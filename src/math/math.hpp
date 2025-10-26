@@ -24,6 +24,11 @@ namespace SFG
 			return std::lround(val);
 		}
 
+		template <typename T> inline T ceil(T val)
+		{
+			return std::ceil(val);
+		}
+
 		template <typename T> inline T clamp(T value, T min_val, T max_val)
 		{
 			return std::fmax(min_val, std::fmin(value, max_val));

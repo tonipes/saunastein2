@@ -4,6 +4,7 @@
 #include "data/static_vector.hpp"
 #include "gfx/buffer.hpp"
 #include "gfx/world/draws.hpp"
+#include "world/world_max_defines.hpp"
 #include "memory/bump_allocator.hpp"
 #include "math/matrix4x4.hpp"
 
@@ -14,7 +15,7 @@ namespace SFG
 	class proxy_manager;
 	struct vector2ui16;
 	struct view;
-	struct world_render_data;
+	class renderable_collector;
 
 	class render_pass_opaque
 	{
@@ -22,7 +23,6 @@ namespace SFG
 		static constexpr uint32 COLOR_TEXTURES = 4;
 
 	private:
-		static constexpr uint32 MAX_DRAWS = 512;
 
 		struct ubo
 		{
@@ -34,7 +34,6 @@ namespace SFG
 			buffer ubo;
 
 			static_vector<gfx_id, COLOR_TEXTURES> color_textures;
-			semaphore_data						  semaphore		= {};
 			gfx_id								  cmd_buffer	= 0;
 			gfx_id								  bind_group	= 0;
 			gfx_id								  depth_texture = 0;
@@ -42,7 +41,7 @@ namespace SFG
 
 		struct render_data
 		{
-			static_vector<indexed_draw, MAX_DRAWS> draws;
+			static_vector<indexed_draw, MAX_WORLD_DRAW_CALLS> draws;
 		};
 
 	public:
@@ -66,18 +65,13 @@ namespace SFG
 		void init(const init_params& params);
 		void uninit();
 
-		void prepare(proxy_manager& pm, view& camera_view, uint8 frame_index, world_render_data& rd);
+		void prepare(proxy_manager& pm, const renderable_collector& collector, uint8 frame_index);
 		void render(const render_params& params);
 		void resize(const vector2ui16& size, gfx_id* depth_textures);
 
 		inline gfx_id get_color_texture(uint8 frame_index, uint8 texture_index) const
 		{
 			return _pfd[frame_index].color_textures[texture_index];
-		}
-
-		inline semaphore_data& get_semaphore(uint8 frame_index)
-		{
-			return _pfd[frame_index].semaphore;
 		}
 
 		inline gfx_id get_cmd_buffer(uint8 frame_index) const

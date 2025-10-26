@@ -12,6 +12,7 @@
 #include "resources/common_resources.hpp"
 #include "data/ostream.hpp"
 #include "data/span.hpp"
+#include "world/world_max_defines.hpp"
 
 #ifndef SFG_STRIP_DEBUG_NAMES
 #include "data/string.hpp"

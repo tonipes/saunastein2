@@ -4,19 +4,26 @@
 #include "data/static_vector.hpp"
 #include "gfx/buffer.hpp"
 #include "gfx/world/draws.hpp"
-#include "memory/bump_allocator.hpp"
-#include "math/matrix4x4.hpp"
+#include "gfx/common/gfx_constants.hpp"
+#include "gfx/world/view.hpp"
+#include "gfx/world/renderable_collector.hpp"
 #include "world/world_max_defines.hpp"
+#include "memory/bump_allocator.hpp"
+#include "math/vector4.hpp"
+#include "math/matrix4x4.hpp"
+#include "data/vector.hpp"
 
 namespace SFG
 {
 	struct view;
 	class proxy_manager;
 	struct vector2ui16;
-	class renderable_collector;
+	struct view;
+	struct world_render_data;
 
-	class render_pass_pre_depth
+	class render_pass_shadows
 	{
+
 	private:
 		struct ubo
 		{
@@ -26,14 +33,17 @@ namespace SFG
 		struct per_frame_data
 		{
 			buffer ubo;
-			gfx_id cmd_buffer;
+			gfx_id cmd_buffers[SHADOWS_MAX_CMD_BUFFERS];
 			gfx_id bind_group;
-			gfx_id depth_texture = 0;
+			uint8  active_cmd_buffers = 0;
 		};
 
-		struct render_data
+		struct pass
 		{
 			static_vector<indexed_draw, MAX_WORLD_DRAW_CALLS> draws;
+			ubo												  uniforms	= {};
+			renderable_collector							  collector = {};
+			gfx_id											  texture	= 0;
 		};
 
 	public:
@@ -48,6 +58,7 @@ namespace SFG
 
 		struct render_params
 		{
+			uint8			   cmd_index;
 			uint8			   frame_index;
 			const vector2ui16& size;
 			gfx_id			   global_layout;
@@ -57,27 +68,26 @@ namespace SFG
 		void init(const init_params& params);
 		void uninit();
 
-		void prepare(proxy_manager& pm, const renderable_collector& collector, uint8 frame_index);
+		void prepare(proxy_manager& pm, uint8 frame_index);
 		void render(const render_params& params);
-		void resize(const vector2ui16& size);
 
-		inline gfx_id get_cmd_buffer(uint8 frame_index) const
+		inline const gfx_id* get_cmd_buffers(uint8 frame_index) const
 		{
-			return _pfd[frame_index].cmd_buffer;
+			return _pfd[frame_index].cmd_buffers;
 		}
 
-		inline gfx_id get_depth_texture(uint8 frame_index) const
+		inline uint8 get_active_cmd_buffers_count(uint8 frame_index) const
 		{
-			return _pfd[frame_index].depth_texture;
+			return _pfd[frame_index].active_cmd_buffers;
 		}
 
 	private:
-		void destroy_textures();
-		void create_textures(const vector2ui16& sz);
+		void prepare_pass(pass& p);
+		void render_passes(gfx_id cmd_buffer, pass* p, uint8 pass_count);
 
 	private:
 		per_frame_data _pfd[BACK_BUFFER_COUNT];
-		render_data	   _render_data;
-		bump_allocator _alloc = {};
+		bump_allocator _alloc  = {};
+		vector<pass>   _passes = {};
 	};
 }

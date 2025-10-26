@@ -14,7 +14,7 @@ namespace SFG
 	class proxy_manager;
 	struct vector2ui16;
 	struct view;
-	struct world_render_data;
+	class renderable_collector;
 
 	class render_pass_lighting
 	{
@@ -30,12 +30,11 @@ namespace SFG
 
 		struct per_frame_data
 		{
-			buffer		   ubo;
-			semaphore_data semaphore;
-			gfx_id		   cmd_buffer;
-			gfx_id		   bind_group;
-			gfx_id		   render_target = 0;
-			gfx_id		   depth_texture = 0;
+			buffer ubo;
+			gfx_id cmd_buffer;
+			gfx_id bind_group;
+			gfx_id render_target = 0;
+			gfx_id depth_texture = 0;
 		};
 
 	public:
@@ -62,18 +61,13 @@ namespace SFG
 		void init(const init_params& params);
 		void uninit();
 
-		void prepare(proxy_manager& pm, view& camera_view, uint8 frame_index);
+		void prepare(proxy_manager& pm, const renderable_collector& collector, uint8 frame_index);
 		void render(const render_params& params);
 		void resize(const vector2ui16& size, gfx_id* gbuffer_textures, gfx_id* depth_textures);
 
 		inline gfx_id get_color_texture(uint8 frame_index) const
 		{
 			return _pfd[frame_index].render_target;
-		}
-
-		inline semaphore_data& get_semaphore(uint8 frame_index)
-		{
-			return _pfd[frame_index].semaphore;
 		}
 
 		inline gfx_id get_cmd_buffer(uint8 frame_index) const

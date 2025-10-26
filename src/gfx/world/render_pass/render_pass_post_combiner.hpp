@@ -6,6 +6,7 @@
 #include "gfx/common/barrier_description.hpp"
 #include "gfx/buffer.hpp"
 #include "gfx/world/draws.hpp"
+#include "world/world_max_defines.hpp"
 #include "memory/bump_allocator.hpp"
 
 namespace SFG
@@ -15,7 +16,6 @@ namespace SFG
 	class render_pass_post_combiner
 	{
 	private:
-		static constexpr uint32 MAX_DRAWS	   = 512;
 		static constexpr uint32 MAX_BARRIERS   = 16;
 		static constexpr uint32 COLOR_TEXTURES = 4;
 
@@ -36,7 +36,7 @@ namespace SFG
 
 		struct render_data
 		{
-			static_vector<indexed_draw, MAX_DRAWS> draws;
+			static_vector<indexed_draw, MAX_WORLD_DRAW_CALLS> draws;
 		};
 
 	public:

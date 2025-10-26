@@ -9,7 +9,6 @@
 
 namespace SFG
 {
-#define MAX_GPU_ENTITIES 512
 
 	class buffer;
 

@@ -213,6 +213,11 @@ namespace SFG
 			return _data;
 		}
 
+		const T* data() const
+		{
+			return _data;
+		}
+
 	private:
 		T	   _data[N] = {};
 		size_t _head	= 0;

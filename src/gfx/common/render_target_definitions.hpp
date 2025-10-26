@@ -15,6 +15,7 @@ namespace SFG
 		static format get_format_gbuffer_orm();
 		static format get_format_lighting();
 		static format get_format_depth_default();
+		static format get_format_shadows();
 		static format get_format_depth_default_read();
 		static format get_format_swapchain();
 	};

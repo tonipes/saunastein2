@@ -43,4 +43,9 @@ namespace SFG
 	{
 		return format::r8g8b8a8_srgb;
 	}
+
+	format render_target_definitions::get_format_shadows()
+	{
+		return format::d32_sfloat;
+	}
 }

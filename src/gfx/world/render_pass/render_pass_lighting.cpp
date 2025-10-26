@@ -6,7 +6,7 @@
 #include "gfx/common/commands.hpp"
 #include "gfx/util/gfx_util.hpp"
 #include "gfx/buffer_queue.hpp"
-#include "gfx/world/world_render_data.hpp"
+#include "gfx/world/renderable_collector.hpp"
 #include "gfx/proxy/proxy_manager.hpp"
 #include "gfx/common/barrier_description.hpp"
 #include "gfx/renderer.hpp"
@@ -29,8 +29,7 @@ namespace SFG
 		{
 			per_frame_data& pfd = _pfd[i];
 
-			pfd.cmd_buffer			= backend->create_command_buffer({.type = command_type::graphics, .debug_name = "lighting_cmd"});
-			pfd.semaphore.semaphore = backend->create_semaphore();
+			pfd.cmd_buffer = backend->create_command_buffer({.type = command_type::graphics, .debug_name = "lighting_cmd"});
 			pfd.ubo.create_hw({.size = sizeof(ubo), .flags = resource_flags::rf_constant_buffer | resource_flags::rf_cpu_visible, .debug_name = "lighting_ubo"});
 
 			const uint32 base = i * 4;
@@ -80,26 +79,27 @@ namespace SFG
 
 			backend->destroy_command_buffer(pfd.cmd_buffer);
 			backend->destroy_bind_group(pfd.bind_group);
-			backend->destroy_semaphore(pfd.semaphore.semaphore);
 			pfd.ubo.destroy();
 		}
 
 		destroy_textures();
 	}
 
-	void render_pass_lighting::prepare(proxy_manager& pm, view& camera_view, uint8 frame_index)
+	void render_pass_lighting::prepare(proxy_manager& pm, const renderable_collector& collector, uint8 frame_index)
 	{
 		const uint8					ambient_exists = pm.get_ambient_exists();
 		const render_proxy_ambient& ambient		   = pm.get_ambient();
 		const vector3				ambient_color  = ambient_exists ? ambient.base_color : vector3(0.1f, 0.1f, 0.1f);
 
-		per_frame_data& pfd		 = _pfd[frame_index];
-		const ubo		ubo_data = {
-				  .inverse_view_proj		   = camera_view.view_proj_matrix.inverse(),
-				  .ambient_color_plights_count = vector4(ambient_color.x, ambient_color.y, ambient_color.z, static_cast<float>(pm.get_count_point_lights())),
-				  .view_position_slights_count = vector4(camera_view.position.x, camera_view.position.y, camera_view.position.z, static_cast<float>(pm.get_count_spot_lights())),
-				  .dir_lights_count			   = static_cast<float>(pm.get_count_dir_lights()),
-		  };
+		per_frame_data& pfd			= _pfd[frame_index];
+		const view&		camera_view = collector.get_view();
+
+		const ubo ubo_data = {
+			.inverse_view_proj			 = camera_view.view_proj_matrix.inverse(),
+			.ambient_color_plights_count = vector4(ambient_color.x, ambient_color.y, ambient_color.z, static_cast<float>(pm.get_count_point_lights())),
+			.view_position_slights_count = vector4(camera_view.position.x, camera_view.position.y, camera_view.position.z, static_cast<float>(pm.get_count_spot_lights())),
+			.dir_lights_count			 = static_cast<float>(pm.get_count_dir_lights()),
+		};
 
 		pfd.ubo.buffer_data(0, &ubo_data, sizeof(ubo));
 	}

@@ -25,7 +25,7 @@ namespace SFG
 		void deserialize(istream& stream, world& w);
 
 		void set_values(world& w, const color& c, float range, float intensity);
-		void set_shadow_values(uint8 cast_shadows, const vector2ui16& resolution);
+		void set_shadow_values(world& w, uint8 cast_shadows, const vector2ui16& resolution);
 
 #ifdef SFG_TOOLMODE
 		void serialize_json(nlohmann::json& j, world& w) const;
@@ -55,7 +55,7 @@ namespace SFG
 	private:
 		trait_header _header			= {};
 		color		 _base_color		= color::white;
-		vector2ui16	 _shadow_resolution = vectorui16(256, 256);
+		vector2ui16	 _shadow_resolution = vector2ui16(256, 256);
 		float		 _range				= 0.0f;
 		float		 _intensity			= 0.0f;
 		uint8		 _cast_shadows		= 0;
@@ -69,7 +69,7 @@ namespace SFG
 		void serialize(ostream& stream, world& w) const;
 		void deserialize(istream& stream, world& w);
 		void set_values(world& w, const color& c, float range, float intensity, float inner_cone, float outer_cone);
-		void set_shadow_values(uint8 cast_shadows, const vector2ui16& resolution);
+		void set_shadow_values(world& w, uint8 cast_shadows, const vector2ui16& resolution);
 
 #ifdef SFG_TOOLMODE
 		void serialize_json(nlohmann::json& j, world& w) const;
@@ -109,7 +109,7 @@ namespace SFG
 	private:
 		trait_header _header			= {};
 		color		 _base_color		= color::white;
-		vector2ui16	 _shadow_resolution = vectorui16(256, 256);
+		vector2ui16	 _shadow_resolution = vector2ui16(256, 256);
 		float		 _range				= 0.0f;
 		float		 _intensity			= 0.0f;
 		float		 _inner_cone		= 0.0f;
@@ -125,7 +125,7 @@ namespace SFG
 		void serialize(ostream& stream, world& w) const;
 		void deserialize(istream& stream, world& w);
 		void set_values(world& w, const color& c, float range, float intensity);
-		void set_shadow_values(uint8 cast_shadows, const vector2ui16& resolution);
+		void set_shadow_values(world& w, uint8 cast_shadows, const vector2ui16& resolution);
 
 #ifdef SFG_TOOLMODE
 		void serialize_json(nlohmann::json& j, world& w) const;
@@ -155,7 +155,7 @@ namespace SFG
 	private:
 		trait_header _header			= {};
 		color		 _base_color		= color::white;
-		vector2ui16	 _shadow_resolution = vectorui16(256, 256);
+		vector2ui16	 _shadow_resolution = vector2ui16(256, 256);
 		float		 _range				= 0.0f;
 		float		 _intensity			= 0.0f;
 		uint8		 _cast_shadows		= 0;

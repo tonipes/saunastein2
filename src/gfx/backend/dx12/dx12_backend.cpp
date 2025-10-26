@@ -14,6 +14,7 @@
 #include "memory/memory.hpp"
 #include "math/math_common.hpp"
 #include "common/system_info.hpp"
+#include "world/world_max_defines.hpp"
 
 #ifndef SFG_PRODUCTION
 #include <WinPixEventRuntime/pix3.h>

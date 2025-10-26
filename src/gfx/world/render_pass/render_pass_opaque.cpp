@@ -6,7 +6,7 @@
 #include "gfx/common/commands.hpp"
 #include "gfx/util/gfx_util.hpp"
 #include "gfx/buffer_queue.hpp"
-#include "gfx/world/world_render_data.hpp"
+#include "gfx/world/renderable_collector.hpp"
 #include "gfx/proxy/proxy_manager.hpp"
 #include "gfx/common/barrier_description.hpp"
 #include "gfx/common/render_target_definitions.hpp"
@@ -28,8 +28,7 @@ namespace SFG
 		{
 			per_frame_data& pfd = _pfd[i];
 
-			pfd.cmd_buffer			= backend->create_command_buffer({.type = command_type::graphics, .debug_name = "opaque_cmd"});
-			pfd.semaphore.semaphore = backend->create_semaphore();
+			pfd.cmd_buffer = backend->create_command_buffer({.type = command_type::graphics, .debug_name = "opaque_cmd"});
 			pfd.ubo.create_hw({.size = sizeof(ubo), .flags = resource_flags::rf_constant_buffer | resource_flags::rf_cpu_visible, .debug_name = "opaque_ubo"});
 			pfd.depth_texture = params.depth_textures[i];
 
@@ -57,19 +56,20 @@ namespace SFG
 
 			backend->destroy_command_buffer(pfd.cmd_buffer);
 			backend->destroy_bind_group(pfd.bind_group);
-			backend->destroy_semaphore(pfd.semaphore.semaphore);
 			pfd.ubo.destroy();
 		}
 
 		destroy_textures();
 	}
 
-	void render_pass_opaque::prepare(proxy_manager& pm, view& camera_view, uint8 frame_index, world_render_data& wrd)
+	void render_pass_opaque::prepare(proxy_manager& pm, const renderable_collector& collector, uint8 frame_index)
 	{
 		render_data& rd = _render_data;
 		rd.draws.clear();
 
-		for (const renderable_object& obj : wrd.objects)
+		const auto& renderables = collector.get_renderables();
+
+		for (const renderable_object& obj : renderables)
 		{
 			const render_proxy_material& proxy_material = pm.get_material(obj.material);
 
@@ -111,7 +111,7 @@ namespace SFG
 
 		per_frame_data& pfd		 = _pfd[frame_index];
 		const ubo		ubo_data = {
-				  .view_proj = camera_view.view_proj_matrix,
+				  .view_proj = collector.get_view().view_proj_matrix,
 		  };
 		pfd.ubo.buffer_data(0, &ubo_data, sizeof(ubo));
 	}
@@ -143,17 +143,17 @@ namespace SFG
 			att.texture						  = txt;
 
 			barriers.push_back({
-				.resource	= txt,
-				.flags		= barrier_flags::baf_is_texture,
+				.resource	 = txt,
+				.flags		 = barrier_flags::baf_is_texture,
 				.from_states = resource_state::resource_state_ps_resource,
-				.to_states	= resource_state::resource_state_render_target,
+				.to_states	 = resource_state::resource_state_render_target,
 			});
 
 			barriers_after.push_back({
-				.resource	= txt,
-				.flags		= barrier_flags::baf_is_texture,
+				.resource	 = txt,
+				.flags		 = barrier_flags::baf_is_texture,
 				.from_states = resource_state::resource_state_render_target,
-				.to_states	= resource_state::resource_state_ps_resource,
+				.to_states	 = resource_state::resource_state_ps_resource,
 			});
 		}
 
