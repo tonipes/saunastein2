@@ -4,6 +4,7 @@
 #include "data/static_vector.hpp"
 #include "gfx/buffer.hpp"
 #include "gfx/world/draws.hpp"
+#include "gfx/common/gfx_constants.hpp"
 #include "world/world_max_defines.hpp"
 #include "memory/bump_allocator.hpp"
 #include "math/matrix4x4.hpp"
@@ -20,8 +21,6 @@ namespace SFG
 	class render_pass_opaque
 	{
 	public:
-		static constexpr uint32 COLOR_TEXTURES = 4;
-
 	private:
 		struct ubo
 		{
@@ -30,12 +29,13 @@ namespace SFG
 
 		struct per_frame_data
 		{
-			buffer ubo;
-
-			static_vector<gfx_id, COLOR_TEXTURES> color_textures;
-			gfx_id								  cmd_buffer	= 0;
-			gfx_id								  bind_group	= 0;
-			gfx_id								  depth_texture = 0;
+			buffer											 ubo;
+			static_vector<gfx_id, GBUFFER_COLOR_TEXTURES>	 color_textures			  = NULL_GFX_ID;
+			static_vector<gpu_index, GBUFFER_COLOR_TEXTURES> gpu_index_color_textures = NULL_GFX_ID;
+			gfx_id											 cmd_buffer				  = 0;
+			gfx_id											 depth_texture			  = 0;
+			gpu_index										 gpu_index_entity_buffer  = 0;
+			gpu_index										 gpu_index_bone_buffer	  = 0;
 		};
 
 	public:
@@ -44,8 +44,8 @@ namespace SFG
 			const vector2ui16& size;
 			uint8*			   alloc;
 			size_t			   alloc_size;
-			gfx_id*			   entities;
-			gfx_id*			   bones;
+			gpu_index*		   entities;
+			gpu_index*		   bones;
 			gfx_id*			   depth_textures;
 		};
 
@@ -63,20 +63,14 @@ namespace SFG
 		void render(const render_params& params);
 		void resize(const vector2ui16& size, gfx_id* depth_textures);
 
-		inline gfx_id get_color_texture(uint8 frame_index, uint8 texture_index) const
+		inline gpu_index get_output_gpu_index(uint8 frame_index, uint8 texture_index) const
 		{
-			return _pfd[frame_index].color_textures[texture_index];
+			return _pfd[frame_index].gpu_index_color_textures[texture_index];
 		}
 
 		inline gfx_id get_cmd_buffer(uint8 frame_index) const
 		{
 			return _pfd[frame_index].cmd_buffer;
-		}
-
-		inline void set_depth_textures(gfx_id* textures)
-		{
-			for (uint8 i = 0; i < BACK_BUFFER_COUNT; i++)
-				_pfd[i].depth_texture = textures[i];
 		}
 
 	private:

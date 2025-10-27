@@ -23,19 +23,21 @@ struct VSOutput
 // Vertex Shader
 //------------------------------------------------------------------------------
 
-cbuffer RenderPassCBV : render_pass_ubo0
+struct render_pass_data
 {
-	float4x4 _rp_projection;
-	float _sdf_thickness;
-	float _sdf_softness;
-}
+	float4x4 projection;
+	float sdf_thickness;
+	float sdf_softness;
+};
 
 VSOutput VSMain(VSInput IN)
 {
 	VSOutput OUT;
     
+	render_pass_data rp_data = sfg_get_rp_cbv<render_pass_data>();
+
 	float4 worldPos = float4(IN.pos, 0.0f, 1.0f);
-	OUT.pos = mul(_rp_projection, worldPos);
+	OUT.pos = mul(rp_data.projection, worldPos);
 	OUT.uv = IN.uv;
 	OUT.color = IN.color;
 	return OUT;
@@ -45,12 +47,14 @@ VSOutput VSMain(VSInput IN)
 // Pixel Shader
 //------------------------------------------------------------------------------
 
-Texture2D _txt_atlas : material_texture0;
-SamplerState _smp_base : static_sampler_gui_text;
+SamplerState sampler_base : static_sampler_gui_text;
 
 float4 PSMain(VSOutput IN) : SV_TARGET
 {
-	float distance = _txt_atlas.SampleLevel(_smp_base, IN.uv, 0).x;
-	float alpha = smoothstep(_sdf_thickness - _sdf_softness, _sdf_thickness + _sdf_softness, distance);
+	render_pass_data rp_data = sfg_get_rp_cbv<render_pass_data>();
+	Texture2D txt_atlas = sfg_get_texture2D(sfg_object_constant0);
+	
+	float distance = txt_atlas.SampleLevel(sampler_base, IN.uv, 0).x;
+	float alpha = smoothstep(rp_data.sdf_thickness - rp_data.sdf_softness, rp_data.sdf_thickness + rp_data.sdf_softness, distance);
 	return float4(IN.color.xyz, alpha);
 }

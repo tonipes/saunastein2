@@ -239,7 +239,7 @@ namespace SFG
 			return _resources.get(h);
 		}
 
-		inline const T& get_by_hash_const(string_id hash) const 
+		inline const T& get_by_hash_const(string_id hash) const
 		{
 			const resource_handle& h = _by_hashes.at(hash);
 			return _resources.get(h);

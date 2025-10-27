@@ -12,8 +12,8 @@ namespace SFG
 
 	enum root_param_index : uint8
 	{
-		rpi_constants = 0,
-		rpi_engine_cbv,
+		rpi_engine_cbv = 0,
+		rpi_constants,
 		rpi_table_render_pass,
 		rpi_table_material,
 		rpi_table_object,
@@ -56,12 +56,53 @@ namespace SFG
 		upi_dyn_sampler3 = 3,
 	};
 
+	enum constant_indices : uint8
+	{
+		constant_index_rp_ubo_index = 0,
+		constant_index_material_ubo_index,
+		constant_index_texture_ubo_index,
+		constant_index_rp_constant0,
+		constant_index_rp_constant1,
+		constant_index_rp_constant2,
+		constant_index_rp_constant3,
+		constant_index_rp_constant4,
+		constant_index_rp_constant5,
+		constant_index_rp_constant6,
+		constant_index_rp_constant7,
+		constant_index_rp_constant8,
+		constant_index_rp_constant9,
+		constant_index_rp_constant10,
+		constant_index_object_constant0,
+		constant_index_object_constant1,
+		constant_index_object_constant2,
+		constant_index_object_constant3,
+		constant_index_object_constant4,
+		constant_index_object_constant5,
+		constant_index_object_constant6,
+		constant_index_object_constant7,
+		constant_index_object_constant8,
+		constant_index_max,
+	};
+
+	struct root_constants
+	{
+		uint32 rp_ubo_index		  = 0;
+		uint32 material_ubo_index = 0;
+		uint32 object_constant0	  = 0;
+		uint32 object_constant1	  = 0;
+		uint32 object_constant2	  = 0;
+		uint32 object_constant3	  = 0;
+		uint32 object_constant4	  = 0;
+		uint32 object_constant5	  = 0;
+		uint32 object_constant6	  = 0;
+		uint32 object_constant7	  = 0;
+		uint32 object_constant8	  = 0;
+	};
+
 	class gfx_util
 	{
 	public:
 		static gfx_id				  create_bind_layout_global();
-		static void					  update_dummy_bind_group(gfx_id group, gfx_id dummy_texture, gfx_id dummy_texture_array, gfx_id dummy_texture_cube, gfx_id dummy_sampler, gfx_id dummy_ssbo, gfx_id dummy_ubo);
-		static gfx_id				  create_bind_group_global();
 		static sampler_desc			  get_sampler_desc_anisotropic();
 		static sampler_desc			  get_sampler_desc_linear();
 		static sampler_desc			  get_sampler_desc_nearest();

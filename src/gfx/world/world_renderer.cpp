@@ -37,11 +37,11 @@ namespace SFG
 
 		_base_size = size;
 
-		static_vector<gfx_id, BACK_BUFFER_COUNT> entities_ptr;
-		static_vector<gfx_id, BACK_BUFFER_COUNT> bones_ptr;
-		static_vector<gfx_id, BACK_BUFFER_COUNT> dir_lights_ptr;
-		static_vector<gfx_id, BACK_BUFFER_COUNT> point_lights_ptr;
-		static_vector<gfx_id, BACK_BUFFER_COUNT> spot_lights_ptr;
+		static_vector<gpu_index, BACK_BUFFER_COUNT> entities_ptr;
+		static_vector<gpu_index, BACK_BUFFER_COUNT> bones_ptr;
+		static_vector<gpu_index, BACK_BUFFER_COUNT> dir_lights_ptr;
+		static_vector<gpu_index, BACK_BUFFER_COUNT> point_lights_ptr;
+		static_vector<gpu_index, BACK_BUFFER_COUNT> spot_lights_ptr;
 
 		// pfd
 		for (uint8 i = 0; i < BACK_BUFFER_COUNT; i++)
@@ -120,11 +120,11 @@ namespace SFG
 					.debug_name		 = "lighting_spot_lights_cpu",
 				});
 
-			entities_ptr.push_back(pfd.entity_buffer.get_hw_gpu());
-			bones_ptr.push_back(pfd.bones_buffer.get_hw_gpu());
-			dir_lights_ptr.push_back(pfd.dir_lights_buffer.get_hw_gpu());
-			point_lights_ptr.push_back(pfd.point_lights_buffer.get_hw_gpu());
-			spot_lights_ptr.push_back(pfd.spot_lights_buffer.get_hw_gpu());
+			entities_ptr.push_back(pfd.entity_buffer.get_gpu_heap_index());
+			bones_ptr.push_back(pfd.bones_buffer.get_gpu_heap_index());
+			dir_lights_ptr.push_back(pfd.dir_lights_buffer.get_gpu_heap_index());
+			point_lights_ptr.push_back(pfd.point_lights_buffer.get_gpu_heap_index());
+			spot_lights_ptr.push_back(pfd.spot_lights_buffer.get_gpu_heap_index());
 		}
 
 		// Command allocations
@@ -146,9 +146,13 @@ namespace SFG
 			});
 			alloc_head += size_per_lane;
 
-			static_vector<gfx_id, BACK_BUFFER_COUNT> depth_textures;
+			static_vector<gfx_id, BACK_BUFFER_COUNT>	depths_hw;
+			static_vector<gpu_index, BACK_BUFFER_COUNT> depths_index;
 			for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
-				depth_textures.push_back(_pass_pre_depth.get_depth_texture(i));
+			{
+				depths_hw.push_back(_pass_pre_depth.get_output_hw(i));
+				depths_index.push_back(_pass_pre_depth.get_output_gpu_index(i));
+			}
 
 			_pass_opaque.init({
 				.size			= size,
@@ -156,28 +160,30 @@ namespace SFG
 				.alloc_size		= size_per_lane,
 				.entities		= entities_ptr.data(),
 				.bones			= bones_ptr.data(),
-				.depth_textures = depth_textures.data(),
+				.depth_textures = depths_hw.data(),
 			});
 			alloc_head += size_per_lane;
 
-			static_vector<gfx_id, BACK_BUFFER_COUNT * render_pass_opaque::COLOR_TEXTURES> gbuffer_textures;
+			static_vector<gpu_index, BACK_BUFFER_COUNT * GBUFFER_COLOR_TEXTURES> gbuffer_textures;
 			for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 			{
-				gbuffer_textures.push_back(_pass_opaque.get_color_texture(i, 0));
-				gbuffer_textures.push_back(_pass_opaque.get_color_texture(i, 1));
-				gbuffer_textures.push_back(_pass_opaque.get_color_texture(i, 2));
-				gbuffer_textures.push_back(_pass_opaque.get_color_texture(i, 3));
+				for (uint32 j = 0; j < GBUFFER_COLOR_TEXTURES; j++)
+				{
+					gbuffer_textures.push_back(_pass_opaque.get_output_gpu_index(i, j));
+				}
 			}
+
 			_pass_lighting.init({
-				.size			  = size,
-				.alloc			  = alloc_head,
-				.alloc_size		  = size_per_lane,
-				.entities		  = entities_ptr.data(),
-				.point_lights	  = point_lights_ptr.data(),
-				.spot_lights	  = spot_lights_ptr.data(),
-				.dir_lights		  = dir_lights_ptr.data(),
-				.gbuffer_textures = gbuffer_textures.data(),
-				.depth_textures	  = depth_textures.data(),
+				.size			   = size,
+				.alloc			   = alloc_head,
+				.alloc_size		   = size_per_lane,
+				.entities		   = entities_ptr.data(),
+				.point_lights	   = point_lights_ptr.data(),
+				.spot_lights	   = spot_lights_ptr.data(),
+				.dir_lights		   = dir_lights_ptr.data(),
+				.gbuffer_textures  = gbuffer_textures.data(),
+				.depth_textures	   = depths_index.data(),
+				.depth_textures_hw = depths_hw.data(),
 			});
 			alloc_head += size_per_lane;
 
@@ -311,8 +317,8 @@ namespace SFG
 		backend->submit_commands(queue_gfx, &cmd_depth, 1);
 		// backend->queue_signal(queue_gfx, &sem_depth, &sem_depth_val, 1);
 
-		if (cmd_shadows_count != 0)
-			backend->submit_commands(queue_gfx, cmd_shadows, cmd_shadows_count);
+		// if (cmd_shadows_count != 0)
+		// 	backend->submit_commands(queue_gfx, cmd_shadows, cmd_shadows_count);
 
 		// submit opaque, wait for depth
 		// backend->queue_wait(queue_gfx, &sem_depth, &sem_depth_val, 1);
@@ -334,22 +340,27 @@ namespace SFG
 		_pass_pre_depth.resize(size);
 
 		// gbuffer
-		static_vector<gfx_id, BACK_BUFFER_COUNT> depths;
+		static_vector<gfx_id, BACK_BUFFER_COUNT>	depths;
+		static_vector<gpu_index, BACK_BUFFER_COUNT> depths_index;
 		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
-			depths.push_back(_pass_pre_depth.get_depth_texture(i));
+		{
+			depths.push_back(_pass_pre_depth.get_output_hw(i));
+			depths_index.push_back(_pass_pre_depth.get_output_gpu_index(i));
+		}
 
 		_pass_opaque.resize(size, depths.data());
 
 		// lighting
-		static_vector<gfx_id, BACK_BUFFER_COUNT * render_pass_opaque::COLOR_TEXTURES> gbuffer_textures;
+		static_vector<gpu_index, BACK_BUFFER_COUNT * GBUFFER_COLOR_TEXTURES> gbuffer_textures;
 		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
-			gbuffer_textures.push_back(_pass_opaque.get_color_texture(i, 0));
-			gbuffer_textures.push_back(_pass_opaque.get_color_texture(i, 1));
-			gbuffer_textures.push_back(_pass_opaque.get_color_texture(i, 2));
-			gbuffer_textures.push_back(_pass_opaque.get_color_texture(i, 3));
+			for (uint32 j = 0; j < GBUFFER_COLOR_TEXTURES; j++)
+			{
+				gbuffer_textures.push_back(_pass_opaque.get_output_gpu_index(i, j));
+			}
 		}
-		_pass_lighting.resize(size, gbuffer_textures.data(), depths.data());
+
+		_pass_lighting.resize(size, gbuffer_textures.data(), depths_index.data(), depths.data());
 	}
 
 	void world_renderer::upload(uint8 frame_index)

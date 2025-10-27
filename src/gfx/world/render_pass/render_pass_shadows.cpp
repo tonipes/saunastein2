@@ -22,7 +22,6 @@ namespace SFG
 	void render_pass_shadows::init(const init_params& params)
 	{
 		_alloc.init(params.alloc, params.alloc_size);
-		return;
 
 		gfx_backend* backend = gfx_backend::get();
 
@@ -44,23 +43,22 @@ namespace SFG
 			{
 				p.ubos[j].create_hw({.size = sizeof(ubo), .flags = resource_flags::rf_constant_buffer | resource_flags::rf_cpu_visible, .debug_name = "shadows_ubo"});
 
-				p.bind_groups[j] = backend->create_empty_bind_group();
-				backend->bind_group_add_pointer(p.bind_groups[j], rpi_table_render_pass, upi_render_pass_texture4 + 1, false);
-				backend->bind_group_update_pointer(p.bind_groups[j],
-												   0,
-												   {
-													   {.resource = p.ubos[j].get_hw_gpu(), .view = 0, .pointer_index = upi_render_pass_ubo0, .type = binding_type::ubo},
-													   {.resource = params.entities[i], .view = 0, .pointer_index = upi_render_pass_ssbo0, .type = binding_type::ssbo},
-													   {.resource = params.bones[i], .view = 0, .pointer_index = upi_render_pass_ssbo1, .type = binding_type::ssbo},
-												   });
-			}
+				// p.bind_groups[j] = backend->create_empty_bind_group();
+				// backend->bind_group_add_pointer(p.bind_groups[j], rpi_table_render_pass, upi_render_pass_texture4 + 1, false);
+				// backend->bind_group_update_pointer(p.bind_groups[j],
+				//								   0,
+				//								   {
+				//									   {.resource = p.ubos[j].get_hw_gpu(), .view = 0, .pointer_index = upi_render_pass_ubo0, .type = binding_type::ubo},
+				//									   {.resource = params.entities[i], .view = 0, .pointer_index = upi_render_pass_ssbo0, .type = binding_type::ssbo},
+				//									   {.resource = params.bones[i], .view = 0, .pointer_index = upi_render_pass_ssbo1, .type = binding_type::ssbo},
+				//								   });
+			} //
 		}
 	}
 
 	void render_pass_shadows::uninit()
 	{
 		_alloc.uninit();
-		return;
 
 		gfx_backend* backend = gfx_backend::get();
 
@@ -71,7 +69,7 @@ namespace SFG
 			for (uint8 j = 0; j < SHADOWS_MAX_CMD_BUFFERS; j++)
 				backend->destroy_command_buffer(pfd.cmd_buffers[j]);
 
-			backend->destroy_bind_group(pfd.bind_group);
+			// backend->destroy_bind_group(pfd.bind_group);
 		}
 		for (uint32 i = 0; i < SHADOW_PASSES_COUNT; i++)
 		{
@@ -80,7 +78,7 @@ namespace SFG
 			for (uint8 j = 0; j < BACK_BUFFER_COUNT; j++)
 			{
 				p.ubos[j].destroy();
-				backend->destroy_bind_group(p.bind_groups[j]);
+				// backend->destroy_bind_group(p.bind_groups[j]);
 			}
 		}
 	}
@@ -90,7 +88,6 @@ namespace SFG
 		_passes.resize(0);
 		const uint32 dirs_peak = pm.get_peak_dir_lights();
 		auto&		 dirs	   = *pm.get_dir_lights();
-
 	}
 
 	void render_pass_shadows::render(const render_params& p)
@@ -116,7 +113,7 @@ namespace SFG
 		{
 			const pass&	 pass_data		= _passes[base + i];
 			const gfx_id target_texture = pass_data.texture;
-			const gfx_id bind_group		= pass_data.bind_groups[p.frame_index];
+			// const gfx_id bind_group		= pass_data.bind_groups[p.frame_index];
 
 			barriers.resize(0);
 			barriers.push_back({
@@ -147,7 +144,7 @@ namespace SFG
 															  },
 													  });
 
-			backend->cmd_bind_group(cmd_buffer, {.group = bind_group});
+			// backend->cmd_bind_group(cmd_buffer, {.group = bind_group});
 			backend->cmd_set_scissors(cmd_buffer, {.width = static_cast<uint16>(p.size.x), .height = static_cast<uint16>(p.size.y)});
 			backend->cmd_set_viewport(cmd_buffer,
 									  {
@@ -190,9 +187,9 @@ namespace SFG
 
 			for (const indexed_draw& draw : pass_data.draws)
 			{
-				bind(draw.bind_group, draw.pipeline, draw.vertex_buffer, draw.idx_buffer);
+				// bind(draw.bind_group, draw.pipeline, draw.vertex_buffer, draw.idx_buffer);
 
-				backend->cmd_bind_constants(cmd_buffer, {.data = (void*)&draw.constants, .offset = 0, .count = 4});
+				// backend->cmd_bind_constants(cmd_buffer, {.data = (void*)&draw.constants, .offset = 0, .count = 4});
 				backend->cmd_draw_indexed_instanced(cmd_buffer,
 													{
 														.index_count_per_instance = draw.index_count,

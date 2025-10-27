@@ -676,10 +676,6 @@ namespace SFG
 				raw.material_data << orm_tiling << orm_offset;
 				raw.material_data << emissive_tiling << emissive_offset;
 
-				float pad = 0;
-				raw.material_data << pad;
-				raw.material_data << pad;
-
 				if (tmat.pbrMetallicRoughness.metallicRoughnessTexture.index == -1 && tmat.occlusionTexture.index != -1)
 				{
 					SFG_WARN("GTLF material {0} is missing ORM texture but has seperate occlusion texture. Occlusion texture will be used for ORM slot, might lead to inaccuracies in roughness & metallic implementation.", tmat.name);

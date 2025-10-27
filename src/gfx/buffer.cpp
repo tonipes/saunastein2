@@ -19,6 +19,8 @@ namespace SFG
 		_hw_gpu				 = backend->create_resource(hw);
 		backend->map_resource(_hw_staging, _mapped);
 		_flags.set(buf_has_staging | buf_alive);
+
+		_gpu_heap_index = backend->get_resource_gpu_index(_hw_gpu);
 	}
 
 	void buffer::create_hw(const resource_desc& desc)
@@ -28,6 +30,8 @@ namespace SFG
 		_hw_gpu				 = backend->create_resource(desc);
 		backend->map_resource(_hw_gpu, _mapped);
 		_flags.set(buf_alive);
+
+		_gpu_heap_index = backend->get_resource_gpu_index(_hw_gpu);
 	}
 
 	void buffer::destroy()
@@ -40,6 +44,8 @@ namespace SFG
 		_mapped = nullptr;
 		_flags.remove(buffer_flags::buf_alive);
 		_flags.remove(buffer_flags::buf_has_staging);
+		_gpu_heap_index = UINT32_MAX;
+		_hw_gpu			= NULL_GFX_ID;
 	}
 
 	void buffer::buffer_data(size_t padding, const void* data, size_t size)

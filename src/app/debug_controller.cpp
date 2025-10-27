@@ -408,34 +408,14 @@ namespace SFG
 				.debug_name		= "debug_rt",
 			});
 
+			pfd.rt_console_index	= backend->get_texture_gpu_index(pfd.rt_console, 1);
+			pfd.rt_fullscreen_index = backend->get_texture_gpu_index(pfd.rt_fullscreen, 1);
+
 			pfd.buf_gui_pass_view.create_hw({
 				.size		= sizeof(gui_pass_view),
 				.flags		= resource_flags::rf_cpu_visible | resource_flags::rf_constant_buffer,
 				.debug_name = "cbv_gui_pass",
 			});
-
-			pfd.buf_fullscreen_pass_view.create_hw({
-				.size		= sizeof(fullscreen_pass_view),
-				.flags		= resource_flags::rf_cpu_visible | resource_flags::rf_constant_buffer,
-				.debug_name = "cbv_fs_pass",
-			});
-
-			pfd.bind_group_gui_render_pass = backend->create_empty_bind_group();
-			backend->bind_group_add_pointer(pfd.bind_group_gui_render_pass, rpi_table_render_pass, 1, false);
-			backend->bind_group_update_pointer(pfd.bind_group_gui_render_pass,
-											   0,
-											   {
-												   {.resource = pfd.buf_gui_pass_view.get_hw_gpu(), .pointer_index = upi_render_pass_ubo0, .type = binding_type::ubo},
-											   });
-
-			pfd.bind_group_fullscreen = backend->create_empty_bind_group();
-			backend->bind_group_add_pointer(pfd.bind_group_fullscreen, rpi_table_material, 3, false);
-			backend->bind_group_update_pointer(pfd.bind_group_fullscreen,
-											   0,
-											   {
-												   {.resource = pfd.buf_fullscreen_pass_view.get_hw_gpu(), .pointer_index = upi_material_ubo0, .type = binding_type::ubo},
-												   {.resource = pfd.rt_console, .view = 1, .pointer_index = upi_material_texture0, .type = binding_type::texture_binding},
-											   });
 
 			pfd.buf_gui_vtx.create_staging_hw(
 				{
@@ -558,16 +538,12 @@ namespace SFG
 			per_frame_data& pfd = _pfd[i];
 			backend->destroy_texture(pfd.rt_console);
 			backend->destroy_texture(pfd.rt_fullscreen);
-			backend->destroy_bind_group(pfd.bind_group_gui_render_pass);
-			backend->destroy_bind_group(pfd.bind_group_fullscreen);
 			backend->unmap_resource(pfd.buf_gui_pass_view.get_hw_gpu());
-			backend->unmap_resource(pfd.buf_fullscreen_pass_view.get_hw_gpu());
 			backend->unmap_resource(pfd.buf_gui_vtx.get_hw_staging());
 			backend->unmap_resource(pfd.buf_gui_idx.get_hw_staging());
 			pfd.buf_gui_pass_view.destroy();
 			pfd.buf_gui_vtx.destroy();
 			pfd.buf_gui_idx.destroy();
-			pfd.buf_fullscreen_pass_view.destroy();
 		}
 
 		log::instance().remove_listener(TO_SIDC("debug_controller"));
@@ -588,11 +564,6 @@ namespace SFG
 		};
 		pfd.buf_gui_pass_view.buffer_data(0, (void*)&view, sizeof(gui_pass_view));
 
-		const fullscreen_pass_view fs_view = {
-			.size = vector2(static_cast<float>(_gfx_data.rt_size.x), static_cast<float>(_gfx_data.rt_size.y)),
-		};
-		pfd.buf_fullscreen_pass_view.buffer_data(0, (void*)&fs_view, sizeof(fullscreen_pass_view));
-
 		flush_key_events();
 
 		_vekt_data.builder->build_begin(vector2(_gfx_data.rt_size.x, _gfx_data.rt_size.y));
@@ -605,31 +576,31 @@ namespace SFG
 	{
 		per_frame_data& pfd = _pfd[_gfx_data.frame_index];
 		out_barriers.push_back({
-			.resource	= pfd.rt_console,
-			.flags		= barrier_flags::baf_is_texture,
+			.resource	 = pfd.rt_console,
+			.flags		 = barrier_flags::baf_is_texture,
 			.from_states = resource_state::resource_state_ps_resource,
-			.to_states	= resource_state::resource_state_render_target,
+			.to_states	 = resource_state::resource_state_render_target,
 		});
 
 		out_barriers.push_back({
-			.resource	= pfd.rt_fullscreen,
-			.flags		= barrier_flags::baf_is_texture,
+			.resource	 = pfd.rt_fullscreen,
+			.flags		 = barrier_flags::baf_is_texture,
 			.from_states = resource_state::resource_state_ps_resource,
-			.to_states	= resource_state::resource_state_render_target,
+			.to_states	 = resource_state::resource_state_render_target,
 		});
 
 		out_barriers.push_back({
-			.resource	= pfd.buf_gui_idx.get_hw_gpu(),
-			.flags		= barrier_flags::baf_is_resource,
+			.resource	 = pfd.buf_gui_idx.get_hw_gpu(),
+			.flags		 = barrier_flags::baf_is_resource,
 			.from_states = resource_state::resource_state_index_buffer,
-			.to_states	= resource_state::resource_state_copy_dest,
+			.to_states	 = resource_state::resource_state_copy_dest,
 		});
 
 		out_barriers.push_back({
-			.resource	= pfd.buf_gui_vtx.get_hw_gpu(),
-			.flags		= barrier_flags::baf_is_resource,
+			.resource	 = pfd.buf_gui_vtx.get_hw_gpu(),
+			.flags		 = barrier_flags::baf_is_resource,
 			.from_states = resource_state::resource_state_vertex_cbv,
-			.to_states	= resource_state::resource_state_copy_dest,
+			.to_states	 = resource_state::resource_state_copy_dest,
 		});
 	}
 
@@ -647,16 +618,16 @@ namespace SFG
 	{
 		gfx_backend* backend = gfx_backend::get();
 
-		per_frame_data&	  pfd				= _pfd[frame_index];
-		const vector2ui16 rt_size			= _gfx_data.rt_size;
-		const gfx_id	  rt_console		= pfd.rt_console;
-		const gfx_id	  rt_fullscreen		= pfd.rt_fullscreen;
-		const gfx_id	  gui_vertex		= pfd.buf_gui_vtx.get_hw_gpu();
-		const gfx_id	  gui_index			= pfd.buf_gui_idx.get_hw_gpu();
-		const gfx_id	  bg_rp				= pfd.bind_group_gui_render_pass;
-		const gfx_id	  bg_fullscreen		= pfd.bind_group_fullscreen;
-		const gfx_id	  shader_fullscreen = _shaders.debug_controller_console_draw;
-		const uint16	  dc_count			= pfd.draw_call_count;
+		per_frame_data&	  pfd				   = _pfd[frame_index];
+		const vector2ui16 rt_size			   = _gfx_data.rt_size;
+		const gfx_id	  rt_console		   = pfd.rt_console;
+		const gfx_id	  rt_fullscreen		   = pfd.rt_fullscreen;
+		const gfx_id	  gui_vertex		   = pfd.buf_gui_vtx.get_hw_gpu();
+		const gfx_id	  gui_index			   = pfd.buf_gui_idx.get_hw_gpu();
+		const gfx_id	  shader_fullscreen	   = _shaders.debug_controller_console_draw;
+		const uint16	  dc_count			   = pfd.draw_call_count;
+		const uint32	  rt_console_gpu_index = pfd.rt_console_index;
+		const uint32	  gui_pass_gpu_index   = pfd.buf_gui_pass_view.get_gpu_heap_index();
 
 		// Copy vtx idx buffers. First transition barriers will be executed via collect_barriers
 		{
@@ -665,17 +636,17 @@ namespace SFG
 
 			static_vector<barrier, 2> barriers_bufs;
 			barriers_bufs.push_back({
-				.resource	= pfd.buf_gui_idx.get_hw_gpu(),
-				.flags		= barrier_flags::baf_is_resource,
+				.resource	 = pfd.buf_gui_idx.get_hw_gpu(),
+				.flags		 = barrier_flags::baf_is_resource,
 				.from_states = resource_state::resource_state_copy_dest,
-				.to_states	= resource_state::resource_state_index_buffer,
+				.to_states	 = resource_state::resource_state_index_buffer,
 			});
 
 			barriers_bufs.push_back({
-				.resource	= pfd.buf_gui_vtx.get_hw_gpu(),
-				.flags		= barrier_flags::baf_is_resource,
+				.resource	 = pfd.buf_gui_vtx.get_hw_gpu(),
+				.flags		 = barrier_flags::baf_is_resource,
 				.from_states = resource_state::resource_state_copy_dest,
-				.to_states	= resource_state::resource_state_vertex_cbv,
+				.to_states	 = resource_state::resource_state_vertex_cbv,
 			});
 			backend->cmd_barrier(cmd_buffer, {.barriers = barriers_bufs.data(), .barrier_count = 2});
 		}
@@ -694,7 +665,17 @@ namespace SFG
 		attachment_fullscreen_rt->texture					   = rt_fullscreen;
 		attachment_fullscreen_rt->view_index				   = 0;
 
-		backend->cmd_bind_group(cmd_buffer, {.group = bg_rp});
+		// gui pass bind group
+		{
+			backend->cmd_bind_constants(cmd_buffer,
+										{
+											.data		 = (uint8*)&gui_pass_gpu_index,
+											.offset		 = constant_index_rp_ubo_index,
+											.count		 = 1,
+											.param_index = rpi_constants,
+										});
+		}
+
 		backend->cmd_set_viewport(cmd_buffer, {.width = static_cast<uint16>(rt_size.x), .height = static_cast<uint16>(rt_size.y)});
 
 		BEGIN_DEBUG_EVENT(backend, cmd_buffer, "debug_controller_draw");
@@ -702,7 +683,8 @@ namespace SFG
 		backend->cmd_bind_vertex_buffers(cmd_buffer, {.buffer = gui_vertex, .vertex_size = sizeof(vekt::vertex)});
 		backend->cmd_bind_index_buffers(cmd_buffer, {.buffer = gui_index, .index_size = sizeof(vekt::index)});
 
-		int32 last_pipeline = -1, last_bind_group = -1;
+		gfx_id last_pipeline	   = NULL_GFX_ID;
+		uint32 last_atlas_constant = UINT32_MAX;
 
 		for (uint16 i = 0; i < dc_count; i++)
 		{
@@ -710,18 +692,24 @@ namespace SFG
 
 			backend->cmd_set_scissors(cmd_buffer, {.x = dc.scissors.x, .y = dc.scissors.y, .width = dc.scissors.z, .height = dc.scissors.w});
 
-			if (last_pipeline == -1 || last_pipeline != dc.shader)
+			if (last_pipeline == NULL_GFX_ID || last_pipeline != dc.shader)
 			{
 				backend->cmd_bind_pipeline(cmd_buffer, {.pipeline = dc.shader});
-				last_pipeline = static_cast<int32>(dc.shader);
+				last_pipeline = dc.shader;
 			}
 
-			if (CHECK_BIT(dc.bind_group, 15) && (last_bind_group == -1 || last_bind_group != dc.bind_group))
+			if (last_atlas_constant == UINT32_MAX || (dc.atlas_gpu_index != last_atlas_constant))
 			{
-				const gfx_id bg = UNSET_BIT(dc.bind_group, 15);
-				backend->cmd_bind_group(cmd_buffer, {.group = bg});
-				last_bind_group = static_cast<int32>(dc.bind_group);
+				backend->cmd_bind_constants(cmd_buffer,
+											{
+												.data		 = (uint8*)&dc.atlas_gpu_index,
+												.offset		 = constant_index_object_constant0,
+												.count		 = 1,
+												.param_index = rpi_constants,
+											});
+				last_atlas_constant = dc.atlas_gpu_index;
 			}
+
 			backend->cmd_draw_indexed_instanced(cmd_buffer, {.index_count_per_instance = dc.index_count, .instance_count = 1, .start_index_location = dc.start_idx, .base_vertex_location = dc.start_vtx, .start_instance_location = 0});
 		}
 
@@ -729,10 +717,10 @@ namespace SFG
 		END_DEBUG_EVENT(backend, cmd_buffer);
 
 		const barrier br_rt = {
-			.resource	= rt_console,
-			.flags		= barrier_flags::baf_is_texture,
+			.resource	 = rt_console,
+			.flags		 = barrier_flags::baf_is_texture,
 			.from_states = resource_state::resource_state_render_target,
-			.to_states	= resource_state::resource_state_ps_resource,
+			.to_states	 = resource_state::resource_state_ps_resource,
 		};
 
 		backend->cmd_barrier(cmd_buffer, {.barriers = &br_rt, .barrier_count = 1});
@@ -742,8 +730,19 @@ namespace SFG
 		backend->cmd_set_scissors(cmd_buffer, {.width = static_cast<uint16>(rt_size.x), .height = static_cast<uint16>(rt_size.y)});
 		backend->cmd_set_viewport(cmd_buffer, {.width = static_cast<uint16>(rt_size.x), .height = static_cast<uint16>(rt_size.y)});
 
+		// full-screen bind group
+		{
+			const uint32 constants[3] = {rt_console_gpu_index, static_cast<uint32>(_gfx_data.rt_size.x), static_cast<uint32>(_gfx_data.rt_size.y)};
+			backend->cmd_bind_constants(cmd_buffer,
+										{
+											.data		 = (uint8*)&constants,
+											.offset		 = constant_index_object_constant0,
+											.count		 = 3,
+											.param_index = rpi_constants,
+										});
+		}
+
 		// fullscreen draw
-		backend->cmd_bind_group(cmd_buffer, {.group = bg_fullscreen});
 		backend->cmd_bind_pipeline(cmd_buffer, {.pipeline = shader_fullscreen});
 		backend->cmd_draw_instanced(cmd_buffer, {.vertex_count_per_instance = 3, .instance_count = 1, .start_vertex_location = 0, .start_instance_location = 0});
 
@@ -751,10 +750,10 @@ namespace SFG
 		END_DEBUG_EVENT(backend, cmd_buffer);
 
 		const barrier br_rt_fs = {
-			.resource	= rt_fullscreen,
-			.flags		= barrier_flags::baf_is_texture,
+			.resource	 = rt_fullscreen,
+			.flags		 = barrier_flags::baf_is_texture,
 			.from_states = resource_state::resource_state_render_target,
-			.to_states	= resource_state::resource_state_ps_resource,
+			.to_states	 = resource_state::resource_state_ps_resource,
 		};
 		backend->cmd_barrier(cmd_buffer, {.barriers = &br_rt_fs, .barrier_count = 1});
 	}
@@ -819,7 +818,7 @@ namespace SFG
 			dc.shader = font_type == vekt::font_type::sdf ? sdf_shader : text_shader;
 			auto it	  = vector_util::find_if(_gfx_data.atlases, [&](const atlas_ref& ref) -> bool { return ref.atlas == atlas; });
 			SFG_ASSERT(it != _gfx_data.atlases.end());
-			dc.bind_group = SET_BIT(it->bind_group, 15);
+			dc.atlas_gpu_index = it->texture_gpu_index;
 		}
 		else
 		{
@@ -851,9 +850,7 @@ namespace SFG
 			   .debug_name = "inter_buffer",
 		   });
 
-		ref.bind_group = backend->create_empty_bind_group();
-		backend->bind_group_add_pointer(ref.bind_group, rpi_table_material, 3, false);
-		backend->bind_group_update_pointer(ref.bind_group, 0, {{.resource = ref.texture, .view = 0, .pointer_index = upi_material_texture0, .type = binding_type::texture_binding}});
+		ref.texture_gpu_index = backend->get_texture_gpu_index(ref.texture, 0);
 	}
 
 	void debug_controller::on_atlas_updated(vekt::atlas* atlas)
@@ -896,8 +893,6 @@ namespace SFG
 		gfx_backend* backend = gfx_backend::get();
 
 		backend->destroy_texture(ref.texture);
-		backend->destroy_bind_group(ref.bind_group);
-
 		backend->destroy_resource(ref.intermediate_buffer);
 
 		_gfx_data.atlases.erase(it);
@@ -1243,11 +1238,8 @@ namespace SFG
 				.debug_name		= "debug_rt",
 			});
 
-			backend->bind_group_update_pointer(pfd.bind_group_fullscreen,
-											   0,
-											   {
-												   {.resource = pfd.rt_console, .view = 1, .pointer_index = upi_material_texture0, .type = binding_type::texture_binding},
-											   });
+			pfd.rt_console_index	= backend->get_texture_gpu_index(pfd.rt_console, 1);
+			pfd.rt_fullscreen_index = backend->get_texture_gpu_index(pfd.rt_fullscreen, 1);
 		}
 	}
 }

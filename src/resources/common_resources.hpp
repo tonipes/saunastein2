@@ -13,6 +13,7 @@ namespace SFG
 #define DUMMY_COLOR_TEXTURE_SID	 UINT64_MAX - 1000
 #define DUMMY_NORMAL_TEXTURE_SID UINT64_MAX - 999
 #define DUMMY_ORM_TEXTURE_SID	 UINT64_MAX - 998
+#define DUMMY_SAMPLER_SID		 UINT64_MAX - 997
 
 	typedef pool_handle16 resource_handle;
 	typedef uint16		  resource_id;

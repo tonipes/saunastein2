@@ -105,24 +105,15 @@ namespace SFG
 			});
 
 			pfd.buf_engine_global.create_hw({.size = sizeof(buf_engine_global), .flags = resource_flags::rf_constant_buffer | resource_flags::rf_cpu_visible, .debug_name = "engine_globals"});
-			pfd.bind_group_global = gfx_util::create_bind_group_global();
-
-			backend->bind_group_update_descriptor(pfd.bind_group_global, 0, pfd.buf_engine_global.get_hw_gpu());
-			gfx_util::update_dummy_bind_group(pfd.bind_group_global, _gfx_data.dummy_texture, _gfx_data.dummy_texture_array, _gfx_data.dummy_texture_cube, _gfx_data.dummy_sampler, _gfx_data.dummy_ssbo, _gfx_data.dummy_ubo);
-
-			pfd.bind_group_swapchain = backend->create_empty_bind_group();
-			backend->bind_group_add_pointer(pfd.bind_group_swapchain, rpi_table_material, upi_material_texture1 + 1, false);
-
-			backend->bind_group_update_pointer(pfd.bind_group_swapchain,
-											   0,
-											   {
-												   {.resource = _world_renderer->get_output(i), .view = 1, .pointer_index = upi_material_texture0, .type = binding_type::texture_binding},
+			pfd.bind_group_global  = backend->create_empty_bind_group();
+			pfd.gpu_index_world_rt = _world_renderer->get_output_gpu_index(i);
 
 #ifdef USE_DEBUG_CONTROLLER
-												   {.resource = _debug_controller.get_final_rt(i), .view = 1, .pointer_index = upi_material_texture1, .type = binding_type::texture_binding},
+			pfd.gpu_index_debug_controller_rt = _debug_controller.get_output_gpu_index(i);
 #endif
 
-											   });
+			backend->bind_group_add_descriptor(pfd.bind_group_global, 0, binding_type::ubo);
+			backend->bind_group_update_descriptor(pfd.bind_group_global, 0, pfd.buf_engine_global.get_hw_gpu());
 
 			_frame_allocator[i].init(1024 * 1024, 4);
 			s_bind_group_global[i] = pfd.bind_group_global;
@@ -153,7 +144,7 @@ namespace SFG
 		// fetch any stale commands.
 		_proxy_manager.fetch_render_events(stream);
 		_proxy_manager.uninit();
-		_world_renderer->uninit();
+		// _world_renderer->uninit();
 		delete _world_renderer;
 
 #ifdef USE_DEBUG_CONTROLLER
@@ -176,7 +167,6 @@ namespace SFG
 		{
 			per_frame_data& pfd = _pfd[i];
 
-			backend->destroy_bind_group(pfd.bind_group_swapchain);
 			backend->destroy_semaphore(pfd.sem_frame.semaphore);
 			backend->destroy_semaphore(pfd.sem_copy.semaphore);
 			backend->destroy_command_buffer(pfd.cmd_gfx);
@@ -202,7 +192,6 @@ namespace SFG
 		{
 			per_frame_data& pfd = _pfd[i];
 			backend->wait_semaphore(pfd.sem_frame.semaphore, pfd.sem_frame.value);
-			_proxy_manager.flush_material_updates(i);
 		}
 
 		_proxy_manager.flush_destroys(true);
@@ -226,10 +215,16 @@ namespace SFG
 		backend->wait_for_swapchain_latency(_gfx_data.swapchain);
 
 		/* access frame data */
-		const uint8		frame_index	  = _gfx_data.frame_index;
-		const gfx_id	layout_global = _gfx_data.bind_layout_global;
-		per_frame_data& pfd			  = _pfd[frame_index];
-		const gfx_id	render_target = _gfx_data.swapchain;
+		const uint8	 frame_index   = _gfx_data.frame_index;
+		const gfx_id layout_global = _gfx_data.bind_layout_global;
+		const gfx_id render_target = _gfx_data.swapchain;
+
+		per_frame_data& pfd			   = _pfd[frame_index];
+		const uint32	rt_world_index = pfd.gpu_index_world_rt;
+
+#ifdef USE_DEBUG_CONTROLLER
+		const uint32 rt_console_index = pfd.gpu_index_debug_controller_rt;
+#endif
 
 		bump_allocator& alloc = _frame_allocator[frame_index];
 		alloc.reset();
@@ -239,13 +234,11 @@ namespace SFG
 
 		_proxy_manager.fetch_render_events(stream);
 		_proxy_manager.flush_destroys(false);
-		_proxy_manager.flush_material_updates(frame_index);
 
 		/* access pfd */
 		const gfx_id cmd_list		  = pfd.cmd_gfx;
 		const gfx_id cmd_list_copy	  = pfd.cmd_copy;
 		const gfx_id bg_global		  = pfd.bind_group_global;
-		const gfx_id bg_swapchain	  = pfd.bind_group_swapchain;
 		const gfx_id shader_swp		  = _shaders.swapchain;
 		const gfx_id sem_frame		  = pfd.sem_frame.semaphore;
 		const gfx_id sem_copy		  = pfd.sem_copy.semaphore;
@@ -269,6 +262,15 @@ namespace SFG
 		backend->cmd_bind_layout(cmd_list, {.layout = layout_global});
 		backend->cmd_bind_group(cmd_list, {.group = bg_global});
 
+		root_constants rc = {};
+		backend->cmd_bind_constants(cmd_list,
+									{
+										.data		 = (uint8*)&rc,
+										.offset		 = 0,
+										.count		 = constant_index_max,
+										.param_index = rpi_constants,
+									});
+
 		// Uploaded resources will have post-transitions.
 		if (!_reuse_upload_barriers.empty())
 		{
@@ -290,10 +292,10 @@ namespace SFG
 			_debug_controller.prepare(frame_index);
 			static_vector<barrier, 8> barriers;
 			barriers.push_back({
-				.resource	= render_target,
-				.flags		= barrier_flags::baf_is_swapchain,
+				.resource	 = render_target,
+				.flags		 = barrier_flags::baf_is_swapchain,
 				.from_states = resource_state::resource_state_present,
-				.to_states	= resource_state::resource_state_render_target,
+				.to_states	 = resource_state::resource_state_render_target,
 			});
 			_debug_controller.collect_barriers(barriers);
 			backend->cmd_barrier(cmd_list,
@@ -322,7 +324,25 @@ namespace SFG
 			backend->cmd_begin_render_pass_swapchain(cmd_list, {.color_attachments = attachment, .color_attachment_count = 1});
 			backend->cmd_set_scissors(cmd_list, {.width = static_cast<uint16>(size.x), .height = static_cast<uint16>(size.y)});
 			backend->cmd_set_viewport(cmd_list, {.width = static_cast<uint16>(size.x), .height = static_cast<uint16>(size.y)});
-			backend->cmd_bind_group(cmd_list, {.group = bg_swapchain});
+
+			// gui pass bind group
+			{
+#ifdef USE_DEBUG_CONTROLLER
+				const uint32 constants[2] = {rt_console_index, rt_world_index};
+				const uint32 count		  = 2;
+#else
+				const uint32 constants[2] = {rt_world_index, 0};
+				const uint32 count		  = 1;
+#endif
+				backend->cmd_bind_constants(cmd_list,
+											{
+												.data		 = (uint8*)&constants,
+												.offset		 = constant_index_rp_constant0,
+												.count		 = count,
+												.param_index = rpi_constants,
+											});
+			}
+
 			backend->cmd_bind_pipeline(cmd_list, {.pipeline = shader_swp});
 			backend->cmd_draw_instanced(cmd_list, {.vertex_count_per_instance = 6, .instance_count = 1});
 			backend->cmd_end_render_pass(cmd_list, {});
@@ -334,10 +354,10 @@ namespace SFG
 			static_vector<barrier, 1> barriers;
 
 			barriers.push_back({
-				.resource	= render_target,
-				.flags		= barrier_flags::baf_is_swapchain,
+				.resource	 = render_target,
+				.flags		 = barrier_flags::baf_is_swapchain,
 				.from_states = resource_state::resource_state_render_target,
-				.to_states	= resource_state::resource_state_present,
+				.to_states	 = resource_state::resource_state_present,
 			});
 
 			backend->cmd_barrier(cmd_list,
@@ -353,7 +373,7 @@ namespace SFG
 			Submit & present, then insert queue signal for this frame's fence.
 		*/
 		backend->close_command_buffer(cmd_list);
-		backend->queue_wait(queue_gfx, &sem_world, &sem_world_value, 1);
+		// backend->queue_wait(queue_gfx, &sem_world, &sem_world_value, 1);
 
 		backend->submit_commands(queue_gfx, &cmd_list, 1);
 
@@ -401,18 +421,15 @@ namespace SFG
 		_debug_controller.on_window_resize(size);
 #endif
 
-		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
+		for (uint8 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
 			per_frame_data& pfd = _pfd[i];
 
-			backend->bind_group_update_pointer(pfd.bind_group_swapchain,
-											   0,
-											   {
-												   {.resource = _world_renderer->get_output(i), .view = 1, .pointer_index = upi_material_texture0, .type = binding_type::texture_binding},
+			pfd.gpu_index_world_rt = _world_renderer->get_output_gpu_index(i);
+
 #ifdef USE_DEBUG_CONTROLLER
-												   {.resource = _debug_controller.get_final_rt(i), .view = 1, .pointer_index = upi_material_texture1, .type = binding_type::texture_binding},
+			pfd.gpu_index_debug_controller_rt = _debug_controller.get_output_gpu_index(i);
 #endif
-											   });
 		}
 	}
 

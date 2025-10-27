@@ -19,7 +19,7 @@ struct vs_output
 // Constants
 //------------------------------------------------------------------------------
 
-cbuffer render_pass : render_pass_ubo0
+struct render_pass_data
 {
     float4x4 inv_view_proj;
     float4 ambient_color_plights_count;
@@ -28,16 +28,6 @@ cbuffer render_pass : render_pass_ubo0
     float pad[7];
 };
 
-StructuredBuffer<gpu_entity> entity_buffer : render_pass_ssbo0;
-StructuredBuffer<gpu_point_light> point_light_buffer : render_pass_ssbo1;
-StructuredBuffer<gpu_spot_light> spot_light_buffer : render_pass_ssbo2;
-StructuredBuffer<gpu_dir_light> dir_light_buffer : render_pass_ssbo3;
-
-Texture2D tex_gbuffer_color : render_pass_texture0;
-Texture2D tex_gbuffer_normal: render_pass_texture1;
-Texture2D tex_gbuffer_orm : render_pass_texture2;
-Texture2D tex_gbuffer_emissive : render_pass_texture3;
-Texture2D tex_gbuffer_depth : render_pass_texture4;
 SamplerState smp_linear : static_sampler_linear;
 SamplerState smp_nearest: static_sampler_nearest;
 
@@ -71,6 +61,17 @@ static bool is_background(float device_depth)
 //------------------------------------------------------------------------------
 float4 PSMain(vs_output IN) : SV_TARGET
 {
+    render_pass_data rp_data = sfg_get_rp_cbv<render_pass_data>();
+    StructuredBuffer<gpu_entity> entity_buffer = sfg_get_ssbo<gpu_entity>(sfg_rp_constant0);
+    StructuredBuffer<gpu_point_light> point_light_buffer = sfg_get_ssbo<gpu_point_light>(sfg_rp_constant1);
+    StructuredBuffer<gpu_spot_light> spot_light_buffer = sfg_get_ssbo<gpu_spot_light>(sfg_rp_constant2);
+    StructuredBuffer<gpu_dir_light> dir_light_buffer = sfg_get_ssbo<gpu_dir_light>(sfg_rp_constant3);
+    Texture2D tex_gbuffer_color = sfg_get_texture2D(sfg_rp_constant4);
+    Texture2D tex_gbuffer_normal = sfg_get_texture2D(sfg_rp_constant5);
+    Texture2D tex_gbuffer_orm = sfg_get_texture2D(sfg_rp_constant6);
+    Texture2D tex_gbuffer_emissive = sfg_get_texture2D(sfg_rp_constant7);
+    Texture2D tex_gbuffer_depth = sfg_get_texture2D(sfg_rp_constant8);
+
      // pixel for .Load()
     int2 ip = int2(IN.pos.xy);
 
@@ -83,13 +84,13 @@ float4 PSMain(vs_output IN) : SV_TARGET
 
     // reconstruct world position
     float2 uv = IN.uv;
-    float3 world_pos = reconstruct_world_position(uv, device_depth, inv_view_proj);
-    float3 V = normalize(view_pos_slights_count.xyz - world_pos);
+    float3 world_pos = reconstruct_world_position(uv, device_depth, rp_data.inv_view_proj);
+    float3 V = normalize(rp_data.view_pos_slights_count.xyz - world_pos);
 
     // decode gbuffer
     float4 albedo_data   = tex_gbuffer_color.SampleLevel(smp_nearest, uv, 0);      // sRGB RT was linearized when written; this is now linear
     float4 normal_data = tex_gbuffer_normal.Load(int3(ip, 0));          // RGB10A2_UNORM -> oct encode
-    float4 orm_data      = tex_gbuffer_orm   .Load(int3(ip, 0));      // [ao, rough, metal, _]
+    float4 orm_data      = tex_gbuffer_orm.Load(int3(ip, 0));      // [ao, rough, metal, _]
     float4 emissive_data = tex_gbuffer_emissive.Load(int3(ip, 0));    // linear
     float3 albedo = albedo_data.xyz;
     float3 emissive = emissive_data.xyz;
@@ -98,13 +99,13 @@ float4 PSMain(vs_output IN) : SV_TARGET
     float  metallic  = saturate(orm_data.b);
     float3 N = oct_decode(normal_data.xy);
 
-    float3 ambientColor = ambient_color_plights_count.xyz;
+    float3 ambientColor = rp_data.ambient_color_plights_count.xyz;
     float3 lighting = ambientColor * albedo * ao;
 
     // fetch light prep
-    uint point_light_count = uint(ambient_color_plights_count.w);
-    uint spot_light_count = uint(view_pos_slights_count.w);
-    uint dir_light_count = uint(dir_lights_count);
+    uint point_light_count = uint(rp_data.ambient_color_plights_count.w);
+    uint spot_light_count = uint(rp_data.view_pos_slights_count.w);
+    uint dir_light_count = uint(rp_data.dir_lights_count);
 
     [loop]
     for(uint i = 0; i < point_light_count; i++)

@@ -32,6 +32,7 @@ namespace SFG
 		render_event_reload_shader,
 		render_event_reload_texture,
 		render_event_reload_material,
+		render_event_reload_sampler,
 		render_event_update_ambient,
 		render_event_update_dir_light,
 		render_event_update_point_light,

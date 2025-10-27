@@ -25,10 +25,12 @@ namespace SFG
 
 		struct per_frame_data
 		{
-			buffer ubo;
-			gfx_id cmd_buffer;
-			gfx_id bind_group;
-			gfx_id depth_texture = 0;
+			buffer	  ubo					  = {};
+			gfx_id	  cmd_buffer			  = 0;
+			gfx_id	  depth_texture			  = 0;
+			gpu_index gpu_index_depth_texture = 0;
+			gpu_index gpu_index_entity_buffer = 0;
+			gpu_index gpu_index_bone_buffer	  = 0;
 		};
 
 	public:
@@ -37,8 +39,8 @@ namespace SFG
 			const vector2ui16& size;
 			uint8*			   alloc;
 			size_t			   alloc_size;
-			gfx_id*			   entities;
-			gfx_id*			   bones;
+			gpu_index*		   entities;
+			gpu_index*		   bones;
 		};
 
 		struct render_params
@@ -61,7 +63,12 @@ namespace SFG
 			return _pfd[frame_index].cmd_buffer;
 		}
 
-		inline gfx_id get_depth_texture(uint8 frame_index) const
+		inline gpu_index get_output_gpu_index(uint8 frame_index) const
+		{
+			return _pfd[frame_index].gpu_index_depth_texture;
+		}
+
+		inline gfx_id get_output_hw(uint8 frame_index) const
 		{
 			return _pfd[frame_index].depth_texture;
 		}

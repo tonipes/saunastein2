@@ -28,6 +28,10 @@ namespace SFG
 
 	typedef unsigned short gfx_id;
 	typedef unsigned short primitive_index;
+	typedef unsigned int   gpu_index;
 
-#define NULL_GFX_ID std::numeric_limits<gfx_id>::max()
+#define NULL_GFX_ID	   std::numeric_limits<gfx_id>::max()
+#define NULL_GPU_INDEX std::numeric_limits<gpu_index>::max()
+
+#define GBUFFER_COLOR_TEXTURES 4
 }

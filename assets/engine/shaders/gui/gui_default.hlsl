@@ -23,19 +23,20 @@ struct VSOutput
 // Vertex Shader
 //------------------------------------------------------------------------------
 
-cbuffer RenderPassCBV : render_pass_ubo0
+struct render_pass_data
 {
-	float4x4 _rp_projection;
-	float _sdf_thickness;
-	float _sdf_softness;
-}
+	float4x4 projection;
+	float sdf_thickness;
+	float sdf_softness;
+};
 
 VSOutput VSMain(VSInput IN)
 {
 	VSOutput OUT;
-    
+	render_pass_data rp_ubo = sfg_get_rp_cbv<render_pass_data>();
+
 	float4 worldPos = float4(IN.pos, 0.0f, 1.0f);
-	OUT.pos = mul(_rp_projection, worldPos);
+	OUT.pos = mul(rp_ubo.projection, worldPos);
 	OUT.uv = IN.uv;
 	OUT.color = IN.color;
 	return OUT;

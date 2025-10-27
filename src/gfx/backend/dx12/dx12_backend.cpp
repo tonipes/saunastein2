@@ -641,6 +641,19 @@ namespace SFG
 		}
 #endif
 
+		D3D12_FEATURE_DATA_D3D12_OPTIONS opts = {};
+		if (!SUCCEEDED(_device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS, &opts, sizeof(opts))))
+		{
+			SFG_ERR("Failed checking device options!");
+			return false;
+		}
+
+		if (opts.ResourceBindingTier != D3D12_RESOURCE_BINDING_TIER_3)
+		{
+			SFG_ERR("GPU device does not support resource binding tier 3!");
+			return false;
+		}
+
 		// Allocator
 		{
 			D3D12MA::ALLOCATOR_DESC allocatorDesc;
@@ -680,11 +693,8 @@ namespace SFG
 		const uint32 size_rtv		  = _device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 		const uint32 size_sampler	  = _device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
 
-		_heap_buffer.init(_device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 1024, size_cbv_srv_uav, false);
-		_heap_texture.init(_device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 1024, size_cbv_srv_uav, false);
 		_heap_dsv.init(_device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 1024, size_dsv, false);
 		_heap_rtv.init(_device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 1024, size_rtv, false);
-		_heap_sampler.init(_device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, 1024, size_sampler, false);
 		_heap_gpu_buffer.init(_device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 1024, size_cbv_srv_uav, true);
 		_heap_gpu_sampler.init(_device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, 1024, size_sampler, true);
 
@@ -718,11 +728,8 @@ namespace SFG
 		_descriptors.verify_uninit();
 		_bind_layouts.verify_uninit();
 
-		_heap_buffer.uninit();
-		_heap_texture.uninit();
 		_heap_dsv.uninit();
 		_heap_rtv.uninit();
-		_heap_sampler.uninit();
 		_heap_gpu_buffer.uninit();
 		_heap_gpu_sampler.uninit();
 
@@ -886,7 +893,7 @@ namespace SFG
 			};
 			res.descriptor_index  = static_cast<int16>(_descriptors.add());
 			descriptor_handle& dh = _descriptors.get(res.descriptor_index);
-			dh					  = _heap_buffer.get_heap_handle_block(1);
+			dh					  = _heap_gpu_buffer.get_heap_handle_block(1);
 			_device->CreateConstantBufferView(&desc, {dh.cpu});
 		}
 		else if (desc.flags.is_set(resource_flags::rf_storage_buffer))
@@ -906,7 +913,7 @@ namespace SFG
 			};
 			res.descriptor_index  = static_cast<int16>(_descriptors.add());
 			descriptor_handle& dh = _descriptors.get(res.descriptor_index);
-			dh					  = _heap_buffer.get_heap_handle_block(1);
+			dh					  = _heap_gpu_buffer.get_heap_handle_block(1);
 			_device->CreateShaderResourceView(res.ptr->GetResource(), &srv, {dh.cpu});
 		}
 		else if (desc.flags.is_set(resource_flags::rf_gpu_write))
@@ -925,7 +932,7 @@ namespace SFG
 			};
 			res.descriptor_index  = static_cast<int16>(_descriptors.add());
 			descriptor_handle& dh = _descriptors.get(res.descriptor_index);
-			dh					  = _heap_buffer.get_heap_handle_block(1);
+			dh					  = _heap_gpu_buffer.get_heap_handle_block(1);
 			_device->CreateUnorderedAccessView(res.ptr->GetResource(), NULL, &desc, {dh.cpu});
 		}
 
@@ -967,7 +974,7 @@ namespace SFG
 		if (res.descriptor_index != -1)
 		{
 			descriptor_handle& dh = _descriptors.get(static_cast<gfx_id>(res.descriptor_index));
-			_heap_buffer.remove_handle(dh);
+			_heap_gpu_buffer.remove_handle(dh);
 			_descriptors.remove(res.descriptor_index);
 		}
 
@@ -1225,7 +1232,7 @@ namespace SFG
 
 			if (view.type == view_type::sampled)
 			{
-				dh = _heap_texture.get_heap_handle_block(1);
+				dh = _heap_gpu_buffer.get_heap_handle_block(1);
 				create_srv(color_format, view.is_cubemap, base_level, remaining_level, base_mip, remaining_mip, dh);
 			}
 			else if (view.type == view_type::depth_stencil)
@@ -1267,7 +1274,7 @@ namespace SFG
 			if (vt == view_type::render_target)
 				_heap_rtv.remove_handle(dh);
 			else if (vt == view_type::sampled)
-				_heap_texture.remove_handle(dh);
+				_heap_gpu_buffer.remove_handle(dh);
 			else if (vt == view_type::depth_stencil)
 				_heap_dsv.remove_handle(dh);
 			else
@@ -1305,7 +1312,7 @@ namespace SFG
 
 		smp.descriptor_index  = _descriptors.add();
 		descriptor_handle& dh = _descriptors.get(smp.descriptor_index);
-		dh					  = _heap_sampler.get_heap_handle_block(1);
+		dh					  = _heap_gpu_sampler.get_heap_handle_block(1);
 
 		_device->CreateSampler(&samplerDesc, {dh.cpu});
 		return id;
@@ -1317,7 +1324,7 @@ namespace SFG
 
 		sampler&		   smp = _samplers.get(id);
 		descriptor_handle& dh  = _descriptors.get(smp.descriptor_index);
-		_heap_sampler.remove_handle(dh);
+		_heap_gpu_sampler.remove_handle(dh);
 		_descriptors.remove(smp.descriptor_index);
 		_samplers.remove(id);
 	}
@@ -1671,7 +1678,7 @@ namespace SFG
 
 		const wchar_t* target_entry = string_util::char_to_wchar(entry);
 
-		const wchar_t* t = stage == shader_stage::vertex ? L"vs_6_0" : L"ps_6_0";
+		const wchar_t* t = stage == shader_stage::vertex ? L"vs_6_6" : L"ps_6_6";
 		if (!compile(t, target_entry, out, compile_root_sig))
 		{
 			delete[] target_entry;
@@ -1811,6 +1818,27 @@ namespace SFG
 		source_blob.Reset();
 
 		return true;
+	}
+
+	uint32 dx12_backend::get_resource_gpu_index(gfx_id id)
+	{
+		const resource& r = _resources.get(id);
+		if (r.descriptor_index == -1)
+			return UINT32_MAX;
+		return _descriptors.get(r.descriptor_index).index;
+	}
+
+	uint32 dx12_backend::get_texture_gpu_index(gfx_id id, uint8 view_index)
+	{
+		const texture& t = _textures.get(id);
+		SFG_ASSERT(t.view_count > view_index);
+		return _descriptors.get(t.views[view_index].handle).index;
+	}
+
+	uint32 dx12_backend::get_sampler_gpu_index(gfx_id id)
+	{
+		const sampler& s = _samplers.get(id);
+		return _descriptors.get(s.descriptor_index).index;
 	}
 
 	gfx_id dx12_backend::create_shader(const shader_desc& desc, const vector<shader_blob>& blobs, gfx_id existing_layout, span<uint8> layout_data)
@@ -2295,16 +2323,25 @@ namespace SFG
 		});
 	}
 
-	void dx12_backend::finalize_bind_layout(gfx_id id, bool is_compute, const char* name)
+	void dx12_backend::finalize_bind_layout(gfx_id id, bool is_compute, bool is_dyn_indexed, const char* name)
 	{
 		VERIFY_RENDER_NOT_RUNNING_OR_RENDER_THREAD();
 
+		D3D12_ROOT_SIGNATURE_FLAGS flags = D3D12_ROOT_SIGNATURE_FLAG_NONE;
+
+		if (is_dyn_indexed)
+		{
+			flags |= D3D12_ROOT_SIGNATURE_FLAG_CBV_SRV_UAV_HEAP_DIRECTLY_INDEXED;
+			flags |= D3D12_ROOT_SIGNATURE_FLAG_SAMPLER_HEAP_DIRECTLY_INDEXED;
+		}
+
+		if (!is_compute)
+		{
+			flags |= D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+		}
+
 		bind_layout&								layout = _bind_layouts.get(id);
-		const CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSig(static_cast<uint32>(_reuse_root_params.size()),
-															_reuse_root_params.data(),
-															static_cast<uint32>(_reuse_static_samplers.size()),
-															_reuse_static_samplers.data(),
-															is_compute ? D3D12_ROOT_SIGNATURE_FLAG_NONE : D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+		const CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSig(static_cast<uint32>(_reuse_root_params.size()), _reuse_root_params.data(), static_cast<uint32>(_reuse_static_samplers.size()), _reuse_static_samplers.data(), flags);
 		ComPtr<ID3DBlob>							signature = nullptr;
 		ComPtr<ID3DBlob>							error	  = nullptr;
 		const HRESULT								res		  = D3D12SerializeVersionedRootSignature(&rootSig, &signature, &error);

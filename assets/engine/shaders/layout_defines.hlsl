@@ -1,41 +1,85 @@
-#define constants_cbv register(b0, space0)
-#define global_cbv register(b1, space0)
+#define global_cbv register(b0, space0)
+#define constants_cbv register(b1, space0)
 
-#define render_pass_ubo0 register(b0, space1)
-#define render_pass_ubo1 register(b1, space1)
-#define render_pass_ssbo0 register(t0, space1)
-#define render_pass_ssbo1 register(t1, space1)
-#define render_pass_ssbo2 register(t2, space1)
-#define render_pass_ssbo3 register(t3, space1)
-#define render_pass_ssbo4 register(t4, space1)
-#define render_pass_texture0 register(t5, space1)
-#define render_pass_texture1 register(t6, space1)
-#define render_pass_texture2 register(t7, space1)
-#define render_pass_texture3 register(t8, space1)
-#define render_pass_texture4 register(t9, space1)
-#define render_pass_texture_array0 register(t10, space1)
-#define render_pass_texture_array1 register(t11, space1)
-#define render_pass_texture_cube_array0 register(t12, space1)
+#define static_sampler_anisotropic register(s0, space0)
+#define static_sampler_linear register(s1, space0)
+#define static_sampler_nearest register(s2, space0)
+#define static_sampler_gui_default register(s3, space0)
+#define static_sampler_gui_text register(s4, space0)
+#define static_sampler_shadow_2d register(s5, space0)
+#define static_sampler_shadow_cube register(s6, space0)
 
-#define material_ubo0 register(b0, space2)
-#define material_ssbo0 register(t0, space2)
-#define material_texture0 register(t1, space2)
-#define material_texture1 register(t2, space2)
-#define material_texture2 register(t3, space2)
-#define material_texture3 register(t4, space2)
+cbuffer sfg_globals : register(b0, space0)
+{
+    float f1;
+    float f2;
+}
 
-#define object_ubo0 register(b0, space3)
-#define object_texture0 register(t0, space3)
+cbuffer sfg_constants : register(b1, space0)
+{
+    uint sfg_rp_ubo_index;
+    uint sfg_material_ubo_index;
+    uint sfg_texture_ubo_index;
+    uint sfg_rp_constant0;
+    uint sfg_rp_constant1;
+    uint sfg_rp_constant2;
+    uint sfg_rp_constant3;
+    uint sfg_rp_constant4;
+    uint sfg_rp_constant5;
+    uint sfg_rp_constant6;
+    uint sfg_rp_constant7;
+    uint sfg_rp_constant8;
+    uint sfg_rp_constant9;
+    uint sfg_rp_constant10;
+    uint sfg_object_constant0;
+    uint sfg_object_constant1;
+    uint sfg_object_constant2;
+    uint sfg_object_constant3;
+    uint sfg_object_constant4;
+    uint sfg_object_constant5;
+    uint sfg_object_constant6;
+    uint sfg_object_constant7;
+    uint sfg_object_constant8;
+}
 
-#define dyn_sampler0 register(s0, space0)
-#define dyn_sampler1 register(s1, space0)
-#define dyn_sampler2 register(s2, space0)
-#define dyn_sampler3 register(s3, space0)
+template<typename T>
+ConstantBuffer<T> sfg_get_rp_cbv()
+{
+    ConstantBuffer<T> rp = ResourceDescriptorHeap[sfg_rp_ubo_index];
+    return rp;
+}
 
-#define static_sampler_anisotropic register(s5, space0)
-#define static_sampler_linear register(s6, space0)
-#define static_sampler_nearest register(s7, space0)
-#define static_sampler_gui_default register(s8, space0)
-#define static_sampler_gui_text register(s9, space0)
-#define static_sampler_shadow_2d register(s10, space0)
-#define static_sampler_shadow_cube register(s11, space0)
+template<typename T>
+ConstantBuffer<T> sfg_get_mat_cbv()
+{
+    ConstantBuffer<T> mat = ResourceDescriptorHeap[sfg_material_ubo_index];
+    return mat;
+}
+
+template<typename T>
+ConstantBuffer<T> sfg_get_txt_cbv()
+{
+    ConstantBuffer<T> txt = ResourceDescriptorHeap[sfg_texture_ubo_index];
+    return txt;
+}
+
+template<typename T>
+StructuredBuffer<T> sfg_get_ssbo(uint index)
+{
+    StructuredBuffer<T> b = ResourceDescriptorHeap[index];
+    return b;
+}
+
+Texture2D sfg_get_texture2D(uint index)
+{
+    Texture2D txt = ResourceDescriptorHeap[index];
+    return txt;
+}
+
+
+SamplerState sfg_get_sampler_state(uint index)
+{
+    SamplerState ss = SamplerDescriptorHeap[index];
+    return ss;
+}
+

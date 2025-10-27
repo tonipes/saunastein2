@@ -110,9 +110,8 @@ namespace SFG
 
 		for (const indexed_draw& draw : rd.draws)
 		{
-			bind(draw.bind_group, draw.pipeline);
-
-			backend->cmd_bind_constants(cmd_buffer, {.data = (void*)&draw.constants, .offset = 0, .count = 4});
+			// bind(draw.bind_group, draw.pipeline);
+			// backend->cmd_bind_constants(cmd_buffer, {.data = (void*)&draw.constants, .offset = 0, .count = 4});
 			backend->cmd_draw_indexed_instanced(cmd_buffer,
 												{
 													.index_count_per_instance = draw.index_count,

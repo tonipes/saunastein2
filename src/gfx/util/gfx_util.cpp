@@ -6,157 +6,26 @@
 namespace SFG
 {
 
-	/*
-		Global Layout Definition:
-
-		// Param 0 - Root CBV, Global Data [b0, space0]
-		// Param 1 - Descriptor Table, Render Pass Data: 2x CBV + 5 SRVs + 4 Textures + 2 arrays + 1 cube [b0, b1, space1] - [t0, t4, space1] - [t5, t9, space1]
-		// Param 2 - Descriptor Table, Material Data: CBV + SSBO + 5 textures [b0, space2] - [t0, space2] - [t1, t8, space2]
-		// Param 3 - Descriptor Table, Object Data: CBV x 2 + Texture, [b0, b1, space3] - [t0, space3]
-		// Param 4 - Descriptor Table, Dynamic Samplers: [s0, s4, space0]
-		// Param 5 - Immutable Sampler, Anisotropic, s5, space0
-		// Param 6 - Immutable Sampler, Linear, s6, space0
-		// Param 7 - Immutable Sampler, Nearest, s7, space0
-		// Param 8 - Immutable Sampler, GUI Default, s8, space0
-		// Param 9 - Immutable Sampler, GUI Text, s9, space0
-		// Param 10 - Immutable Sampler, Shadow sampler 2d, s10, space0
-		// Param 11 - Immutable Sampler, Shadow sampler cube, s11, space0
-	*/
-
 	gfx_id gfx_util::create_bind_layout_global()
 	{
 		gfx_backend* backend = gfx_backend::get();
 
 		gfx_id layout = backend->create_empty_bind_layout();
 
-		// Param 0 - Constants, [b0, space0]
-		backend->bind_layout_add_constant(layout, 4, 0, 0, shader_stage::all);
+		backend->bind_layout_add_descriptor(layout, binding_type::ubo, 0, 0, shader_stage::all);
+		backend->bind_layout_add_constant(layout, constant_index_max, 0, 1, shader_stage::all);
 
-		// Param 1 - Global CBV, [b1, space0]
-		backend->bind_layout_add_descriptor(layout, binding_type::ubo, 0, 1, shader_stage::all);
+		backend->bind_layout_add_immutable_sampler(layout, 0, 0, gfx_util::get_sampler_desc_anisotropic(), shader_stage::fragment);
+		backend->bind_layout_add_immutable_sampler(layout, 0, 1, gfx_util::get_sampler_desc_linear(), shader_stage::fragment);
+		backend->bind_layout_add_immutable_sampler(layout, 0, 2, gfx_util::get_sampler_desc_nearest(), shader_stage::fragment);
+		backend->bind_layout_add_immutable_sampler(layout, 0, 3, gfx_util::get_sampler_desc_gui_default(), shader_stage::fragment);
+		backend->bind_layout_add_immutable_sampler(layout, 0, 4, gfx_util::get_sampler_desc_gui_text(), shader_stage::fragment);
+		backend->bind_layout_add_immutable_sampler(layout, 0, 5, gfx_util::get_sampler_desc_shadow_2d(), shader_stage::fragment);
+		backend->bind_layout_add_immutable_sampler(layout, 0, 6, gfx_util::get_sampler_desc_shadow_cube(), shader_stage::fragment);
 
-		// Param 2 - Render Pass Table -> 2x CBV + 5 SRVs + 5 Textures + 2 texture arrays + 1 texture cube_array [b0, b1, space1] - [t0, t4, space1] - [t4, t8, space1] - [t9 - t10, space1] - [t11, space1]
-		backend->bind_layout_add_pointer(layout,
-										 {
-											 {.type = binding_type::ubo, .set = 1, .binding = 0, .count = 2, .is_volatile = 1},
-											 {.type = binding_type::ssbo, .set = 1, .binding = 0, .count = 5, .is_volatile = 1},
-											 {.type = binding_type::texture_binding, .set = 1, .binding = 5, .count = 5, .is_volatile = 1},
-											 {.type = binding_type::texture_binding, .set = 1, .binding = 10, .count = 2, .is_volatile = 1},
-											 {.type = binding_type::texture_binding, .set = 1, .binding = 12, .count = 1, .is_volatile = 1},
-										 },
-										 shader_stage::all);
-
-		// Param 3 - Material Table -> CBV + SSBO + 4 textures, [b0, space2] - [t0, space2] - [t1, t4, space2]
-		backend->bind_layout_add_pointer(layout,
-										 {
-											 {.type = binding_type::ubo, .set = 2, .binding = 0, .count = 1, .is_volatile = 1},
-											 {.type = binding_type::ssbo, .set = 2, .binding = 0, .count = 1, .is_volatile = 1},
-											 {.type = binding_type::texture_binding, .set = 2, .binding = 1, .count = 4, .is_volatile = 1},
-										 },
-										 shader_stage::all);
-
-		// Param 4 - Object Table -> CBV x 2 + Texture, [b0, b1, space3] - [t0, space3]
-		backend->bind_layout_add_pointer(layout,
-										 {
-											 {.type = binding_type::ubo, .set = 3, .binding = 0, .count = 1, .is_volatile = 1},
-											 {.type = binding_type::texture_binding, .set = 3, .binding = 0, .count = 1, .is_volatile = 1},
-										 },
-										 shader_stage::all);
-
-		// Param 5 - 4x Dynamic Samplers, [s0, s4, space0]
-		backend->bind_layout_add_pointer(layout,
-										 {
-											 {.type = binding_type::sampler, .set = 0, .binding = 0, .count = 4, .is_volatile = 1},
-										 },
-										 shader_stage::fragment);
-
-		// Param [6,11] - Immutable Samplers [s5, s11, space0]
-		backend->bind_layout_add_immutable_sampler(layout, 0, 5, gfx_util::get_sampler_desc_anisotropic(), shader_stage::fragment);
-		backend->bind_layout_add_immutable_sampler(layout, 0, 6, gfx_util::get_sampler_desc_linear(), shader_stage::fragment);
-		backend->bind_layout_add_immutable_sampler(layout, 0, 7, gfx_util::get_sampler_desc_nearest(), shader_stage::fragment);
-		backend->bind_layout_add_immutable_sampler(layout, 0, 8, gfx_util::get_sampler_desc_gui_default(), shader_stage::fragment);
-		backend->bind_layout_add_immutable_sampler(layout, 0, 9, gfx_util::get_sampler_desc_gui_text(), shader_stage::fragment);
-		backend->bind_layout_add_immutable_sampler(layout, 0, 10, gfx_util::get_sampler_desc_shadow_2d(), shader_stage::fragment);
-		backend->bind_layout_add_immutable_sampler(layout, 0, 11, gfx_util::get_sampler_desc_shadow_cube(), shader_stage::fragment);
-
-		backend->finalize_bind_layout(layout, false, "global_layout");
+		backend->finalize_bind_layout(layout, false, true, "global_layout");
 
 		return layout;
-	}
-
-	void gfx_util::update_dummy_bind_group(gfx_id group, gfx_id dummy_texture, gfx_id dummy_texture_array, gfx_id dummy_texture_cube, gfx_id dummy_sampler, gfx_id dummy_ssbo, gfx_id dummy_ubo)
-	{
-		gfx_backend* backend = gfx_backend::get();
-
-		// Render pass
-		backend->bind_group_update_pointer(group,
-										   1,
-										   {
-											   {.resource = dummy_ubo, .pointer_index = upi_render_pass_ubo0, .type = binding_type::ubo},
-											   {.resource = dummy_ubo, .pointer_index = upi_render_pass_ubo1, .type = binding_type::ubo},
-											   {.resource = dummy_ssbo, .pointer_index = upi_render_pass_ssbo0, .type = binding_type::ssbo},
-											   {.resource = dummy_ssbo, .pointer_index = upi_render_pass_ssbo1, .type = binding_type::ssbo},
-											   {.resource = dummy_ssbo, .pointer_index = upi_render_pass_ssbo2, .type = binding_type::ssbo},
-											   {.resource = dummy_ssbo, .pointer_index = upi_render_pass_ssbo3, .type = binding_type::ssbo},
-											   {.resource = dummy_ssbo, .pointer_index = upi_render_pass_ssbo4, .type = binding_type::ssbo},
-											   {.resource = dummy_texture, .pointer_index = upi_render_pass_texture0, .type = binding_type::texture_binding},
-											   {.resource = dummy_texture, .pointer_index = upi_render_pass_texture1, .type = binding_type::texture_binding},
-											   {.resource = dummy_texture, .pointer_index = upi_render_pass_texture2, .type = binding_type::texture_binding},
-											   {.resource = dummy_texture, .pointer_index = upi_render_pass_texture3, .type = binding_type::texture_binding},
-											   {.resource = dummy_texture, .pointer_index = upi_render_pass_texture4, .type = binding_type::texture_binding},
-											   {.resource = dummy_texture_array, .pointer_index = upi_render_pass_texture_array0, .type = binding_type::texture_binding},
-											   {.resource = dummy_texture_array, .pointer_index = upi_render_pass_texture_array1, .type = binding_type::texture_binding},
-											   {.resource = dummy_texture_cube, .pointer_index = upi_render_pass_texture_cube_array0, .type = binding_type::texture_binding},
-										   });
-
-		// Materials
-		backend->bind_group_update_pointer(group,
-										   2,
-										   {
-											   {.resource = dummy_ubo, .pointer_index = upi_material_ubo0, .type = binding_type::ubo},
-											   {.resource = dummy_ssbo, .pointer_index = upi_material_ssbo0, .type = binding_type::ssbo},
-											   {.resource = dummy_texture, .pointer_index = upi_material_texture0, .type = binding_type::texture_binding},
-											   {.resource = dummy_texture, .pointer_index = upi_material_texture1, .type = binding_type::texture_binding},
-											   {.resource = dummy_texture, .pointer_index = upi_material_texture2, .type = binding_type::texture_binding},
-											   {.resource = dummy_texture, .pointer_index = upi_material_texture3, .type = binding_type::texture_binding},
-											   {.resource = dummy_texture, .pointer_index = upi_material_texture4, .type = binding_type::texture_binding},
-
-										   });
-
-		// Objects
-		backend->bind_group_update_pointer(group,
-										   3,
-										   {
-											   {.resource = dummy_ubo, .pointer_index = upi_object_ubo0, .type = binding_type::ubo},
-											   {.resource = dummy_texture, .pointer_index = upi_object_texture0, .type = binding_type::texture_binding},
-										   });
-
-		// Dynamic samplers
-		backend->bind_group_update_pointer(group,
-										   4,
-										   {
-											   {.resource = dummy_sampler, .pointer_index = upi_dyn_sampler0, .type = binding_type::sampler},
-											   {.resource = dummy_sampler, .pointer_index = upi_dyn_sampler1, .type = binding_type::sampler},
-											   {.resource = dummy_sampler, .pointer_index = upi_dyn_sampler2, .type = binding_type::sampler},
-											   {.resource = dummy_sampler, .pointer_index = upi_dyn_sampler3, .type = binding_type::sampler},
-										   });
-	}
-
-	gfx_id gfx_util::create_bind_group_global()
-	{
-		gfx_backend* backend = gfx_backend::get();
-		gfx_id		 group	 = backend->create_empty_bind_group();
-
-		// global
-		backend->bind_group_add_descriptor(group, rpi_engine_cbv, binding_type::ubo);
-
-		// RP - Material - Object - Dynamic Sampler Tables
-		backend->bind_group_add_pointer(group, rpi_table_render_pass, 10, false);
-		backend->bind_group_add_pointer(group, rpi_table_material, 6, false);
-		backend->bind_group_add_pointer(group, rpi_table_object, 3, false);
-		backend->bind_group_add_pointer(group, rpi_table_dyn_sampler, 4, true);
-
-		return group;
 	}
 
 	sampler_desc gfx_util::get_sampler_desc_anisotropic()

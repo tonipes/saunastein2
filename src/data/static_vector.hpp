@@ -25,6 +25,12 @@ namespace SFG
 		{
 		}
 
+		static_vector(value_type v) : _head(0)
+		{
+			for (int i = 0; i < capacity; i++)
+				_data[i] = v;
+		}
+
 		reference operator[](size_type index)
 		{
 			return at(index);

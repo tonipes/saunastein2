@@ -35,17 +35,15 @@ namespace SFG
 		struct per_frame_data
 		{
 			gfx_id cmd_buffers[SHADOWS_MAX_CMD_BUFFERS];
-			gfx_id bind_group;
 			uint8  active_cmd_buffers = 0;
 		};
 
 		struct pass
 		{
 			static_vector<indexed_draw, MAX_WORLD_DRAW_CALLS> draws;
-			buffer											  ubos[BACK_BUFFER_COUNT]		 = {};
-			gfx_id											  bind_groups[BACK_BUFFER_COUNT] = {};
-			renderable_collector							  collector						 = {};
-			gfx_id											  texture						 = 0;
+			buffer											  ubos[BACK_BUFFER_COUNT] = {};
+			renderable_collector							  collector				  = {};
+			gfx_id											  texture				  = 0;
 		};
 
 	public:
@@ -54,8 +52,8 @@ namespace SFG
 			const vector2ui16& size;
 			uint8*			   alloc;
 			size_t			   alloc_size;
-			gfx_id*			   entities;
-			gfx_id*			   bones;
+			gpu_index*		   entities;
+			gpu_index*		   bones;
 		};
 
 		struct render_params

@@ -208,6 +208,9 @@ namespace SFG
 		bool compile_shader_vertex_pixel(uint8 stage, const string& source, const vector<string>& defines, const vector<string>& source_paths, const char* entry, span<uint8>& out, bool compile_layout, span<uint8>& out_layout) const;
 		bool compile_shader_compute(const string& source, const vector<string>& source_paths, const char* entry, span<uint8>& out, bool compile_layout, span<uint8>& out_layout) const;
 
+		uint32 get_resource_gpu_index(gfx_id resource);
+		uint32 get_texture_gpu_index(gfx_id texture, uint8 view_index);
+		uint32 get_sampler_gpu_index(gfx_id sampler);
 		gfx_id create_resource(const resource_desc& desc);
 		gfx_id create_texture(const texture_desc& desc);
 		gfx_id create_sampler(const sampler_desc& desc);
@@ -227,7 +230,7 @@ namespace SFG
 		void   bind_layout_add_descriptor(gfx_id layout, uint8 type, uint32 set, uint32 binding, uint8 shader_stage_visibility);
 		void   bind_layout_add_pointer(gfx_id layout, const vector<bind_layout_pointer_param>& pointer_params, uint8 shader_stage_visibility);
 		void   bind_layout_add_immutable_sampler(gfx_id layout, uint32 set, uint32 binding, const sampler_desc& desc, uint8 shader_stage_visibility);
-		void   finalize_bind_layout(gfx_id id, bool is_compute, const char* name);
+		void   finalize_bind_layout(gfx_id id, bool is_compute, bool is_dyn_index, const char* name);
 		void   bind_group_update_constants(gfx_id group, uint8 binding_index, uint8* constants, uint8 count);
 		void   bind_group_update_descriptor(gfx_id group, uint8 binding_index, gfx_id resource);
 		void   bind_group_update_pointer(gfx_id group, uint8 binding_index, const bind_group_pointer* updates, uint16 update_count);
@@ -327,10 +330,7 @@ namespace SFG
 		static_pool_allocator<bind_layout, gfx_id, MAX_BIND_LAYOUTS>			 _bind_layouts;
 
 		dx12_heap _heap_rtv			= {};
-		dx12_heap _heap_buffer		= {};
-		dx12_heap _heap_texture		= {};
 		dx12_heap _heap_dsv			= {};
-		dx12_heap _heap_sampler		= {};
 		dx12_heap _heap_gpu_buffer	= {};
 		dx12_heap _heap_gpu_sampler = {};
 

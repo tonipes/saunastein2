@@ -30,7 +30,6 @@ namespace SFG
 		void   init();
 		void   uninit();
 		void   fetch_render_events(render_event_stream& stream);
-		void   flush_material_updates(uint8 frame_index);
 		void   flush_destroys(bool force);
 		gfx_id get_shader_variant(resource_id shader_handle, uint32 flags);
 
@@ -141,7 +140,7 @@ namespace SFG
 
 		inline uint32 get_peak_spot_lights() const
 		{
-			return _peak_spot_lights +  1;
+			return _peak_spot_lights + 1;
 		}
 
 		inline uint32 get_peak_point_lights() const
@@ -188,16 +187,6 @@ namespace SFG
 		struct destroy_bucket
 		{
 			vector<destroy_data> list;
-		};
-
-		struct material_update
-		{
-			uint32 material_index = 0;
-		};
-
-		struct material_update_bucket
-		{
-			vector<material_update> updates;
 		};
 
 	private:
@@ -256,7 +245,6 @@ namespace SFG
 		uint8	 _ambient_exists	  = 0;
 		uint32	 _peak_entities		  = 0;
 
-		static_vector<material_update_bucket, BACK_BUFFER_COUNT> _material_update_buckets;
-		destroy_bucket											 _destroy_bucket[BACK_BUFFER_COUNT + 1];
+		destroy_bucket _destroy_bucket[BACK_BUFFER_COUNT + 1];
 	};
 }

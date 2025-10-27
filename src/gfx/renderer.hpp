@@ -79,13 +79,16 @@ namespace SFG
 
 		struct per_frame_data
 		{
-			buffer		   buf_engine_global	= {};
-			semaphore_data sem_frame			= {};
-			semaphore_data sem_copy				= {};
-			gfx_id		   cmd_gfx				= 0;
-			gfx_id		   cmd_copy				= 0;
-			gfx_id		   bind_group_global	= 0;
-			gfx_id		   bind_group_swapchain = 0;
+			buffer		   buf_engine_global  = {};
+			semaphore_data sem_frame		  = {};
+			semaphore_data sem_copy			  = {};
+			gfx_id		   cmd_gfx			  = 0;
+			gfx_id		   cmd_copy			  = 0;
+			gfx_id		   bind_group_global  = 0;
+			uint32		   gpu_index_world_rt = 0;
+#ifdef USE_DEBUG_CONTROLLER
+			uint32 gpu_index_debug_controller_rt = 0;
+#endif
 		};
 
 		struct gfx_data

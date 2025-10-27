@@ -47,9 +47,9 @@ namespace SFG
 		void on_window_resize(const vector2ui16& size);
 		bool on_window_event(const window_event& ev);
 
-		inline gfx_id get_final_rt(uint8 frame_index) const
+		inline uint32 get_output_gpu_index(uint8 frame_index) const
 		{
-			return _pfd[frame_index].rt_fullscreen;
+			return _pfd[frame_index].rt_fullscreen_index;
 		}
 
 	private:
@@ -81,27 +81,26 @@ namespace SFG
 
 		struct gui_draw_call
 		{
-			vector4ui16 scissors	= vector4ui16::zero;
-			uint16		start_vtx	= 0;
-			uint16		start_idx	= 0;
-			uint16		index_count = 0;
-			gfx_id		shader		= 0;
-			gfx_id		bind_group	= 0;
+			vector4ui16 scissors		= vector4ui16::zero;
+			uint16		start_vtx		= 0;
+			uint16		start_idx		= 0;
+			uint16		index_count		= 0;
+			gfx_id		shader			= 0;
+			uint32		atlas_gpu_index = 0;
 		};
 
 		struct per_frame_data
 		{
-			buffer		 buf_gui_vtx				= {};
-			buffer		 buf_gui_idx				= {};
-			buffer		 buf_gui_pass_view			= {};
-			buffer		 buf_fullscreen_pass_view	= {};
-			gfx_id		 bind_group_gui_render_pass = 0;
-			gfx_id		 bind_group_fullscreen		= 0;
-			gfx_id		 rt_console					= 0;
-			gfx_id		 rt_fullscreen				= 0;
-			unsigned int counter_vtx				= 0;
-			unsigned int counter_idx				= 0;
-			uint16		 draw_call_count			= 0;
+			buffer buf_gui_vtx		   = {};
+			buffer buf_gui_idx		   = {};
+			buffer buf_gui_pass_view   = {};
+			uint32 rt_console_index	   = 0;
+			uint32 rt_fullscreen_index = 0;
+			uint32 counter_vtx		   = 0;
+			uint32 counter_idx		   = 0;
+			gfx_id rt_console		   = 0;
+			gfx_id rt_fullscreen	   = 0;
+			uint16 draw_call_count	   = 0;
 
 			inline void reset()
 			{
@@ -117,16 +116,11 @@ namespace SFG
 			float	  sdf_softness	= 0.02f;
 		};
 
-		struct fullscreen_pass_view
-		{
-			vector2 size = vector2::zero;
-		};
-
 		struct atlas_ref
 		{
 			vekt::atlas*   atlas			   = nullptr;
 			gfx_id		   texture			   = 0;
-			gfx_id		   bind_group		   = 0;
+			uint32		   texture_gpu_index   = 0;
 			gfx_id		   intermediate_buffer = 0;
 			texture_buffer buffer			   = {};
 		};

@@ -29,16 +29,17 @@ VSOutput VSMain(uint vertexID : SV_VertexID)
 	return OUT;
 }
 
-Texture2D _txt_world : material_texture0;
-Texture2D _txt_debug_controller : material_texture1;
-SamplerState _smp_base : static_sampler_linear;
+SamplerState sampler_base : static_sampler_linear;
 
 //------------------------------------------------------------------------------
 // Pixel Shader
 //------------------------------------------------------------------------------
 float4 PSMain(VSOutput IN) : SV_TARGET
 {
-	float4 color_debug_controller = _txt_debug_controller.SampleLevel(_smp_base, IN.uv, 0);
-	float4 color_world = _txt_world.SampleLevel(_smp_base, IN.uv, 0);
+	Texture2D txt_debug_controller = sfg_get_texture2D(sfg_rp_constant0);
+	Texture2D txt_world = sfg_get_texture2D(sfg_rp_constant1);
+
+	float4 color_debug_controller = txt_debug_controller.SampleLevel(sampler_base, IN.uv, 0);
+	float4 color_world = txt_world.SampleLevel(sampler_base, IN.uv, 0);
 	return color_debug_controller + color_world;
 }

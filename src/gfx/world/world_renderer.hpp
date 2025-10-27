@@ -53,9 +53,9 @@ namespace SFG
 		void render(uint8 frame_index, gfx_id layout_global, gfx_id bind_group_global, uint64 prev_copy, uint64 next_copy, gfx_id sem_copy);
 		void resize(const vector2ui16& size);
 
-		inline gfx_id get_output(uint8 frame_index)
+		inline gpu_index get_output_gpu_index(uint8 frame_index)
 		{
-			return _pass_lighting.get_color_texture(frame_index);
+			return _pass_lighting.get_output_gpu_index(frame_index);
 		}
 
 		inline const semaphore_data& get_final_semaphore(uint8 frame_index)

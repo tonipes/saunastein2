@@ -42,12 +42,12 @@ namespace SFG
 		void render_w_depth(indexed_draw* draws, uint32 draws_count, bump_allocator& alloc, gfx_id cmd_buffer, uint8 frame_index, const vector2ui16& size);
 		void resize(const vector2ui16& size);
 
-		inline gfx_id get_color_texture(uint8 frame_index, uint8 texture_index) const
+		inline gpu_index get_output_gpu_index(uint8 frame_index, uint8 texture_index) const
 		{
 			return _pfd[frame_index].textures[texture_index];
 		}
 
-		inline gfx_id get_depth_texture(uint8 frame_index) const
+		inline gpu_index get_output_gpu_index(uint8 frame_index) const
 		{
 			return _pfd[frame_index].depth_texture;
 		}

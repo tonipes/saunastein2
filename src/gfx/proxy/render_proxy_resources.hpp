@@ -19,6 +19,7 @@ namespace SFG
 	struct render_proxy_texture
 	{
 		resource_id handle		 = {};
+		gpu_index	heap_index	 = 0;
 		gfx_id		hw			 = 0;
 		gfx_id		intermediate = 0;
 		uint8		status		 = render_proxy_status::rps_inactive;
@@ -27,12 +28,16 @@ namespace SFG
 	struct render_proxy_material
 	{
 		buffer											  buffers[BACK_BUFFER_COUNT];
-		resource_id										  shader_handle	  = 0;
-		static_vector<resource_id, MAX_MATERIAL_TEXTURES> texture_handles = {};
-		resource_id										  handle		  = {};
-		gfx_id											  bind_groups[BACK_BUFFER_COUNT];
-		uint8											  status = render_proxy_status::rps_inactive;
-		bitmask<uint32>									  flags	 = 0;
+		buffer											  texture_buffers[BACK_BUFFER_COUNT];
+		gpu_index										  gpu_index_buffers[BACK_BUFFER_COUNT];
+		gpu_index										  gpu_index_texture_buffers[BACK_BUFFER_COUNT];
+		static_vector<resource_id, MAX_MATERIAL_TEXTURES> texture_handles = NULL_RESOURCE_ID;
+		static_vector<resource_id, MAX_MATERIAL_TEXTURES> sampler_handles = NULL_RESOURCE_ID;
+		bitmask<uint32>									  flags			  = 0;
+		resource_id										  shader_handle	  = NULL_RESOURCE_ID;
+
+		resource_id handle = {};
+		uint8		status = render_proxy_status::rps_inactive;
 	};
 
 	struct render_proxy_shader_variant
@@ -51,9 +56,10 @@ namespace SFG
 
 	struct render_proxy_sampler
 	{
-		resource_id handle = {};
-		gfx_id		hw	   = 0;
-		uint8		status = render_proxy_status::rps_inactive;
+		resource_id handle	   = {};
+		gpu_index	heap_index = 0;
+		gfx_id		hw		   = 0;
+		uint8		status	   = render_proxy_status::rps_inactive;
 	};
 
 	struct render_proxy_primitive

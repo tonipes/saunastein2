@@ -39,6 +39,11 @@ namespace SFG
 			return _flags.is_set(buffer_flags::buf_alive);
 		}
 
+		inline uint32 get_gpu_heap_index() const
+		{
+			return _gpu_heap_index;
+		}
+
 	private:
 		enum buffer_flags
 		{
@@ -48,10 +53,11 @@ namespace SFG
 		};
 
 	private:
-		uint8*		   _mapped	   = nullptr;
-		gfx_id		   _hw_staging = 0;
-		gfx_id		   _hw_gpu	   = 0;
-		uint32		   _total_size = 0;
-		bitmask<uint8> _flags	   = 0;
+		uint8*		   _mapped		   = nullptr;
+		uint32		   _total_size	   = 0;
+		uint32		   _gpu_heap_index = 0;
+		gfx_id		   _hw_staging	   = 0;
+		gfx_id		   _hw_gpu		   = 0;
+		bitmask<uint8> _flags		   = 0;
 	};
 }

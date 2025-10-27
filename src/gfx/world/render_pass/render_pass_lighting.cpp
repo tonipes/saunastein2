@@ -32,27 +32,13 @@ namespace SFG
 			pfd.cmd_buffer = backend->create_command_buffer({.type = command_type::graphics, .debug_name = "lighting_cmd"});
 			pfd.ubo.create_hw({.size = sizeof(ubo), .flags = resource_flags::rf_constant_buffer | resource_flags::rf_cpu_visible, .debug_name = "lighting_ubo"});
 
-			const uint32 base = i * 4;
-
-			pfd.bind_group = backend->create_empty_bind_group();
-			backend->bind_group_add_pointer(pfd.bind_group, rpi_table_render_pass, upi_render_pass_texture4 + 1, false);
-			backend->bind_group_update_pointer(pfd.bind_group,
-											   0,
-											   {
-												   {.resource = pfd.ubo.get_hw_gpu(), .view = 0, .pointer_index = upi_render_pass_ubo0, .type = binding_type::ubo},
-												   {.resource = params.entities[i], .view = 0, .pointer_index = upi_render_pass_ssbo0, .type = binding_type::ssbo},
-												   {.resource = params.point_lights[i], .view = 0, .pointer_index = upi_render_pass_ssbo1, .type = binding_type::ssbo},
-												   {.resource = params.spot_lights[i], .view = 0, .pointer_index = upi_render_pass_ssbo2, .type = binding_type::ssbo},
-												   {.resource = params.dir_lights[i], .view = 0, .pointer_index = upi_render_pass_ssbo3, .type = binding_type::ssbo},
-												   {.resource = params.gbuffer_textures[base + 0], .view = 1, .pointer_index = upi_render_pass_texture0, .type = binding_type::texture_binding},
-												   {.resource = params.gbuffer_textures[base + 1], .view = 1, .pointer_index = upi_render_pass_texture1, .type = binding_type::texture_binding},
-												   {.resource = params.gbuffer_textures[base + 2], .view = 1, .pointer_index = upi_render_pass_texture2, .type = binding_type::texture_binding},
-												   {.resource = params.gbuffer_textures[base + 3], .view = 1, .pointer_index = upi_render_pass_texture3, .type = binding_type::texture_binding},
-												   {.resource = params.depth_textures[i], .view = 2, .pointer_index = upi_render_pass_texture4, .type = binding_type::texture_binding},
-											   });
+			pfd.gpu_index_entity_buffer		 = params.entities[i];
+			pfd.gpu_index_point_light_buffer = params.point_lights[i];
+			pfd.gpu_index_spot_light_buffer	 = params.spot_lights[i];
+			pfd.gpu_index_dir_light_buffer	 = params.dir_lights[i];
 		}
 
-		create_textures(params.size, params.gbuffer_textures, params.depth_textures);
+		create_textures(params.size, params.gbuffer_textures, params.depth_textures, params.depth_textures_hw);
 
 		_shader_lighting = engine_shaders::get().get_shader(engine_shader_type::engine_shader_type_world_lighting).get_hw();
 
@@ -78,7 +64,6 @@ namespace SFG
 			per_frame_data& pfd = _pfd[i];
 
 			backend->destroy_command_buffer(pfd.cmd_buffer);
-			backend->destroy_bind_group(pfd.bind_group);
 			pfd.ubo.destroy();
 		}
 
@@ -106,14 +91,30 @@ namespace SFG
 
 	void render_pass_lighting::render(const render_params& p)
 	{
-		gfx_backend*	backend		  = gfx_backend::get();
-		per_frame_data& pfd			  = _pfd[p.frame_index];
-		const gfx_id	queue_gfx	  = backend->get_queue_gfx();
-		const gfx_id	cmd_buffer	  = pfd.cmd_buffer;
-		const gfx_id	color_texture = pfd.render_target;
-		const gfx_id	depth_texture = pfd.depth_texture;
-		const gfx_id	rp_bind_group = pfd.bind_group;
-		const gfx_id	sh			  = _shader_lighting;
+		gfx_backend*	backend					  = gfx_backend::get();
+		per_frame_data& pfd						  = _pfd[p.frame_index];
+		const gfx_id	queue_gfx				  = backend->get_queue_gfx();
+		const gfx_id	cmd_buffer				  = pfd.cmd_buffer;
+		const gfx_id	color_texture			  = pfd.render_target;
+		const gfx_id	depth_texture			  = pfd.depth_texture;
+		const gpu_index gpu_index_rp_ubo		  = pfd.ubo.get_gpu_heap_index();
+		const gpu_index gpu_index_rp_entities	  = pfd.gpu_index_entity_buffer;
+		const gpu_index gpu_index_rp_point_lights = pfd.gpu_index_point_light_buffer;
+		const gpu_index gpu_index_rp_spot_lights  = pfd.gpu_index_spot_light_buffer;
+		const gpu_index gpu_index_rp_dir_lights	  = pfd.gpu_index_dir_light_buffer;
+		const gfx_id	sh						  = _shader_lighting;
+
+		// RP constants.
+		static_vector<gpu_index, GBUFFER_COLOR_TEXTURES + 10> rp_constants;
+		rp_constants.push_back(gpu_index_rp_entities);
+		rp_constants.push_back(gpu_index_rp_point_lights);
+		rp_constants.push_back(gpu_index_rp_spot_lights);
+		rp_constants.push_back(gpu_index_rp_dir_lights);
+		for (uint32 i = 0; i < GBUFFER_COLOR_TEXTURES; i++)
+			rp_constants.push_back(pfd.gpu_index_gbuffer_textures[i]);
+		rp_constants.push_back(pfd.gpu_index_depth_texture);
+		SFG_ASSERT(rp_constants.size() < constant_index_object_constant0 - constant_index_rp_constant0);
+
 		_alloc.reset();
 
 		static_vector<barrier, 2> barriers;
@@ -150,7 +151,10 @@ namespace SFG
 
 		backend->cmd_bind_layout(cmd_buffer, {.layout = p.global_layout});
 		backend->cmd_bind_group(cmd_buffer, {.group = p.global_group});
-		backend->cmd_bind_group(cmd_buffer, {.group = rp_bind_group});
+
+		backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)&gpu_index_rp_ubo, .offset = constant_index_rp_ubo_index, .count = 1, .param_index = rpi_constants});
+		backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)rp_constants.data(), .offset = constant_index_rp_constant0, .count = static_cast<uint8>(rp_constants.size()), .param_index = rpi_constants});
+
 		backend->cmd_set_scissors(cmd_buffer, {.width = static_cast<uint16>(p.size.x), .height = static_cast<uint16>(p.size.y)});
 		backend->cmd_set_viewport(cmd_buffer,
 								  {
@@ -195,10 +199,10 @@ namespace SFG
 		backend->close_command_buffer(cmd_buffer);
 	}
 
-	void render_pass_lighting::resize(const vector2ui16& size, gfx_id* gbuffer_textures, gfx_id* depth_textures)
+	void render_pass_lighting::resize(const vector2ui16& size, gpu_index* gbuffer_textures, gpu_index* depth_textures, gfx_id* depth_textures_hw)
 	{
 		destroy_textures();
-		create_textures(size, gbuffer_textures, depth_textures);
+		create_textures(size, gbuffer_textures, depth_textures, depth_textures_hw);
 	}
 
 	void render_pass_lighting::destroy_textures()
@@ -213,7 +217,7 @@ namespace SFG
 		}
 	}
 
-	void render_pass_lighting::create_textures(const vector2ui16& sz, gfx_id* gbuffer_textures, gfx_id* depth_textures)
+	void render_pass_lighting::create_textures(const vector2ui16& sz, gpu_index* gbuffer_textures, gpu_index* depth_textures, gfx_id* depth_textures_hw)
 	{
 		gfx_backend* backend = gfx_backend::get();
 
@@ -230,19 +234,16 @@ namespace SFG
 				.debug_name		= "lighting_rt",
 			});
 
-			pfd.depth_texture = depth_textures[i];
+			pfd.gpu_index_render_target = backend->get_texture_gpu_index(pfd.render_target, 1);
 
-			const uint32 base = i * 4;
-			backend->bind_group_update_pointer(pfd.bind_group,
-											   0,
-											   {
-												   {.resource = gbuffer_textures[base + 0], .view = 1, .pointer_index = upi_render_pass_texture0, .type = binding_type::texture_binding},
-												   {.resource = gbuffer_textures[base + 1], .view = 1, .pointer_index = upi_render_pass_texture1, .type = binding_type::texture_binding},
-												   {.resource = gbuffer_textures[base + 2], .view = 1, .pointer_index = upi_render_pass_texture2, .type = binding_type::texture_binding},
-												   {.resource = gbuffer_textures[base + 3], .view = 1, .pointer_index = upi_render_pass_texture3, .type = binding_type::texture_binding},
-												   {.resource = depth_textures[i], .view = 2, .pointer_index = upi_render_pass_texture4, .type = binding_type::texture_binding},
+			const uint32 base = i * GBUFFER_COLOR_TEXTURES;
 
-											   });
+			for (uint8 j = 0; j < GBUFFER_COLOR_TEXTURES; j++)
+			{
+				pfd.gpu_index_gbuffer_textures[j] = gbuffer_textures[base + j];
+			}
+			pfd.gpu_index_depth_texture = depth_textures[i];
+			pfd.depth_texture			= depth_textures_hw[i];
 		}
 	}
 }

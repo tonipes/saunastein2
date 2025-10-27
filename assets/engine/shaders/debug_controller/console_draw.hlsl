@@ -29,13 +29,7 @@ VSOutput VSMain(uint vertexID : SV_VertexID)
 	return OUT;
 }
 
-cbuffer MaterialCBV : material_ubo0
-{
-	float2 _screen_size;
-}
-
-Texture2D _txt_render_target : material_texture0;
-SamplerState _smp_base : static_sampler_linear;
+SamplerState sampler_base : static_sampler_linear;
 
 //------------------------------------------------------------------------------
 // Pixel Shader: just output the interpolated vertex color
@@ -43,6 +37,9 @@ SamplerState _smp_base : static_sampler_linear;
 float4 PSMain(VSOutput IN) : SV_TARGET
 {
 	float2 uv = IN.uv;
+
+	Texture2D txt_render_target = sfg_get_texture2D(sfg_object_constant0);
+	float2 screen_size = float2(float(sfg_object_constant1), float(sfg_object_constant2));
 
     // --- Barrel distortion ---
 	const float distortionAmount = 0.0045f;
@@ -60,10 +57,10 @@ float4 PSMain(VSOutput IN) : SV_TARGET
 	const float2 uvR = (centeredUV + aberration_offset) * 0.5f + 0.5f;
 	const float2 uvG = centeredUV * 0.5f + 0.5f;
 	const float2 uvB = (centeredUV - aberration_offset) * 0.5f + 0.5f;
-	float4 sample_red = _txt_render_target.SampleLevel(_smp_base, uvR, 0);
+	float4 sample_red = txt_render_target.SampleLevel(sampler_base, uvR, 0);
 	float red = sample_red.r;
-	float green = _txt_render_target.SampleLevel(_smp_base, uvG, 0).g;
-	float blue = _txt_render_target.SampleLevel(_smp_base, uvB, 0).b;
+	float green = txt_render_target.SampleLevel(sampler_base, uvG, 0).g;
+	float blue = txt_render_target.SampleLevel(sampler_base, uvB, 0).b;
 	float4 color = float4(red, green, blue, sample_red.a);
 	
 	float falloff = dot(centeredUV, centeredUV); // r^2 falloff
@@ -71,7 +68,7 @@ float4 PSMain(VSOutput IN) : SV_TARGET
 	color.rgb *= shading;
 	
     // --- Scanlines ---
-	float pixel_y = IN.uv.y * _screen_size.y;
+	float pixel_y = IN.uv.y * screen_size.y;
 	if ((int) pixel_y % 2 == 0)
 	{
 		color.rgb *= 0.5;
