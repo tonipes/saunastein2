@@ -148,6 +148,18 @@ namespace SFG
 				t.set_shadow_values(w, 1, vector2ui16(1024, 1024));
 			}
 		}
+
+		const world_handle spot_handle = em.find_entity("Spot");
+		if (!spot_handle.is_null())
+		{
+			const world_handle handle = em.get_entity_trait<trait_spot_light>(spot_handle);
+			if (!handle.is_null())
+			{
+				trait_spot_light& t = tm.get_trait<trait_spot_light>(handle);
+				t.set_values(w, t.get_color(), 50.0f, t.get_intensity(), t.get_inner_cone(), t.get_outer_cone());
+				t.set_shadow_values(w, 1, vector2ui16(1024, 1024));
+			}
+		}
 	}
 
 	void editor::destroy_demo_content()

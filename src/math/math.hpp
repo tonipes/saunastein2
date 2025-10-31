@@ -34,6 +34,11 @@ namespace SFG
 			return std::floor(val);
 		}
 
+		template <typename T> inline T acos(T val)
+		{
+			return std::acos(val);
+		}
+
 		template <typename T> inline T clamp(T value, T min_val, T max_val)
 		{
 			return std::fmax(min_val, std::fmin(value, max_val));

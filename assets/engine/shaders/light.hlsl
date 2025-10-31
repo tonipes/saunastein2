@@ -2,12 +2,14 @@ struct gpu_point_light
 {
     float4 color_entity_index;
     float4 intensity_range;
+    float4 shadow_resolution_map_and_data_index;    // xy res, z map index, w data index
 };
 
 struct gpu_spot_light
 {
    float4 color_entity_index;
    float4 intensity_range_inner_outer;
+    float4 shadow_resolution_map_and_data_index;    // xy res, z map index, w data index
 };
 
 struct gpu_dir_light
@@ -65,20 +67,4 @@ float spot_blend_hermite(float cosTheta, float cosOuter, float cosInner, float s
     // optional shaping
     return pow(x, max(softnessExp, 1e-3));
 }
-
-/*
-
-
-
-
-
-
-
-
-    
-
-   
-
-
-*/
 

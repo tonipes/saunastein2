@@ -68,7 +68,6 @@ static const float g_normal_bias_scale = 0.1f;      // scales with slope (bigger
 static const int   g_pcf_radius        = 1;         // 0: 1 tap, 1: 3x3, 2: 5x5
 static const float g_cascade_blend     = 0.5f;      // optional cross-fade width in normalized depth (0 = off)
 
-
 // Normal/slope-based bias term (NoL-aware).
 float slope_bias(float NoL)
 {
@@ -76,47 +75,12 @@ float slope_bias(float NoL)
     return g_normal_bias_scale * (s / max(NoL, 1e-3f));
 }
 
-// If UV is outside the shadow map, treat as lit (no shadow)
 bool outside(float2 uv) { return any(uv < 0.0f) || any(uv > 1.0f); }
 
-float sample_cascade_shadow(
-    Texture2DArray shadow_map,
-    SamplerComparisonState smp,
-    float4x4       light_space_matrix,
-    float3         world_pos,
-    float3         N,
-    float3         L,
-    int            slice,
-    float2         shadow_resolution, float texel_world)
+float pcf_cascade(int radius, Texture2DArray shadow_map, SamplerComparisonState smp, float2 uv, int slice, float compare_depth, float2 texel)
 {
-    // Transform world position into light clip space
-    float4 clip = mul(light_space_matrix, float4(world_pos, 1.0f));
-
-    // Guard against points behind the light camera
-    if (clip.w <= 0.0f) return 1.0f;
-
-    float2 uv = ndc_to_uv(clip.xy);
-    if (outside(uv)) return 1.0f;
-    uv.y = 1.0 - uv.y;
-
-    // Receiver bias: base + slope (normal) component, scaled by texel size
-    float NoL = saturate(dot(N, normalize(L)));
-    float2 texel = 1.0f / shadow_resolution;
-
-    // world-space-ish bias that grows with texel size and slope<
-    float receiver_bias = g_depth_bias_base + slope_bias(NoL) * max(texel.x, texel.y);
-
-    float compare_depth = clip.z - receiver_bias; // normal-Z: smaller = closer to light
-
-     // Single tap (fast path)
-    if (g_pcf_radius == 0)
-    {
-        float val = shadow_map.SampleCmpLevelZero(smp, float3(uv, slice), compare_depth);
-        return val;
-    }
-
-    // PCF kernel (square)
-    int r = g_pcf_radius;                 // 1 => 3x3, 2 => 5x5
+     // PCF kernel (square)
+    int r = radius;                 // 1 => 3x3, 2 => 5x5
     float taps = 0.0f;
     float accum = 0.0f;
 
@@ -132,6 +96,103 @@ float sample_cascade_shadow(
         }
     }
     return accum / max(taps, 1.0f);
+}
+
+float pcf(int radius, Texture2D shadow_map, SamplerComparisonState smp, float2 uv, float compare_depth, float2 texel)
+{
+     // PCF kernel (square)
+    int r = radius;                 // 1 => 3x3, 2 => 5x5
+    float taps = 0.0f;
+    float accum = 0.0f;
+
+    [unroll]
+    for (int dy = -r; dy <= +r; ++dy)
+    {
+        [unroll]
+        for (int dx = -r; dx <= +r; ++dx)
+        {
+            float2 offs = float2(dx, dy) * texel;
+            accum += shadow_map.SampleCmpLevelZero(smp_shadow, float2(uv + offs), compare_depth);
+            taps += 1.0f;
+        }
+    }
+    return accum / max(taps, 1.0f);
+}
+
+float sample_cascade_shadow(
+    Texture2DArray shadow_map,
+    SamplerComparisonState smp,
+    float4x4       light_space_matrix,
+    float3         world_pos,
+    float3         N,
+    float3         L,
+    int            slice,
+    float2         shadow_resolution, float texel_world)
+{
+    // Transform world position into light clip space
+    float4 clip = mul(light_space_matrix, float4(world_pos, 1.0f));
+    if (clip.w <= 0.0f) return 1.0f;
+    float2 uv = ndc_to_uv(clip.xy);
+    if (outside(uv)) return 1.0f;
+    uv.y = 1.0 - uv.y;
+
+    float2 texel = 1.0f / shadow_resolution;
+
+    // we try to trust rasterizer bias, if not below
+    // float NoL = saturate(dot(N, normalize(L)));
+    // float receiver_bias = g_depth_bias_base + slope_bias(NoL) * max(texel.x, texel.y); // or texel_world * 0.00001
+
+    float compare_depth = clip.z; 
+
+     // Single tap (fast path)
+    if (g_pcf_radius == 0)
+    {
+        float val = shadow_map.SampleCmpLevelZero(smp, float3(uv, slice), compare_depth);
+        return val;
+    }
+
+    return pcf_cascade(g_pcf_radius, shadow_map, smp, uv, slice, compare_depth, texel);
+}
+
+float sample_shadow_cone(Texture2D shadow_map,
+    SamplerComparisonState smp,
+    float4x4       light_space_matrix,
+    float3         world_pos,
+    float3         N,
+    float3         L,
+    float3 light_forward,
+    float2         shadow_resolution,
+    float cos_outer
+    )
+{
+    float cos_theta = dot(normalize(-L), normalize(light_forward));
+    if (cos_theta < cos_outer) return 1.0f;
+
+    float4 clip = mul(light_space_matrix, float4(world_pos, 1.0f));
+
+    // Guard against points behind the light camera
+    if (clip.w <= 0.0f) return 1.0f;
+
+    float3 ndc = clip.xyz;
+    ndc /= clip.w;
+
+    float2 uv = ndc_to_uv(ndc.xy);
+    if (outside(uv)) return 1.0f;
+    uv.y = 1.0 - uv.y;
+
+    float NoL = saturate(dot(N, normalize(L)));
+    float2 texel = 1.0f / shadow_resolution;
+    float receiver_bias = g_depth_bias_base + slope_bias(NoL) * max(texel.x, texel.y);
+
+    float compare_depth = ndc.z - receiver_bias * 0.5; // normal-Z: smaller = closer to light
+
+    if (g_pcf_radius == 0)
+    {
+        float val = shadow_map.SampleCmpLevelZero(smp, uv, compare_depth);
+        return val;
+    }
+
+    return pcf(g_pcf_radius, shadow_map, smp, uv,  compare_depth, texel);
 }
 
 // Optional: cross-fade near cascade split to reduce seams.
@@ -242,12 +303,13 @@ float4 PSMain(vs_output IN) : SV_TARGET
     {
         gpu_spot_light light = spot_light_buffer[i];                    // FIXED
         gpu_entity e = entity_buffer[uint(light.color_entity_index.w)];
+        float3 entity_forward = e.forward.xyz;
         float3 light_col = light.color_entity_index.xyz;
         float3 light_pos = e.position.xyz;
         float  intensity = light.intensity_range_inner_outer.x;
         float  range     = light.intensity_range_inner_outer.y;
         float  cosInner  = saturate(light.intensity_range_inner_outer.z);
-        float  cosOuter  = saturate(light.intensity_range_inner_outer.w);
+        float  cos_outer  = saturate(light.intensity_range_inner_outer.w);
 
         // To the shaded point
         float3 Lvec = light_pos - world_pos;
@@ -259,16 +321,32 @@ float4 PSMain(vs_output IN) : SV_TARGET
         float  attDist = attenuation(range, d);
 
         // Angular attenuation
-        float  cosTheta = dot(normalize(-L), e.forward.xyz); 
-        float cosInnerEff = compute_cosInner(cosInner, cosOuter, g_default_spot_blend);
-        float cone = spot_blend_hermite(cosTheta, cosOuter, cosInnerEff, g_softness_exp);
+        float  cosTheta = dot(normalize(-L), entity_forward); 
+        float cosInnerEff = compute_cosInner(cosInner, cos_outer, g_default_spot_blend);
+        float cone = spot_blend_hermite(cosTheta, cos_outer, cosInnerEff, g_softness_exp);
 
         // Final spotlight attenuation
         float  att = attDist * cone;
+        float shadow_vis = 1.0;
+
+        int shadow_data_index = (int)light.shadow_resolution_map_and_data_index.w;
+
+        if(shadow_data_index != -1)
+        {
+            int shadow_map_index = (int)light.shadow_resolution_map_and_data_index.z;
+
+            Texture2D shadow_map = sfg_get_texture2D(shadow_map_index);
+            gpu_shadow_data sd = shadow_data_buffer[shadow_data_index];
+            float4x4 light_space = sd.light_space_matrix;
+            float2 shadow_resolution = light.shadow_resolution_map_and_data_index.xy;
+
+            shadow_vis = sample_shadow_cone(shadow_map, smp_shadow, light_space, world_pos, N, L, entity_forward, shadow_resolution, cos_outer);
+        }
+
         if (att > 0.0f)
         {
             float3 radiance = light_col * (intensity * att);
-            lighting += calculate_pbr(V, N, L, albedo, ao, roughness, metallic, radiance);
+            lighting += calculate_pbr(V, N, L, albedo, ao, roughness, metallic, radiance * shadow_vis);
         }
     }
 
@@ -301,13 +379,14 @@ float4 PSMain(vs_output IN) : SV_TARGET
 
         float3 radiance = light_col * intensity; 
 
-        uint shadow_map_index = (uint)light.shadow_resolution_map_and_data_index.z;
         int shadow_data_index = (int)light.shadow_resolution_map_and_data_index.w;
 
         float shadow_vis = 1.0f;
 
         if(shadow_data_index != -1)
         {
+            int shadow_map_index = (int)light.shadow_resolution_map_and_data_index.z;
+
             Texture2DArray shadow_map = sfg_get_texture2DArray(shadow_map_index);
             gpu_shadow_data sd_curr = shadow_data_buffer[shadow_data_index + layer];
             float4x4 light_space_curr = sd_curr.light_space_matrix;

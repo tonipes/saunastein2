@@ -201,7 +201,9 @@ namespace SFG
 
 			if (variant_flags.is_set(shader_variant_flags::variant_flag_shadow_rendering) && !variant_flags.is_set(variant_flag_double_sided))
 			{
-				pso.desc.depth_bias_slope = 0.2f;
+				pso.desc.depth_bias_slope	 = 2.0;
+				pso.desc.depth_bias_constant = 0;
+				pso.desc.depth_bias_clamp	 = 0;
 			}
 
 			pso.desc.depth_stencil_desc = {

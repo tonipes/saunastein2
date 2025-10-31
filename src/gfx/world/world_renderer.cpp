@@ -579,9 +579,47 @@ namespace SFG
 			if (res == frustum_result::outside)
 				continue;
 
+			const float cos_outer = math::cos(light.outer_cone);
+
+			int32 shadow_data_index = -1;
+			if (light.cast_shadows)
+			{
+				const float far_plane	 = math::almost_equal(light.range, 0.0f) ? main_cam_far : light.range;
+				const float fov_deg		 = RAD_2_DEG * 2.0f * math::acos(cos_outer);
+				const float light_aspect = static_cast<float>(light.shadow_res.x) / static_cast<float>(light.shadow_res.y);
+
+				const matrix4x4 light_view		 = matrix4x4::look_at(proxy_entity.position, proxy_entity.position + proxy_entity.rotation.get_forward() * 0.1, vector3::up);
+				const matrix4x4 light_projection = matrix4x4::perspective(fov_deg, light_aspect, 0.01f, far_plane);
+
+				const gpu_shadow_data sh = {
+					.light_space_matrix = light_projection * light_view,
+				};
+
+				pfd.shadow_data_buffer.buffer_data(shadow_data_count * sizeof(gpu_shadow_data), &sh, sizeof(gpu_shadow_data));
+
+				_pass_shadows.add_pass({
+					.pm				  = _proxy_manager,
+					.frame_index	  = frame_index,
+					.res			  = light.shadow_res,
+					.texture		  = light.shadow_texture_hw[frame_index],
+					.transition_owner = true,
+					.view_index		  = 0,
+					.proj			  = light_projection,
+					.view			  = light_view,
+					.position		  = proxy_entity.position,
+					.cascade_near	  = main_cam_near,
+					.cascade_far	  = far_plane,
+					.fov			  = main_cam_fov,
+				});
+
+				shadow_data_index = static_cast<int32>(shadow_data_count);
+				shadow_data_count++;
+			}
+
 			const gpu_spot_light data = {
-				.color_entity_index			 = vector4(light.base_color.x, light.base_color.y, light.base_color.z, proxy_entity._assigned_index),
-				.intensity_range_inner_outer = vector4(light.intensity, light.range, math::cos(light.inner_cone), math::cos(light.outer_cone)),
+				.color_entity_index			   = vector4(light.base_color.x, light.base_color.y, light.base_color.z, proxy_entity._assigned_index),
+				.intensity_range_inner_outer   = vector4(light.intensity, light.range, math::cos(light.inner_cone), cos_outer),
+				.shadow_res_map_and_data_index = vector4(light.shadow_res.x, light.shadow_res.y, static_cast<float>(light.shadow_texture_gpu_index[frame_index]), static_cast<float>(shadow_data_index)),
 			};
 
 			pfd.spot_lights_buffer.buffer_data(sizeof(gpu_spot_light) * spots_count, &data, sizeof(gpu_spot_light));
