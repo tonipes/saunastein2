@@ -2,7 +2,6 @@
 #pragma once
 
 #include "common/size_definitions.hpp"
-#include "gfx/common/resource_limits.hpp"
 #include "math/vector4.hpp"
 #include "data/bitmask.hpp"
 #include "gfx/common/descriptions.hpp"

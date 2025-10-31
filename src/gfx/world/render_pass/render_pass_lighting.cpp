@@ -1,27 +1,23 @@
 // Copyright (c) 2025 Inan Evin
 
 #include "render_pass_lighting.hpp"
+
+// gfx
 #include "gfx/backend/backend.hpp"
 #include "gfx/common/descriptions.hpp"
 #include "gfx/common/commands.hpp"
 #include "gfx/util/gfx_util.hpp"
-#include "gfx/buffer_queue.hpp"
-#include "gfx/world/renderable_collector.hpp"
 #include "gfx/proxy/proxy_manager.hpp"
 #include "gfx/common/barrier_description.hpp"
-#include "gfx/renderer.hpp"
 #include "gfx/engine_shaders.hpp"
 #include "gfx/common/render_target_definitions.hpp"
-#include "world/world.hpp"
-#include "resources/vertex.hpp"
-#include "math/vector2ui16.hpp"
-#include "resources/shader_raw.hpp"
+#include "gfx/world/view.hpp"
 
 namespace SFG
 {
-	void render_pass_lighting::init(const init_params& params)
+	void render_pass_lighting::init(const vector2ui16& size)
 	{
-		_alloc.init(params.alloc, params.alloc_size);
+		_alloc.init(1024, 8);
 
 		gfx_backend* backend = gfx_backend::get();
 
@@ -31,14 +27,9 @@ namespace SFG
 
 			pfd.cmd_buffer = backend->create_command_buffer({.type = command_type::graphics, .debug_name = "lighting_cmd"});
 			pfd.ubo.create_hw({.size = sizeof(ubo), .flags = resource_flags::rf_constant_buffer | resource_flags::rf_cpu_visible, .debug_name = "lighting_ubo"});
-
-			pfd.gpu_index_entity_buffer		 = params.entities[i];
-			pfd.gpu_index_point_light_buffer = params.point_lights[i];
-			pfd.gpu_index_spot_light_buffer	 = params.spot_lights[i];
-			pfd.gpu_index_dir_light_buffer	 = params.dir_lights[i];
 		}
 
-		create_textures(params.size, params.gbuffer_textures, params.depth_textures, params.depth_textures_hw);
+		create_textures(size);
 
 		_shader_lighting = engine_shaders::get().get_shader(engine_shader_type::engine_shader_type_world_lighting).get_hw();
 
@@ -70,20 +61,25 @@ namespace SFG
 		destroy_textures();
 	}
 
-	void render_pass_lighting::prepare(proxy_manager& pm, const renderable_collector& collector, uint8 frame_index)
+	void render_pass_lighting::prepare(proxy_manager& pm, const view& camera_view, uint8 frame_index)
 	{
+		_alloc.reset();
+
 		const uint8					ambient_exists = pm.get_ambient_exists();
 		const render_proxy_ambient& ambient		   = pm.get_ambient();
 		const vector3				ambient_color  = ambient_exists ? ambient.base_color : vector3(0.1f, 0.1f, 0.1f);
 
-		per_frame_data& pfd			= _pfd[frame_index];
-		const view&		camera_view = collector.get_view();
+		per_frame_data& pfd = _pfd[frame_index];
 
 		const ubo ubo_data = {
 			.inverse_view_proj			 = camera_view.view_proj_matrix.inverse(),
 			.ambient_color_plights_count = vector4(ambient_color.x, ambient_color.y, ambient_color.z, static_cast<float>(pm.get_count_point_lights())),
 			.view_position_slights_count = vector4(camera_view.position.x, camera_view.position.y, camera_view.position.z, static_cast<float>(pm.get_count_spot_lights())),
-			.dir_lights_count			 = static_cast<float>(pm.get_count_dir_lights()),
+			.dir_lights_count			 = pm.get_count_dir_lights(),
+			.cascade_levels_gpu_index	 = camera_view.cascsades_gpu_index,
+			.cascade_count				 = static_cast<uint32>(camera_view.cascades.size()),
+			.near_plane				  = camera_view.near_plane,
+			.far_plane				  = camera_view.far_plane,
 		};
 
 		pfd.ubo.buffer_data(0, &ubo_data, sizeof(ubo));
@@ -91,31 +87,26 @@ namespace SFG
 
 	void render_pass_lighting::render(const render_params& p)
 	{
-		gfx_backend*	backend					  = gfx_backend::get();
-		per_frame_data& pfd						  = _pfd[p.frame_index];
-		const gfx_id	queue_gfx				  = backend->get_queue_gfx();
-		const gfx_id	cmd_buffer				  = pfd.cmd_buffer;
-		const gfx_id	color_texture			  = pfd.render_target;
-		const gfx_id	depth_texture			  = pfd.depth_texture;
-		const gpu_index gpu_index_rp_ubo		  = pfd.ubo.get_gpu_heap_index();
-		const gpu_index gpu_index_rp_entities	  = pfd.gpu_index_entity_buffer;
-		const gpu_index gpu_index_rp_point_lights = pfd.gpu_index_point_light_buffer;
-		const gpu_index gpu_index_rp_spot_lights  = pfd.gpu_index_spot_light_buffer;
-		const gpu_index gpu_index_rp_dir_lights	  = pfd.gpu_index_dir_light_buffer;
-		const gfx_id	sh						  = _shader_lighting;
+		gfx_backend*	backend			 = gfx_backend::get();
+		per_frame_data& pfd				 = _pfd[p.frame_index];
+		const gfx_id	queue_gfx		 = backend->get_queue_gfx();
+		const gfx_id	cmd_buffer		 = pfd.cmd_buffer;
+		const gfx_id	color_texture	 = pfd.render_target;
+		const gpu_index gpu_index_rp_ubo = pfd.ubo.get_gpu_index();
+		const gfx_id	sh				 = _shader_lighting;
 
 		// RP constants.
 		static_vector<gpu_index, GBUFFER_COLOR_TEXTURES + 10> rp_constants;
-		rp_constants.push_back(gpu_index_rp_entities);
-		rp_constants.push_back(gpu_index_rp_point_lights);
-		rp_constants.push_back(gpu_index_rp_spot_lights);
-		rp_constants.push_back(gpu_index_rp_dir_lights);
+		rp_constants.push_back(p.gpu_index_entities);
+		rp_constants.push_back(p.gpu_index_point_lights);
+		rp_constants.push_back(p.gpu_index_spot_lights);
+		rp_constants.push_back(p.gpu_index_dir_lights);
+		rp_constants.push_back(p.gpu_index_shadow_data_buffer);
+		rp_constants.push_back(p.gpu_index_float_buffer);
 		for (uint32 i = 0; i < GBUFFER_COLOR_TEXTURES; i++)
-			rp_constants.push_back(pfd.gpu_index_gbuffer_textures[i]);
-		rp_constants.push_back(pfd.gpu_index_depth_texture);
-		SFG_ASSERT(rp_constants.size() < constant_index_object_constant0 - constant_index_rp_constant0);
-
-		_alloc.reset();
+			rp_constants.push_back(p.gpu_index_gbuffer_textures[i]);
+		rp_constants.push_back(p.gpu_index_depth_texture);
+		SFG_ASSERT(rp_constants.size() < constant_index_object_constant0 - constant_index_rp_constant0 + 1);
 
 		static_vector<barrier, 2> barriers;
 
@@ -184,7 +175,7 @@ namespace SFG
 		});
 
 		barriers.push_back({
-			.resource	 = depth_texture,
+			.resource	 = p.depth_texture,
 			.flags		 = barrier_flags::baf_is_texture,
 			.from_states = resource_state::resource_state_depth_read | resource_state::resource_state_ps_resource,
 			.to_states	 = resource_state::resource_state_common,
@@ -199,10 +190,10 @@ namespace SFG
 		backend->close_command_buffer(cmd_buffer);
 	}
 
-	void render_pass_lighting::resize(const vector2ui16& size, gpu_index* gbuffer_textures, gpu_index* depth_textures, gfx_id* depth_textures_hw)
+	void render_pass_lighting::resize(const vector2ui16& size)
 	{
 		destroy_textures();
-		create_textures(size, gbuffer_textures, depth_textures, depth_textures_hw);
+		create_textures(size);
 	}
 
 	void render_pass_lighting::destroy_textures()
@@ -217,7 +208,7 @@ namespace SFG
 		}
 	}
 
-	void render_pass_lighting::create_textures(const vector2ui16& sz, gpu_index* gbuffer_textures, gpu_index* depth_textures, gfx_id* depth_textures_hw)
+	void render_pass_lighting::create_textures(const vector2ui16& sz)
 	{
 		gfx_backend* backend = gfx_backend::get();
 
@@ -235,15 +226,6 @@ namespace SFG
 			});
 
 			pfd.gpu_index_render_target = backend->get_texture_gpu_index(pfd.render_target, 1);
-
-			const uint32 base = i * GBUFFER_COLOR_TEXTURES;
-
-			for (uint8 j = 0; j < GBUFFER_COLOR_TEXTURES; j++)
-			{
-				pfd.gpu_index_gbuffer_textures[j] = gbuffer_textures[base + j];
-			}
-			pfd.gpu_index_depth_texture = depth_textures[i];
-			pfd.depth_texture			= depth_textures_hw[i];
 		}
 	}
 }

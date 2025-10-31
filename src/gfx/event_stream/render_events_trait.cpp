@@ -26,6 +26,9 @@ namespace SFG
 		stream << near_plane;
 		stream << far_plane;
 		stream << fov_degrees;
+		stream << static_cast<uint32>(cascades.size());
+		for (float f : cascades)
+			stream << f;
 	}
 
 	void render_event_camera::deserialize(istream& stream)
@@ -34,6 +37,14 @@ namespace SFG
 		stream >> near_plane;
 		stream >> far_plane;
 		stream >> fov_degrees;
+		uint32 cascade_count = 0;
+		stream >> cascade_count;
+		for (uint32 i = 0; i < cascade_count; i++)
+		{
+			float f = 0.0f;
+			stream >> f;
+			cascades.push_back(f);
+		}
 	}
 
 	void render_event_ambient::serialize(ostream& stream) const

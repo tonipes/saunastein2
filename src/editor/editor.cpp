@@ -8,11 +8,15 @@
 #include "world/traits/trait_camera.hpp"
 #include "world/traits/trait_model_instance.hpp"
 #include "world/traits/trait_ambient.hpp"
+#include "world/traits/trait_light.hpp"
 #include "resources/model.hpp"
 #include "platform/window.hpp"
 #include "math/vector3.hpp"
 #include "math/quat.hpp"
 #include "common/string_id.hpp"
+
+#include "resources/world_raw.hpp"
+#include "project/engine_data.hpp"
 
 namespace SFG
 {
@@ -24,8 +28,34 @@ namespace SFG
 
 	void editor::on_init()
 	{
+
+		world_raw	 raw = {};
+		const string p	 = engine_data::get().get_working_dir() + "assets/world/demo_world.stkworld";
+		raw.load_from_file(p.c_str());
+		_game.get_world()->create_from_loader(raw);
+
 		create_default_camera();
 		create_demo_content();
+
+		/*
+		debug_console::get()->register_console_function<int, int>("vsync", [this](int v, int tearing) {
+			uint8 flags = {};
+
+			if (v == 1)
+				flags |= swapchain_flags::sf_vsync_every_v_blank;
+			else if (v == 2)
+				flags |= swapchain_flags::sf_vsync_every_2v_blank;
+			if (tearing == 1)
+				flags |= swapchain_flags::sf_allow_tearing;
+
+			SFG_INFO("Setting VSync: {0}, Tearing: {1}", v, tearing);
+
+			join_render();
+			_renderer->on_swapchain_flags(flags);
+			kick_off_render();
+		});
+
+		*/
 	}
 
 	void editor::on_uninit()
@@ -40,10 +70,6 @@ namespace SFG
 	}
 
 	void editor::on_post_tick(double)
-	{
-	}
-
-	void editor::on_pre_render(const vector2ui16&)
 	{
 	}
 
@@ -73,10 +99,10 @@ namespace SFG
 		_camera_trait	   = tm.add_trait<trait_camera>(_camera_entity);
 
 		trait_camera& cam_trait = tm.get_trait<trait_camera>(_camera_trait);
-		cam_trait.set_values(w, 0.01f, 500.0f, 60.0f);
+		cam_trait.set_values(w, 0.01f, 250.0f, 60.0f, {0.01f, 0.04f, 0.125f, 0.25f, 0.5f});
 		cam_trait.set_main(w);
 
-		em.set_entity_position(_camera_entity, vector3(0.0f, 1.5f, 10.0f));
+		em.set_entity_position(_camera_entity, vector3(0.0f, 0, 5));
 		em.set_entity_rotation(_camera_entity, quat::identity);
 
 		window* main_window = _game.get_main_window();
@@ -111,6 +137,17 @@ namespace SFG
 		_ambient_trait			 = tm.add_trait<trait_ambient>(_ambient_entity);
 		trait_ambient& trait_amb = tm.get_trait<trait_ambient>(_ambient_trait);
 		trait_amb.set_values(w, color(0.1f, 0.1f, 0.1f));
+
+		const world_handle sun_handle = em.find_entity("Sun");
+		if (!sun_handle.is_null())
+		{
+			const world_handle dir_light_handle = em.get_entity_trait<trait_dir_light>(sun_handle);
+			if (!dir_light_handle.is_null())
+			{
+				trait_dir_light& t = tm.get_trait<trait_dir_light>(dir_light_handle);
+				t.set_shadow_values(w, 1, vector2ui16(1024, 1024));
+			}
+		}
 	}
 
 	void editor::destroy_demo_content()

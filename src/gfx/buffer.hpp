@@ -39,7 +39,7 @@ namespace SFG
 			return _flags.is_set(buffer_flags::buf_alive);
 		}
 
-		inline uint32 get_gpu_heap_index() const
+		inline uint32 get_gpu_index() const
 		{
 			return _gpu_heap_index;
 		}
@@ -60,4 +60,5 @@ namespace SFG
 		gfx_id		   _hw_gpu		   = 0;
 		bitmask<uint8> _flags		   = 0;
 	};
+
 }

@@ -157,13 +157,35 @@ namespace SFG
 		return matrix4x4(1.0f - 2.0f * (y2 + z2), 2.0f * (xy + wz), 2.0f * (xz - wy), 0.0f, 2.0f * (xy - wz), 1.0f - 2.0f * (x2 + z2), 2.0f * (yz + wx), 0.0f, 2.0f * (xz + wy), 2.0f * (yz - wx), 1.0f - 2.0f * (x2 + y2), 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
 	}
 
+	matrix4x4 matrix4x4::ortho_reverse_z(float left, float right, float top, float bottom, float near_plane, float far_plane)
+	{
+		const float inv_width  = 1.0f / (right - left);
+		const float inv_height = 1.0f / (top - bottom);
+		const float inv_depth  = 1.0f / (far_plane - near_plane);
+
+		// clang-format off
+		return matrix4x4(2.0f * inv_width, 0.0f, 0.0f, 0.0f, 
+						0.0f, 2.0f * inv_height, 0.0f, 
+						0.0f, 0.0f, 0.0f, -inv_depth, 
+						0.0f, -(right + left) * inv_width, -(top + bottom) * inv_height, 1.0f + near_plane * inv_depth, 1.0f);
+		// clang-format on
+	}
+
 	matrix4x4 matrix4x4::ortho(float left, float right, float top, float bottom, float near_plane, float far_plane)
 	{
 		const float inv_width  = 1.0f / (right - left);
 		const float inv_height = 1.0f / (top - bottom);
-		const float inv_depth  = 1.0f / (far_plane - near_plane); // RH - reverse
+		const float inv_depth  = 1.0f / (near_plane - far_plane);
 
-		return matrix4x4(2.0f * inv_width, 0.0f, 0.0f, 0.0f, 0.0f, 2.0f * inv_height, 0.0f, 0.0f, 0.0f, 0.0f, inv_depth, 0.0f, -(right + left) * inv_width, -(top + bottom) * inv_height, far_plane * inv_depth, 1.0f);
+		// clang-format off
+		return matrix4x4(
+						2.0f * inv_width,  0.0f,              0.0f, 0.0f,
+						0.0f,              2.0f * inv_height, 0.0f, 0.0f,
+						0.0f,              0.0f,              inv_depth, 0.0f,
+						-(right + left) * inv_width,
+						-(top + bottom)  * inv_height,
+						 near_plane * inv_depth, 1.0f);
+		// clang-format on
 	}
 
 	matrix4x4 matrix4x4::perspective_reverse_z(float fov_y_degrees, float aspect_ratio, float near_plane, float far_plane)
@@ -171,7 +193,7 @@ namespace SFG
 		const float fov_rad		 = math::degrees_to_radians(fov_y_degrees);
 		const float tan_half_fov = math::tan(0.5f * fov_rad);
 		const float f			 = 1.0f / tan_half_fov;
-		const float inv_nf		 = 1.0f / (far_plane - near_plane); // RH - reverse
+		const float inv_nf		 = 1.0f / (far_plane - near_plane);
 
 		// clang-format off
 		return matrix4x4(
@@ -187,7 +209,7 @@ namespace SFG
 		const float fov_rad		 = math::degrees_to_radians(fov_y_degrees);
 		const float tan_half_fov = math::tan(0.5f * fov_rad);
 		const float f			 = 1.0f / tan_half_fov;
-		const float inv_nf		 = 1.0f / (near_plane - far_plane); // RH - reverse
+		const float inv_nf		 = 1.0f / (near_plane - far_plane);
 
 		// clang-format off
 		return matrix4x4(
@@ -209,10 +231,9 @@ namespace SFG
 
 	matrix4x4 matrix4x4::look_at(const vector3& eye, const vector3& target, const vector3& up_vec)
 	{
-		vector3 z_axis = (target - eye).normalized();
-		vector3 x_axis = vector3::cross(up_vec, z_axis).normalized();
-		vector3 y_axis = vector3::cross(z_axis, x_axis);
-
+		vector3	  z_axis = (eye - target).normalized();
+		vector3	  x_axis = vector3::cross(up_vec, z_axis).normalized();
+		vector3	  y_axis = vector3::cross(z_axis, x_axis);
 		matrix4x4 result = matrix4x4(x_axis.x, y_axis.x, z_axis.x, 0.0f, x_axis.y, y_axis.y, z_axis.y, 0.0f, x_axis.z, y_axis.z, z_axis.z, 0.0f, -vector3::dot(x_axis, eye), -vector3::dot(y_axis, eye), -vector3::dot(z_axis, eye), 1.0f);
 		return result;
 	}

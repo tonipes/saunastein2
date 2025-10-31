@@ -2,10 +2,9 @@
 #pragma once
 
 #include "common/size_definitions.hpp"
-#include "data/vector.hpp"
-#include "gfx/event_stream/render_events.hpp"
-#include "vendor/moodycamel/readerwriterqueue.h"
 #include "data/ostream.hpp"
+#include "gfx/event_stream/render_events.hpp"
+#include <vendor/moodycamel/readerwriterqueue.h>
 
 namespace SFG
 {
@@ -22,10 +21,17 @@ namespace SFG
 			size_t size = 0;
 		};
 
+		// -----------------------------------------------------------------------------
+		// lifecycle
+		// -----------------------------------------------------------------------------
+
 		void init();
 		void uninit();
-
 		void publish();
+
+		// -----------------------------------------------------------------------------
+		// event api
+		// -----------------------------------------------------------------------------
 
 		template <typename T> inline void add_event(const render_event_header& header, const T& ev)
 		{
@@ -38,6 +44,10 @@ namespace SFG
 		{
 			header.serialize(_main_thread_data);
 		}
+
+		// -----------------------------------------------------------------------------
+		// accessors
+		// -----------------------------------------------------------------------------
 
 		inline moodycamel::ReaderWriterQueue<event_batch, MAX_BATCHES>& get_events()
 		{

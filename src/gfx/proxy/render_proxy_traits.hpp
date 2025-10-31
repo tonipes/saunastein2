@@ -3,11 +3,20 @@
 #pragma once
 
 #include "render_proxy_common.hpp"
+#include "data/static_vector.hpp"
 #include "memory/chunk_handle.hpp"
-#include "world/world_constants.hpp"
 #include "resources/common_resources.hpp"
+
+// math
 #include "math/color.hpp"
 #include "math/vector2ui16.hpp"
+
+// gfx
+#include "gfx/common/gfx_constants.hpp"
+
+// world
+#include "world/world_constants.hpp"
+#include "world/world_max_defines.hpp"
 
 namespace SFG
 {
@@ -21,11 +30,13 @@ namespace SFG
 
 	struct render_proxy_camera
 	{
-		world_id			entity		= 0;
-		float				near_plane	= 0.0f;
-		float				far_plane	= 0.0f;
-		float				fov_degrees = 0.0f;
-		render_proxy_status status		= render_proxy_status::rps_inactive;
+		chunk_handle32		cascades	  = {};
+		world_id			entity		  = 0;
+		float				near_plane	  = 0.0f;
+		float				far_plane	  = 0.0f;
+		float				fov_degrees	  = 0.0f;
+		uint8				cascade_count = 0;
+		render_proxy_status status		  = render_proxy_status::rps_inactive;
 	};
 
 	struct render_proxy_ambient
@@ -37,36 +48,37 @@ namespace SFG
 
 	struct render_proxy_dir_light
 	{
-		vector3				base_color							 = vector3::one;
-		vector2ui16			shadow_res							 = vector2ui16(256, 256);
-		float				intensity							 = 0;
-		world_id			entity								 = 0;
-		gfx_id				shadow_texture_hw[BACK_BUFFER_COUNT] = {NULL_GFX_ID};
-		uint8				cast_shadows						 = 0;
-		render_proxy_status status								 = render_proxy_status::rps_inactive;
+		vector3				base_color									= vector3::one;
+		vector2ui16			shadow_res									= vector2ui16(256, 256);
+		float				intensity									= 0;
+		world_id			entity										= 0;
+		gfx_id				shadow_texture_hw[BACK_BUFFER_COUNT]		= {NULL_GFX_ID};
+		gfx_id				shadow_texture_gpu_index[BACK_BUFFER_COUNT] = {NULL_GFX_ID};
+		uint8				cast_shadows								= 0;
+		render_proxy_status status										= render_proxy_status::rps_inactive;
 	};
 
 	struct render_proxy_point_light
 	{
-		vector3				base_color		  = vector3::one;
-		vector2ui16			shadow_res		  = vector2ui16(256, 256);
-		float				range			  = 0.0f;
-		float				intensity		  = 0;
-		world_id			entity			  = 0;
-		uint8				cast_shadows	  = 0;
-		render_proxy_status status			  = render_proxy_status::rps_inactive;
+		vector3				base_color	 = vector3::one;
+		vector2ui16			shadow_res	 = vector2ui16(256, 256);
+		float				range		 = 0.0f;
+		float				intensity	 = 0;
+		world_id			entity		 = 0;
+		uint8				cast_shadows = 0;
+		render_proxy_status status		 = render_proxy_status::rps_inactive;
 	};
 
 	struct render_proxy_spot_light
 	{
-		vector3				base_color		  = vector3::one;
-		vector2ui16			shadow_res		  = vector2ui16(256, 256);
-		float				range			  = 0.0f;
-		float				intensity		  = 0;
-		float				inner_cone		  = 0.0f;
-		float				outer_cone		  = 0.0f;
-		world_id			entity			  = 0;
-		uint8				cast_shadows	  = 0;
-		render_proxy_status status			  = render_proxy_status::rps_inactive;
+		vector3				base_color	 = vector3::one;
+		vector2ui16			shadow_res	 = vector2ui16(256, 256);
+		float				range		 = 0.0f;
+		float				intensity	 = 0;
+		float				inner_cone	 = 0.0f;
+		float				outer_cone	 = 0.0f;
+		world_id			entity		 = 0;
+		uint8				cast_shadows = 0;
+		render_proxy_status status		 = render_proxy_status::rps_inactive;
 	};
 }

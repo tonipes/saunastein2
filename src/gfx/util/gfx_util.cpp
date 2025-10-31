@@ -102,7 +102,7 @@ namespace SFG
 			.flags		= sampler_flags::saf_compare | sampler_flags::saf_min_linear | sampler_flags::saf_mag_linear | sampler_flags::saf_mip_nearest | sampler_flags::saf_border_white,
 			.address_u	= address_mode::clamp,
 			.address_v	= address_mode::clamp,
-			.compare	= compare_op::less,
+			.compare	= compare_op::lequal,
 		};
 	}
 
@@ -116,7 +116,7 @@ namespace SFG
 			.flags		= sampler_flags::saf_compare | sampler_flags::saf_min_linear | sampler_flags::saf_mag_linear | sampler_flags::saf_mip_nearest | sampler_flags::saf_border_white,
 			.address_u	= address_mode::clamp,
 			.address_v	= address_mode::clamp,
-			.compare	= compare_op::less,
+			.compare	= compare_op::lequal,
 		};
 	}
 

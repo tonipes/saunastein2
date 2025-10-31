@@ -113,7 +113,7 @@ namespace vekt
 		using const_iterator						   = const T*;
 		static constexpr unsigned int initial_capacity = 4;
 
-		vector(){};
+		vector() {};
 		vector(const vector<T>& other)
 		{
 			if (other.empty())
@@ -815,11 +815,11 @@ namespace vekt
 	////////////////////////////////////////////////////////////////////////////////
 	class builder;
 
-	typedef void			   (*widget_func)(builder* b, id widget);
+	typedef void (*widget_func)(builder* b, id widget);
 	typedef input_event_result (*mouse_func)(builder* b, id widget, const mouse_event& ev, input_event_phase phase);
 	typedef input_event_result (*key_func)(builder* b, id widget, const key_event& ev);
 	typedef input_event_result (*wheel_func)(builder* b, id widget, const mouse_wheel_event& ev);
-	typedef void			   (*drag_func)(builder* b, id widget, const VEKT_VEC2& mouse, const VEKT_VEC2& mouse_delta);
+	typedef void (*drag_func)(builder* b, id widget, const VEKT_VEC2& mouse, const VEKT_VEC2& mouse_delta);
 
 	////////////////////////////////////////////////////////////////////////////////
 	// :: VERTICES
@@ -1264,7 +1264,7 @@ namespace vekt
 	public:
 		struct slice
 		{
-			slice(unsigned int pos_y, unsigned int h) : pos(pos_y), height(h){};
+			slice(unsigned int pos_y, unsigned int h) : pos(pos_y), height(h) {};
 			unsigned int pos	= 0;
 			unsigned int height = 0;
 		};
@@ -1310,12 +1310,12 @@ namespace vekt
 		bool		   _is_lcd			 = false;
 	};
 
-	typedef std::function<void(atlas*)> atlas_cb;
-
 	class font_manager
 	{
 	public:
-		font_manager(){};
+		typedef void (*atlas_cb)(atlas* atl, void* user_data);
+
+		font_manager() {};
 		~font_manager()
 		{
 			ASSERT(_atlases.empty());
@@ -1327,17 +1327,23 @@ namespace vekt
 
 		font* load_font_from_file(const char* file, unsigned int size, unsigned int range_start = 0, unsigned int range_end = 128, font_type type = font_type::normal, int sdf_padding = 3, int sdf_edge = 128, float sdf_distance = 32.0f);
 		font* load_font(unsigned char* data, unsigned int data_size, unsigned int size, unsigned int range0, unsigned int range1, font_type type = font_type::normal, int sdf_padding = 3, int sdf_edge = 128, float sdf_distance = 32.0f);
+		void  unload_font(font* fnt);
 
-		void unload_font(font* fnt);
+		inline void set_callback_user_data(void* callback_user_data)
+		{
+			_callback_user_data = callback_user_data;
+		}
 
 		inline void set_atlas_created_callback(atlas_cb cb)
 		{
 			_atlas_created_cb = cb;
 		}
+
 		inline void set_atlas_updated_callback(atlas_cb cb)
 		{
 			_atlas_updated_cb = cb;
 		}
+
 		inline void set_atlas_destroyed_callback(atlas_cb cb)
 		{
 			_atlas_destroyed_cb = cb;
@@ -1349,6 +1355,7 @@ namespace vekt
 	private:
 		vector<atlas*> _atlases;
 		vector<font*>  _fonts;
+		void*		   _callback_user_data;
 		atlas_cb	   _atlas_created_cb   = nullptr;
 		atlas_cb	   _atlas_updated_cb   = nullptr;
 		atlas_cb	   _atlas_destroyed_cb = nullptr;
@@ -3572,7 +3579,7 @@ namespace vekt
 		atlas* atl = new atlas(config.atlas_width, config.atlas_height, fnt->type == font_type::lcd);
 		_atlases.push_back(atl);
 		if (_atlas_created_cb)
-			_atlas_created_cb(atl);
+			_atlas_created_cb(atl, _callback_user_data);
 		const bool ok = atl->add_font(fnt);
 		ASSERT(ok);
 	}
@@ -3712,7 +3719,7 @@ namespace vekt
 		}
 
 		if (_atlas_updated_cb)
-			_atlas_updated_cb(fnt->_atlas);
+			_atlas_updated_cb(fnt->_atlas, _callback_user_data);
 		return fnt;
 	}
 
@@ -3753,7 +3760,7 @@ namespace vekt
 			_atlases.remove(fnt->_atlas);
 
 			if (_atlas_destroyed_cb)
-				_atlas_destroyed_cb(fnt->_atlas);
+				_atlas_destroyed_cb(fnt->_atlas, _callback_user_data);
 
 			delete fnt->_atlas;
 		}
@@ -3771,7 +3778,7 @@ namespace vekt
 		for (atlas* atl : _atlases)
 		{
 			if (_atlas_destroyed_cb)
-				_atlas_destroyed_cb(atl);
+				_atlas_destroyed_cb(atl, _callback_user_data);
 			delete atl;
 		}
 

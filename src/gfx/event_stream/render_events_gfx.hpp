@@ -3,7 +3,6 @@
 #pragma once
 
 #include "gfx/common/texture_buffer.hpp"
-#include "gfx/common/gfx_common.hpp"
 #include "gfx/common/descriptions.hpp"
 #include "data/static_vector.hpp"
 #include "math/vector2ui16.hpp"

@@ -1,10 +1,13 @@
 // Copyright (c) 2025 Inan Evin
 
 #pragma once
+
 #include "data/static_vector.hpp"
+
+// gfx
 #include "gfx/buffer.hpp"
-#include "gfx/world/draws.hpp"
 #include "gfx/common/gfx_constants.hpp"
+
 #include "memory/bump_allocator.hpp"
 #include "math/vector4.hpp"
 #include "math/matrix4x4.hpp"
@@ -12,10 +15,8 @@
 namespace SFG
 {
 	struct view;
-	class proxy_manager;
 	struct vector2ui16;
-	struct view;
-	class renderable_collector;
+	class proxy_manager;
 
 	class render_pass_lighting
 	{
@@ -25,53 +26,58 @@ namespace SFG
 			matrix4x4 inverse_view_proj			  = {};
 			vector4	  ambient_color_plights_count = vector4::zero;
 			vector4	  view_position_slights_count = vector4::zero;
-			float	  dir_lights_count			  = 0;
-			float	  padding[7]				  = {};
+			uint32	  dir_lights_count			  = 0;
+			uint32	  cascade_levels_gpu_index	  = 0;
+			uint32	  cascade_count				  = 0;
+			float	  near_plane				  = 0.0f;
+			float	  far_plane					  = 0.0f;
+			float	  padding[3]				  = {};
 		};
 
 		struct per_frame_data
 		{
-			buffer	  ubo												 = {};
-			gfx_id	  cmd_buffer										 = 0;
-			gfx_id	  render_target										 = 0;
-			gfx_id	  depth_texture										 = 0;
-			gpu_index gpu_index_render_target							 = 0;
-			gpu_index gpu_index_depth_texture							 = 0;
-			gpu_index gpu_index_gbuffer_textures[GBUFFER_COLOR_TEXTURES] = {NULL_GPU_INDEX};
-			gpu_index gpu_index_entity_buffer							 = 0;
-			gpu_index gpu_index_point_light_buffer						 = 0;
-			gpu_index gpu_index_spot_light_buffer						 = 0;
-			gpu_index gpu_index_dir_light_buffer						 = 0;
+			buffer	  ubo					  = {};
+			gfx_id	  cmd_buffer			  = 0;
+			gfx_id	  render_target			  = 0;
+			gpu_index gpu_index_render_target = 0;
 		};
 
 	public:
-		struct init_params
-		{
-			const vector2ui16& size;
-			uint8*			   alloc;
-			size_t			   alloc_size;
-			gpu_index*		   entities;
-			gpu_index*		   point_lights;
-			gpu_index*		   spot_lights;
-			gpu_index*		   dir_lights;
-			gpu_index*		   gbuffer_textures;
-			gpu_index*		   depth_textures;
-			gfx_id*			   depth_textures_hw;
-		};
-
 		struct render_params
 		{
-			uint8			   frame_index;
-			const vector2ui16& size;
-			gfx_id			   global_layout;
-			gfx_id			   global_group;
+			uint8													frame_index;
+			const vector2ui16&										size;
+			const static_vector<gpu_index, GBUFFER_COLOR_TEXTURES>& gpu_index_gbuffer_textures;
+			gpu_index												gpu_index_depth_texture;
+			gpu_index												gpu_index_point_lights;
+			gpu_index												gpu_index_spot_lights;
+			gpu_index												gpu_index_dir_lights;
+			gpu_index												gpu_index_entities;
+			gpu_index												gpu_index_shadow_data_buffer;
+			gpu_index												gpu_index_float_buffer;
+			gfx_id													depth_texture;
+			gfx_id													global_layout;
+			gfx_id													global_group;
 		};
-		void init(const init_params& params);
+
+		// -----------------------------------------------------------------------------
+		// lifecycle
+		// -----------------------------------------------------------------------------
+
+		void init(const vector2ui16& size);
 		void uninit();
 
-		void prepare(proxy_manager& pm, const renderable_collector& collector, uint8 frame_index);
+		// -----------------------------------------------------------------------------
+		// rendering
+		// -----------------------------------------------------------------------------
+
+		void prepare(proxy_manager& pm, const view& main_camera_view, uint8 frame_index);
 		void render(const render_params& params);
-		void resize(const vector2ui16& size, gpu_index* gbuffer_textures, gpu_index* depth_textures, gfx_id* depth_textures_hw);
+		void resize(const vector2ui16& size);
+
+		// -----------------------------------------------------------------------------
+		// accessors
+		// -----------------------------------------------------------------------------
 
 		inline gpu_index get_output_gpu_index(uint8 frame_index) const
 		{
@@ -85,7 +91,7 @@ namespace SFG
 
 	private:
 		void destroy_textures();
-		void create_textures(const vector2ui16& sz, gpu_index* gbuffer_textures, gpu_index* depth_textures, gfx_id* depth_textures_hw);
+		void create_textures(const vector2ui16& sz);
 
 	private:
 		per_frame_data _pfd[BACK_BUFFER_COUNT];

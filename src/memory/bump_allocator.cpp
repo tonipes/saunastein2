@@ -2,6 +2,7 @@
 
 #include "bump_allocator.hpp"
 #include "memory/memory.hpp"
+#include "memory/memory_tracer.hpp"
 
 namespace SFG
 {
@@ -11,6 +12,7 @@ namespace SFG
 		_size = sz;
 		_raw  = SFG_ALIGNED_MALLOC(alignment, sz);
 		_owns = 1;
+		PUSH_ALLOCATION_SZ(sz);
 	}
 
 	void bump_allocator::init(uint8* existing, size_t sz)
@@ -23,7 +25,10 @@ namespace SFG
 	void bump_allocator::uninit()
 	{
 		if (_owns)
+		{
 			SFG_ALIGNED_FREE(_raw);
+			PUSH_DEALLOCATION_SZ(_size);
+		}
 		_raw = nullptr;
 	}
 

@@ -3,6 +3,7 @@
 
 #include "common/size_definitions.hpp"
 #include "gfx/common/gfx_constants.hpp"
+#include "gfx/common/descriptor_handle.hpp"
 #include "data/vector.hpp"
 #include "data/span.hpp"
 #include "data/string.hpp"
@@ -38,7 +39,7 @@ namespace SFG
 	struct bind_layout_pointer_param;
 	struct bind_group_pointer;
 	struct shader_blob;
-
+	struct shader_blob;
 	struct command_begin_render_pass;
 	struct command_begin_render_pass_depth;
 	struct command_begin_render_pass_depth_only;
@@ -79,6 +80,7 @@ namespace SFG
 #endif
 
 	typedef std::function<void(ID3D12GraphicsCommandList4* cmd_list, uint8* data)> command_function;
+
 
 	class dx12_backend
 	{

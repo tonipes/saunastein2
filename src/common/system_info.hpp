@@ -34,12 +34,12 @@ namespace SFG
 	private:
 		friend class game_app;
 
-		static inline void register_thread_main(std::thread::id id)
+		static inline void SFG_REGISTER_THREAD_MAIN(std::thread::id id)
 		{
 			s_thread_id_main = id;
 		}
 
-		static inline void register_thread_render(std::thread::id id)
+		static inline void SFG_REGISTER_THREAD_RENDER(std::thread::id id)
 		{
 			s_thread_id_render = id;
 		}
@@ -55,20 +55,20 @@ namespace SFG
 		static bool			   s_is_init;
 	};
 
-#define REGISTER_THREAD_MAIN()	 thread_info::register_thread_main(std::this_thread::get_id())
-#define REGISTER_THREAD_RENDER() thread_info::register_thread_render(std::this_thread::get_id())
-#define SET_INIT(IS_INIT)		 thread_info::set_is_init(IS_INIT)
-#define VERIFY_THREAD_MAIN()	 SFG_ASSERT(thread_info::get_thread_id_main() == std::this_thread::get_id())
-#define VERIFY_THREAD_RENDER()	 SFG_ASSERT(thread_info::get_thread_id_render() == std::this_thread::get_id())
-#define VERIFY_INIT()			 SFG_ASSERT(thread_info::get_is_init())
-#define IS_RENDER_THREAD()		 thread_info::get_thread_id_main() == std::this_thread::get_id()
+#define SFG_REGISTER_THREAD_MAIN()	 thread_info::SFG_REGISTER_THREAD_MAIN(std::this_thread::get_id())
+#define SFG_REGISTER_THREAD_RENDER() thread_info::SFG_REGISTER_THREAD_RENDER(std::this_thread::get_id())
+#define SFG_SET_INIT(IS_INIT)		 thread_info::set_is_init(IS_INIT)
+#define SFG_VERIFY_THREAD_MAIN()	 SFG_ASSERT(thread_info::get_thread_id_main() == std::this_thread::get_id())
+#define SFG_VERIFY_THREAD_RENDER()	 SFG_ASSERT(thread_info::get_thread_id_render() == std::this_thread::get_id())
+#define SFG_VERIFY_INIT()			 SFG_ASSERT(thread_info::get_is_init())
+#define IS_RENDER_THREAD()			 thread_info::get_thread_id_main() == std::this_thread::get_id()
 #else
-#define REGISTER_THREAD_MAIN()
-#define REGISTER_THREAD_RENDER()
-#define SET_INIT(IS_INIT)
-#define VERIFY_THREAD_MAIN()
-#define VERIFY_THREAD_RENDER()
-#define VERIFY_INIT()
+#define SFG_REGISTER_THREAD_MAIN()
+#define SFG_REGISTER_THREAD_RENDER()
+#define SFG_SET_INIT(IS_INIT)
+#define SFG_VERIFY_THREAD_MAIN()
+#define SFG_VERIFY_THREAD_RENDER()
+#define SFG_VERIFY_INIT()
 #endif
 
 	class frame_info
@@ -82,11 +82,6 @@ namespace SFG
 		static double get_render_thread_time_milli()
 		{
 			return s_render_thread_time_milli.load();
-		}
-
-		static double get_present_time_micro()
-		{
-			return s_present_time_micro.load();
 		}
 
 		static double get_present_time_milli()
@@ -126,15 +121,16 @@ namespace SFG
 
 		static atomic<double> s_main_thread_time_milli;
 		static atomic<double> s_render_thread_time_milli;
-		static atomic<double> s_present_time_micro;
 		static atomic<double> s_present_time_milli;
 		static atomic<uint32> s_fps;
 		static atomic<uint64> s_frame;
 		static atomic<uint64> s_render_frame;
+		static atomic<int64>  s_render_work_microseconds;
+		static atomic<int64>  s_render_present_microseconds;
 		static bool			  s_is_render_active;
 	};
 
-#define VERIFY_RENDER_NOT_RUNNING()					 SFG_ASSERT(!frame_info::get_is_render_active())
-#define VERIFY_RENDER_THREAD()						 SFG_ASSERT(frame_info::get_is_render_active())
-#define VERIFY_RENDER_NOT_RUNNING_OR_RENDER_THREAD() SFG_ASSERT(thread_info::get_thread_id_render() == std::this_thread::get_id() || !frame_info::get_is_render_active())
+#define SFG_VERIFY_RENDER_NOT_RUNNING()					 SFG_ASSERT(!frame_info::get_is_render_active())
+#define SFG_VERIFY_RENDER_THREAD()						 SFG_ASSERT(frame_info::get_is_render_active())
+#define SFG_VERIFY_RENDER_NOT_RUNNING_OR_RENDER_THREAD() SFG_ASSERT(thread_info::get_thread_id_render() == std::this_thread::get_id() || !frame_info::get_is_render_active())
 }

@@ -1,7 +1,6 @@
 // Copyright (c) 2025 Inan Evin
 
 #pragma once
-#include "gfx/common/gfx_common.hpp"
 
 namespace SFG
 {

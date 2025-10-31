@@ -6,8 +6,8 @@
 
 namespace SFG
 {
-#define MAX_RESOURCES		   512
-#define MAX_TEXTURES		   512
+#define MAX_RESOURCES		   1024
+#define MAX_TEXTURES		   1024
 #define MAX_SAMPLERS		   128
 #define MAX_SEMAPHORES		   64
 #define MAX_SHADERS			   256

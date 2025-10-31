@@ -21,72 +21,50 @@
 
 namespace SFG
 {
-
 	gfx_id renderer::s_bind_group_global[BACK_BUFFER_COUNT] = {};
 	gfx_id renderer::s_bind_layout_global					= 0;
 
-	renderer::renderer() : _proxy_manager(_buffer_queue, _texture_queue)
+	renderer::renderer(window& win, world& w, render_event_stream& event_stream) : _world(w), _main_window(win), _event_stream(event_stream), _proxy_manager(_buffer_queue, _texture_queue)
 	{
-		_reuse_upload_barriers.reserve(32);
+		_reuse_upload_barriers.reserve(256);
 	}
 
-	bool renderer::init(window* main_window, world* w)
+	void renderer::create_bind_layout_global()
 	{
-		_world				 = w;
+		s_bind_layout_global = gfx_util::create_bind_layout_global();
+	}
+
+	void renderer::destroy_bind_layout_global()
+	{
+		gfx_backend* backend = gfx_backend::get();
+		backend->destroy_bind_layout(s_bind_layout_global);
+		s_bind_layout_global = 0;
+	}
+
+	bool renderer::init()
+	{
 		gfx_backend* backend = gfx_backend::get();
 
-		// global render data.
-		_gfx_data.bind_layout_global = gfx_util::create_bind_layout_global();
-		s_bind_layout_global		 = _gfx_data.bind_layout_global;
-
-		// kick off system shaders.
-		if (!engine_shaders::get().init(s_bind_layout_global))
-		{
-			backend->destroy_bind_layout(s_bind_layout_global);
-			return false;
-		}
-
 		// swapchain
-		_swapchain_flags	= swapchain_flags::sf_vsync_every_v_blank;
+		_swapchain_flags = swapchain_flags::sf_vsync_every_v_blank;
+		_base_size		 = _main_window.get_size();
+
 		_gfx_data.swapchain = backend->create_swapchain({
-			.window	   = main_window->get_window_handle(),
-			.os_handle = main_window->get_platform_handle(),
+			.window	   = _main_window.get_window_handle(),
+			.os_handle = _main_window.get_platform_handle(),
 			.scaling   = 1.0f,
 			.format	   = render_target_definitions::get_format_swapchain(),
 			.pos	   = vector2ui16::zero,
-			.size	   = main_window->get_size(),
+			.size	   = _base_size,
 			.flags	   = _swapchain_flags,
 		});
-		_base_size			= main_window->get_size();
 
-		// dummy data
-		_gfx_data.dummy_sampler = backend->create_sampler({});
-		_gfx_data.dummy_texture = backend->create_texture({
-			.texture_format = format::r8_unorm,
-			.size			= vector2ui16(1, 1),
-			.flags			= texture_flags::tf_is_2d | texture_flags::tf_sampled,
-		});
-
-		_gfx_data.dummy_texture_array = backend->create_texture({
-			.texture_format = format::r8_unorm,
-			.size			= vector2ui16(1, 1),
-			.flags			= texture_flags::tf_is_2d | texture_flags::tf_sampled,
-			.array_length	= 2,
-		});
-
-		_gfx_data.dummy_texture_cube = backend->create_texture({
-			.texture_format = format::r8_unorm,
-			.size			= vector2ui16(1, 1),
-			.flags			= texture_flags::tf_is_2d | texture_flags::tf_sampled | tf_cubemap,
-		});
-		_gfx_data.dummy_ubo			 = backend->create_resource({.size = 4, .flags = resource_flags::rf_constant_buffer | resource_flags::rf_gpu_only});
-		_gfx_data.dummy_ssbo		 = backend->create_resource({.size = 4, .flags = resource_flags::rf_storage_buffer | resource_flags::rf_gpu_only});
-
+		// debug & world
 #ifdef USE_DEBUG_CONTROLLER
-		_debug_controller.init(&_texture_queue, _gfx_data.bind_layout_global, main_window->get_size());
+		_debug_controller.init(&_texture_queue, s_bind_layout_global, _base_size);
 #endif
-		_world_renderer = new world_renderer(_proxy_manager, *w);
-		_world_renderer->init(main_window->get_size(), &_texture_queue, &_buffer_queue);
+		_world_renderer = new world_renderer(_proxy_manager);
+		_world_renderer->init(_base_size, &_texture_queue, &_buffer_queue);
 
 		// pfd
 		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
@@ -137,36 +115,29 @@ namespace SFG
 		return true;
 	}
 
-	void renderer::uninit(render_event_stream& stream)
+	void renderer::uninit()
 	{
 		gfx_backend* backend = gfx_backend::get();
 
-		// fetch any stale commands.
-		_proxy_manager.fetch_render_events(stream);
+		// proxy
+		_proxy_manager.fetch_render_events(_event_stream);
 		_proxy_manager.uninit();
-		// _world_renderer->uninit();
-		delete _world_renderer;
 
+		// debug & world
+		_world_renderer->uninit();
+		delete _world_renderer;
 #ifdef USE_DEBUG_CONTROLLER
 		_debug_controller.uninit();
 #endif
 
+		// utils
 		_texture_queue.uninit();
 		_buffer_queue.uninit();
 
-		backend->destroy_bind_layout(_gfx_data.bind_layout_global);
-
-		backend->destroy_resource(_gfx_data.dummy_ubo);
-		backend->destroy_resource(_gfx_data.dummy_ssbo);
-		backend->destroy_sampler(_gfx_data.dummy_sampler);
-		backend->destroy_texture(_gfx_data.dummy_texture);
-		backend->destroy_texture(_gfx_data.dummy_texture_array);
-		backend->destroy_texture(_gfx_data.dummy_texture_cube);
-
+		// pfd
 		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
 			per_frame_data& pfd = _pfd[i];
-
 			backend->destroy_semaphore(pfd.sem_frame.semaphore);
 			backend->destroy_semaphore(pfd.sem_copy.semaphore);
 			backend->destroy_command_buffer(pfd.cmd_gfx);
@@ -176,8 +147,12 @@ namespace SFG
 			_frame_allocator[i].uninit();
 		}
 
+		// swp
 		backend->destroy_swapchain(_gfx_data.swapchain);
 
+		// globals
+		backend->destroy_bind_layout(s_bind_layout_global);
+		s_bind_layout_global = 0;
 		engine_shaders::get().uninit();
 	}
 
@@ -205,18 +180,28 @@ namespace SFG
 #endif
 	}
 
-	void renderer::render(render_event_stream& stream, const vector2ui16& size)
+	void renderer::render()
 	{
-		gfx_backend* backend		= gfx_backend::get();
-		const gfx_id queue_gfx		= backend->get_queue_gfx();
-		const gfx_id queue_transfer = backend->get_queue_transfer();
+		gfx_backend*	  backend		 = gfx_backend::get();
+		const gfx_id	  queue_gfx		 = backend->get_queue_gfx();
+		const gfx_id	  queue_transfer = backend->get_queue_transfer();
+		const vector2ui16 size			 = _base_size;
+
+#ifndef SFG_PRODUCTION
+		const int64 time_before_wait = time::get_cpu_microseconds();
+#endif
 
 		// Gate frame start to DXGI frame latency waitable for stable pacing
 		backend->wait_for_swapchain_latency(_gfx_data.swapchain);
 
+#ifndef SFG_PRODUCTION
+		const int64 time_after_wait = time::get_cpu_microseconds();
+		frame_info::s_render_present_microseconds.store(time_after_wait - time_before_wait);
+#endif
+
 		/* access frame data */
 		const uint8	 frame_index   = _gfx_data.frame_index;
-		const gfx_id layout_global = _gfx_data.bind_layout_global;
+		const gfx_id layout_global = s_bind_layout_global;
 		const gfx_id render_target = _gfx_data.swapchain;
 
 		per_frame_data& pfd			   = _pfd[frame_index];
@@ -232,7 +217,7 @@ namespace SFG
 		// Wait for frame's fence, then send any uploads needed.
 		backend->wait_semaphore(pfd.sem_frame.semaphore, pfd.sem_frame.value);
 
-		_proxy_manager.fetch_render_events(stream);
+		_proxy_manager.fetch_render_events(_event_stream);
 		_proxy_manager.flush_destroys(false);
 
 		/* access pfd */
@@ -377,20 +362,16 @@ namespace SFG
 
 		backend->submit_commands(queue_gfx, &cmd_list, 1);
 
-#ifndef SFG_PRODUCTION
-		const int64 time_before = time::get_cpu_microseconds();
-#endif
-
 		backend->present(&render_target, 1);
 		_gfx_data.frame_index = backend->get_back_buffer_index(_gfx_data.swapchain);
 
+		backend->queue_signal(queue_gfx, &sem_frame, &next_frame_value, 1);
+
 		// SFG_TRACE("frame index {0}", (uint32)_gfx_data.frame_index);
 #ifndef SFG_PRODUCTION
-		const int64 present_time = time::get_cpu_microseconds() - time_before;
-		frame_info::s_present_time_micro.store(static_cast<double>(present_time));
+		const int64 time_end = time::get_cpu_microseconds();
+		frame_info::s_render_work_microseconds.store(static_cast<double>(time_end - time_after_wait));
 #endif
-
-		backend->queue_signal(queue_gfx, &sem_frame, &next_frame_value, 1);
 	}
 
 	bool renderer::on_window_event(const window_event& ev)
@@ -398,13 +379,12 @@ namespace SFG
 #ifdef USE_DEBUG_CONTROLLER
 		return _debug_controller.on_window_event(ev);
 #endif
-
 		return false;
 	}
 
 	void renderer::on_window_resize(const vector2ui16& size)
 	{
-		VERIFY_THREAD_MAIN();
+		SFG_VERIFY_THREAD_MAIN();
 		_base_size = size;
 
 		gfx_backend* backend = gfx_backend::get();
@@ -426,7 +406,6 @@ namespace SFG
 			per_frame_data& pfd = _pfd[i];
 
 			pfd.gpu_index_world_rt = _world_renderer->get_output_gpu_index(i);
-
 #ifdef USE_DEBUG_CONTROLLER
 			pfd.gpu_index_debug_controller_rt = _debug_controller.get_output_gpu_index(i);
 #endif
@@ -435,12 +414,9 @@ namespace SFG
 
 	void renderer::on_swapchain_flags(uint8 flags)
 	{
-		VERIFY_THREAD_MAIN();
-
+		SFG_VERIFY_THREAD_MAIN();
 		gfx_backend* backend = gfx_backend::get();
-
-		_swapchain_flags = flags;
-
+		_swapchain_flags	 = flags;
 		backend->recreate_swapchain({
 			.size	   = _base_size,
 			.swapchain = _gfx_data.swapchain,

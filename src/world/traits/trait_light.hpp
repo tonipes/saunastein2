@@ -2,7 +2,9 @@
 #pragma once
 
 #include "world/traits/common_trait.hpp"
+#include "world/world_max_defines.hpp"
 #include "reflection/trait_reflection.hpp"
+#include "data/static_vector.hpp"
 #include "math/color.hpp"
 #include "math/vector2ui16.hpp"
 

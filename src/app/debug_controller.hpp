@@ -8,7 +8,6 @@
 #include "math/vector2.hpp"
 #include "gfx/buffer.hpp"
 #include "gfx/common/gfx_constants.hpp"
-#include "gfx/common/gfx_common.hpp"
 #include "gfx/common/texture_buffer.hpp"
 #include "memory/text_allocator.hpp"
 #include "vendor/moodycamel/readerwriterqueue.h"
@@ -61,10 +60,11 @@ namespace SFG
 		void add_console_text(const char* text, log_level level);
 		void update_console_input_field();
 		void on_draw(const vekt::draw_buffer& buffer);
-		void on_atlas_created(vekt::atlas* atlas);
-		void on_atlas_updated(vekt::atlas* atlas);
-		void on_atlas_destroyed(vekt::atlas* atlas);
 		void set_console_visible(bool visible);
+
+		static void on_atlas_created(vekt::atlas* atlas, void* user_data);
+		static void on_atlas_updated(vekt::atlas* atlas, void* user_data);
+		static void on_atlas_destroyed(vekt::atlas* atlas, void* user_data);
 
 	private:
 		enum class console_state : uint8

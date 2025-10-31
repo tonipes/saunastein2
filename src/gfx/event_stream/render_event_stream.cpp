@@ -1,10 +1,9 @@
 // Copyright (c) 2025 Inan Evin
 
 #include "render_event_stream.hpp"
-#include "io/log.hpp"
+
 namespace SFG
 {
-
 	void render_event_stream::init()
 	{
 		_main_thread_data.create(BATCH_SIZE);

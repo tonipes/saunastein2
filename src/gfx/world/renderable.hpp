@@ -1,7 +1,6 @@
 // Copyright (c) 2025 Inan Evin
 
 #pragma once
-#include "gfx/common/gfx_common.hpp"
 #include "world/common_world.hpp"
 #include "resources/common_resources.hpp"
 

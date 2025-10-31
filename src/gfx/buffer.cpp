@@ -88,4 +88,4 @@ namespace SFG
 		_flags.remove(buf_dirty);
 	}
 
-} // namespace Lina
+} 

@@ -13,7 +13,9 @@ namespace SFG
 		_raw	  = reinterpret_cast<char*>(SFG_MALLOC(capacity));
 		_capacity = capacity;
 		_free_list.reserve(_capacity / 32);
-		SFG_MEMSET(_raw, 0, capacity);
+
+		if (_raw)
+			SFG_MEMSET(_raw, 0, capacity);
 	}
 
 	void text_allocator::uninit()

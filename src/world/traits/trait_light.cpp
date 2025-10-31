@@ -3,6 +3,7 @@
 #include "trait_light.hpp"
 #include "data/ostream.hpp"
 #include "data/istream.hpp"
+#include "math/math.hpp"
 #include "world/world.hpp"
 #include "gfx/event_stream/render_events_trait.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"

@@ -76,6 +76,12 @@ Texture2D sfg_get_texture2D(uint index)
     return txt;
 }
 
+Texture2DArray sfg_get_texture2DArray(uint index)
+{
+    Texture2DArray txt = ResourceDescriptorHeap[index];
+    return txt;
+}
+
 
 SamplerState sfg_get_sampler_state(uint index)
 {

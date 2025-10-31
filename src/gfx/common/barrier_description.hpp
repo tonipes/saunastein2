@@ -2,7 +2,7 @@
 #pragma once
 
 #include "data/bitmask.hpp"
-#include "resource_limits.hpp"
+#include "gfx/common/gfx_constants.hpp"
 
 namespace SFG
 {

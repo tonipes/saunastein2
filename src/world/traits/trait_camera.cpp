@@ -14,13 +14,15 @@ using json = nlohmann::json;
 namespace SFG
 {
 
-	void trait_camera::set_values(world& w, float near_plane, float far_plane, float fov_degrees)
+	void trait_camera::set_values(world& w, float near_plane, float far_plane, float fov_degrees, std::initializer_list<float> cascades)
 	{
 		_near		 = near_plane;
 		_far		 = far_plane;
 		_fov_degrees = fov_degrees;
+		_cascades	 = cascades;
 
 		const render_event_camera ev = {
+			.cascades	  = _cascades,
 			.entity_index = _header.entity.index,
 			.near_plane	  = _near,
 			.far_plane	  = _far,

@@ -13,7 +13,6 @@
 
 namespace SFG
 {
-
 	class buffer_queue;
 	class texture_queue;
 	class render_event_stream;

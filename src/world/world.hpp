@@ -1,9 +1,8 @@
 // Copyright (c) 2025 Inan Evin
 
 #pragma once
+
 #include "data/bitmask.hpp"
-#include "common_world.hpp"
-#include "data/vector.hpp"
 #include "memory/text_allocator.hpp"
 #include "entity_manager.hpp"
 #include "trait_manager.hpp"
@@ -15,7 +14,6 @@ namespace SFG
 	struct window_event;
 	struct vector2ui16;
 	struct world_raw;
-
 	class render_event_stream;
 
 	class world
@@ -31,21 +29,20 @@ namespace SFG
 		world(render_event_stream& rstream);
 		~world();
 
+		// -----------------------------------------------------------------------------
+		// lifecycle
+		// -----------------------------------------------------------------------------
+
 		void init();
 		void uninit();
 		void create_from_loader(world_raw& raw);
-
 		void tick(const vector2ui16& res, float dt);
 		void post_tick(double interpolation);
-		void pre_render(const vector2ui16& res);
-
-		void load_debug();
-
-#ifdef SFG_TOOLMODE
-		void save(const char* path);
-		void load(const char* path);
-#endif
 		bool on_window_event(const window_event& ev);
+
+		// -----------------------------------------------------------------------------
+		// accessors
+		// -----------------------------------------------------------------------------
 
 		inline entity_manager& get_entity_manager()
 		{
@@ -84,11 +81,11 @@ namespace SFG
 
 	private:
 		render_event_stream& _render_stream;
+		entity_manager		 _entity_manager;
+		resource_manager	 _resource_manager;
+		trait_manager		 _trait_manager;
+		vekt::font_manager	 _vekt_fonts = {};
 		text_allocator		 _text_allocator;
 		bitmask<uint8>		 _flags = 0;
-		entity_manager		 _entity_manager;
-		trait_manager		 _trait_manager;
-		resource_manager	 _resource_manager;
-		vekt::font_manager	 _vekt_fonts = {};
 	};
 }

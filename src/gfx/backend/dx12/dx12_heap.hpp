@@ -3,7 +3,7 @@
 #pragma once
 
 #include "data/vector.hpp"
-#include "gfx/common/gfx_common.hpp"
+#include "gfx/common/descriptor_handle.hpp"
 #include "sdk/d3d12.h"
 
 namespace SFG

@@ -305,7 +305,8 @@ namespace SFG
 				// create textures
 				vector<view_desc> views;
 
-				for (uint8 i = 0; i < SHADOWS_CASCADES; i++)
+				const uint8 cascade_size = static_cast<uint8>(MAX_SHADOW_CASCADES) + 1;
+				for (uint8 i = 0; i < cascade_size; i++)
 				{
 					views.push_back({
 						.type			= view_type::depth_stencil,
@@ -317,7 +318,7 @@ namespace SFG
 				views.push_back({
 					.type			= view_type::sampled,
 					.base_arr_level = 0,
-					.level_count	= SHADOWS_CASCADES,
+					.level_count	= cascade_size,
 				});
 
 				for (uint8 i = 0; i < BACK_BUFFER_COUNT; i++)
@@ -328,8 +329,11 @@ namespace SFG
 						.size				  = proxy.shadow_res,
 						.flags				  = texture_flags::tf_is_2d | texture_flags::tf_sampled | texture_flags::tf_depth_texture | texture_flags::tf_typeless,
 						.views				  = views,
-						.array_length		  = SHADOWS_CASCADES,
+						.array_length		  = cascade_size,
+						.debug_name			  = "dir_light_shadow",
 					});
+
+					proxy.shadow_texture_gpu_index[i] = backend->get_texture_gpu_index(proxy.shadow_texture_hw[i], views.size() - 1);
 				}
 			};
 
@@ -439,6 +443,18 @@ namespace SFG
 				.far_plane	 = ev.far_plane,
 				.fov_degrees = ev.fov_degrees,
 			};
+
+			const uint8 cascade_levels = static_cast<uint8>(ev.cascades.size());
+
+			if (cascade_levels != 0)
+			{
+				chunk_handle32 cascades		= _aux_memory.allocate<float>(cascade_levels);
+				float*		   cascades_ptr = _aux_memory.get<float>(cascades);
+				for (uint8 i = 0; i < cascade_levels; i++)
+					cascades_ptr[i] = ev.cascades[i];
+				proxy.cascades		= cascades;
+				proxy.cascade_count = cascade_levels;
+			}
 		}
 		else if (type == render_event_type::render_event_set_main_camera)
 		{
@@ -450,6 +466,9 @@ namespace SFG
 			render_proxy_camera& proxy = get_camera(index);
 			if (index == _main_camera_trait)
 				_main_camera_trait = NULL_WORLD_ID;
+
+			if (proxy.cascades.size != 0)
+				_aux_memory.free(proxy.cascades);
 
 			proxy = {};
 		}

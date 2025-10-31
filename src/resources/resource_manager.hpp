@@ -31,6 +31,7 @@ namespace SFG
 	// -----------------------------------------------------------------------------
 	// base impl
 	// -----------------------------------------------------------------------------
+
 	struct resource_cache_base
 	{
 		virtual ~resource_cache_base() = default;
@@ -65,6 +66,7 @@ namespace SFG
 	// -----------------------------------------------------------------------------
 	// cache impl
 	// -----------------------------------------------------------------------------
+
 	template <typename T, typename Loader, int MAX_COUNT> class resource_cache final : public resource_cache_base
 	{
 	public:
@@ -76,6 +78,7 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 		// loader i/o
 		// -----------------------------------------------------------------------------
+
 		void* load_from_file(const char* path) override
 		{
 			Loader* loader = new Loader();
@@ -107,6 +110,7 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 		// lifecycle
 		// -----------------------------------------------------------------------------
+
 		resource_handle add_from_loader(void* loader, world& w, string_id hash) override
 		{
 			resource_handle handle = add(hash);
@@ -164,6 +168,7 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 		// Accessors
 		// -----------------------------------------------------------------------------
+
 		void* get_ptr(resource_handle h) override
 		{
 			return &(_resources.get(h));
@@ -207,6 +212,7 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 		// Iteration
 		// -----------------------------------------------------------------------------
+
 		void for_each(void* ctx, view_result (*fn)(void*, void*)) noexcept override
 		{
 			for (auto it = _resources.begin(); it != _resources.end(); ++it)
@@ -253,6 +259,7 @@ namespace SFG
 	// -----------------------------------------------------------------------------
 	// Resource manager
 	// -----------------------------------------------------------------------------
+
 	class resource_manager
 	{
 	private:
@@ -297,6 +304,7 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 		// Lifecycle
 		// -----------------------------------------------------------------------------
+
 		resource_handle get_or_add_sampler(const sampler_desc& desc);
 		void			load_resources(istream& in);
 		resource_handle add_resource(string_id type, string_id hash);

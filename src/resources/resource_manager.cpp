@@ -1,15 +1,16 @@
 // Copyright (c) 2025 Inan Evin
 
 #include "resource_manager.hpp"
-#include "io/log.hpp"
 #include "data/ostream.hpp"
 #include "data/istream.hpp"
 #include "data/pair.hpp"
+#include "world/world_max_defines.hpp"
+
+// resources
 #include "resources/texture.hpp"
 #include "resources/texture_raw.hpp"
 #include "resources/texture_sampler.hpp"
 #include "resources/texture_sampler_raw.hpp"
-#include "world/world_max_defines.hpp"
 
 #ifdef SFG_TOOLMODE
 #include "serialization/serialization.hpp"

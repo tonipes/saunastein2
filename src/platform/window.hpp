@@ -11,7 +11,6 @@ struct HWND__;
 #endif
 namespace SFG
 {
-#define MAX_EVENTS 32
 
 	class window
 	{
@@ -21,28 +20,45 @@ namespace SFG
 	public:
 		typedef std::function<void(const window_event& ev)> event_callback;
 
+		// -----------------------------------------------------------------------------
+		// lifecycle
+		// -----------------------------------------------------------------------------
+
 		bool create(const char* title, uint16 flags, const vector2i16& pos, const vector2ui16& size);
 		void destroy();
+
+		// -----------------------------------------------------------------------------
+		// window api
+		// -----------------------------------------------------------------------------
+
 		void set_position(const vector2i16& pos);
 		void set_size(const vector2ui16& size);
 		void set_style(window_flags flags);
 		void bring_to_front();
-		void add_event(const window_event& ev);
 		void confine_cursor(cursor_confinement conf);
 		void set_cursor_visible(bool vis);
+
+		// -----------------------------------------------------------------------------
+		// accessors
+		// -----------------------------------------------------------------------------
+
+		static bool is_key_down(uint16 key);
 
 		inline const vector2i16 get_position() const
 		{
 			return _position;
 		}
+
 		inline const vector2ui16 get_size() const
 		{
 			return _size;
 		}
+
 		inline void* get_window_handle() const
 		{
 			return _window_handle;
 		}
+
 		inline void* get_platform_handle() const
 		{
 			return _platform_handle;
@@ -72,13 +88,14 @@ namespace SFG
 		static __int64 wnd_proc(HWND__* hwnd, unsigned int msg, unsigned __int64 wParam, __int64 lParam);
 #endif
 
-		static bool is_key_down(uint16 key);
+	private:
+		void add_event(const window_event& ev);
 
 	private:
+		event_callback	_event_callback		= nullptr;
 		monitor_info	_monitor_info		= {};
 		void*			_window_handle		= nullptr;
 		void*			_platform_handle	= nullptr;
-		event_callback	_event_callback		= nullptr;
 		vector4i		_prev_confinement	= {};
 		vector2i16		_mouse_position		= vector2i16::zero;
 		vector2i16		_mouse_position_abs = vector2i16::zero;
@@ -89,24 +106,5 @@ namespace SFG
 		static map		s_key_down_map;
 	};
 
-	/*
-	struct window_meta
-	{
-		void*		   handle		   = nullptr;
-		void*		   platform_handle = nullptr;
-		bitmask<uint8> flags;
-	};
 
-	struct window_mouse_data
-	{
-		vector2i position	  = vector2i::zero;
-		vector2i position_abs = vector2i::zero;
-	};
-
-	struct window_layout_data
-	{
-		vector2i  position = vector2i::zero;
-		vector2ui size	   = vector2ui::zero;
-	};
-	*/
 }

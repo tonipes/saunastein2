@@ -34,6 +34,7 @@ namespace SFG
 		variant_flag_alpha_cutoff = 1 << 1,
 		variant_flag_z_prepass	  = 1 << 2,
 		variant_flag_double_sided = 1 << 3,
+		variant_flag_shadow_rendering	  = 1 << 4,
 	};
 
 }

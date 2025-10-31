@@ -6,7 +6,7 @@
 #include "data/span.hpp"
 #include "data/string.hpp"
 #include "format.hpp"
-#include "resource_limits.hpp"
+#include "gfx/common/gfx_constants.hpp"
 
 #ifdef SFG_TOOLMODE
 #include "vendor/nhlohmann/json_fwd.hpp"

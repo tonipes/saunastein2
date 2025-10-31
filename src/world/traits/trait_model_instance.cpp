@@ -146,7 +146,7 @@ namespace SFG
 				{
 					const world_handle light_handle = tm.add_trait<trait_spot_light>(entity);
 					trait_spot_light&  trait_light	= tm.get_trait<trait_spot_light>(light_handle);
-					trait_light.set_values(w, lr.base_color, lr.range, lr.intensity, lr.outer_cone, lr.inner_cone);
+					trait_light.set_values(w, lr.base_color, lr.range, lr.intensity, lr.inner_cone, lr.outer_cone);
 				}
 				else if (lr.type == light_raw_type::sun)
 				{

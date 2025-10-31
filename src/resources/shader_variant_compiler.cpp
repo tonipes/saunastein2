@@ -197,9 +197,16 @@ namespace SFG
 			bitmask<uint8> depth_flags = depth_stencil_flags::dsf_depth_test;
 			depth_flags.set(depth_stencil_flags::dsf_depth_write, variant_flags.is_set(shader_variant_flags::variant_flag_z_prepass));
 
+			const compare_op cmp = variant_flags.is_set(shader_variant_flags::variant_flag_shadow_rendering) ? compare_op::lequal : compare_op::gequal;
+
+			if (variant_flags.is_set(shader_variant_flags::variant_flag_shadow_rendering) && !variant_flags.is_set(variant_flag_double_sided))
+			{
+				pso.desc.depth_bias_slope = 0.2f;
+			}
+
 			pso.desc.depth_stencil_desc = {
 				.attachment_format = render_target_definitions::get_format_depth_default(),
-				.depth_compare	   = compare_op::gequal,
+				.depth_compare	   = cmp,
 				.flags			   = depth_flags,
 			};
 		};
@@ -228,20 +235,28 @@ namespace SFG
 		add_pso(1, variant_flag_skinned);
 		add_pso(2, variant_flag_alpha_cutoff);
 		add_pso(3, variant_flag_z_prepass);
+		add_pso(3, variant_flag_z_prepass | variant_flag_shadow_rendering);
 		add_pso(4, variant_flag_skinned | variant_flag_alpha_cutoff);
 		add_pso(5, variant_flag_skinned | variant_flag_z_prepass);
+		add_pso(5, variant_flag_skinned | variant_flag_z_prepass | variant_flag_shadow_rendering);
 		add_pso(6, variant_flag_alpha_cutoff | variant_flag_z_prepass);
+		add_pso(6, variant_flag_alpha_cutoff | variant_flag_z_prepass | variant_flag_shadow_rendering);
 		add_pso(7, variant_flag_skinned | variant_flag_alpha_cutoff | variant_flag_z_prepass);
+		add_pso(7, variant_flag_skinned | variant_flag_alpha_cutoff | variant_flag_z_prepass | variant_flag_shadow_rendering);
 
 		// double-sided
 		add_pso(0, variant_flag_double_sided);
 		add_pso(1, variant_flag_double_sided | variant_flag_skinned);
 		add_pso(2, variant_flag_double_sided | variant_flag_alpha_cutoff);
 		add_pso(3, variant_flag_double_sided | variant_flag_z_prepass);
+		add_pso(3, variant_flag_double_sided | variant_flag_z_prepass | variant_flag_shadow_rendering);
 		add_pso(4, variant_flag_double_sided | variant_flag_skinned | variant_flag_alpha_cutoff);
 		add_pso(5, variant_flag_double_sided | variant_flag_skinned | variant_flag_z_prepass);
+		add_pso(5, variant_flag_double_sided | variant_flag_skinned | variant_flag_z_prepass | variant_flag_shadow_rendering);
 		add_pso(6, variant_flag_double_sided | variant_flag_alpha_cutoff | variant_flag_z_prepass);
+		add_pso(6, variant_flag_double_sided | variant_flag_alpha_cutoff | variant_flag_z_prepass | variant_flag_shadow_rendering);
 		add_pso(7, variant_flag_double_sided | variant_flag_skinned | variant_flag_alpha_cutoff | variant_flag_z_prepass);
+		add_pso(7, variant_flag_double_sided | variant_flag_skinned | variant_flag_alpha_cutoff | variant_flag_z_prepass | variant_flag_shadow_rendering);
 
 		return true;
 	}

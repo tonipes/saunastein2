@@ -14,6 +14,13 @@ struct gpu_dir_light
 {
     float4 color_entity_index;
     float4 intensity;
+    float4 shadow_resolution_map_and_data_index;    // xy res, z map index, w data index
+};
+
+struct gpu_shadow_data
+{
+    float4x4 light_space_matrix;
+    float texel_world;
 };
 
 // d = distance to light
@@ -58,3 +65,20 @@ float spot_blend_hermite(float cosTheta, float cosOuter, float cosInner, float s
     // optional shaping
     return pow(x, max(softnessExp, 1e-3));
 }
+
+/*
+
+
+
+
+
+
+
+
+    
+
+   
+
+
+*/
+

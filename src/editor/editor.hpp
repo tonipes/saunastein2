@@ -16,11 +16,14 @@ namespace SFG
 		explicit editor(game_app& game);
 		~editor();
 
+		// -----------------------------------------------------------------------------
+		// lifecycle
+		// -----------------------------------------------------------------------------
+
 		void on_init();
 		void on_uninit();
 		void on_tick(float dt_seconds);
 		void on_post_tick(double interpolation);
-		void on_pre_render(const vector2ui16& size);
 		void on_render();
 		bool on_window_event(const window_event& ev);
 

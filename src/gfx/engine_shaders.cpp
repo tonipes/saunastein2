@@ -8,8 +8,9 @@
 namespace SFG
 {
 
-	bool engine_shaders::init(gfx_id bind_layout)
+	bool engine_shaders::init(gfx_id bind_layout, game_app* app)
 	{
+		_app		 = app;
 		_bind_layout = bind_layout;
 
 		const string root = SFG_ROOT_DIRECTORY;
@@ -86,13 +87,13 @@ namespace SFG
 			return;
 		}
 
-		game_app::get()->join_render();
+		_app->join_render();
 		entry.direct.destroy();
 		entry.direct.create_from_loader(raw, _bind_layout);
 		raw.destroy();
 		for (auto cb : _reload_callbacks)
 			cb(type, entry.direct);
-		game_app::get()->kick_off_render();
+		_app->kick_off_render();
 	}
 
 #endif

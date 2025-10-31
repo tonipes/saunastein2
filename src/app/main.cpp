@@ -1,19 +1,18 @@
 // Copyright (c) 2025 Inan Evin
 
-#define WIN32_LEAN_AND_MEAN
-#include "Windows.h"
-
 #include "game_app.hpp"
-#include "io/log.hpp"
 #include "memory/memory_tracer.hpp"
 #include "platform/process.hpp"
+
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
 
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR pCmdLine, _In_ int nCmdShow)
 {
 	if (AllocConsole() == FALSE)
 	{
-		SFG_ERR("Failed allocating console!");
 	}
+
 	SFG::process::init();
 
 	PUSH_MEMORY_CATEGORY("General");
@@ -30,6 +29,13 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 					SFG::process::message_box("Toolmode requires a valid working directory!");
 				else if (status == SFG::game_app::init_status::renderer_failed)
 					SFG::process::message_box("Renderer failed initializing!");
+				else if (status == SFG::game_app::init_status::backend_failed)
+					SFG::process::message_box("Gfx backend failed initializing!");
+				else if (status == SFG::game_app::init_status::window_failed)
+					SFG::process::message_box("Main window failed initializing!");
+				else if (status == SFG::game_app::init_status::engine_shaders_failed)
+					SFG::process::message_box("Failed loading engine shaders!");
+
 				SFG::process::uninit();
 				POP_MEMORY_CATEGORY();
 				FreeConsole();

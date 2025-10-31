@@ -33,6 +33,7 @@ namespace SFG
 	// -----------------------------------------------------------------------------
 	// base impl
 	// -----------------------------------------------------------------------------
+
 	struct trait_cache_base
 	{
 		virtual ~trait_cache_base() = default;
@@ -44,9 +45,10 @@ namespace SFG
 		virtual void		 remove(world_handle handle, world& w)							 = 0;
 		virtual void		 reset(world& w)												 = 0;
 		virtual bool		 is_valid(world_handle handle) const							 = 0;
+
 #ifdef SFG_TOOLMODE
 		virtual world_handle add_from_json(const json& j, world_handle entity, world& w) = 0;
-		virtual void		 save_to_json(json& j, world_handle handle, world& w)		  = 0;
+		virtual void		 save_to_json(json& j, world_handle handle, world& w)		 = 0;
 #endif
 		// Accessors
 		virtual void*		get_ptr(world_handle h)				= 0;
@@ -60,6 +62,7 @@ namespace SFG
 	// -----------------------------------------------------------------------------
 	// cache impl
 	// -----------------------------------------------------------------------------
+
 	template <typename T, int MAX_COUNT> class trait_cache final : public trait_cache_base
 	{
 	public:
@@ -143,6 +146,7 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 		// Accessors
 		// -----------------------------------------------------------------------------
+
 		void* get_ptr(world_handle h) override
 		{
 			return &(_traits.get(h));
@@ -156,6 +160,7 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 		// Iteration
 		// -----------------------------------------------------------------------------
+
 		void for_each(void* ctx, trait_view_result (*fn)(void*, void*)) noexcept override
 		{
 			for (auto it = _traits.begin(); it != _traits.end(); ++it)
@@ -186,8 +191,9 @@ namespace SFG
 	};
 
 	// -----------------------------------------------------------------------------
-	// Resource manager
+	// trait manager
 	// -----------------------------------------------------------------------------
+
 	class trait_manager
 	{
 	private:
@@ -271,6 +277,7 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 		// iteration
 		// -----------------------------------------------------------------------------
+
 		template <typename T, typename Fn> inline void view(Fn&& fn)
 		{
 			const string_id			   type = type_id<T>::value;

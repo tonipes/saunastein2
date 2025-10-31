@@ -24,12 +24,17 @@ struct render_pass_data
     float4x4 inv_view_proj;
     float4 ambient_color_plights_count;
     float4 view_pos_slights_count;
-    float dir_lights_count;
-    float pad[7];
+    uint dir_lights_count;
+    uint cascade_levels_gpu_index;
+    uint cascades_count;
+    float near_plane;
+    float far_plane;
+    float pad[3];
 };
 
 SamplerState smp_linear : static_sampler_linear;
 SamplerState smp_nearest: static_sampler_nearest;
+SamplerComparisonState smp_shadow : static_sampler_shadow_2d;
 
 //------------------------------------------------------------------------------
 // Vertex Shader
@@ -56,6 +61,109 @@ static bool is_background(float device_depth)
     return device_depth <= 1e-6;
 }
 
+float2 ndc_to_uv(float2 ndc_xy) { return ndc_xy * 0.5f + 0.5f; }
+
+static const float g_depth_bias_base   = 0.0008f;   // base receiver bias (world->light clip->depth)
+static const float g_normal_bias_scale = 0.1f;      // scales with slope (bigger -> fewer acne, more peter-panning)
+static const int   g_pcf_radius        = 1;         // 0: 1 tap, 1: 3x3, 2: 5x5
+static const float g_cascade_blend     = 0.5f;      // optional cross-fade width in normalized depth (0 = off)
+
+
+// Normal/slope-based bias term (NoL-aware).
+float slope_bias(float NoL)
+{
+    float s = sqrt(saturate(1.0f - NoL * NoL));
+    return g_normal_bias_scale * (s / max(NoL, 1e-3f));
+}
+
+// If UV is outside the shadow map, treat as lit (no shadow)
+bool outside(float2 uv) { return any(uv < 0.0f) || any(uv > 1.0f); }
+
+float sample_cascade_shadow(
+    Texture2DArray shadow_map,
+    SamplerComparisonState smp,
+    float4x4       light_space_matrix,
+    float3         world_pos,
+    float3         N,
+    float3         L,
+    int            slice,
+    float2         shadow_resolution, float texel_world)
+{
+    // Transform world position into light clip space
+    float4 clip = mul(light_space_matrix, float4(world_pos, 1.0f));
+
+    // Guard against points behind the light camera
+    if (clip.w <= 0.0f) return 1.0f;
+
+    float2 uv = ndc_to_uv(clip.xy);
+    if (outside(uv)) return 1.0f;
+    uv.y = 1.0 - uv.y;
+
+    // Receiver bias: base + slope (normal) component, scaled by texel size
+    float NoL = saturate(dot(N, normalize(L)));
+    float2 texel = 1.0f / shadow_resolution;
+
+    // world-space-ish bias that grows with texel size and slope<
+    float receiver_bias = g_depth_bias_base + slope_bias(NoL) * max(texel.x, texel.y);
+
+    float compare_depth = clip.z - receiver_bias; // normal-Z: smaller = closer to light
+
+     // Single tap (fast path)
+    if (g_pcf_radius == 0)
+    {
+        float val = shadow_map.SampleCmpLevelZero(smp, float3(uv, slice), compare_depth);
+        return val;
+    }
+
+    // PCF kernel (square)
+    int r = g_pcf_radius;                 // 1 => 3x3, 2 => 5x5
+    float taps = 0.0f;
+    float accum = 0.0f;
+
+    [unroll]
+    for (int dy = -r; dy <= +r; ++dy)
+    {
+        [unroll]
+        for (int dx = -r; dx <= +r; ++dx)
+        {
+            float2 offs = float2(dx, dy) * texel;
+            accum += shadow_map.SampleCmpLevelZero(smp_shadow, float3(uv + offs, slice), compare_depth);
+            taps += 1.0f;
+        }
+    }
+    return accum / max(taps, 1.0f);
+}
+
+// Optional: cross-fade near cascade split to reduce seams.
+// Pass both slices (layer and layer+1) when close to the split.
+float sample_cascade_shadow_blend(
+    Texture2DArray shadow_map,
+    SamplerComparisonState smp_shadow,
+    float4x4       light_space_matrix_curr,
+    float4x4       light_space_matrix_next,
+    float3         world_pos,
+    float3         N,
+    float3         L,
+    int            slice_curr,
+    int            slice_next,
+    float2         shadow_resolution,
+    float          depth_linear,           // eye-linear or your chosen metric
+    float          split_curr,             // end depth of current cascade
+    float          blend_width, float texel_world)            // width around split to blend
+{
+    if (blend_width <= 0.0f || slice_next < 0)
+    {
+        return sample_cascade_shadow(shadow_map, smp_shadow, light_space_matrix_curr, world_pos, N, L, slice_curr, shadow_resolution, texel_world);
+    }
+
+    float a = saturate( (split_curr - depth_linear) / max(blend_width, 1e-6f) );
+    // a=1 => fully current cascade, a=0 => transition to next
+    float s0 = sample_cascade_shadow(shadow_map, smp_shadow, light_space_matrix_curr, world_pos, N, L, slice_curr, shadow_resolution, texel_world);
+    float s1 = sample_cascade_shadow(shadow_map, smp_shadow, light_space_matrix_next, world_pos, N, L, slice_next, shadow_resolution, texel_world);
+    
+    return lerp(s1, s0, a);
+}
+
 //------------------------------------------------------------------------------
 // Pixel Shader 
 //------------------------------------------------------------------------------
@@ -66,11 +174,13 @@ float4 PSMain(vs_output IN) : SV_TARGET
     StructuredBuffer<gpu_point_light> point_light_buffer = sfg_get_ssbo<gpu_point_light>(sfg_rp_constant1);
     StructuredBuffer<gpu_spot_light> spot_light_buffer = sfg_get_ssbo<gpu_spot_light>(sfg_rp_constant2);
     StructuredBuffer<gpu_dir_light> dir_light_buffer = sfg_get_ssbo<gpu_dir_light>(sfg_rp_constant3);
-    Texture2D tex_gbuffer_color = sfg_get_texture2D(sfg_rp_constant4);
-    Texture2D tex_gbuffer_normal = sfg_get_texture2D(sfg_rp_constant5);
-    Texture2D tex_gbuffer_orm = sfg_get_texture2D(sfg_rp_constant6);
-    Texture2D tex_gbuffer_emissive = sfg_get_texture2D(sfg_rp_constant7);
-    Texture2D tex_gbuffer_depth = sfg_get_texture2D(sfg_rp_constant8);
+    StructuredBuffer<gpu_shadow_data> shadow_data_buffer = sfg_get_ssbo<gpu_shadow_data>(sfg_rp_constant4);
+    StructuredBuffer<float> float_buffer = sfg_get_ssbo<float>(sfg_rp_constant5);
+    Texture2D tex_gbuffer_color = sfg_get_texture2D(sfg_rp_constant6);
+    Texture2D tex_gbuffer_normal = sfg_get_texture2D(sfg_rp_constant7);
+    Texture2D tex_gbuffer_orm = sfg_get_texture2D(sfg_rp_constant8);
+    Texture2D tex_gbuffer_emissive = sfg_get_texture2D(sfg_rp_constant9);
+    Texture2D tex_gbuffer_depth = sfg_get_texture2D(sfg_rp_constant10);
 
      // pixel for .Load()
     int2 ip = int2(IN.pos.xy);
@@ -105,7 +215,7 @@ float4 PSMain(vs_output IN) : SV_TARGET
     // fetch light prep
     uint point_light_count = uint(rp_data.ambient_color_plights_count.w);
     uint spot_light_count = uint(rp_data.view_pos_slights_count.w);
-    uint dir_light_count = uint(rp_data.dir_lights_count);
+    uint dir_light_count = rp_data.dir_lights_count;
 
     [loop]
     for(uint i = 0; i < point_light_count; i++)
@@ -162,6 +272,22 @@ float4 PSMain(vs_output IN) : SV_TARGET
         }
     }
 
+    float linear_depth = linearize_depth(device_depth, rp_data.near_plane, rp_data.far_plane);
+    int layer = -1;
+    [loop]
+    for(int i = 0; i < rp_data.cascades_count; i++)
+    {
+        if(linear_depth < float_buffer[rp_data.cascade_levels_gpu_index + i] )
+        {
+            layer = i;
+            break;
+        }
+    }
+    if(layer == -1)
+    {
+        layer = int(rp_data.cascades_count);
+    }
+
     [loop]
     for (uint i = 0; i < dir_light_count; i++)
     {
@@ -174,11 +300,39 @@ float4 PSMain(vs_output IN) : SV_TARGET
         float intensity = light.intensity.x; 
 
         float3 radiance = light_col * intensity; 
-        lighting += calculate_pbr(V, N, L, albedo, ao, roughness, metallic, radiance);
+
+        uint shadow_map_index = (uint)light.shadow_resolution_map_and_data_index.z;
+        int shadow_data_index = (int)light.shadow_resolution_map_and_data_index.w;
+
+        float shadow_vis = 1.0f;
+
+        if(shadow_data_index != -1)
+        {
+            Texture2DArray shadow_map = sfg_get_texture2DArray(shadow_map_index);
+            gpu_shadow_data sd_curr = shadow_data_buffer[shadow_data_index + layer];
+            float4x4 light_space_curr = sd_curr.light_space_matrix;
+            float2 shadow_resolution = light.shadow_resolution_map_and_data_index.xy;
+            shadow_vis = sample_cascade_shadow(
+                    shadow_map, smp_shadow,
+                    light_space_curr,
+                    world_pos, N, L,
+                    layer,
+                    shadow_resolution,
+                    sd_curr.texel_world
+                );
+        }
+
+       // lighting = lighting * 0.0f + shadow_vis.xxx;
+         lighting += calculate_pbr(V, N, L, albedo, ao, roughness, metallic, radiance * shadow_vis);
+
     }
 
     lighting += emissive;
 
+    //if(layer == 1)
+    //return float4(0.2, 0,0,1);
+
+    //return float4((float)layer / (float)rp_data.cascades_count,0,0,1);
     return float4(lighting, 1.0f);
 }
 

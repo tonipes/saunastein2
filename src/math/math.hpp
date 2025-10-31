@@ -29,6 +29,11 @@ namespace SFG
 			return std::ceil(val);
 		}
 
+		template <typename T> inline T floor(T val)
+		{
+			return std::floor(val);
+		}
+
 		template <typename T> inline T clamp(T value, T min_val, T max_val)
 		{
 			return std::fmax(min_val, std::fmin(value, max_val));

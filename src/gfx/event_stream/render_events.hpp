@@ -8,7 +8,6 @@
 
 namespace SFG
 {
-
 	class ostream;
 	class istream;
 

@@ -455,9 +455,10 @@ namespace SFG
 		_vekt_data.builder->set_on_draw([this](const vekt::draw_buffer& buffer) { on_draw(buffer); });
 
 		_vekt_data.font_manager->init();
-		_vekt_data.font_manager->set_atlas_created_callback(std::bind(&debug_controller::on_atlas_created, this, std::placeholders::_1));
-		_vekt_data.font_manager->set_atlas_updated_callback(std::bind(&debug_controller::on_atlas_updated, this, std::placeholders::_1));
-		_vekt_data.font_manager->set_atlas_destroyed_callback(std::bind(&debug_controller::on_atlas_destroyed, this, std::placeholders::_1));
+		_vekt_data.font_manager->set_callback_user_data(this);
+		_vekt_data.font_manager->set_atlas_created_callback(on_atlas_created);
+		_vekt_data.font_manager->set_atlas_updated_callback(on_atlas_updated);
+		_vekt_data.font_manager->set_atlas_destroyed_callback(on_atlas_destroyed);
 
 #ifdef SFG_TOOLMODE
 		const string p		  = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/VT323-Regular.ttf");
@@ -558,7 +559,7 @@ namespace SFG
 		pfd.reset();
 
 		const gui_pass_view view = {
-			.proj		   = matrix4x4::ortho(0, static_cast<float>(_gfx_data.rt_size.x), 0, static_cast<float>(_gfx_data.rt_size.y), 0.0f, 1.0f),
+			.proj		   = matrix4x4::ortho_reverse_z(0, static_cast<float>(_gfx_data.rt_size.x), 0, static_cast<float>(_gfx_data.rt_size.y), 0.0f, 1.0f),
 			.sdf_thickness = 0.5f,
 			.sdf_softness  = 0.02f,
 		};
@@ -627,7 +628,7 @@ namespace SFG
 		const gfx_id	  shader_fullscreen	   = _shaders.debug_controller_console_draw;
 		const uint16	  dc_count			   = pfd.draw_call_count;
 		const uint32	  rt_console_gpu_index = pfd.rt_console_index;
-		const uint32	  gui_pass_gpu_index   = pfd.buf_gui_pass_view.get_gpu_heap_index();
+		const uint32	  gui_pass_gpu_index   = pfd.buf_gui_pass_view.get_gpu_index();
 
 		// Copy vtx idx buffers. First transition barriers will be executed via collect_barriers
 		{
@@ -826,14 +827,14 @@ namespace SFG
 		}
 	}
 
-	void debug_controller::on_atlas_created(vekt::atlas* atlas)
+	void debug_controller::on_atlas_created(vekt::atlas* atlas, void* user_data)
 	{
-		VERIFY_THREAD_MAIN();
+		SFG_VERIFY_THREAD_MAIN();
+		debug_controller* controller = static_cast<debug_controller*>(user_data);
+		gfx_backend*	  backend	 = gfx_backend::get();
+		controller->_gfx_data.atlases.push_back({});
 
-		gfx_backend* backend = gfx_backend::get();
-		_gfx_data.atlases.push_back({});
-
-		atlas_ref& ref = _gfx_data.atlases.back();
+		atlas_ref& ref = controller->_gfx_data.atlases.back();
 		ref.atlas	   = atlas;
 		ref.texture	   = backend->create_texture({
 			   .texture_format = atlas->get_is_lcd() ? format::r8g8b8a8_srgb : format::r8_unorm,
@@ -853,14 +854,14 @@ namespace SFG
 		ref.texture_gpu_index = backend->get_texture_gpu_index(ref.texture, 0);
 	}
 
-	void debug_controller::on_atlas_updated(vekt::atlas* atlas)
+	void debug_controller::on_atlas_updated(vekt::atlas* atlas, void* user_data)
 	{
-		VERIFY_THREAD_MAIN();
+		SFG_VERIFY_THREAD_MAIN();
+		debug_controller* controller = static_cast<debug_controller*>(user_data);
+		gfx_backend*	  backend	 = gfx_backend::get();
 
-		gfx_backend* backend = gfx_backend::get();
-
-		auto it = vector_util::find_if(_gfx_data.atlases, [atlas](const atlas_ref& ref) -> bool { return ref.atlas == atlas; });
-		SFG_ASSERT(it != _gfx_data.atlases.end());
+		auto it = vector_util::find_if(controller->_gfx_data.atlases, [atlas](const atlas_ref& ref) -> bool { return ref.atlas == atlas; });
+		SFG_ASSERT(it != controller->_gfx_data.atlases.end());
 		atlas_ref& ref = *it;
 
 		const unsigned char* data		  = atlas->get_data();
@@ -877,25 +878,25 @@ namespace SFG
 
 		static_vector<texture_buffer, MAX_TEXTURE_MIPS> buffers;
 		buffers.push_back(ref.buffer);
-		_gfx_data.texture_queue->add_request(buffers, ref.texture, ref.intermediate_buffer, 0, resource_state::resource_state_ps_resource);
+		controller->_gfx_data.texture_queue->add_request(buffers, ref.texture, ref.intermediate_buffer, 0, resource_state::resource_state_ps_resource);
 
-		const int32 index  = std::distance(it, _gfx_data.atlases.begin());
+		const int32 index  = std::distance(it, controller->_gfx_data.atlases.begin());
 		uint8*		pixels = ref.buffer.pixels;
 	}
 
-	void debug_controller::on_atlas_destroyed(vekt::atlas* atlas)
+	void debug_controller::on_atlas_destroyed(vekt::atlas* atlas, void* user_data)
 	{
-		VERIFY_THREAD_MAIN();
-
-		auto it = vector_util::find_if(_gfx_data.atlases, [atlas](const atlas_ref& ref) -> bool { return ref.atlas == atlas; });
-		SFG_ASSERT(it != _gfx_data.atlases.end());
+		SFG_VERIFY_THREAD_MAIN();
+		debug_controller* controller = static_cast<debug_controller*>(user_data);
+		auto			  it		 = vector_util::find_if(controller->_gfx_data.atlases, [atlas](const atlas_ref& ref) -> bool { return ref.atlas == atlas; });
+		SFG_ASSERT(it != controller->_gfx_data.atlases.end());
 		atlas_ref&	 ref	 = *it;
 		gfx_backend* backend = gfx_backend::get();
 
 		backend->destroy_texture(ref.texture);
 		backend->destroy_resource(ref.intermediate_buffer);
 
-		_gfx_data.atlases.erase(it);
+		controller->_gfx_data.atlases.erase(it);
 	}
 
 	void debug_controller::set_console_visible(bool visible)

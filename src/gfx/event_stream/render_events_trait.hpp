@@ -4,9 +4,11 @@
 
 #include "common/size_definitions.hpp"
 #include "data/vector.hpp"
+#include "data/static_vector.hpp"
 #include "world/world_constants.hpp"
 #include "math/vector3.hpp"
 #include "math/vector2ui16.hpp"
+#include "world/world_max_defines.hpp"
 
 namespace SFG
 {
@@ -26,10 +28,11 @@ namespace SFG
 
 	struct render_event_camera
 	{
-		world_id entity_index = 0;
-		float	 near_plane	  = 0.0f;
-		float	 far_plane	  = 0.0f;
-		float	 fov_degrees  = 0.0f;
+		static_vector<float, MAX_SHADOW_CASCADES> cascades;
+		world_id								  entity_index = 0;
+		float									  near_plane   = 0.0f;
+		float									  far_plane	   = 0.0f;
+		float									  fov_degrees  = 0.0f;
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);

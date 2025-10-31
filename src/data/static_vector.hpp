@@ -31,6 +31,14 @@ namespace SFG
 				_data[i] = v;
 		}
 
+		constexpr static_vector(std::initializer_list<T> ilist)
+		{
+			_head = 0;
+			SFG_ASSERT(ilist.size() <= N && "initializer list too big");
+			for (auto&& e : ilist)
+				_data[_head++] = e;
+		}
+
 		reference operator[](size_type index)
 		{
 			return at(index);
