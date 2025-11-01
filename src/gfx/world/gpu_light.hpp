@@ -12,6 +12,7 @@ namespace SFG
 		vector4 color_entity_index			  = vector4::zero;
 		vector4 intensity					  = vector4::zero;
 		vector4 shadow_res_map_and_data_index = vector4::zero;
+		float	texel_world					  = 0.0f;
 	};
 
 	struct gpu_point_light

@@ -155,8 +155,6 @@ namespace SFG
 		backend->destroy_swapchain(_gfx_data.swapchain);
 
 		// globals
-		backend->destroy_bind_layout(s_bind_layout_global);
-		s_bind_layout_global = 0;
 		engine_shaders::get().uninit();
 	}
 

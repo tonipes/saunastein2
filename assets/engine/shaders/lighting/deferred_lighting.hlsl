@@ -254,15 +254,10 @@ float4 PSMain(vs_output IN) : SV_TARGET
                 );
         }
 
-       // lighting = lighting * 0.0f + shadow_vis.xxx;
          lighting += calculate_pbr(V, N, L, albedo, ao, roughness, metallic, radiance * shadow_vis);
-
     }
 
     lighting += emissive;
-
-    //if(layer == 1)
-    //return float4(0.2, 0,0,1);
 
     //return float4((float)layer / (float)rp_data.cascades_count,0,0,1);
     return float4(lighting, 1.0f);

@@ -148,6 +148,7 @@ namespace SFG
 		join_render();
 		_render_stream.publish();
 		_renderer->uninit();
+		renderer::destroy_bind_layout_global();
 		delete _renderer;
 		_renderer = nullptr;
 		_render_stream.uninit();
