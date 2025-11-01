@@ -23,6 +23,7 @@ namespace SFG
 {
 	gfx_id renderer::s_bind_group_global[BACK_BUFFER_COUNT] = {};
 	gfx_id renderer::s_bind_layout_global					= 0;
+	gfx_id renderer::s_bind_layout_global_compute			= 0;
 
 	renderer::renderer(window& win, world& w, render_event_stream& event_stream) : _world(w), _main_window(win), _event_stream(event_stream), _proxy_manager(_buffer_queue, _texture_queue)
 	{
@@ -31,14 +32,17 @@ namespace SFG
 
 	void renderer::create_bind_layout_global()
 	{
-		s_bind_layout_global = gfx_util::create_bind_layout_global();
+		s_bind_layout_global		 = gfx_util::create_bind_layout_global(false);
+		s_bind_layout_global_compute = gfx_util::create_bind_layout_global(true);
 	}
 
 	void renderer::destroy_bind_layout_global()
 	{
 		gfx_backend* backend = gfx_backend::get();
 		backend->destroy_bind_layout(s_bind_layout_global);
-		s_bind_layout_global = 0;
+		backend->destroy_bind_layout(s_bind_layout_global_compute);
+		s_bind_layout_global		 = 0;
+		s_bind_layout_global_compute = 0;
 	}
 
 	bool renderer::init()

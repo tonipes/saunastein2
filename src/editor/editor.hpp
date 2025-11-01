@@ -4,11 +4,13 @@
 #include "world/common_world.hpp"
 #include "math/vector2ui16.hpp"
 #include "editor_first_person_controller.hpp"
+#include "resources/common_resources.hpp"
 
 namespace SFG
 {
-	class game_app;
 	struct window_event;
+	class game_app;
+	class trait_model_instance;
 
 	class editor
 	{
@@ -28,9 +30,10 @@ namespace SFG
 		bool on_window_event(const window_event& ev);
 
 	private:
-		void create_default_camera();
-		void create_demo_content();
-		void destroy_demo_content();
+		void		create_default_camera();
+		void		create_demo_content();
+		void		destroy_demo_content();
+		static void on_model_instance_instantiate(trait_model_instance* t, resource_handle model, void* ud);
 
 	private:
 		game_app&					   _game;

@@ -431,7 +431,6 @@ namespace SFG
 			node.skin_index				= static_cast<int16>(tnode.skin);
 			node.light_index			= static_cast<int16>(tnode.light);
 
-
 			if (tnode.matrix.empty())
 			{
 				const vector3 p	  = tnode.translation.empty() ? vector3::zero : vector3(tnode.translation[0], tnode.translation[1], tnode.translation[2]);
@@ -558,9 +557,9 @@ namespace SFG
 				if (ttexture.sampler != -1)
 					load_smp(ttexture.sampler);
 
+				SFG_ASSERT(ttexture.source != -1);
 				tinygltf::Image& img = model.images[ttexture.source];
 
-				SFG_ASSERT(ttexture.source != -1);
 				SFG_ASSERT(!img.image.empty());
 				loaded_indices.push_back(loaded_textures.size());
 
@@ -577,7 +576,7 @@ namespace SFG
 				SFG_MEMCPY(data, img.image.data(), img.image.size());
 				const vector2ui16 size = vector2ui16(static_cast<uint16>(img.width), static_cast<uint16>(img.height));
 				const format	  fmt  = check_if_linear(i) ? format::r8g8b8a8_unorm : format::r8g8b8a8_srgb;
-				raw.load_from_data(data, size, static_cast<uint8>(fmt), false);
+				raw.load_from_data(data, size, static_cast<uint8>(fmt), true);
 			}
 		}
 
@@ -637,10 +636,56 @@ namespace SFG
 				raw.sid					  = hash;
 				raw.name				  = hash_path;
 
+				int32 constructed_orm = -1;
+
+				if (tmat.pbrMetallicRoughness.metallicRoughnessTexture.index == -1 && tmat.occlusionTexture.index != -1)
+				{
+					tinygltf::Texture& ttexture = model.textures[tmat.occlusionTexture.index];
+					SFG_ASSERT(ttexture.source != -1);
+					tinygltf::Image& img = model.images[ttexture.source];
+
+					SFG_ASSERT(!img.image.empty());
+
+					SFG_ASSERT(img.bits == 8 && img.component == 4);
+
+					const int		width		 = img.width;
+					const int		height		 = img.height;
+					const size_t	pixels		 = width * height * 4;
+					const string	name		 = (img.name.empty() ? ttexture.name : img.name) + "-constructed_rm";
+					const string	hash_path	 = string(relative_path) + "/" + name;
+					const string_id hash		 = TO_SID(hash_path);
+					uint8*			texture_data = reinterpret_cast<uint8*>(SFG_MALLOC(pixels));
+
+					for (uint32 j = 0; j < height; j++)
+					{
+						for (uint32 k = 0; k < width; k++)
+						{
+							const uint32 pixel = width * j + k;
+
+							const uint8* src = &img.image[pixel * 4];
+							uint8*		 dst = texture_data + pixel * 4;
+
+							dst[0] = src[0];
+							dst[1] = 255;
+							dst[2] = 0;
+							dst[3] = 255;
+						}
+					}
+
+					loaded_indices.push_back(loaded_textures.size());
+					loaded_textures.push_back({});
+					texture_raw& txt_raw = loaded_textures.back();
+					txt_raw.load_from_data(texture_data, vector2ui16(width, height), (uint8)format::r8g8b8a8_unorm, true);
+					txt_raw.sid	 = hash;
+					txt_raw.name = hash_path;
+
+					constructed_orm = static_cast<int32>(loaded_textures.size() - 1);
+				}
+
 				// if orm is missing but occlusion is there, use occlusion as orm.
 				const int base_index	 = tmat.pbrMetallicRoughness.baseColorTexture.index;
 				const int normal_index	 = tmat.normalTexture.index;
-				const int orm_index		 = tmat.pbrMetallicRoughness.metallicRoughnessTexture.index == -1 ? (tmat.occlusionTexture.index != -1 ? tmat.occlusionTexture.index : -1) : tmat.pbrMetallicRoughness.metallicRoughnessTexture.index;
+				const int orm_index		 = tmat.pbrMetallicRoughness.metallicRoughnessTexture.index == -1 ? -1 : tmat.pbrMetallicRoughness.metallicRoughnessTexture.index;
 				const int emissive_index = tmat.emissiveTexture.index;
 
 				// get tiling and offset.
@@ -659,18 +704,22 @@ namespace SFG
 												   static_cast<float>(tmat.pbrMetallicRoughness.baseColorFactor[2]),
 												   static_cast<float>(tmat.pbrMetallicRoughness.baseColorFactor[3]));
 
-				const vector3 emissive	   = vector3(static_cast<float>(tmat.emissiveFactor[0]), static_cast<float>(tmat.emissiveFactor[1]), static_cast<float>(tmat.emissiveFactor[2]));
-				const float	  metallic	   = static_cast<float>(tmat.pbrMetallicRoughness.metallicFactor);
-				const float	  roughness	   = static_cast<float>(tmat.pbrMetallicRoughness.roughnessFactor);
-				const float	  alpha_cutoff = static_cast<float>(tmat.alphaCutoff);
-				raw.pass_mode			   = tmat.alphaMode.compare("BLEND") == 0 ? material_pass_mode::forward : material_pass_mode::gbuffer;
-				raw.use_alpha_cutoff	   = tmat.alphaMode.compare("MASK") == 0;
-				raw.double_sided		   = tmat.doubleSided;
+				const vector3 emissive		  = vector3(static_cast<float>(tmat.emissiveFactor[0]), static_cast<float>(tmat.emissiveFactor[1]), static_cast<float>(tmat.emissiveFactor[2]));
+				const float	  metallic		  = static_cast<float>(tmat.pbrMetallicRoughness.metallicFactor);
+				const float	  roughness		  = static_cast<float>(tmat.pbrMetallicRoughness.roughnessFactor);
+				const float	  alpha_cutoff	  = static_cast<float>(tmat.alphaCutoff);
+				const float	  normal_strength = tmat.normalTexture.scale;
+				raw.pass_mode				  = tmat.alphaMode.compare("BLEND") == 0 ? material_pass_mode::forward : material_pass_mode::gbuffer;
+				raw.use_alpha_cutoff		  = tmat.alphaMode.compare("MASK") == 0;
+				raw.double_sided			  = tmat.doubleSided;
+				const float pad				  = 0.0f;
 				raw.material_data << base_color;
 				raw.material_data << emissive;
 				raw.material_data << metallic;
 				raw.material_data << roughness;
+				raw.material_data << normal_strength;
 				raw.material_data << alpha_cutoff;
+				raw.material_data << pad;
 				raw.material_data << base_tiling << base_offset;
 				raw.material_data << normal_tiling << normal_offset;
 				raw.material_data << orm_tiling << orm_offset;
@@ -696,7 +745,7 @@ namespace SFG
 				raw.textures.resize(4);
 				raw.textures[0] = base_index == -1 ? DUMMY_COLOR_TEXTURE_SID : loaded_textures[loaded_indices.at(base_index)].sid;
 				raw.textures[1] = normal_index == -1 ? DUMMY_NORMAL_TEXTURE_SID : loaded_textures[loaded_indices.at(normal_index)].sid;
-				raw.textures[2] = orm_index == -1 ? DUMMY_ORM_TEXTURE_SID : loaded_textures[loaded_indices.at(orm_index)].sid;
+				raw.textures[2] = orm_index == -1 ? (constructed_orm == -1 ? DUMMY_ORM_TEXTURE_SID : loaded_textures[constructed_orm].sid) : loaded_textures[loaded_indices.at(orm_index)].sid;
 				raw.textures[3] = emissive_index == -1 ? DUMMY_COLOR_TEXTURE_SID : loaded_textures[loaded_indices.at(emissive_index)].sid;
 				raw.shader		= material_shader;
 

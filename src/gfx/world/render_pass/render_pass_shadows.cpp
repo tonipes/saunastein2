@@ -26,7 +26,7 @@ namespace SFG
 
 	void render_pass_shadows::init()
 	{
-		_alloc.init(MAIN_PASS_ALLOC_SIZE * 10, 8);
+		_alloc.init(MAIN_PASS_ALLOC_SIZE * 100, 8);
 		_barriers.reserve(64);
 
 		_passes = new pass[MAX_PASS_COUNT];

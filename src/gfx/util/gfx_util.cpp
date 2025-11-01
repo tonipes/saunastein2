@@ -6,7 +6,7 @@
 namespace SFG
 {
 
-	gfx_id gfx_util::create_bind_layout_global()
+	gfx_id gfx_util::create_bind_layout_global(bool is_compute)
 	{
 		gfx_backend* backend = gfx_backend::get();
 
@@ -23,7 +23,7 @@ namespace SFG
 		backend->bind_layout_add_immutable_sampler(layout, 0, 5, gfx_util::get_sampler_desc_shadow_2d(), shader_stage::fragment);
 		backend->bind_layout_add_immutable_sampler(layout, 0, 6, gfx_util::get_sampler_desc_shadow_cube(), shader_stage::fragment);
 
-		backend->finalize_bind_layout(layout, false, true, "global_layout");
+		backend->finalize_bind_layout(layout, is_compute, true, "global_layout");
 
 		return layout;
 	}

@@ -67,9 +67,9 @@ namespace SFG
 			return _renderer;
 		}
 
-		inline world* get_world() const
+		inline world& get_world() const
 		{
-			return _world;
+			return *_world;
 		}
 
 	private:

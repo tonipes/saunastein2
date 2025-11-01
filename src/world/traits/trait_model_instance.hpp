@@ -21,6 +21,8 @@ namespace SFG
 	class trait_model_instance
 	{
 	public:
+		typedef void (*on_instantiated)(trait_model_instance* inst, resource_handle model, void* user_data);
+
 		void on_add(world& we);
 		void on_remove(world& w);
 		void set_model(resource_handle model);
@@ -44,6 +46,12 @@ namespace SFG
 			return _header;
 		}
 
+		inline void set_instantiate_callback(on_instantiated cb, void* user_data)
+		{
+			_instantiate_callback  = cb;
+			_instantiate_user_data = user_data;
+		}
+
 	private:
 		template <typename T, int> friend class trait_cache;
 
@@ -51,10 +59,12 @@ namespace SFG
 		void fill_refs(resource_manager& res, string_id target);
 
 	private:
-		trait_header	_header				 = {};
-		resource_handle _target_model		 = {};
-		chunk_handle32	_root_entities		 = {};
-		uint32			_root_entities_count = 0;
+		on_instantiated _instantiate_callback  = nullptr;
+		void*			_instantiate_user_data = nullptr;
+		trait_header	_header				   = {};
+		resource_handle _target_model		   = {};
+		chunk_handle32	_root_entities		   = {};
+		uint32			_root_entities_count   = 0;
 	};
 
 	REGISTER_TRAIT(trait_model_instance);

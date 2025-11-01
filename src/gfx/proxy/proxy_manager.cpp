@@ -137,26 +137,26 @@ namespace SFG
 
 	void proxy_manager::fetch_render_events(render_event_stream& stream)
 	{
-		auto&							  events = stream.get_events();
-		render_event_stream::event_batch* batch	 = events.peek();
+		auto&							 events = stream.get_events();
+		render_event_stream::event_batch batch	= {};
 
 		istream				in;
 		render_event_header header = {};
 
-		while (batch != nullptr)
+		bool read = events.try_dequeue(batch);
+
+		while (read)
 		{
-			size_t		 offset = 0;
-			const size_t total	= batch->size;
-			in.open(batch->data, batch->size);
+			size_t offset = 0;
+			const size_t total	= batch.size;
+			in.open(batch.data, total);
 
 			while (!in.is_eof())
 			{
 				header.deserialize(in);
 				process_event(header, in);
 			}
-
-			events.pop();
-			batch = events.peek();
+			read = events.try_dequeue(batch);
 		}
 	}
 

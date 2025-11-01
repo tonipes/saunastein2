@@ -12,13 +12,14 @@ namespace SFG
 	{
 	public:
 		static constexpr size_t MAX_RENDER_EVENTS = 2048;
-		static constexpr size_t BATCH_SIZE		  = 1024 * 512;
+		static constexpr size_t BATCH_SIZE		  = 1024 * 1024;
 		static constexpr size_t MAX_BATCHES		  = 256;
 
 		struct event_batch
 		{
-			uint8  data[BATCH_SIZE];
-			size_t size = 0;
+			uint8* data	 = nullptr;
+			size_t size	 = 0;
+			size_t ident = 0;
 		};
 
 		// -----------------------------------------------------------------------------
@@ -57,5 +58,7 @@ namespace SFG
 	private:
 		ostream													_main_thread_data = {};
 		moodycamel::ReaderWriterQueue<event_batch, MAX_BATCHES> _event_queue;
+		event_batch												_batches[MAX_BATCHES];
+		size_t													_batch_counter = 0;
 	};
 }

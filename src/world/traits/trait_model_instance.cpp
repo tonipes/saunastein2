@@ -190,6 +190,9 @@ namespace SFG
 		{
 			em.add_child(_header.entity, r);
 		}
+
+		if (_instantiate_callback)
+			_instantiate_callback(this, model_handle, _instantiate_user_data);
 	}
 
 	void trait_model_instance::serialize(ostream& stream, world& w) const

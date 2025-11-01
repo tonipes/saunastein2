@@ -32,7 +32,7 @@ namespace SFG
 		world_raw	 raw = {};
 		const string p	 = engine_data::get().get_working_dir() + "assets/world/demo_world.stkworld";
 		raw.load_from_file(p.c_str());
-		_game.get_world()->create_from_loader(raw);
+		_game.get_world().create_from_loader(raw);
 
 		create_default_camera();
 		create_demo_content();
@@ -88,11 +88,8 @@ namespace SFG
 
 	void editor::create_default_camera()
 	{
-		world* world_ptr = _game.get_world();
-		if (!world_ptr)
-			return;
 
-		world&			w  = *world_ptr;
+		world&			w  = _game.get_world();
 		entity_manager& em = w.get_entity_manager();
 		trait_manager&	tm = w.get_trait_manager();
 		_camera_entity	   = em.create_entity("editor_camera");
@@ -111,11 +108,7 @@ namespace SFG
 
 	void editor::create_demo_content()
 	{
-		world* world_ptr = _game.get_world();
-		if (!world_ptr)
-			return;
-
-		world&				  w		  = *world_ptr;
+		world&				  w		  = _game.get_world();
 		resource_manager&	  rm	  = w.get_resource_manager();
 		const resource_handle boombox = rm.get_resource_handle_by_hash<model>(TO_SIDC("assets/test_scene/test_scene.stkmodel"));
 
@@ -131,56 +124,18 @@ namespace SFG
 		const world_handle	  model_inst_handle = tm.add_trait<trait_model_instance>(_demo_model_root);
 		trait_model_instance& mi				= tm.get_trait<trait_model_instance>(model_inst_handle);
 		mi.set_model(boombox);
+		mi.set_instantiate_callback(on_model_instance_instantiate, this);
 		mi.instantiate_model_to_world(w, boombox);
 
 		_ambient_entity			 = em.create_entity("ambient");
 		_ambient_trait			 = tm.add_trait<trait_ambient>(_ambient_entity);
 		trait_ambient& trait_amb = tm.get_trait<trait_ambient>(_ambient_trait);
 		trait_amb.set_values(w, color(0.1f, 0.1f, 0.1f));
-
-		//const world_handle sun_handle = em.find_entity("Sun");
-		//if (!sun_handle.is_null())
-		//{
-		//	const world_handle dir_light_handle = em.get_entity_trait<trait_dir_light>(sun_handle);
-		//	if (!dir_light_handle.is_null())
-		//	{
-		//		trait_dir_light& t = tm.get_trait<trait_dir_light>(dir_light_handle);
-		//		t.set_shadow_values(w, 1, vector2ui16(1024, 1024));
-		//	}
-		//}
-		//
-		//const world_handle spot_handle = em.find_entity("Spot");
-		//if (!spot_handle.is_null())
-		//{
-		//	const world_handle handle = em.get_entity_trait<trait_spot_light>(spot_handle);
-		//	if (!handle.is_null())
-		//	{
-		//		trait_spot_light& t = tm.get_trait<trait_spot_light>(handle);
-		//		t.set_values(w, t.get_color(), 50.0f, t.get_intensity(), t.get_inner_cone(), t.get_outer_cone());
-		//		t.set_shadow_values(w, 1, vector2ui16(1024, 1024));
-		//	}
-		//}
-
-		const world_handle point_handle = em.find_entity("P1");
-		if (!point_handle.is_null())
-		{
-			const world_handle handle = em.get_entity_trait<trait_point_light>(point_handle);
-			if (!handle.is_null())
-			{
-				trait_point_light& t = tm.get_trait<trait_point_light>(handle);
-				// t.set_values(w, t.get_color(), 50.0f, t.get_intensity());
-				t.set_shadow_values(w, 1, vector2ui16(1024, 1024));
-			}
-		}
 	}
 
 	void editor::destroy_demo_content()
 	{
-		world* world_ptr = _game.get_world();
-		if (!world_ptr)
-			return;
-
-		world&			w  = *world_ptr;
+		world&			w  = _game.get_world();
 		entity_manager& em = w.get_entity_manager();
 		trait_manager&	tm = w.get_trait_manager();
 
@@ -210,6 +165,47 @@ namespace SFG
 		{
 			em.destroy_entity(_demo_model_root);
 			_demo_model_root = {};
+		}
+	}
+	void editor::on_model_instance_instantiate(trait_model_instance* t, resource_handle model, void* ud)
+	{
+		world&			w  = (static_cast<editor*>(ud)->_game).get_world();
+		entity_manager& em = w.get_entity_manager();
+		trait_manager&	tm = w.get_trait_manager();
+
+	//const world_handle sun_handle = em.find_entity("Sun");
+	//if (!sun_handle.is_null())
+	//{
+	//	const world_handle dir_light_handle = em.get_entity_trait<trait_dir_light>(sun_handle);
+	//	if (!dir_light_handle.is_null())
+	//	{
+	//		trait_dir_light& t = tm.get_trait<trait_dir_light>(dir_light_handle);
+	//		t.set_shadow_values(w, 1, vector2ui16(1024, 1024));
+	//	}
+	//}
+	//
+	//const world_handle spot_handle = em.find_entity("Spot");
+	//if (!spot_handle.is_null())
+	//{
+	//	const world_handle handle = em.get_entity_trait<trait_spot_light>(spot_handle);
+	//	if (!handle.is_null())
+	//	{
+	//		trait_spot_light& t = tm.get_trait<trait_spot_light>(handle);
+	//		t.set_values(w, t.get_color(), 50.0f, t.get_intensity(), t.get_inner_cone(), t.get_outer_cone());
+	//		t.set_shadow_values(w, 1, vector2ui16(1024, 1024));
+	//	}
+	//}
+
+		const world_handle point_handle = em.find_entity("P1");
+		if (!point_handle.is_null())
+		{
+			const world_handle handle = em.get_entity_trait<trait_point_light>(point_handle);
+			if (!handle.is_null())
+			{
+				trait_point_light& t = tm.get_trait<trait_point_light>(handle);
+				// t.set_values(w, t.get_color(), 50.0f, t.get_intensity());
+				t.set_shadow_values(w, 1, vector2ui16(1024, 1024));
+			}
 		}
 	}
 }

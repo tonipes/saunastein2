@@ -115,6 +115,7 @@ namespace SFG
 		uint8			_swapchain_flags = 0;
 
 		static gfx_id s_bind_layout_global;
+		static gfx_id s_bind_layout_global_compute;
 		static gfx_id s_bind_group_global[BACK_BUFFER_COUNT];
 	};
 }
