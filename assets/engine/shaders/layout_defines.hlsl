@@ -76,6 +76,13 @@ Texture2D sfg_get_texture2D(uint index)
     return txt;
 }
 
+
+TextureCube sfg_get_texturecube(uint index)
+{
+    TextureCube txt = ResourceDescriptorHeap[index];
+    return txt;
+}
+
 Texture2DArray sfg_get_texture2DArray(uint index)
 {
     Texture2DArray txt = ResourceDescriptorHeap[index];

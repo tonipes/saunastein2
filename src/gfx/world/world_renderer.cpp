@@ -552,9 +552,65 @@ namespace SFG
 			if (res == frustum_result::outside)
 				continue;
 
+			int32 first_shadow_index = -1;
+			const float far_plane		   = math::almost_equal(light.range, 0.0f) ? main_cam_far : light.range;
+
+			if (light.cast_shadows)
+			{
+				const float light_aspect = static_cast<float>(light.shadow_res.x) / static_cast<float>(light.shadow_res.y);
+				first_shadow_index		 = static_cast<int32>(shadow_data_count);
+
+				static_vector<vector3, 6> dirs;
+				static_vector<vector3, 6> fws;
+
+				dirs.push_back(vector3::right * 0.1);
+				dirs.push_back(-vector3::right * 0.1);
+				dirs.push_back(vector3::up * 0.1);
+				dirs.push_back(-vector3::up * 0.1);
+				dirs.push_back(vector3::forward * 0.1);
+				dirs.push_back(-vector3::forward * 0.1);
+
+				fws.push_back(vector3::up);
+				fws.push_back(vector3::up);
+				fws.push_back(vector3::forward);
+				fws.push_back(vector3::forward);
+				fws.push_back(vector3::up);
+				fws.push_back(vector3::up);
+
+				for (uint8 j = 0; j < 6; j++)
+				{
+					const matrix4x4 light_view		 = matrix4x4::look_at(proxy_entity.position, proxy_entity.position + dirs[j], fws[j]);
+					const matrix4x4 light_projection = matrix4x4::perspective(90.5f, light_aspect, 0.01f, far_plane);
+
+					const gpu_shadow_data sh = {
+						.light_space_matrix = light_projection * light_view,
+					};
+
+					pfd.shadow_data_buffer.buffer_data(shadow_data_count * sizeof(gpu_shadow_data), &sh, sizeof(gpu_shadow_data));
+					shadow_data_count++;
+
+					_pass_shadows.add_pass({
+						.pm				  = _proxy_manager,
+						.frame_index	  = frame_index,
+						.res			  = light.shadow_res,
+						.texture		  = light.shadow_texture_hw[frame_index],
+						.transition_owner = j == 0,
+						.view_index		  = j,
+						.proj			  = light_projection,
+						.view			  = light_view,
+						.position		  = proxy_entity.position,
+						.cascade_near	  = main_cam_near,
+						.cascade_far	  = far_plane,
+						.fov			  = main_cam_fov,
+					});
+				}
+			}
+
 			const gpu_point_light data = {
-				.color_entity_index = vector4(light.base_color.x, light.base_color.y, light.base_color.z, proxy_entity._assigned_index),
-				.intensity_range	= vector4(light.intensity, light.range, 0.0f, 0.0f),
+				.color_entity_index			   = vector4(light.base_color.x, light.base_color.y, light.base_color.z, proxy_entity._assigned_index),
+				.intensity_range			   = vector4(light.intensity, light.range, 0.0f, 0.0f),
+				.shadow_res_map_and_data_index = vector4(light.shadow_res.x, light.shadow_res.y, static_cast<float>(light.shadow_texture_gpu_index[frame_index]), static_cast<float>(first_shadow_index)),
+				.far_plane					   = far_plane,
 			};
 
 			pfd.point_lights_buffer.buffer_data(points_count * sizeof(gpu_point_light), &data, sizeof(gpu_point_light));
@@ -647,12 +703,12 @@ namespace SFG
 				first_shadow_index = static_cast<int32>(shadow_data_count);
 
 				const uint8 cascades = static_cast<uint8>(cascade_levels.size()) + 1;
-				for (uint8 i = 0; i < cascades; i++)
+				for (uint8 j = 0; j < cascades; j++)
 				{
-					const bool	last		   = i == cascades - 1;
-					const float far_multiplier = !last ? cascade_levels[i] : 1.0f;
+					const bool	last		   = j == cascades - 1;
+					const float far_multiplier = !last ? cascade_levels[j] : 1.0f;
 					const float cascade_far	   = main_cam_far * far_multiplier;
-					const float cascade_near   = i == 0 ? main_cam_near : cascade_levels[static_cast<int32>(i) - 1] * main_cam_far;
+					const float cascade_near   = j == 0 ? main_cam_near : cascade_levels[static_cast<int32>(j) - 1] * main_cam_far;
 
 					const matrix4x4 proj	  = matrix4x4::perspective(main_cam_fov, aspect_ratio, cascade_near, cascade_far);
 					const matrix4x4 view_proj = proj * main_view_matrix;
@@ -679,8 +735,8 @@ namespace SFG
 						.frame_index	  = frame_index,
 						.res			  = light.shadow_res,
 						.texture		  = light.shadow_texture_hw[frame_index],
-						.transition_owner = i == 0,
-						.view_index		  = i,
+						.transition_owner = j == 0,
+						.view_index		  = j,
 						.proj			  = light_projection,
 						.view			  = light_view,
 						.position		  = frustum_world_center,

@@ -138,25 +138,37 @@ namespace SFG
 		trait_ambient& trait_amb = tm.get_trait<trait_ambient>(_ambient_trait);
 		trait_amb.set_values(w, color(0.1f, 0.1f, 0.1f));
 
-		const world_handle sun_handle = em.find_entity("Sun");
-		if (!sun_handle.is_null())
-		{
-			const world_handle dir_light_handle = em.get_entity_trait<trait_dir_light>(sun_handle);
-			if (!dir_light_handle.is_null())
-			{
-				trait_dir_light& t = tm.get_trait<trait_dir_light>(dir_light_handle);
-				t.set_shadow_values(w, 1, vector2ui16(1024, 1024));
-			}
-		}
+		//const world_handle sun_handle = em.find_entity("Sun");
+		//if (!sun_handle.is_null())
+		//{
+		//	const world_handle dir_light_handle = em.get_entity_trait<trait_dir_light>(sun_handle);
+		//	if (!dir_light_handle.is_null())
+		//	{
+		//		trait_dir_light& t = tm.get_trait<trait_dir_light>(dir_light_handle);
+		//		t.set_shadow_values(w, 1, vector2ui16(1024, 1024));
+		//	}
+		//}
+		//
+		//const world_handle spot_handle = em.find_entity("Spot");
+		//if (!spot_handle.is_null())
+		//{
+		//	const world_handle handle = em.get_entity_trait<trait_spot_light>(spot_handle);
+		//	if (!handle.is_null())
+		//	{
+		//		trait_spot_light& t = tm.get_trait<trait_spot_light>(handle);
+		//		t.set_values(w, t.get_color(), 50.0f, t.get_intensity(), t.get_inner_cone(), t.get_outer_cone());
+		//		t.set_shadow_values(w, 1, vector2ui16(1024, 1024));
+		//	}
+		//}
 
-		const world_handle spot_handle = em.find_entity("Spot");
-		if (!spot_handle.is_null())
+		const world_handle point_handle = em.find_entity("P1");
+		if (!point_handle.is_null())
 		{
-			const world_handle handle = em.get_entity_trait<trait_spot_light>(spot_handle);
+			const world_handle handle = em.get_entity_trait<trait_point_light>(point_handle);
 			if (!handle.is_null())
 			{
-				trait_spot_light& t = tm.get_trait<trait_spot_light>(handle);
-				t.set_values(w, t.get_color(), 50.0f, t.get_intensity(), t.get_inner_cone(), t.get_outer_cone());
+				trait_point_light& t = tm.get_trait<trait_point_light>(handle);
+				// t.set_values(w, t.get_color(), 50.0f, t.get_intensity());
 				t.set_shadow_values(w, 1, vector2ui16(1024, 1024));
 			}
 		}

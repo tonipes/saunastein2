@@ -333,13 +333,76 @@ namespace SFG
 			if (proxy.status != render_proxy_status::rps_active)
 				_count_point_lights++;
 
-			proxy.status	   = render_proxy_status::rps_active;
-			proxy.entity	   = ev.entity_index;
-			proxy.base_color   = ev.base_color;
-			proxy.range		   = ev.range;
-			proxy.intensity	   = ev.intensity;
-			proxy.cast_shadows = ev.cast_shadows;
-			proxy.shadow_res   = ev.shadow_resolution;
+			const vector2ui16 pre_res = proxy.shadow_res;
+			proxy.status			  = render_proxy_status::rps_active;
+			proxy.entity			  = ev.entity_index;
+			proxy.base_color		  = ev.base_color;
+			proxy.range				  = ev.range;
+			proxy.intensity			  = ev.intensity;
+			proxy.cast_shadows		  = ev.cast_shadows;
+			proxy.shadow_res		  = ev.shadow_resolution;
+
+			auto create_shadow_texture = [&]() {
+				// create textures
+				vector<view_desc> views;
+
+				for (uint8 i = 0; i < 6; i++)
+				{
+					views.push_back({
+						.type			= view_type::depth_stencil,
+						.base_arr_level = i,
+						.level_count	= 1,
+					});
+				}
+				views.push_back({
+					.type			= view_type::sampled,
+					.base_arr_level = 0,
+					.level_count	= 1,
+					.is_cubemap		= 1,
+				});
+
+				for (uint8 i = 0; i < BACK_BUFFER_COUNT; i++)
+				{
+					proxy.shadow_texture_hw[i] = backend->create_texture({
+						.texture_format		  = render_target_definitions::get_format_depth_default_read(),
+						.depth_stencil_format = render_target_definitions::get_format_shadows(),
+						.size				  = proxy.shadow_res,
+						.flags				  = texture_flags::tf_is_2d | texture_flags::tf_sampled | texture_flags::tf_depth_texture | texture_flags::tf_typeless,
+						.views				  = views,
+						.array_length		  = 6,
+						.debug_name			  = "point_light_shadow",
+					});
+
+					proxy.shadow_texture_gpu_index[i] = backend->get_texture_gpu_index(proxy.shadow_texture_hw[i], views.size() - 1);
+				}
+			};
+
+			auto kill_shadow_texture = [&]() {
+				const uint8 safe_bucket = frame_info::get_render_frame() % (BACK_BUFFER_COUNT + 1);
+				for (uint8 i = 0; i < BACK_BUFFER_COUNT; i++)
+				{
+					add_to_destroy_bucket({.id = proxy.shadow_texture_hw[i], .type = destroy_data_type::texture}, safe_bucket);
+					proxy.shadow_texture_hw[i] = NULL_GFX_ID;
+				}
+			};
+
+			if (proxy.cast_shadows == 0)
+			{
+				if (proxy.shadow_texture_hw[0] != NULL_GFX_ID)
+					kill_shadow_texture();
+			}
+			else
+			{
+				if (proxy.shadow_texture_hw[0] == NULL_GFX_ID)
+				{
+					create_shadow_texture();
+				}
+				else if (proxy.shadow_res != pre_res)
+				{
+					kill_shadow_texture();
+					create_shadow_texture();
+				}
+			}
 		}
 		else if (type == render_event_type::render_event_update_dir_light)
 		{
@@ -437,6 +500,17 @@ namespace SFG
 
 			if (proxy.status != render_proxy_status::rps_inactive)
 				_count_point_lights--;
+
+			if (proxy.shadow_texture_hw[0] != NULL_GFX_ID)
+			{
+				const uint8 safe_bucket = frame_info::get_render_frame() % (BACK_BUFFER_COUNT + 1);
+
+				for (uint8 i = 0; i < BACK_BUFFER_COUNT; i++)
+				{
+					add_to_destroy_bucket({.id = proxy.shadow_texture_hw[i], .type = destroy_data_type::texture}, safe_bucket);
+					proxy.shadow_texture_hw[i] = NULL_GFX_ID;
+				}
+			}
 
 			proxy.status = render_proxy_status::rps_active;
 			proxy		 = {};

@@ -184,7 +184,7 @@ float sample_shadow_cone(Texture2D shadow_map,
     float2 texel = 1.0f / shadow_resolution;
     float receiver_bias = g_depth_bias_base + slope_bias(NoL) * max(texel.x, texel.y);
 
-    float compare_depth = ndc.z - receiver_bias * 0.5; // normal-Z: smaller = closer to light
+    float compare_depth = ndc.z - receiver_bias * 0.1;
 
     if (g_pcf_radius == 0)
     {
@@ -195,8 +195,45 @@ float sample_shadow_cone(Texture2D shadow_map,
     return pcf(g_pcf_radius, shadow_map, smp, uv,  compare_depth, texel);
 }
 
-// Optional: cross-fade near cascade split to reduce seams.
-// Pass both slices (layer and layer+1) when close to the split.
+float depth01_from_eyeZ(float z_eye, float nearZ, float farZ)
+{
+    float a =  farZ / (farZ - nearZ);
+    float b = -nearZ * farZ / (farZ - nearZ);
+    return a + b / z_eye; 
+}
+
+float sample_shadow_cube(TextureCube shadow_map,
+    SamplerComparisonState smp,
+    float4x4       light_space_matrix,
+    float3 light_pos,
+    float3         world_pos,
+    float3         N,
+    float3         L,
+    float2         shadow_resolution,
+    float near_z, float far_z
+    )
+{
+
+    float3 R   = world_pos - light_pos;
+    float3 dir = normalize(R);
+    dir.z = -dir.z;
+    
+    // Eye-space z for the face the cube lookup will choose
+    float z_eye = max(abs(R.x), max(abs(R.y), abs(R.z)));
+
+    // Depth in 0..1 matching what was written to the cube depth faces
+    float depth01 = depth01_from_eyeZ(z_eye, near_z, far_z);
+
+    float2 texel = 1.0 / shadow_resolution;
+    float  NoL   = saturate(dot(N, normalize(L)));
+    float  receiver_bias = g_depth_bias_base + slope_bias(NoL) * max(texel.x, texel.y);
+
+    float  cmp = depth01 - receiver_bias * 0.1;
+    
+    // 1-tap compare; PCF for cubes needs angular offsets (see note below)
+    return shadow_map.SampleCmpLevelZero(smp, dir, cmp);
+}
+
 float sample_cascade_shadow_blend(
     Texture2DArray shadow_map,
     SamplerComparisonState smp_shadow,
@@ -208,9 +245,9 @@ float sample_cascade_shadow_blend(
     int            slice_curr,
     int            slice_next,
     float2         shadow_resolution,
-    float          depth_linear,           // eye-linear or your chosen metric
+    float          depth_linear,           // eye-linear 
     float          split_curr,             // end depth of current cascade
-    float          blend_width, float texel_world)            // width around split to blend
+    float          blend_width, float texel_world)    
 {
     if (blend_width <= 0.0f || slice_next < 0)
     {
@@ -295,7 +332,23 @@ float4 PSMain(vs_output IN) : SV_TARGET
         
         float  att = attenuation(range, d);
         float3 radiance  = light_col * (intensity * att);
-        lighting += calculate_pbr(V, N, L, albedo, ao, roughness, metallic, radiance);
+
+        float shadow_vis = 1.0;
+        int shadow_data_index = (int)light.shadow_resolution_map_and_data_index.w;
+
+        if(shadow_data_index != -1)
+        {
+            int shadow_map_index = (int)light.shadow_resolution_map_and_data_index.z;
+
+            TextureCube shadow_map = sfg_get_texturecube(shadow_map_index);
+            gpu_shadow_data sd = shadow_data_buffer[shadow_data_index];
+            float4x4 light_space = sd.light_space_matrix;
+            float2 shadow_resolution = light.shadow_resolution_map_and_data_index.xy;
+
+            shadow_vis = sample_shadow_cube(shadow_map, smp_shadow, light_space, light_pos, world_pos, N, L, shadow_resolution, rp_data.near_plane,light.far_plane);
+        }
+
+        lighting += calculate_pbr(V, N, L, albedo, ao, roughness, metallic, radiance * shadow_vis);
     }
 
     [loop]
