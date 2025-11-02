@@ -13,6 +13,7 @@
 #include "render_pass/render_pass_pre_depth.hpp"
 #include "render_pass/render_pass_lighting.hpp"
 #include "render_pass/render_pass_shadows.hpp"
+#include "render_pass/render_pass_ssao.hpp"
 #include "view.hpp"
 
 namespace SFG
@@ -60,7 +61,7 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 
 		void   prepare(uint8 frame_index);
-		void   render(uint8 frame_index, gfx_id layout_global, gfx_id bind_group_global, uint64 prev_copy, uint64 next_copy, gfx_id sem_copy);
+		void   render(uint8 frame_index, gfx_id layout_global, gfx_id bind_group_global, gfx_id bind_group_global_compute, uint64 prev_copy, uint64 next_copy, gfx_id sem_copy);
 		void   resize(const vector2ui16& size);
 		uint32 add_to_float_buffer(uint8 frame_index, float f);
 
@@ -98,6 +99,7 @@ namespace SFG
 		render_pass_opaque	  _pass_opaque	  = {};
 		render_pass_lighting  _pass_lighting  = {};
 		render_pass_shadows	  _pass_shadows	  = {};
+		render_pass_ssao	  _pass_ssao	  = {};
 
 		vector2ui16 _base_size = vector2ui16::zero;
 	};

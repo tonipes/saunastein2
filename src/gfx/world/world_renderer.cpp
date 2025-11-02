@@ -142,6 +142,7 @@ namespace SFG
 		_pass_opaque.init(size);
 		_pass_lighting.init(size);
 		_pass_shadows.init();
+		_pass_ssao.init(size);
 	}
 
 	void world_renderer::uninit()
@@ -150,6 +151,7 @@ namespace SFG
 		_pass_opaque.uninit();
 		_pass_lighting.uninit();
 		_pass_shadows.uninit();
+		_pass_ssao.uninit();
 
 		gfx_backend* backend = gfx_backend::get();
 
@@ -217,7 +219,7 @@ namespace SFG
 		_pass_lighting.prepare(_proxy_manager, _main_camera_view, frame_index);
 	}
 
-	void world_renderer::render(uint8 frame_index, gfx_id layout_global, gfx_id bind_group_global, uint64 prev_copy, uint64 next_copy, gfx_id sem_copy)
+	void world_renderer::render(uint8 frame_index, gfx_id layout_global, gfx_id bind_group_global, gfx_id bind_group_global_compute, uint64 prev_copy, uint64 next_copy, gfx_id sem_copy)
 	{
 		gfx_backend* backend   = gfx_backend::get();
 		const gfx_id queue_gfx = backend->get_queue_gfx();
@@ -265,6 +267,15 @@ namespace SFG
 				.gpu_index_bones	= gpu_index_bones,
 				.global_layout		= layout_global,
 				.global_group		= bind_group_global,
+			});
+		});
+
+		tasks.push_back([&] {
+			_pass_ssao.render({
+				.frame_index   = frame_index,
+				.size		   = resolution,
+				.global_layout = layout_global,
+				.global_group  = bind_group_global,
 			});
 		});
 
@@ -326,6 +337,7 @@ namespace SFG
 		_pass_pre_depth.resize(size);
 		_pass_opaque.resize(size);
 		_pass_lighting.resize(size);
+		_pass_ssao.resize(size);
 	}
 
 	uint32 world_renderer::add_to_float_buffer(uint8 frame_index, float f)
@@ -552,7 +564,7 @@ namespace SFG
 			if (res == frustum_result::outside)
 				continue;
 
-			int32 first_shadow_index = -1;
+			int32		first_shadow_index = -1;
 			const float far_plane		   = math::almost_equal(light.range, 0.0f) ? main_cam_far : light.range;
 
 			if (light.cast_shadows)

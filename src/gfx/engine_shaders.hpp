@@ -20,6 +20,7 @@ namespace SFG
 		engine_shader_type_gui_text,
 		engine_shader_type_renderer_swapchain,
 		engine_shader_type_world_lighting,
+		engine_shader_type_hbao,
 		engine_shader_type_max,
 	};
 
@@ -38,7 +39,7 @@ namespace SFG
 			return inst;
 		}
 
-		bool init(gfx_id bind_layout, game_app* app);
+		bool init(gfx_id bind_layout, gfx_id bind_layout_compute, game_app* app);
 		void uninit();
 
 #ifdef SFG_TOOLMODE
@@ -69,8 +70,9 @@ namespace SFG
 	private:
 		static_vector<shader_entry, engine_shader_type_max> _shaders;
 		simple_file_watcher									_file_watcher;
-		game_app*											_app		 = nullptr;
-		gfx_id												_bind_layout = 0;
+		game_app*											_app				 = nullptr;
+		gfx_id												_bind_layout		 = 0;
+		gfx_id												_bind_layout_compute = 0;
 
 #ifdef SFG_TOOLMODE
 		static_vector<reload_callback, engine_shader_type_max> _reload_callbacks;

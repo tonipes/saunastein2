@@ -15,13 +15,19 @@ namespace SFG
 		backend->bind_layout_add_descriptor(layout, binding_type::ubo, 0, 0, shader_stage::all);
 		backend->bind_layout_add_constant(layout, constant_index_max, 0, 1, shader_stage::all);
 
-		backend->bind_layout_add_immutable_sampler(layout, 0, 0, gfx_util::get_sampler_desc_anisotropic(), shader_stage::fragment);
-		backend->bind_layout_add_immutable_sampler(layout, 0, 1, gfx_util::get_sampler_desc_linear(), shader_stage::fragment);
-		backend->bind_layout_add_immutable_sampler(layout, 0, 2, gfx_util::get_sampler_desc_nearest(), shader_stage::fragment);
-		backend->bind_layout_add_immutable_sampler(layout, 0, 3, gfx_util::get_sampler_desc_gui_default(), shader_stage::fragment);
-		backend->bind_layout_add_immutable_sampler(layout, 0, 4, gfx_util::get_sampler_desc_gui_text(), shader_stage::fragment);
-		backend->bind_layout_add_immutable_sampler(layout, 0, 5, gfx_util::get_sampler_desc_shadow_2d(), shader_stage::fragment);
-		backend->bind_layout_add_immutable_sampler(layout, 0, 6, gfx_util::get_sampler_desc_shadow_cube(), shader_stage::fragment);
+		const shader_stage stg = is_compute ? shader_stage::compute : shader_stage::fragment;
+
+		backend->bind_layout_add_immutable_sampler(layout, 0, 0, gfx_util::get_sampler_desc_anisotropic(), stg);
+		backend->bind_layout_add_immutable_sampler(layout, 0, 1, gfx_util::get_sampler_desc_linear(), stg);
+		backend->bind_layout_add_immutable_sampler(layout, 0, 2, gfx_util::get_sampler_desc_nearest(), stg);
+
+		if (!is_compute)
+		{
+			backend->bind_layout_add_immutable_sampler(layout, 0, 3, gfx_util::get_sampler_desc_gui_default(), stg);
+			backend->bind_layout_add_immutable_sampler(layout, 0, 4, gfx_util::get_sampler_desc_gui_text(), stg);
+			backend->bind_layout_add_immutable_sampler(layout, 0, 5, gfx_util::get_sampler_desc_shadow_2d(), stg);
+			backend->bind_layout_add_immutable_sampler(layout, 0, 6, gfx_util::get_sampler_desc_shadow_cube(), stg);
+		}
 
 		backend->finalize_bind_layout(layout, is_compute, true, "global_layout");
 

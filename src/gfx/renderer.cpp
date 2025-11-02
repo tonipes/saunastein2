@@ -202,9 +202,10 @@ namespace SFG
 #endif
 
 		/* access frame data */
-		const uint8	 frame_index   = _gfx_data.frame_index;
-		const gfx_id layout_global = s_bind_layout_global;
-		const gfx_id render_target = _gfx_data.swapchain;
+		const uint8	 frame_index		   = _gfx_data.frame_index;
+		const gfx_id layout_global		   = s_bind_layout_global;
+		const gfx_id layout_global_compute = s_bind_layout_global_compute;
+		const gfx_id render_target		   = _gfx_data.swapchain;
 
 		per_frame_data& pfd			   = _pfd[frame_index];
 		const uint32	rt_world_index = pfd.gpu_index_world_rt;
@@ -294,7 +295,7 @@ namespace SFG
 		}
 
 		_world_renderer->prepare(frame_index);
-		_world_renderer->render(frame_index, layout_global, bg_global, prev_copy_value, next_copy_value, sem_copy);
+		_world_renderer->render(frame_index, layout_global, layout_global_compute, bg_global, prev_copy_value, next_copy_value, sem_copy);
 		const semaphore_data& sem_world_data  = _world_renderer->get_final_semaphore(frame_index);
 		const gfx_id		  sem_world		  = sem_world_data.semaphore;
 		const uint64		  sem_world_value = sem_world_data.value;

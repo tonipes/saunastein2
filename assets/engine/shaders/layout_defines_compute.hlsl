@@ -4,10 +4,6 @@
 #define static_sampler_anisotropic register(s0, space0)
 #define static_sampler_linear register(s1, space0)
 #define static_sampler_nearest register(s2, space0)
-#define static_sampler_gui_default register(s3, space0)
-#define static_sampler_gui_text register(s4, space0)
-#define static_sampler_shadow_2d register(s5, space0)
-#define static_sampler_shadow_cube register(s6, space0)
 
 cbuffer sfg_globals : register(b0, space0)
 {
@@ -15,12 +11,11 @@ cbuffer sfg_globals : register(b0, space0)
     float f2;
 }
 
+cbuffer sfg_constants : register(b1, space0)
+{
     uint sfg_rp_ubo_index;
     uint sfg_material_ubo_index;
     uint sfg_texture_ubo_index;
-
-cbuffer sfg_constants : register(b1, space0)
-{
     uint sfg_rp_constant0;
     uint sfg_rp_constant1;
     uint sfg_rp_constant2;
@@ -32,14 +27,6 @@ cbuffer sfg_constants : register(b1, space0)
     uint sfg_rp_constant8;
     uint sfg_rp_constant9;
     uint sfg_rp_constant10;
-    uint sfg_rp_constant11;
-    uint sfg_rp_constant12;
-    uint sfg_mat_constant0;
-    uint sfg_mat_constant1;
-    uint sfg_mat_constant2;
-    uint sfg_mat_constant3;
-    uint sfg_mat_constant4;
-    uint sfg_mat_constant5;
     uint sfg_object_constant0;
     uint sfg_object_constant1;
     uint sfg_object_constant2;
@@ -49,12 +36,7 @@ cbuffer sfg_constants : register(b1, space0)
     uint sfg_object_constant6;
     uint sfg_object_constant7;
     uint sfg_object_constant8;
-    uint sfg_object_constant9;
-    uint sfg_object_constant10;
-    uint sfg_object_constant11;
-    uint sfg_object_constant12;
 }
-
 
 template<typename T>
 ConstantBuffer<T> sfg_get_cbv(uint index)

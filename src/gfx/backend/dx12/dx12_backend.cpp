@@ -1139,7 +1139,7 @@ namespace SFG
 			_device->CreateShaderResourceView(txt.ptr->GetResource(), &srv_desc, {targetDescriptor.cpu});
 		};
 
-		auto create_rtv = [&](DXGI_FORMAT format,  uint32 baseArrayLayer, uint32 layerCount, uint32 baseMipLevel, uint32 mipLevels, const descriptor_handle& targetDescriptor) {
+		auto create_rtv = [&](DXGI_FORMAT format, uint32 baseArrayLayer, uint32 layerCount, uint32 baseMipLevel, uint32 mipLevels, const descriptor_handle& targetDescriptor) {
 			D3D12_RENDER_TARGET_VIEW_DESC rtv_desc = {};
 			rtv_desc.Format						   = format;
 
@@ -1594,24 +1594,6 @@ namespace SFG
 			ComPtr<IDxcResult> result;
 			throw_if_failed(idxc_compiler->Compile(&source_buffer, arguments.data(), static_cast<uint32>(arguments.size()), include_handler.Get(), IID_PPV_ARGS(result.GetAddressOf())));
 
-#if SERIALIZE_DEBUG_INFORMATION
-			ComPtr<IDxcBlob>	  debug_data;
-			ComPtr<IDxcBlobUtf16> debug_data_path;
-			result->GetOutput(DXC_OUT_PDB, IID_PPV_ARGS(debug_data.GetAddressOf()), debug_data_path.GetAddressOf());
-
-			if (debug_data != NULL && debug_data_path != NULL)
-			{
-				const wchar_t* path = reinterpret_cast<const wchar_t*>(debug_data_path->GetBufferPointer());
-
-				if (debug_data && path)
-				{
-					std::ofstream out_file(path, std::ios::binary);
-					out_file.write(reinterpret_cast<const char*>(debug_data->GetBufferPointer()), debug_data->GetBufferSize());
-					out_file.close();
-				}
-			}
-
-#endif
 			ComPtr<IDxcBlobUtf8> errors;
 			result->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(errors.GetAddressOf()), nullptr);
 
@@ -1637,6 +1619,25 @@ namespace SFG
 					}
 				}
 			}
+
+#if SERIALIZE_DEBUG_INFORMATION
+			ComPtr<IDxcBlob>	  debug_data;
+			ComPtr<IDxcBlobUtf16> debug_data_path;
+			result->GetOutput(DXC_OUT_PDB, IID_PPV_ARGS(debug_data.GetAddressOf()), debug_data_path.GetAddressOf());
+
+			if (debug_data != NULL && debug_data_path != NULL)
+			{
+				const wchar_t* path = reinterpret_cast<const wchar_t*>(debug_data_path->GetBufferPointer());
+
+				if (debug_data && path)
+				{
+					std::ofstream out_file(path, std::ios::binary);
+					out_file.write(reinterpret_cast<const char*>(debug_data->GetBufferPointer()), debug_data->GetBufferSize());
+					out_file.close();
+				}
+			}
+
+#endif
 
 			if (root_sig)
 			{
@@ -1712,7 +1713,7 @@ namespace SFG
 
 		const wchar_t* entry_point = string_util::char_to_wchar(entry);
 
-		vector<LPCWSTR> arguments = {L"-T", L"cs_6_0", L"-E", entry_point, DXC_ARG_WARNINGS_ARE_ERRORS, L"-HV 2021"};
+		vector<LPCWSTR> arguments = {L"-T", L"cs_6_6", L"-E", entry_point, DXC_ARG_WARNINGS_ARE_ERRORS, L"-HV 2021"};
 
 		vector<const wchar_t*> include_paths;
 		include_paths.reserve(source_paths.size());
@@ -1735,32 +1736,17 @@ namespace SFG
 		arguments.push_back(DXC_ARG_OPTIMIZATION_LEVEL3);
 #endif
 
+				ComPtr<IDxcIncludeHandler> include_handler;
+		throw_if_failed(utils->CreateDefaultIncludeHandler(&include_handler));
+
 		ComPtr<IDxcResult> result;
-		throw_if_failed(idxc_compiler->Compile(&source_buffer, arguments.data(), static_cast<uint32>(arguments.size()), NULL, IID_PPV_ARGS(result.GetAddressOf())));
+		throw_if_failed(idxc_compiler->Compile(&source_buffer, arguments.data(), static_cast<uint32>(arguments.size()), include_handler.Get(), IID_PPV_ARGS(result.GetAddressOf())));
 
 		delete[] entry_point;
 
 		for (const wchar_t* p : include_paths)
 			delete[] p;
 
-#if SERIALIZE_DEBUG_INFORMATION
-		ComPtr<IDxcBlob>	  debug_data;
-		ComPtr<IDxcBlobUtf16> debug_data_path;
-		result->GetOutput(DXC_OUT_PDB, IID_PPV_ARGS(debug_data.GetAddressOf()), debug_data_path.GetAddressOf());
-
-		if (debug_data != NULL && debug_data_path != NULL)
-		{
-			const wchar_t* path = reinterpret_cast<const wchar_t*>(debug_data_path->GetBufferPointer());
-
-			if (debug_data && path)
-			{
-				std::ofstream out_file(path, std::ios::binary);
-				out_file.write(reinterpret_cast<const char*>(debug_data->GetBufferPointer()), debug_data->GetBufferSize());
-				out_file.close();
-			}
-		}
-
-#endif
 		ComPtr<IDxcBlobUtf8> errors;
 		result->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(errors.GetAddressOf()), nullptr);
 		if (errors && errors->GetStringLength() > 0)
@@ -1785,6 +1771,25 @@ namespace SFG
 				}
 			}
 		}
+
+#if SERIALIZE_DEBUG_INFORMATION
+		ComPtr<IDxcBlob>	  debug_data;
+		ComPtr<IDxcBlobUtf16> debug_data_path;
+		result->GetOutput(DXC_OUT_PDB, IID_PPV_ARGS(debug_data.GetAddressOf()), debug_data_path.GetAddressOf());
+
+		if (debug_data != NULL && debug_data_path != NULL)
+		{
+			const wchar_t* path = reinterpret_cast<const wchar_t*>(debug_data_path->GetBufferPointer());
+
+			if (debug_data && path)
+			{
+				std::ofstream out_file(path, std::ios::binary);
+				out_file.write(reinterpret_cast<const char*>(debug_data->GetBufferPointer()), debug_data->GetBufferSize());
+				out_file.close();
+			}
+		}
+
+#endif
 
 		if (compile_layout)
 		{

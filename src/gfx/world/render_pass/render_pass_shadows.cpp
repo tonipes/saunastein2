@@ -205,9 +205,8 @@ namespace SFG
 
 									  });
 
-			const uint32 rp_constants[2] = {p.gpu_index_entities, p.gpu_index_bones};
-			backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)&gpu_index_rp_ubo, .offset = constant_index_rp_ubo_index, .count = 1, .param_index = rpi_constants});
-			backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)rp_constants, .offset = constant_index_rp_constant0, .count = 2, .param_index = rpi_constants});
+			const uint32 rp_constants[3] = {gpu_index_rp_ubo, p.gpu_index_entities, p.gpu_index_bones};
+			backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)rp_constants, .offset = constant_index_rp_constant0, .count = 3, .param_index = rpi_constants});
 			backend->cmd_set_scissors(cmd_buffer, {.width = static_cast<uint16>(resolution.x), .height = static_cast<uint16>(resolution.y)});
 			backend->cmd_set_viewport(cmd_buffer,
 									  {

@@ -61,6 +61,11 @@ namespace SFG
 			return s_bind_layout_global;
 		}
 
+		inline static gfx_id get_bind_layout_global_compute()
+		{
+			return s_bind_layout_global_compute;
+		}
+
 	private:
 		struct buf_engine_global
 		{

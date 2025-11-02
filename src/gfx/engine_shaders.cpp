@@ -8,10 +8,11 @@
 namespace SFG
 {
 
-	bool engine_shaders::init(gfx_id bind_layout, game_app* app)
+	bool engine_shaders::init(gfx_id bind_layout, gfx_id bind_layout_compute, game_app* app)
 	{
-		_app		 = app;
-		_bind_layout = bind_layout;
+		_app				 = app;
+		_bind_layout		 = bind_layout;
+		_bind_layout_compute = bind_layout_compute;
 
 		const string root = SFG_ROOT_DIRECTORY;
 
@@ -26,6 +27,7 @@ namespace SFG
 		paths.push_back("assets/engine/shaders/gui/gui_text.stkshader");
 		paths.push_back("assets/engine/shaders/swapchain/swapchain.stkshader");
 		paths.push_back("assets/engine/shaders/lighting/deferred_lighting.stkshader");
+		paths.push_back("assets/engine/shaders/ssao/hbao.stkshader");
 
 		shader_raw raw = {};
 
@@ -48,7 +50,10 @@ namespace SFG
 #endif
 
 			const string src = root + raw.source.c_str();
-			e.direct.create_from_loader(raw, bind_layout);
+
+			const bool is_compute = i == engine_shader_type_hbao;
+
+			e.direct.create_from_loader(raw, is_compute ? bind_layout_compute : bind_layout);
 
 			_file_watcher.add_path(p.c_str(), static_cast<uint16>(i));
 			_file_watcher.add_path(src.c_str(), static_cast<uint16>(i));

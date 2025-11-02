@@ -1,6 +1,6 @@
 // Copyright (c) 2025 Inan Evin
 
-#include "render_pass_lighting.hpp"
+#include "render_pass_ssao.hpp"
 
 // gfx
 #include "gfx/backend/backend.hpp"
@@ -15,7 +15,7 @@
 
 namespace SFG
 {
-	void render_pass_lighting::init(const vector2ui16& size)
+	void render_pass_ssao::init(const vector2ui16& size)
 	{
 		_alloc.init(1024, 8);
 
@@ -25,26 +25,26 @@ namespace SFG
 		{
 			per_frame_data& pfd = _pfd[i];
 
-			pfd.cmd_buffer = backend->create_command_buffer({.type = command_type::graphics, .debug_name = "lighting_cmd"});
-			pfd.ubo.create_hw({.size = sizeof(ubo), .flags = resource_flags::rf_constant_buffer | resource_flags::rf_cpu_visible, .debug_name = "lighting_ubo"});
+			pfd.cmd_buffer = backend->create_command_buffer({.type = command_type::compute, .debug_name = "ssao_cmd"});
+			pfd.ubo.create_hw({.size = sizeof(ubo), .flags = resource_flags::rf_constant_buffer | resource_flags::rf_cpu_visible, .debug_name = "ssao_ubo"});
 		}
 
 		create_textures(size);
 
-		_shader_lighting = engine_shaders::get().get_shader(engine_shader_type::engine_shader_type_world_lighting).get_hw();
+		_shader_ssao = engine_shaders::get().get_shader(engine_shader_type::engine_shader_type_hbao).get_hw();
 
 #ifdef SFG_TOOLMODE
 		engine_shaders::get().add_reload_listener([this](engine_shader_type type, shader_direct& sh) {
-			if (type == engine_shader_type::engine_shader_type_world_lighting)
+			if (type == engine_shader_type::engine_shader_type_hbao)
 			{
-				_shader_lighting = sh.get_hw();
+				_shader_ssao = sh.get_hw();
 				return;
 			}
 		});
 #endif
 	}
 
-	void render_pass_lighting::uninit()
+	void render_pass_ssao::uninit()
 	{
 		_alloc.uninit();
 
@@ -61,7 +61,7 @@ namespace SFG
 		destroy_textures();
 	}
 
-	void render_pass_lighting::prepare(proxy_manager& pm, const view& camera_view, uint8 frame_index)
+	void render_pass_ssao::prepare(proxy_manager& pm, const view& camera_view, uint8 frame_index)
 	{
 		_alloc.reset();
 
@@ -78,26 +78,27 @@ namespace SFG
 			.dir_lights_count			 = pm.get_count_dir_lights(),
 			.cascade_levels_gpu_index	 = camera_view.cascsades_gpu_index,
 			.cascade_count				 = static_cast<uint32>(camera_view.cascades.size()),
-			.near_plane				  = camera_view.near_plane,
-			.far_plane				  = camera_view.far_plane,
+			.near_plane					 = camera_view.near_plane,
+			.far_plane					 = camera_view.far_plane,
 		};
 
 		pfd.ubo.buffer_data(0, &ubo_data, sizeof(ubo));
 	}
 
-	void render_pass_lighting::render(const render_params& p)
+	void render_pass_ssao::render(const render_params& p)
 	{
+		return;
+		/*
 		gfx_backend*	backend			 = gfx_backend::get();
 		per_frame_data& pfd				 = _pfd[p.frame_index];
 		const gfx_id	queue_gfx		 = backend->get_queue_gfx();
 		const gfx_id	cmd_buffer		 = pfd.cmd_buffer;
 		const gfx_id	color_texture	 = pfd.render_target;
 		const gpu_index gpu_index_rp_ubo = pfd.ubo.get_gpu_index();
-		const gfx_id	sh				 = _shader_lighting;
+		const gfx_id	sh				 = _shader_ssao;
 
 		// RP constants.
 		static_vector<gpu_index, GBUFFER_COLOR_TEXTURES + 10> rp_constants;
-		rp_constants.push_back(gpu_index_rp_ubo);
 		rp_constants.push_back(p.gpu_index_entities);
 		rp_constants.push_back(p.gpu_index_point_lights);
 		rp_constants.push_back(p.gpu_index_spot_lights);
@@ -125,7 +126,7 @@ namespace SFG
 								 .barrier_count = static_cast<uint16>(barriers.size()),
 							 });
 
-		BEGIN_DEBUG_EVENT(backend, cmd_buffer, "lighting_pass");
+		BEGIN_DEBUG_EVENT(backend, cmd_buffer, "ssao_pass");
 
 		render_pass_color_attachment* attachments = _alloc.allocate<render_pass_color_attachment>(1);
 		render_pass_color_attachment& att		  = attachments[0];
@@ -144,6 +145,7 @@ namespace SFG
 		backend->cmd_bind_layout(cmd_buffer, {.layout = p.global_layout});
 		backend->cmd_bind_group(cmd_buffer, {.group = p.global_group});
 
+		backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)&gpu_index_rp_ubo, .offset = constant_index_rp_ubo_index, .count = 1, .param_index = rpi_constants});
 		backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)rp_constants.data(), .offset = constant_index_rp_constant0, .count = static_cast<uint8>(rp_constants.size()), .param_index = rpi_constants});
 
 		backend->cmd_set_scissors(cmd_buffer, {.width = static_cast<uint16>(p.size.x), .height = static_cast<uint16>(p.size.y)});
@@ -188,16 +190,19 @@ namespace SFG
 							 });
 
 		backend->close_command_buffer(cmd_buffer);
+		*/
 	}
 
-	void render_pass_lighting::resize(const vector2ui16& size)
+	void render_pass_ssao::resize(const vector2ui16& size)
 	{
 		destroy_textures();
 		create_textures(size);
 	}
 
-	void render_pass_lighting::destroy_textures()
+	void render_pass_ssao::destroy_textures()
 	{
+		return;
+
 		gfx_backend* backend = gfx_backend::get();
 
 		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
@@ -208,24 +213,26 @@ namespace SFG
 		}
 	}
 
-	void render_pass_lighting::create_textures(const vector2ui16& sz)
+	void render_pass_ssao::create_textures(const vector2ui16& sz)
 	{
+		return;
+
 		gfx_backend* backend = gfx_backend::get();
 
-		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
-		{
-			per_frame_data& pfd = _pfd[i];
-
-			pfd.render_target = backend->create_texture({
-				.texture_format = render_target_definitions::get_format_lighting(),
-				.size			= sz,
-				.flags			= texture_flags::tf_render_target | texture_flags::tf_is_2d | texture_flags::tf_sampled,
-				.views			= {{.type = view_type::render_target}, {.type = view_type::sampled}},
-				.clear_values	= {0.0f, 0.0f, 0.0f, 1.0f},
-				.debug_name		= "lighting_rt",
-			});
-
-			pfd.gpu_index_render_target = backend->get_texture_gpu_index(pfd.render_target, 1);
-		}
+		//	for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
+		//	{
+		//		per_frame_data& pfd = _pfd[i];
+		//
+		//		pfd.render_target = backend->create_texture({
+		//			.texture_format = render_target_definitions::get_format_ssao(),
+		//			.size			= sz,
+		//			.flags			= texture_flags::tf_render_target | texture_flags::tf_is_2d | texture_flags::tf_sampled,
+		//			.views			= {{.type = view_type::render_target}, {.type = view_type::sampled}},
+		//			.clear_values	= {0.0f, 0.0f, 0.0f, 1.0f},
+		//			.debug_name		= "ssao_rt",
+		//		});
+		//
+		//		pfd.gpu_index_render_target = backend->get_texture_gpu_index(pfd.render_target, 1);
+		//	}
 	}
 }

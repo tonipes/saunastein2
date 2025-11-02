@@ -80,7 +80,7 @@ namespace SFG
 		// kick off system shaders.
 		renderer::create_bind_layout_global();
 
-		if (!engine_shaders::get().init(renderer::get_bind_layout_global(), this))
+		if (!engine_shaders::get().init(renderer::get_bind_layout_global(), renderer::get_bind_layout_global_compute(), this))
 		{
 			time::uninit();
 			debug_console::uninit();

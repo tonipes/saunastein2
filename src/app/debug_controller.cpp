@@ -671,7 +671,7 @@ namespace SFG
 			backend->cmd_bind_constants(cmd_buffer,
 										{
 											.data		 = (uint8*)&gui_pass_gpu_index,
-											.offset		 = constant_index_rp_ubo_index,
+											.offset		 = constant_index_rp_constant0,
 											.count		 = 1,
 											.param_index = rpi_constants,
 										});

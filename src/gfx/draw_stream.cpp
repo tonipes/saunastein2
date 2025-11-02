@@ -64,8 +64,9 @@ namespace SFG
 				backend->cmd_bind_index_buffers(cmd_buffer, {.buffer = draw.ib_hw, .index_size = static_cast<uint8>(sizeof(primitive_index))});
 
 			backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)&draw.entity_constant_index, .offset = constant_index_object_constant0, .count = 1, .param_index = rpi_constants});
-			backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)&draw.material_constant_index, .offset = constant_index_material_ubo_index, .count = 1, .param_index = rpi_constants});
-			backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)&draw.texture_constant_index, .offset = constant_index_texture_ubo_index, .count = 1, .param_index = rpi_constants});
+
+			const uint32 mat_constants[2] = {draw.material_constant_index, draw.texture_constant_index};
+			backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)mat_constants, .offset = constant_index_mat_constant0, .count = 2, .param_index = rpi_constants});
 			backend->cmd_draw_indexed_instanced(cmd_buffer,
 												{
 													.index_count_per_instance = draw.index_count,

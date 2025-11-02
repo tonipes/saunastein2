@@ -58,10 +58,7 @@ namespace SFG
 
 	enum constant_indices : uint8
 	{
-		constant_index_rp_ubo_index = 0,
-		constant_index_material_ubo_index,
-		constant_index_texture_ubo_index,
-		constant_index_rp_constant0,
+		constant_index_rp_constant0 = 0,
 		constant_index_rp_constant1,
 		constant_index_rp_constant2,
 		constant_index_rp_constant3,
@@ -72,6 +69,14 @@ namespace SFG
 		constant_index_rp_constant8,
 		constant_index_rp_constant9,
 		constant_index_rp_constant10,
+		constant_index_rp_constant11,
+		constant_index_rp_constant12,
+		constant_index_mat_constant0,
+		constant_index_mat_constant1,
+		constant_index_mat_constant2,
+		constant_index_mat_constant3,
+		constant_index_mat_constant4,
+		constant_index_mat_constant5,
 		constant_index_object_constant0,
 		constant_index_object_constant1,
 		constant_index_object_constant2,
@@ -81,6 +86,10 @@ namespace SFG
 		constant_index_object_constant6,
 		constant_index_object_constant7,
 		constant_index_object_constant8,
+		constant_index_object_constant9,
+		constant_index_object_constant10,
+		constant_index_object_constant11,
+		constant_index_object_constant12,
 		constant_index_max,
 	};
 

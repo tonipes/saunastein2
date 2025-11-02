@@ -1,4 +1,4 @@
-#include "../layout_defines.hlsl"
+#include "layout_defines.hlsl"
 
 //------------------------------------------------------------------------------
 // In & Outs
@@ -33,7 +33,7 @@ struct render_pass_data
 VSOutput VSMain(VSInput IN)
 {
 	VSOutput OUT;
-	render_pass_data rp_ubo = sfg_get_rp_cbv<render_pass_data>();
+	render_pass_data rp_ubo = sfg_get_cbv<render_pass_data>(sfg_rp_constant0);
 
 	float4 worldPos = float4(IN.pos, 0.0f, 1.0f);
 	OUT.pos = mul(rp_ubo.projection, worldPos);

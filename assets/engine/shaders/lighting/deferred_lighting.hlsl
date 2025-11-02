@@ -67,18 +67,18 @@ static bool is_background(float device_depth)
 //------------------------------------------------------------------------------
 float4 PSMain(vs_output IN) : SV_TARGET
 {
-    render_pass_data rp_data = sfg_get_rp_cbv<render_pass_data>();
-    StructuredBuffer<gpu_entity> entity_buffer = sfg_get_ssbo<gpu_entity>(sfg_rp_constant0);
-    StructuredBuffer<gpu_point_light> point_light_buffer = sfg_get_ssbo<gpu_point_light>(sfg_rp_constant1);
-    StructuredBuffer<gpu_spot_light> spot_light_buffer = sfg_get_ssbo<gpu_spot_light>(sfg_rp_constant2);
-    StructuredBuffer<gpu_dir_light> dir_light_buffer = sfg_get_ssbo<gpu_dir_light>(sfg_rp_constant3);
-    StructuredBuffer<gpu_shadow_data> shadow_data_buffer = sfg_get_ssbo<gpu_shadow_data>(sfg_rp_constant4);
-    StructuredBuffer<float> float_buffer = sfg_get_ssbo<float>(sfg_rp_constant5);
-    Texture2D tex_gbuffer_color = sfg_get_texture2D(sfg_rp_constant6);
-    Texture2D tex_gbuffer_normal = sfg_get_texture2D(sfg_rp_constant7);
-    Texture2D tex_gbuffer_orm = sfg_get_texture2D(sfg_rp_constant8);
-    Texture2D tex_gbuffer_emissive = sfg_get_texture2D(sfg_rp_constant9);
-    Texture2D tex_gbuffer_depth = sfg_get_texture2D(sfg_rp_constant10);
+    render_pass_data rp_data = sfg_get_cbv<render_pass_data>(sfg_rp_constant0);
+    StructuredBuffer<gpu_entity> entity_buffer = sfg_get_ssbo<gpu_entity>(sfg_rp_constant1);
+    StructuredBuffer<gpu_point_light> point_light_buffer = sfg_get_ssbo<gpu_point_light>(sfg_rp_constant2);
+    StructuredBuffer<gpu_spot_light> spot_light_buffer = sfg_get_ssbo<gpu_spot_light>(sfg_rp_constant3);
+    StructuredBuffer<gpu_dir_light> dir_light_buffer = sfg_get_ssbo<gpu_dir_light>(sfg_rp_constant4);
+    StructuredBuffer<gpu_shadow_data> shadow_data_buffer = sfg_get_ssbo<gpu_shadow_data>(sfg_rp_constant5);
+    StructuredBuffer<float> float_buffer = sfg_get_ssbo<float>(sfg_rp_constant6);
+    Texture2D tex_gbuffer_color = sfg_get_texture2D(sfg_rp_constant7);
+    Texture2D tex_gbuffer_normal = sfg_get_texture2D(sfg_rp_constant8);
+    Texture2D tex_gbuffer_orm = sfg_get_texture2D(sfg_rp_constant9);
+    Texture2D tex_gbuffer_emissive = sfg_get_texture2D(sfg_rp_constant10);
+    Texture2D tex_gbuffer_depth = sfg_get_texture2D(sfg_rp_constant11);
 
      // pixel for .Load()
     int2 ip = int2(IN.pos.xy);
