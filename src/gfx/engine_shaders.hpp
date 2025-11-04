@@ -21,6 +21,10 @@ namespace SFG
 		engine_shader_type_renderer_swapchain,
 		engine_shader_type_world_lighting,
 		engine_shader_type_hbao,
+		engine_shader_type_hbao_upsample,
+		engine_shader_type_bloom_downsample,
+		engine_shader_type_bloom_upsample,
+		engine_shader_type_post_combiner,
 		engine_shader_type_max,
 	};
 
@@ -56,7 +60,7 @@ namespace SFG
 		struct shader_entry
 		{
 			shader_direct direct = {};
-
+			gfx_id		  layout = 0;
 #ifdef SFG_TOOLMODE
 			string src_path = "";
 #endif
@@ -70,9 +74,7 @@ namespace SFG
 	private:
 		static_vector<shader_entry, engine_shader_type_max> _shaders;
 		simple_file_watcher									_file_watcher;
-		game_app*											_app				 = nullptr;
-		gfx_id												_bind_layout		 = 0;
-		gfx_id												_bind_layout_compute = 0;
+		game_app*											_app = nullptr;
 
 #ifdef SFG_TOOLMODE
 		static_vector<reload_callback, engine_shader_type_max> _reload_callbacks;

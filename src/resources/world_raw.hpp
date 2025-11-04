@@ -20,7 +20,7 @@ namespace SFG
 		void deserialize(istream& stream);
 
 #ifdef SFG_TOOLMODE
-		bool load_from_file(const char* file);
+		bool load_from_file(const char* relative_file, const char* base_path);
 		void save_to_file(const char* file, world& w);
 		void fetch_from_world(world& w);
 #endif

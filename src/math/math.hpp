@@ -14,6 +14,11 @@ namespace SFG
 		unsigned int floor_log2(unsigned int val);
 		double		 fast_pow(double base, double exponent);
 
+		template <typename T> inline bool is_nan(T val)
+		{
+			return std::isnan(val);
+		}
+
 		template <typename T> inline T copysign(T number, T sign)
 		{
 			return std::copysignf(number, sign);

@@ -25,6 +25,11 @@
 #include "data/mutex.hpp"
 #include "memory/malloc_allocator_stl.hpp"
 #include "data/vector.hpp"
+
+#ifdef SFG_DUMP_LOG_TRACE
+#include "data/string.hpp"
+#endif
+
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -55,6 +60,15 @@ namespace SFG
 			static log log;
 			return log;
 		}
+
+		log()
+		{
+#ifdef SFG_DUMP_LOG_TRACE
+			_log_trace.reserve(1024 * 10);
+#endif
+		}
+
+		~log();
 
 		// Helper to convert various types to string
 		template <typename T> std::string to_str(const T& value)
@@ -134,5 +148,8 @@ namespace SFG
 
 		mutex					_mtx;
 		vector_malloc<listener> _listeners;
+#ifdef SFG_DUMP_LOG_TRACE
+		string _log_trace;
+#endif
 	};
 }

@@ -632,8 +632,11 @@ namespace SFG
 
 		// Copy vtx idx buffers. First transition barriers will be executed via collect_barriers
 		{
-			pfd.buf_gui_vtx.copy_region(cmd_buffer, 0, pfd.counter_vtx * sizeof(vekt::vertex));
-			pfd.buf_gui_idx.copy_region(cmd_buffer, 0, pfd.counter_idx * sizeof(vekt::index));
+			if (pfd.counter_vtx != 0)
+				pfd.buf_gui_vtx.copy_region(cmd_buffer, 0, pfd.counter_vtx * sizeof(vekt::vertex));
+
+			if (pfd.counter_idx != 0)
+				pfd.buf_gui_idx.copy_region(cmd_buffer, 0, pfd.counter_idx * sizeof(vekt::index));
 
 			static_vector<barrier, 2> barriers_bufs;
 			barriers_bufs.push_back({
@@ -920,7 +923,7 @@ namespace SFG
 			string_util::append_float(static_cast<float>(frame_info::get_render_thread_time_milli()), (char*)render_props.text + 20, 7, 4, true);
 			string_util::append_float(static_cast<float>(frame_info::get_present_time_milli()), (char*)present_props.text + 14, 7, 4, true);
 
-#ifdef ENABLE_MEMORY_TRACER
+#ifdef SFG_ENABLE_MEMORY_TRACER
 			memory_tracer& tracer = memory_tracer::get();
 			LOCK_GUARD(tracer.get_category_mtx());
 

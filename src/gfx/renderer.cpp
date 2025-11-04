@@ -2,6 +2,7 @@
 // Copyright (c) 2025 Inan Evin
 
 #include "renderer.hpp"
+
 #include "gfx/backend/backend.hpp"
 #include "gfx/common/descriptions.hpp"
 #include "gfx/common/commands.hpp"
@@ -64,7 +65,7 @@ namespace SFG
 		});
 
 		// debug & world
-#ifdef USE_DEBUG_CONTROLLER
+#ifdef SFG_USE_DEBUG_CONTROLLER
 		_debug_controller.init(&_texture_queue, s_bind_layout_global, _base_size);
 #endif
 		_world_renderer = new world_renderer(_proxy_manager);
@@ -90,7 +91,7 @@ namespace SFG
 			pfd.bind_group_global  = backend->create_empty_bind_group();
 			pfd.gpu_index_world_rt = _world_renderer->get_output_gpu_index(i);
 
-#ifdef USE_DEBUG_CONTROLLER
+#ifdef SFG_USE_DEBUG_CONTROLLER
 			pfd.gpu_index_debug_controller_rt = _debug_controller.get_output_gpu_index(i);
 #endif
 
@@ -130,7 +131,7 @@ namespace SFG
 		// debug & world
 		_world_renderer->uninit();
 		delete _world_renderer;
-#ifdef USE_DEBUG_CONTROLLER
+#ifdef SFG_USE_DEBUG_CONTROLLER
 		_debug_controller.uninit();
 #endif
 
@@ -177,7 +178,7 @@ namespace SFG
 
 	void renderer::tick()
 	{
-#ifdef USE_DEBUG_CONTROLLER
+#ifdef SFG_USE_DEBUG_CONTROLLER
 		_debug_controller.tick();
 #endif
 	}
@@ -189,14 +190,14 @@ namespace SFG
 		const gfx_id	  queue_transfer = backend->get_queue_transfer();
 		const vector2ui16 size			 = _base_size;
 
-#ifndef SFG_PRODUCTION
+#ifdef SFG_USE_DEBUG_CONTROLLER
 		const int64 time_before_wait = time::get_cpu_microseconds();
 #endif
 
 		// Gate frame start to DXGI frame latency waitable for stable pacing
 		backend->wait_for_swapchain_latency(_gfx_data.swapchain);
 
-#ifndef SFG_PRODUCTION
+#ifdef SFG_USE_DEBUG_CONTROLLER
 		const int64 time_after_wait = time::get_cpu_microseconds();
 		frame_info::s_render_present_microseconds.store(time_after_wait - time_before_wait);
 #endif
@@ -210,7 +211,7 @@ namespace SFG
 		per_frame_data& pfd			   = _pfd[frame_index];
 		const uint32	rt_world_index = pfd.gpu_index_world_rt;
 
-#ifdef USE_DEBUG_CONTROLLER
+#ifdef SFG_USE_DEBUG_CONTROLLER
 		const uint32 rt_console_index = pfd.gpu_index_debug_controller_rt;
 #endif
 
@@ -237,7 +238,7 @@ namespace SFG
 		if (!_buffer_queue.empty(frame_index) || !_texture_queue.empty())
 		{
 			pfd.sem_copy.value++;
-			backend->reset_command_buffer(cmd_list_copy);
+			backend->reset_command_buffer_transfer(cmd_list_copy);
 			_buffer_queue.flush_all(cmd_list_copy, frame_index, _reuse_upload_barriers);
 			_texture_queue.flush_all(cmd_list_copy, _reuse_upload_barriers);
 			backend->close_command_buffer(cmd_list_copy);
@@ -315,7 +316,7 @@ namespace SFG
 
 			// gui pass bind group
 			{
-#ifdef USE_DEBUG_CONTROLLER
+#ifdef SFG_USE_DEBUG_CONTROLLER
 				const uint32 constants[2] = {rt_console_index, rt_world_index};
 				const uint32 count		  = 2;
 #else
@@ -371,7 +372,7 @@ namespace SFG
 		backend->queue_signal(queue_gfx, &sem_frame, &next_frame_value, 1);
 
 		// SFG_TRACE("frame index {0}", (uint32)_gfx_data.frame_index);
-#ifndef SFG_PRODUCTION
+#ifdef SFG_USE_DEBUG_CONTROLLER
 		const int64 time_end = time::get_cpu_microseconds();
 		frame_info::s_render_work_microseconds.store(static_cast<double>(time_end - time_after_wait));
 #endif
@@ -379,7 +380,7 @@ namespace SFG
 
 	bool renderer::on_window_event(const window_event& ev)
 	{
-#ifdef USE_DEBUG_CONTROLLER
+#ifdef SFG_USE_DEBUG_CONTROLLER
 		return _debug_controller.on_window_event(ev);
 #endif
 		return false;
@@ -400,7 +401,7 @@ namespace SFG
 
 		_world_renderer->resize(size);
 
-#ifdef USE_DEBUG_CONTROLLER
+#ifdef SFG_USE_DEBUG_CONTROLLER
 		_debug_controller.on_window_resize(size);
 #endif
 
@@ -409,7 +410,7 @@ namespace SFG
 			per_frame_data& pfd = _pfd[i];
 
 			pfd.gpu_index_world_rt = _world_renderer->get_output_gpu_index(i);
-#ifdef USE_DEBUG_CONTROLLER
+#ifdef SFG_USE_DEBUG_CONTROLLER
 			pfd.gpu_index_debug_controller_rt = _debug_controller.get_output_gpu_index(i);
 #endif
 		}

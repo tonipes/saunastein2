@@ -2,6 +2,8 @@
 #pragma once
 
 #include "common/size_definitions.hpp"
+
+// gfx
 #include "gfx/common/gfx_constants.hpp"
 #include "gfx/common/semaphore_data.hpp"
 #include "gfx/common/render_data.hpp"
@@ -10,10 +12,11 @@
 #include "gfx/buffer_queue.hpp"
 #include "gfx/texture_queue.hpp"
 #include "gfx/proxy/proxy_manager.hpp"
+
+// misc
 #include "memory/bump_allocator.hpp"
 
-#ifndef SFG_PRODUCTION
-#define USE_DEBUG_CONTROLLER
+#ifdef SFG_USE_DEBUG_CONTROLLER
 #include "app/debug_controller.hpp"
 #endif
 
@@ -82,7 +85,7 @@ namespace SFG
 			gfx_id		   cmd_copy			  = 0;
 			gfx_id		   bind_group_global  = 0;
 			uint32		   gpu_index_world_rt = 0;
-#ifdef USE_DEBUG_CONTROLLER
+#ifdef SFG_USE_DEBUG_CONTROLLER
 			uint32 gpu_index_debug_controller_rt = 0;
 #endif
 		};
@@ -104,7 +107,7 @@ namespace SFG
 		window&				 _main_window;
 		world_renderer*		 _world_renderer = nullptr;
 
-#ifdef USE_DEBUG_CONTROLLER
+#ifdef SFG_USE_DEBUG_CONTROLLER
 		debug_controller _debug_controller = {};
 #endif
 

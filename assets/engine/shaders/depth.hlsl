@@ -21,3 +21,10 @@ static float3 reconstruct_world_position(float2 uv, float device_depth, float4x4
 
     return ndc.xyz;
 }
+
+// Very small epsilon guard
+static bool is_background(float device_depth)
+{
+    // Reversed-Z: far = 0, near = 1. Treat ~0 as background
+    return device_depth <= 1e-6;
+}

@@ -10,10 +10,12 @@
 namespace SFG
 {
 
-#define DUMMY_COLOR_TEXTURE_SID	 UINT64_MAX - 1000
-#define DUMMY_NORMAL_TEXTURE_SID UINT64_MAX - 999
-#define DUMMY_ORM_TEXTURE_SID	 UINT64_MAX - 998
-#define DUMMY_SAMPLER_SID		 UINT64_MAX - 997
+#define DUMMY_COLOR_TEXTURE_SID	  UINT64_MAX - 1000
+#define DUMMY_NORMAL_TEXTURE_SID  UINT64_MAX - 999
+#define DUMMY_ORM_TEXTURE_SID	  UINT64_MAX - 998
+#define DUMMY_SAMPLER_SID		  UINT64_MAX - 997
+#define DEFAULT_OPAQUE_SHADER_SID UINT64_MAX - 996
+#define DEFAULT_FORWARD_SHADER_SID UINT64_MAX - 995
 
 	typedef pool_handle16 resource_handle;
 	typedef uint16		  resource_id;
@@ -30,11 +32,11 @@ namespace SFG
 
 	enum shader_variant_flags : uint32
 	{
-		variant_flag_skinned	  = 1 << 0,
-		variant_flag_alpha_cutoff = 1 << 1,
-		variant_flag_z_prepass	  = 1 << 2,
-		variant_flag_double_sided = 1 << 3,
-		variant_flag_shadow_rendering	  = 1 << 4,
+		variant_flag_skinned		  = 1 << 0,
+		variant_flag_alpha_cutoff	  = 1 << 1,
+		variant_flag_z_prepass		  = 1 << 2,
+		variant_flag_double_sided	  = 1 << 3,
+		variant_flag_shadow_rendering = 1 << 4,
 	};
 
 }

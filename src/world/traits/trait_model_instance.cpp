@@ -171,20 +171,14 @@ namespace SFG
 			const vector3&	   pos	 = em.get_entity_position(e);
 			const quat&		   rot	 = em.get_entity_rotation(e);
 			const vector3&	   scale = em.get_entity_scale(e);
-			SFG_INFO("entity: {0}", meta.name);
-			SFG_INFO("position: {0} {1} {2}", pos.x, pos.y, pos.z);
-			SFG_INFO("rotation: {0} {1} {2} {3}", rot.x, rot.y, rot.z, rot.w);
-			SFG_INFO("scale: {0} {1} {2}", scale.x, scale.y, scale.z);
+			SFG_INFO("entity: {0} - gen: {1} - index: {2}", meta.name, e.generation, e.index);
 		};
-		/*
-		for (world_handle e : root_entities)
-		{
-			SFG_INFO("reporting root...");
-			report_entity(e);
-			SFG_INFO("reporting children...");
-			emr.visit_children(e, [&](world_handle c) { report_entity(c); });
-		}
-		*/
+	
+		//for (world_handle e : root_entities)
+		//{
+		//	report_entity(e);
+		//}
+		
 
 		for (world_handle r : root_entities)
 		{

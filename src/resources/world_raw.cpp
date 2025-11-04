@@ -28,17 +28,18 @@ namespace SFG
 	}
 
 #ifdef SFG_TOOLMODE
-	bool world_raw::load_from_file(const char* path)
+	bool world_raw::load_from_file(const char* relative_file, const char* base_path)
 	{
-		if (!file_system::exists(path))
+		const string target_path = base_path + string(relative_file);
+		if (!file_system::exists(target_path.c_str()))
 		{
-			SFG_ERR("File don't exist! {0}", path);
+			SFG_ERR("File don't exist! {0}", target_path.c_str());
 			return false;
 		}
 
 		try
 		{
-			std::ifstream f(path);
+			std::ifstream f(target_path);
 			json		  json_data = json::parse(f);
 			f.close();
 
@@ -60,7 +61,7 @@ namespace SFG
 			return false;
 		}
 
-		SFG_INFO("Created world from file: {0}", path);
+		SFG_INFO("Created world from file: {0}", target_path);
 		return true;
 	}
 

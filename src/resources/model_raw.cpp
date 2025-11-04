@@ -9,11 +9,13 @@
 #include "data/bitmask.hpp"
 #include "io/log.hpp"
 #include "io/file_system.hpp"
+#include "serialization/serialization.hpp"
 #include "data/vector_util.hpp"
 #include "math/math.hpp"
-#include "project/engine_data.hpp"
 #include "gfx/common/format.hpp"
 #include "vendor/nhlohmann/json.hpp"
+#include "world/traits/trait_light.hpp"
+#include "project/engine_data.hpp"
 #define TINYGLTF_NO_INCLUDE_STB_IMAGE
 #define TINYGLTF_NO_INCLUDE_STB_IMAGE_WRITE
 #define TINYGLTF_NO_INCLUDE_JSON
@@ -32,7 +34,7 @@ namespace SFG
 	{
 		stream << name;
 		stream << source;
-		stream << loaded_textures;
+		stream << loaded_textures_sid;
 		stream << loaded_materials;
 		stream << loaded_nodes;
 		stream << loaded_meshes;
@@ -46,7 +48,7 @@ namespace SFG
 	{
 		stream >> name;
 		stream >> source;
-		stream >> loaded_textures;
+		stream >> loaded_textures_sid;
 		stream >> loaded_materials;
 		stream >> loaded_nodes;
 		stream >> loaded_meshes;
@@ -571,12 +573,24 @@ namespace SFG
 				const string_id hash	  = TO_SID(hash_path);
 				raw.sid					  = hash;
 				raw.name				  = hash_path;
+				loaded_textures_sid.push_back(raw.sid);
 
-				uint8* data = reinterpret_cast<uint8*>(SFG_MALLOC(img.image.size()));
-				SFG_MEMCPY(data, img.image.data(), img.image.size());
-				const vector2ui16 size = vector2ui16(static_cast<uint16>(img.width), static_cast<uint16>(img.height));
-				const format	  fmt  = check_if_linear(i) ? format::r8g8b8a8_unorm : format::r8g8b8a8_srgb;
-				raw.load_from_data(data, size, static_cast<uint8>(fmt), true);
+				const string cache_path = engine_data::get().get_cache_dir() + std::to_string(raw.sid) + engine_data::CACHE_EXTENSION;
+
+				if (file_system::exists(cache_path.c_str()))
+				{
+					istream stream = serialization::load_from_file(cache_path.c_str());
+					raw.deserialize(stream);
+					stream.destroy();
+				}
+				else
+				{
+					uint8* data = reinterpret_cast<uint8*>(SFG_MALLOC(img.image.size()));
+					SFG_MEMCPY(data, img.image.data(), img.image.size());
+					const vector2ui16 size = vector2ui16(static_cast<uint16>(img.width), static_cast<uint16>(img.height));
+					const format	  fmt  = check_if_linear(i) ? format::r8g8b8a8_unorm : format::r8g8b8a8_srgb;
+					raw.load_from_data(data, size, static_cast<uint8>(fmt), true);
+				}
 			}
 		}
 
@@ -596,7 +610,6 @@ namespace SFG
 					.address_w	= address_mode::clamp,
 				});
 			}
-			SFG_ASSERT(material_shader != 0);
 
 			auto find_sampler = [&](int32 texture_index) -> int32 { return loaded_sampler_indices.at(model.textures.at(texture_index).sampler); };
 
@@ -678,6 +691,7 @@ namespace SFG
 					txt_raw.load_from_data(texture_data, vector2ui16(width, height), (uint8)format::r8g8b8a8_unorm, true);
 					txt_raw.sid	 = hash;
 					txt_raw.name = hash_path;
+					loaded_textures_sid.push_back(txt_raw.sid);
 
 					constructed_orm = static_cast<int32>(loaded_textures.size() - 1);
 				}
@@ -713,42 +727,57 @@ namespace SFG
 				raw.use_alpha_cutoff		  = tmat.alphaMode.compare("MASK") == 0;
 				raw.double_sided			  = tmat.doubleSided;
 				const float pad				  = 0.0f;
-				raw.material_data << base_color;
-				raw.material_data << emissive;
-				raw.material_data << metallic;
-				raw.material_data << roughness;
-				raw.material_data << normal_strength;
-				raw.material_data << alpha_cutoff;
-				raw.material_data << pad;
-				raw.material_data << base_tiling << base_offset;
-				raw.material_data << normal_tiling << normal_offset;
-				raw.material_data << orm_tiling << orm_offset;
-				raw.material_data << emissive_tiling << emissive_offset;
 
-				if (tmat.pbrMetallicRoughness.metallicRoughnessTexture.index == -1 && tmat.occlusionTexture.index != -1)
+				if (raw.pass_mode == material_pass_mode::forward)
 				{
-					SFG_WARN("GTLF material {0} is missing ORM texture but has seperate occlusion texture. Occlusion texture will be used for ORM slot, might lead to inaccuracies in roughness & metallic implementation.", tmat.name);
+					raw.material_data << base_color;
+					raw.material_data << base_tiling << base_offset;
+					raw.textures.resize(1);
+
+					if (base_index != -1)
+						raw.sampler_definitions.push_back(samplers.at(find_sampler(base_index)));
+
+					raw.textures[0] = base_index == -1 ? DUMMY_COLOR_TEXTURE_SID : loaded_textures[loaded_indices.at(base_index)].sid;
+				}
+				else
+				{
+					raw.material_data << base_color;
+					raw.material_data << emissive;
+					raw.material_data << metallic;
+					raw.material_data << roughness;
+					raw.material_data << normal_strength;
+					raw.material_data << alpha_cutoff;
+					raw.material_data << pad;
+					raw.material_data << base_tiling << base_offset;
+					raw.material_data << normal_tiling << normal_offset;
+					raw.material_data << orm_tiling << orm_offset;
+					raw.material_data << emissive_tiling << emissive_offset;
+
+					if (tmat.pbrMetallicRoughness.metallicRoughnessTexture.index == -1 && tmat.occlusionTexture.index != -1)
+					{
+						SFG_WARN("GTLF material {0} is missing ORM texture but has seperate occlusion texture. Occlusion texture will be used for ORM slot, might lead to inaccuracies in roughness & metallic implementation.", tmat.name);
+					}
+
+					if (base_index != -1)
+						raw.sampler_definitions.push_back(samplers.at(find_sampler(base_index)));
+
+					if (normal_index != -1)
+						raw.sampler_definitions.push_back(samplers.at(find_sampler(normal_index)));
+
+					if (orm_index != -1)
+						raw.sampler_definitions.push_back(samplers.at(find_sampler(orm_index)));
+
+					if (emissive_index != -1)
+						raw.sampler_definitions.push_back(samplers.at(find_sampler(emissive_index)));
+
+					raw.textures.resize(4);
+					raw.textures[0] = base_index == -1 ? DUMMY_COLOR_TEXTURE_SID : loaded_textures[loaded_indices.at(base_index)].sid;
+					raw.textures[1] = normal_index == -1 ? DUMMY_NORMAL_TEXTURE_SID : loaded_textures[loaded_indices.at(normal_index)].sid;
+					raw.textures[2] = orm_index == -1 ? (constructed_orm == -1 ? DUMMY_ORM_TEXTURE_SID : loaded_textures[constructed_orm].sid) : loaded_textures[loaded_indices.at(orm_index)].sid;
+					raw.textures[3] = emissive_index == -1 ? DUMMY_COLOR_TEXTURE_SID : loaded_textures[loaded_indices.at(emissive_index)].sid;
 				}
 
-				if (base_index != -1)
-					raw.sampler_definitions.push_back(samplers.at(find_sampler(base_index)));
-
-				if (normal_index != -1)
-					raw.sampler_definitions.push_back(samplers.at(find_sampler(normal_index)));
-
-				if (orm_index != -1)
-					raw.sampler_definitions.push_back(samplers.at(find_sampler(orm_index)));
-
-				if (emissive_index != -1)
-					raw.sampler_definitions.push_back(samplers.at(find_sampler(emissive_index)));
-
-				raw.textures.resize(4);
-				raw.textures[0] = base_index == -1 ? DUMMY_COLOR_TEXTURE_SID : loaded_textures[loaded_indices.at(base_index)].sid;
-				raw.textures[1] = normal_index == -1 ? DUMMY_NORMAL_TEXTURE_SID : loaded_textures[loaded_indices.at(normal_index)].sid;
-				raw.textures[2] = orm_index == -1 ? (constructed_orm == -1 ? DUMMY_ORM_TEXTURE_SID : loaded_textures[constructed_orm].sid) : loaded_textures[loaded_indices.at(orm_index)].sid;
-				raw.textures[3] = emissive_index == -1 ? DUMMY_COLOR_TEXTURE_SID : loaded_textures[loaded_indices.at(emissive_index)].sid;
-				raw.shader		= material_shader;
-
+				raw.shader = raw.pass_mode == material_pass_mode::gbuffer ? DEFAULT_OPAQUE_SHADER_SID : DEFAULT_FORWARD_SHADER_SID;
 				SFG_INFO("Created material from gltf: {0}", raw.name);
 			}
 		}
@@ -914,7 +943,7 @@ namespace SFG
 
 			loaded_lights.push_back(light_raw{
 				.base_color = color(gltf_light.color[0], gltf_light.color[1], gltf_light.color[2], 1.0f),
-				.intensity	= static_cast<float>(gltf_light.intensity),
+				.intensity	= static_cast<float>(gltf_light.intensity * SFG_LIGHT_CANDELA_MULT),
 				.range		= static_cast<float>(gltf_light.range),
 				.inner_cone = static_cast<float>(gltf_light.spot.innerConeAngle),
 				.outer_cone = static_cast<float>(gltf_light.spot.outerConeAngle),
@@ -926,41 +955,33 @@ namespace SFG
 		return true;
 	}
 
-	bool model_raw::load_from_file(const char* file)
+	bool model_raw::load_from_file(const char* relative_file, const char* base_path)
 	{
-		if (!file_system::exists(file))
+		const string target_path = base_path + string(relative_file);
+		if (!file_system::exists(target_path.c_str()))
 		{
-			SFG_ERR("File doesn't exists! {0}", file);
+			SFG_ERR("File don't exist! {0}", target_path.c_str());
 			return false;
 		}
 
 		try
 		{
-			std::ifstream f(file);
+			std::ifstream f(target_path);
 			json		  json_data = json::parse(f);
 			f.close();
 
-			const string& wd = engine_data::get().get_working_dir();
-			const string  p	 = file;
-			name			 = p.substr(wd.size(), p.size() - wd.size());
-			source			 = json_data.value<string>("source", "");
+			name   = relative_file;
+			source = json_data.value<string>("source", "");
 
-			const string full_source = wd + source;
+			const string full_source = base_path + source;
 			if (!file_system::exists(full_source.c_str()))
 			{
 				SFG_ERR("File doesn't exists! {0}", full_source.c_str());
 				return false;
 			}
 
-			const uint8	 import_pbr_materials = json_data.value<uint8>("import_pbr_materials", 0);
-			const string shader				  = json_data.value<string>("shader", "");
-			const uint8	 import_textures	  = import_pbr_materials;
-
-			if (import_pbr_materials == 1)
-			{
-				SFG_ASSERT(!shader.empty());
-				material_shader = TO_SID(shader);
-			}
+			const uint8 import_pbr_materials = json_data.value<uint8>("import_pbr_materials", 0);
+			const uint8 import_textures		 = import_pbr_materials;
 
 			const bool success = import_gtlf(full_source.c_str(), name.c_str(), import_pbr_materials, import_textures);
 			if (!success)
@@ -978,6 +999,94 @@ namespace SFG
 
 		return true;
 	}
+
+	bool model_raw::load_from_cache(const char* cache_folder_path, const char* relative_path, const char* extension)
+	{
+		const string sid_str		 = std::to_string(TO_SID(relative_path));
+		const string meta_cache_path = cache_folder_path + sid_str + "_meta" + extension;
+		const string data_cache_path = cache_folder_path + sid_str + "_data" + extension;
+
+		if (!file_system::exists(meta_cache_path.c_str()))
+			return false;
+
+		if (!file_system::exists(data_cache_path.c_str()))
+			return false;
+
+		istream stream = serialization::load_from_file(meta_cache_path.c_str());
+
+		string file_path				  = "";
+		string source_path				  = "";
+		uint64 saved_file_last_modified	  = 0;
+		uint64 saved_source_last_modified = 0;
+		uint32 loaded_textures_size		  = 0;
+		stream >> file_path;
+		stream >> source_path;
+		stream >> saved_file_last_modified;
+		stream >> saved_source_last_modified;
+		stream.destroy();
+
+		const uint64 file_last_modified = file_system::get_last_modified_ticks(file_path);
+		const uint64 src_last_modified	= file_system::get_last_modified_ticks(source_path);
+
+		if (file_last_modified != saved_file_last_modified || src_last_modified != saved_source_last_modified)
+			return false;
+
+		stream = serialization::load_from_file(data_cache_path.c_str());
+		deserialize(stream);
+		stream.destroy();
+
+		for (string_id sid : loaded_textures_sid)
+		{
+			const string path = cache_folder_path + std::to_string(sid) + engine_data::CACHE_EXTENSION;
+			if (!file_system::exists(path.c_str()))
+			{
+				return false;
+			}
+
+			istream stream = serialization::load_from_file(path.c_str());
+			loaded_textures.push_back({});
+			texture_raw& r = loaded_textures.back();
+			r.deserialize(stream);
+			stream.destroy();
+		}
+		return true;
+	}
+
+	void model_raw::save_to_cache(const char* cache_folder_path, const char* resource_directory_path, const char* extension) const
+	{
+		const string sid_str			= std::to_string(TO_SID(name));
+		const string file_path			= resource_directory_path + name;
+		const string source_path		= resource_directory_path + source;
+		const uint64 file_last_modified = file_system::get_last_modified_ticks(file_path);
+		const uint64 src_last_modified	= file_system::get_last_modified_ticks(source_path);
+
+		const string meta_cache_path = cache_folder_path + sid_str + "_meta" + extension;
+		const string data_cache_path = cache_folder_path + sid_str + "_data" + extension;
+
+		ostream out_stream;
+		out_stream << file_path;
+		out_stream << source_path;
+		out_stream << file_last_modified;
+		out_stream << src_last_modified;
+		serialization::save_to_file(meta_cache_path.c_str(), out_stream);
+
+		out_stream.shrink(0);
+		serialize(out_stream);
+		serialization::save_to_file(data_cache_path.c_str(), out_stream);
+
+		ostream texture_stream;
+		for (const texture_raw& r : loaded_textures)
+		{
+			const string path = cache_folder_path + std::to_string(r.sid) + engine_data::CACHE_EXTENSION;
+			r.serialize(texture_stream);
+			serialization::save_to_file(path.c_str(), texture_stream);
+			texture_stream.shrink(0);
+		}
+		texture_stream.destroy();
+
+		out_stream.destroy();
+	}
+
 	void model_raw::get_dependencies(vector<string>& out_deps) const
 	{
 		out_deps.push_back(source);

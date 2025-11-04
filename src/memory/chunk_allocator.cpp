@@ -24,14 +24,14 @@ namespace SFG
 		_raw				  = reinterpret_cast<uint8*>(SFG_ALIGNED_MALLOC(alignment, mem_size));
 		_total_size			  = mem_size;
 
-#ifdef ENABLE_MEMORY_TRACER
+#ifdef SFG_ENABLE_MEMORY_TRACER
 		memory_tracer::get().on_allocation(_raw, mem_size);
 #endif
 	}
 
 	void chunk_allocator32::uninit()
 	{
-#ifdef ENABLE_MEMORY_TRACER
+#ifdef SFG_ENABLE_MEMORY_TRACER
 		memory_tracer::get().on_free(_raw);
 #endif
 

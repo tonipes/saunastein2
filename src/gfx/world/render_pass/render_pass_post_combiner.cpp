@@ -1,0 +1,206 @@
+// Copyright (c) 2025 Inan Evin
+
+#include "render_pass_post_combiner.hpp"
+
+// gfx
+#include "gfx/backend/backend.hpp"
+#include "gfx/common/descriptions.hpp"
+#include "gfx/common/commands.hpp"
+#include "gfx/util/gfx_util.hpp"
+#include "gfx/proxy/proxy_manager.hpp"
+#include "gfx/common/barrier_description.hpp"
+#include "gfx/engine_shaders.hpp"
+#include "gfx/common/render_target_definitions.hpp"
+#include "gfx/world/view.hpp"
+
+namespace SFG
+{
+	void render_pass_post_combiner::init(const vector2ui16& size)
+	{
+		_alloc.init(1024, 8);
+
+		gfx_backend* backend = gfx_backend::get();
+
+		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
+		{
+			per_frame_data& pfd = _pfd[i];
+
+			pfd.cmd_buffer = backend->create_command_buffer({.type = command_type::graphics, .debug_name = "post_comb_cmd"});
+			pfd.ubo.create_hw({.size = sizeof(ubo), .flags = resource_flags::rf_constant_buffer | resource_flags::rf_cpu_visible, .debug_name = "post_combiner_ubo"});
+		}
+
+		create_textures(size);
+
+		_shader_post_combiner = engine_shaders::get().get_shader(engine_shader_type::engine_shader_type_post_combiner).get_hw();
+
+#ifdef SFG_TOOLMODE
+		engine_shaders::get().add_reload_listener([this](engine_shader_type type, shader_direct& sh) {
+			if (type == engine_shader_type::engine_shader_type_post_combiner)
+			{
+				_shader_post_combiner = sh.get_hw();
+				return;
+			}
+		});
+#endif
+	}
+
+	void render_pass_post_combiner::uninit()
+	{
+		_alloc.uninit();
+
+		gfx_backend* backend = gfx_backend::get();
+
+		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
+		{
+			per_frame_data& pfd = _pfd[i];
+
+			backend->destroy_command_buffer(pfd.cmd_buffer);
+			pfd.ubo.destroy();
+		}
+
+		destroy_textures();
+	}
+
+	void render_pass_post_combiner::prepare(uint8 frame_index)
+	{
+		_alloc.reset();
+
+		per_frame_data& pfd = _pfd[frame_index];
+
+		const ubo ubo_data = {
+			.bloom_strength		  = 0.04f,
+			.exposure			  = 1,
+			.tonemap_mode		  = 1,
+			.saturation			  = 1.0f,
+			.wb_temp			  = 0.0f,
+			.wb_tint			  = 0.0f,
+			.reinhard_white_point = 6.0f,
+		};
+
+		pfd.ubo.buffer_data(0, &ubo_data, sizeof(ubo));
+	}
+
+	void render_pass_post_combiner::render(const render_params& p)
+	{
+		gfx_backend*	backend			   = gfx_backend::get();
+		per_frame_data& pfd				   = _pfd[p.frame_index];
+		const gfx_id	queue_gfx		   = backend->get_queue_gfx();
+		const gfx_id	cmd_buffer		   = pfd.cmd_buffer;
+		const gfx_id	color_texture	   = pfd.render_target;
+		const gpu_index gpu_index_ubo	   = pfd.ubo.get_gpu_index();
+		const gpu_index gpu_index_lighting = p.gpu_index_lighting;
+		const gpu_index gpu_index_bloom	   = p.gpu_index_bloom;
+		const gfx_id	sh				   = _shader_post_combiner;
+
+		// RP constants.
+
+		static_vector<barrier, 2> barriers;
+
+		barriers.push_back({
+			.resource	 = color_texture,
+			.flags		 = barrier_flags::baf_is_texture,
+			.from_states = resource_state::resource_state_ps_resource,
+			.to_states	 = resource_state::resource_state_render_target,
+		});
+		backend->reset_command_buffer(cmd_buffer);
+		backend->cmd_barrier(cmd_buffer,
+							 {
+								 .barriers		= barriers.data(),
+								 .barrier_count = static_cast<uint16>(barriers.size()),
+							 });
+		barriers.resize(0);
+
+		BEGIN_DEBUG_EVENT(backend, cmd_buffer, "post_combiner_pass");
+
+		render_pass_color_attachment* attachments = _alloc.allocate<render_pass_color_attachment>(1);
+		render_pass_color_attachment& att		  = attachments[0];
+		att.clear_color							  = vector4(0, 0, 0, 1.0f);
+		att.load_op								  = load_op::clear;
+		att.store_op							  = store_op::store;
+		att.texture								  = color_texture;
+		att.view_index							  = 0;
+
+		backend->cmd_begin_render_pass(cmd_buffer,
+									   {
+										   .color_attachments	   = attachments,
+										   .color_attachment_count = 1,
+									   });
+
+		backend->cmd_bind_layout(cmd_buffer, {.layout = p.global_layout});
+		backend->cmd_bind_group(cmd_buffer, {.group = p.global_group});
+
+		const uint32 constants[3] = {gpu_index_ubo, gpu_index_lighting, gpu_index_bloom};
+		backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)&constants, .offset = constant_index_rp_constant0, .count = 3, .param_index = rpi_constants});
+
+		backend->cmd_set_scissors(cmd_buffer, {.width = static_cast<uint16>(p.size.x), .height = static_cast<uint16>(p.size.y)});
+		backend->cmd_set_viewport(cmd_buffer,
+								  {
+									  .min_depth = 0.0f,
+									  .max_depth = 1.0f,
+									  .width	 = static_cast<uint16>(p.size.x),
+									  .height	 = static_cast<uint16>(p.size.y),
+
+								  });
+		backend->cmd_bind_pipeline(cmd_buffer, {.pipeline = sh});
+		backend->cmd_draw_instanced(cmd_buffer,
+									{
+										.vertex_count_per_instance = 3,
+										.instance_count			   = 1,
+									});
+
+		backend->cmd_end_render_pass(cmd_buffer, {});
+		END_DEBUG_EVENT(backend, cmd_buffer);
+
+		barriers.push_back({
+			.resource	 = color_texture,
+			.flags		 = barrier_flags::baf_is_texture,
+			.from_states = resource_state::resource_state_render_target,
+			.to_states	 = resource_state::resource_state_ps_resource,
+		});
+
+		backend->cmd_barrier(cmd_buffer,
+							 {
+								 .barriers		= barriers.data(),
+								 .barrier_count = static_cast<uint16>(barriers.size()),
+							 });
+
+		backend->close_command_buffer(cmd_buffer);
+	}
+
+	void render_pass_post_combiner::resize(const vector2ui16& size)
+	{
+		destroy_textures();
+		create_textures(size);
+	}
+
+	void render_pass_post_combiner::destroy_textures()
+	{
+		gfx_backend* backend = gfx_backend::get();
+
+		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
+		{
+			per_frame_data& pfd = _pfd[i];
+			backend->destroy_texture(pfd.render_target);
+		}
+	}
+
+	void render_pass_post_combiner::create_textures(const vector2ui16& sz)
+	{
+		gfx_backend* backend = gfx_backend::get();
+
+		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
+		{
+			per_frame_data& pfd = _pfd[i];
+
+			pfd.render_target			= backend->create_texture({
+						  .texture_format = render_target_definitions::get_format_lighting(),
+						  .size			  = sz,
+						  .flags		  = texture_flags::tf_render_target | texture_flags::tf_is_2d | texture_flags::tf_sampled,
+						  .views		  = {{.type = view_type::render_target}, {.type = view_type::sampled}},
+						  .clear_values	  = {0.0f, 0.0f, 0.0f, 1.0f},
+						  .debug_name	  = "post_combiner_rt",
+			  });
+			pfd.gpu_index_render_target = backend->get_texture_gpu_index(pfd.render_target, 1);
+		}
+	}
+}

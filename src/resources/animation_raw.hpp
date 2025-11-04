@@ -44,11 +44,19 @@ namespace SFG
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);
-
-		bool load_from_file(const char* file)
+		void save_to_cache(const char* cache_folder_path, const char* resource_directory_path, const char* extension) const
+		{
+		}
+		bool load_from_file(const char* relative_file, const char* base_path)
 		{
 			return false;
 		};
+
+		bool load_from_cache(const char* cache_folder_path, const char* relative_path, const char* extension)
+		{
+			return false;
+		}
+
 		void get_dependencies(vector<string>& out_deps) const {};
 	};
 

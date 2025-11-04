@@ -3,11 +3,14 @@
 
 #define static_sampler_anisotropic register(s0, space0)
 #define static_sampler_linear register(s1, space0)
-#define static_sampler_nearest register(s2, space0)
-#define static_sampler_gui_default register(s3, space0)
-#define static_sampler_gui_text register(s4, space0)
-#define static_sampler_shadow_2d register(s5, space0)
-#define static_sampler_shadow_cube register(s6, space0)
+#define static_sampler_linear_repeat register(s2, space0)
+#define static_sampler_nearest register(s3, space0)
+#define static_sampler_nearest_repeat register(s4, space0)
+
+#define static_sampler_gui_default register(s5, space0)
+#define static_sampler_gui_text register(s6, space0)
+#define static_sampler_shadow_2d register(s7, space0)
+#define static_sampler_shadow_cube register(s8, space0)
 
 cbuffer sfg_globals : register(b0, space0)
 {
@@ -70,36 +73,12 @@ StructuredBuffer<T> sfg_get_ssbo(uint index)
     return b;
 }
 
-Texture2D sfg_get_texture2D(uint index)
+template<typename T>
+T sfg_get_texture(uint index)
 {
-    Texture2D txt = ResourceDescriptorHeap[index];
+    T txt = ResourceDescriptorHeap[index];
     return txt;
 }
-
-Texture2D<float> sfg_get_texture2Df(uint index)
-{
-    Texture2D<float> txt = ResourceDescriptorHeap[index];
-    return txt;
-}
-RWTexture2D<float> sfg_get_rwtexture2D(uint index)
-{
-    RWTexture2D<float> txt = ResourceDescriptorHeap[index];
-    return txt;
-}
-
-
-TextureCube sfg_get_texturecube(uint index)
-{
-    TextureCube txt = ResourceDescriptorHeap[index];
-    return txt;
-}
-
-Texture2DArray sfg_get_texture2DArray(uint index)
-{
-    Texture2DArray txt = ResourceDescriptorHeap[index];
-    return txt;
-}
-
 
 SamplerState sfg_get_sampler_state(uint index)
 {

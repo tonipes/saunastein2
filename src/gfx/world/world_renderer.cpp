@@ -35,9 +35,11 @@ namespace SFG
 		// pfd
 		for (uint8 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
-			per_frame_data& pfd		 = _pfd[i];
-			pfd.cmd_upload			 = backend->create_command_buffer({.type = command_type::graphics, .debug_name = "wr_upload"});
-			pfd.semp_frame.semaphore = backend->create_semaphore();
+			per_frame_data& pfd			= _pfd[i];
+			pfd.cmd_upload				= backend->create_command_buffer({.type = command_type::graphics, .debug_name = "wr_upload"});
+			pfd.semp_frame.semaphore	= backend->create_semaphore();
+			pfd.semp_ssao.semaphore		= backend->create_semaphore();
+			pfd.semp_lighting.semaphore = backend->create_semaphore();
 
 			pfd.shadow_data_buffer.create_staging_hw(
 				{
@@ -142,7 +144,10 @@ namespace SFG
 		_pass_opaque.init(size);
 		_pass_lighting.init(size);
 		_pass_shadows.init();
-		_pass_ssao.init(size);
+		_pass_ssao.init(size, *tq);
+		_pass_bloom.init(size);
+		_pass_post.init(size);
+		_pass_forward.init(size);
 	}
 
 	void world_renderer::uninit()
@@ -152,6 +157,9 @@ namespace SFG
 		_pass_lighting.uninit();
 		_pass_shadows.uninit();
 		_pass_ssao.uninit();
+		_pass_bloom.uninit();
+		_pass_post.uninit();
+		_pass_forward.uninit();
 
 		gfx_backend* backend = gfx_backend::get();
 
@@ -160,6 +168,8 @@ namespace SFG
 			per_frame_data& pfd = _pfd[i];
 			backend->destroy_command_buffer(pfd.cmd_upload);
 			backend->destroy_semaphore(pfd.semp_frame.semaphore);
+			backend->destroy_semaphore(pfd.semp_lighting.semaphore);
+			backend->destroy_semaphore(pfd.semp_ssao.semaphore);
 			pfd.shadow_data_buffer.destroy();
 			pfd.entity_buffer.destroy();
 			pfd.bones_buffer.destroy();
@@ -191,6 +201,7 @@ namespace SFG
 						.view_frustum		  = frustum::extract(view_proj),
 						.view_matrix		  = view,
 						.proj_matrix		  = proj,
+						.inv_proj_matrix	  = proj.inverse(),
 						.view_proj_matrix	  = view_proj,
 						.inv_view_proj_matrix = view_proj.inverse(),
 						.position			  = cam_entity.position,
@@ -216,27 +227,47 @@ namespace SFG
 		renderable_collector::collect_model_instances(_proxy_manager, _main_camera_view, _renderables);
 		_pass_pre_depth.prepare(_proxy_manager, _renderables, _main_camera_view, frame_index);
 		_pass_opaque.prepare(_proxy_manager, _renderables, _main_camera_view, frame_index);
+		_pass_forward.prepare(_proxy_manager, _renderables, _main_camera_view, frame_index);
 		_pass_lighting.prepare(_proxy_manager, _main_camera_view, frame_index);
+		_pass_ssao.prepare(_main_camera_view, _base_size, frame_index);
+		_pass_bloom.prepare(frame_index);
+		_pass_post.prepare(frame_index);
 	}
 
-	void world_renderer::render(uint8 frame_index, gfx_id layout_global, gfx_id bind_group_global, gfx_id bind_group_global_compute, uint64 prev_copy, uint64 next_copy, gfx_id sem_copy)
+	void world_renderer::render(uint8 frame_index, gfx_id layout_global, gfx_id layout_global_compute, gfx_id bind_group_global, uint64 prev_copy, uint64 next_copy, gfx_id sem_copy)
 	{
-		gfx_backend* backend   = gfx_backend::get();
-		const gfx_id queue_gfx = backend->get_queue_gfx();
+		gfx_backend* backend	   = gfx_backend::get();
+		const gfx_id queue_gfx	   = backend->get_queue_gfx();
+		const gfx_id queue_compute = backend->get_queue_compute();
 
 		per_frame_data&	  pfd		 = _pfd[frame_index];
 		const vector2ui16 resolution = _base_size;
 
+		const gfx_id cmd_ssao		   = _pass_ssao.get_cmd_buffer(frame_index);
 		const gfx_id cmd_depth		   = _pass_pre_depth.get_cmd_buffer(frame_index);
 		const gfx_id cmd_opaque		   = _pass_opaque.get_cmd_buffer(frame_index);
 		const gfx_id cmd_lighting	   = _pass_lighting.get_cmd_buffer(frame_index);
+		const gfx_id cmd_post		   = _pass_post.get_cmd_buffer(frame_index);
 		const gfx_id cmd_shadows	   = _pass_shadows.get_cmd_buffer(frame_index);
+		const gfx_id cmd_bloom		   = _pass_bloom.get_cmd_buffer(frame_index);
+		const gfx_id cmd_forward	   = _pass_forward.get_cmd_buffer(frame_index);
 		const gfx_id sem_frame		   = pfd.semp_frame.semaphore;
+		const gfx_id sem_lighting	   = pfd.semp_lighting.semaphore;
+		const gfx_id sem_ssao		   = pfd.semp_ssao.semaphore;
+		const uint64 sem_lighting_val0 = ++pfd.semp_lighting.value;
+		const uint64 sem_lighting_val1 = ++pfd.semp_lighting.value;
+		const uint64 sem_ssao_val0	   = ++pfd.semp_ssao.value;
+		const uint64 sem_ssao_val1	   = ++pfd.semp_ssao.value;
+
 		const uint64 sem_frame_val	   = ++pfd.semp_frame.value;
 		const uint16 shadow_pass_count = _pass_shadows.get_pass_count();
 
 		const gfx_id											depth_texture				 = _pass_pre_depth.get_output_hw(frame_index);
+		const gfx_id											lighting_texture			 = _pass_lighting.get_output_hw(frame_index);
+		const gpu_index											gpu_index_lighting			 = _pass_lighting.get_output_gpu_index(frame_index);
+		const gpu_index											gpu_index_bloom				 = _pass_bloom.get_output_gpu_index(frame_index);
 		const gpu_index											gpu_index_depth_texture		 = _pass_pre_depth.get_output_gpu_index(frame_index);
+		const gpu_index											gpu_index_ao_out			 = _pass_ssao.get_output_gpu_index(frame_index);
 		const gpu_index											gpu_index_entities			 = pfd.entity_buffer.get_gpu_index();
 		const gpu_index											gpu_index_shadow_data_buffer = pfd.shadow_data_buffer.get_gpu_index();
 		const gpu_index											gpu_index_bones				 = pfd.bones_buffer.get_gpu_index();
@@ -272,10 +303,33 @@ namespace SFG
 
 		tasks.push_back([&] {
 			_pass_ssao.render({
-				.frame_index   = frame_index,
-				.size		   = resolution,
-				.global_layout = layout_global,
-				.global_group  = bind_group_global,
+				.frame_index		   = frame_index,
+				.size				   = resolution,
+				.gpu_index_depth	   = gpu_index_depth_texture,
+				.gpu_index_normals	   = gpu_index_gbuffer_textures[1],
+				.global_layout_compute = layout_global_compute,
+				.global_group		   = bind_group_global,
+			});
+		});
+
+		tasks.push_back([&] {
+			_pass_post.render({
+				.frame_index		= frame_index,
+				.size				= resolution,
+				.gpu_index_lighting = gpu_index_lighting,
+				.gpu_index_bloom	= gpu_index_bloom,
+				.global_layout		= layout_global,
+				.global_group		= bind_group_global,
+			});
+		});
+
+		tasks.push_back([&] {
+			_pass_bloom.render({
+				.frame_index		   = frame_index,
+				.size				   = resolution,
+				.gpu_index_lighting	   = gpu_index_lighting,
+				.global_layout_compute = layout_global_compute,
+				.global_group		   = bind_group_global,
 			});
 		});
 
@@ -290,6 +344,20 @@ namespace SFG
 				.global_group		= bind_group_global,
 			});
 		});
+
+		tasks.push_back([&] {
+			_pass_forward.render({
+				.frame_index		= frame_index,
+				.size				= resolution,
+				.gpu_index_entities = gpu_index_entities,
+				.gpu_index_bones	= gpu_index_bones,
+				.depth_texture		= depth_texture,
+				.input_texture		= lighting_texture,
+				.global_layout		= layout_global,
+				.global_group		= bind_group_global,
+			});
+		});
+
 		tasks.push_back([&] {
 			_pass_lighting.render({
 				.frame_index				  = frame_index,
@@ -302,7 +370,7 @@ namespace SFG
 				.gpu_index_entities			  = gpu_index_entities,
 				.gpu_index_shadow_data_buffer = gpu_index_shadow_data_buffer,
 				.gpu_index_float_buffer		  = gpu_index_float_buffer,
-				.depth_texture				  = depth_texture,
+				.gpu_index_ao_out			  = gpu_index_ao_out,
 				.global_layout				  = layout_global,
 				.global_group				  = bind_group_global,
 			});
@@ -320,12 +388,31 @@ namespace SFG
 		if (shadow_pass_count != 0)
 			backend->submit_commands(queue_gfx, &cmd_shadows, 1);
 
-		// submit opaque, wait for depth
+		// submit opaque, signal for ssao
 		backend->submit_commands(queue_gfx, &cmd_opaque, 1);
+		backend->queue_signal(queue_gfx, &sem_ssao, &sem_ssao_val0, 1);
 
-		// submit lighting
+		// SSAO waits for opaque, signals after done
+		backend->queue_wait(queue_compute, &sem_ssao, &sem_ssao_val0, 1);
+		backend->submit_commands(queue_compute, &cmd_ssao, 1);
+		backend->queue_signal(queue_compute, &sem_ssao, &sem_ssao_val1, 1);
+
+		// submit lighting, waits for ssao
+		backend->queue_wait(queue_gfx, &sem_ssao, &sem_ssao_val1, 1);
 		backend->submit_commands(queue_gfx, &cmd_lighting, 1);
-		backend->queue_signal(queue_gfx, &sem_frame, &sem_frame_val, 1);
+		backend->submit_commands(queue_gfx, &cmd_forward, 1);
+		backend->queue_signal(queue_gfx, &sem_lighting, &sem_lighting_val0, 1);
+
+		// bloom waits for forward
+		backend->queue_wait(queue_compute, &sem_lighting, &sem_lighting_val0, 1);
+		backend->submit_commands(queue_compute, &cmd_bloom, 1);
+		backend->queue_signal(queue_compute, &sem_lighting, &sem_lighting_val1, 1);
+
+		// post combine waits for bloom
+		backend->queue_wait(queue_gfx, &sem_lighting, &sem_lighting_val1, 1);
+		backend->submit_commands(queue_gfx, &cmd_post, 1);
+
+		backend->queue_signal(queue_compute, &sem_frame, &sem_frame_val, 1);
 	}
 
 	void world_renderer::resize(const vector2ui16& size)
@@ -338,6 +425,8 @@ namespace SFG
 		_pass_opaque.resize(size);
 		_pass_lighting.resize(size);
 		_pass_ssao.resize(size);
+		_pass_bloom.resize(size);
+		_pass_post.resize(size);
 	}
 
 	uint32 world_renderer::add_to_float_buffer(uint8 frame_index, float f)
@@ -779,6 +868,8 @@ namespace SFG
 
 		if (shadow_data_count != 0)
 			pfd.shadow_data_buffer.copy_region(cmd_buffer, 0, shadow_data_count * sizeof(gpu_shadow_data));
+
+		_pass_lighting.set_light_counts_for_frame(points_count, spots_count, dirs_count);
 	}
 
 }

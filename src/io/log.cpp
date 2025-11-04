@@ -9,13 +9,34 @@
 #include <Windows.h>
 #endif
 
+#ifdef SFG_DUMP_LOG_TRACE
+#include "serialization/serialization.hpp"
+#endif
+
 namespace SFG
 {
+
+	log::~log()
+	{
+
+#ifdef SFG_DUMP_LOG_TRACE
+		serialization::write_to_file(_log_trace, "sfg_log_trace.txt");
+#endif
+	}
+
 	void log::log_impl(log_level level, const char* msg)
 	{
 		LOCK_GUARD(_mtx);
 
 		const string msgStr = "[" + string(get_level(level)) + "] " + msg + "\n";
+
+#ifdef SFG_DUMP_LOG_TRACE
+		if (level == log_level::error || level == log_level::warning)
+		{
+			_log_trace += msg;
+			_log_trace += "\n";
+		}
+#endif
 
 #ifdef SFG_PLATFORM_WINDOWS
 		HANDLE hConsole;

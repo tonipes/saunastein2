@@ -34,5 +34,8 @@ namespace SFG
 
 		/* compiles variants suitable to use in gbuffer pass. */
 		static bool compile_style_gbuffer_object(shader_raw& raw, const string& shader_text, const vector<string>& folder_path);
+
+		/* compiles variants suitable to use in forward transparency pass. */
+		static bool compile_style_forward_object(shader_raw& raw, const string& shader_text, const vector<string>& folder_path);
 	};
 }

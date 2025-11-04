@@ -114,7 +114,9 @@ namespace SFG
 		static gfx_id				  create_bind_layout_global(bool is_compute);
 		static sampler_desc			  get_sampler_desc_anisotropic();
 		static sampler_desc			  get_sampler_desc_linear();
+		static sampler_desc			  get_sampler_desc_linear_repeat();
 		static sampler_desc			  get_sampler_desc_nearest();
+		static sampler_desc			  get_sampler_desc_nearest_repeat();
 		static sampler_desc			  get_sampler_desc_gui_default();
 		static sampler_desc			  get_sampler_desc_gui_text();
 		static sampler_desc			  get_sampler_desc_shadow_2d();

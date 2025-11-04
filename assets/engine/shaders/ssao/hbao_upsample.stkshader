@@ -1,0 +1,7 @@
+{
+    "source": "assets/engine/shaders/ssao/hbao_upsample.hlsl",
+    "desc":
+    {
+        "compute_entry": "CSMain"
+    }
+}

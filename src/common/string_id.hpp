@@ -9,6 +9,7 @@
 namespace SFG
 {
 	using string_id = uint64;
+	#define NULL_STRING_ID UINT64_MAX
 
 	constexpr string_id hash_str(std::string_view str)
 	{

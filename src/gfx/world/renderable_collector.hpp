@@ -9,6 +9,7 @@ namespace SFG
 {
 	struct view;
 	class draw_stream;
+	class draw_stream_distance;
 	class proxy_manager;
 
 	class renderable_collector
@@ -17,6 +18,7 @@ namespace SFG
 		renderable_collector() = delete;
 
 		static void collect_model_instances(proxy_manager& pm, const view& view, vector<renderable_object>& out_objects);
-		static void populate_draw_stream(proxy_manager& pm, const vector<renderable_object>& renderables, draw_stream& stream, uint32 skip_material_flags, uint32 base_variant_flags, uint8 frame_index);
+		static void populate_draw_stream(proxy_manager& pm, const vector<renderable_object>& renderables, draw_stream& stream, uint32 required_material_flags, uint32 base_variant_flags, uint8 frame_index);
+		static void populate_draw_stream(proxy_manager& pm, const vector<renderable_object>& renderables, draw_stream_distance& stream, uint32 required_material_flags, uint32 base_variant_flags, uint8 frame_index);
 	};
 }

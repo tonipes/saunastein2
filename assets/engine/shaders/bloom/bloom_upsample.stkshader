@@ -1,0 +1,7 @@
+{
+    "source": "assets/engine/shaders/bloom/bloom_upsample.hlsl",
+    "desc":
+    {
+        "compute_entry": "CSMain"
+    }
+}

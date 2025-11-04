@@ -1,5 +1,6 @@
 #include "layout_defines_compute.hlsl"
 #include "normal.hlsl"
+#include "depth.hlsl"
 
 // =====================================================================================
 // HBAO Half-Resolution Compute (Option A: sample full-res depth/normals)
@@ -14,13 +15,18 @@
 // Constants / Params
 // ----------------------------------------------
 
-// sfg_rp_constant0 - R32 depth full res
-// sfg_rp_constant1 - RGB10A2 World Normals full res
-// sfg_rp_constant2 - noise tex
-// sfg_rp_constant3 - R8 unorm half_res ao output.
+// sfg_rp_constant0 - ubo
+// sfg_rp_constant1 - R32 depth full res
+// sfg_rp_constant2 - RGB10A2 World Normals full res
+// sfg_rp_constant3 - noise tex
+// sfg_rp_constant4 - R8 unorm half_res ao output.
 
 struct ao_params
 {
+    float4x4 proj;        // camera projection matrix
+    float4x4 inv_proj;    // inverse of proj
+    float4x4 view_matrix; // 3x3 of camera view.
+
     // Full-resolution render target size (camera buffer)
     uint2 full_size;           // e.g., (W, H)
     uint2 half_size;           // e.g., (W/2, H/2)
@@ -28,10 +34,8 @@ struct ao_params
     float2 inv_half;           // 1/half_size
 
     // Projection
-    float fx;                   // proj[0][0]
-    float fy;                   // proj[1][1]
-    float z_near;               // near plane (if you linearize from device depth)
-    float z_far;                // far plane  (if you linearize from device depth)
+    float z_near;               // near plane
+    float z_far;                // far plane 
 
     // AO controls
     float radius_world;         // AO radius in *world/view* units (meters)
@@ -41,61 +45,67 @@ struct ao_params
     uint  num_dirs;             // e.g., 8
     uint  num_steps;            // e.g., 6
     float random_rot_strength;  // e.g., 1.0
-
-    float3x3 world_to_view_rot; // 3x3 of camera view.
 };
 
 // ----------------------------------------------
 // Resources
 // ----------------------------------------------
 
-SamplerState smp_point  : static_sampler_nearest;
+SamplerState smp_nearest  : static_sampler_nearest;
+SamplerState smp_nearest_repeat  : static_sampler_nearest_repeat;
 SamplerState smp_linear : static_sampler_linear;
 
 // ----------------------------------------------
 // Helpers
 // ----------------------------------------------
 
-// Convert device depth [0,1] to view-space Z (negative forward), given fx/fy and near/far.
-float depth_to_view_z(float z01, float z_near, float z_far)
+// Map UV [0,1] (v down) -> NDC [-1,1] (y up)
+float2 uv_to_ndc(float2 uv)
 {
-    // Standard reverse mapping for a typical projection.
-    float z = z01 * 2.0f - 1.0f; // NDC z
-    // Reconstruct view z from NDC z for a standard projection matrix:
-    // z_ndc = (a * z_view + b) / (-z_view)
-    // where a = (f + n)/(f - n), b = (2fn)/(f - n). Solve for z_view:
-    float a = (z_far + z_near) / (z_far - z_near);
-    float b = (2.0f * z_far * z_near) / (z_far - z_near);
-    // Avoid div by zero
-    float vz = b / (z + a);
-    // In a RH camera with -Z forward, vz should be negative for points in front
-    return -abs(vz);
+    float2 ndc;
+    ndc.x = uv.x * 2.0f - 1.0f;
+    ndc.y = (1.0f - uv.y) * 2.0f - 1.0f;   // <-- flip Y here
+    return ndc;
 }
 
-float fetch_view_z(float2 uv, float z_near, float z_far)
+// Map NDC [-1,1] (y up) -> UV [0,1] (v down)
+float2 ndc_to_uv(float2 ndc)
 {
-    Texture2D<float> depth_full = sfg_get_texture2Df(sfg_rp_constant0);
-    float d = depth_full.SampleLevel(smp_point, uv, 0);
-    return depth_to_view_z(d, z_near, z_far);
+    float2 uv;
+    uv.x = 0.5f * ndc.x + 0.5f;
+    uv.y = 0.5f * (-ndc.y) + 0.5f;     
+    return uv;
+}
+
+float3 view_pos_from_uv_depth(float2 uv, float z01, float4x4 inv_proj)
+{
+    float2 ndc_xy = uv_to_ndc(uv);
+    float4 clip   = float4(ndc_xy, z01, 1.0f);
+    float4 view   = mul(inv_proj, clip);
+    return view.xyz / view.w;   
+}
+
+float2 project_to_uv(float3 vView, float4x4 proj)
+{
+    float4 clip = mul(proj, float4(vView, 1.0f));
+    float2 ndc  = clip.xy / clip.w;
+    return ndc_to_uv(ndc);              
+}
+
+float3 fetch_view_pos(float2 uv, float4x4 inv_proj)
+{
+    Texture2D<float> depth_full = sfg_get_texture<Texture2D<float> >(sfg_rp_constant1);
+    float z01 = depth_full.SampleLevel(smp_nearest, uv, 0);
+    return view_pos_from_uv_depth(uv, z01, inv_proj); 
 }
 
 float3 fetch_view_normal(float2 uv, float3x3 world_to_view)
 {
-    Texture2D<float> norm_enc_full = sfg_get_texture2Df(sfg_rp_constant1);
-    float2 enc = norm_enc_full.SampleLevel(smp_linear, uv, 0);
-
+    Texture2D norm_enc_full = sfg_get_texture<Texture2D>(sfg_rp_constant2);
+    float2 enc = norm_enc_full.SampleLevel(smp_nearest, uv, 0).xy;
     float3 n_world = oct_decode(enc);
-    float3 n_view = mul(world_to_view, n_world);
-    return normalize(n_view);
-}
-
-// Reconstruct view-space position from uv + view-space z (negative forward)
-float3 reconstruct_view_pos(float2 uv, float viewZ, float fx, float fy)
-{
-    float2 ndc = uv * 2.0f - 1.0f; // [-1,1]
-    float vx = ndc.x * (-viewZ) / fx;
-    float vy = ndc.y * (-viewZ) / fy;
-    return float3(vx, vy, viewZ);
+    float3 n_view  = mul(world_to_view, n_world);
+    return normalize(n_view);               
 }
 
 // Build an orthonormal basis (T,B) around normal N
@@ -107,11 +117,15 @@ void build_tangent_frame(float3 N, out float3 T, out float3 B)
 }
 
 // Distance falloff (tweakable). Keeps nearby occluders stronger.
-float falloff(float dist)
+float falloff(float dist, float rad)
 {
     // Inverse quad with small constant to avoid singularity
-    return 1.0f / (1.0f + 4.0f * dist * dist);
+   float ratio = saturate(dist / rad);
+   return saturate(1.0 - ratio * ratio); // 1.0 at dist=0, 0.0 at dist=rad
 }
+
+// Signed camera-depth (more robust than just z)
+float depth_cam(float3 v) { return -dot(v, float3(0,0,1)); } // larger = further
 
 // ----------------------------------------------
 // Main CS
@@ -121,77 +135,99 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
 {
     // Half-res pixel
     uint2 pH = DTid.xy;
-    ao_params params = sfg_get_cbv<ao_params>(sfg_rp_ubo_index);
+    ao_params params = sfg_get_cbv<ao_params>(sfg_rp_constant0);
 
     if (pH.x >= params.half_size.x || pH.y >= params.half_size.y)
         return;
 
-    // Map half-res center to full-res UV:
-    // half pixel center at (2*h + 1) in full-res pixel space
-    float2 uv_full = ( (float2(pH) * 2.0f + 1.0f) * params.inv_full);
+    // Center
+    float2 uv_full = ((float2(pH) * 2.0f + 1.0f) * params.inv_full);
 
-    // Fetch center depth/normal and reconstruct view position
-    float vzC   = fetch_view_z(uv_full, params.z_near, params.z_far);                   // view-space z (negative forward)
-    float3 nC   = fetch_view_normal(uv_full, params.world_to_view_rot);              // view-space normal (unit)
-    float3 pC   = reconstruct_view_pos(uv_full, vzC, params.fx, params.fy);      // view-space position
+    //uint2 p = DTid.xy;
+    //if (p.x >= params.full_size.x || p.y >= params.full_size.y) return;
+    // Center
+    //float2 uv_full = (float2(p) + 0.5) * params.inv_full;         // direct full-res uv
 
-    // Early out if depth invalid (e.g., sky) — optional when tagging sky by depth
-    // if (vzC >= -1e-4f) { ao_half_out[pH] = 0.0f; return; }
+    Texture2D<float> depth_full = sfg_get_texture<Texture2D<float> >(sfg_rp_constant1);
+    float z01 = depth_full.SampleLevel(smp_nearest, uv_full, 0);
+    if(is_background(z01))
+        return;
 
-    // Tangent frame in view-space
-    float3 T, B;
-    build_tangent_frame(nC, T, B);
+    // View-space center position & normal<
+    float3 pC = fetch_view_pos(uv_full, params.inv_proj);          // view-space position
+    float3 nC = fetch_view_normal(uv_full, (float3x3)params.view_matrix);
+
+    // Tangent frame
+    float3 T,B; build_tangent_frame(nC, T, B);
 
     // Per-pixel random rotation (prevents banding)
     // Tile the small noise over full-res UV
-    Texture2D noise_tex = sfg_get_texture2D(sfg_rp_constant2);
-    float2 noise = noise_tex.SampleLevel(smp_point, uv_full, 0).xy;
+    Texture2D noise_tex = sfg_get_texture<Texture2D>(sfg_rp_constant3);
+    float2 noise = noise_tex.SampleLevel(smp_nearest_repeat, uv_full / 8.0, 0).xy;
     float rot = atan2(noise.y, noise.x) * params.random_rot_strength;
 
     // Accumulate occlusion over directions and steps
     float ao_accum = 0.0f;
 
-    // Perspective-correct radius: convert world/view radius to a "reasonable" sampling scale.
-    // We step in *view-space* along the tangent directions by dist in [0, radius_world].
-    // Note: We still *sample* depth via screen projection of those points.
-    [loop]
-    for (uint d = 0; d < params.num_dirs; ++d)
+    uint dirs = params.num_dirs;
+    uint steps = params.num_steps;
+    float rad = params.radius_world;
+    
+    // March
+    for (uint d = 0; d < dirs; ++d)
     {
-        float ang = rot + (2.0f * PI) * (d / (float)params.num_dirs);
-        float3 dir_vs = normalize(T * cos(ang) + B * sin(ang)); // unit vector on tangent plane
+        float ang = rot + (2.0 * PI) * (d / (float)dirs);
+        float3 omega = normalize(T * cos(ang) + B * sin(ang));
 
-        float dir_occl = 0.0f;
+        // Track the horizon (maximum elevation angle) for this direction
+        float alpha_max = -PI * 0.5f;   // start below the plane
 
-        [loop]
-        for (uint s = 1; s <= params.num_steps; ++s)
+        float max_horizon = 0.0;
+        float jitter01 = frac(dot(noise, float2(12.9898, 78.233)) + d * 0.61803398875);
+
+        for (uint s = 0; s < steps; ++s)
         {
-            float t     = s / (float)params.num_steps;     // 0..1
-            float dist  = t * params.radius_world;         // meters (view units)
-            float3 qVS  = pC + dir_vs * dist;       // candidate sample point in view space
+            float stepLen = 1.0f / steps;
+            // center-of-bin (0.5) + jitter shift
+            float t = (s + 0.5 + jitter01) * stepLen;   // nominally (0,1+j/steps]
+            if (t >= 1.0f) break;                       // optional clamp/early-exit
+            float dist = t * rad;
+            float3 qVS  = pC + omega * dist;
 
-            // Project qVS to screen (full-res uv) to fetch actual scene depth & normal there
-            float ndcX =  ( qVS.x * params.fx / -qVS.z );
-            float ndcY =  ( qVS.y * params.fy / -qVS.z );
-            float2 uvQ = float2(ndcX, ndcY) * 0.5f + 0.5f;
-
-            // Off-screen? stop marching this direction
-            if (uvQ.x <= 0.0f || uvQ.x >= 1.0f || uvQ.y <= 0.0f || uvQ.y >= 1.0f)
+            // Project to fetch the ground-truth depth sample
+            float2 uvQ = project_to_uv(qVS, params.proj);
+            if (uvQ.x <= 0.0 || uvQ.x >= 1.0 || uvQ.y <= 0.0 || uvQ.y >= 1.0)
                 break;
 
-            float vzS = fetch_view_z(uvQ, params.z_near, params.z_far);
-            float3 pS = reconstruct_view_pos(uvQ, vzS, params.fx, params.fy);
+            float3 pS = fetch_view_pos(uvQ, params.inv_proj);
 
-            // Project (S - P) onto the direction in the tangent plane:
-            float height = dot(pS - pC, dir_vs);  // signed "rise" along dir_vs
-            float slope  = (height - params.bias) / max(dist, 1e-3f);
 
-            // Simple occlusion when sample rises above horizon (positive slope),
-            // weighted by distance falloff. This is a robust, compact proxy.
-            if (slope > 0.0f)
-            {
-                dir_occl += falloff(dist);
-            }
+            float3 v  = pS - pC;
+
+            // Signed components in the {omega, nC} slice
+            float r = dot(v, omega);
+            if (r <= 0.0f)      // only things ahead along omega can occlude
+                continue;
+
+            float h = dot(v, nC);
+
+            // Bias to reduce self-occlusion
+            h -= params.bias;
+
+            // Elevation angle of this sample
+            float alpha = atan2(h, r);
+
+            // Weight by distance falloff 
+            float w = falloff(dist, rad);
+
+            // Raise the effective horizon
+            alpha_max = max(alpha_max, alpha * w);
+            
         }
+ 
+        // Directional occlusion contribution: sin of horizon elevation
+        // Clamp to [0, 1] — negative horizons mean no occluder above the plane.
+        float dir_occl = saturate(sin(alpha_max));
 
         ao_accum += dir_occl;
     }
@@ -200,9 +236,9 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
     float maxAccum = (float)params.num_dirs * (float)params.num_steps;    // loose upper bound
     float ao = ao_accum / (0.5f * maxAccum);               // heuristic normalization
     ao = saturate(ao * params.intensity);
-    ao = pow(ao, params.power);
+    ao = pow(1.0 - ao, params.power);
 
     // Write half-res AO
-    RWTexture2D<float> ao_half_out = sfg_get_rwtexture2D(sfg_rp_constant3);
+    RWTexture2D<unorm float> ao_half_out = sfg_get_texture<RWTexture2D<float> >(sfg_rp_constant4);
     ao_half_out[pH] = ao;
 }

@@ -6,6 +6,7 @@
 #include "common/string_id.hpp"
 #include "data/static_vector.hpp"
 #include "world/world_constants.hpp"
+
 #undef max
 
 namespace SFG

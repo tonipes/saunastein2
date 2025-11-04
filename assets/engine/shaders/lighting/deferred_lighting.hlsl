@@ -54,13 +54,6 @@ vs_output VSMain(uint vertexID : SV_VertexID)
     return OUT;
 }
 
-// Very small epsilon guard
-static bool is_background(float device_depth)
-{
-    // Reversed-Z: far = 0, near = 1. Treat ~0 as background
-    return device_depth <= 1e-6;
-}
-
 
 //------------------------------------------------------------------------------
 // Pixel Shader 
@@ -74,11 +67,12 @@ float4 PSMain(vs_output IN) : SV_TARGET
     StructuredBuffer<gpu_dir_light> dir_light_buffer = sfg_get_ssbo<gpu_dir_light>(sfg_rp_constant4);
     StructuredBuffer<gpu_shadow_data> shadow_data_buffer = sfg_get_ssbo<gpu_shadow_data>(sfg_rp_constant5);
     StructuredBuffer<float> float_buffer = sfg_get_ssbo<float>(sfg_rp_constant6);
-    Texture2D tex_gbuffer_color = sfg_get_texture2D(sfg_rp_constant7);
-    Texture2D tex_gbuffer_normal = sfg_get_texture2D(sfg_rp_constant8);
-    Texture2D tex_gbuffer_orm = sfg_get_texture2D(sfg_rp_constant9);
-    Texture2D tex_gbuffer_emissive = sfg_get_texture2D(sfg_rp_constant10);
-    Texture2D tex_gbuffer_depth = sfg_get_texture2D(sfg_rp_constant11);
+    Texture2D tex_gbuffer_color = sfg_get_texture<Texture2D>(sfg_rp_constant7);
+    Texture2D tex_gbuffer_normal = sfg_get_texture<Texture2D>(sfg_rp_constant8);
+    Texture2D tex_gbuffer_orm = sfg_get_texture<Texture2D>(sfg_rp_constant9);
+    Texture2D tex_gbuffer_emissive = sfg_get_texture<Texture2D>(sfg_rp_constant10);
+    Texture2D tex_gbuffer_depth = sfg_get_texture<Texture2D>(sfg_rp_constant11);
+    Texture2D tex_ao = sfg_get_texture<Texture2D>(sfg_rp_constant12);
 
      // pixel for .Load()
     int2 ip = int2(IN.pos.xy);
@@ -102,7 +96,7 @@ float4 PSMain(vs_output IN) : SV_TARGET
     float4 emissive_data = tex_gbuffer_emissive.Load(int3(ip, 0));    // linear
     float3 albedo = albedo_data.xyz;
     float3 emissive = emissive_data.xyz;
-    float  ao        = saturate(orm_data.r);
+    float  ao        = saturate(orm_data.r) * tex_ao.Load(int3(ip, 0)).r;
     float  roughness = saturate(orm_data.g);
     float  metallic  = saturate(orm_data.b);
     float3 N = oct_decode(normal_data.xy);
@@ -123,7 +117,7 @@ float4 PSMain(vs_output IN) : SV_TARGET
         float3 light_col = light.color_entity_index.xyz;
         float3 light_pos = entity.position.xyz;
         float intensity = light.intensity_range.x;
-        float range = light.intensity_range.y;
+        float range = light.intensity_range.y ;
 
         float3 Lvec = light_pos - world_pos;
         float  d  = length(Lvec);
@@ -140,7 +134,7 @@ float4 PSMain(vs_output IN) : SV_TARGET
         {
             int shadow_map_index = (int)light.shadow_resolution_map_and_data_index.z;
 
-            TextureCube shadow_map = sfg_get_texturecube(shadow_map_index);
+            TextureCube shadow_map = sfg_get_texture<TextureCube>(shadow_map_index);
             gpu_shadow_data sd = shadow_data_buffer[shadow_data_index];
             float4x4 light_space = sd.light_space_matrix;
             float2 shadow_resolution = light.shadow_resolution_map_and_data_index.xy;
@@ -188,7 +182,7 @@ float4 PSMain(vs_output IN) : SV_TARGET
         {
             int shadow_map_index = (int)light.shadow_resolution_map_and_data_index.z;
 
-            Texture2D shadow_map = sfg_get_texture2D(shadow_map_index);
+            Texture2D shadow_map = sfg_get_texture<Texture2D>(shadow_map_index);
             gpu_shadow_data sd = shadow_data_buffer[shadow_data_index];
             float4x4 light_space = sd.light_space_matrix;
             float2 shadow_resolution = light.shadow_resolution_map_and_data_index.xy;
@@ -240,7 +234,7 @@ float4 PSMain(vs_output IN) : SV_TARGET
         {
             int shadow_map_index = (int)light.shadow_resolution_map_and_data_index.z;
 
-            Texture2DArray shadow_map = sfg_get_texture2DArray(shadow_map_index);
+            Texture2DArray shadow_map = sfg_get_texture<Texture2DArray>(shadow_map_index);
             gpu_shadow_data sd_curr = shadow_data_buffer[shadow_data_index + layer];
             float4x4 light_space_curr = sd_curr.light_space_matrix;
             float2 shadow_resolution = light.shadow_resolution_map_and_data_index.xy;

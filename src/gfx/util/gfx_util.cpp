@@ -19,14 +19,16 @@ namespace SFG
 
 		backend->bind_layout_add_immutable_sampler(layout, 0, 0, gfx_util::get_sampler_desc_anisotropic(), stg);
 		backend->bind_layout_add_immutable_sampler(layout, 0, 1, gfx_util::get_sampler_desc_linear(), stg);
-		backend->bind_layout_add_immutable_sampler(layout, 0, 2, gfx_util::get_sampler_desc_nearest(), stg);
+		backend->bind_layout_add_immutable_sampler(layout, 0, 2, gfx_util::get_sampler_desc_linear_repeat(), stg);
+		backend->bind_layout_add_immutable_sampler(layout, 0, 3, gfx_util::get_sampler_desc_nearest(), stg);
+		backend->bind_layout_add_immutable_sampler(layout, 0, 4, gfx_util::get_sampler_desc_nearest_repeat(), stg);
 
 		if (!is_compute)
 		{
-			backend->bind_layout_add_immutable_sampler(layout, 0, 3, gfx_util::get_sampler_desc_gui_default(), stg);
-			backend->bind_layout_add_immutable_sampler(layout, 0, 4, gfx_util::get_sampler_desc_gui_text(), stg);
-			backend->bind_layout_add_immutable_sampler(layout, 0, 5, gfx_util::get_sampler_desc_shadow_2d(), stg);
-			backend->bind_layout_add_immutable_sampler(layout, 0, 6, gfx_util::get_sampler_desc_shadow_cube(), stg);
+			backend->bind_layout_add_immutable_sampler(layout, 0, 5, gfx_util::get_sampler_desc_gui_default(), stg);
+			backend->bind_layout_add_immutable_sampler(layout, 0, 6, gfx_util::get_sampler_desc_gui_text(), stg);
+			backend->bind_layout_add_immutable_sampler(layout, 0, 7, gfx_util::get_sampler_desc_shadow_2d(), stg);
+			backend->bind_layout_add_immutable_sampler(layout, 0, 8, gfx_util::get_sampler_desc_shadow_cube(), stg);
 		}
 
 		backend->finalize_bind_layout(layout, is_compute, true, "global_layout");
@@ -59,6 +61,19 @@ namespace SFG
 		};
 	}
 
+	sampler_desc gfx_util::get_sampler_desc_linear_repeat()
+	{
+		return {
+			.anisotropy = 0,
+			.min_lod	= 0.0f,
+			.max_lod	= 10.0f,
+			.lod_bias	= 0.0f,
+			.flags		= sampler_flags::saf_min_linear | sampler_flags::saf_mag_linear | sampler_flags::saf_mip_linear | sampler_flags::saf_border_transparent,
+			.address_u	= address_mode::repeat,
+			.address_v	= address_mode::repeat,
+		};
+	}
+
 	sampler_desc gfx_util::get_sampler_desc_nearest()
 	{
 		return {
@@ -69,6 +84,19 @@ namespace SFG
 			.flags		= sampler_flags::saf_min_nearest | sampler_flags::saf_mag_nearest | sampler_flags::saf_mip_nearest | sampler_flags::saf_border_transparent,
 			.address_u	= address_mode::clamp,
 			.address_v	= address_mode::clamp,
+		};
+	}
+
+	sampler_desc gfx_util::get_sampler_desc_nearest_repeat()
+	{
+		return {
+			.anisotropy = 0,
+			.min_lod	= 0.0f,
+			.max_lod	= 10.0f,
+			.lod_bias	= 0.0f,
+			.flags		= sampler_flags::saf_min_nearest | sampler_flags::saf_mag_nearest | sampler_flags::saf_mip_nearest | sampler_flags::saf_border_transparent,
+			.address_u	= address_mode::repeat,
+			.address_v	= address_mode::repeat,
 		};
 	}
 

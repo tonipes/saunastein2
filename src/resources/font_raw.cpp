@@ -7,7 +7,9 @@
 #ifdef SFG_TOOLMODE
 #include "io/file_system.hpp"
 #include "io/log.hpp"
-#include "project/engine_data.hpp"
+#include "common/string_id.hpp"
+#include "serialization/serialization.hpp"
+
 #include "gui/vekt.hpp"
 #include <fstream>
 #include <vendor/nhlohmann/json.hpp>
@@ -41,25 +43,24 @@ namespace SFG
 	}
 
 #ifdef SFG_TOOLMODE
-	bool font_raw::load_from_file(const char* path)
+	bool font_raw::load_from_file(const char* relative_file, const char* base_path)
 	{
-		if (!file_system::exists(path))
+		const string target_path = base_path + string(relative_file);
+		if (!file_system::exists(target_path.c_str()))
 		{
-			SFG_ERR("File don't exist! {0}", path);
+			SFG_ERR("File don't exist! {0}", target_path.c_str());
 			return false;
 		}
 
 		try
 		{
-			std::ifstream f(path);
+			std::ifstream f(target_path);
 			json		  json_data = json::parse(f);
 			f.close();
 
-			const string& wd		 = engine_data::get().get_working_dir();
-			const string  p			 = path;
-			name					 = p.substr(wd.size(), p.size() - wd.size());
+			name					 = relative_file;
 			source					 = json_data.value<string>("source", "");
-			const string full_source = engine_data::get().get_working_dir() + name;
+			const string full_source = base_path + name;
 			if (!file_system::exists(full_source.c_str()))
 			{
 				SFG_ERR("File don't exist! {0}", full_source.c_str());
@@ -100,8 +101,70 @@ namespace SFG
 			return false;
 		}
 
-		SFG_INFO("Created font from file: {0}", path);
+		SFG_INFO("Created font from file: {0}", target_path.c_str());
 		return true;
+	}
+
+	bool font_raw::load_from_cache(const char* cache_folder_path, const char* relative_path, const char* extension)
+	{
+		const string sid_str		 = std::to_string(TO_SID(relative_path));
+		const string meta_cache_path = cache_folder_path + sid_str + "_meta" + extension;
+		const string data_cache_path = cache_folder_path + sid_str + "_data" + extension;
+
+		if (!file_system::exists(meta_cache_path.c_str()))
+			return false;
+
+		if (!file_system::exists(data_cache_path.c_str()))
+			return false;
+
+		istream stream = serialization::load_from_file(meta_cache_path.c_str());
+
+		string file_path				  = "";
+		string source_path				  = "";
+		uint64 saved_file_last_modified	  = 0;
+		uint64 saved_source_last_modified = 0;
+		stream >> file_path;
+		stream >> source_path;
+		stream >> saved_file_last_modified;
+		stream >> saved_source_last_modified;
+
+		stream.destroy();
+
+		const uint64 file_last_modified = file_system::get_last_modified_ticks(file_path);
+		const uint64 src_last_modified	= file_system::get_last_modified_ticks(source_path);
+
+		if (file_last_modified != saved_file_last_modified || src_last_modified != saved_source_last_modified)
+			return false;
+
+		stream = serialization::load_from_file(data_cache_path.c_str());
+		deserialize(stream);
+		stream.destroy();
+		return true;
+	}
+
+	void font_raw::save_to_cache(const char* cache_folder_path, const char* resource_directory_path, const char* extension) const
+	{
+		const string sid_str			= std::to_string(TO_SID(name));
+		const string file_path			= resource_directory_path + name;
+		const string source_path		= resource_directory_path + source;
+		const uint64 file_last_modified = file_system::get_last_modified_ticks(file_path);
+		const uint64 src_last_modified	= file_system::get_last_modified_ticks(source_path);
+
+		const string meta_cache_path = cache_folder_path + sid_str + "_meta" + extension;
+		const string data_cache_path = cache_folder_path + sid_str + "_data" + extension;
+
+		ostream out_stream;
+		out_stream << file_path;
+		out_stream << source_path;
+		out_stream << file_last_modified;
+		out_stream << src_last_modified;
+		serialization::save_to_file(meta_cache_path.c_str(), out_stream);
+
+		out_stream.shrink(0);
+		serialize(out_stream);
+		serialization::save_to_file(data_cache_path.c_str(), out_stream);
+
+		out_stream.destroy();
 	}
 
 	void font_raw::get_dependencies(vector<string>& out_deps) const

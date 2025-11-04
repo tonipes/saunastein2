@@ -25,6 +25,10 @@ namespace SFG
 			return x == other.x && y == other.y;
 		}
 
+		inline vector2ui16 operator/(uint16 val) const
+		{
+			return vector2ui16(x / val, y / val);
+		}
 		uint16 x = 0;
 		uint16 y = 0;
 	};

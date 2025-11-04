@@ -4,7 +4,6 @@
 
 namespace SFG
 {
-
 	class vector2i16
 	{
 	public:

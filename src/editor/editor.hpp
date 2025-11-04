@@ -33,6 +33,8 @@ namespace SFG
 		void		create_default_camera();
 		void		create_demo_content();
 		void		destroy_demo_content();
+		void		create_demo_model();
+		void		destroy_demo_model();
 		static void on_model_instance_instantiate(trait_model_instance* t, resource_handle model, void* ud);
 
 	private:

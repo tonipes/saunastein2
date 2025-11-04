@@ -11,6 +11,7 @@
 #include "resources/texture_raw.hpp"
 #include "resources/texture_sampler.hpp"
 #include "resources/texture_sampler_raw.hpp"
+#include "resources/shader_raw.hpp"
 
 #ifdef SFG_TOOLMODE
 #include "serialization/serialization.hpp"
@@ -27,7 +28,7 @@
 
 #include <algorithm>
 #include <execution>
-
+#include <future>
 namespace SFG
 {
 	resource_manager::resource_manager(world& w) : _world(w)
@@ -45,11 +46,13 @@ namespace SFG
 
 	void resource_manager::init()
 	{
+#ifdef SFG_TOOLMODE
 		_file_watch.set_callback(std::bind(&resource_manager::on_watched_resource_modified, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 		_file_watch.reserve(250);
 		_file_watch.set_tick_interval(15);
+#endif
 
-		// Dummy textures.
+		// Dummys.
 		{
 			texture_raw dummy_color_raw	 = {};
 			texture_raw dummy_orm_raw	 = {};
@@ -87,6 +90,29 @@ namespace SFG
 			dummy_color_txt.create_from_loader(dummy_color_raw, _world, _dummy_color_texture);
 			dummy_normal_txt.create_from_loader(dummy_normal_raw, _world, _dummy_normal_texture);
 			dummy_orm_txt.create_from_loader(dummy_orm_raw, _world, _dummy_orm_texture);
+
+			shader_raw default_gbuffer_raw = {};
+			shader_raw default_forward_raw = {};
+
+#ifdef SFG_TOOLMODE
+			default_gbuffer_raw.load_from_file("assets/engine/shaders/object/gbuffer_lit.stkshader", SFG_ROOT_DIRECTORY);
+			default_forward_raw.load_from_file("assets/engine/shaders/object/forward.stkshader", SFG_ROOT_DIRECTORY);
+#else
+			SFG_NOTIMPLEMENTED();
+#endif
+
+			_default_gbuffer_shader = add_resource<shader>(DEFAULT_OPAQUE_SHADER_SID);
+			_default_forward_shader = add_resource<shader>(DEFAULT_FORWARD_SHADER_SID);
+			shader& gbuffer_sh		= get_resource<shader>(_default_gbuffer_shader);
+			shader& forward_sh		= get_resource<shader>(_default_forward_shader);
+
+			gbuffer_sh.create_from_loader(default_gbuffer_raw, _world, _default_gbuffer_shader);
+			forward_sh.create_from_loader(default_forward_raw, _world, _default_forward_shader);
+
+#ifdef SFG_TOOLMODE
+			add_resource_watch(_default_gbuffer_shader, "assets/engine/shaders/object/gbuffer_lit.stkshader", {default_gbuffer_raw.source}, type_id<shader>::value, true);
+			add_resource_watch(_default_forward_shader, "assets/engine/shaders/object/forward.stkshader", {default_forward_raw.source}, type_id<shader>::value, true);
+#endif
 		}
 	}
 
@@ -162,6 +188,7 @@ namespace SFG
 			for (uint32 pass = 0; pass < max_passes; pass++)
 			{
 				handle = add_from_loader(type_id, loader, pass, sid);
+				delete_loader(type_id, loader);
 				if (!handle.is_null())
 					break;
 			}
@@ -172,10 +199,10 @@ namespace SFG
 
 #ifdef SFG_TOOLMODE
 
-	void resource_manager::load_resources(const vector<string>& relative_paths, bool skip_cache)
+	void resource_manager::load_resources(const vector<string>& relative_paths, bool skip_cache, const char* root_directory)
 	{
 		const uint32	  size		  = static_cast<uint32>(relative_paths.size());
-		const string&	  working_dir = engine_data::get().get_working_dir();
+		const string	  working_dir = root_directory == nullptr ? engine_data::get().get_working_dir() : (root_directory);
 		vector<void*>	  resolved_loaders(relative_paths.size());
 		vector<string_id> resolved_types(relative_paths.size());
 
@@ -203,15 +230,17 @@ namespace SFG
 				return;
 			}
 
-			const string	full_path = working_dir + path;
 			const string_id type	  = m->get_type_id();
 			void*			loader	  = nullptr;
+			const string&	cache_dir = engine_data::get().get_cache_dir();
+			if (!skip_cache)
+				loader = load_from_cache(type, cache_dir.c_str(), path.c_str(), ".stkcache");
 
-			if (skip_cache || !load_from_cache(type, loader, path.c_str()))
+			if (!loader)
 			{
-				loader = load_from_file(type, full_path.c_str());
+				loader = load_from_file(type, path.c_str(), working_dir.c_str());
 				if (loader)
-					save_to_cache(type, loader, path.c_str());
+					save_to_cache(type, loader, cache_dir.c_str(), working_dir.c_str(), ".stkcache");
 			}
 
 			resolved_loaders[i] = loader;
@@ -240,6 +269,8 @@ namespace SFG
 
 				resource_handle handle = {};
 				handle				   = add_from_loader(type, loader, pass, hash);
+				delete_loader(type, loader);
+
 				if (handle.is_null())
 					continue;
 
@@ -249,102 +280,24 @@ namespace SFG
 		}
 	}
 
-	bool resource_manager::load_from_cache(string_id type, void*& loader, const char* releative_path)
-	{
-		const string cache_path = engine_data::get().get_cache_dir() + std::to_string(TO_SID(releative_path)) + ".stkcache";
-
-		if (!file_system::exists(cache_path.c_str()))
-			return false;
-
-		istream stream = serialization::load_from_file(cache_path.c_str());
-
-		const string base_path = engine_data::get().get_working_dir() + releative_path;
-
-		if (!file_system::exists(base_path.c_str()))
-		{
-			stream.destroy();
-			return false;
-		}
-
-		const string_id base_last_modified = file_system::get_last_modified_ticks(base_path);
-
-		string_id stream_base_last_modified = 0;
-		stream >> stream_base_last_modified;
-
-		if (stream_base_last_modified != base_last_modified)
-		{
-			stream.destroy();
-			return false;
-		}
-
-		uint32 dep_size = 0;
-		stream >> dep_size;
-
-		for (uint32 i = 0; i < dep_size; i++)
-		{
-			string_id dep_modified = 0;
-			string	  dep_relative = "";
-			stream >> dep_modified;
-			stream >> dep_relative;
-
-			const string p = engine_data::get().get_working_dir() + dep_relative;
-			if (!file_system::exists(p.c_str()))
-				continue;
-
-			const string_id modified = file_system::get_last_modified_ticks(p);
-			if (modified != dep_modified)
-			{
-				stream.destroy();
-				return false;
-			}
-		}
-
-		loader = load_from_stream(type, stream);
-		stream.destroy();
-		return true;
-	}
-
-	void resource_manager::save_to_cache(string_id type, const void* loader, const char* relative_path)
-	{
-		vector<string> dependencies;
-		get_dependencies(type, loader, dependencies);
-
-		ostream out_stream;
-
-		const string	base_path		   = engine_data::get().get_working_dir() + relative_path;
-		const string_id base_last_modified = file_system::get_last_modified_ticks(base_path);
-		out_stream << base_last_modified;
-		out_stream << static_cast<uint32>(dependencies.size());
-
-		for (const string& dep : dependencies)
-		{
-			const string	p		 = engine_data::get().get_working_dir() + dep;
-			const string_id modified = file_system::get_last_modified_ticks(p);
-			out_stream << modified;
-			out_stream << dep;
-		}
-
-		save_to_stream(type, loader, out_stream);
-		const string cache_path = engine_data::get().get_cache_dir() + std::to_string(TO_SID(relative_path)) + ".stkcache";
-		serialization::save_to_file(cache_path.c_str(), out_stream);
-		out_stream.destroy();
-	}
-
-	void resource_manager::add_resource_watch(resource_handle base_handle, const char* relative_path, const vector<string>& dependencies, string_id type)
+	void resource_manager::add_resource_watch(resource_handle base_handle, const char* relative_path, const vector<string>& dependencies, string_id type, bool is_engine_dir)
 	{
 		_watched_resources.push_back({});
-		resource_watch& w	   = _watched_resources.back();
-		w.type_id			   = type;
-		w.path				   = relative_path;
-		w.base_handle		   = base_handle;
-		w.dependencies		   = dependencies;
+		resource_watch& w = _watched_resources.back();
+		w.type_id		  = type;
+		w.path			  = relative_path;
+		w.base_handle	  = base_handle;
+		w.dependencies	  = dependencies;
+		w.is_engine_res	  = is_engine_dir;
+
+		const string root	   = is_engine_dir ? SFG_ROOT_DIRECTORY : engine_data::get().get_working_dir();
+		const string full_path = root + w.path;
 		const uint16 id		   = static_cast<uint16>(_watched_resources.size() - 1);
-		const string full_path = engine_data::get().get_working_dir() + w.path;
 		_file_watch.add_path(full_path.c_str(), id);
 
 		for (const string& str : dependencies)
 		{
-			const string p = engine_data::get().get_working_dir() + str;
+			const string p = root + str;
 			_file_watch.add_path(p.c_str(), id);
 		}
 	}
@@ -355,8 +308,9 @@ namespace SFG
 		resource_watch& w = _watched_resources[id];
 
 		// load new resource
-		const string full_path = engine_data::get().get_working_dir() + w.path;
-		void*		 loader	   = load_from_file(w.type_id, full_path.c_str());
+		const string root = w.is_engine_res ? SFG_ROOT_DIRECTORY : engine_data::get().get_working_dir();
+
+		void* loader = load_from_file(w.type_id, w.path.c_str(), root.c_str());
 		if (loader == nullptr)
 			return;
 
@@ -385,14 +339,22 @@ namespace SFG
 		destroy(w.type_id, w.base_handle);
 		remove_resource(w.type_id, w.base_handle);
 
-		save_to_cache(w.type_id, loader, w.path.c_str());
+		const string& cache_dir = engine_data::get().get_cache_dir();
 
 		const uint32 max_passes = _max_load_priority + 1;
+
+		auto save_and_delete = [this](string_id type, void* loader, const char* cache, const char* root) {
+			save_to_cache(type, loader, cache, root, ".stkcache");
+			delete_loader(type, loader);
+		};
 
 		resource_handle new_handle = {};
 		for (uint32 pass = 0; pass < max_passes; pass++)
 		{
 			new_handle = add_from_loader(w.type_id, loader, pass, TO_SID(w.path));
+			save_and_delete(w.type_id, loader, cache_dir.c_str(), root.c_str());
+			//std::future f = std::async(std::launch::async, save_and_delete, w.type_id, loader, cache_dir.c_str(), root.c_str());
+
 			if (!new_handle.is_null())
 				break;
 		}
@@ -449,7 +411,6 @@ namespace SFG
 			{
 				if (mi.get_model() != prev_handle)
 					continue;
-
 				mi.instantiate_model_to_world(_world, w.base_handle);
 			}
 		}
@@ -494,10 +455,10 @@ namespace SFG
 		return stg.cache_ptr->get_hash(handle);
 	}
 
-	void* resource_manager::load_from_file(string_id type, const char* path) const
+	void* resource_manager::load_from_file(string_id type, const char* relative_file, const char* base_path) const
 	{
 		const cache_storage& stg	= get_storage(type);
-		void*				 loader = stg.cache_ptr->load_from_file(path);
+		void*				 loader = stg.cache_ptr->load_from_file(relative_file, base_path);
 		return loader;
 	}
 
@@ -506,6 +467,19 @@ namespace SFG
 		const cache_storage& stg	= get_storage(type);
 		void*				 loader = stg.cache_ptr->load_from_stream(stream);
 		return loader;
+	}
+
+	void* resource_manager::load_from_cache(string_id type, const char* cache_folder_path, const char* relative_path, const char* extension) const
+	{
+		const cache_storage& stg	= get_storage(type);
+		void*				 loader = stg.cache_ptr->load_from_cache(cache_folder_path, relative_path, extension);
+		return loader;
+	}
+
+	void resource_manager::save_to_cache(string_id type, const void* loader, const char* cache_folder_path, const char* resource_directory_path, const char* extension) const
+	{
+		const cache_storage& stg = get_storage(type);
+		stg.cache_ptr->save_to_cache(loader, cache_folder_path, resource_directory_path, extension);
 	}
 
 	void resource_manager::save_to_stream(string_id type, const void* loader, ostream& stream) const
@@ -526,6 +500,12 @@ namespace SFG
 		if (priority != stg.load_priority)
 			return {};
 		return stg.cache_ptr->add_from_loader(loader, _world, hash);
+	}
+
+	void resource_manager::delete_loader(string_id type, void* loader) const
+	{
+		const cache_storage& stg = get_storage(type);
+		stg.cache_ptr->delete_loader(loader);
 	}
 
 	void resource_manager::destroy(string_id type, resource_handle handle)

@@ -50,7 +50,7 @@ SamplerState sampler_base : static_sampler_gui_text;
 //------------------------------------------------------------------------------
 float4 PSMain(VSOutput IN) : SV_TARGET
 {
-	Texture2D txt_atlas = sfg_get_texture2D(sfg_object_constant0);
+	Texture2D txt_atlas = sfg_get_texture<Texture2D>(sfg_object_constant0);
 
 	float4 tex_color = txt_atlas.SampleLevel(sampler_base, IN.uv, 0);
 	return float4(IN.color.xyz, tex_color.r * IN.color.w);

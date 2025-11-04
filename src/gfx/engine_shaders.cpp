@@ -10,9 +10,7 @@ namespace SFG
 
 	bool engine_shaders::init(gfx_id bind_layout, gfx_id bind_layout_compute, game_app* app)
 	{
-		_app				 = app;
-		_bind_layout		 = bind_layout;
-		_bind_layout_compute = bind_layout_compute;
+		_app = app;
 
 		const string root = SFG_ROOT_DIRECTORY;
 
@@ -28,12 +26,16 @@ namespace SFG
 		paths.push_back("assets/engine/shaders/swapchain/swapchain.stkshader");
 		paths.push_back("assets/engine/shaders/lighting/deferred_lighting.stkshader");
 		paths.push_back("assets/engine/shaders/ssao/hbao.stkshader");
+		paths.push_back("assets/engine/shaders/ssao/hbao_upsample.stkshader");
+		paths.push_back("assets/engine/shaders/bloom/bloom_downsample.stkshader");
+		paths.push_back("assets/engine/shaders/bloom/bloom_upsample.stkshader");
+		paths.push_back("assets/engine/shaders/post_combiner/post_combiner.stkshader");
 
 		shader_raw raw = {};
 
 		for (uint8 i = 0; i < engine_shader_type_max; i++)
 		{
-			const string  p = root + paths[i];
+			const string  p = paths[i];
 			shader_entry& e = _shaders[i];
 			raw				= {};
 
@@ -49,14 +51,15 @@ namespace SFG
 			SFG_NOTIMPLEMENTED();
 #endif
 
-			const string src = root + raw.source.c_str();
+			const string src_stk_shader = root + p;
+			const string src_source		= root + raw.source;
 
-			const bool is_compute = i == engine_shader_type_hbao;
+			const bool is_compute = (i == engine_shader_type_hbao || i == engine_shader_type_hbao_upsample || i == engine_shader_type_bloom_downsample || i == engine_shader_type_bloom_upsample);
 
-			e.direct.create_from_loader(raw, is_compute ? bind_layout_compute : bind_layout);
-
-			_file_watcher.add_path(p.c_str(), static_cast<uint16>(i));
-			_file_watcher.add_path(src.c_str(), static_cast<uint16>(i));
+			e.layout = is_compute ? bind_layout_compute : bind_layout;
+			e.direct.create_from_loader(raw, e.layout);
+			_file_watcher.add_path(src_source.c_str(), static_cast<uint16>(i));
+			_file_watcher.add_path(src_stk_shader.c_str(), static_cast<uint16>(i));
 			raw.destroy();
 		}
 
@@ -94,7 +97,7 @@ namespace SFG
 
 		_app->join_render();
 		entry.direct.destroy();
-		entry.direct.create_from_loader(raw, _bind_layout);
+		entry.direct.create_from_loader(raw, entry.layout);
 		raw.destroy();
 		for (auto cb : _reload_callbacks)
 			cb(type, entry.direct);

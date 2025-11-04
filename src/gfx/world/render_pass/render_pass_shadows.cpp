@@ -107,6 +107,7 @@ namespace SFG
 			.view_frustum		  = frustum::extract(view_proj),
 			.view_matrix		  = props.view,
 			.proj_matrix		  = props.proj,
+			.inv_proj_matrix	  = props.proj.inverse(),
 			.view_proj_matrix	  = view_proj,
 			.inv_view_proj_matrix = view_proj.inverse(),
 			.position			  = props.position,
@@ -119,7 +120,7 @@ namespace SFG
 		p.renderables.resize(0);
 
 		renderable_collector::collect_model_instances(props.pm, p.pass_view, p.renderables);
-		renderable_collector::populate_draw_stream(props.pm, p.renderables, p.stream, material_flags::material_flags_is_forward, shader_variant_flags::variant_flag_z_prepass | shader_variant_flags::variant_flag_shadow_rendering, props.frame_index);
+		renderable_collector::populate_draw_stream(props.pm, p.renderables, p.stream, material_flags::material_flags_is_gbuffer, shader_variant_flags::variant_flag_z_prepass | shader_variant_flags::variant_flag_shadow_rendering, props.frame_index);
 	}
 
 	void render_pass_shadows::render(const render_params& p)

@@ -18,5 +18,6 @@ namespace SFG
 		static format get_format_shadows();
 		static format get_format_depth_default_read();
 		static format get_format_swapchain();
+		static format get_format_ssao_ao_out();
 	};
 }

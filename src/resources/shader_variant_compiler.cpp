@@ -199,7 +199,7 @@ namespace SFG
 
 			const compare_op cmp = variant_flags.is_set(shader_variant_flags::variant_flag_shadow_rendering) ? compare_op::lequal : compare_op::gequal;
 
-			if (variant_flags.is_set(shader_variant_flags::variant_flag_shadow_rendering) && !variant_flags.is_set(variant_flag_double_sided))
+			if (variant_flags.is_set(shader_variant_flags::variant_flag_shadow_rendering))
 			{
 				pso.desc.depth_bias_slope	 = 2.0;
 				pso.desc.depth_bias_constant = 0;
@@ -259,6 +259,112 @@ namespace SFG
 		add_pso(6, variant_flag_double_sided | variant_flag_alpha_cutoff | variant_flag_z_prepass | variant_flag_shadow_rendering);
 		add_pso(7, variant_flag_double_sided | variant_flag_skinned | variant_flag_alpha_cutoff | variant_flag_z_prepass);
 		add_pso(7, variant_flag_double_sided | variant_flag_skinned | variant_flag_alpha_cutoff | variant_flag_z_prepass | variant_flag_shadow_rendering);
+
+		return true;
+	}
+
+	bool shader_variant_compiler::compile_style_forward_object(shader_raw& raw, const string& shader_text, const vector<string>& folder_paths)
+	{
+		color_blend_attachment blend_attachment = {};
+		blend_definitions::get_blend_attachment(blend_definition_style::alpha_blend, blend_attachment);
+
+		vector<vertex_input> vertex_inputs		   = {};
+		vector<vertex_input> vertex_inputs_skinned = {};
+		vertex_inputs::get_vertex_inputs(vertex_input_style::position_normal_tangents_uv, vertex_inputs);
+		vertex_inputs::get_vertex_inputs(vertex_input_style::position_normal_tangents_uv_skinned, vertex_inputs_skinned);
+
+		const vector<shader_color_attachment> color_attachments = {
+			{
+				.format			  = render_target_definitions::get_format_lighting(),
+				.blend_attachment = blend_attachment,
+			},
+		};
+
+		auto add_compile_var = [&](const vector<string>& defines, bool compile_ps) -> bool {
+			raw.compile_variants.push_back({});
+			compile_variant& def_compile = raw.compile_variants.back();
+			span<uint8>		 dummy_layout;
+
+			def_compile.blobs.push_back({.stage = shader_stage::vertex});
+			bool res = compile({
+				.stage			= static_cast<uint8>(def_compile.blobs.back().stage),
+				.data			= def_compile.blobs.back().data,
+				.defines		= defines,
+				.text			= shader_text,
+				.folder_paths	= folder_paths,
+				.compile_layout = false,
+				.out_layout		= dummy_layout,
+				.entry			= "VSMain",
+			});
+
+			if (!res)
+			{
+				def_compile.destroy();
+				return false;
+			}
+
+			if (compile_ps)
+			{
+
+				def_compile.blobs.push_back({.stage = shader_stage::fragment});
+				res = compile({
+					.stage			= static_cast<uint8>(def_compile.blobs.back().stage),
+					.data			= def_compile.blobs.back().data,
+					.defines		= defines,
+					.text			= shader_text,
+					.folder_paths	= folder_paths,
+					.compile_layout = false,
+					.out_layout		= dummy_layout,
+					.entry			= "PSMain",
+				});
+
+				if (!res)
+				{
+					def_compile.destroy();
+					return false;
+				}
+			}
+
+			return true;
+		};
+
+		auto add_pso = [&](uint32 compile_variant_index, const bitmask<uint32>& variant_flags) {
+			raw.pso_variants.push_back({});
+			pso_variant& pso	 = raw.pso_variants.back();
+			pso.compile_variant	 = compile_variant_index;
+			pso.variant_flags	 = variant_flags;
+			pso.desc.debug_name	 = raw.name;
+			pso.desc.attachments = color_attachments;
+			pso.desc.inputs		 = variant_flags.is_set(variant_flag_skinned) ? vertex_inputs_skinned : vertex_inputs;
+			pso.desc.cull		 = variant_flags.is_set(variant_flag_double_sided) ? cull_mode::none : cull_mode::back;
+			pso.desc.topo		 = topology::triangle_list;
+			pso.desc.front		 = front_face::ccw;
+			pso.desc.poly_mode	 = polygon_mode::fill;
+
+			bitmask<uint8> depth_flags = depth_stencil_flags::dsf_depth_test;
+
+			const compare_op cmp = compare_op::gequal;
+
+			pso.desc.depth_stencil_desc = {
+				.attachment_format = render_target_definitions::get_format_depth_default(),
+				.depth_compare	   = cmp,
+				.flags			   = depth_flags,
+			};
+		};
+
+		// Compile-time variants.
+		if (!add_compile_var({}, true))
+			return false;
+		if (!add_compile_var({"USE_SKINNING"}, true))
+			return false;
+
+		// PSO-variants
+		add_pso(0, 0);
+		add_pso(1, variant_flag_skinned);
+
+		// double-sided
+		add_pso(0, variant_flag_double_sided);
+		add_pso(1, variant_flag_double_sided | variant_flag_skinned);
 
 		return true;
 	}

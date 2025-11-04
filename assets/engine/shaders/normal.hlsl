@@ -14,3 +14,4 @@ float3 oct_decode(float2 e) {
     n.y += (n.y >= 0 ? -t : t);
     return normalize(n);
 }
+

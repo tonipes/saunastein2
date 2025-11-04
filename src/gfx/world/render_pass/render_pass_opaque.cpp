@@ -13,6 +13,7 @@
 #include "gfx/world/view.hpp"
 #include "gfx/world/renderable.hpp"
 #include "gfx/world/renderable_collector.hpp"
+#include "gfx/engine_shaders.hpp"
 
 namespace SFG
 {
@@ -55,7 +56,7 @@ namespace SFG
 		_alloc.reset();
 		_draw_stream.prepare(_alloc, MAX_DRAW_CALLS);
 
-		renderable_collector::populate_draw_stream(pm, renderables, _draw_stream, material_flags::material_flags_is_forward, 0, frame_index);
+		renderable_collector::populate_draw_stream(pm, renderables, _draw_stream, material_flags::material_flags_is_gbuffer, 0, frame_index);
 
 		per_frame_data& pfd		 = _pfd[frame_index];
 		const ubo		ubo_data = {
@@ -87,10 +88,13 @@ namespace SFG
 			att.store_op					  = store_op::store;
 			att.texture						  = txt;
 
+			// normals for compute
+			uint32 extra_state = i == 1 ? resource_state_non_ps_resource : 0;
+
 			barriers.push_back({
 				.resource	 = txt,
 				.flags		 = barrier_flags::baf_is_texture,
-				.from_states = resource_state::resource_state_ps_resource,
+				.from_states = resource_state::resource_state_ps_resource | extra_state,
 				.to_states	 = resource_state::resource_state_render_target,
 			});
 
@@ -98,7 +102,7 @@ namespace SFG
 				.resource	 = txt,
 				.flags		 = barrier_flags::baf_is_texture,
 				.from_states = resource_state::resource_state_render_target,
-				.to_states	 = resource_state::resource_state_ps_resource,
+				.to_states	 = resource_state::resource_state_ps_resource | extra_state,
 			});
 		}
 

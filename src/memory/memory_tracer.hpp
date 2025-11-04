@@ -3,11 +3,7 @@
 
 #pragma once
 
-#ifndef NDEBUG
-#define ENABLE_MEMORY_TRACER
-#endif
-
-#ifdef ENABLE_MEMORY_TRACER
+#ifdef SFG_ENABLE_MEMORY_TRACER
 #include "data/hash_map.hpp"
 #include "data/mutex.hpp"
 #include "common/size_definitions.hpp"

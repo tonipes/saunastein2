@@ -14,6 +14,8 @@
 
 namespace SFG
 {
+#define SFG_LIGHT_CANDELA_MULT 1.0f / 683.0f
+
 	class ostream;
 	class istream;
 	class world;

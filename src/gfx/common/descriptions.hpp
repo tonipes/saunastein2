@@ -101,6 +101,7 @@ namespace SFG
 		tf_is_1d					= 1 << 12,
 		tf_shared					= 1 << 13,
 		tf_typeless					= 1 << 14,
+		tf_gpu_write				= 1 << 15,
 	};
 
 	enum sampler_flags
@@ -160,6 +161,7 @@ namespace SFG
 		sampled,
 		render_target,
 		depth_stencil,
+		gpu_write,
 	};
 	struct view_desc
 	{

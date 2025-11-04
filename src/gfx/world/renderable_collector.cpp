@@ -59,6 +59,7 @@ namespace SFG
 					.index_start   = prim.index_start,
 					.index_count   = prim.index_count,
 					.gpu_entity	   = buffer_index,
+					.distance	   = vector3::distance_sqr(proxy_entity.position, target_view.position),
 					.material	   = mat,
 					.is_skinned	   = proxy_mesh.is_skinned,
 				});
@@ -66,13 +67,12 @@ namespace SFG
 		}
 	}
 
-	void renderable_collector::populate_draw_stream(proxy_manager& pm, const vector<renderable_object>& renderables, draw_stream& stream, uint32 skip_flags, uint32 base_flags, uint8 frame_index)
+	void renderable_collector::populate_draw_stream(proxy_manager& pm, const vector<renderable_object>& renderables, draw_stream& stream, uint32 required_material_flags, uint32 base_flags, uint8 frame_index)
 	{
 		for (const renderable_object& obj : renderables)
 		{
 			const render_proxy_material& proxy_material = pm.get_material(obj.material);
-
-			if (proxy_material.flags.is_set(skip_flags))
+			if (!proxy_material.flags.is_all_set(required_material_flags))
 				continue;
 
 			const gpu_index gpu_index_mat		   = proxy_material.gpu_index_buffers[frame_index];
@@ -103,6 +103,47 @@ namespace SFG
 				.ib_hw					 = obj.index_buffer->get_hw_gpu(),
 				.pipeline_hw			 = target_shader,
 				.vertex_size			 = obj.is_skinned ? static_cast<uint16>(sizeof(vertex_skinned)) : static_cast<uint16>(sizeof(vertex_static)),
+			});
+		}
+	}
+
+	void renderable_collector::populate_draw_stream(proxy_manager& pm, const vector<renderable_object>& renderables, draw_stream_distance& stream, uint32 required_material_flags, uint32 base_variant_flags, uint8 frame_index)
+	{
+		for (const renderable_object& obj : renderables)
+		{
+			const render_proxy_material& proxy_material = pm.get_material(obj.material);
+			if (!proxy_material.flags.is_all_set(required_material_flags))
+				continue;
+
+			const gpu_index gpu_index_mat		   = proxy_material.gpu_index_buffers[frame_index];
+			const gpu_index gpu_index_mat_textures = proxy_material.gpu_index_texture_buffers[frame_index];
+			const gfx_id	base_shader			   = proxy_material.shader_handle;
+			const bitmask32 mat_flags			   = proxy_material.flags;
+			const bool		is_alpha_cutoff		   = mat_flags.is_set(material_flags::material_flags_is_alpha_cutoff);
+			const bool		is_double_sided		   = mat_flags.is_set(material_flags::material_flags_is_double_sided);
+
+			bitmask<uint32> variant_flags = base_variant_flags;
+			variant_flags.set(shader_variant_flags::variant_flag_alpha_cutoff, is_alpha_cutoff);
+			variant_flags.set(shader_variant_flags::variant_flag_skinned, obj.is_skinned);
+			variant_flags.set(shader_variant_flags::variant_flag_double_sided, is_double_sided);
+
+			const gfx_id target_shader = pm.get_shader_variant(base_shader, variant_flags.value());
+			SFG_ASSERT(target_shader != NULL_GFX_ID);
+
+			stream.add_command({
+				.start_index			 = obj.index_start,
+				.index_count			 = obj.index_count,
+				.base_vertex			 = obj.vertex_start,
+				.instance_count			 = 1,
+				.first_instance			 = 0,
+				.material_constant_index = gpu_index_mat,
+				.texture_constant_index	 = gpu_index_mat_textures,
+				.entity_constant_index	 = obj.gpu_entity,
+				.vb_hw					 = obj.vertex_buffer->get_hw_gpu(),
+				.ib_hw					 = obj.index_buffer->get_hw_gpu(),
+				.pipeline_hw			 = target_shader,
+				.vertex_size			 = obj.is_skinned ? static_cast<uint16>(sizeof(vertex_skinned)) : static_cast<uint16>(sizeof(vertex_static)),
+				.distance				 = obj.distance,
 			});
 		}
 	}

@@ -14,6 +14,9 @@
 #include "render_pass/render_pass_lighting.hpp"
 #include "render_pass/render_pass_shadows.hpp"
 #include "render_pass/render_pass_ssao.hpp"
+#include "render_pass/render_pass_bloom.hpp"
+#include "render_pass/render_pass_post_combiner.hpp"
+#include "render_pass/render_pass_forward.hpp"
 #include "view.hpp"
 
 namespace SFG
@@ -36,6 +39,8 @@ namespace SFG
 			buffer		   spot_lights_buffer;
 			buffer		   float_buffer;
 			semaphore_data semp_frame		   = {};
+			semaphore_data semp_ssao		   = {};
+			semaphore_data semp_lighting	   = {};
 			gfx_id		   cmd_upload		   = NULL_GFX_ID;
 			uint32		   _float_buffer_count = 0;
 
@@ -61,7 +66,7 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 
 		void   prepare(uint8 frame_index);
-		void   render(uint8 frame_index, gfx_id layout_global, gfx_id bind_group_global, gfx_id bind_group_global_compute, uint64 prev_copy, uint64 next_copy, gfx_id sem_copy);
+		void   render(uint8 frame_index, gfx_id layout_global, gfx_id layout_global_compute, gfx_id bind_group_global, uint64 prev_copy, uint64 next_copy, gfx_id sem_copy);
 		void   resize(const vector2ui16& size);
 		uint32 add_to_float_buffer(uint8 frame_index, float f);
 
@@ -71,7 +76,7 @@ namespace SFG
 
 		inline gpu_index get_output_gpu_index(uint8 frame_index)
 		{
-			return _pass_lighting.get_output_gpu_index(frame_index);
+			return _pass_post.get_output_gpu_index(frame_index);
 		}
 
 		inline const semaphore_data& get_final_semaphore(uint8 frame_index)
@@ -95,11 +100,14 @@ namespace SFG
 		view					  _main_camera_view = {};
 		vector<renderable_object> _renderables;
 
-		render_pass_pre_depth _pass_pre_depth = {};
-		render_pass_opaque	  _pass_opaque	  = {};
-		render_pass_lighting  _pass_lighting  = {};
-		render_pass_shadows	  _pass_shadows	  = {};
-		render_pass_ssao	  _pass_ssao	  = {};
+		render_pass_pre_depth	  _pass_pre_depth = {};
+		render_pass_opaque		  _pass_opaque	  = {};
+		render_pass_lighting	  _pass_lighting  = {};
+		render_pass_shadows		  _pass_shadows	  = {};
+		render_pass_ssao		  _pass_ssao	  = {};
+		render_pass_bloom		  _pass_bloom	  = {};
+		render_pass_post_combiner _pass_post	  = {};
+		render_pass_forward		  _pass_forward	  = {};
 
 		vector2ui16 _base_size = vector2ui16::zero;
 	};

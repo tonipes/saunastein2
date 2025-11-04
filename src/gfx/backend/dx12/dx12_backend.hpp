@@ -71,16 +71,15 @@ namespace SFG
 
 	struct command_bind_group;
 
-#ifndef SFG_PRODUCTION
+#ifdef SFG_DEBUG
 #define BEGIN_DEBUG_EVENT(backend, CMD_BUF, LABEL) backend->cmd_begin_event(CMD_BUF, LABEL)
 #define END_DEBUG_EVENT(backend, CMD_BUF)		   backend->cmd_end_event(CMD_BUF)
 #else
-#define BEGIN_DEBUG_EVENT()
-#define END_DEBUG_EVENT()
+#define BEGIN_DEBUG_EVENT(backend, CMD_BUF, LABEL)
+#define END_DEBUG_EVENT(backend, CMD_BUF)
 #endif
 
 	typedef std::function<void(ID3D12GraphicsCommandList4* cmd_list, uint8* data)> command_function;
-
 
 	class dx12_backend
 	{
@@ -102,7 +101,7 @@ namespace SFG
 		{
 			D3D12MA::Allocation* ptr = nullptr;
 			texture_view		 views[8];
-#ifdef ENABLE_MEMORY_TRACER
+#ifdef SFG_ENABLE_MEMORY_TRACER
 			uint32 size = 0;
 #endif
 			gfx_id shared_handle = 0;
@@ -124,7 +123,7 @@ namespace SFG
 		{
 			Microsoft::WRL::ComPtr<IDXGISwapChain3> ptr = NULL;
 			Microsoft::WRL::ComPtr<ID3D12Resource>	textures[BACK_BUFFER_COUNT];
-#ifdef ENABLE_MEMORY_TRACER
+#ifdef SFG_ENABLE_MEMORY_TRACER
 			uint32 size = 0;
 #endif
 			gfx_id rtv_indices[BACK_BUFFER_COUNT] = {};
@@ -199,6 +198,7 @@ namespace SFG
 		bool  init();
 		void  uninit();
 		void  reset_command_buffer(gfx_id cmd_buffer);
+		void  reset_command_buffer_transfer(gfx_id cmd_buffer);
 		void  close_command_buffer(gfx_id cmd_buffer);
 		void  submit_commands(gfx_id queue, const gfx_id* commands, uint8 commands_count);
 		void  queue_wait(gfx_id queue, const gfx_id* semaphores, const uint64* semaphore_values, uint8 semaphore_count);
@@ -291,11 +291,14 @@ namespace SFG
 		void cmd_copy_texture_to_buffer(gfx_id cmd_list, const command_copy_texture_to_buffer& command) const;
 		void cmd_copy_texture_to_texture(gfx_id cmd_list, const command_copy_texture_to_texture& command) const;
 		void cmd_bind_constants(gfx_id cmd_list, const command_bind_constants& command) const;
+		void cmd_bind_constants_compute(gfx_id cmd_list, const command_bind_constants& command) const;
 		void cmd_bind_layout(gfx_id cmd_list, const command_bind_layout& command) const;
 		void cmd_bind_layout_compute(gfx_id cmd_list, const command_bind_layout_compute& command) const;
 		void cmd_bind_group(gfx_id cmd_list, const command_bind_group& command) const;
+		void cmd_bind_group_compute(gfx_id cmd_list, const command_bind_group& command) const;
 		void cmd_dispatch(gfx_id cmd_list, const command_dispatch& command) const;
 		void cmd_barrier(gfx_id cmd_list, const command_barrier& command);
+		void cmd_barrier_uav(gfx_id cmd_list, const command_barrier& command);
 
 		inline gfx_id get_queue_gfx() const
 		{

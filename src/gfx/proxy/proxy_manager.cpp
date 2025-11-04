@@ -147,7 +147,7 @@ namespace SFG
 
 		while (read)
 		{
-			size_t offset = 0;
+			size_t		 offset = 0;
 			const size_t total	= batch.size;
 			in.open(batch.data, total);
 
@@ -288,6 +288,7 @@ namespace SFG
 						.flags				  = texture_flags::tf_is_2d | texture_flags::tf_sampled | texture_flags::tf_depth_texture | texture_flags::tf_typeless,
 						.views				  = views,
 						.array_length		  = 1,
+						.clear_values		  = {1.0f, 0.0f, 0.0f, 0.0f},
 						.debug_name			  = "spot_light_shadow",
 					});
 
@@ -370,6 +371,7 @@ namespace SFG
 						.flags				  = texture_flags::tf_is_2d | texture_flags::tf_sampled | texture_flags::tf_depth_texture | texture_flags::tf_typeless,
 						.views				  = views,
 						.array_length		  = 6,
+						.clear_values		  = {1.0f, 0.0f, 0.0f, 0.0f},
 						.debug_name			  = "point_light_shadow",
 					});
 
@@ -453,6 +455,7 @@ namespace SFG
 						.flags				  = texture_flags::tf_is_2d | texture_flags::tf_sampled | texture_flags::tf_depth_texture | texture_flags::tf_typeless,
 						.views				  = views,
 						.array_length		  = cascade_size,
+						.clear_values		  = {1.0f, 0.0f, 0.0f, 0.0f},
 						.debug_name			  = "dir_light_shadow",
 					});
 
@@ -647,10 +650,6 @@ namespace SFG
 			});
 
 			_texture_queue.add_request(ev.buffers, proxy.hw, proxy.intermediate, 1, resource_state::resource_state_ps_resource);
-
-#ifndef SFG_STRIP_DEBUG_NAMES
-			SFG_TRACE("Created texture proxy for: {0}", ev.name);
-#endif
 		}
 		else if (type == render_event_type::render_event_destroy_texture)
 		{
@@ -770,10 +769,6 @@ namespace SFG
 			proxy.handle				= index;
 			proxy.hw					= backend->create_sampler(ev.desc);
 			proxy.heap_index			= backend->get_sampler_gpu_index(proxy.hw);
-
-#ifndef SFG_STRIP_DEBUG_NAMES
-			SFG_TRACE("Created sampler proxy for: {0}", ev.desc.debug_name);
-#endif
 		}
 		else if (type == render_event_type::render_event_destroy_sampler)
 		{
@@ -801,13 +796,6 @@ namespace SFG
 
 				variant.variant_flags = pso.variant_flags;
 				variant.hw			  = backend->create_shader(pso.desc, ev.compile_variants.at(pso.compile_variant).blobs, ev.layout);
-
-#ifndef SFG_STRIP_DEBUG_NAMES
-				if (i == 0)
-				{
-					SFG_TRACE("Created sampler proxy for: {0} variants: {1}", pso.desc.debug_name, pso_count);
-				}
-#endif
 			}
 
 			for (compile_variant& cv : ev.compile_variants)
@@ -923,10 +911,6 @@ namespace SFG
 			}
 
 			SFG_FREE(ev.data.data);
-
-#ifndef SFG_STRIP_DEBUG_NAMES
-			SFG_TRACE("Created material proxy for: {0}", ev.name);
-#endif
 		}
 		else if (type == render_event_type::render_event_update_material)
 		{
@@ -976,10 +960,6 @@ namespace SFG
 				for (uint32 i = 0; i < proxy.material_count; i++)
 					mats[i] = ev.materials[i];
 			}
-
-#ifndef SFG_STRIP_DEBUG_NAMES
-			SFG_TRACE("Created model proxy for: {0}", ev.name);
-#endif
 		}
 		else if (type == render_event_type::render_event_destroy_model)
 		{
@@ -1094,10 +1074,6 @@ namespace SFG
 			{
 				SFG_ASSERT(false);
 			}
-
-#ifndef SFG_STRIP_DEBUG_NAMES
-			SFG_TRACE("Created mesh proxy for: {0}", ev.name);
-#endif
 		}
 		else if (type == render_event_type::render_event_destroy_mesh)
 		{

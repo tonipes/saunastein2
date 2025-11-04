@@ -16,6 +16,7 @@ namespace SFG
 		else if (style == blend_definition_style::alpha_blend)
 		{
 			out_attachment = {
+				.blend_enabled			= true,
 				.src_color_blend_factor = blend_factor::src_alpha,
 				.dst_color_blend_factor = blend_factor::one_minus_src_alpha,
 				.color_blend_op			= blend_op::add,

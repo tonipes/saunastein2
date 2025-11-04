@@ -26,29 +26,43 @@ namespace SFG
 		_free_list.clear();
 	}
 
+	// text_allocator.cpp (only the changed methods shown)
+
 	const char* text_allocator::allocate(size_t len)
 	{
-		auto it = vector_util::find_if(_free_list, [len](const allocation& alloc) -> bool { return alloc.size > len; });
+		const size_t need = len + 1; // include '\0'
+
+		// find a free block large enough
+		auto it = vector_util::find_if(_free_list, [need](const allocation& alloc) { return alloc.size >= need; });
+
 		if (it != _free_list.end())
 		{
 			allocation& free = *it;
-			if (free.size == len)
+
+			char* result = free.ptr;
+			if (free.size == need)
 			{
 				_free_list.erase(it);
-				return free.ptr;
 			}
 			else
 			{
-				free.size -= len;
-				return free.ptr;
+				free.ptr += need;  // advance start of the remaining free block
+				free.size -= need; // shrink remaining size
 			}
+
+			// ensure there's a terminator so future strlen(ptr) is valid
+			result[need - 1] = '\0';
+			return result;
 		}
 
-		SFG_ASSERT(_head + len + 1 < _capacity);
+		// fallback to bump allocation
+		SFG_ASSERT(_head + need <= _capacity); // <= because need already counts the '\0'
+		if (_head + need > _capacity)
+			return nullptr;
 
 		char* allocated = &_raw[_head];
-		_head += len + 1;
-
+		_head += need;
+		allocated[need - 1] = '\0';
 		return allocated;
 	}
 
@@ -57,49 +71,56 @@ namespace SFG
 		if (!text)
 			return nullptr;
 
-		const size_t len = strlen(text);
+		const size_t need = std::strlen(text) + 1;
 
-		auto it = vector_util::find_if(_free_list, [len](const allocation& alloc) -> bool { return alloc.size > len; });
+		auto it = vector_util::find_if(_free_list, [need](const allocation& alloc) { return alloc.size >= need; });
+
 		if (it != _free_list.end())
 		{
 			allocation& free = *it;
-			if (free.size == len)
+
+			char* result = free.ptr;
+			if (free.size == need)
 			{
-				std::strcpy(free.ptr, text);
 				_free_list.erase(it);
-				return free.ptr;
 			}
 			else
 			{
-				free.size -= len;
-				std::strcpy(free.ptr, text);
-				return free.ptr;
+				free.ptr += need;
+				free.size -= need;
 			}
+
+			std::memcpy(result, text, need); // copy including '\0'
+			return result;
 		}
 
-		if (_head + len + 1 >= _capacity)
+		if (_head + need > _capacity)
 			return nullptr;
 
 		char* allocated = &_raw[_head];
-		std::strcpy(allocated, text);
-		_head += len + 1;
-
+		std::memcpy(allocated, text, need);
+		_head += need;
 		return allocated;
 	}
 
 	void text_allocator::deallocate(char* ptr)
 	{
+		if (!ptr)
+			return;
 		_free_list.push_back({
 			.ptr  = ptr,
-			.size = strlen(ptr),
+			.size = std::strlen(ptr) + 1, // count the '\0' for correct future splits
 		});
 	}
 
 	void text_allocator::deallocate(const char* ptr)
 	{
+		if (!ptr)
+			return;
 		_free_list.push_back({
-			.ptr  = (char*)ptr,
-			.size = strlen(ptr),
+			.ptr  = const_cast<char*>(ptr),
+			.size = std::strlen(ptr) + 1,
 		});
 	}
+
 }

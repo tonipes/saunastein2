@@ -8,6 +8,8 @@
 #include "math/vector4.hpp"
 #include "io/log.hpp"
 #include "io/file_system.hpp"
+#include "serialization/serialization.hpp"
+
 #include "project/engine_data.hpp"
 #include <fstream>
 using json = nlohmann::json;
@@ -68,17 +70,18 @@ namespace SFG
 		p.value = j.at("value");
 	}
 
-	bool material_raw::load_from_file(const char* file)
+	bool material_raw::load_from_file(const char* relative_file, const char* base_path)
 	{
-		if (!file_system::exists(file))
+		const string target_path = base_path + string(relative_file);
+		if (!file_system::exists(target_path.c_str()))
 		{
-			SFG_ERR("File doesn't exists! {0}", file);
+			SFG_ERR("File don't exist! {0}", target_path.c_str());
 			return false;
 		}
 
 		try
 		{
-			std::ifstream f(file);
+			std::ifstream f(target_path);
 			json		  json_data = json::parse(f);
 			f.close();
 
@@ -91,7 +94,7 @@ namespace SFG
 			else
 				pass_mode = material_pass_mode::gbuffer;
 
-			sid					= TO_SID(file);
+			sid					= TO_SID(relative_file);
 			shader_path			= json_data.value<string>("shader", "");
 			textures_path		= json_data.value<vector<string>>("textures", {});
 			double_sided		= json_data.value<uint8>("double_sided", 0);
@@ -104,15 +107,11 @@ namespace SFG
 
 			SFG_ASSERT(!shader_path.empty());
 
-			const string& wd = engine_data::get().get_working_dir();
-			const string  p	 = file;
-			name			 = p.substr(wd.size(), p.size() - wd.size());
-
-			const string engine_path = engine_data::get().get_working_dir();
+			name = relative_file;
 
 			for (const string& txt : textures_path)
 			{
-				const string full = engine_path + txt;
+				const string full = base_path + txt;
 				if (!file_system::exists(full.c_str()))
 				{
 					SFG_ERR("File doesn't exists! {0}", full.c_str());
@@ -121,7 +120,7 @@ namespace SFG
 				textures.push_back(TO_SID(txt));
 			}
 
-			const string full_shader_path = engine_path + shader_path;
+			const string full_shader_path = base_path + shader_path;
 			if (!file_system::exists(full_shader_path.c_str()))
 			{
 				SFG_ERR("File doesn't exists! {0}", full_shader_path.c_str());
@@ -172,6 +171,59 @@ namespace SFG
 
 		SFG_INFO("Created material from file: {0}", name);
 		return true;
+	}
+
+	bool material_raw::load_from_cache(const char* cache_folder_path, const char* relative_path, const char* extension)
+	{
+		const string sid_str		 = std::to_string(TO_SID(relative_path));
+		const string meta_cache_path = cache_folder_path + sid_str + "_meta" + extension;
+		const string data_cache_path = cache_folder_path + sid_str + "_data" + extension;
+
+		if (!file_system::exists(meta_cache_path.c_str()))
+			return false;
+
+		if (!file_system::exists(data_cache_path.c_str()))
+			return false;
+
+		istream stream = serialization::load_from_file(meta_cache_path.c_str());
+
+		string file_path				= "";
+		uint64 saved_file_last_modified = 0;
+		stream >> file_path;
+		stream >> saved_file_last_modified;
+
+		stream.destroy();
+
+		const uint64 file_last_modified = file_system::get_last_modified_ticks(file_path);
+
+		if (file_last_modified != saved_file_last_modified)
+			return false;
+
+		stream = serialization::load_from_file(data_cache_path.c_str());
+		deserialize(stream);
+		stream.destroy();
+		return true;
+	}
+
+	void material_raw::save_to_cache(const char* cache_folder_path, const char* resource_directory_path, const char* extension) const
+	{
+		const string sid_str			= std::to_string(TO_SID(name));
+		const string file_path			= resource_directory_path + name;
+		const uint64 file_last_modified = file_system::get_last_modified_ticks(file_path);
+
+		const string meta_cache_path = cache_folder_path + sid_str + "_meta" + extension;
+		const string data_cache_path = cache_folder_path + sid_str + "_data" + extension;
+
+		ostream out_stream;
+		out_stream << file_path;
+		out_stream << file_last_modified;
+		serialization::save_to_file(meta_cache_path.c_str(), out_stream);
+
+		out_stream.shrink(0);
+		serialize(out_stream);
+		serialization::save_to_file(data_cache_path.c_str(), out_stream);
+
+		out_stream.destroy();
 	}
 #endif
 }

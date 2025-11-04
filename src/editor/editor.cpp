@@ -17,6 +17,7 @@
 
 #include "resources/world_raw.hpp"
 #include "project/engine_data.hpp"
+#include "input/input_mappings.hpp"
 
 namespace SFG
 {
@@ -29,9 +30,8 @@ namespace SFG
 	void editor::on_init()
 	{
 
-		world_raw	 raw = {};
-		const string p	 = engine_data::get().get_working_dir() + "assets/world/demo_world.stkworld";
-		raw.load_from_file(p.c_str());
+		world_raw raw = {};
+		raw.load_from_file("assets/world/demo_world.stkworld", engine_data::get().get_working_dir().c_str());
 		_game.get_world().create_from_loader(raw);
 
 		create_default_camera();
@@ -79,9 +79,22 @@ namespace SFG
 
 	bool editor::on_window_event(const window_event& ev)
 	{
-
 		if (_camera_controller.is_active())
 			_camera_controller.on_window_event(ev);
+
+		if (ev.type == window_event_type::key && ev.sub_type == window_event_sub_type::press)
+		{
+			if (ev.button == input_code::key_k)
+			{
+				create_demo_model();
+				return true;
+			}
+			else if (ev.button == input_code::key_l)
+			{
+				destroy_demo_model();
+				return true;
+			}
+		}
 
 		return true;
 	}
@@ -108,24 +121,12 @@ namespace SFG
 
 	void editor::create_demo_content()
 	{
-		world&				  w		  = _game.get_world();
-		resource_manager&	  rm	  = w.get_resource_manager();
-		const resource_handle boombox = rm.get_resource_handle_by_hash<model>(TO_SIDC("assets/test_scene/test_scene.stkmodel"));
+		world& w = _game.get_world();
 
-		if (!rm.is_valid<model>(boombox))
-			return;
 		entity_manager& em = w.get_entity_manager();
 		trait_manager&	tm = w.get_trait_manager();
 
-		_demo_model_root = em.create_entity("boombox_root");
-		em.set_entity_position(_demo_model_root, vector3::zero);
-		em.set_entity_rotation(_demo_model_root, quat::identity);
-
-		const world_handle	  model_inst_handle = tm.add_trait<trait_model_instance>(_demo_model_root);
-		trait_model_instance& mi				= tm.get_trait<trait_model_instance>(model_inst_handle);
-		mi.set_model(boombox);
-		mi.set_instantiate_callback(on_model_instance_instantiate, this);
-		mi.instantiate_model_to_world(w, boombox);
+		create_demo_model();
 
 		_ambient_entity			 = em.create_entity("ambient");
 		_ambient_trait			 = tm.add_trait<trait_ambient>(_ambient_entity);
@@ -138,6 +139,8 @@ namespace SFG
 		world&			w  = _game.get_world();
 		entity_manager& em = w.get_entity_manager();
 		trait_manager&	tm = w.get_trait_manager();
+
+		destroy_demo_model();
 
 		if (!_ambient_entity.is_null())
 		{
@@ -160,41 +163,66 @@ namespace SFG
 			em.destroy_entity(_camera_entity);
 			_camera_entity = {};
 		}
-
-		if (!_demo_model_root.is_null())
-		{
-			em.destroy_entity(_demo_model_root);
-			_demo_model_root = {};
-		}
+		
 	}
+
+	void editor::create_demo_model()
+	{
+		world&			  w	 = _game.get_world();
+		entity_manager&	  em = w.get_entity_manager();
+		trait_manager&	  tm = w.get_trait_manager();
+		resource_manager& rm = w.get_resource_manager();
+
+		const resource_handle boombox = rm.get_resource_handle_by_hash<model>(TO_SIDC("assets/test_scene/test_scene.stkmodel"));
+		if (!rm.is_valid<model>(boombox))
+			return;
+
+		_demo_model_root = em.create_entity("boombox_root");
+		em.set_entity_position(_demo_model_root, vector3::zero);
+		em.set_entity_rotation(_demo_model_root, quat::identity);
+
+		const world_handle	  model_inst_handle = tm.add_trait<trait_model_instance>(_demo_model_root);
+		trait_model_instance& mi				= tm.get_trait<trait_model_instance>(model_inst_handle);
+		mi.set_model(boombox);
+		mi.set_instantiate_callback(on_model_instance_instantiate, this);
+		mi.instantiate_model_to_world(w, boombox);
+	}
+
+	void editor::destroy_demo_model()
+	{
+		world&			w  = _game.get_world();
+		entity_manager& em = w.get_entity_manager();
+		em.destroy_entity(_demo_model_root);
+	}
+
 	void editor::on_model_instance_instantiate(trait_model_instance* t, resource_handle model, void* ud)
 	{
 		world&			w  = (static_cast<editor*>(ud)->_game).get_world();
 		entity_manager& em = w.get_entity_manager();
 		trait_manager&	tm = w.get_trait_manager();
 
-	//const world_handle sun_handle = em.find_entity("Sun");
-	//if (!sun_handle.is_null())
-	//{
-	//	const world_handle dir_light_handle = em.get_entity_trait<trait_dir_light>(sun_handle);
-	//	if (!dir_light_handle.is_null())
-	//	{
-	//		trait_dir_light& t = tm.get_trait<trait_dir_light>(dir_light_handle);
-	//		t.set_shadow_values(w, 1, vector2ui16(1024, 1024));
-	//	}
-	//}
-	//
-	//const world_handle spot_handle = em.find_entity("Spot");
-	//if (!spot_handle.is_null())
-	//{
-	//	const world_handle handle = em.get_entity_trait<trait_spot_light>(spot_handle);
-	//	if (!handle.is_null())
-	//	{
-	//		trait_spot_light& t = tm.get_trait<trait_spot_light>(handle);
-	//		t.set_values(w, t.get_color(), 50.0f, t.get_intensity(), t.get_inner_cone(), t.get_outer_cone());
-	//		t.set_shadow_values(w, 1, vector2ui16(1024, 1024));
-	//	}
-	//}
+		const world_handle sun_handle = em.find_entity("Sun");
+		if (!sun_handle.is_null())
+		{
+			const world_handle dir_light_handle = em.get_entity_trait<trait_dir_light>(sun_handle);
+			if (!dir_light_handle.is_null())
+			{
+				trait_dir_light& t = tm.get_trait<trait_dir_light>(dir_light_handle);
+				t.set_shadow_values(w, 1, vector2ui16(1024, 1024));
+			}
+		}
+
+		const world_handle spot_handle = em.find_entity("Spot");
+		if (!spot_handle.is_null())
+		{
+			const world_handle handle = em.get_entity_trait<trait_spot_light>(spot_handle);
+			if (!handle.is_null())
+			{
+				trait_spot_light& t = tm.get_trait<trait_spot_light>(handle);
+				t.set_values(w, t.get_color(), 50.0f, t.get_intensity(), t.get_inner_cone(), t.get_outer_cone());
+				t.set_shadow_values(w, 1, vector2ui16(1024, 1024));
+			}
+		}
 
 		const world_handle point_handle = em.find_entity("P1");
 		if (!point_handle.is_null())
@@ -203,8 +231,23 @@ namespace SFG
 			if (!handle.is_null())
 			{
 				trait_point_light& t = tm.get_trait<trait_point_light>(handle);
-				// t.set_values(w, t.get_color(), 50.0f, t.get_intensity());
+				t.set_values(w, t.get_color(), 50.0f, t.get_intensity());
 				t.set_shadow_values(w, 1, vector2ui16(1024, 1024));
+			}
+		}
+
+		{
+
+			const world_handle point_handle = em.find_entity("RedLight");
+			if (!point_handle.is_null())
+			{
+				const world_handle handle = em.get_entity_trait<trait_point_light>(point_handle);
+				if (!handle.is_null())
+				{
+					trait_point_light& t = tm.get_trait<trait_point_light>(handle);
+					t.set_values(w, t.get_color(), 50.0f, t.get_intensity());
+					t.set_shadow_values(w, 1, vector2ui16(1024, 1024));
+				}
 			}
 		}
 	}

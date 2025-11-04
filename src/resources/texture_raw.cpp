@@ -9,9 +9,9 @@
 #include "io/file_system.hpp"
 #include "io/log.hpp"
 #include "io/assert.hpp"
+#include "serialization/serialization.hpp"
 #include "math/vector2ui16.hpp"
 #include "math/math.hpp"
-#include "project/engine_data.hpp"
 #include "gfx/common/format.hpp"
 #include "gfx/util/image_util.hpp"
 #include <fstream>
@@ -91,34 +91,32 @@ namespace SFG
 	}
 
 #ifdef SFG_TOOLMODE
-	bool texture_raw::load_from_file(const char* file)
+	bool texture_raw::load_from_file(const char* relative_file, const char* base_path)
 	{
-		if (!file_system::exists(file))
+		const string target_path = base_path + string(relative_file);
+		if (!file_system::exists(target_path.c_str()))
 		{
-			SFG_ERR("File doesn't exist! {0}", file);
+			SFG_ERR("File don't exist! {0}", target_path.c_str());
 			return false;
 		}
 
-		std::ifstream f(file);
 		try
 		{
-			json json_data = json::parse(f);
+			std::ifstream f(target_path);
+			json		  json_data = json::parse(f);
 			f.close();
 
-			texture_format	= static_cast<uint8>(json_data.value<format>("format", format::undefined));
-			source			= json_data.value<string>("source", "");
-			sid				= TO_SID(file);
-			const bool mips = json_data.value<uint8>("gen_mips", 0);
+			texture_format = static_cast<uint8>(json_data.value<format>("format", format::undefined));
+			source		   = json_data.value<string>("source", "");
+			sid			   = TO_SID(relative_file);
+			name		   = relative_file;
 
-			const string& wd = engine_data::get().get_working_dir();
-			const string  p	 = file;
-			name			 = p.substr(wd.size(), p.size() - wd.size());
-
+			const bool	 mips		 = json_data.value<uint8>("gen_mips", 0);
 			const format fmt		 = static_cast<format>(static_cast<format>(texture_format));
 			const uint8	 channels	 = format_get_channels(fmt);
 			const uint8	 bpp		 = format_get_bpp(fmt);
 			const bool	 is_linear	 = format_is_linear(fmt);
-			const string full_source = engine_data::get().get_working_dir() + source;
+			const string full_source = base_path + source;
 			SFG_ASSERT(file_system::exists(full_source.c_str()));
 			SFG_ASSERT(fmt != format::undefined);
 
@@ -127,7 +125,7 @@ namespace SFG
 
 			if (data == nullptr)
 			{
-				SFG_ERR("Failed loading pixel data for texture: {0}", file);
+				SFG_ERR("Failed loading pixel data for texture: {0}", target_path);
 				return false;
 			}
 
@@ -156,6 +154,68 @@ namespace SFG
 		SFG_INFO("Created texture from file: {0}", name);
 
 		return true;
+	}
+
+	bool texture_raw::load_from_cache(const char* cache_folder_path, const char* relative_path, const char* extension)
+	{
+		const string sid_str		 = std::to_string(TO_SID(relative_path));
+		const string meta_cache_path = cache_folder_path + sid_str + "_meta" + extension;
+		const string data_cache_path = cache_folder_path + sid_str + "_data" + extension;
+
+		if (!file_system::exists(meta_cache_path.c_str()))
+			return false;
+
+		if (!file_system::exists(data_cache_path.c_str()))
+			return false;
+
+		istream stream = serialization::load_from_file(meta_cache_path.c_str());
+
+		string file_path				  = "";
+		string source_path				  = "";
+		uint64 saved_file_last_modified	  = 0;
+		uint64 saved_source_last_modified = 0;
+		stream >> file_path;
+		stream >> source_path;
+		stream >> saved_file_last_modified;
+		stream >> saved_source_last_modified;
+
+		stream.destroy();
+
+		const uint64 file_last_modified = file_system::get_last_modified_ticks(file_path);
+		const uint64 src_last_modified	= file_system::get_last_modified_ticks(source_path);
+
+		if (file_last_modified != saved_file_last_modified || src_last_modified != saved_source_last_modified)
+			return false;
+
+		stream = serialization::load_from_file(data_cache_path.c_str());
+		deserialize(stream);
+		stream.destroy();
+		return true;
+	}
+
+	void texture_raw::save_to_cache(const char* cache_folder_path, const char* resource_directory_path, const char* extension) const
+	{
+		const string sid_str			= std::to_string(TO_SID(name));
+		const string file_path			= resource_directory_path + name;
+		const string source_path		= resource_directory_path + source;
+		const uint64 file_last_modified = file_system::get_last_modified_ticks(file_path);
+		const uint64 src_last_modified	= file_system::get_last_modified_ticks(source_path);
+
+		const string meta_cache_path = cache_folder_path + sid_str + "_meta" + extension;
+		const string data_cache_path = cache_folder_path + sid_str + "_data" + extension;
+
+		ostream out_stream;
+		out_stream << file_path;
+		out_stream << source_path;
+		out_stream << file_last_modified;
+		out_stream << src_last_modified;
+		serialization::save_to_file(meta_cache_path.c_str(), out_stream);
+
+		out_stream.shrink(0);
+		serialize(out_stream);
+		serialization::save_to_file(data_cache_path.c_str(), out_stream);
+
+		out_stream.destroy();
 	}
 
 	void texture_raw::get_dependencies(vector<string>& out_deps) const

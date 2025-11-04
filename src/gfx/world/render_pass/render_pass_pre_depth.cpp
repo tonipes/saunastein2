@@ -55,7 +55,7 @@ namespace SFG
 		_alloc.reset();
 		_draw_stream.prepare(_alloc, MAX_DRAW_CALLS);
 
-		renderable_collector::populate_draw_stream(pm, renderables, _draw_stream, material_flags::material_flags_is_forward, shader_variant_flags::variant_flag_z_prepass, frame_index);
+		renderable_collector::populate_draw_stream(pm, renderables, _draw_stream, material_flags::material_flags_is_gbuffer, shader_variant_flags::variant_flag_z_prepass, frame_index);
 
 		per_frame_data& pfd		 = _pfd[frame_index];
 		const ubo		ubo_data = {
@@ -129,7 +129,7 @@ namespace SFG
 			.resource	 = depth_texture,
 			.flags		 = barrier_flags::baf_is_texture,
 			.from_states = resource_state::resource_state_depth_write,
-			.to_states	 = resource_state::resource_state_depth_read | resource_state::resource_state_ps_resource,
+			.to_states	 = resource_state::resource_state_depth_read | resource_state::resource_state_ps_resource | resource_state::resource_state_non_ps_resource,
 		});
 
 		backend->cmd_barrier(cmd_buffer,

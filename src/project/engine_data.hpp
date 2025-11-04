@@ -11,6 +11,8 @@ namespace SFG
 	class engine_data
 	{
 	public:
+		static constexpr const char* CACHE_EXTENSION = ".stkcache";
+
 		static engine_data& get()
 		{
 			static engine_data inst;

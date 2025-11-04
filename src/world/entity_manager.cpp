@@ -166,7 +166,8 @@ namespace SFG
 		for (auto it = entities.handles_begin(); it != entities.handles_end(); ++it)
 		{
 			const world_handle handle = *it;
-			if (strcmp(_metas->get(handle.index).name, name) == 0)
+			const char*		   m	  = _metas->get(handle.index).name;
+			if (strcmp(m, name) == 0)
 				return handle;
 		}
 		return {};

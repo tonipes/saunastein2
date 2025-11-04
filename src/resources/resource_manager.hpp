@@ -37,13 +37,16 @@ namespace SFG
 		virtual ~resource_cache_base() = default;
 
 		// Loader I/O
-		virtual void* load_from_file(const char* path)									   = 0;
-		virtual void* load_from_stream(istream& stream)									   = 0;
-		virtual void  save_to_stream(const void* loader, ostream& stream) const			   = 0;
-		virtual void  get_dependencies(const void* loader, vector<string>& out_deps) const = 0;
+		virtual void* load_from_file(const char* relative_file, const char* base_path)																	 = 0;
+		virtual void* load_from_stream(istream& stream)																									 = 0;
+		virtual void* load_from_cache(const char* cache_folder_path, const char* relative_path, const char* extension) const							 = 0;
+		virtual void  save_to_cache(const void* loader, const char* cache_folder_path, const char* resource_directory_path, const char* extension) const = 0;
+		virtual void  save_to_stream(const void* loader, ostream& stream) const																			 = 0;
+		virtual void  get_dependencies(const void* loader, vector<string>& out_deps) const																 = 0;
 
 		// Lifecycle
 		virtual resource_handle add_from_loader(void* loader, world& w, string_id hash) = 0;
+		virtual void			delete_loader(void* loader) const						= 0;
 		virtual void			destroy(resource_handle handle, world& w)				= 0;
 		virtual resource_handle add(string_id hash)										= 0;
 		virtual void			remove(resource_handle handle)							= 0;
@@ -79,10 +82,10 @@ namespace SFG
 		// loader i/o
 		// -----------------------------------------------------------------------------
 
-		void* load_from_file(const char* path) override
+		void* load_from_file(const char* relative_file, const char* base_path) override
 		{
 			Loader* loader = new Loader();
-			if (!loader->load_from_file(path))
+			if (!loader->load_from_file(relative_file, base_path))
 			{
 				delete loader;
 				return nullptr;
@@ -102,6 +105,22 @@ namespace SFG
 			static_cast<const Loader*>(loader)->serialize(stream);
 		}
 
+		void* load_from_cache(const char* cache_folder_path, const char* relative_path, const char* extension) const override
+		{
+			Loader* loader = new Loader();
+			if (!loader->load_from_cache(cache_folder_path, relative_path, extension))
+			{
+				delete loader;
+				return nullptr;
+			}
+			return loader;
+		}
+
+		void save_to_cache(const void* loader, const char* cache_folder_path, const char* resource_directory_path, const char* extension) const override
+		{
+			static_cast<const Loader*>(loader)->save_to_cache(cache_folder_path, resource_directory_path, extension);
+		}
+
 		void get_dependencies(const void* loader_ptr, vector<string>& out_deps) const override
 		{
 			static_cast<const Loader*>(loader_ptr)->get_dependencies(out_deps);
@@ -118,8 +137,13 @@ namespace SFG
 			Loader*			lp	   = static_cast<Loader*>(loader);
 			const Loader&	lref   = *(lp);
 			res.create_from_loader(lref, w, handle);
-			delete lp;
 			return handle;
+		}
+
+		void delete_loader(void* loader) const override
+		{
+			Loader* lp = static_cast<Loader*>(loader);
+			delete lp;
 		}
 
 		void destroy(resource_handle handle, world& w) override
@@ -280,7 +304,7 @@ namespace SFG
 		void tick();
 
 #ifdef SFG_TOOLMODE
-		void load_resources(const vector<string>& relative_paths, bool skip_cache = false);
+		void load_resources(const vector<string>& relative_paths, bool skip_cache = false, const char* root_directory = nullptr);
 #endif
 
 		template <typename T, typename Loader, int MAX_COUNT, int LOAD_PRIORITY> void register_cache()
@@ -416,23 +440,38 @@ namespace SFG
 		// loader i/o
 		// -----------------------------------------------------------------------------
 
-		void*			load_from_file(string_id type, const char* path) const;
+		void*			load_from_file(string_id type, const char* relative_file, const char* base_path) const;
 		void*			load_from_stream(string_id type, istream& stream) const;
+		void*			load_from_cache(string_id type, const char* cache_folder_path, const char* relative_path, const char* extension) const;
+		void			save_to_cache(string_id type, const void* loader, const char* cache_folder_path, const char* resource_directory_path, const char* extension) const;
 		void			save_to_stream(string_id type, const void* loader, ostream& stream) const;
 		void			get_dependencies(string_id type, const void* loader, vector<string>& out_dependencies) const;
 		resource_handle add_from_loader(string_id type, void* loader, uint32 priority, string_id hash) const;
+		void			delete_loader(string_id type, void* loader) const;
 		void			destroy(string_id type, resource_handle h);
 
-		template <typename T> inline void* load_from_file(const char* path) const
+		template <typename T> inline void* load_from_file(const char* relative_file, const char* base_path) const
 		{
 			const string_id type = type_id<T>::value;
-			return load_from_file(type, path);
+			return load_from_file(type, relative_file, base_path);
 		}
 
 		template <typename T> inline void* load_from_stream(istream& stream) const
 		{
 			const string_id type = type_id<T>::value;
 			return load_from_stream(type, stream);
+		}
+
+		template <typename T> inline void* load_from_cache(const char* cache_folder_path, const char* relative_path, const char* extension) const
+		{
+			const string_id type = type_id<T>::value;
+			return load_from_cache(type, cache_folder_path, relative_path, extension);
+		}
+
+		template <typename T> inline void save_to_cache(const void* loader, const char* cache_folder_path, const char* resource_directory_path, const char* extension) const
+		{
+			const string_id type = type_id<T>::value;
+			save_to_cache(type, loader, cache_folder_path, resource_directory_path, extension);
 		}
 
 		template <typename T> inline void save_to_stream(const void* loader, ostream& stream) const
@@ -466,14 +505,13 @@ namespace SFG
 #ifdef SFG_TOOLMODE
 		struct resource_watch
 		{
-			string			path		 = "";
-			string_id		type_id		 = 0;
-			resource_handle base_handle	 = {};
-			vector<string>	dependencies = {};
+			string			path		  = "";
+			string_id		type_id		  = 0;
+			resource_handle base_handle	  = {};
+			vector<string>	dependencies  = {};
+			uint8			is_engine_res = 0;
 		};
-		bool load_from_cache(string_id type, void*& loader, const char* relative_path);
-		void save_to_cache(string_id type, const void* loader, const char* relative_path);
-		void add_resource_watch(resource_handle base_handle, const char* relative_path, const vector<string>& dependencies, string_id type);
+		void add_resource_watch(resource_handle base_handle, const char* relative_path, const vector<string>& dependencies, string_id type, bool is_engine_dir = false);
 		void on_watched_resource_modified(const char* path, uint64 last_modified, uint16 id);
 #endif
 
@@ -481,15 +519,17 @@ namespace SFG
 #ifdef SFG_TOOLMODE
 		simple_file_watcher	   _file_watch = {};
 		vector<resource_watch> _watched_resources;
-
 #endif
+
 		chunk_allocator32	  _aux_memory = {};
 		vector<cache_storage> _storages	  = {};
 		world&				  _world;
-		resource_handle		  _dummy_color_texture	 = {};
-		resource_handle		  _dummy_orm_texture	 = {};
-		resource_handle		  _dummy_normal_texture	 = {};
-		uint32				  _max_load_priority	 = 0;
-		uint32				  _dynamic_sampler_count = 0;
+		resource_handle		  _dummy_color_texture	  = {};
+		resource_handle		  _dummy_orm_texture	  = {};
+		resource_handle		  _dummy_normal_texture	  = {};
+		resource_handle		  _default_gbuffer_shader = {};
+		resource_handle		  _default_forward_shader = {};
+		uint32				  _max_load_priority	  = 0;
+		uint32				  _dynamic_sampler_count  = 0;
 	};
 }

@@ -36,12 +36,17 @@ namespace SFG
 
 	format render_target_definitions::get_format_gbuffer_emissive()
 	{
-		return format::r8g8b8a8_srgb;
+		return format::r16g16b16a16_sfloat;
 	}
 
 	format render_target_definitions::get_format_swapchain()
 	{
 		return format::r8g8b8a8_srgb;
+	}
+
+	format render_target_definitions::get_format_ssao_ao_out()
+	{
+		return format::r8_unorm;
 	}
 
 	format render_target_definitions::get_format_shadows()

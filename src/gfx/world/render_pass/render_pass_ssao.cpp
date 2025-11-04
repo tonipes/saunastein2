@@ -1,6 +1,7 @@
-// Copyright (c) 2025 Inan Evin
+﻿// Copyright (c) 2025 Inan Evin
 
 #include "render_pass_ssao.hpp"
+#include "math/math.hpp"
 
 // gfx
 #include "gfx/backend/backend.hpp"
@@ -12,15 +13,69 @@
 #include "gfx/engine_shaders.hpp"
 #include "gfx/common/render_target_definitions.hpp"
 #include "gfx/world/view.hpp"
+#include "gfx/texture_queue.hpp"
+
+// misc
+#include <random>
+#include <cmath>
+#include <cstdint>
 
 namespace SFG
 {
-	void render_pass_ssao::init(const vector2ui16& size)
+	namespace
+	{
+		void make_ao_noise(uint8* data, int size = 8, uint32_t seed = 1337)
+		{
+			std::mt19937						  rng(seed);
+			std::uniform_real_distribution<float> U(0.0f, 1.0f);
+
+			for (int y = 0; y < size; ++y)
+			{
+				for (int x = 0; x < size; ++x)
+				{
+					float	theta = U(rng) * 6.28318530718f;
+					vector2 v	  = {std::cos(theta), std::sin(theta)};
+
+					// map from [-1,1] -> [0,255]
+					uint8_t r = (uint8_t)std::round((v.x * 0.5f + 0.5f) * 255.0f);
+					uint8_t g = (uint8_t)std::round((v.y * 0.5f + 0.5f) * 255.0f);
+
+					size_t i	= (y * size + x) * 2;
+					data[i + 0] = r;
+					data[i + 1] = g;
+				}
+			}
+		}
+	}
+
+	void render_pass_ssao::init(const vector2ui16& size, texture_queue& tq)
 	{
 		_alloc.init(1024, 8);
 
 		gfx_backend* backend = gfx_backend::get();
 
+		// Noise texture.
+		const vector2ui16 noise_size = vector2ui16(8, 8);
+		const uint8		  noise_bpp	 = 2;
+		uint8*			  noise_data = new uint8[noise_size.x * noise_size.y * noise_bpp];
+
+		make_ao_noise(noise_data, noise_size.x);
+		_noise_tex				= backend->create_texture({
+						 .texture_format = format::r8g8_unorm,
+						 .size			 = noise_size,
+						 .flags			 = texture_flags::tf_is_2d | texture_flags::tf_sampled,
+						 .views			 = {{.type = view_type::sampled}},
+						 .clear_values	 = {0.0f, 0.0f, 0.0f, 1.0f},
+						 .debug_name	 = "ssao_noise",
+		 });
+		_noise_tex_intermediate = backend->create_resource({.size = backend->align_texture_size(backend->get_texture_size(noise_size.x, noise_size.y, noise_bpp)), .flags = resource_flags::rf_cpu_visible, .debug_name = "ssao_noise_intermediate"});
+		_gpu_index_noise		= backend->get_texture_gpu_index(_noise_tex, 0);
+
+		static_vector<texture_buffer, MAX_TEXTURE_MIPS> buffers;
+		buffers.push_back({.pixels = noise_data, .size = noise_size, .bpp = noise_bpp});
+		tq.add_request(buffers, _noise_tex, _noise_tex_intermediate, false, resource_state::resource_state_non_ps_resource);
+
+		// ofd
 		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
 			per_frame_data& pfd = _pfd[i];
@@ -31,13 +86,19 @@ namespace SFG
 
 		create_textures(size);
 
-		_shader_ssao = engine_shaders::get().get_shader(engine_shader_type::engine_shader_type_hbao).get_hw();
+		_shader_hbao		  = engine_shaders::get().get_shader(engine_shader_type::engine_shader_type_hbao).get_hw();
+		_shader_hbao_upsample = engine_shaders::get().get_shader(engine_shader_type::engine_shader_type_hbao_upsample).get_hw();
 
 #ifdef SFG_TOOLMODE
 		engine_shaders::get().add_reload_listener([this](engine_shader_type type, shader_direct& sh) {
 			if (type == engine_shader_type::engine_shader_type_hbao)
 			{
-				_shader_ssao = sh.get_hw();
+				_shader_hbao = sh.get_hw();
+				return;
+			}
+			if (type == engine_shader_type::engine_shader_type_hbao_upsample)
+			{
+				_shader_hbao_upsample = sh.get_hw();
 				return;
 			}
 		});
@@ -58,28 +119,39 @@ namespace SFG
 			pfd.ubo.destroy();
 		}
 
+		backend->destroy_texture(_noise_tex);
+		backend->destroy_resource(_noise_tex_intermediate);
 		destroy_textures();
 	}
 
-	void render_pass_ssao::prepare(proxy_manager& pm, const view& camera_view, uint8 frame_index)
+	void render_pass_ssao::prepare(const view& camera_view, const vector2ui16& resolution, uint8 frame_index)
 	{
 		_alloc.reset();
-
-		const uint8					ambient_exists = pm.get_ambient_exists();
-		const render_proxy_ambient& ambient		   = pm.get_ambient();
-		const vector3				ambient_color  = ambient_exists ? ambient.base_color : vector3(0.1f, 0.1f, 0.1f);
 
 		per_frame_data& pfd = _pfd[frame_index];
 
 		const ubo ubo_data = {
-			.inverse_view_proj			 = camera_view.view_proj_matrix.inverse(),
-			.ambient_color_plights_count = vector4(ambient_color.x, ambient_color.y, ambient_color.z, static_cast<float>(pm.get_count_point_lights())),
-			.view_position_slights_count = vector4(camera_view.position.x, camera_view.position.y, camera_view.position.z, static_cast<float>(pm.get_count_spot_lights())),
-			.dir_lights_count			 = pm.get_count_dir_lights(),
-			.cascade_levels_gpu_index	 = camera_view.cascsades_gpu_index,
-			.cascade_count				 = static_cast<uint32>(camera_view.cascades.size()),
-			.near_plane					 = camera_view.near_plane,
-			.far_plane					 = camera_view.far_plane,
+
+			.proj_matrix	 = camera_view.proj_matrix,
+			.inv_proj_matrix = camera_view.inv_proj_matrix,
+			.view_matrix	 = camera_view.view_matrix,
+
+			.full_size = vector2ui(resolution.x, resolution.y),
+			.half_size = vector2ui(resolution.x / 2, resolution.y / 2),
+			.inv_full  = vector2(1.0f / static_cast<float>(resolution.x), 1.0f / static_cast<float>(resolution.y)),
+			.inv_half  = vector2(1.0f / (static_cast<float>(resolution.x) * 0.5f), 1.0f / (static_cast<float>(resolution.y) * 0.5f)),
+
+			.z_near = camera_view.near_plane,
+			.z_far	= camera_view.far_plane,
+
+			.radius_world		 = 0.75f,
+			.bias				 = 0.04f,
+			.intensity			 = 1.25f,
+			.power				 = 1.25f,
+			.num_dirs			 = 8,
+			.num_steps			 = 6,
+			.random_rot_strength = 1.5,
+
 		};
 
 		pfd.ubo.buffer_data(0, &ubo_data, sizeof(ubo));
@@ -87,110 +159,78 @@ namespace SFG
 
 	void render_pass_ssao::render(const render_params& p)
 	{
-		return;
-		/*
-		gfx_backend*	backend			 = gfx_backend::get();
-		per_frame_data& pfd				 = _pfd[p.frame_index];
-		const gfx_id	queue_gfx		 = backend->get_queue_gfx();
-		const gfx_id	cmd_buffer		 = pfd.cmd_buffer;
-		const gfx_id	color_texture	 = pfd.render_target;
-		const gpu_index gpu_index_rp_ubo = pfd.ubo.get_gpu_index();
-		const gfx_id	sh				 = _shader_ssao;
 
-		// RP constants.
-		static_vector<gpu_index, GBUFFER_COLOR_TEXTURES + 10> rp_constants;
-		rp_constants.push_back(p.gpu_index_entities);
-		rp_constants.push_back(p.gpu_index_point_lights);
-		rp_constants.push_back(p.gpu_index_spot_lights);
-		rp_constants.push_back(p.gpu_index_dir_lights);
-		rp_constants.push_back(p.gpu_index_shadow_data_buffer);
-		rp_constants.push_back(p.gpu_index_float_buffer);
-		for (uint32 i = 0; i < GBUFFER_COLOR_TEXTURES; i++)
-			rp_constants.push_back(p.gpu_index_gbuffer_textures[i]);
-		rp_constants.push_back(p.gpu_index_depth_texture);
-		SFG_ASSERT(rp_constants.size() < constant_index_object_constant0 - constant_index_rp_constant0 + 1);
+		gfx_backend*	  backend			   = gfx_backend::get();
+		per_frame_data&	  pfd				   = _pfd[p.frame_index];
+		const gfx_id	  cmd_buffer		   = pfd.cmd_buffer;
+		const gfx_id	  shader_hbao		   = _shader_hbao;
+		const gfx_id	  shader_hbao_upsample = _shader_hbao_upsample;
+		const gfx_id	  ao_output			   = pfd.ao_out;
+		const vector2ui16 res				   = p.size;
 
-		static_vector<barrier, 2> barriers;
-
-		barriers.push_back({
-			.resource	 = color_texture,
-			.flags		 = barrier_flags::baf_is_texture,
-			.from_states = resource_state::resource_state_ps_resource,
-			.to_states	 = resource_state::resource_state_render_target,
-		});
+		const gpu_index gpu_index_noise				  = _gpu_index_noise;
+		const gpu_index gpu_index_output			  = pfd.gpu_index_ao_uav;
+		const gpu_index gpu_index_output_srv		  = pfd.gpu_index_ao_srv;
+		const gpu_index gpu_index_output_upsample_uav = pfd.gpu_index_ao_upsample_uav;
+		const gpu_index gpu_index_ubo				  = pfd.ubo.get_gpu_index();
 
 		backend->reset_command_buffer(cmd_buffer);
-		backend->cmd_barrier(cmd_buffer,
-							 {
-								 .barriers		= barriers.data(),
-								 .barrier_count = static_cast<uint16>(barriers.size()),
-							 });
 
-		BEGIN_DEBUG_EVENT(backend, cmd_buffer, "ssao_pass");
-
-		render_pass_color_attachment* attachments = _alloc.allocate<render_pass_color_attachment>(1);
-		render_pass_color_attachment& att		  = attachments[0];
-		att.clear_color							  = vector4(0, 0, 0, 1.0f);
-		att.load_op								  = load_op::clear;
-		att.store_op							  = store_op::store;
-		att.texture								  = color_texture;
-		att.view_index							  = 0;
-
-		backend->cmd_begin_render_pass(cmd_buffer,
-									   {
-										   .color_attachments	   = attachments,
-										   .color_attachment_count = 1,
-									   });
-
-		backend->cmd_bind_layout(cmd_buffer, {.layout = p.global_layout});
-		backend->cmd_bind_group(cmd_buffer, {.group = p.global_group});
-
-		backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)&gpu_index_rp_ubo, .offset = constant_index_rp_ubo_index, .count = 1, .param_index = rpi_constants});
-		backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)rp_constants.data(), .offset = constant_index_rp_constant0, .count = static_cast<uint8>(rp_constants.size()), .param_index = rpi_constants});
-
-		backend->cmd_set_scissors(cmd_buffer, {.width = static_cast<uint16>(p.size.x), .height = static_cast<uint16>(p.size.y)});
-		backend->cmd_set_viewport(cmd_buffer,
-								  {
-									  .min_depth = 0.0f,
-									  .max_depth = 1.0f,
-									  .width	 = static_cast<uint16>(p.size.x),
-									  .height	 = static_cast<uint16>(p.size.y),
-
-								  });
-		backend->cmd_bind_pipeline(cmd_buffer, {.pipeline = sh});
-		backend->cmd_draw_instanced(cmd_buffer,
-									{
-										.vertex_count_per_instance = 3,
-										.instance_count			   = 1,
-									});
-
-		backend->cmd_end_render_pass(cmd_buffer, {});
-		END_DEBUG_EVENT(backend, cmd_buffer);
-
-		barriers.resize(0);
-
+		static_vector<barrier, 2> barriers;
 		barriers.push_back({
-			.resource	 = color_texture,
+			.resource	 = ao_output,
 			.flags		 = barrier_flags::baf_is_texture,
-			.from_states = resource_state::resource_state_render_target,
-			.to_states	 = resource_state::resource_state_ps_resource,
+			.from_states = resource_state::resource_state_common,
+			.to_states	 = resource_state::resource_state_non_ps_resource,
 		});
+		backend->cmd_barrier(cmd_buffer, {.barriers = barriers.data(), .barrier_count = static_cast<uint16>(barriers.size())});
+		barriers.resize(0);
+		backend->cmd_bind_layout_compute(cmd_buffer, {.layout = p.global_layout_compute});
+		backend->cmd_bind_group_compute(cmd_buffer, {.group = p.global_group});
+
+		{
+			const uint32 rp_constants[5] = {gpu_index_ubo, p.gpu_index_depth, p.gpu_index_normals, gpu_index_noise, gpu_index_output};
+			backend->cmd_bind_pipeline_compute(cmd_buffer, {.pipeline = shader_hbao});
+			backend->cmd_bind_constants_compute(cmd_buffer, {.data = (uint8*)rp_constants, .offset = constant_index_rp_constant0, .count = 5, .param_index = rpi_constants});
+
+			BEGIN_DEBUG_EVENT(backend, cmd_buffer, "ssao_pass");
+			const uint32 group_size_x = 8;
+			const uint32 group_size_y = 8;
+			const uint32 half_w		  = res.x * 0.5f;
+			const uint32 half_h		  = res.y * 0.5f;
+			const uint32 gsx		  = (group_size_x + half_w - 1) / group_size_x;
+			const uint32 gsy		  = (group_size_y + half_h - 1) / group_size_y;
+			backend->cmd_dispatch(cmd_buffer, {.group_size_x = gsx, .group_size_y = gsy, .group_size_z = 1});
+			END_DEBUG_EVENT(backend, cmd_buffer);
+		}
+
+		{
+
+			const uint32 rp_constants[2] = {gpu_index_output_srv, gpu_index_output_upsample_uav};
+			backend->cmd_bind_pipeline_compute(cmd_buffer, {.pipeline = shader_hbao_upsample});
+			backend->cmd_bind_constants_compute(cmd_buffer, {.data = (uint8*)rp_constants, .offset = constant_index_rp_constant3, .count = 2, .param_index = rpi_constants});
+
+			BEGIN_DEBUG_EVENT(backend, cmd_buffer, "ssao_upsample_pass");
+			const uint32 group_size_x = 8;
+			const uint32 group_size_y = 8;
+			const uint32 half_w		  = res.x;
+			const uint32 half_h		  = res.y;
+			const uint32 gsx		  = (group_size_x + half_w - 1) / group_size_x;
+			const uint32 gsy		  = (group_size_y + half_h - 1) / group_size_y;
+			backend->cmd_dispatch(cmd_buffer, {.group_size_x = gsx, .group_size_y = gsy, .group_size_z = 1});
+			END_DEBUG_EVENT(backend, cmd_buffer);
+		}
 
 		barriers.push_back({
-			.resource	 = p.depth_texture,
+			.resource	 = ao_output,
 			.flags		 = barrier_flags::baf_is_texture,
-			.from_states = resource_state::resource_state_depth_read | resource_state::resource_state_ps_resource,
+			.from_states = resource_state::resource_state_non_ps_resource,
 			.to_states	 = resource_state::resource_state_common,
 		});
-
-		backend->cmd_barrier(cmd_buffer,
-							 {
-								 .barriers		= barriers.data(),
-								 .barrier_count = static_cast<uint16>(barriers.size()),
-							 });
+		backend->cmd_barrier(cmd_buffer, {.barriers = barriers.data(), .barrier_count = static_cast<uint16>(barriers.size())});
+		barriers.resize(0);
 
 		backend->close_command_buffer(cmd_buffer);
-		*/
 	}
 
 	void render_pass_ssao::resize(const vector2ui16& size)
@@ -201,7 +241,19 @@ namespace SFG
 
 	void render_pass_ssao::destroy_textures()
 	{
-		return;
+		gfx_backend* backend = gfx_backend::get();
+
+		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
+		{
+			per_frame_data& pfd = _pfd[i];
+
+			backend->destroy_texture(pfd.ao_out);
+			backend->destroy_texture(pfd.ao_upsample_out);
+		}
+	}
+
+	void render_pass_ssao::create_textures(const vector2ui16& sz)
+	{
 
 		gfx_backend* backend = gfx_backend::get();
 
@@ -209,30 +261,28 @@ namespace SFG
 		{
 			per_frame_data& pfd = _pfd[i];
 
-			backend->destroy_texture(pfd.render_target);
+			pfd.ao_out = backend->create_texture({
+				.texture_format = render_target_definitions::get_format_ssao_ao_out(),
+				.size			= sz / 2,
+				.flags			= texture_flags::tf_is_2d | texture_flags::tf_sampled | texture_flags::tf_gpu_write,
+				.views			= {{.type = view_type::gpu_write}, {.type = view_type::sampled}},
+				.clear_values	= {0.0f, 0.0f, 0.0f, 1.0f},
+				.debug_name		= "ssao_ao_out",
+			});
+
+			pfd.ao_upsample_out = backend->create_texture({
+				.texture_format = render_target_definitions::get_format_ssao_ao_out(),
+				.size			= sz,
+				.flags			= texture_flags::tf_is_2d | texture_flags::tf_sampled | texture_flags::tf_gpu_write,
+				.views			= {{.type = view_type::gpu_write}, {.type = view_type::sampled}},
+				.clear_values	= {0.0f, 0.0f, 0.0f, 1.0f},
+				.debug_name		= "ssao_ao_upsample_out",
+			});
+
+			pfd.gpu_index_ao_uav		  = backend->get_texture_gpu_index(pfd.ao_out, 0);
+			pfd.gpu_index_ao_srv		  = backend->get_texture_gpu_index(pfd.ao_out, 1);
+			pfd.gpu_index_ao_upsample_uav = backend->get_texture_gpu_index(pfd.ao_upsample_out, 0);
+			pfd.gpu_index_ao_upsample_srv = backend->get_texture_gpu_index(pfd.ao_upsample_out, 1);
 		}
-	}
-
-	void render_pass_ssao::create_textures(const vector2ui16& sz)
-	{
-		return;
-
-		gfx_backend* backend = gfx_backend::get();
-
-		//	for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
-		//	{
-		//		per_frame_data& pfd = _pfd[i];
-		//
-		//		pfd.render_target = backend->create_texture({
-		//			.texture_format = render_target_definitions::get_format_ssao(),
-		//			.size			= sz,
-		//			.flags			= texture_flags::tf_render_target | texture_flags::tf_is_2d | texture_flags::tf_sampled,
-		//			.views			= {{.type = view_type::render_target}, {.type = view_type::sampled}},
-		//			.clear_values	= {0.0f, 0.0f, 0.0f, 1.0f},
-		//			.debug_name		= "ssao_rt",
-		//		});
-		//
-		//		pfd.gpu_index_render_target = backend->get_texture_gpu_index(pfd.render_target, 1);
-		//	}
 	}
 }

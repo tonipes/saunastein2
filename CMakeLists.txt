@@ -31,25 +31,38 @@ cmake_minimum_required (VERSION 4.0)
 
 project (Stakeforge)
 
-set(CMAKE_CONFIGURATION_TYPES "Debug;Release;Profile;" CACHE STRING "" FORCE)
+set(CMAKE_CONFIGURATION_TYPES "Debug;Release;Production;" CACHE STRING "" FORCE)
 
 if(WIN32)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 endif()
 
-# --- Option: TOOLMODE ---
-option(TOOLMODE "Enable tool mode (adds SFG_TOOLMODE)" OFF)
-option(PRODUCTION "Enable production build (adds SFG_PRODUCTION)" OFF)
+# --- Option ---
+# option(TOOLMODE "Enable tool mode (adds SFG_TOOLMODE)" ON)
 
 # ------------- COMPILE DEFINITIONS -------------
 
 add_compile_definitions($<$<CONFIG:Debug>:_ITERATOR_DEBUG_LEVEL=1>)
 add_compile_definitions($<$<CONFIG:Debug>:SFG_DEBUG>)
+add_compile_definitions($<$<CONFIG:Debug>:SFG_TOOLMODE>)
+add_compile_definitions($<$<CONFIG:Debug>:SFG_ENABLE_MEMORY_TRACER>)
+add_compile_definitions($<$<CONFIG:Debug>:SFG_GFX_SERIALIZE_SHADERS_PDB>)
+add_compile_definitions($<$<CONFIG:Debug>:SFG_GFX_USE_DEBUG_LAYERS>)
+add_compile_definitions($<$<CONFIG:Debug>:SFG_USE_DEBUG_CONTROLLER>)
+add_compile_definitions($<$<CONFIG:Debug>:SFG_DUMP_LOG_TRACE>)
 
-add_compile_definitions($<$<CONFIG:Profile>:_ITERATOR_DEBUG_LEVEL=0>)
-add_compile_definitions($<$<CONFIG:Profile>:SFG_DEBUG>)
+add_compile_definitions($<$<CONFIG:Production>:_ITERATOR_DEBUG_LEVEL=0>)
+add_compile_definitions($<$<CONFIG:Production>:NDEBUG>)
+add_compile_definitions($<$<CONFIG:Production>:SFG_TOOLMODE>)
+add_compile_definitions($<$<CONFIG:Production>:SFG_DUMP_LOG_TRACE>)
 
 add_compile_definitions($<$<CONFIG:Release>:_ITERATOR_DEBUG_LEVEL=0>)
+add_compile_definitions($<$<CONFIG:Release>:SFG_TOOLMODE>)
+add_compile_definitions($<$<CONFIG:Release>:SFG_ENABLE_MEMORY_TRACER>)
+add_compile_definitions($<$<CONFIG:Release>:SFG_GFX_SERIALIZE_SHADERS_PDB>)
+add_compile_definitions($<$<CONFIG:Release>:SFG_GFX_USE_DEBUG_LAYERS>)
+add_compile_definitions($<$<CONFIG:Release>:SFG_USE_DEBUG_CONTROLLER>)
+add_compile_definitions($<$<CONFIG:Debug>:SFG_DUMP_LOG_TRACE>)
 
 add_definitions(-DSFG_CONFIGURATION="$<CONFIGURATION>")
 add_definitions(-DSFG_ROOT_DIRECTORY="${CMAKE_SOURCE_DIR}/")
@@ -158,17 +171,6 @@ src/vendor/um/*.inl
 src/sfg_api.hpp
 )
 
-if (TOOLMODE)
-file(GLOB EDITOR_SOURCES
-src/editor/*.cpp
-)
-file(GLOB EDITOR_HEADERS
-src/editor/*.hpp
-)
-list(APPEND SOURCES ${EDITOR_SOURCES})
-list(APPEND HEADERS ${EDITOR_HEADERS})
-endif()
-
 if(WIN32)
 
 file(GLOB PLATFORM_SOURCES 
@@ -197,16 +199,29 @@ set(ICON ${PROJECT_SOURCE_DIR})
 
 endif()
 
+file(GLOB EDITOR_SOURCES CONFIGURE_DEPENDS src/editor/*.cpp)
+file(GLOB EDITOR_HEADERS CONFIGURE_DEPENDS src/editor/*.hpp)
+
 # ------------- TARGET -------------
 
-# Prevent FXC from compiling HLSL sources automatically on Windows.
-if(WIN32)
+if (WIN32)
+    add_executable(${PROJECT_NAME} WIN32)
+    # Prevent FXC from compiling HLSL automatically
     set_source_files_properties(${SHADERS} PROPERTIES HEADER_FILE_ONLY ON)
-	add_executable(${PROJECT_NAME} WIN32 ${SOURCES} ${HEADERS} ${SHADERS} ${PLATFORM_HEADERS} ${PLATFORM_SOURCES} ${ICON})
 else()
-	add_executable(${PROJECT_NAME} MACOSX_BUNDLE ${SOURCES} ${HEADERS} ${PLATFORM_HEADERS} ${PLATFORM_SOURCES} ${ICON})
+    add_executable(${PROJECT_NAME} MACOSX_BUNDLE)
 endif()
 
+target_sources(${PROJECT_NAME} PRIVATE
+    ${SOURCES}
+    ${HEADERS}
+    ${PLATFORM_HEADERS}
+    ${PLATFORM_SOURCES}
+    ${SHADERS}
+    ${ICON}
+    # Only in Debug configs:
+    $<$<CONFIG:Debug>:${EDITOR_SOURCES} ${EDITOR_HEADERS}>
+)
 # Shared library (DLL/.dylib/.so)
 # add_library(${PROJECT_NAME} SHARED
 #     ${SOURCES} ${HEADERS}

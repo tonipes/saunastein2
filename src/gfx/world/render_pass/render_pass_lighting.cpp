@@ -73,13 +73,13 @@ namespace SFG
 
 		const ubo ubo_data = {
 			.inverse_view_proj			 = camera_view.view_proj_matrix.inverse(),
-			.ambient_color_plights_count = vector4(ambient_color.x, ambient_color.y, ambient_color.z, static_cast<float>(pm.get_count_point_lights())),
-			.view_position_slights_count = vector4(camera_view.position.x, camera_view.position.y, camera_view.position.z, static_cast<float>(pm.get_count_spot_lights())),
-			.dir_lights_count			 = pm.get_count_dir_lights(),
+			.ambient_color_plights_count = vector4(ambient_color.x, ambient_color.y, ambient_color.z, static_cast<float>(_points_count_this_frame)),
+			.view_position_slights_count = vector4(camera_view.position.x, camera_view.position.y, camera_view.position.z, static_cast<float>(_spots_count_this_frame)),
+			.dir_lights_count			 = _dirs_count_this_frame,
 			.cascade_levels_gpu_index	 = camera_view.cascsades_gpu_index,
 			.cascade_count				 = static_cast<uint32>(camera_view.cascades.size()),
-			.near_plane				  = camera_view.near_plane,
-			.far_plane				  = camera_view.far_plane,
+			.near_plane					 = camera_view.near_plane,
+			.far_plane					 = camera_view.far_plane,
 		};
 
 		pfd.ubo.buffer_data(0, &ubo_data, sizeof(ubo));
@@ -107,6 +107,7 @@ namespace SFG
 		for (uint32 i = 0; i < GBUFFER_COLOR_TEXTURES; i++)
 			rp_constants.push_back(p.gpu_index_gbuffer_textures[i]);
 		rp_constants.push_back(p.gpu_index_depth_texture);
+		rp_constants.push_back(p.gpu_index_ao_out);
 		SFG_ASSERT(rp_constants.size() < constant_index_object_constant0 - constant_index_rp_constant0 + 1);
 
 		static_vector<barrier, 2> barriers;
@@ -114,7 +115,7 @@ namespace SFG
 		barriers.push_back({
 			.resource	 = color_texture,
 			.flags		 = barrier_flags::baf_is_texture,
-			.from_states = resource_state::resource_state_ps_resource,
+			.from_states = resource_state::resource_state_ps_resource | resource_state::resource_state_non_ps_resource,
 			.to_states	 = resource_state::resource_state_render_target,
 		});
 
@@ -164,28 +165,6 @@ namespace SFG
 
 		backend->cmd_end_render_pass(cmd_buffer, {});
 		END_DEBUG_EVENT(backend, cmd_buffer);
-
-		barriers.resize(0);
-
-		barriers.push_back({
-			.resource	 = color_texture,
-			.flags		 = barrier_flags::baf_is_texture,
-			.from_states = resource_state::resource_state_render_target,
-			.to_states	 = resource_state::resource_state_ps_resource,
-		});
-
-		barriers.push_back({
-			.resource	 = p.depth_texture,
-			.flags		 = barrier_flags::baf_is_texture,
-			.from_states = resource_state::resource_state_depth_read | resource_state::resource_state_ps_resource,
-			.to_states	 = resource_state::resource_state_common,
-		});
-
-		backend->cmd_barrier(cmd_buffer,
-							 {
-								 .barriers		= barriers.data(),
-								 .barrier_count = static_cast<uint16>(barriers.size()),
-							 });
 
 		backend->close_command_buffer(cmd_buffer);
 	}

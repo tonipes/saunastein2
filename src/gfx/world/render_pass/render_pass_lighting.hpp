@@ -3,6 +3,7 @@
 #pragma once
 
 #include "data/static_vector.hpp"
+#include "data/vector.hpp"
 
 // gfx
 #include "gfx/buffer.hpp"
@@ -55,6 +56,7 @@ namespace SFG
 			gpu_index												gpu_index_entities;
 			gpu_index												gpu_index_shadow_data_buffer;
 			gpu_index												gpu_index_float_buffer;
+			gpu_index												gpu_index_ao_out;
 			gfx_id													depth_texture;
 			gfx_id													global_layout;
 			gfx_id													global_group;
@@ -84,9 +86,21 @@ namespace SFG
 			return _pfd[frame_index].gpu_index_render_target;
 		}
 
+		inline gpu_index get_output_hw(uint8 frame_index) const
+		{
+			return _pfd[frame_index].render_target;
+		}
+
 		inline gfx_id get_cmd_buffer(uint8 frame_index) const
 		{
 			return _pfd[frame_index].cmd_buffer;
+		}
+
+		inline void set_light_counts_for_frame(uint32 points_count, uint32 spots_count, uint32 dirs_count)
+		{
+			_points_count_this_frame = points_count;
+			_spots_count_this_frame	 = spots_count;
+			_dirs_count_this_frame	 = dirs_count;
 		}
 
 	private:
@@ -95,7 +109,10 @@ namespace SFG
 
 	private:
 		per_frame_data _pfd[BACK_BUFFER_COUNT];
-		gfx_id		   _shader_lighting = 0;
-		bump_allocator _alloc			= {};
+		bump_allocator _alloc					= {};
+		gfx_id		   _shader_lighting			= 0;
+		uint32		   _points_count_this_frame = 0;
+		uint32		   _spots_count_this_frame	= 0;
+		uint32		   _dirs_count_this_frame	= 0;
 	};
 }

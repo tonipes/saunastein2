@@ -2,32 +2,32 @@
 
 #include "dx12_backend.hpp"
 #include "dx12_common.hpp"
+
+// data
 #include "data/static_vector.hpp"
+#include "data/string_util.hpp"
+#include "data/vector_util.hpp"
+
+// common
+#include "common/system_info.hpp"
+
+// gfx
 #include "gfx/common/descriptions.hpp"
 #include "gfx/common/texture_buffer.hpp"
 #include "gfx/backend/dx12/sdk/D3D12MemAlloc.h"
 #include "gfx/common/commands.hpp"
-#include "data/string_util.hpp"
-#include "data/vector_util.hpp"
+
+// misc
 #include "io/log.hpp"
 #include "memory/memory.hpp"
 #include "math/math_common.hpp"
-#include "common/system_info.hpp"
 #include "world/world_max_defines.hpp"
 
-#ifndef SFG_PRODUCTION
+#ifdef SFG_DEBUG
 #include <WinPixEventRuntime/pix3.h>
 #endif
 
-#ifndef SFG_PRODUCTION
-#define SERIALIZE_DEBUG_INFORMATION 1
-#endif
-
-#ifdef SFG_DEBUG
-#define USE_DEBUG_LAYERS
-#endif
-
-#ifdef SERIALIZE_DEBUG_INFORMATION
+#ifdef SFG_GFX_SERIALIZE_SHADERS_PDB
 #include <fstream>
 #endif
 
@@ -600,7 +600,7 @@ namespace SFG
 	{
 		UINT dxgiFactoryFlags = 0;
 
-#ifdef USE_DEBUG_LAYERS
+#ifdef SFG_GFX_USE_DEBUG_LAYERS
 		ComPtr<ID3D12Debug> debugController;
 		if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController))))
 		{
@@ -628,7 +628,7 @@ namespace SFG
 			throw_if_failed(D3D12CreateDevice(_adapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&_device)));
 		}
 
-#ifdef USE_DEBUG_LAYERS
+#ifdef SFG_GFX_USE_DEBUG_LAYERS
 		// Dbg callback
 		{
 			ID3D12InfoQueue1* infoQueue = nullptr;
@@ -732,7 +732,7 @@ namespace SFG
 		_heap_gpu_buffer.uninit();
 		_heap_gpu_sampler.uninit();
 
-#ifdef USE_DEBUG_LAYERS
+#ifdef SFG_GFX_USE_DEBUG_LAYERS
 		ID3D12InfoQueue1* infoQueue = nullptr;
 		if (SUCCEEDED(_device->QueryInterface<ID3D12InfoQueue1>(&infoQueue)))
 		{
@@ -752,11 +752,17 @@ namespace SFG
 		ID3D12CommandAllocator*		cmd_alloc = _command_allocators.get(cmd_buf.allocator).ptr.Get();
 		throw_if_failed(cmd_alloc->Reset());
 		throw_if_failed(cmd_list->Reset(cmd_alloc, nullptr));
-		if (cmd_buf.is_transfer == 0)
-		{
-			ID3D12DescriptorHeap* heaps[] = {_heap_gpu_buffer.get_heap(), _heap_gpu_sampler.get_heap()};
-			cmd_list->SetDescriptorHeaps(_countof(heaps), heaps);
-		}
+		ID3D12DescriptorHeap* heaps[] = {_heap_gpu_buffer.get_heap(), _heap_gpu_sampler.get_heap()};
+		cmd_list->SetDescriptorHeaps(_countof(heaps), heaps);
+	}
+
+	void dx12_backend::reset_command_buffer_transfer(gfx_id cmd_buffer)
+	{
+		command_buffer&				cmd_buf	  = _command_buffers.get(cmd_buffer);
+		ID3D12GraphicsCommandList4* cmd_list  = cmd_buf.ptr.Get();
+		ID3D12CommandAllocator*		cmd_alloc = _command_allocators.get(cmd_buf.allocator).ptr.Get();
+		throw_if_failed(cmd_alloc->Reset());
+		throw_if_failed(cmd_list->Reset(cmd_alloc, nullptr));
 	}
 
 	void dx12_backend::close_command_buffer(gfx_id cmd_buffer)
@@ -961,7 +967,6 @@ namespace SFG
 
 	void dx12_backend::destroy_resource(gfx_id id)
 	{
-
 		SFG_VERIFY_RENDER_NOT_RUNNING_OR_RENDER_THREAD();
 
 		resource& res = _resources.get(id);
@@ -991,7 +996,7 @@ namespace SFG
 
 		PUSH_MEMORY_CATEGORY("Gfx");
 
-#ifdef ENABLE_MEMORY_TRACER
+#ifdef SFG_ENABLE_MEMORY_TRACER
 
 		{
 			const uint8 bpp	  = desc.flags.is_set(texture_flags::tf_depth_texture) ? format_get_bpp(desc.depth_stencil_format) : format_get_bpp(desc.texture_format);
@@ -1054,6 +1059,9 @@ namespace SFG
 
 		if (desc.samples == 1 && !desc.flags.is_set(texture_flags::tf_sampled) && !desc.flags.is_set(texture_flags::tf_sampled_outside_fragment) && (desc.flags.is_set(texture_flags::tf_depth_texture) || desc.flags.is_set(texture_flags::tf_stencil_texture)))
 			resource_desc.Flags |= D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE;
+
+		if (desc.flags.is_set(texture_flags::tf_gpu_write))
+			resource_desc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 
 		const D3D12MA::ALLOCATION_DESC allocation_desc = {
 			.HeapType		= D3D12_HEAP_TYPE_DEFAULT,
@@ -1213,6 +1221,43 @@ namespace SFG
 			_device->CreateDepthStencilView(txt.ptr->GetResource(), &depthStencilDesc, {targetDescriptor.cpu});
 		};
 
+		auto create_uav = [&](DXGI_FORMAT format, uint32 baseArrayLayer, uint32 layerCount, uint32 baseMipLevel, uint32 mipLevels, const descriptor_handle& targetDescriptor) {
+			D3D12_UNORDERED_ACCESS_VIEW_DESC uav_desc = {};
+			uav_desc.Format							  = format;
+
+			if (desc.flags.is_set(texture_flags::tf_is_1d) && desc.array_length == 1)
+			{
+				uav_desc.ViewDimension		= D3D12_UAV_DIMENSION_TEXTURE1D;
+				uav_desc.Texture1D.MipSlice = baseMipLevel;
+			}
+			else if (desc.flags.is_set(texture_flags::tf_is_1d) && desc.array_length == 1)
+			{
+				uav_desc.ViewDimension					= D3D12_UAV_DIMENSION_TEXTURE1DARRAY;
+				uav_desc.Texture1DArray.ArraySize		= layerCount;
+				uav_desc.Texture1DArray.FirstArraySlice = baseArrayLayer;
+				uav_desc.Texture1DArray.MipSlice		= baseMipLevel;
+			}
+			else if (desc.flags.is_set(texture_flags::tf_is_2d) && desc.array_length == 1)
+			{
+				uav_desc.ViewDimension		= desc.samples > 1 ? D3D12_UAV_DIMENSION_TEXTURE2DMS : D3D12_UAV_DIMENSION_TEXTURE2D;
+				uav_desc.Texture2D.MipSlice = baseMipLevel;
+			}
+			else if (desc.flags.is_set(texture_flags::tf_is_2d) && desc.array_length > 1)
+			{
+				uav_desc.ViewDimension					= desc.samples > 1 ? D3D12_UAV_DIMENSION_TEXTURE2DMSARRAY : D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
+				uav_desc.Texture2DArray.ArraySize		= layerCount;
+				uav_desc.Texture2DArray.FirstArraySlice = baseArrayLayer;
+				uav_desc.Texture2DArray.MipSlice		= baseMipLevel;
+			}
+			else if (desc.flags.is_set(texture_flags::tf_is_3d))
+			{
+				uav_desc.ViewDimension		= D3D12_UAV_DIMENSION_TEXTURE3D;
+				uav_desc.Texture3D.MipSlice = baseMipLevel;
+			}
+
+			_device->CreateUnorderedAccessView(txt.ptr->GetResource(), NULL, &uav_desc, {targetDescriptor.cpu});
+		};
+
 		txt.view_count = static_cast<uint8>(desc.views.size());
 
 		for (uint8 i = 0; i < txt.view_count; i++)
@@ -1244,6 +1289,11 @@ namespace SFG
 				dh = _heap_rtv.get_heap_handle_block(1);
 				create_rtv(color_format, base_level, remaining_level, base_mip, remaining_mip, dh);
 			}
+			else if (view.type == view_type::gpu_write)
+			{
+				dh = _heap_gpu_buffer.get_heap_handle_block(1);
+				create_uav(color_format, base_level, remaining_level, base_mip, remaining_mip, dh);
+			}
 		}
 
 		return id;
@@ -1251,6 +1301,7 @@ namespace SFG
 
 	void dx12_backend::destroy_texture(gfx_id id)
 	{
+
 		SFG_VERIFY_RENDER_NOT_RUNNING_OR_RENDER_THREAD();
 
 		texture& txt = _textures.get(id);
@@ -1272,7 +1323,7 @@ namespace SFG
 
 			if (vt == view_type::render_target)
 				_heap_rtv.remove_handle(dh);
-			else if (vt == view_type::sampled)
+			else if (vt == view_type::sampled || vt == view_type::gpu_write)
 				_heap_gpu_buffer.remove_handle(dh);
 			else if (vt == view_type::depth_stencil)
 				_heap_dsv.remove_handle(dh);
@@ -1335,7 +1386,7 @@ namespace SFG
 		const gfx_id id	 = _swapchains.add();
 		swapchain&	 swp = _swapchains.get(id);
 
-#ifdef ENABLE_MEMORY_TRACER
+#ifdef SFG_ENABLE_MEMORY_TRACER
 		PUSH_MEMORY_CATEGORY("Gfx");
 		swp.size = desc.size.x * desc.size.y * 4;
 		PUSH_ALLOCATION_SZ(swp.size);
@@ -1427,7 +1478,7 @@ namespace SFG
 		DXGI_SWAP_CHAIN_DESC swp_desc = {};
 		swp.ptr->GetDesc(&swp_desc);
 
-#ifdef ENABLE_MEMORY_TRACER
+#ifdef SFG_ENABLE_MEMORY_TRACER
 		PUSH_MEMORY_CATEGORY("Gfx");
 		PUSH_DEALLOCATION_SZ(swp.size);
 		PUSH_ALLOCATION_SZ(desc.size.x * desc.size.y * 4);
@@ -1488,7 +1539,7 @@ namespace SFG
 
 		swapchain& swp = _swapchains.get(id);
 
-#ifdef ENABLE_MEMORY_TRACER
+#ifdef SFG_ENABLE_MEMORY_TRACER
 		PUSH_MEMORY_CATEGORY("Gfx");
 		PUSH_DEALLOCATION_SZ(swp.size);
 		POP_MEMORY_CATEGORY();
@@ -1620,7 +1671,7 @@ namespace SFG
 				}
 			}
 
-#if SERIALIZE_DEBUG_INFORMATION
+#if SFG_GFX_SERIALIZE_SHADERS_PDB
 			ComPtr<IDxcBlob>	  debug_data;
 			ComPtr<IDxcBlobUtf16> debug_data_path;
 			result->GetOutput(DXC_OUT_PDB, IID_PPV_ARGS(debug_data.GetAddressOf()), debug_data_path.GetAddressOf());
@@ -1628,6 +1679,9 @@ namespace SFG
 			if (debug_data != NULL && debug_data_path != NULL)
 			{
 				const wchar_t* path = reinterpret_cast<const wchar_t*>(debug_data_path->GetBufferPointer());
+
+				wstring str = L"/_shaders_pdb/";
+				str += path;
 
 				if (debug_data && path)
 				{
@@ -1693,8 +1747,6 @@ namespace SFG
 
 	bool dx12_backend::compile_shader_compute(const string& source, const vector<string>& source_paths, const char* entry, span<uint8>& out, bool compile_layout, span<uint8>& out_layout) const
 	{
-		SFG_VERIFY_RENDER_NOT_RUNNING_OR_RENDER_THREAD();
-
 		Microsoft::WRL::ComPtr<IDxcCompiler3> idxc_compiler;
 		throw_if_failed(DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&idxc_compiler)));
 
@@ -1736,7 +1788,7 @@ namespace SFG
 		arguments.push_back(DXC_ARG_OPTIMIZATION_LEVEL3);
 #endif
 
-				ComPtr<IDxcIncludeHandler> include_handler;
+		ComPtr<IDxcIncludeHandler> include_handler;
 		throw_if_failed(utils->CreateDefaultIncludeHandler(&include_handler));
 
 		ComPtr<IDxcResult> result;
@@ -1772,7 +1824,7 @@ namespace SFG
 			}
 		}
 
-#if SERIALIZE_DEBUG_INFORMATION
+#if SFG_GFX_SERIALIZE_SHADERS_PDB
 		ComPtr<IDxcBlob>	  debug_data;
 		ComPtr<IDxcBlobUtf16> debug_data_path;
 		result->GetOutput(DXC_OUT_PDB, IID_PPV_ARGS(debug_data.GetAddressOf()), debug_data_path.GetAddressOf());
@@ -1824,11 +1876,13 @@ namespace SFG
 		return true;
 	}
 
+
 	uint32 dx12_backend::get_resource_gpu_index(gfx_id id)
 	{
 		const resource& r = _resources.get(id);
 		if (r.descriptor_index == -1)
 			return UINT32_MAX;
+
 		return _descriptors.get(r.descriptor_index).index;
 	}
 
@@ -2779,14 +2833,18 @@ namespace SFG
 	{
 		command_buffer&				buffer	 = _command_buffers.get(cmd_id);
 		ID3D12GraphicsCommandList4* cmd_list = buffer.ptr.Get();
+#ifdef SFG_DEBUG
 		PIXBeginEvent(cmd_list, PIX_COLOR(120, 255, 100), label);
+#endif
 	}
 
 	void dx12_backend::cmd_end_event(gfx_id cmd_id)
 	{
 		command_buffer&				buffer	 = _command_buffers.get(cmd_id);
 		ID3D12GraphicsCommandList4* cmd_list = buffer.ptr.Get();
+#ifdef SFG_DEBUG
 		PIXEndEvent(cmd_list);
+#endif
 	}
 
 	void dx12_backend::cmd_copy_buffer_to_texture(gfx_id cmd_id, const command_copy_buffer_to_texture& cmd)
@@ -2799,7 +2857,8 @@ namespace SFG
 		for (uint8 i = 0; i < cmd.mip_levels; i++)
 		{
 			const texture_buffer& tb		= cmd.textures[i];
-			const LONG_PTR		  row_pitch = static_cast<LONG_PTR>((tb.size.x * tb.bpp + (D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1)) & ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1));
+			const LONG_PTR		  row_pitch = tb.size.x * tb.bpp;
+			// static_cast<LONG_PTR>((tb.size.x * tb.bpp + (D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1)) & ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1));
 
 			const D3D12_SUBRESOURCE_DATA texture_data = {
 				.pData		= tb.pixels,
@@ -2876,6 +2935,13 @@ namespace SFG
 		cmd_list->SetGraphicsRoot32BitConstants(static_cast<uint32>(cmd.param_index), static_cast<uint32>(cmd.count), cmd.data, cmd.offset);
 	}
 
+	void dx12_backend::cmd_bind_constants_compute(gfx_id cmd_id, const command_bind_constants& cmd) const
+	{
+		const command_buffer&		buffer	 = _command_buffers.get(cmd_id);
+		ID3D12GraphicsCommandList4* cmd_list = buffer.ptr.Get();
+		cmd_list->SetComputeRoot32BitConstants(static_cast<uint32>(cmd.param_index), static_cast<uint32>(cmd.count), cmd.data, cmd.offset);
+	}
+
 	void dx12_backend::cmd_bind_layout(gfx_id cmd_id, const command_bind_layout& cmd) const
 	{
 		const command_buffer&		buffer	 = _command_buffers.get(cmd_id);
@@ -2918,6 +2984,32 @@ namespace SFG
 		}
 	}
 
+	void dx12_backend::cmd_bind_group_compute(gfx_id cmd_id, const command_bind_group& cmd) const
+	{
+		const command_buffer&		buffer	 = _command_buffers.get(cmd_id);
+		ID3D12GraphicsCommandList4* cmd_list = buffer.ptr.Get();
+		const bind_group&			group	 = _bind_groups.get(cmd.group);
+		const uint8					sz		 = static_cast<uint8>(group.bindings.size());
+
+		for (uint8 i = 0; i < sz; i++)
+		{
+			const group_binding&	 binding = group.bindings[i];
+			const descriptor_handle& dh		 = _descriptors.get(binding.descriptor_index);
+			const binding_type		 type	 = static_cast<binding_type>(binding.binding_type);
+
+			if (type == binding_type::sampler || type == binding_type::pointer)
+				cmd_list->SetComputeRootDescriptorTable(binding.root_param_index, {dh.gpu});
+			else if (type == binding_type::ubo)
+				cmd_list->SetComputeRootConstantBufferView(binding.root_param_index, dh.gpu);
+			else if (type == binding_type::ssbo)
+				cmd_list->SetComputeRootShaderResourceView(binding.root_param_index, dh.gpu);
+			else if (type == binding_type::uav)
+				cmd_list->SetComputeRootUnorderedAccessView(binding.root_param_index, dh.gpu);
+			else if (type == binding_type::constant)
+				cmd_list->SetComputeRoot32BitConstants(binding.root_param_index, binding.count, binding.constants, 0);
+		}
+	}
+
 	void dx12_backend::cmd_dispatch(gfx_id cmd_id, const command_dispatch& cmd) const
 	{
 		const command_buffer&		buffer	 = _command_buffers.get(cmd_id);
@@ -2930,7 +3022,7 @@ namespace SFG
 		command_buffer&				buffer	 = _command_buffers.get(cmd_id);
 		ID3D12GraphicsCommandList4* cmd_list = buffer.ptr.Get();
 
-		static_vector<CD3DX12_RESOURCE_BARRIER, 128> barriers;
+		static_vector<CD3DX12_RESOURCE_BARRIER, 512> barriers;
 
 		for (uint16 i = 0; i < cmd.barrier_count; i++)
 		{
@@ -2952,6 +3044,38 @@ namespace SFG
 			}
 
 			barriers.push_back(CD3DX12_RESOURCE_BARRIER::Transition(res, get_resource_state(barrier.from_states), get_resource_state(barrier.to_states)));
+		}
+
+		if (!barriers.empty())
+			cmd_list->ResourceBarrier(static_cast<UINT>(barriers.size()), barriers.data());
+	}
+
+	void dx12_backend::cmd_barrier_uav(gfx_id cmd_id, const command_barrier& cmd)
+	{
+		command_buffer&				buffer	 = _command_buffers.get(cmd_id);
+		ID3D12GraphicsCommandList4* cmd_list = buffer.ptr.Get();
+
+		static_vector<CD3DX12_RESOURCE_BARRIER, 128> barriers;
+
+		for (uint16 i = 0; i < cmd.barrier_count; i++)
+		{
+			const barrier& barrier = cmd.barriers[i];
+
+			ID3D12Resource* res = nullptr;
+
+			if (barrier.flags.is_set(barrier_flags::baf_is_resource))
+				res = _resources.get(barrier.resource).ptr->GetResource();
+			else if (barrier.flags.is_set(barrier_flags::baf_is_swapchain))
+			{
+				SFG_ASSERT(false);
+			}
+			else
+			{
+				texture& txt = _textures.get(barrier.resource);
+				res			 = txt.ptr->GetResource();
+			}
+
+			barriers.push_back(CD3DX12_RESOURCE_BARRIER::UAV(res));
 		}
 
 		if (!barriers.empty())

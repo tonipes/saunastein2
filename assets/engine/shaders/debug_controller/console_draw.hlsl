@@ -38,7 +38,7 @@ float4 PSMain(VSOutput IN) : SV_TARGET
 {
 	float2 uv = IN.uv;
 
-	Texture2D txt_render_target = sfg_get_texture2D(sfg_object_constant0);
+	Texture2D txt_render_target = sfg_get_texture<Texture2D>(sfg_object_constant0);
 	float2 screen_size = float2(float(sfg_object_constant1), float(sfg_object_constant2));
 
     // --- Barrel distortion ---

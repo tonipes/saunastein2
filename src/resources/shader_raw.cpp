@@ -8,6 +8,8 @@
 #include "io/file_system.hpp"
 #include "project/engine_data.hpp"
 #include "gfx/backend/backend.hpp"
+#include "serialization/serialization.hpp"
+#include "common/string_id.hpp"
 #include "shader_variant_compiler.hpp"
 #include "vendor/nhlohmann/json.hpp"
 #include <fstream>
@@ -23,36 +25,34 @@ namespace SFG
 	{
 		if (variant_style.compare("gbuffer_object") == 0)
 			return shader_variant_compiler::compile_style_gbuffer_object(*this, shader_text, folder_paths);
+		else if (variant_style.compare("forward_object") == 0)
+			return shader_variant_compiler::compile_style_forward_object(*this, shader_text, folder_paths);
 
 		SFG_ERR("Unrecognize shader variant style: {0} {1}", variant_style, name);
 		return false;
 	}
 
-	bool shader_raw::load_from_file(const char* path)
+	bool shader_raw::load_from_file(const char* relative_file, const char* base_directory)
 	{
-		return load_from_file(path, nullptr);
-	}
-
-	bool shader_raw::load_from_file(const char* path, const char* base_directory_for_source)
-	{
-		if (!file_system::exists(path))
+		const string file_path = (base_directory == nullptr ? engine_data::get().get_working_dir() : string(base_directory)) + string(relative_file);
+		if (!file_system::exists(file_path.c_str()))
 		{
-			SFG_ERR("File don't exist! {0}", path);
+			SFG_ERR("File don't exist! {0}", file_path.c_str());
 			return false;
 		}
 		try
 		{
-			std::ifstream f(path);
+			std::ifstream f(file_path.c_str());
 			json		  json_data = json::parse(f);
 			f.close();
 
 			// Receive & verify source.
 			source			 = json_data.value<string>("source", "");
 			const string& wd = engine_data::get().get_working_dir();
-			const string  p	 = path;
+			const string  p	 = file_path;
 			name			 = p.substr(wd.size(), p.size() - wd.size());
 
-			const string full_source = base_directory_for_source == nullptr ? (engine_data::get().get_working_dir() + source) : (string(base_directory_for_source) + source);
+			const string full_source = base_directory == nullptr ? (engine_data::get().get_working_dir() + source) : (string(base_directory) + source);
 			if (!file_system::exists(full_source.c_str()))
 			{
 				SFG_ERR("File don't exist! {0}", full_source.c_str());
@@ -74,21 +74,23 @@ namespace SFG
 			if (json_data.find("desc") != json_data.end())
 			{
 				const shader_desc default_desc = json_data.value<shader_desc>("desc", {});
-				return shader_variant_compiler::compile_raw(*this, shader_text, folder_paths, default_desc);
+				if (!shader_variant_compiler::compile_raw(*this, shader_text, folder_paths, default_desc))
+					return false;
 			}
 			else
 			{
 				if (json_data.find("variant_style") == json_data.end())
 				{
-					SFG_ERR("Failed compiling shader as it does not define a raw description neither a variant style! {0}", path);
+					SFG_ERR("Failed compiling shader as it does not define a raw description neither a variant style! {0}", file_path);
 					return false;
 				}
 
 				const string variant_style = json_data.value<string>("variant_style", "");
-				const bool	 res		   = compile_specialized(shader_text, folder_paths, variant_style);
-				if (!res)
+				if (!compile_specialized(shader_text, folder_paths, variant_style))
+				{
 					destroy();
-				return res;
+					return false;
+				}
 			}
 		}
 		catch (std::exception e)
@@ -100,10 +102,73 @@ namespace SFG
 		SFG_INFO("Created shader from file: {0}", name);
 		return true;
 	}
+	bool shader_raw::load_from_cache(const char* cache_folder_path, const char* relative_path, const char* extension)
+	{
+		const string sid_str		 = std::to_string(TO_SID(relative_path));
+		const string meta_cache_path = cache_folder_path + sid_str + "_meta" + extension;
+		const string data_cache_path = cache_folder_path + sid_str + "_data" + extension;
+
+		if (!file_system::exists(meta_cache_path.c_str()))
+			return false;
+
+		if (!file_system::exists(data_cache_path.c_str()))
+			return false;
+
+		istream stream = serialization::load_from_file(meta_cache_path.c_str());
+
+		string file_path				  = "";
+		string source_path				  = "";
+		uint64 saved_file_last_modified	  = 0;
+		uint64 saved_source_last_modified = 0;
+		stream >> file_path;
+		stream >> source_path;
+		stream >> saved_file_last_modified;
+		stream >> saved_source_last_modified;
+
+		stream.destroy();
+
+		const uint64 file_last_modified = file_system::get_last_modified_ticks(file_path);
+		const uint64 src_last_modified	= file_system::get_last_modified_ticks(source_path);
+
+		if (file_last_modified != saved_file_last_modified || src_last_modified != saved_source_last_modified)
+			return false;
+
+		stream = serialization::load_from_file(data_cache_path.c_str());
+		deserialize(stream);
+		stream.destroy();
+		return true;
+	}
+
+	void shader_raw::save_to_cache(const char* cache_folder_path, const char* resource_directory_path, const char* extension) const
+	{
+		const string sid_str			= std::to_string(TO_SID(name));
+		const string file_path			= resource_directory_path + name;
+		const string source_path		= resource_directory_path + source;
+		const uint64 file_last_modified = file_system::get_last_modified_ticks(file_path);
+		const uint64 src_last_modified	= file_system::get_last_modified_ticks(source_path);
+
+		const string meta_cache_path = cache_folder_path + sid_str + "_meta" + extension;
+		const string data_cache_path = cache_folder_path + sid_str + "_data" + extension;
+
+		ostream out_stream;
+		out_stream << file_path;
+		out_stream << source_path;
+		out_stream << file_last_modified;
+		out_stream << src_last_modified;
+		serialization::save_to_file(meta_cache_path.c_str(), out_stream);
+
+		out_stream.shrink(0);
+		serialize(out_stream);
+		serialization::save_to_file(data_cache_path.c_str(), out_stream);
+
+		out_stream.destroy();
+	}
+
 	void shader_raw::get_dependencies(vector<string>& out_deps) const
 	{
 		out_deps.push_back(source);
 	}
+
 #endif
 
 	void shader_raw::serialize(ostream& stream) const

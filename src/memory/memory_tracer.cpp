@@ -2,7 +2,7 @@
 
 #include "memory_tracer.hpp"
 
-#ifdef ENABLE_MEMORY_TRACER
+#ifdef SFG_ENABLE_MEMORY_TRACER
 
 #include "memory.hpp"
 #include "io/assert.hpp"

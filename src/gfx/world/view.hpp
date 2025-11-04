@@ -14,6 +14,7 @@ namespace SFG
 		frustum									  view_frustum		   = {};
 		matrix4x4								  view_matrix		   = matrix4x4::identity;
 		matrix4x4								  proj_matrix		   = matrix4x4::identity;
+		matrix4x4								  inv_proj_matrix	   = matrix4x4::identity;
 		matrix4x4								  view_proj_matrix	   = matrix4x4::identity;
 		matrix4x4								  inv_view_proj_matrix = matrix4x4::identity;
 		static_vector<float, MAX_SHADOW_CASCADES> cascades;
