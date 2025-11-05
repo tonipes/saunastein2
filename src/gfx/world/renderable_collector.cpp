@@ -67,7 +67,7 @@ namespace SFG
 		}
 	}
 
-	void renderable_collector::populate_draw_stream(proxy_manager& pm, const vector<renderable_object>& renderables, draw_stream& stream, uint32 required_material_flags, uint32 base_flags, uint8 frame_index)
+	void renderable_collector::populate_draw_stream(proxy_manager& pm, const vector<renderable_object>& renderables, draw_stream& stream, uint32 required_material_flags, uint32 base_flags, uint8 frame_index, gfx_id override_shader)
 	{
 		for (const renderable_object& obj : renderables)
 		{
@@ -77,7 +77,7 @@ namespace SFG
 
 			const gpu_index gpu_index_mat		   = proxy_material.gpu_index_buffers[frame_index];
 			const gpu_index gpu_index_mat_textures = proxy_material.gpu_index_texture_buffers[frame_index];
-			const gfx_id	base_shader			   = proxy_material.shader_handle;
+			const gfx_id	base_shader			   = override_shader != NULL_GFX_ID ? override_shader : proxy_material.shader_handle;
 			const bitmask32 mat_flags			   = proxy_material.flags;
 			const bool		is_alpha_cutoff		   = mat_flags.is_set(material_flags::material_flags_is_alpha_cutoff);
 			const bool		is_double_sided		   = mat_flags.is_set(material_flags::material_flags_is_double_sided);
@@ -107,7 +107,7 @@ namespace SFG
 		}
 	}
 
-	void renderable_collector::populate_draw_stream(proxy_manager& pm, const vector<renderable_object>& renderables, draw_stream_distance& stream, uint32 required_material_flags, uint32 base_variant_flags, uint8 frame_index)
+	void renderable_collector::populate_draw_stream(proxy_manager& pm, const vector<renderable_object>& renderables, draw_stream_distance& stream, uint32 required_material_flags, uint32 base_variant_flags, uint8 frame_index, gfx_id override_shader)
 	{
 		for (const renderable_object& obj : renderables)
 		{
@@ -117,7 +117,7 @@ namespace SFG
 
 			const gpu_index gpu_index_mat		   = proxy_material.gpu_index_buffers[frame_index];
 			const gpu_index gpu_index_mat_textures = proxy_material.gpu_index_texture_buffers[frame_index];
-			const gfx_id	base_shader			   = proxy_material.shader_handle;
+			const gfx_id	base_shader			   = override_shader != NULL_GFX_ID ? override_shader : proxy_material.shader_handle;
 			const bitmask32 mat_flags			   = proxy_material.flags;
 			const bool		is_alpha_cutoff		   = mat_flags.is_set(material_flags::material_flags_is_alpha_cutoff);
 			const bool		is_double_sided		   = mat_flags.is_set(material_flags::material_flags_is_double_sided);

@@ -24,6 +24,7 @@
 #include "gfx/event_stream/render_event_stream.hpp"
 #include "world/traits/trait_model_instance.hpp"
 #include "world/world.hpp"
+#include "platform/time.hpp"
 #endif
 
 #include <algorithm>
@@ -233,8 +234,11 @@ namespace SFG
 			const string_id type	  = m->get_type_id();
 			void*			loader	  = nullptr;
 			const string&	cache_dir = engine_data::get().get_cache_dir();
+
 			if (!skip_cache)
+			{
 				loader = load_from_cache(type, cache_dir.c_str(), path.c_str(), ".stkcache");
+			}
 
 			if (!loader)
 			{
@@ -269,12 +273,13 @@ namespace SFG
 
 				resource_handle handle = {};
 				handle				   = add_from_loader(type, loader, pass, hash);
-				delete_loader(type, loader);
 
 				if (handle.is_null())
 					continue;
 
+				delete_loader(type, loader);
 				resolved_loaders[i] = nullptr;
+
 				add_resource_watch(handle, p.c_str(), dependencies, type);
 			}
 		}
@@ -308,7 +313,8 @@ namespace SFG
 		resource_watch& w = _watched_resources[id];
 
 		// load new resource
-		const string root = w.is_engine_res ? SFG_ROOT_DIRECTORY : engine_data::get().get_working_dir();
+		const string root  = w.is_engine_res ? SFG_ROOT_DIRECTORY : engine_data::get().get_working_dir();
+		const uint64 ticks = time::get_cpu_microseconds();
 
 		void* loader = load_from_file(w.type_id, w.path.c_str(), root.c_str());
 		if (loader == nullptr)
@@ -340,23 +346,19 @@ namespace SFG
 		remove_resource(w.type_id, w.base_handle);
 
 		const string& cache_dir = engine_data::get().get_cache_dir();
+		save_to_cache(w.type_id, loader, cache_dir.c_str(), root.c_str(), ".stkcache");
 
 		const uint32 max_passes = _max_load_priority + 1;
-
-		auto save_and_delete = [this](string_id type, void* loader, const char* cache, const char* root) {
-			save_to_cache(type, loader, cache, root, ".stkcache");
-			delete_loader(type, loader);
-		};
 
 		resource_handle new_handle = {};
 		for (uint32 pass = 0; pass < max_passes; pass++)
 		{
 			new_handle = add_from_loader(w.type_id, loader, pass, TO_SID(w.path));
-			save_and_delete(w.type_id, loader, cache_dir.c_str(), root.c_str());
-			//std::future f = std::async(std::launch::async, save_and_delete, w.type_id, loader, cache_dir.c_str(), root.c_str());
 
 			if (!new_handle.is_null())
-				break;
+			{
+				delete_loader(w.type_id, loader);
+			}
 		}
 
 		SFG_ASSERT(!new_handle.is_null());

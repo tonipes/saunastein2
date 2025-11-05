@@ -28,7 +28,6 @@ namespace SFG
 		vector<texture_raw>	   loaded_textures;
 		vector<material_raw>   loaded_materials;
 		vector<light_raw>	   loaded_lights;
-		vector<string_id>	   loaded_textures_sid;
 
 		aabb total_aabb;
 

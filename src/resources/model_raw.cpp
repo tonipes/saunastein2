@@ -25,6 +25,7 @@
 #include "vendor/stb/stb_image_write.h"
 #include "vendor/syoyo/tiny_gltf.h"
 using json = nlohmann::json;
+#include "platform/time.hpp"
 
 #endif
 
@@ -34,7 +35,7 @@ namespace SFG
 	{
 		stream << name;
 		stream << source;
-		stream << loaded_textures_sid;
+		stream << loaded_textures;
 		stream << loaded_materials;
 		stream << loaded_nodes;
 		stream << loaded_meshes;
@@ -48,7 +49,7 @@ namespace SFG
 	{
 		stream >> name;
 		stream >> source;
-		stream >> loaded_textures_sid;
+		stream >> loaded_textures;
 		stream >> loaded_materials;
 		stream >> loaded_nodes;
 		stream >> loaded_meshes;
@@ -573,24 +574,22 @@ namespace SFG
 				const string_id hash	  = TO_SID(hash_path);
 				raw.sid					  = hash;
 				raw.name				  = hash_path;
-				loaded_textures_sid.push_back(raw.sid);
 
+				/*
 				const string cache_path = engine_data::get().get_cache_dir() + std::to_string(raw.sid) + engine_data::CACHE_EXTENSION;
-
 				if (file_system::exists(cache_path.c_str()))
 				{
 					istream stream = serialization::load_from_file(cache_path.c_str());
 					raw.deserialize(stream);
 					stream.destroy();
 				}
-				else
-				{
-					uint8* data = reinterpret_cast<uint8*>(SFG_MALLOC(img.image.size()));
-					SFG_MEMCPY(data, img.image.data(), img.image.size());
-					const vector2ui16 size = vector2ui16(static_cast<uint16>(img.width), static_cast<uint16>(img.height));
-					const format	  fmt  = check_if_linear(i) ? format::r8g8b8a8_unorm : format::r8g8b8a8_srgb;
-					raw.load_from_data(data, size, static_cast<uint8>(fmt), true);
-				}
+				*/
+
+				uint8* data = reinterpret_cast<uint8*>(SFG_MALLOC(img.image.size()));
+				SFG_MEMCPY(data, img.image.data(), img.image.size());
+				const vector2ui16 size = vector2ui16(static_cast<uint16>(img.width), static_cast<uint16>(img.height));
+				const format	  fmt  = check_if_linear(i) ? format::r8g8b8a8_unorm : format::r8g8b8a8_srgb;
+				raw.load_from_data(data, size, static_cast<uint8>(fmt), true);
 			}
 		}
 
@@ -691,7 +690,6 @@ namespace SFG
 					txt_raw.load_from_data(texture_data, vector2ui16(width, height), (uint8)format::r8g8b8a8_unorm, true);
 					txt_raw.sid	 = hash;
 					txt_raw.name = hash_path;
-					loaded_textures_sid.push_back(txt_raw.sid);
 
 					constructed_orm = static_cast<int32>(loaded_textures.size() - 1);
 				}
@@ -752,11 +750,6 @@ namespace SFG
 					raw.material_data << normal_tiling << normal_offset;
 					raw.material_data << orm_tiling << orm_offset;
 					raw.material_data << emissive_tiling << emissive_offset;
-
-					if (tmat.pbrMetallicRoughness.metallicRoughnessTexture.index == -1 && tmat.occlusionTexture.index != -1)
-					{
-						SFG_WARN("GTLF material {0} is missing ORM texture but has seperate occlusion texture. Occlusion texture will be used for ORM slot, might lead to inaccuracies in roughness & metallic implementation.", tmat.name);
-					}
 
 					if (base_index != -1)
 						raw.sampler_definitions.push_back(samplers.at(find_sampler(base_index)));
@@ -1005,7 +998,7 @@ namespace SFG
 		const string sid_str		 = std::to_string(TO_SID(relative_path));
 		const string meta_cache_path = cache_folder_path + sid_str + "_meta" + extension;
 		const string data_cache_path = cache_folder_path + sid_str + "_data" + extension;
-
+		
 		if (!file_system::exists(meta_cache_path.c_str()))
 			return false;
 
@@ -1035,20 +1028,6 @@ namespace SFG
 		deserialize(stream);
 		stream.destroy();
 
-		for (string_id sid : loaded_textures_sid)
-		{
-			const string path = cache_folder_path + std::to_string(sid) + engine_data::CACHE_EXTENSION;
-			if (!file_system::exists(path.c_str()))
-			{
-				return false;
-			}
-
-			istream stream = serialization::load_from_file(path.c_str());
-			loaded_textures.push_back({});
-			texture_raw& r = loaded_textures.back();
-			r.deserialize(stream);
-			stream.destroy();
-		}
 		return true;
 	}
 
@@ -1073,16 +1052,6 @@ namespace SFG
 		out_stream.shrink(0);
 		serialize(out_stream);
 		serialization::save_to_file(data_cache_path.c_str(), out_stream);
-
-		ostream texture_stream;
-		for (const texture_raw& r : loaded_textures)
-		{
-			const string path = cache_folder_path + std::to_string(r.sid) + engine_data::CACHE_EXTENSION;
-			r.serialize(texture_stream);
-			serialization::save_to_file(path.c_str(), texture_stream);
-			texture_stream.shrink(0);
-		}
-		texture_stream.destroy();
 
 		out_stream.destroy();
 	}
