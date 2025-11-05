@@ -16,6 +16,7 @@ namespace SFG
 		uint32		index_start	  = 0;
 		uint32		index_count	  = 0;
 		uint32		gpu_entity	  = 0;
+		uint32		world_entity  = 0;
 		float		distance	  = 0.0f;
 		resource_id material	  = {};
 		uint8		is_skinned	  = 0;

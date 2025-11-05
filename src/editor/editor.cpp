@@ -3,21 +3,29 @@
 #include "editor.hpp"
 
 #include "app/game_app.hpp"
+
+#include "platform/window.hpp"
+#include "math/vector3.hpp"
+#include "math/quat.hpp"
+#include "common/string_id.hpp"
+#include "project/engine_data.hpp"
+#include "input/input_mappings.hpp"
+
+// gfx
+#include "gfx/renderer.hpp"
+#include "gfx/world/world_renderer.hpp"
+
+// world
 #include "world/world.hpp"
 #include "world/entity_manager.hpp"
 #include "world/traits/trait_camera.hpp"
 #include "world/traits/trait_model_instance.hpp"
 #include "world/traits/trait_ambient.hpp"
 #include "world/traits/trait_light.hpp"
-#include "resources/model.hpp"
-#include "platform/window.hpp"
-#include "math/vector3.hpp"
-#include "math/quat.hpp"
-#include "common/string_id.hpp"
 
+// resources
+#include "resources/model.hpp"
 #include "resources/world_raw.hpp"
-#include "project/engine_data.hpp"
-#include "input/input_mappings.hpp"
 
 namespace SFG
 {
@@ -96,6 +104,16 @@ namespace SFG
 			}
 		}
 
+		if (ev.type == window_event_type::mouse && ev.sub_type == window_event_sub_type::press)
+		{
+			if (ev.button == input_code::mouse_0 && ev.value.x > 0 && ev.value.y > 0)
+			{
+				const uint32	   id	= _game.get_renderer()->get_world_renderer()->get_render_pass_object_id().read_location(ev.value.x, ev.value.y, 0);
+				const entity_meta& meta = _game.get_world().get_entity_manager().get_entity_meta({.generation = 2, .index = id});
+				SFG_WARN("Pressed on object {0} - name: {1}", id, meta.name);
+			}
+		}
+
 		return true;
 	}
 
@@ -163,7 +181,6 @@ namespace SFG
 			em.destroy_entity(_camera_entity);
 			_camera_entity = {};
 		}
-		
 	}
 
 	void editor::create_demo_model()

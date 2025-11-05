@@ -17,6 +17,9 @@
 #include "render_pass/render_pass_bloom.hpp"
 #include "render_pass/render_pass_post_combiner.hpp"
 #include "render_pass/render_pass_forward.hpp"
+#ifdef SFG_TOOLMODE
+#include "render_pass/render_pass_object_id.hpp"
+#endif
 #include "view.hpp"
 
 namespace SFG
@@ -84,6 +87,15 @@ namespace SFG
 			return _pfd[frame_index].semp_frame;
 		}
 
+#ifdef SFG_TOOLMODE
+
+		inline render_pass_object_id& get_render_pass_object_id()
+		{
+			return _pass_object_id;
+		}
+
+#endif
+
 	private:
 		// -----------------------------------------------------------------------------
 		// world collect
@@ -108,6 +120,9 @@ namespace SFG
 		render_pass_bloom		  _pass_bloom	  = {};
 		render_pass_post_combiner _pass_post	  = {};
 		render_pass_forward		  _pass_forward	  = {};
+#ifdef SFG_TOOLMODE
+		render_pass_object_id _pass_object_id = {};
+#endif
 
 		vector2ui16 _base_size = vector2ui16::zero;
 	};

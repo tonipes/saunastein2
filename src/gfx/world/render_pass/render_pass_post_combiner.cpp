@@ -86,7 +86,7 @@ namespace SFG
 		per_frame_data& pfd				   = _pfd[p.frame_index];
 		const gfx_id	queue_gfx		   = backend->get_queue_gfx();
 		const gfx_id	cmd_buffer		   = pfd.cmd_buffer;
-		const gfx_id	color_texture	   = pfd.render_target;
+		const gfx_id	render_target	   = pfd.render_target;
 		const gpu_index gpu_index_ubo	   = pfd.ubo.get_gpu_index();
 		const gpu_index gpu_index_lighting = p.gpu_index_lighting;
 		const gpu_index gpu_index_bloom	   = p.gpu_index_bloom;
@@ -97,7 +97,7 @@ namespace SFG
 		static_vector<barrier, 2> barriers;
 
 		barriers.push_back({
-			.resource	 = color_texture,
+			.resource	 = render_target,
 			.flags		 = barrier_flags::baf_is_texture,
 			.from_states = resource_state::resource_state_ps_resource,
 			.to_states	 = resource_state::resource_state_render_target,
@@ -117,7 +117,7 @@ namespace SFG
 		att.clear_color							  = vector4(0, 0, 0, 1.0f);
 		att.load_op								  = load_op::clear;
 		att.store_op							  = store_op::store;
-		att.texture								  = color_texture;
+		att.texture								  = render_target;
 		att.view_index							  = 0;
 
 		backend->cmd_begin_render_pass(cmd_buffer,
@@ -152,7 +152,7 @@ namespace SFG
 		END_DEBUG_EVENT(backend, cmd_buffer);
 
 		barriers.push_back({
-			.resource	 = color_texture,
+			.resource	 = render_target,
 			.flags		 = barrier_flags::baf_is_texture,
 			.from_states = resource_state::resource_state_render_target,
 			.to_states	 = resource_state::resource_state_ps_resource,

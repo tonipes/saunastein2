@@ -148,6 +148,9 @@ namespace SFG
 		_pass_bloom.init(size);
 		_pass_post.init(size);
 		_pass_forward.init(size);
+	#ifdef SFG_TOOLMODE
+		_pass_object_id.init(size);
+	#endif
 	}
 
 	void world_renderer::uninit()
@@ -160,6 +163,9 @@ namespace SFG
 		_pass_bloom.uninit();
 		_pass_post.uninit();
 		_pass_forward.uninit();
+	#ifdef SFG_TOOLMODE
+		_pass_object_id.uninit();
+	#endif
 
 		gfx_backend* backend = gfx_backend::get();
 
@@ -228,6 +234,9 @@ namespace SFG
 		_pass_pre_depth.prepare(_proxy_manager, _renderables, _main_camera_view, frame_index);
 		_pass_opaque.prepare(_proxy_manager, _renderables, _main_camera_view, frame_index);
 		_pass_forward.prepare(_proxy_manager, _renderables, _main_camera_view, frame_index);
+	#ifdef SFG_TOOLMODE
+		_pass_object_id.prepare(_proxy_manager, _renderables, _main_camera_view, frame_index);
+	#endif
 		_pass_lighting.prepare(_proxy_manager, _main_camera_view, frame_index);
 		_pass_ssao.prepare(_main_camera_view, _base_size, frame_index);
 		_pass_bloom.prepare(frame_index);
@@ -251,6 +260,9 @@ namespace SFG
 		const gfx_id cmd_shadows	   = _pass_shadows.get_cmd_buffer(frame_index);
 		const gfx_id cmd_bloom		   = _pass_bloom.get_cmd_buffer(frame_index);
 		const gfx_id cmd_forward	   = _pass_forward.get_cmd_buffer(frame_index);
+	#ifdef SFG_TOOLMODE
+		const gfx_id cmd_object_id	   = _pass_object_id.get_cmd_buffer(frame_index);
+	#endif
 		const gfx_id sem_frame		   = pfd.semp_frame.semaphore;
 		const gfx_id sem_lighting	   = pfd.semp_lighting.semaphore;
 		const gfx_id sem_ssao		   = pfd.semp_ssao.semaphore;
@@ -345,6 +357,20 @@ namespace SFG
 			});
 		});
 
+	#ifdef SFG_TOOLMODE
+		tasks.push_back([&] {
+			_pass_object_id.render({
+				.frame_index		= frame_index,
+				.size				= resolution,
+				.gpu_index_entities = gpu_index_entities,
+				.gpu_index_bones	= gpu_index_bones,
+				.depth_texture		= depth_texture,
+				.global_layout		= layout_global,
+				.global_group		= bind_group_global,
+			});
+		});
+	#endif
+
 		tasks.push_back([&] {
 			_pass_forward.render({
 				.frame_index		= frame_index,
@@ -392,6 +418,11 @@ namespace SFG
 		backend->submit_commands(queue_gfx, &cmd_opaque, 1);
 		backend->queue_signal(queue_gfx, &sem_ssao, &sem_ssao_val0, 1);
 
+	#ifdef SFG_TOOLMODE
+		// object-id pass (no dependencies besides depth)
+		backend->submit_commands(queue_gfx, &cmd_object_id, 1);
+	#endif
+
 		// SSAO waits for opaque, signals after done
 		backend->queue_wait(queue_compute, &sem_ssao, &sem_ssao_val0, 1);
 		backend->submit_commands(queue_compute, &cmd_ssao, 1);
@@ -427,6 +458,9 @@ namespace SFG
 		_pass_ssao.resize(size);
 		_pass_bloom.resize(size);
 		_pass_post.resize(size);
+	#ifdef SFG_TOOLMODE
+		_pass_object_id.resize(size);
+	#endif
 	}
 
 	uint32 world_renderer::add_to_float_buffer(uint8 frame_index, float f)

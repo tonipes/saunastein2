@@ -29,6 +29,8 @@ namespace SFG
 			return 4;
 		case format::r8g8_unorm:
 			return 2;
+		case format::r32_uint:
+			return 4;
 		default:
 			break;
 		}

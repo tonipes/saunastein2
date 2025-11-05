@@ -51,6 +51,7 @@ namespace SFG
 		rf_gpu_only		   = 1 << 5,
 		rf_cpu_visible	   = 1 << 6,
 		rf_gpu_write	   = 1 << 7,
+		rf_readback		   = 1 << 8,
 	};
 
 	enum swapchain_flags
@@ -152,7 +153,7 @@ namespace SFG
 		uint32		   size			   = 0;
 		uint32		   structure_size  = 0;
 		uint32		   structure_count = 0;
-		bitmask<uint8> flags		   = 0;
+		bitmask<uint16> flags		   = 0;
 		const char*	   debug_name	   = "resource";
 	};
 

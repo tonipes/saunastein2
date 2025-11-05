@@ -20,6 +20,9 @@ namespace SFG
 		gpu_index material_constant_index;
 		gpu_index texture_constant_index;
 		gpu_index entity_constant_index; // entity constant maps to object_constant0
+#ifdef SFG_TOOLMODE
+		gpu_index entity_world_id; // extra per-draw constant: actual world_id -> object_constant1
+#endif
 
 		// state bindings
 		gfx_id vb_hw;
@@ -42,6 +45,9 @@ namespace SFG
 		gpu_index material_constant_index;
 		gpu_index texture_constant_index;
 		gpu_index entity_constant_index; // entity constant maps to object_constant0
+#ifdef SFG_TOOLMODE
+		gpu_index entity_world_id; // extra per-draw constant: actual world_id -> object_constant1
+#endif
 
 		// state bindings
 		gfx_id vb_hw;

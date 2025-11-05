@@ -1,0 +1,5 @@
+{
+    "source": "assets/engine/shaders/object/object_id_write.hlsl",
+    "variant_style": "object_id_write"
+}
+

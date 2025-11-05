@@ -882,7 +882,7 @@ namespace SFG
 			allocation_desc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
 			state					 = D3D12_RESOURCE_STATE_GENERIC_READ;
 		}
-		else if (desc.flags.is_set(resource_flags::rf_gpu_write))
+		else if (desc.flags.is_set(resource_flags::rf_readback))
 		{
 			allocation_desc.HeapType = D3D12_HEAP_TYPE_READBACK;
 			state					 = D3D12_RESOURCE_STATE_COPY_DEST;
@@ -1875,7 +1875,6 @@ namespace SFG
 
 		return true;
 	}
-
 
 	uint32 dx12_backend::get_resource_gpu_index(gfx_id id)
 	{
@@ -3022,7 +3021,7 @@ namespace SFG
 		command_buffer&				buffer	 = _command_buffers.get(cmd_id);
 		ID3D12GraphicsCommandList4* cmd_list = buffer.ptr.Get();
 
-		static_vector<CD3DX12_RESOURCE_BARRIER, 512> barriers;
+		static_vector<CD3DX12_RESOURCE_BARRIER, 256> barriers;
 
 		for (uint16 i = 0; i < cmd.barrier_count; i++)
 		{

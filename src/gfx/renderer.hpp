@@ -69,6 +69,11 @@ namespace SFG
 			return s_bind_layout_global_compute;
 		}
 
+		inline world_renderer* get_world_renderer() const
+		{
+			return _world_renderer;
+		}
+
 	private:
 		struct buf_engine_global
 		{

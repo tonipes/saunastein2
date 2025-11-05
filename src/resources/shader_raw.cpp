@@ -27,6 +27,8 @@ namespace SFG
 			return shader_variant_compiler::compile_style_gbuffer_object(*this, shader_text, folder_paths);
 		else if (variant_style.compare("forward_object") == 0)
 			return shader_variant_compiler::compile_style_forward_object(*this, shader_text, folder_paths);
+		else if (variant_style.compare("object_id_write") == 0)
+			return shader_variant_compiler::compile_style_object_id_write(*this, shader_text, folder_paths);
 
 		SFG_ERR("Unrecognize shader variant style: {0} {1}", variant_style, name);
 		return false;

@@ -5,16 +5,18 @@
 #include "common/size_definitions.hpp"
 #include "memory/pool_handle.hpp"
 #include "common/string_id.hpp"
+
+#define NOMINMAX
 #include <limits>
 
 namespace SFG
 {
 
-#define DUMMY_COLOR_TEXTURE_SID	  UINT64_MAX - 1000
-#define DUMMY_NORMAL_TEXTURE_SID  UINT64_MAX - 999
-#define DUMMY_ORM_TEXTURE_SID	  UINT64_MAX - 998
-#define DUMMY_SAMPLER_SID		  UINT64_MAX - 997
-#define DEFAULT_OPAQUE_SHADER_SID UINT64_MAX - 996
+#define DUMMY_COLOR_TEXTURE_SID	   UINT64_MAX - 1000
+#define DUMMY_NORMAL_TEXTURE_SID   UINT64_MAX - 999
+#define DUMMY_ORM_TEXTURE_SID	   UINT64_MAX - 998
+#define DUMMY_SAMPLER_SID		   UINT64_MAX - 997
+#define DEFAULT_OPAQUE_SHADER_SID  UINT64_MAX - 996
 #define DEFAULT_FORWARD_SHADER_SID UINT64_MAX - 995
 
 	typedef pool_handle16 resource_handle;
