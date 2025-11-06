@@ -13,6 +13,7 @@
 #include "memory/bump_allocator.hpp"
 #include "math/matrix4x4.hpp"
 #include "math/vector4.hpp"
+#include "math/vector2.hpp"
 #include "world/world_max_defines.hpp"
 
 namespace SFG
@@ -28,8 +29,12 @@ namespace SFG
 	private:
 		struct ubo
 		{
-			matrix4x4 view_proj = matrix4x4::identity;
-			vector4	  ambient	= vector4::zero;
+			matrix4x4 view_proj	 = matrix4x4::identity;
+			vector4	  ambient	 = vector4::zero;
+			vector4	  camera_pos = vector4::zero;
+
+			vector2 resolution	= vector2::zero;
+			vector2 proj_params = vector2::zero; // tanhalffov, orthohalfheight
 		};
 
 		struct per_frame_data
@@ -65,7 +70,7 @@ namespace SFG
 		// rendering
 		// -----------------------------------------------------------------------------
 
-		void prepare(proxy_manager& pm, const vector<renderable_object>& renderables, const view& main_camera_view, uint8 frame_index);
+		void prepare(proxy_manager& pm, const vector<renderable_object>& renderables, const view& main_camera_view, const vector2ui16& resolution, uint8 frame_index);
 		void render(const render_params& params);
 
 		// -----------------------------------------------------------------------------

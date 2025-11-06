@@ -8,6 +8,7 @@
 #include "gfx/buffer.hpp"
 #include "gfx/common/gfx_constants.hpp"
 #include "memory/bump_allocator.hpp"
+#include "math/vector2.hpp"
 
 namespace SFG
 {
@@ -20,14 +21,15 @@ namespace SFG
 	private:
 		struct ubo
 		{
-			float bloom_strength	   = 0.0f;
-			float exposure			   = 0;
-			int	  tonemap_mode		   = 0;
-			float saturation		   = 1.0f;
-			float wb_temp			   = 0.0f;
-			float wb_tint			   = 0.0f;
-			float reinhard_white_point = 3.0f;
-			float pad;
+			vector2 screen_size			 = vector2::zero;
+			float	bloom_strength		 = 0.0f;
+			float	exposure			 = 0;
+			int		tonemap_mode		 = 0;
+			float	saturation			 = 1.0f;
+			float	wb_temp				 = 0.0f;
+			float	wb_tint				 = 0.0f;
+			float	reinhard_white_point = 3.0f;
+			float	pad;
 		};
 
 		struct per_frame_data
@@ -45,6 +47,7 @@ namespace SFG
 			const vector2ui16& size;
 			gpu_index		   gpu_index_lighting;
 			gpu_index		   gpu_index_bloom;
+			gpu_index		   gpu_index_selection_outline;
 			gfx_id			   global_layout;
 			gfx_id			   global_group;
 		};
@@ -60,7 +63,7 @@ namespace SFG
 		// rendering
 		// -----------------------------------------------------------------------------
 
-		void prepare(uint8 frame_index);
+		void prepare(uint8 frame_index, const vector2ui16& resolution);
 		void render(const render_params& params);
 		void resize(const vector2ui16& size);
 
@@ -71,6 +74,11 @@ namespace SFG
 		inline gpu_index get_output_gpu_index(uint8 frame_index) const
 		{
 			return _pfd[frame_index].gpu_index_render_target;
+		}
+
+		inline gpu_index get_output_hw(uint8 frame_index) const
+		{
+			return _pfd[frame_index].render_target;
 		}
 
 		inline gfx_id get_cmd_buffer(uint8 frame_index) const

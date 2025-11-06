@@ -6,7 +6,7 @@
 struct vs_output
 {
     float4 pos : SV_POSITION;
-    float2 uv  : TEXCOORD0;
+    float2 uv  : uv0;
 };
 
 //------------------------------------------------------------------------------
@@ -19,6 +19,8 @@ struct vs_output
 // reinhard_white_point: ~1..4+ (higher = less compression)
 struct post_params
 {
+    float2 screen_size;
+
     float bloom_strength;        // [0..1+] scales bloom contribution
     float exposure;              // EV (stops). 0=neutral, +1=2x, -1=0.5x
     int   tonemap_mode;          // 0=ACES, 1=Reinhard, 2=None
@@ -134,6 +136,29 @@ float3 reinhard_extended(float3 color, float white_point)
     return (color * (1.0 + color / wp2)) / (1.0 + color);
 }
 
+#ifdef USE_SELECTION_OUTLINE
+
+
+float4 outline(float2 uv, float2 texel_size, float thickness, Texture2D texture)
+{
+	float2 diffUV = texel_size.xy * float2(thickness, thickness);
+ 
+	uv.x = uv.x - diffUV.x;
+	uv.y = uv.y;
+	float4 xDif = texture.SampleLevel(smp_linear, uv, 0);
+	uv.x = uv.x + diffUV.x;
+	xDif -= texture.SampleLevel(smp_linear, uv, 0);
+
+	uv.x = uv.x;
+	uv.y = uv.y - diffUV.y;
+	float4 yDif = texture.SampleLevel(smp_linear, uv, 0);
+	uv.y = uv.y + diffUV.y;
+	yDif -= texture.SampleLevel(smp_linear, uv, 0);
+	return sqrt(xDif*xDif + yDif*yDif);
+}
+
+#endif
+
 //------------------------------------------------------------------------------
 // Pixel Shader
 //------------------------------------------------------------------------------
@@ -143,6 +168,12 @@ float4 PSMain(vs_output IN) : SV_TARGET
     Texture2D<float4> tex_lighting = sfg_get_texture<Texture2D<float4> >(sfg_rp_constant1);
     Texture2D<float4> tex_bloom    = sfg_get_texture<Texture2D<float4> >(sfg_rp_constant2);
 
+#ifdef USE_SELECTION_OUTLINE
+    Texture2D tex_selection   = sfg_get_texture<Texture2D>(sfg_rp_constant3);
+    float2 texel_size = float2(1.0 / params.screen_size.x, 1.0 / params.screen_size.y);
+    float4 selection_color = outline(IN.uv, texel_size, 2.0, tex_selection);
+#endif
+
     // Fetch HDR inputs (mip 0). 
     float3 lighting = tex_lighting.SampleLevel(smp_linear, IN.uv, 0).rgb;
     float3 bloom    = tex_bloom.SampleLevel(smp_linear, IN.uv, 0).rgb;
@@ -151,7 +182,7 @@ float4 PSMain(vs_output IN) : SV_TARGET
     float3 hdr = lighting + bloom * params.bloom_strength;
 
     // Exposure (EV to linear)
-    hdr *= exp2(params.exposure);
+    hdr *= exp2(0);
 
     // guard against tiny negatives before grading/tonemap
     hdr = max(hdr, 0.0);
@@ -164,7 +195,7 @@ float4 PSMain(vs_output IN) : SV_TARGET
 
     // Tonemap to LDR (still linear domain)
     int tonemap_mode = params.tonemap_mode;
-    
+
     float3 ldr;
     if (tonemap_mode == 0)        // ACES
     {
@@ -182,6 +213,8 @@ float4 PSMain(vs_output IN) : SV_TARGET
         ldr = saturate(hdr);
     }
 
-
+#ifdef USE_SELECTION_OUTLINE
+    return float4(ldr, 1.0) + selection_color;
+#endif
     return float4(ldr, 1.0);
 }

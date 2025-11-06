@@ -7,9 +7,9 @@
 #include "gfx/backend/backend.hpp"
 #include "gfx/common/descriptions.hpp"
 #include "gfx/common/commands.hpp"
-#include "gfx/util/gfx_util.hpp"
 #include "gfx/proxy/proxy_manager.hpp"
 #include "gfx/world/view.hpp"
+#include "gfx/util/gfx_util.hpp"
 #include "gfx/world/renderable.hpp"
 #include "gfx/world/renderable_collector.hpp"
 #include "gfx/common/render_target_definitions.hpp"
@@ -56,7 +56,7 @@ namespace SFG
 		_alloc.reset();
 		_draw_stream.prepare(_alloc, MAX_DRAW_CALLS);
 
-		renderable_collector::populate_draw_stream_entity_id(pm, renderables, _draw_stream, 0, frame_index, engine_shaders::get().get_shader(engine_shader_type::engine_shader_type_object_id_write));
+		renderable_collector::populate_draw_stream(pm, renderables, _draw_stream, 0, shader_variant_flags::variant_flag_id_write, frame_index);
 
 		per_frame_data& pfd		 = _pfd[frame_index];
 		const ubo		ubo_data = {
@@ -168,11 +168,11 @@ namespace SFG
 
 	uint32 render_pass_object_id::read_location(uint16 x, uint16 y, uint8 frame_index)
 	{
-		per_frame_data& pfd		 = _pfd[frame_index];
-		const uint32	pixel	 = _size.x * y + x;
-		const uint32	byte_off = pixel * 4;
-		uint32*			data	 = reinterpret_cast<uint32*>(pfd.readback_mapped[byte_off]);
-		return *data;
+		per_frame_data& pfd	  = _pfd[frame_index];
+		const uint32	pixel = _size.x * y + x;
+		uint32*			data  = reinterpret_cast<uint32*>(pfd.readback_mapped);
+		uint32			val	  = data[pixel];
+		return val;
 	}
 
 	void render_pass_object_id::destroy_textures()
@@ -185,8 +185,7 @@ namespace SFG
 
 			backend->destroy_texture(pfd.render_target);
 			backend->destroy_resource(pfd.readback_buffer);
-			pfd.render_target			= NULL_GFX_ID;
-			pfd.gpu_index_color_texture = NULL_GPU_INDEX;
+			pfd.render_target = NULL_GFX_ID;
 		}
 	}
 
@@ -199,7 +198,7 @@ namespace SFG
 		{
 			per_frame_data& pfd = _pfd[i];
 			pfd.render_target	= backend->create_texture({
-				  .texture_format = format::r32_uint,
+				  .texture_format = render_target_definitions::get_format_object_id(),
 				  .size			  = sz,
 				  .flags		  = texture_flags::tf_render_target | texture_flags::tf_is_2d | texture_flags::tf_sampled,
 				  .views		  = {{.type = view_type::render_target}},
@@ -209,8 +208,6 @@ namespace SFG
 
 			pfd.readback_buffer = backend->create_resource({.size = static_cast<uint32>(sz.x * sz.y * 4), .flags = resource_flags::rf_readback, .debug_name = "object_id_readback"});
 			backend->map_resource(pfd.readback_buffer, pfd.readback_mapped);
-
-			pfd.gpu_index_color_texture = backend->get_texture_gpu_index(pfd.render_target, 0);
 		}
 	}
 }

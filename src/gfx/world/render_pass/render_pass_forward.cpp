@@ -2,6 +2,7 @@
 
 #include "render_pass_forward.hpp"
 #include "resources/vertex.hpp"
+#include "math/math.hpp"
 
 // gfx
 #include "gfx/backend/backend.hpp"
@@ -46,7 +47,7 @@ namespace SFG
 		}
 	}
 
-	void render_pass_forward::prepare(proxy_manager& pm, const vector<renderable_object>& renderables, const view& main_camera_view, uint8 frame_index)
+	void render_pass_forward::prepare(proxy_manager& pm, const vector<renderable_object>& renderables, const view& main_camera_view, const vector2ui16& resolution, uint8 frame_index)
 	{
 		_alloc.reset();
 		_draw_stream.prepare(_alloc, MAX_DRAW_CALLS);
@@ -59,8 +60,11 @@ namespace SFG
 
 		per_frame_data& pfd		 = _pfd[frame_index];
 		const ubo		ubo_data = {
-				  .view_proj = main_camera_view.view_proj_matrix,
-				  .ambient	 = vector4(ambient_color.x, ambient_color.y, ambient_color.z, 1.0f),
+				  .view_proj   = main_camera_view.view_proj_matrix,
+				  .ambient	   = vector4(ambient_color.x, ambient_color.y, ambient_color.z, 1.0f),
+				  .camera_pos  = vector4(main_camera_view.position.x, main_camera_view.position.y, main_camera_view.position.z, 1.0f),
+				  .resolution  = vector2(static_cast<float>(resolution.x), static_cast<float>(resolution.y)),
+				  .proj_params = vector2(math::tan(0.5f * main_camera_view.fov_degrees * DEG_2_RAD), 0.0f),
 		  };
 		pfd.ubo.buffer_data(0, &ubo_data, sizeof(ubo));
 	}

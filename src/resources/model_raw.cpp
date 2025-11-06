@@ -770,6 +770,11 @@ namespace SFG
 					raw.textures[3] = emissive_index == -1 ? DUMMY_COLOR_TEXTURE_SID : loaded_textures[loaded_indices.at(emissive_index)].sid;
 				}
 
+				if (raw.sampler_definitions.empty())
+				{
+					raw.sampler_definitions.push_back(samplers.at(0));
+				}
+
 				raw.shader = raw.pass_mode == material_pass_mode::gbuffer ? DEFAULT_OPAQUE_SHADER_SID : DEFAULT_FORWARD_SHADER_SID;
 				SFG_INFO("Created material from gltf: {0}", raw.name);
 			}

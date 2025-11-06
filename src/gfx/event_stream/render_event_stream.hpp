@@ -12,7 +12,7 @@ namespace SFG
 	{
 	public:
 		static constexpr size_t MAX_RENDER_EVENTS = 2048;
-		static constexpr size_t BATCH_SIZE		  = 1024 * 1024;
+		static constexpr size_t BATCH_SIZE		  = 1024 * 1024 * 5;
 		static constexpr size_t MAX_BATCHES		  = 256;
 
 		struct event_batch

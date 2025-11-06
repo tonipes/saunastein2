@@ -406,7 +406,7 @@ namespace SFG
 		SFG_ASSERT(_entities->is_valid(entity));
 		_positions->get(entity.index) = pos;
 		_metas->get(entity.index).flags.set(entity_flags::entity_flags_local_transform_dirty | entity_flags::entity_flags_abs_transform_dirty | entity_flags::entity_flags_render_proxy_dirty);
-		visit_children(entity, [this](world_handle e) { _metas->get(e.index).flags.set(entity_flags::entity_flags_abs_transform_dirty); });
+		visit_children(entity, [this](world_handle e) { _metas->get(e.index).flags.set(entity_flags::entity_flags_abs_transform_dirty | entity_flags::entity_flags_render_proxy_dirty); });
 	}
 
 	void entity_manager::set_entity_position_abs(world_handle entity, const vector3& pos)
@@ -442,7 +442,7 @@ namespace SFG
 		SFG_ASSERT(_entities->is_valid(entity));
 		_rotations->get(entity.index) = rot;
 		_metas->get(entity.index).flags.set(entity_flags::entity_flags_local_transform_dirty | entity_flags::entity_flags_abs_transform_dirty | entity_flags::entity_flags_abs_rotation_dirty | entity_flags::entity_flags_render_proxy_dirty);
-		visit_children(entity, [this](world_handle e) { _metas->get(e.index).flags.set(entity_flags::entity_flags_abs_transform_dirty | entity_flags::entity_flags_abs_rotation_dirty); });
+		visit_children(entity, [this](world_handle e) { _metas->get(e.index).flags.set(entity_flags::entity_flags_abs_transform_dirty | entity_flags::entity_flags_abs_rotation_dirty | entity_flags::entity_flags_render_proxy_dirty); });
 	}
 
 	void entity_manager::set_entity_rotation_abs(world_handle entity, const quat& rot)
@@ -507,7 +507,7 @@ namespace SFG
 		SFG_ASSERT(_entities->is_valid(entity));
 		_scales->get(entity.index) = scale;
 		_metas->get(entity.index).flags.set(entity_flags::entity_flags_local_transform_dirty | entity_flags::entity_flags_abs_transform_dirty | entity_flags::entity_flags_render_proxy_dirty);
-		visit_children(entity, [this](world_handle e) { _metas->get(e.index).flags.set(entity_flags::entity_flags_abs_transform_dirty); });
+		visit_children(entity, [this](world_handle e) { _metas->get(e.index).flags.set(entity_flags::entity_flags_abs_transform_dirty | entity_flags::entity_flags_render_proxy_dirty); });
 	}
 
 	void entity_manager::set_entity_scale_abs(world_handle entity, const vector3& scale)

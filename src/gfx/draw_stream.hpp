@@ -30,6 +30,7 @@ namespace SFG
 		gfx_id pipeline_hw;
 
 		uint16 vertex_size;
+		uint16 priority;
 	};
 
 	struct draw_command_distance
@@ -55,7 +56,9 @@ namespace SFG
 		gfx_id pipeline_hw;
 
 		uint16 vertex_size;
-		float  distance = 0.0f;
+		uint16 priority;
+
+		float distance = 0.0f;
 	};
 
 	static_assert(sizeof(draw_command) <= 64, "cache line pls");

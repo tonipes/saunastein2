@@ -505,13 +505,13 @@ namespace SFG
 #ifdef SFG_TOOLMODE
 		struct resource_watch
 		{
-			string			path		  = "";
-			string_id		type_id		  = 0;
-			resource_handle base_handle	  = {};
-			vector<string>	dependencies  = {};
-			uint8			is_engine_res = 0;
+			string			path		 = "";
+			string_id		type_id		 = 0;
+			resource_handle base_handle	 = {};
+			vector<string>	dependencies = {};
+			string			root_dir	 = "";
 		};
-		void add_resource_watch(resource_handle base_handle, const char* relative_path, const vector<string>& dependencies, string_id type, bool is_engine_dir = false);
+		void add_resource_watch(resource_handle base_handle, const char* relative_path, const vector<string>& dependencies, string_id type, const char* root_dir);
 		void on_watched_resource_modified(const char* path, uint64 last_modified, uint16 id);
 #endif
 

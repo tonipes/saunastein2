@@ -38,7 +38,13 @@ namespace SFG
 		/* compiles variants suitable to use in forward transparency pass. */
 		static bool compile_style_forward_object(shader_raw& raw, const string& shader_text, const vector<string>& folder_path);
 
-		/* compiles variants for object id write pass. */
-		static bool compile_style_object_id_write(shader_raw& raw, const string& shader_text, const vector<string>& folder_path);
+		/* compiles variants for object outline pass. */
+		static bool compile_style_object_outline(shader_raw& raw, const string& shader_text, const vector<string>& folder_path);
+
+		/* compiles variants for post combiner. */
+		static bool compile_style_post_combiner(shader_raw& raw, const string& shader_text, const vector<string>& folder_path);
+
+		/* compiles variants for post combiner. */
+		static bool compile_style_gizmo(shader_raw& raw, const string& shader_text, const vector<string>& folder_path);
 	};
 }

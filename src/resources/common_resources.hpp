@@ -34,11 +34,13 @@ namespace SFG
 
 	enum shader_variant_flags : uint32
 	{
-		variant_flag_skinned		  = 1 << 0,
-		variant_flag_alpha_cutoff	  = 1 << 1,
-		variant_flag_z_prepass		  = 1 << 2,
-		variant_flag_double_sided	  = 1 << 3,
-		variant_flag_shadow_rendering = 1 << 4,
+		variant_flag_skinned		   = 1 << 0,
+		variant_flag_alpha_cutoff	   = 1 << 1,
+		variant_flag_z_prepass		   = 1 << 2,
+		variant_flag_double_sided	   = 1 << 3,
+		variant_flag_shadow_rendering  = 1 << 4,
+		variant_flag_selection_outline = 1 << 5,
+		variant_flag_id_write		   = 1 << 6,
 	};
 
 }

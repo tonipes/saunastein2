@@ -84,6 +84,7 @@ float4 PSMain(vs_output IN) : SV_TARGET
     if (is_background(device_depth))
         return float4(0,0,0,1);
 
+    
     // reconstruct world position
     float2 uv = IN.uv;
     float3 world_pos = reconstruct_world_position(uv, device_depth, rp_data.inv_view_proj);

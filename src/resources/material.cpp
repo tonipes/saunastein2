@@ -46,6 +46,7 @@ namespace SFG
 			SFG_MEMCPY(stg.data.data, _material_data.get_raw(), _material_data.get_size());
 		stg.data.size = _material_data.get_size();
 		stg.flags	  = _flags.value();
+		stg.priority  = raw.draw_priority;
 
 		for (const resource_handle& h : samplers)
 			stg.samplers.push_back(h);

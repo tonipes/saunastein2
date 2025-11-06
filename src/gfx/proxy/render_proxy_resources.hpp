@@ -27,13 +27,14 @@ namespace SFG
 	struct render_proxy_material
 	{
 		buffer											  buffers[BACK_BUFFER_COUNT];
-		buffer											  texture_buffers[BACK_BUFFER_COUNT];
+		buffer											  texture_buffers[BACK_BUFFER_COUNT] = {};
 		gpu_index										  gpu_index_buffers[BACK_BUFFER_COUNT];
 		gpu_index										  gpu_index_texture_buffers[BACK_BUFFER_COUNT];
 		static_vector<resource_id, MAX_MATERIAL_TEXTURES> texture_handles = NULL_RESOURCE_ID;
 		static_vector<resource_id, MAX_MATERIAL_TEXTURES> sampler_handles = NULL_RESOURCE_ID;
 		bitmask<uint32>									  flags			  = 0;
 		resource_id										  shader_handle	  = NULL_RESOURCE_ID;
+		uint16											  draw_priority	  = 0;
 
 		resource_id handle = {};
 		uint8		status = render_proxy_status::rps_inactive;

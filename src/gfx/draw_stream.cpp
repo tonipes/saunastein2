@@ -19,7 +19,9 @@ namespace SFG
 
 	void draw_stream::build()
 	{
-		std::stable_sort(_commands, _commands + _commands_count, [&](auto const& A, auto const& B) { return draw_stream_bound_state::make_sort_key(A.pipeline_hw, A.vb_hw, A.ib_hw) < draw_stream_bound_state::make_sort_key(B.pipeline_hw, B.vb_hw, B.ib_hw); });
+		std::stable_sort(_commands, _commands + _commands_count, [&](auto const& A, auto const& B) {
+			return A.priority < B.priority && draw_stream_bound_state::make_sort_key(A.pipeline_hw, A.vb_hw, A.ib_hw) < draw_stream_bound_state::make_sort_key(B.pipeline_hw, B.vb_hw, B.ib_hw);
+		});
 	}
 
 	void draw_stream::draw(gfx_id cmd_buffer)
@@ -43,6 +45,7 @@ namespace SFG
 				backend->cmd_bind_index_buffers(cmd_buffer, {.buffer = draw.ib_hw, .index_size = static_cast<uint8>(sizeof(primitive_index))});
 
 			backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)&draw.entity_constant_index, .offset = constant_index_object_constant0, .count = 1, .param_index = rpi_constants});
+
 #ifdef SFG_TOOLMODE
 			backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)&draw.entity_world_id, .offset = constant_index_object_constant1, .count = 1, .param_index = rpi_constants});
 #endif
@@ -70,13 +73,17 @@ namespace SFG
 	{
 		std::stable_sort(_commands, _commands + _commands_count, [&](auto const& A, auto const& B) {
 			const float da = A.distance, db = B.distance;
-			if (math::almost_equal(da, db))
-				return draw_stream_bound_state::make_sort_key(A.pipeline_hw, A.vb_hw, A.ib_hw) < draw_stream_bound_state::make_sort_key(B.pipeline_hw, B.vb_hw, B.ib_hw);
-			if (math::is_nan(da))
-				return false;
-			if (math::is_nan(db))
-				return true;
-			return da > db; // farther first
+			if (A.priority == B.priority)
+			{
+				if (math::almost_equal(da, db))
+					return draw_stream_bound_state::make_sort_key(A.pipeline_hw, A.vb_hw, A.ib_hw) < draw_stream_bound_state::make_sort_key(B.pipeline_hw, B.vb_hw, B.ib_hw);
+				if (math::is_nan(da))
+					return false;
+				if (math::is_nan(db))
+					return true;
+				return da > db; // farther first
+			}
+			return A.priority < B.priority;
 		});
 	}
 
@@ -101,6 +108,7 @@ namespace SFG
 				backend->cmd_bind_index_buffers(cmd_buffer, {.buffer = draw.ib_hw, .index_size = static_cast<uint8>(sizeof(primitive_index))});
 
 			backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)&draw.entity_constant_index, .offset = constant_index_object_constant0, .count = 1, .param_index = rpi_constants});
+
 #ifdef SFG_TOOLMODE
 			backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)&draw.entity_world_id, .offset = constant_index_object_constant1, .count = 1, .param_index = rpi_constants});
 #endif

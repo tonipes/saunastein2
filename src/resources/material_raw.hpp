@@ -49,6 +49,7 @@ namespace SFG
 		string				 name				 = "";
 		string_id			 sid				 = 0;
 		vector<sampler_desc> sampler_definitions = {};
+		uint16				 draw_priority		 = 0;
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);

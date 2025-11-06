@@ -142,7 +142,6 @@ namespace SFG
 
 		update_rotation();
 		apply_movement(dt_seconds);
-		_world->get_entity_manager().teleport_entity(_entity);
 	}
 
 	void editor_first_person_controller::update_rotation()

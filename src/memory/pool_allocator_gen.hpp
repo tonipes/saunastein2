@@ -119,11 +119,11 @@ namespace SFG
 
 			reference operator*() const
 			{
-				return *_ptr;
+				return *(_ptr + _current);
 			};
 			pointer operator->()
 			{
-				return _ptr;
+				return (_ptr + _current);
 			}
 
 			iterator& operator++()

@@ -64,6 +64,7 @@ namespace SFG
 		span<uint8>											  data = {};
 		uint32												  flags;
 		resource_id											  shader_index;
+		uint16												  priority = 0;
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);
@@ -76,6 +77,14 @@ namespace SFG
 #endif
 
 		vector<resource_id> meshes;
+		vector<resource_id> materials;
+
+		void serialize(ostream& stream) const;
+		void deserialize(istream& stream);
+	};
+
+	struct render_event_model_update_materials
+	{
 		vector<resource_id> materials;
 
 		void serialize(ostream& stream) const;

@@ -45,5 +45,7 @@ namespace SFG
 		world_handle				   _ambient_entity	= {};
 		world_handle				   _ambient_trait	= {};
 		editor_first_person_controller _camera_controller;
+
+		world_handle _gizmo_entity = {};
 	};
 }

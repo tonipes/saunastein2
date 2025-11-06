@@ -19,6 +19,7 @@
 #include "render_pass/render_pass_forward.hpp"
 #ifdef SFG_TOOLMODE
 #include "render_pass/render_pass_object_id.hpp"
+#include "render_pass/render_pass_selection_outline.hpp"
 #endif
 #include "view.hpp"
 
@@ -94,6 +95,11 @@ namespace SFG
 			return _pass_object_id;
 		}
 
+		inline render_pass_selection_outline& get_render_pass_selection_outline()
+		{
+			return _pass_selection_outline;
+		}
+
 #endif
 
 	private:
@@ -121,7 +127,9 @@ namespace SFG
 		render_pass_post_combiner _pass_post	  = {};
 		render_pass_forward		  _pass_forward	  = {};
 #ifdef SFG_TOOLMODE
-		render_pass_object_id _pass_object_id = {};
+		render_pass_object_id		  _pass_object_id		  = {};
+		render_pass_selection_outline _pass_selection_outline = {};
+		uint32						  _target_world_id		  = 0;
 #endif
 
 		vector2ui16 _base_size = vector2ui16::zero;

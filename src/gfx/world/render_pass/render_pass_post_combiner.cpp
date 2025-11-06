@@ -31,13 +31,17 @@ namespace SFG
 
 		create_textures(size);
 
-		_shader_post_combiner = engine_shaders::get().get_shader(engine_shader_type::engine_shader_type_post_combiner).get_hw();
+		uint32 variant_flags = 0;
+#ifdef SFG_TOOLMODE
+		variant_flags |= shader_variant_flags::variant_flag_selection_outline;
+#endif
+		_shader_post_combiner = engine_shaders::get().get_shader(engine_shader_type::engine_shader_type_post_combiner).get_hw(variant_flags);
 
 #ifdef SFG_TOOLMODE
-		engine_shaders::get().add_reload_listener([this](engine_shader_type type, shader_direct& sh) {
+		engine_shaders::get().add_reload_listener([this, variant_flags](engine_shader_type type, shader_direct& sh) {
 			if (type == engine_shader_type::engine_shader_type_post_combiner)
 			{
-				_shader_post_combiner = sh.get_hw();
+				_shader_post_combiner = sh.get_hw(variant_flags);
 				return;
 			}
 		});
@@ -61,13 +65,14 @@ namespace SFG
 		destroy_textures();
 	}
 
-	void render_pass_post_combiner::prepare(uint8 frame_index)
+	void render_pass_post_combiner::prepare(uint8 frame_index, const vector2ui16& resolution)
 	{
 		_alloc.reset();
 
 		per_frame_data& pfd = _pfd[frame_index];
 
 		const ubo ubo_data = {
+			.screen_size		  = vector2(static_cast<float>(resolution.x), static_cast<float>(resolution.y)),
 			.bloom_strength		  = 0.04f,
 			.exposure			  = 1,
 			.tonemap_mode		  = 1,
@@ -82,15 +87,16 @@ namespace SFG
 
 	void render_pass_post_combiner::render(const render_params& p)
 	{
-		gfx_backend*	backend			   = gfx_backend::get();
-		per_frame_data& pfd				   = _pfd[p.frame_index];
-		const gfx_id	queue_gfx		   = backend->get_queue_gfx();
-		const gfx_id	cmd_buffer		   = pfd.cmd_buffer;
-		const gfx_id	render_target	   = pfd.render_target;
-		const gpu_index gpu_index_ubo	   = pfd.ubo.get_gpu_index();
-		const gpu_index gpu_index_lighting = p.gpu_index_lighting;
-		const gpu_index gpu_index_bloom	   = p.gpu_index_bloom;
-		const gfx_id	sh				   = _shader_post_combiner;
+		gfx_backend*	backend						= gfx_backend::get();
+		per_frame_data& pfd							= _pfd[p.frame_index];
+		const gfx_id	queue_gfx					= backend->get_queue_gfx();
+		const gfx_id	cmd_buffer					= pfd.cmd_buffer;
+		const gfx_id	render_target				= pfd.render_target;
+		const gpu_index gpu_index_ubo				= pfd.ubo.get_gpu_index();
+		const gpu_index gpu_index_lighting			= p.gpu_index_lighting;
+		const gpu_index gpu_index_bloom				= p.gpu_index_bloom;
+		const gpu_index gpu_index_selection_outline = p.gpu_index_selection_outline;
+		const gfx_id	sh							= _shader_post_combiner;
 
 		// RP constants.
 
@@ -129,8 +135,8 @@ namespace SFG
 		backend->cmd_bind_layout(cmd_buffer, {.layout = p.global_layout});
 		backend->cmd_bind_group(cmd_buffer, {.group = p.global_group});
 
-		const uint32 constants[3] = {gpu_index_ubo, gpu_index_lighting, gpu_index_bloom};
-		backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)&constants, .offset = constant_index_rp_constant0, .count = 3, .param_index = rpi_constants});
+		const uint32 constants[4] = {gpu_index_ubo, gpu_index_lighting, gpu_index_bloom, gpu_index_selection_outline};
+		backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)&constants, .offset = constant_index_rp_constant0, .count = 4, .param_index = rpi_constants});
 
 		backend->cmd_set_scissors(cmd_buffer, {.width = static_cast<uint16>(p.size.x), .height = static_cast<uint16>(p.size.y)});
 		backend->cmd_set_viewport(cmd_buffer,
@@ -142,6 +148,7 @@ namespace SFG
 
 								  });
 		backend->cmd_bind_pipeline(cmd_buffer, {.pipeline = sh});
+
 		backend->cmd_draw_instanced(cmd_buffer,
 									{
 										.vertex_count_per_instance = 3,
@@ -193,7 +200,7 @@ namespace SFG
 			per_frame_data& pfd = _pfd[i];
 
 			pfd.render_target			= backend->create_texture({
-						  .texture_format = render_target_definitions::get_format_lighting(),
+						  .texture_format = render_target_definitions::get_format_post_combine(),
 						  .size			  = sz,
 						  .flags		  = texture_flags::tf_render_target | texture_flags::tf_is_2d | texture_flags::tf_sampled,
 						  .views		  = {{.type = view_type::render_target}, {.type = view_type::sampled}},

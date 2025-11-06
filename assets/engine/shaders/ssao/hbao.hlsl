@@ -164,7 +164,7 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
     // Tile the small noise over full-res UV
     Texture2D noise_tex = sfg_get_texture<Texture2D>(sfg_rp_constant3);
     float2 noise = noise_tex.SampleLevel(smp_nearest_repeat, uv_full / 8.0, 0).xy;
-    float rot = atan2(noise.y, noise.x) * params.random_rot_strength;
+    float rot = atan2(noise.y, noise.x) * params.random_rot_strength ;
 
     // Accumulate occlusion over directions and steps
     float ao_accum = 0.0f;
@@ -172,6 +172,8 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
     uint dirs = params.num_dirs;
     uint steps = params.num_steps;
     float rad = params.radius_world;
+    float intensity = params.intensity;
+    float power = params.power;
     
     // March
     for (uint d = 0; d < dirs; ++d)
@@ -185,12 +187,14 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
         float max_horizon = 0.0;
         float jitter01 = frac(dot(noise, float2(12.9898, 78.233)) + d * 0.61803398875);
 
-        for (uint s = 0; s < steps; ++s)
+        for (uint s = 1; s < steps; ++s)
         {
             float stepLen = 1.0f / steps;
             // center-of-bin (0.5) + jitter shift
             float t = (s + 0.5 + jitter01) * stepLen;   // nominally (0,1+j/steps]
-            if (t >= 1.0f) break;                       // optional clamp/early-exit
+            //if (t >= 1.0f) break;                       // optional clamp/early-exit
+
+            t = (float)s / (float)steps;
             float dist = t * rad;
             float3 qVS  = pC + omega * dist;
 
@@ -200,7 +204,6 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
                 break;
 
             float3 pS = fetch_view_pos(uvQ, params.inv_proj);
-
 
             float3 v  = pS - pC;
 
@@ -235,8 +238,8 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
     // Normalize and shape
     float maxAccum = (float)params.num_dirs * (float)params.num_steps;    // loose upper bound
     float ao = ao_accum / (0.5f * maxAccum);               // heuristic normalization
-    ao = saturate(ao * params.intensity);
-    ao = pow(1.0 - ao, params.power);
+    ao = saturate(ao * intensity);
+    ao = pow(1.0 - ao, power);
 
     // Write half-res AO
     RWTexture2D<unorm float> ao_half_out = sfg_get_texture<RWTexture2D<float> >(sfg_rp_constant4);

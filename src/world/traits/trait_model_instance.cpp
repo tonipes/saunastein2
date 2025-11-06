@@ -22,10 +22,13 @@ namespace SFG
 
 	void trait_model_instance::on_add(world& w)
 	{
+		w.get_entity_manager().on_add_render_proxy(_header.entity);
 	}
 
 	void trait_model_instance::on_remove(world& w)
 	{
+		w.get_entity_manager().on_remove_render_proxy(_header.entity);
+
 		trait_manager&	   tm  = w.get_trait_manager();
 		chunk_allocator32& aux = tm.get_aux();
 
@@ -39,7 +42,7 @@ namespace SFG
 		_target_model = model_handle;
 	}
 
-	void trait_model_instance::instantiate_model_to_world(world& w, resource_handle model_handle, resource_handle* materials, uint32 materials_count)
+	void trait_model_instance::instantiate_model_to_world(world& w, resource_handle model_handle)
 	{
 		set_model(_target_model = model_handle);
 
@@ -50,11 +53,6 @@ namespace SFG
 		chunk_allocator32& res_aux = res.get_aux();
 
 		model& mdl = res.get_resource<model>(model_handle);
-		if (mdl.get_material_count() == 0 && materials == nullptr)
-		{
-			SFG_ERR("No materials are provided for given model, this is not supported!");
-			return;
-		}
 
 		// Destroy all entities spawned for this previously.
 		if (_root_entities_count != 0)
@@ -173,12 +171,11 @@ namespace SFG
 			const vector3&	   scale = em.get_entity_scale(e);
 			SFG_INFO("entity: {0} - gen: {1} - index: {2}", meta.name, e.generation, e.index);
 		};
-	
-		//for (world_handle e : root_entities)
-		//{
-		//	report_entity(e);
-		//}
-		
+
+		for (world_handle e : root_entities)
+		{
+			report_entity(e);
+		}
 
 		for (world_handle r : root_entities)
 		{

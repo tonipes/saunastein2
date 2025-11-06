@@ -31,10 +31,12 @@ vs_output VSMain(vs_input IN)
     StructuredBuffer<gpu_entity> entity_buffer = sfg_get_ssbo<gpu_entity>(sfg_rp_constant1);
     gpu_entity entity = entity_buffer[sfg_object_constant0];
 
+    float3 obj_norm;
     float4 obj_pos;
 #ifdef USE_SKINNING
     StructuredBuffer<gpu_bone> bone_buffer =  sfg_get_ssbo<gpu_bone>(sfg_rp_constant2);
     float4 skinned_pos = float4(0,0,0,0);
+    float3 skinned_norm = 0;
     [unroll]
     for (int i = 0; i < 4; ++i)
     {
@@ -42,20 +44,23 @@ vs_output VSMain(vs_input IN)
         float weight      = IN.bone_weights[i];
         float3x4 bone_mat = bone_buffer[bone_index].bone;
         skinned_pos += float4(mul(bone_mat, float4(IN.pos, 1.0f)) * weight, 1.0f);
+        skinned_norm += mul(IN.normal, (float3x3)bone_mat) * weight;
     }
     obj_pos = skinned_pos;
+    obj_norm = normalize(skinned_norm);
 #else
     obj_pos = float4(IN.pos, 1.0f);
+    obj_norm = normalize(IN.normal);
 #endif
 
     float3 world_pos = mul(entity.model, obj_pos).xyz;
+    float3 world_norm = normalize(mul(entity.normal_matrix, float4(obj_norm, 1.0)).xyz);
     OUT.pos = mul(rp_data.view_proj, float4(world_pos, 1.0f));
     return OUT;
 }
 
-uint PSMain(vs_output IN) : SV_Target0
+float4 PSMain(vs_output IN) : SV_Target0
 {
-    // Write actual entity world_id bound at object_constant1
-    return sfg_object_constant1;
+    return float4(1.0, 1.0, 1.0, 1.0);
 }
 

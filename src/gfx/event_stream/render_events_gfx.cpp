@@ -90,6 +90,7 @@ namespace SFG
 		stream << smp_sz;
 		stream << flags;
 		stream << shader_index;
+		stream << priority;
 
 		for (resource_handle h : textures)
 		{
@@ -120,6 +121,7 @@ namespace SFG
 		stream >> smp_sz;
 		stream >> flags;
 		stream >> shader_index;
+		stream >> priority;
 		textures.resize(txt_sz);
 		samplers.resize(smp_sz);
 
@@ -201,6 +203,16 @@ namespace SFG
 	{
 		stream >> prev_id;
 		stream >> new_id;
+	}
+
+	void render_event_model_update_materials::serialize(ostream& stream) const
+	{
+		stream << materials;
+	}
+
+	void render_event_model_update_materials::deserialize(istream& stream)
+	{
+		stream >> materials;
 	}
 
 }

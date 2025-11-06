@@ -20,6 +20,7 @@ namespace SFG
 		render_event_destroy_mesh,
 		render_event_destroy_shader,
 		render_event_create_model,
+		render_event_update_model_materials,
 		render_event_destroy_model,
 		render_event_update_material,
 		render_event_update_mesh_instance,

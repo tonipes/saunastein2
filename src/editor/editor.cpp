@@ -14,6 +14,8 @@
 // gfx
 #include "gfx/renderer.hpp"
 #include "gfx/world/world_renderer.hpp"
+#include "gfx/event_stream/render_events_gfx.hpp"
+#include "gfx/event_stream/render_event_stream.hpp"
 
 // world
 #include "world/world.hpp"
@@ -25,7 +27,9 @@
 
 // resources
 #include "resources/model.hpp"
+#include "resources/model_raw.hpp"
 #include "resources/world_raw.hpp"
+#include "resources/material.hpp"
 
 namespace SFG
 {
@@ -37,7 +41,6 @@ namespace SFG
 
 	void editor::on_init()
 	{
-
 		world_raw raw = {};
 		raw.load_from_file("assets/world/demo_world.stkworld", engine_data::get().get_working_dir().c_str());
 		_game.get_world().create_from_loader(raw);
@@ -45,25 +48,47 @@ namespace SFG
 		create_default_camera();
 		create_demo_content();
 
-		/*
-		debug_console::get()->register_console_function<int, int>("vsync", [this](int v, int tearing) {
-			uint8 flags = {};
+		{
+			world&			  w	 = _game.get_world();
+			entity_manager&	  em = w.get_entity_manager();
+			trait_manager&	  tm = w.get_trait_manager();
+			resource_manager& rm = w.get_resource_manager();
 
-			if (v == 1)
-				flags |= swapchain_flags::sf_vsync_every_v_blank;
-			else if (v == 2)
-				flags |= swapchain_flags::sf_vsync_every_2v_blank;
-			if (tearing == 1)
-				flags |= swapchain_flags::sf_allow_tearing;
+			rm.load_resources(
+				{
+					"assets/engine/shaders/gizmo/gizmo.stkshader",
+					"assets/engine/materials/gizmo_x.stkmat",
+					"assets/engine/materials/gizmo_y.stkmat",
+					"assets/engine/materials/gizmo_z.stkmat",
+					"assets/engine/models/gizmos/gizmos.stkmodel",
+				},
+				false,
+				SFG_ROOT_DIRECTORY);
 
-			SFG_INFO("Setting VSync: {0}, Tearing: {1}", v, tearing);
+			// gizmo model (all).
+			resource_handle gizmos_handle = rm.get_resource_handle_by_hash<model>(TO_SIDC("assets/engine/models/gizmos/gizmos.stkmodel"));
 
-			join_render();
-			_renderer->on_swapchain_flags(flags);
-			kick_off_render();
-		});
+			// get gizmo materials.
+			const resource_handle gizmo_mat0 = rm.get_resource_handle_by_hash<material>(TO_SIDC("assets/engine/materials/gizmo_x.stkmat"));
+			const resource_handle gizmo_mat1 = rm.get_resource_handle_by_hash<material>(TO_SIDC("assets/engine/materials/gizmo_y.stkmat"));
+			const resource_handle gizmo_mat2 = rm.get_resource_handle_by_hash<material>(TO_SIDC("assets/engine/materials/gizmo_z.stkmat"));
 
-		*/
+			// update model materials.
+			const render_event_model_update_materials ev = {
+				.materials =
+					{
+						gizmo_mat1.index,
+						gizmo_mat2.index,
+						gizmo_mat0.index,
+					},
+			};
+			w.get_render_stream().add_event({.index = gizmos_handle.index, .event_type = render_event_update_model_materials}, ev);
+
+			_gizmo_entity						   = em.create_entity("gizmos");
+			world_handle		  gizmos_mi_handle = tm.add_trait<trait_model_instance>(_gizmo_entity);
+			trait_model_instance& gizmos_mi		   = tm.get_trait<trait_model_instance>(gizmos_mi_handle);
+			gizmos_mi.instantiate_model_to_world(w, gizmos_handle);
+		}
 	}
 
 	void editor::on_uninit()
@@ -110,6 +135,10 @@ namespace SFG
 			{
 				const uint32	   id	= _game.get_renderer()->get_world_renderer()->get_render_pass_object_id().read_location(ev.value.x, ev.value.y, 0);
 				const entity_meta& meta = _game.get_world().get_entity_manager().get_entity_meta({.generation = 2, .index = id});
+
+				_game.get_world().get_entity_manager().set_entity_position(_gizmo_entity, _game.get_world().get_entity_manager().get_entity_position_abs({.generation = 2, .index = id}));
+				_game.get_world().get_entity_manager().teleport_entity(_gizmo_entity);
+				_game.get_renderer()->get_world_renderer()->get_render_pass_selection_outline().set_selected_entity_id(id == 0 ? NULL_WORLD_ID : id);
 				SFG_WARN("Pressed on object {0} - name: {1}", id, meta.name);
 			}
 		}

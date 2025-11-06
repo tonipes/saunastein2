@@ -26,7 +26,7 @@ namespace SFG
 		void on_add(world& we);
 		void on_remove(world& w);
 		void set_model(resource_handle model);
-		void instantiate_model_to_world(world& w, resource_handle model, resource_handle* materials = nullptr, uint32 materials_count = 0);
+		void instantiate_model_to_world(world& w, resource_handle model);
 
 		void serialize(ostream& stream, world& w) const;
 		void deserialize(istream& stream, world& w);

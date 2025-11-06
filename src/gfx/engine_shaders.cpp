@@ -30,7 +30,7 @@ namespace SFG
 		paths.push_back("assets/engine/shaders/bloom/bloom_downsample.stkshader");
 		paths.push_back("assets/engine/shaders/bloom/bloom_upsample.stkshader");
 		paths.push_back("assets/engine/shaders/post_combiner/post_combiner.stkshader");
-		paths.push_back("assets/engine/shaders/object/object_id_write.stkshader");
+		paths.push_back("assets/engine/shaders/selection/selection_outline_write.stkshader");
 
 		shader_raw raw = {};
 

@@ -25,7 +25,7 @@ namespace SFG
 		engine_shader_type_bloom_downsample,
 		engine_shader_type_bloom_upsample,
 		engine_shader_type_post_combiner,
-		engine_shader_type_object_id_write,
+		engine_shader_type_object_outline_write,
 		engine_shader_type_max,
 	};
 

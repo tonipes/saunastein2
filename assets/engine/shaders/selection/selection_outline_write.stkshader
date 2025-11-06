@@ -1,0 +1,5 @@
+{
+    "source": "assets/engine/shaders/selection/selection_outline_write.hlsl",
+    "variant_style": "selection_outline"
+}
+

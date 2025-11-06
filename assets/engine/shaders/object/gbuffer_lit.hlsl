@@ -3,6 +3,7 @@
 #include "entity.hlsl"
 #include "normal.hlsl"
 #include "bone.hlsl"
+#include "render_pass_defines.hlsl"
 
 //------------------------------------------------------------------------------
 // In & Outs
@@ -55,15 +56,6 @@ struct vs_output
 
 
 //------------------------------------------------------------------------------
-// Data
-//------------------------------------------------------------------------------
-
-struct render_pass_data
-{
-    float4x4 view_proj;
-};
-
-//------------------------------------------------------------------------------
 // Vertex Shader
 //------------------------------------------------------------------------------
 
@@ -73,7 +65,7 @@ vs_output VSMain(vs_input IN)
 {
     vs_output OUT;
 
-    render_pass_data rp_data = sfg_get_cbv<render_pass_data>(sfg_rp_constant0);
+    render_pass_data_opaque rp_data = sfg_get_cbv<render_pass_data_opaque>(sfg_rp_constant0);
     StructuredBuffer<gpu_entity> entity_buffer = sfg_get_ssbo<gpu_entity>(sfg_rp_constant1);
 
     gpu_entity entity = entity_buffer[sfg_object_constant0];
@@ -115,7 +107,7 @@ vs_output VSMain(vs_input IN)
 {
     vs_output OUT;
 
-    render_pass_data rp_data = sfg_get_cbv<render_pass_data>(sfg_rp_constant0);
+    render_pass_data_opaque rp_data = sfg_get_cbv<render_pass_data_opaque>(sfg_rp_constant0);
     StructuredBuffer<gpu_entity> entity_buffer = sfg_get_ssbo<gpu_entity>(sfg_rp_constant1);
     gpu_entity entity = entity_buffer[sfg_object_constant0];
 
@@ -198,6 +190,15 @@ struct texture_data
     uint gpu_index_sampler;
 };
 
+#ifdef WRITE_ID
+
+uint PSMain(vs_output IN) : SV_TARGET
+{
+    return sfg_object_constant1;
+}
+
+#else
+
 #if defined(USE_ZPREPASS) 
 
 #ifdef USE_ALPHA_CUTOFF
@@ -228,6 +229,7 @@ struct ps_output
 
 ps_output PSMain(vs_output IN)
 {
+    
     ps_output OUT;
 
     material_data mat_data = sfg_get_cbv<material_data>(sfg_mat_constant0);
@@ -285,7 +287,7 @@ ps_output PSMain(vs_output IN)
 
     // emissive
     float3 emissive_tex = tex_emissive.Sample(sampler_default, emissive_uv).rgb;
-    float3 emissive = emissive_tex * mat_data.emissive_and_metallic_factor.xyz;
+    float3 emissive = emissive_tex * mat_data.emissive_and_metallic_factor.xyz * 3;
 
     // outs
     OUT.rt0 = float4(albedo.xyz, 1.0);
@@ -298,3 +300,4 @@ ps_output PSMain(vs_output IN)
 
 #endif
 
+#endif

@@ -833,12 +833,18 @@ namespace SFG
 			proxy.handle				 = index;
 			proxy.flags					 = ev.flags;
 			proxy.shader_handle			 = ev.shader_index;
+			proxy.draw_priority			 = ev.priority;
 
 			for (resource_handle h : ev.textures)
 				proxy.texture_handles.push_back(h.index);
 
 			for (resource_handle h : ev.samplers)
 				proxy.sampler_handles.push_back(h.index);
+
+			if ((ev.samplers.empty() && !ev.textures.empty()) || (!ev.samplers.empty() && ev.textures.empty()))
+			{
+				SFG_ASSERT(false);
+			}
 
 			for (uint8 i = 0; i < BACK_BUFFER_COUNT; i++)
 			{
@@ -860,26 +866,30 @@ namespace SFG
 
 				const uint32 texture_buffer_size = static_cast<uint32>(sizeof(gpu_index) * ev.textures.size() + sizeof(gpu_index) * ev.samplers.size());
 
-				proxy.texture_buffers[i].create_staging_hw(
-					{
-						.size  = texture_buffer_size,
-						.flags = resource_flags::rf_constant_buffer | resource_flags::rf_cpu_visible,
+				if (texture_buffer_size != 0)
+				{
+					proxy.texture_buffers[i].create_staging_hw(
+						{
+							.size  = texture_buffer_size,
+							.flags = resource_flags::rf_constant_buffer | resource_flags::rf_cpu_visible,
 #ifndef SFG_STRIP_DEBUG_NAMES
-						.debug_name = ev.name.c_str(),
+							.debug_name = ev.name.c_str(),
 #endif
-					},
-					{
-						.size  = texture_buffer_size,
-						.flags = resource_flags::rf_constant_buffer | resource_flags::rf_gpu_only,
+						},
+						{
+							.size  = texture_buffer_size,
+							.flags = resource_flags::rf_constant_buffer | resource_flags::rf_gpu_only,
 #ifndef SFG_STRIP_DEBUG_NAMES
-						.debug_name = ev.name.c_str(),
+							.debug_name = ev.name.c_str(),
 #endif
-					});
+						});
+
+					proxy.gpu_index_texture_buffers[i] = backend->get_resource_gpu_index(proxy.texture_buffers[i].get_hw_gpu());
+				}
 
 				proxy.buffers[i].buffer_data(0, ev.data.data, ev.data.size);
 
-				proxy.gpu_index_buffers[i]		   = backend->get_resource_gpu_index(proxy.buffers[i].get_hw_gpu());
-				proxy.gpu_index_texture_buffers[i] = backend->get_resource_gpu_index(proxy.texture_buffers[i].get_hw_gpu());
+				proxy.gpu_index_buffers[i] = backend->get_resource_gpu_index(proxy.buffers[i].get_hw_gpu());
 
 				size_t offset = 0;
 
@@ -904,10 +914,13 @@ namespace SFG
 					.to_state = resource_state::resource_state_vertex_cbv,
 				});
 
-				_buffer_queue.add_request({
-					.buffer	  = &proxy.texture_buffers[i],
-					.to_state = resource_state::resource_state_vertex_cbv,
-				});
+				if (texture_buffer_size != 0)
+				{
+					_buffer_queue.add_request({
+						.buffer	  = &proxy.texture_buffers[i],
+						.to_state = resource_state::resource_state_vertex_cbv,
+					});
+				}
 			}
 
 			SFG_FREE(ev.data.data);
@@ -952,6 +965,31 @@ namespace SFG
 				for (uint32 i = 0; i < proxy.mesh_count; i++)
 					meshes[i] = ev.meshes[i];
 			}
+
+			if (proxy.material_count != 0)
+			{
+				proxy.materials	  = _aux_memory.allocate<resource_id>(proxy.material_count);
+				resource_id* mats = _aux_memory.get<resource_id>(proxy.materials);
+				for (uint32 i = 0; i < proxy.material_count; i++)
+					mats[i] = ev.materials[i];
+			}
+		}
+		else if (type == render_event_type::render_event_update_model_materials)
+		{
+			render_proxy_model&					proxy = get_model(index);
+			render_event_model_update_materials ev	  = {};
+			ev.deserialize(stream);
+
+			const uint32 sz = static_cast<uint32>(ev.materials.size());
+
+			if (sz != proxy.material_count)
+			{
+				if (proxy.materials.size != 0)
+					_aux_memory.free(proxy.materials);
+				proxy.materials = {};
+			}
+
+			proxy.material_count = sz;
 
 			if (proxy.material_count != 0)
 			{
@@ -1137,8 +1175,12 @@ namespace SFG
 		for (uint8 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
 			const uint8 safe_bucket = (frame_info::get_render_frame() + i) % (BACK_BUFFER_COUNT + 1);
-			add_to_destroy_bucket({.id = proxy.texture_buffers[i].get_hw_staging(), .type = destroy_data_type::resource}, safe_bucket);
-			add_to_destroy_bucket({.id = proxy.texture_buffers[i].get_hw_gpu(), .type = destroy_data_type::resource}, safe_bucket);
+			if (!proxy.texture_handles.empty())
+			{
+				add_to_destroy_bucket({.id = proxy.texture_buffers[i].get_hw_staging(), .type = destroy_data_type::resource}, safe_bucket);
+				add_to_destroy_bucket({.id = proxy.texture_buffers[i].get_hw_gpu(), .type = destroy_data_type::resource}, safe_bucket);
+			}
+
 			add_to_destroy_bucket({.id = proxy.buffers[i].get_hw_staging(), .type = destroy_data_type::resource}, safe_bucket);
 			add_to_destroy_bucket({.id = proxy.buffers[i].get_hw_gpu(), .type = destroy_data_type::resource}, safe_bucket);
 		}
