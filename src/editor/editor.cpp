@@ -39,8 +39,9 @@ namespace SFG
 
 	editor::~editor() = default;
 
-	void editor::on_init()
+	void editor::init(texture_queue* tq, const vector2ui16& size)
 	{
+		// Panels init
 		world_raw raw = {};
 		raw.load_from_file("assets/world/demo_world.stkworld", engine_data::get().get_working_dir().c_str());
 		_game.get_world().create_from_loader(raw);
@@ -48,6 +49,7 @@ namespace SFG
 		create_default_camera();
 		create_demo_content();
 
+		/*
 		{
 			world&			  w	 = _game.get_world();
 			entity_manager&	  em = w.get_entity_manager();
@@ -88,25 +90,27 @@ namespace SFG
 			world_handle		  gizmos_mi_handle = tm.add_trait<trait_model_instance>(_gizmo_entity);
 			trait_model_instance& gizmos_mi		   = tm.get_trait<trait_model_instance>(gizmos_mi_handle);
 			gizmos_mi.instantiate_model_to_world(w, gizmos_handle);
-		}
+		}*/
+
+		_gui_renderer.init(tq, size);
 	}
 
-	void editor::on_uninit()
+	void editor::uninit()
 	{
 		destroy_demo_content();
 	}
 
-	void editor::on_tick(float dt_seconds)
+	void editor::uninit_gfx()
+	{
+		_gui_renderer.uninit();
+	}
+	void editor::tick(float dt_seconds)
 	{
 		if (_camera_controller.is_active())
 			_camera_controller.tick(dt_seconds);
 	}
 
-	void editor::on_post_tick(double)
-	{
-	}
-
-	void editor::on_render()
+	void editor::post_tick(double)
 	{
 	}
 
@@ -133,17 +137,31 @@ namespace SFG
 		{
 			if (ev.button == input_code::mouse_0 && ev.value.x > 0 && ev.value.y > 0)
 			{
-				const uint32	   id	= _game.get_renderer()->get_world_renderer()->get_render_pass_object_id().read_location(ev.value.x, ev.value.y, 0);
-				const entity_meta& meta = _game.get_world().get_entity_manager().get_entity_meta({.generation = 2, .index = id});
-
-				_game.get_world().get_entity_manager().set_entity_position(_gizmo_entity, _game.get_world().get_entity_manager().get_entity_position_abs({.generation = 2, .index = id}));
-				_game.get_world().get_entity_manager().teleport_entity(_gizmo_entity);
-				_game.get_renderer()->get_world_renderer()->get_render_pass_selection_outline().set_selected_entity_id(id == 0 ? NULL_WORLD_ID : id);
-				SFG_WARN("Pressed on object {0} - name: {1}", id, meta.name);
+				// const uint32	   id	= _game.get_renderer()->get_world_renderer()->get_render_pass_object_id().read_location(ev.value.x, ev.value.y, 0);
+				// const entity_meta& meta = _game.get_world().get_entity_manager().get_entity_meta({.generation = 2, .index = id});
+				// _game.get_world().get_entity_manager().set_entity_position(_gizmo_entity, _game.get_world().get_entity_manager().get_entity_position_abs({.generation = 2, .index = id}));
+				// _game.get_world().get_entity_manager().teleport_entity(_gizmo_entity);
+				// _game.get_renderer()->get_world_renderer()->get_render_pass_selection_outline().set_selected_entity_id(id == 0 ? NULL_WORLD_ID : id);
+				// SFG_WARN("Pressed on object {0} - name: {1}", id, meta.name);
 			}
 		}
 
 		return true;
+	}
+
+	void editor::prepare_render(gfx_id cmd_buffer, uint8 frame_index)
+	{
+		_gui_renderer.prepare(cmd_buffer, frame_index);
+	}
+
+	void editor::render_in_swapchain(gfx_id cmd_buffer, uint8 frame_index, bump_allocator& alloc)
+	{
+		_gui_renderer.render_in_swapchain(cmd_buffer, frame_index, alloc);
+	}
+
+	void editor::resize(const vector2ui16& size)
+	{
+		_gui_renderer.resize(size);
 	}
 
 	void editor::create_default_camera()

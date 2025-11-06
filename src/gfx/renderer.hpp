@@ -29,11 +29,12 @@ namespace SFG
 	class world_renderer;
 	class world;
 	class render_event_stream;
+	class editor;
 
 	class renderer
 	{
 	public:
-		renderer(window& win, world& w, render_event_stream& event_stream);
+		renderer(window& win, world& w, render_event_stream& event_stream, void* editor);
 
 		// -----------------------------------------------------------------------------
 		// lifecycle
@@ -72,6 +73,11 @@ namespace SFG
 		inline world_renderer* get_world_renderer() const
 		{
 			return _world_renderer;
+		}
+
+		inline texture_queue* get_texture_queue()
+		{
+			return &_texture_queue;
 		}
 
 	private:
@@ -114,6 +120,10 @@ namespace SFG
 
 #ifdef SFG_USE_DEBUG_CONTROLLER
 		debug_controller _debug_controller = {};
+#endif
+
+#ifdef SFG_TOOLMODE
+		editor* _editor = nullptr;
 #endif
 
 		vector<barrier> _reuse_upload_barriers = {};

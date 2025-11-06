@@ -40,7 +40,6 @@ namespace SFG
 		void init(texture_queue* texture_queue, gfx_id global_bind_layout, const vector2ui16& screen_size);
 		void uninit();
 		void tick();
-		void collect_barriers(static_vector<barrier, 8>& out_barriers);
 		void prepare(uint8 frame_index);
 		void render(gfx_id cmd_buffer, uint8 frame_index, bump_allocator& alloc);
 		void on_window_resize(const vector2ui16& size);

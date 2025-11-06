@@ -99,8 +99,13 @@ namespace SFG
 			return init_status::engine_shaders_failed;
 		}
 
-		// renderer
-		_renderer = new renderer(*_main_window, *_world, _render_stream);
+// renderer
+#ifdef SFG_TOOLMODE
+		_editor	  = new editor(*this);
+		_renderer = new renderer(*_main_window, *_world, _render_stream, _editor);
+#else
+		_renderer = new renderer(*_main_window, *_world, _render_stream, nullptr);
+#endif
 		if (!_renderer->init())
 		{
 			time::uninit();
@@ -120,8 +125,7 @@ namespace SFG
 
 		// editor
 #ifdef SFG_TOOLMODE
-		_editor = new editor(*this);
-		_editor->on_init();
+		_editor->init(_renderer->get_texture_queue(), _main_window->get_size());
 #endif
 
 		// finalize
@@ -135,9 +139,7 @@ namespace SFG
 	{
 		// editor
 #ifdef SFG_TOOLMODE
-		_editor->on_uninit();
-		delete _editor;
-		_editor = nullptr;
+		_editor->uninit();
 #endif
 		// world
 		_world->uninit();
@@ -146,6 +148,13 @@ namespace SFG
 
 		// renderer
 		join_render();
+
+#ifdef SFG_TOOLMODE
+		_editor->uninit_gfx();
+		delete _editor;
+		_editor = nullptr;
+#endif
+
 		_render_stream.publish();
 		_renderer->uninit();
 		renderer::destroy_bind_layout_global();
@@ -216,7 +225,7 @@ namespace SFG
 				accumulator_ns -= FIXED_INTERVAL_NS;
 				_world->tick(ws, dt_seconds);
 #ifdef SFG_TOOLMODE
-				_editor->on_tick(dt_seconds);
+				_editor->tick(dt_seconds);
 #endif
 				ticks++;
 			}
@@ -226,7 +235,7 @@ namespace SFG
 			_world->post_tick(interpolation);
 
 #ifdef SFG_TOOLMODE
-			_editor->on_post_tick(interpolation);
+			_editor->post_tick(interpolation);
 			engine_shaders::get().tick();
 #endif
 
@@ -282,10 +291,6 @@ namespace SFG
 
 		while (_render_joined.load(std::memory_order_acquire) == 0)
 		{
-
-#ifdef SFG_TOOLMODE
-			_editor->on_render();
-#endif
 			_renderer->render();
 			frame_info::s_render_frame.fetch_add(1);
 

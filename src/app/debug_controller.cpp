@@ -26,10 +26,6 @@
 #include "serialization/serialization.hpp"
 #include "io/file_system.hpp"
 
-#define VEKT_STRING_CSTR
-#define VEKT_VEC4 SFG::vector4
-#define VEKT_VEC2 SFG::vector2
-#define VEKT_IMPL
 #include "gui/vekt.hpp"
 
 namespace SFG
@@ -573,38 +569,6 @@ namespace SFG
 		_vekt_data.builder->flush();
 	}
 
-	void debug_controller::collect_barriers(static_vector<barrier, 8>& out_barriers)
-	{
-		per_frame_data& pfd = _pfd[_gfx_data.frame_index];
-		out_barriers.push_back({
-			.resource	 = pfd.rt_console,
-			.flags		 = barrier_flags::baf_is_texture,
-			.from_states = resource_state::resource_state_ps_resource,
-			.to_states	 = resource_state::resource_state_render_target,
-		});
-
-		out_barriers.push_back({
-			.resource	 = pfd.rt_fullscreen,
-			.flags		 = barrier_flags::baf_is_texture,
-			.from_states = resource_state::resource_state_ps_resource,
-			.to_states	 = resource_state::resource_state_render_target,
-		});
-
-		out_barriers.push_back({
-			.resource	 = pfd.buf_gui_idx.get_hw_gpu(),
-			.flags		 = barrier_flags::baf_is_resource,
-			.from_states = resource_state::resource_state_index_buffer,
-			.to_states	 = resource_state::resource_state_copy_dest,
-		});
-
-		out_barriers.push_back({
-			.resource	 = pfd.buf_gui_vtx.get_hw_gpu(),
-			.flags		 = barrier_flags::baf_is_resource,
-			.from_states = resource_state::resource_state_vertex_cbv,
-			.to_states	 = resource_state::resource_state_copy_dest,
-		});
-	}
-
 	void debug_controller::tick()
 	{
 		const char* cmd = nullptr;
@@ -631,29 +595,60 @@ namespace SFG
 		const uint32	  gui_pass_gpu_index   = pfd.buf_gui_pass_view.get_gpu_index();
 
 		// Copy vtx idx buffers. First transition barriers will be executed via collect_barriers
-		{
-			if (pfd.counter_vtx != 0)
-				pfd.buf_gui_vtx.copy_region(cmd_buffer, 0, pfd.counter_vtx * sizeof(vekt::vertex));
+		static_vector<barrier, 4> barriers;
 
-			if (pfd.counter_idx != 0)
-				pfd.buf_gui_idx.copy_region(cmd_buffer, 0, pfd.counter_idx * sizeof(vekt::index));
+		barriers.push_back({
+			.resource	 = pfd.rt_console,
+			.flags		 = barrier_flags::baf_is_texture,
+			.from_states = resource_state::resource_state_ps_resource,
+			.to_states	 = resource_state::resource_state_render_target,
+		});
 
-			static_vector<barrier, 2> barriers_bufs;
-			barriers_bufs.push_back({
-				.resource	 = pfd.buf_gui_idx.get_hw_gpu(),
-				.flags		 = barrier_flags::baf_is_resource,
-				.from_states = resource_state::resource_state_copy_dest,
-				.to_states	 = resource_state::resource_state_index_buffer,
-			});
+		barriers.push_back({
+			.resource	 = pfd.rt_fullscreen,
+			.flags		 = barrier_flags::baf_is_texture,
+			.from_states = resource_state::resource_state_ps_resource,
+			.to_states	 = resource_state::resource_state_render_target,
+		});
 
-			barriers_bufs.push_back({
-				.resource	 = pfd.buf_gui_vtx.get_hw_gpu(),
-				.flags		 = barrier_flags::baf_is_resource,
-				.from_states = resource_state::resource_state_copy_dest,
-				.to_states	 = resource_state::resource_state_vertex_cbv,
-			});
-			backend->cmd_barrier(cmd_buffer, {.barriers = barriers_bufs.data(), .barrier_count = 2});
-		}
+		barriers.push_back({
+			.resource	 = pfd.buf_gui_idx.get_hw_gpu(),
+			.flags		 = barrier_flags::baf_is_resource,
+			.from_states = resource_state::resource_state_index_buffer,
+			.to_states	 = resource_state::resource_state_copy_dest,
+		});
+
+		barriers.push_back({
+			.resource	 = pfd.buf_gui_vtx.get_hw_gpu(),
+			.flags		 = barrier_flags::baf_is_resource,
+			.from_states = resource_state::resource_state_vertex_cbv,
+			.to_states	 = resource_state::resource_state_copy_dest,
+		});
+
+		backend->cmd_barrier(cmd_buffer, {.barriers = barriers.data(), .barrier_count = static_cast<uint16>(barriers.size())});
+		barriers.resize(0);
+
+		if (pfd.counter_vtx != 0)
+			pfd.buf_gui_vtx.copy_region(cmd_buffer, 0, pfd.counter_vtx * sizeof(vekt::vertex));
+
+		if (pfd.counter_idx != 0)
+			pfd.buf_gui_idx.copy_region(cmd_buffer, 0, pfd.counter_idx * sizeof(vekt::index));
+
+		barriers.push_back({
+			.resource	 = pfd.buf_gui_idx.get_hw_gpu(),
+			.flags		 = barrier_flags::baf_is_resource,
+			.from_states = resource_state::resource_state_copy_dest,
+			.to_states	 = resource_state::resource_state_index_buffer,
+		});
+
+		barriers.push_back({
+			.resource	 = pfd.buf_gui_vtx.get_hw_gpu(),
+			.flags		 = barrier_flags::baf_is_resource,
+			.from_states = resource_state::resource_state_copy_dest,
+			.to_states	 = resource_state::resource_state_vertex_cbv,
+		});
+		backend->cmd_barrier(cmd_buffer, {.barriers = barriers.data(), .barrier_count = static_cast<uint16>(barriers.size())});
+		barriers.resize(0);
 
 		render_pass_color_attachment* attachment_console_rt = alloc.allocate<render_pass_color_attachment>(1);
 		attachment_console_rt->clear_color					= vector4(0.0f, 0.0f, 0.0f, 1.0f);
@@ -720,14 +715,15 @@ namespace SFG
 		backend->cmd_end_render_pass(cmd_buffer, {});
 		END_DEBUG_EVENT(backend, cmd_buffer);
 
-		const barrier br_rt = {
+		barriers.push_back({
 			.resource	 = rt_console,
 			.flags		 = barrier_flags::baf_is_texture,
 			.from_states = resource_state::resource_state_render_target,
 			.to_states	 = resource_state::resource_state_ps_resource,
-		};
+		});
 
-		backend->cmd_barrier(cmd_buffer, {.barriers = &br_rt, .barrier_count = 1});
+		backend->cmd_barrier(cmd_buffer, {.barriers = barriers.data(), .barrier_count = static_cast<uint16>(barriers.size())});
+		barriers.resize(0);
 
 		BEGIN_DEBUG_EVENT(backend, cmd_buffer, "debug_controller_post");
 		backend->cmd_begin_render_pass(cmd_buffer, {.color_attachments = attachment_fullscreen_rt, .color_attachment_count = 1});
@@ -753,13 +749,15 @@ namespace SFG
 		backend->cmd_end_render_pass(cmd_buffer, {});
 		END_DEBUG_EVENT(backend, cmd_buffer);
 
-		const barrier br_rt_fs = {
+		barriers.push_back({
 			.resource	 = rt_fullscreen,
 			.flags		 = barrier_flags::baf_is_texture,
 			.from_states = resource_state::resource_state_render_target,
 			.to_states	 = resource_state::resource_state_ps_resource,
-		};
-		backend->cmd_barrier(cmd_buffer, {.barriers = &br_rt_fs, .barrier_count = 1});
+		});
+
+		backend->cmd_barrier(cmd_buffer, {.barriers = barriers.data(), .barrier_count = static_cast<uint16>(barriers.size())});
+		barriers.resize(0);
 	}
 
 	void debug_controller::on_draw(const vekt::draw_buffer& buffer)
@@ -882,9 +880,6 @@ namespace SFG
 		static_vector<texture_buffer, MAX_TEXTURE_MIPS> buffers;
 		buffers.push_back(ref.buffer);
 		controller->_gfx_data.texture_queue->add_request(buffers, ref.texture, ref.intermediate_buffer, 0, resource_state::resource_state_ps_resource);
-
-		const int32 index  = std::distance(it, controller->_gfx_data.atlases.begin());
-		uint8*		pixels = ref.buffer.pixels;
 	}
 
 	void debug_controller::on_atlas_destroyed(vekt::atlas* atlas, void* user_data)

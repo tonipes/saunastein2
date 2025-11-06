@@ -20,14 +20,21 @@
 #include "resources/common_resources.hpp"
 #include "engine_shaders.hpp"
 
+#ifdef SFG_TOOLMODE
+#include "editor/editor.hpp"
+#endif
+
 namespace SFG
 {
 	gfx_id renderer::s_bind_group_global[BACK_BUFFER_COUNT] = {};
 	gfx_id renderer::s_bind_layout_global					= 0;
 	gfx_id renderer::s_bind_layout_global_compute			= 0;
 
-	renderer::renderer(window& win, world& w, render_event_stream& event_stream) : _world(w), _main_window(win), _event_stream(event_stream), _proxy_manager(_buffer_queue, _texture_queue)
+	renderer::renderer(window& win, world& w, render_event_stream& event_stream, void* edt) : _world(w), _main_window(win), _event_stream(event_stream), _proxy_manager(_buffer_queue, _texture_queue)
 	{
+#ifdef SFG_TOOLMODE
+		_editor = reinterpret_cast<editor*>(edt);
+#endif
 		_reuse_upload_barriers.reserve(256);
 	}
 
@@ -68,6 +75,7 @@ namespace SFG
 #ifdef SFG_USE_DEBUG_CONTROLLER
 		_debug_controller.init(&_texture_queue, s_bind_layout_global, _base_size);
 #endif
+
 		_world_renderer = new world_renderer(_proxy_manager);
 		_world_renderer->init(_base_size, &_texture_queue, &_buffer_queue);
 
@@ -276,24 +284,29 @@ namespace SFG
 		const buf_engine_global globals = {};
 		pfd.buf_engine_global.buffer_data(0, (void*)&globals, sizeof(buf_engine_global));
 
-		// Handle debug controller
-		{
-			_debug_controller.prepare(frame_index);
-			static_vector<barrier, 8> barriers;
-			barriers.push_back({
-				.resource	 = render_target,
-				.flags		 = barrier_flags::baf_is_swapchain,
-				.from_states = resource_state::resource_state_present,
-				.to_states	 = resource_state::resource_state_render_target,
-			});
-			_debug_controller.collect_barriers(barriers);
-			backend->cmd_barrier(cmd_list,
-								 {
-									 .barriers		= barriers.data(),
-									 .barrier_count = static_cast<uint16>(barriers.size()),
-								 });
-			_debug_controller.render(cmd_list, frame_index, alloc);
-		}
+		static_vector<barrier, 1> barriers;
+		barriers.push_back({
+			.resource	 = render_target,
+			.flags		 = barrier_flags::baf_is_swapchain,
+			.from_states = resource_state::resource_state_present,
+			.to_states	 = resource_state::resource_state_render_target,
+		});
+
+		backend->cmd_barrier(cmd_list,
+							 {
+								 .barriers		= barriers.data(),
+								 .barrier_count = static_cast<uint16>(barriers.size()),
+							 });
+		barriers.resize(0);
+
+#ifdef SFG_USE_DEBUG_CONTROLLER
+		_debug_controller.prepare(frame_index);
+		_debug_controller.render(cmd_list, frame_index, alloc);
+#endif
+
+#ifdef SFG_TOOLMODE
+		_editor->prepare_render(cmd_list, frame_index);
+#endif
 
 		_world_renderer->prepare(frame_index);
 		_world_renderer->render(frame_index, layout_global, layout_global_compute, bg_global, prev_copy_value, next_copy_value, sem_copy);
@@ -334,27 +347,27 @@ namespace SFG
 
 			backend->cmd_bind_pipeline(cmd_list, {.pipeline = shader_swp});
 			backend->cmd_draw_instanced(cmd_list, {.vertex_count_per_instance = 6, .instance_count = 1});
+
+#ifdef SFG_TOOLMODE
+			// Draw editor GUI on top, in the same pass
+			_editor->render_in_swapchain(cmd_list, frame_index, alloc);
+#endif
 			backend->cmd_end_render_pass(cmd_list, {});
 			END_DEBUG_EVENT(backend, cmd_list);
 		}
 
-		// Rt -> Present Barrier
-		{
-			static_vector<barrier, 1> barriers;
+		barriers.push_back({
+			.resource	 = render_target,
+			.flags		 = barrier_flags::baf_is_swapchain,
+			.from_states = resource_state::resource_state_render_target,
+			.to_states	 = resource_state::resource_state_present,
+		});
 
-			barriers.push_back({
-				.resource	 = render_target,
-				.flags		 = barrier_flags::baf_is_swapchain,
-				.from_states = resource_state::resource_state_render_target,
-				.to_states	 = resource_state::resource_state_present,
-			});
-
-			backend->cmd_barrier(cmd_list,
-								 {
-									 .barriers		= barriers.data(),
-									 .barrier_count = static_cast<uint16>(barriers.size()),
-								 });
-		}
+		backend->cmd_barrier(cmd_list,
+							 {
+								 .barriers		= barriers.data(),
+								 .barrier_count = static_cast<uint16>(barriers.size()),
+							 });
 
 		/*
 			End the frame command list.
@@ -403,6 +416,9 @@ namespace SFG
 
 #ifdef SFG_USE_DEBUG_CONTROLLER
 		_debug_controller.on_window_resize(size);
+#endif
+#ifdef SFG_TOOLMODE
+		_editor->resize(size);
 #endif
 
 		for (uint8 i = 0; i < BACK_BUFFER_COUNT; i++)

@@ -125,6 +125,7 @@ src/gfx/world/render_pass/*.cpp
 src/gfx/event_stream/*.cpp
 src/gfx/proxy/*.cpp
 src/resources/*.cpp
+src/gui/*.cpp
 src/game/*.cpp
 src/game/traits/*.cpp
 src/world/*.cpp
@@ -199,15 +200,23 @@ set(ICON ${PROJECT_SOURCE_DIR})
 
 endif()
 
-file(GLOB EDITOR_SOURCES CONFIGURE_DEPENDS src/editor/*.cpp)
-file(GLOB EDITOR_HEADERS CONFIGURE_DEPENDS src/editor/*.hpp)
+file(GLOB EDITOR_SOURCES CONFIGURE_DEPENDS 
+src/editor/*.cpp
+src/editor/gui/*.cpp
+src/editor/gfx/*.cpp
+)
+
+file(GLOB EDITOR_HEADERS CONFIGURE_DEPENDS 
+src/editor/*.hpp
+src/editor/gui/*.hpp
+src/editor/gfx/*.hpp
+
+)
 
 # ------------- TARGET -------------
 
 if (WIN32)
     add_executable(${PROJECT_NAME} WIN32)
-    # Prevent FXC from compiling HLSL automatically
-    set_source_files_properties(${SHADERS} PROPERTIES HEADER_FILE_ONLY ON)
 else()
     add_executable(${PROJECT_NAME} MACOSX_BUNDLE)
 endif()
@@ -217,7 +226,6 @@ target_sources(${PROJECT_NAME} PRIVATE
     ${HEADERS}
     ${PLATFORM_HEADERS}
     ${PLATFORM_SOURCES}
-    ${SHADERS}
     ${ICON}
     # Only in Debug configs:
     $<$<CONFIG:Debug>:${EDITOR_SOURCES} ${EDITOR_HEADERS}>
@@ -226,7 +234,7 @@ target_sources(${PROJECT_NAME} PRIVATE
 # add_library(${PROJECT_NAME} SHARED
 #     ${SOURCES} ${HEADERS}
 #     ${PLATFORM_HEADERS} ${PLATFORM_SOURCES}
-#     ${SHADERS} ${ICON}
+#     ${ICON}
 # )
 
 include(${CMAKE_SOURCE_DIR}/utils/cmake/executable_settings.cmake)
@@ -242,6 +250,22 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/src/)
 target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/deps/phmap/include)
 
 # ------------- DEPS -------------
+
+# JOLT
+set(CPP_RTTI_ENABLED OFF CACHE BOOL "" FORCE)
+set(USE_STATIC_MSVC_RUNTIME_LIBRARY OFF CACHE BOOL "" FORCE)
+set(OVERRIDE_CXX_FLAGS OFF CACHE BOOL "" FORCE)
+set(OVERRIDE_MSVCCRT OFF CACHE BOOL "" FORCE)
+set(GENERATE_DEBUG_SYMBOLS ON CACHE BOOL "" FORCE)
+set(INTERPROCEDURAL_OPTIMIZATION OFF CACHE BOOL "" FORCE)
+add_subdirectory(deps/JoltPhysics-5.4.0/Build)
+set_property(TARGET Jolt PROPERTY FOLDER Dependencies)
+
+
+if (MSVC)
+  target_compile_options(Jolt PRIVATE /wd4865)  # ignore C4865 for Jolt
+endif()
+
 add_subdirectory(deps/lz4-1.9.4)
 
 if(WIN32)
@@ -276,7 +300,7 @@ PUBLIC lz4
 set_target_properties(lz4 PROPERTIES FOLDER "Dependencies")
 
 include(${CMAKE_SOURCE_DIR}/utils/cmake/common_functions.cmake)
-group_sources(HEADERS SOURCES SHADERS PLATFORM_HEADERS PLATFORM_SOURCES)
+group_sources(HEADERS SOURCES PLATFORM_HEADERS PLATFORM_SOURCES EDITOR_SOURCES EDITOR_HEADERS)
 group_generated()
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)

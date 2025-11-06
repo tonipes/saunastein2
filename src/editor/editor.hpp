@@ -2,15 +2,18 @@
 #pragma once
 
 #include "world/common_world.hpp"
-#include "math/vector2ui16.hpp"
-#include "editor_first_person_controller.hpp"
 #include "resources/common_resources.hpp"
+
+#include "editor_first_person_controller.hpp"
+#include "editor/gfx/editor_gui_renderer.hpp"
 
 namespace SFG
 {
 	struct window_event;
+	struct vector2ui16;
 	class game_app;
 	class trait_model_instance;
+	class texture_queue;
 
 	class editor
 	{
@@ -22,12 +25,20 @@ namespace SFG
 		// lifecycle
 		// -----------------------------------------------------------------------------
 
-		void on_init();
-		void on_uninit();
-		void on_tick(float dt_seconds);
-		void on_post_tick(double interpolation);
-		void on_render();
+		void init(texture_queue* tq, const vector2ui16& size);
+		void uninit();
+		void uninit_gfx();
+		void tick(float dt_seconds);
+		void post_tick(double interpolation);
 		bool on_window_event(const window_event& ev);
+
+		// -----------------------------------------------------------------------------
+		// rendering
+		// -----------------------------------------------------------------------------
+
+		void prepare_render(gfx_id cmd_buffer, uint8 frame_index);
+		void render_in_swapchain(gfx_id cmd_buffer, uint8 frame_index, bump_allocator& alloc);
+		void resize(const vector2ui16& size);
 
 	private:
 		void		create_default_camera();
@@ -45,7 +56,9 @@ namespace SFG
 		world_handle				   _ambient_entity	= {};
 		world_handle				   _ambient_trait	= {};
 		editor_first_person_controller _camera_controller;
+		world_handle				   _gizmo_entity = {};
 
-		world_handle _gizmo_entity = {};
+		// gfx
+		editor_gui_renderer _gui_renderer = {};
 	};
 }
