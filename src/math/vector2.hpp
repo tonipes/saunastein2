@@ -15,11 +15,14 @@ namespace SFG
 	class istream;
 	class ostream;
 
+	struct vector2ui16;
+
 	class vector2
 	{
 	public:
-		vector2(){};
-		vector2(float _x, float _y) : x(_x), y(_y){};
+		vector2() {};
+		vector2(float _x, float _y) : x(_x), y(_y) {};
+		vector2(const vector2ui16& v);
 
 		float x = 0.0f;
 		float y = 0.0f;

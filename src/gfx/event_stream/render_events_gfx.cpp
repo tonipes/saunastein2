@@ -215,4 +215,41 @@ namespace SFG
 		stream >> materials;
 	}
 
+	void render_event_vertex_index_buffer::serialize(ostream& stream) const
+	{
+		stream << max_size;
+		stream << cpu_flags;
+		stream << gpu_flags;
+
+#ifndef SFG_STRIP_DEBUG_NAMES
+		stream << name;
+#endif
+	}
+
+	void render_event_vertex_index_buffer::deserialize(istream& stream)
+	{
+		stream >> max_size;
+		stream >> cpu_flags;
+		stream >> gpu_flags;
+#ifndef SFG_STRIP_DEBUG_NAMES
+		stream >> name;
+#endif
+	}
+
+	void render_event_update_vertex_index_buffer::serialize(ostream& stream) const
+	{
+		SFG_ASSERT(size != 0);
+		stream << item_count;
+		stream << size;
+		stream.write_raw(data, static_cast<size_t>(size));
+	}
+
+	void render_event_update_vertex_index_buffer::deserialize(istream& stream)
+	{
+		stream >> size;
+		stream >> item_count;
+		data = stream.get_data_current();
+		stream.skip_by(size);
+	}
+
 }

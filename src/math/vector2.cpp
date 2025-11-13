@@ -1,6 +1,7 @@
 // Copyright (c) 2025 Inan Evin
 
 #include "vector2.hpp"
+#include "vector2ui16.hpp"
 #include "math.hpp"
 #include "data/istream.hpp"
 #include "data/ostream.hpp"
@@ -14,6 +15,12 @@ namespace SFG
 {
 	vector2 vector2::zero = vector2(0.f, 0.f);
 	vector2 vector2::one  = vector2(1.f, 1.f);
+
+	vector2::vector2(const vector2ui16& v)
+	{
+		x = static_cast<float>(v.x);
+		y = static_cast<float>(v.y);
+	}
 
 	vector2 vector2::clamp(const vector2& vector, const vector2& min_vec, const vector2& max_vec)
 	{

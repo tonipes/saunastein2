@@ -21,9 +21,12 @@ namespace SFG
 	class trait_mesh_instance
 	{
 	public:
+		// -----------------------------------------------------------------------------
+		// trait
+		// -----------------------------------------------------------------------------
+
 		void on_add(world& we);
 		void on_remove(world& w);
-		void set_mesh(world& w, resource_handle model, resource_handle mesh);
 		void serialize(ostream& stream, world& w) const;
 		void deserialize(istream& stream, world& w);
 
@@ -31,6 +34,12 @@ namespace SFG
 		void serialize_json(nlohmann::json& j, world& w) const;
 		void deserialize_json(const nlohmann::json& j, world& w);
 #endif
+
+		// -----------------------------------------------------------------------------
+		// accessors
+		// -----------------------------------------------------------------------------
+
+		void set_mesh(world& w, resource_handle model, resource_handle mesh);
 
 		inline resource_handle get_model() const
 		{

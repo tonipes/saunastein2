@@ -306,7 +306,7 @@ namespace SFG
 
 	void editor_gui_renderer::on_atlas_created(vekt::atlas* atlas, void* user_data)
 	{
-		editor_gui_renderer* r		 = reinterpret_cast<editor_gui_renderer*>(user_data);
+		editor_gui_renderer* r		 = static_cast<editor_gui_renderer*>(user_data);
 		gfx_backend*		 backend = gfx_backend::get();
 		engine_shaders&		 es		 = engine_shaders::get();
 
@@ -332,7 +332,7 @@ namespace SFG
 
 	void editor_gui_renderer::on_atlas_updated(vekt::atlas* atlas, void* user_data)
 	{
-		editor_gui_renderer* r		 = reinterpret_cast<editor_gui_renderer*>(user_data);
+		editor_gui_renderer* r		 = static_cast<editor_gui_renderer*>(user_data);
 		gfx_backend*		 backend = gfx_backend::get();
 
 		for (atlas_ref& ref : r->_gfx_data.atlases)
@@ -361,7 +361,7 @@ namespace SFG
 
 	void editor_gui_renderer::on_atlas_destroyed(vekt::atlas* atlas, void* user_data)
 	{
-		editor_gui_renderer* r		 = reinterpret_cast<editor_gui_renderer*>(user_data);
+		editor_gui_renderer* r		 = static_cast<editor_gui_renderer*>(user_data);
 		gfx_backend*		 backend = gfx_backend::get();
 
 		for (atlas_ref& ref : r->_gfx_data.atlases)

@@ -58,7 +58,4 @@ extern "C"
 
 	SFG_EXPORT SFG::game_app* create_app(uint32 width, uint32 height);
 	SFG_EXPORT void			  destroy_app(SFG::game_app* app);
-
-	using log_fn = void(__cdecl*)(int level, const char* msg);
-	SFG_EXPORT void set_log_callback(log_fn cb);
 }

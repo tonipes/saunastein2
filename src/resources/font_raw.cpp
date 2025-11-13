@@ -75,12 +75,19 @@ namespace SFG
 				return false;
 			}
 
-			file_system::read_file_as_vector(full_source.c_str(), font_data);
-			if (font_data.empty())
+			char*  file_data	  = nullptr;
+			size_t file_data_size = 0;
+			file_system::read_file(full_source.c_str(), file_data, file_data_size);
+
+			if (file_data_size == 0)
 			{
 				SFG_ERR("Invalid font data!");
 				return false;
 			}
+
+			font_data.resize(file_data_size);
+			SFG_MEMCPY(font_data.data(), file_data, file_data_size);
+			delete[] file_data;
 
 			const string type = json_data.value<string>("type", "");
 

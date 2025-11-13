@@ -26,7 +26,7 @@ namespace SFG
 		w.get_render_stream().add_event(
 			{
 				.index		= _header.own_handle.index,
-				.event_type = render_event_type::render_event_update_ambient,
+				.event_type = render_event_type::update_ambient,
 			},
 			ev);
 	}
@@ -37,7 +37,7 @@ namespace SFG
 
 		w.get_render_stream().add_event({
 			.index		= _header.own_handle.index,
-			.event_type = render_event_type::render_event_remove_ambient,
+			.event_type = render_event_type::remove_ambient,
 		});
 	}
 
@@ -54,7 +54,7 @@ namespace SFG
 		w.get_render_stream().add_event(
 			{
 				.index		= _header.own_handle.index,
-				.event_type = render_event_type::render_event_update_ambient,
+				.event_type = render_event_type::update_ambient,
 			},
 			ev);
 	}

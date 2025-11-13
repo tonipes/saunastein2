@@ -3,6 +3,8 @@
 #pragma once
 
 #include "dx12_heap.hpp"
+
+#include "sdk/d3d12.h"
 #include "dx12_common.hpp"
 #include "io/log.hpp"
 #include "io/assert.hpp"
@@ -10,7 +12,7 @@
 namespace SFG
 {
 
-	void dx12_heap::init(ID3D12Device* device, D3D12_DESCRIPTOR_HEAP_TYPE heap_type, uint32 num_descriptors, uint32 descriptor_size, bool shader_access)
+	void dx12_heap::init(ID3D12Device* device, uint32 heap_type, uint32 num_descriptors, uint32 descriptor_size, bool shader_access)
 	{
 		_type			 = heap_type;
 		_max_descriptors = num_descriptors;
@@ -22,7 +24,7 @@ namespace SFG
 		{
 			D3D12_DESCRIPTOR_HEAP_DESC heapDesc;
 			heapDesc.NumDescriptors = _max_descriptors;
-			heapDesc.Type			= _type;
+			heapDesc.Type			= static_cast<D3D12_DESCRIPTOR_HEAP_TYPE>(_type);
 			heapDesc.Flags			= _shader_access ? D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE : D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 			heapDesc.NodeMask		= 0;
 			throw_if_failed(device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&_heap)));
@@ -33,9 +35,9 @@ namespace SFG
 		}
 
 		_heap->SetName(L"Descriptor Heap");
-		_cpu_start = _heap->GetCPUDescriptorHandleForHeapStart();
+		_cpu_start = static_cast<uint64>(_heap->GetCPUDescriptorHandleForHeapStart().ptr);
 		if (_shader_access)
-			_gpu_start = _heap->GetGPUDescriptorHandleForHeapStart();
+			_gpu_start = static_cast<uint64>(_heap->GetGPUDescriptorHandleForHeapStart().ptr);
 	}
 
 	void dx12_heap::uninit()
@@ -63,8 +65,8 @@ namespace SFG
 			if (block.count >= count)
 			{
 				const descriptor_handle handle = {
-					.cpu   = _cpu_start.ptr + block.start * _descriptor_size,
-					.gpu   = _gpu_start.ptr + block.start * _descriptor_size,
+					.cpu   = _cpu_start + block.start * _descriptor_size,
+					.gpu   = _gpu_start + block.start * _descriptor_size,
 					.index = block.start,
 					.count = count,
 				};
@@ -94,8 +96,8 @@ namespace SFG
 		}
 
 		return {
-			.cpu   = _cpu_start.ptr + new_id * _descriptor_size,
-			.gpu   = _gpu_start.ptr + new_id * _descriptor_size,
+			.cpu   = _cpu_start + new_id * _descriptor_size,
+			.gpu   = _gpu_start + new_id * _descriptor_size,
 			.index = block_end - count,
 			.count = count,
 		};
@@ -104,8 +106,8 @@ namespace SFG
 	descriptor_handle dx12_heap::get_offsetted_handle(uint32 count)
 	{
 		return {
-			.cpu = get_cpu_start().ptr + count * get_descriptor_size(),
-			.gpu = get_gpu_start().ptr + count * get_descriptor_size(),
+			.cpu = get_cpu_start() + count * get_descriptor_size(),
+			.gpu = get_gpu_start() + count * get_descriptor_size(),
 		};
 	}
 

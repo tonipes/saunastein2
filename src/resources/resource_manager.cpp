@@ -48,7 +48,7 @@ namespace SFG
 	void resource_manager::init()
 	{
 #ifdef SFG_TOOLMODE
-		_file_watch.set_callback(std::bind(&resource_manager::on_watched_resource_modified, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+		_file_watch.set_callback(resource_manager::on_watched_resource_modified, this);
 		_file_watch.reserve(250);
 		_file_watch.set_tick_interval(15);
 #endif
@@ -306,15 +306,17 @@ namespace SFG
 		}
 	}
 
-	void resource_manager::on_watched_resource_modified(const char* path, uint64 last_modified, uint16 id)
+	void resource_manager::on_watched_resource_modified(const char* path, uint64 last_modified, uint16 id, void* user_data)
 	{
-		SFG_ASSERT(id < _watched_resources.size());
-		resource_watch& w = _watched_resources[id];
+		resource_manager* rm = static_cast<resource_manager*>(user_data);
+
+		SFG_ASSERT(id < rm->_watched_resources.size());
+		resource_watch& w = rm->_watched_resources[id];
 
 		// load new resource
 		const uint64 ticks = time::get_cpu_microseconds();
 
-		void* loader = load_from_file(w.type_id, w.path.c_str(), w.root_dir.c_str());
+		void* loader = rm->load_from_file(w.type_id, w.path.c_str(), w.root_dir.c_str());
 		if (loader == nullptr)
 			return;
 
@@ -324,38 +326,38 @@ namespace SFG
 
 		if (w.type_id == type_id<model>::value)
 		{
-			model&				 m		= get_resource<model>(w.base_handle);
+			model&				 m		= rm->get_resource<model>(w.base_handle);
 			const chunk_handle32 meshes = m.get_created_meshes();
 			const uint16		 count	= m.get_mesh_count();
 			if (count > 0)
 			{
-				resource_handle* mesh_handles = _aux_memory.get<resource_handle>(meshes);
+				resource_handle* mesh_handles = rm->_aux_memory.get<resource_handle>(meshes);
 				for (uint16 i = 0; i < count; i++)
 				{
 					const resource_handle handle = mesh_handles[i];
 					prev_sub_handles.push_back(handle);
-					mesh& mm = get_resource<mesh>(handle);
+					mesh& mm = rm->get_resource<mesh>(handle);
 					prev_sub_ids.push_back(mm.get_sid());
 				}
 			}
 		}
 
-		destroy(w.type_id, w.base_handle);
-		remove_resource(w.type_id, w.base_handle);
+		rm->destroy(w.type_id, w.base_handle);
+		rm->remove_resource(w.type_id, w.base_handle);
 
 		const string& cache_dir = engine_data::get().get_cache_dir();
-		save_to_cache(w.type_id, loader, cache_dir.c_str(), w.root_dir.c_str(), ".stkcache");
+		rm->save_to_cache(w.type_id, loader, cache_dir.c_str(), w.root_dir.c_str(), ".stkcache");
 
-		const uint32 max_passes = _max_load_priority + 1;
+		const uint32 max_passes = rm->_max_load_priority + 1;
 
 		resource_handle new_handle = {};
 		for (uint32 pass = 0; pass < max_passes; pass++)
 		{
-			new_handle = add_from_loader(w.type_id, loader, pass, TO_SID(w.path));
+			new_handle = rm->add_from_loader(w.type_id, loader, pass, TO_SID(w.path));
 
 			if (!new_handle.is_null())
 			{
-				delete_loader(w.type_id, loader);
+				rm->delete_loader(w.type_id, loader);
 				break;
 			}
 		}
@@ -370,7 +372,7 @@ namespace SFG
 				.new_id	 = new_handle.index,
 			};
 
-			_world.get_render_stream().add_event({.event_type = render_event_type::render_event_reload_shader}, ev);
+			rm->_world.get_render_stream().add_event({.event_type = render_event_type::reload_shader}, ev);
 		}
 		else if (w.type_id == type_id<texture>::value)
 		{
@@ -379,7 +381,7 @@ namespace SFG
 				.new_id	 = new_handle.index,
 			};
 
-			_world.get_render_stream().add_event({.event_type = render_event_type::render_event_reload_texture}, ev);
+			rm->_world.get_render_stream().add_event({.event_type = render_event_type::reload_texture}, ev);
 		}
 		else if (w.type_id == type_id<texture_sampler>::value)
 		{
@@ -390,29 +392,29 @@ namespace SFG
 			vector<resource_handle> new_sub_handles;
 			vector<string_id>		new_sids;
 
-			model&				 m		= get_resource<model>(w.base_handle);
+			model&				 m		= rm->get_resource<model>(w.base_handle);
 			const chunk_handle32 meshes = m.get_created_meshes();
 
 			const uint16 count = m.get_mesh_count();
 			if (count > 0)
 			{
-				resource_handle* mesh_handles = _aux_memory.get<resource_handle>(meshes);
+				resource_handle* mesh_handles = rm->_aux_memory.get<resource_handle>(meshes);
 				for (uint16 i = 0; i < count; i++)
 				{
 					const resource_handle handle = mesh_handles[i];
-					const mesh&			  mm	 = get_resource<mesh>(handle);
+					const mesh&			  mm	 = rm->get_resource<mesh>(handle);
 					new_sub_handles.push_back(handle);
 					new_sids.push_back(mm.get_sid());
 				}
 			}
 
-			trait_manager& tm			   = _world.get_trait_manager();
+			trait_manager& tm			   = rm->_world.get_trait_manager();
 			auto&		   model_instances = tm.underlying_pool<trait_cache<trait_model_instance, MAX_WORLD_MODEL_INSTANCES>, trait_model_instance>();
 			for (trait_model_instance& mi : model_instances)
 			{
 				if (mi.get_model() != prev_handle)
 					continue;
-				mi.instantiate_model_to_world(_world, w.base_handle);
+				mi.instantiate_model_to_world(rm->_world, w.base_handle);
 			}
 		}
 

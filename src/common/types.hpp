@@ -3,25 +3,11 @@
 #pragma once
 
 #include "data/vector.hpp"
-#include "data/hash_map.hpp"
 
 namespace SFG
 {
 	namespace
 	{
-		template <typename T> struct is_hashmap : std::false_type
-		{
-		};
-
-		template <typename U, typename V> struct is_hashmap<hash_map<U, V>> : std::true_type
-		{
-		};
-
-		template <typename U, typename V> struct is_hashmap<const hash_map<U, V>> : std::true_type
-		{
-		};
-
-		template <typename T> inline constexpr bool is_hashmap_v = is_hashmap<T>::value;
 
 		template <typename T> struct is_vector : std::false_type
 		{

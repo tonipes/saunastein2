@@ -111,6 +111,9 @@ namespace SFG
 		case format::r10g0b10a2_unorm:
 			j = "r10g10b10a2_unorm";
 			return;
+		case format::r32_sfloat:
+			j = "r32_sfloat";
+			return;
 		}
 
 		j = "undefined";
@@ -175,6 +178,12 @@ namespace SFG
 		if (str.compare("r10g0b10a2_unorm") == 0)
 		{
 			f = format::r10g0b10a2_unorm;
+			return;
+		}
+
+		if (str.compare("r32_sfloat") == 0)
+		{
+			f = format::r32_sfloat;
 			return;
 		}
 

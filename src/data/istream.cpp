@@ -57,7 +57,12 @@ namespace SFG
 
 			vector<uint8> v2;
 			v2.resize(v.size());
-			std::reverse_copy(v.begin(), v.end(), v2.begin());
+
+			const size_t sz = v.size();
+			for (size_t i = 0; i < sz; i++)
+			{
+				v2[i] = v[sz - i - 1];
+			}
 
 			SFG_MEMCPY(ptr, v2.data(), size);
 

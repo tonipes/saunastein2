@@ -1,6 +1,8 @@
 // Copyright (c) 2025 Inan Evin
 
 #include "dx12_backend.hpp"
+
+#include "sdk/d3d12.h"
 #include "dx12_common.hpp"
 
 // data
@@ -20,6 +22,7 @@
 // misc
 #include "io/log.hpp"
 #include "memory/memory.hpp"
+#include "memory/memory_tracer.hpp"
 #include "math/math_common.hpp"
 #include "world/world_max_defines.hpp"
 
@@ -30,6 +33,8 @@
 #ifdef SFG_GFX_SERIALIZE_SHADERS_PDB
 #include <fstream>
 #endif
+
+#include <dxcapi.h>
 
 using Microsoft::WRL::ComPtr;
 

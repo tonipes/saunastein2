@@ -76,7 +76,7 @@ namespace SFG
 		_debug_controller.init(&_texture_queue, s_bind_layout_global, _base_size);
 #endif
 
-		_world_renderer = new world_renderer(_proxy_manager);
+		_world_renderer = new world_renderer(_proxy_manager, _world);
 		_world_renderer->init(_base_size, &_texture_queue, &_buffer_queue);
 
 		// pfd
@@ -133,7 +133,7 @@ namespace SFG
 		gfx_backend* backend = gfx_backend::get();
 
 		// proxy
-		_proxy_manager.fetch_render_events(_event_stream);
+		_proxy_manager.fetch_render_events(_event_stream, 0);
 		_proxy_manager.uninit();
 
 		// debug & world
@@ -189,6 +189,8 @@ namespace SFG
 #ifdef SFG_USE_DEBUG_CONTROLLER
 		_debug_controller.tick();
 #endif
+
+		_world_renderer->tick();
 	}
 
 	void renderer::render()
@@ -229,7 +231,7 @@ namespace SFG
 		// Wait for frame's fence, then send any uploads needed.
 		backend->wait_semaphore(pfd.sem_frame.semaphore, pfd.sem_frame.value);
 
-		_proxy_manager.fetch_render_events(_event_stream);
+		_proxy_manager.fetch_render_events(_event_stream, frame_index);
 		_proxy_manager.flush_destroys(false);
 
 		/* access pfd */

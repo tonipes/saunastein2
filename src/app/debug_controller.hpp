@@ -51,7 +51,7 @@ namespace SFG
 		}
 
 	private:
-		void on_log(log_level lvl, const char* msg);
+		static void on_log(log_level lvl, const char* msg, void* user_data);
 
 		void flush_key_events();
 		void build_console();

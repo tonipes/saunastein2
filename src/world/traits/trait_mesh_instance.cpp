@@ -28,7 +28,7 @@ namespace SFG
 
 		w.get_render_stream().add_event({
 			.index		= _header.own_handle.index,
-			.event_type = render_event_type::render_event_remove_mesh_instance,
+			.event_type = render_event_type::remove_mesh_instance,
 		});
 	}
 
@@ -45,7 +45,7 @@ namespace SFG
 		w.get_render_stream().add_event(
 			{
 				.index		= _header.own_handle.index,
-				.event_type = render_event_type::render_event_update_mesh_instance,
+				.event_type = render_event_type::update_mesh_instance,
 			},
 			stg);
 	}

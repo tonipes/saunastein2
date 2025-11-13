@@ -4,7 +4,6 @@
 #include "memory/pool_allocator_gen.hpp"
 #include "world/world_constants.hpp"
 #include "common/type_id.hpp"
-#include "data/hash_map.hpp"
 #include "data/string.hpp"
 #include "data/static_vector.hpp"
 #include "memory/chunk_allocator.hpp"
@@ -103,7 +102,7 @@ namespace SFG
 			T&				   trait  = _traits.get(handle);
 			trait._header.entity	  = entity;
 			trait._header.own_handle  = handle;
-			trait.deserialize_json(j, w);
+		//	trait.deserialize_json(j, w);
 			trait.on_add(w);
 			return handle;
 		}
@@ -111,7 +110,7 @@ namespace SFG
 		virtual void save_to_json(json& j, world_handle handle, world& w) override
 		{
 			T& trait = _traits.get(handle);
-			trait.serialize_json(j, w);
+			//trait.serialize_json(j, w);
 		}
 #endif
 

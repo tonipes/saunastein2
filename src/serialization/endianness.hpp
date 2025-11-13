@@ -12,7 +12,6 @@
 #endif
 
 #include <bit>
-#include <algorithm>
 #include <array>
 
 namespace SFG
@@ -34,7 +33,13 @@ namespace SFG
 			} src, dst;
 
 			src.val = val;
-			std::reverse_copy(src.raw.begin(), src.raw.end(), dst.raw.begin());
+
+			const size_t sz = src.raw.size();
+
+			for (size_t i = 0; i < sz; i++)
+			{
+				dst.raw[i] = src.raw[sz - i - 1];
+			}
 			val = dst.val;
 		}
 

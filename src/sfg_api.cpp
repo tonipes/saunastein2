@@ -19,9 +19,4 @@ extern "C"
 		delete app;
 	}
 
-	void set_log_callback(log_fn cb)
-	{
-		static constexpr uint32 EXT_API_CB = 28273;
-		SFG::log::instance().add_listener(EXT_API_CB, [cb](SFG::log_level level, const char* msg) { cb(static_cast<int32>(level), msg); });
-	}
 }

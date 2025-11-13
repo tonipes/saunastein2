@@ -18,6 +18,7 @@ namespace SFG
 		if (!raw.name.empty())
 			_name = alloc.allocate_text(raw.name);
 #endif
+		_settings = raw.settings;
 	}
 
 	void physical_material::destroy(world& w, resource_handle handle)

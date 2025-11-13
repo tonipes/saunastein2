@@ -4,6 +4,7 @@
 
 #include "resources/common_resources.hpp"
 #include "reflection/resource_reflection.hpp"
+#include "physics/physics_material_settings.hpp"
 
 #ifndef SFG_STRIP_DEBUG_NAMES
 #include "memory/chunk_handle.hpp"
@@ -17,13 +18,28 @@ namespace SFG
 	class physical_material
 	{
 	public:
+		// -----------------------------------------------------------------------------
+		// resource
+		// -----------------------------------------------------------------------------
+
 		void create_from_loader(const physical_material_raw& raw, world& w, resource_handle handle);
 		void destroy(world& w, resource_handle handle);
+
+		// -----------------------------------------------------------------------------
+		// accessors
+		// -----------------------------------------------------------------------------
+
+		inline physical_material_settings& get_settings()
+		{
+			return _settings;
+		}
 
 	private:
 #ifndef SFG_STRIP_DEBUG_NAMES
 		chunk_handle32 _name;
 #endif
+
+		physical_material_settings _settings = {};
 	};
 
 	REGISTER_RESOURCE(physical_material, "stkphymat");

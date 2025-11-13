@@ -66,7 +66,7 @@ namespace SFG
 				calculate_interpolated_transform_abs(h, i, update.position, update.rotation, update.scale);
 				update.abs_model = matrix4x3::transform(update.position, update.rotation, update.scale);
 
-				stream.add_event({.index = h.index, .event_type = render_event_type::render_event_update_entity_transform}, update);
+				stream.add_event({.index = h.index, .event_type = render_event_type::update_entity_transform}, update);
 				m.flags.remove(entity_flags::entity_flags_render_proxy_dirty);
 			}
 		}
@@ -395,6 +395,15 @@ namespace SFG
 
 	void entity_manager::remove_all_entity_traits(world_handle entity)
 	{
+	}
+
+	world_handle entity_manager::get_valid_handle_by_index(world_id id)
+	{
+		const world_id gen = _entities->get_generation(id);
+		return {
+			.generation = gen,
+			.index		= id,
+		};
 	}
 
 	/* ----------------                   ---------------- */

@@ -14,7 +14,7 @@
 
 namespace SFG
 {
-	window::map window::s_key_down_map = {};
+	uint8 window::s_key_down_map[512] = {};
 
 	namespace
 	{
@@ -643,7 +643,7 @@ namespace SFG
 
 		if (!_event_callback)
 			return;
-		_event_callback(ev);
+		_event_callback(ev, _event_callback_user_data);
 	}
 
 	void window::confine_cursor(cursor_confinement conf)
@@ -655,10 +655,10 @@ namespace SFG
 		if (conf == cursor_confinement::none)
 		{
 			const RECT rc_clip = {
-				.left	= _prev_confinement.x,
-				.top	= _prev_confinement.z,
-				.right	= _prev_confinement.y,
-				.bottom = _prev_confinement.w,
+				.left	= _prev_confinement[0],
+				.top	= _prev_confinement[1],
+				.right	= _prev_confinement[2],
+				.bottom = _prev_confinement[3],
 			};
 			ClipCursor(&rc_clip);
 			return;
@@ -666,7 +666,10 @@ namespace SFG
 
 		RECT rc_old_clip;
 		GetClipCursor(&rc_old_clip);
-		_prev_confinement = vector4i(rc_old_clip.left, rc_old_clip.right, rc_old_clip.top, rc_old_clip.bottom);
+		_prev_confinement[0] = rc_old_clip.left;
+		_prev_confinement[1] = rc_old_clip.right;
+		_prev_confinement[2] = rc_old_clip.top;
+		_prev_confinement[3] = rc_old_clip.bottom;
 
 		if (conf == cursor_confinement::window)
 		{

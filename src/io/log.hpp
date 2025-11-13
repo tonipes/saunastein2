@@ -25,15 +25,9 @@
 #include "data/mutex.hpp"
 #include "memory/malloc_allocator_stl.hpp"
 #include "data/vector.hpp"
-
-#ifdef SFG_DUMP_LOG_TRACE
 #include "data/string.hpp"
-#endif
 
-#include <iostream>
 #include <sstream>
-#include <string>
-#include <functional>
 
 namespace SFG
 {
@@ -49,7 +43,7 @@ namespace SFG
 	class log
 	{
 	public:
-		typedef std::function<void(log_level lvl, const char* msg)> callback_function;
+		typedef void (*callback_function)(log_level lvl, const char* msg, void* user_data);
 
 		/// <summary>
 		///
@@ -129,14 +123,15 @@ namespace SFG
 			log_impl(level, format_str(args...).c_str());
 		}
 
-		void add_listener(unsigned int id, callback_function f);
+		void add_listener(unsigned int id, callback_function f, void* user_data);
 		void remove_listener(unsigned int id);
 
 	private:
 		struct listener
 		{
-			unsigned int	  id = 0;
-			callback_function f	 = nullptr;
+			void*			  user_data = nullptr;
+			callback_function f			= nullptr;
+			unsigned int	  id		= 0;
 		};
 
 	private:

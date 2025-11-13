@@ -66,7 +66,7 @@ namespace SFG
 		stream.add_event(
 			{
 				.index		= static_cast<uint32>(handle.index),
-				.event_type = render_event_type::render_event_create_material,
+				.event_type = render_event_type::create_material,
 			},
 			stg);
 	}
@@ -85,7 +85,7 @@ namespace SFG
 
 		stream.add_event({
 			.index		= static_cast<uint32>(handle.index),
-			.event_type = render_event_type::render_event_destroy_material,
+			.event_type = render_event_type::destroy_material,
 		});
 
 		_material_data.destroy();
@@ -95,7 +95,7 @@ namespace SFG
 	{
 		w.get_render_stream().add_event({
 			.index		= static_cast<uint32>(handle.index),
-			.event_type = render_event_type::render_event_update_material,
+			.event_type = render_event_type::update_material,
 		});
 	}
 }

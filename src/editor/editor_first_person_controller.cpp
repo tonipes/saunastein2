@@ -2,8 +2,6 @@
 
 #include "editor_first_person_controller.hpp"
 
-#include <algorithm>
-
 #include "platform/window_common.hpp"
 #include "platform/window.hpp"
 #include "input/input_mappings.hpp"

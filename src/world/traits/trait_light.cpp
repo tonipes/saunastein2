@@ -27,7 +27,7 @@ namespace SFG
 		w.get_entity_manager().on_remove_render_proxy(_header.entity);
 		w.get_render_stream().add_event({
 			.index		= _header.own_handle.index,
-			.event_type = render_event_type::render_event_remove_dir_light,
+			.event_type = render_event_type::remove_dir_light,
 		});
 	}
 
@@ -43,7 +43,7 @@ namespace SFG
 		w.get_render_stream().add_event(
 			{
 				.index		= _header.own_handle.index,
-				.event_type = render_event_type::render_event_update_dir_light,
+				.event_type = render_event_type::update_dir_light,
 			},
 			ev);
 	}
@@ -83,7 +83,7 @@ namespace SFG
 		w.get_entity_manager().on_remove_render_proxy(_header.entity);
 		w.get_render_stream().add_event({
 			.index		= _header.own_handle.index,
-			.event_type = render_event_type::render_event_remove_spot_light,
+			.event_type = render_event_type::remove_spot_light,
 		});
 	}
 
@@ -128,7 +128,7 @@ namespace SFG
 		w.get_render_stream().add_event(
 			{
 				.index		= _header.own_handle.index,
-				.event_type = render_event_type::render_event_update_spot_light,
+				.event_type = render_event_type::update_spot_light,
 			},
 			ev);
 	}
@@ -143,7 +143,7 @@ namespace SFG
 		w.get_entity_manager().on_remove_render_proxy(_header.entity);
 		w.get_render_stream().add_event({
 			.index		= _header.own_handle.index,
-			.event_type = render_event_type::render_event_remove_point_light,
+			.event_type = render_event_type::remove_point_light,
 		});
 	}
 
@@ -184,7 +184,7 @@ namespace SFG
 		w.get_render_stream().add_event(
 			{
 				.index		= _header.own_handle.index,
-				.event_type = render_event_type::render_event_update_point_light,
+				.event_type = render_event_type::update_point_light,
 			},
 			ev);
 	}

@@ -4,7 +4,9 @@
 
 #include "data/vector.hpp"
 #include "gfx/common/descriptor_handle.hpp"
-#include "sdk/d3d12.h"
+
+struct ID3D12DescriptorHeap;
+struct ID3D12Device;
 
 namespace SFG
 {
@@ -21,7 +23,7 @@ namespace SFG
 		dx12_heap()	 = default;
 		~dx12_heap() = default;
 
-		void			  init(ID3D12Device* device, D3D12_DESCRIPTOR_HEAP_TYPE heap_type, uint32 num_descriptors, uint32 descriptor_size, bool shader_access);
+		void			  init(ID3D12Device* device, uint32 heap_type, uint32 num_descriptors, uint32 descriptor_size, bool shader_access);
 		void			  uninit();
 		void			  reset();
 		void			  reset(uint32 newStart);
@@ -34,17 +36,17 @@ namespace SFG
 			return _heap;
 		}
 
-		inline D3D12_DESCRIPTOR_HEAP_TYPE get_type() const
+		inline uint32 get_type() const
 		{
 			return _type;
 		}
 
-		inline D3D12_CPU_DESCRIPTOR_HANDLE get_cpu_start() const
+		inline uint64 get_cpu_start() const
 		{
 			return _cpu_start;
 		}
 
-		inline D3D12_GPU_DESCRIPTOR_HANDLE get_gpu_start() const
+		inline uint64 get_gpu_start() const
 		{
 			return _gpu_start;
 		}
@@ -65,14 +67,14 @@ namespace SFG
 		};
 
 	private:
-		ID3D12DescriptorHeap*		_heap	   = nullptr;
-		D3D12_DESCRIPTOR_HEAP_TYPE	_type	   = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-		D3D12_CPU_DESCRIPTOR_HANDLE _cpu_start = {};
-		D3D12_GPU_DESCRIPTOR_HANDLE _gpu_start = {};
-		vector<block>				_available_blocks;
-		uint32						_max_descriptors = 0;
-		uint32						_descriptor_size = 0;
-		uint32						_current_index	 = 0;
-		bool						_shader_access	 = false;
+		ID3D12DescriptorHeap* _heap		 = nullptr;
+		uint32				  _type		 = 0;
+		uint64				  _cpu_start = {};
+		uint64				  _gpu_start = {};
+		vector<block>		  _available_blocks;
+		uint32				  _max_descriptors = 0;
+		uint32				  _descriptor_size = 0;
+		uint32				  _current_index   = 0;
+		bool				  _shader_access   = false;
 	};
 } // namespace LinaGX

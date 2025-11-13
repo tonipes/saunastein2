@@ -45,6 +45,7 @@ namespace SFG
 		void				 on_remove_render_proxy(world_handle entity);
 		void				 set_entity_visible(world_handle entity, bool is_visible);
 		void				 remove_all_entity_traits(world_handle entity);
+		world_handle		 get_valid_handle_by_index(world_id id);
 
 		inline bool is_valid(world_handle entity) const
 		{

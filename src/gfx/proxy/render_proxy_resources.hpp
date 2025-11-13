@@ -14,6 +14,13 @@
 
 namespace SFG
 {
+	struct render_proxy_custom_buffer
+	{
+		simple_buffer_cpu_gpu buffers[BACK_BUFFER_COUNT] = {};
+		uint32				  size						 = 0;
+		resource_id			  handle					 = {};
+		uint8				  status					 = render_proxy_status::rps_inactive;
+	};
 
 	struct render_proxy_texture
 	{

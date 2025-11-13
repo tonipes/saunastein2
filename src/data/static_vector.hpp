@@ -3,9 +3,8 @@
 #pragma once
 
 #include "io/assert.hpp"
-#include <cstddef>
-#include <stdexcept>
-#include <algorithm>
+#include <utility>
+#include <initializer_list>
 
 namespace SFG
 {
@@ -43,7 +42,6 @@ namespace SFG
 		{
 			return at(index);
 		}
-
 		const_reference operator[](size_type index) const
 		{
 			return at(index);
@@ -54,7 +52,7 @@ namespace SFG
 			if (index >= size())
 			{
 				SFG_ASSERT(false, "");
-				throw std::out_of_range("static_vector::at");
+				return _data[0];
 			}
 			return _data[index];
 		}
@@ -64,7 +62,7 @@ namespace SFG
 			if (index >= size())
 			{
 				SFG_ASSERT(false, "");
-				throw std::out_of_range("static_vector::at");
+				return _data[0];
 			}
 			return _data[index];
 		}
@@ -73,7 +71,6 @@ namespace SFG
 		{
 			return _data[0];
 		}
-
 		const_reference front() const
 		{
 			return _data[0];
@@ -118,12 +115,10 @@ namespace SFG
 		{
 			return _head;
 		}
-
 		bool empty() const
 		{
 			return _head == 0;
 		}
-
 		bool full() const
 		{
 			return _head == N;
@@ -158,43 +153,69 @@ namespace SFG
 			_head = sz;
 		}
 
+		// Linear search for value. Returns end() if not found.
+		iterator find(const T& value)
+		{
+			for (size_type i = 0; i < _head; ++i)
+				if (_data[i] == value)
+					return _data + i;
+			return end();
+		}
+
+		const_iterator find(const T& value) const
+		{
+			for (size_type i = 0; i < _head; ++i)
+				if (_data[i] == value)
+					return _data + i;
+			return end();
+		}
+
+		// Linear search by predicate. Returns end() if not found.
+		template <typename Pred> iterator find_if(Pred pred)
+		{
+			for (size_type i = 0; i < _head; ++i)
+				if (pred(_data[i]))
+					return _data + i;
+			return end();
+		}
+
+		template <typename Pred> const_iterator find_if(Pred pred) const
+		{
+			for (size_type i = 0; i < _head; ++i)
+				if (pred(_data[i]))
+					return _data + i;
+			return end();
+		}
+
 		void remove(const T& value)
 		{
-			auto end = begin() + _head;
-			auto it	 = std::find(begin(), end, value);
-			SFG_ASSERT(it != end);
-
-			const size_t idx = it - begin();
+			auto it = find(value);
+			SFG_ASSERT(it != end());
+			const size_t idx = static_cast<size_t>(it - begin());
 			remove_index(idx);
 		}
 
 		void remove_swap(const T& value)
 		{
-			auto end = begin() + _head;
-			auto it	 = std::find(begin(), end, value);
-			SFG_ASSERT(it != end);
-
-			const size_t idx = it - begin();
+			auto it = find(value);
+			SFG_ASSERT(it != end());
+			const size_t idx = static_cast<size_t>(it - begin());
 			remove_index_swap(idx);
 		}
 
 		template <typename Pred> void remove_if(Pred pred)
 		{
-			auto end = begin() + _head;
-			auto it	 = std::find_if(begin(), end, pred);
-			SFG_ASSERT(it != end);
-
-			const size_t idx = it - begin();
+			auto it = find_if(pred);
+			SFG_ASSERT(it != end());
+			const size_t idx = static_cast<size_t>(it - begin());
 			remove_index(idx);
 		}
 
 		template <typename Pred> void remove_if_swap(Pred pred)
 		{
-			auto end = begin() + _head;
-			auto it	 = std::find_if(begin(), end, pred);
-			SFG_ASSERT(it != end);
-
-			const size_t idx = it - begin();
+			auto it = find_if(pred);
+			SFG_ASSERT(it != end());
+			const size_t idx = static_cast<size_t>(it - begin());
 			remove_index_swap(idx);
 		}
 
@@ -226,7 +247,6 @@ namespace SFG
 		{
 			return _data;
 		}
-
 		const T* data() const
 		{
 			return _data;

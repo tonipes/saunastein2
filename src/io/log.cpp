@@ -72,12 +72,16 @@ namespace SFG
 		*/
 
 		for (const listener& l : _listeners)
-			l.f(level, msg);
+			l.f(level, msg, l.user_data);
 	}
 
-	void log::add_listener(unsigned int id, callback_function f)
+	void log::add_listener(unsigned int id, callback_function f, void* user_data)
 	{
-		_listeners.push_back({.id = id, .f = f});
+		_listeners.push_back({
+			.user_data = user_data,
+			.f		   = f,
+			.id		   = id,
+		});
 	}
 
 	void log::remove_listener(unsigned int id)

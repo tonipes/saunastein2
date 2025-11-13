@@ -32,7 +32,7 @@ namespace SFG
 		w.get_render_stream().add_event(
 			{
 				.index		= _header.own_handle.index,
-				.event_type = render_event_type::render_event_update_camera,
+				.event_type = render_event_type::update_camera,
 			},
 			ev);
 	}
@@ -41,7 +41,7 @@ namespace SFG
 	{
 		w.get_render_stream().add_event({
 			.index		= _header.own_handle.index,
-			.event_type = render_event_type::render_event_set_main_camera,
+			.event_type = render_event_type::set_main_camera,
 		});
 	}
 
@@ -59,7 +59,7 @@ namespace SFG
 		w.get_render_stream().add_event(
 			{
 				.index		= _header.own_handle.index,
-				.event_type = render_event_type::render_event_update_camera,
+				.event_type = render_event_type::update_camera,
 			},
 			ev);
 	}
@@ -70,7 +70,7 @@ namespace SFG
 
 		w.get_render_stream().add_event({
 			.index		= _header.own_handle.index,
-			.event_type = render_event_type::render_event_remove_camera,
+			.event_type = render_event_type::remove_camera,
 		});
 	}
 

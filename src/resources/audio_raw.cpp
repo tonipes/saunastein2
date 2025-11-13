@@ -60,12 +60,19 @@ namespace SFG
 
 			is_stream = json_data.value<uint8>("stream", 0);
 
-			file_system::read_file_as_vector(full_source.c_str(), audio_data);
-			if (audio_data.empty())
+			char*  file_data	  = nullptr;
+			size_t file_data_size = 0;
+			file_system::read_file(full_source.c_str(), file_data, file_data_size);
+
+			if (file_data_size == 0)
 			{
 				SFG_ERR("Invalid audio data!");
 				return false;
 			}
+
+			audio_data.resize(file_data_size);
+			SFG_MEMCPY(audio_data.data(), file_data, file_data_size);
+			delete[] file_data;
 		}
 		catch (std::exception e)
 		{

@@ -18,6 +18,10 @@ namespace SFG
 	class texture_sampler
 	{
 	public:
+		// -----------------------------------------------------------------------------
+		// trait
+		// -----------------------------------------------------------------------------
+
 		void create_from_loader(const texture_sampler_raw& raw, world& w, resource_handle handle);
 		void destroy(world& w, resource_handle handle);
 

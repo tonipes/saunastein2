@@ -88,4 +88,50 @@ namespace SFG
 		_flags.remove(buf_dirty);
 	}
 
-} 
+	void simple_buffer_cpu_gpu::create(const resource_desc& staging, const resource_desc& hw)
+	{
+		gfx_backend* backend = gfx_backend::get();
+		_hw_staging			 = backend->create_resource(staging);
+		_hw_gpu				 = backend->create_resource(hw);
+		backend->map_resource(_hw_staging, _mapped);
+	}
+
+	void simple_buffer_cpu_gpu::destroy()
+	{
+		gfx_backend* backend = gfx_backend::get();
+		backend->destroy_resource(_hw_staging);
+		backend->destroy_resource(_hw_gpu);
+		_mapped		= nullptr;
+		_hw_staging = NULL_GFX_ID;
+		_hw_gpu		= NULL_GFX_ID;
+	}
+
+	void simple_buffer_cpu_gpu::buffer_data(size_t padding, const void* data, size_t size)
+	{
+		SFG_MEMCPY(_mapped + padding, data, size);
+	}
+
+	void simple_buffer_cpu_gpu::copy(gfx_id cmd_buffer)
+	{
+		gfx_backend* backend = gfx_backend::get();
+		backend->cmd_copy_resource(cmd_buffer,
+								   {
+									   .source		= _hw_staging,
+									   .destination = _hw_gpu,
+								   });
+	}
+
+	void simple_buffer_cpu_gpu::copy_region(gfx_id cmd_buffer, size_t padding, size_t size)
+	{
+		gfx_backend* backend = gfx_backend::get();
+		backend->cmd_copy_resource_region(cmd_buffer,
+										  {
+											  .source	   = _hw_staging,
+											  .destination = _hw_gpu,
+											  .dst_offset  = padding,
+											  .src_offset  = padding,
+											  .size		   = size,
+										  });
+	}
+
+}

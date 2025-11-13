@@ -84,7 +84,7 @@ namespace SFG
 						gizmo_mat0.index,
 					},
 			};
-			w.get_render_stream().add_event({.index = gizmos_handle.index, .event_type = render_event_update_model_materials}, ev);
+			w.get_render_stream().add_event({.index = gizmos_handle.index, .event_type = update_model_materials}, ev);
 
 			_gizmo_entity						   = em.create_entity("gizmos");
 			world_handle		  gizmos_mi_handle = tm.add_trait<trait_model_instance>(_gizmo_entity);

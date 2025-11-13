@@ -167,7 +167,7 @@ namespace SFG
 		stream.add_event(
 			{
 				.index		= handle.index,
-				.event_type = render_event_type::render_event_create_model,
+				.event_type = render_event_type::create_model,
 			},
 			ev);
 
@@ -300,7 +300,7 @@ namespace SFG
 
 		stream.add_event({
 			.index		= handle.index,
-			.event_type = render_event_type::render_event_destroy_model,
+			.event_type = render_event_type::destroy_model,
 		});
 
 		_created_textures  = {};

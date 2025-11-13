@@ -73,7 +73,6 @@ namespace SFG
 	{
 		gfx_backend*	backend			 = gfx_backend::get();
 		per_frame_data& pfd				 = _pfd[p.frame_index];
-		const gfx_id*	textures		 = pfd.color_textures.data();
 		const gfx_id	cmd_buffer		 = pfd.cmd_buffer;
 		const gpu_index gpu_index_rp_ubo = pfd.ubo.get_gpu_index();
 

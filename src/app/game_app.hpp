@@ -73,8 +73,8 @@ namespace SFG
 		}
 
 	private:
-		void render_loop();
-		void on_window_event(const window_event& ev);
+		void		render_loop();
+		static void on_window_event(const window_event& ev, void* user_data);
 
 	private:
 		window*	  _main_window = nullptr;

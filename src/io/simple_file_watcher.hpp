@@ -6,26 +6,41 @@
 #include "data/string.hpp"
 #include "data/vector.hpp"
 #include "common/string_id.hpp"
-#include "io/file_system.hpp"
-#include <functional>
+
+namespace std
+{
+	namespace filesystem
+	{
+		class path;
+	}
+}
 
 namespace SFG
 {
 
-	typedef std::function<void(const char* p, uint64 last_modified, uint16 id)> simple_file_watcher_callback;
+	typedef void (*simple_file_watcher_callback)(const char* p, uint64 last_modified, uint16 id, void* user_data);
 
 	class simple_file_watcher
 	{
 	private:
 		struct entry
 		{
-			fs_path path		  = "";
-			string	str			  = "";
-			uint64	last_modified = 0;
-			uint16	id			  = 0;
+			std::filesystem::path* path			 = nullptr;
+			string				   str			 = "";
+			uint64				   last_modified = 0;
+			uint16				   id			 = 0;
+
+			~entry()
+			{
+			}
 		};
 
 	public:
+		~simple_file_watcher()
+		{
+			clear();
+		}
+
 		void add_path(const char* path, uint16 optional_id = 0);
 		void remove_path(const char* path);
 		void clear();
@@ -36,9 +51,10 @@ namespace SFG
 			_tick_interval = interval;
 		}
 
-		inline void set_callback(simple_file_watcher_callback&& cb)
+		inline void set_callback(simple_file_watcher_callback cb, void* user_data)
 		{
-			_callback = std::move(cb);
+			_callback	 = cb;
+			_callback_ud = user_data;
 		}
 
 		inline void reserve(int count)
@@ -50,8 +66,9 @@ namespace SFG
 		void watch();
 
 	private:
-		simple_file_watcher_callback _callback = nullptr;
-		vector<entry>				 _paths;
+		simple_file_watcher_callback _callback	  = nullptr;
+		void*						 _callback_ud = nullptr;
+		vector<entry*>				 _paths;
 		uint16						 _tick_interval = 1;
 		uint16						 _ticks			= 0;
 	};

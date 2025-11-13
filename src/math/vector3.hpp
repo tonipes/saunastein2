@@ -94,6 +94,11 @@ namespace SFG
 			return vector3(x / scalar, y / scalar, z / scalar);
 		}
 
+		inline vector3 operator*(const vector3& other) const
+		{
+			return vector3(x * other.x, y * other.y, z * other.z);
+		}
+
 		inline vector3 operator-() const
 		{
 			return vector3(-x, -y, -z);

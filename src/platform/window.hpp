@@ -2,9 +2,6 @@
 #pragma once
 
 #include "window_common.hpp"
-#include "data/hash_map.hpp"
-#include "math/vector4i.hpp"
-#include "memory/malloc_allocator_map.hpp"
 
 #ifdef SFG_PLATFORM_WINDOWS
 struct HWND__;
@@ -15,10 +12,8 @@ namespace SFG
 	class window
 	{
 	private:
-		typedef phmap::flat_hash_map<uint16, uint8, phmap::priv::hash_default_hash<uint16>, phmap::priv::hash_default_eq<uint16>, malloc_allocator_map<uint16>> map;
-
 	public:
-		typedef std::function<void(const window_event& ev)> event_callback;
+		typedef void (*event_callback)(const window_event& ev, void* user_data);
 
 		// -----------------------------------------------------------------------------
 		// lifecycle
@@ -74,9 +69,10 @@ namespace SFG
 			return _monitor_info;
 		}
 
-		inline void set_event_callback(event_callback&& cb)
+		inline void set_event_callback(event_callback cb, void* user_data)
 		{
-			_event_callback = std::move(cb);
+			_event_callback			  = cb;
+			_event_callback_user_data = user_data;
 		}
 
 		inline void set_size_dirty(bool dirty)
@@ -92,19 +88,19 @@ namespace SFG
 		void add_event(const window_event& ev);
 
 	private:
-		event_callback	_event_callback		= nullptr;
-		monitor_info	_monitor_info		= {};
-		void*			_window_handle		= nullptr;
-		void*			_platform_handle	= nullptr;
-		vector4i		_prev_confinement	= {};
+		event_callback	_event_callback			  = nullptr;
+		void*			_event_callback_user_data = nullptr;
+		monitor_info	_monitor_info			  = {};
+		void*			_window_handle			  = nullptr;
+		void*			_platform_handle		  = nullptr;
+		int				_prev_confinement[4];
 		vector2i16		_mouse_position		= vector2i16::zero;
 		vector2i16		_mouse_position_abs = vector2i16::zero;
 		vector2i16		_position			= vector2i16::zero;
 		vector2ui16		_true_size			= vector2ui16::zero;
 		vector2ui16		_size				= vector2ui16::zero;
 		bitmask<uint16> _flags				= 0;
-		static map		s_key_down_map;
+		static uint8	s_key_down_map[512];
 	};
-
 
 }

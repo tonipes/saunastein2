@@ -1351,7 +1351,7 @@ namespace vekt
 	private:
 		vector<atlas*> _atlases;
 		vector<font*>  _fonts;
-		void*		   _callback_user_data;
+		void*		   _callback_user_data = nullptr;
 		atlas_cb	   _atlas_created_cb   = nullptr;
 		atlas_cb	   _atlas_updated_cb   = nullptr;
 		atlas_cb	   _atlas_destroyed_cb = nullptr;

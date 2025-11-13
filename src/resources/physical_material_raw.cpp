@@ -20,19 +20,13 @@ namespace SFG
 	void physical_material_raw::serialize(ostream& stream) const
 	{
 		stream << name;
-		stream << restitution;
-		stream << friction;
-		stream << angular_damp;
-		stream << linear_damp;
+		stream << settings;
 	}
 
 	void physical_material_raw::deserialize(istream& stream)
 	{
 		stream >> name;
-		stream >> restitution;
-		stream >> friction;
-		stream >> angular_damp;
-		stream >> linear_damp;
+		stream >> settings;
 	}
 
 #ifdef SFG_TOOLMODE
@@ -51,11 +45,8 @@ namespace SFG
 			json		  json_data = json::parse(f);
 			f.close();
 
-			name		 = relative_file;
-			restitution	 = json_data.value<float>("restitution", 0.0f);
-			friction	 = json_data.value<float>("restitution", 0.2f);
-			angular_damp = json_data.value<float>("restitution", 0.05f);
-			linear_damp	 = json_data.value<float>("restitution", 0.05f);
+			name	 = relative_file;
+			settings = json_data.value<physical_material_settings>("settings", {});
 		}
 		catch (std::exception e)
 		{

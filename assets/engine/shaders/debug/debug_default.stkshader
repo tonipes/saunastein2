@@ -1,0 +1,32 @@
+{
+    "source": "assets/engine/shaders/debug/debug_default.hlsl",
+    "desc":
+    {
+        "vertex_entry": "VSMain",
+        "pixel_entry": "PSMain",
+        "cull": "back",
+        "front": "cw",
+        "color_attachments": [
+            {
+                "format":"r8g8b8a8_srgb",
+                "blend_attachment":{
+                    "blend_enabled": false
+                }
+            }
+        ],
+        "vertex_inputs": [
+            {
+                "name": "POSITION",
+                "offset": 0,
+                "size": 12,
+                "format": "r32g32b32_sfloat"
+            },
+            {
+                "name": "COLOR",
+                "offset": 12,
+                "size": 16,
+                "format": "r32g32b32a32_sfloat"
+            }
+        ]
+    }
+}

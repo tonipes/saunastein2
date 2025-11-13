@@ -4,8 +4,9 @@
 #pragma once
 
 #ifdef SFG_ENABLE_MEMORY_TRACER
-#include "data/hash_map.hpp"
 #include "data/mutex.hpp"
+
+#include "data/hash_map.hpp"
 #include "common/size_definitions.hpp"
 #include "malloc_allocator_map.hpp"
 #include "malloc_allocator_stl.hpp"

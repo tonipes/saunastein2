@@ -13,14 +13,6 @@
 
 namespace SFG
 {
-	template <typename Stream, typename Key, typename Value> void serialize_hash_map(Stream& stream, const hash_map<Key, Value>& map)
-	{
-		stream << static_cast<uint32_t>(map.size());
-		for (const auto& [key, value] : map)
-		{
-			stream << key << value;
-		}
-	}
 
 	template <typename Stream, typename U> void serialize_vector(Stream& stream, vector<U>& vec)
 	{
@@ -131,12 +123,6 @@ namespace SFG
 		else if constexpr (is_vector_v<T>)
 		{
 			serialize_vector(stream, val);
-		}
-		else if constexpr (is_hashmap_v<T>)
-		{
-			using KeyType	= typename T::key_type;
-			using ValueType = typename T::mapped_type;
-			serialize_hash_map(stream, val);
 		}
 		else if constexpr (std::is_class_v<T>)
 		{

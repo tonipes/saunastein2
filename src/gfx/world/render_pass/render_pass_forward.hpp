@@ -39,10 +39,8 @@ namespace SFG
 
 		struct per_frame_data
 		{
-			buffer											 ubo;
-			static_vector<gfx_id, GBUFFER_COLOR_TEXTURES>	 color_textures			  = NULL_GFX_ID;
-			static_vector<gpu_index, GBUFFER_COLOR_TEXTURES> gpu_index_color_textures = NULL_GFX_ID;
-			gfx_id											 cmd_buffer				  = 0;
+			buffer ubo;
+			gfx_id cmd_buffer = 0;
 		};
 
 	public:
@@ -77,15 +75,6 @@ namespace SFG
 		// accessors
 		// -----------------------------------------------------------------------------
 
-		inline gpu_index get_output_gpu_index(uint8 frame_index, uint8 texture_index) const
-		{
-			return _pfd[frame_index].gpu_index_color_textures[texture_index];
-		}
-
-		inline const static_vector<gpu_index, GBUFFER_COLOR_TEXTURES>& get_output_gpu_index(uint8 frame_index) const
-		{
-			return _pfd[frame_index].gpu_index_color_textures;
-		}
 
 		inline gfx_id get_cmd_buffer(uint8 frame_index) const
 		{

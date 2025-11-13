@@ -3,28 +3,29 @@
 #pragma once
 
 #include "common/size_definitions.hpp"
-#include "data/vector.hpp"
 #include "data/string.hpp"
-#include <filesystem>
 
+namespace std
+{
+	namespace filesystem
+	{
+		class path;
+	}
+}
 namespace SFG
 {
-	typedef std::filesystem::path fs_path;
-
 	class file_system
 	{
 	public:
 		static bool	  delete_file(const char* path);
 		static bool	  create_directory(const char* path);
 		static bool	  delete_directory(const char* path);
-		static void	  get_files_in_directory(const char* path, vector<string>& out_data, string extension_filter = "");
-		static void	  get_all_in_directory(const char* path, vector<string>& out_data);
 		static bool	  is_directory(const char* path);
 		static bool	  change_directory_name(const char* oldPath, const char* new_path);
 		static bool	  exists(const char* path);
 		static string get_last_modified_date(const char* path);
 		static uint64 get_last_modified_ticks(const char* path) noexcept;
-		static uint64 get_last_modified_ticks(const fs_path& path) noexcept;
+		static uint64 get_last_modified_ticks(const std::filesystem::path& path) noexcept;
 		static string get_directory_of_file(const char* path);
 		static string remove_extensions_from_path(const string& filename);
 		static string get_filename_and_extension_from_path(const string& filename);
@@ -39,7 +40,7 @@ namespace SFG
 		static string get_relative(const char* src, const char* target);
 		static string get_system_time_str();
 		static string get_time_str_from_microseconds(int64 microseconds);
-		static void	  read_file_as_vector(const char* file_path, vector<char>& vec);
+		static void	  read_file(const char* file_path, char*& out_data, size_t& out_size);
 		static void	  perform_move(const char* target_file, const char* target_dir);
 		static void	  get_sys_time_ints(int32& hours, int32& minutes, int32& seconds);
 		static void	  copy_directory(const char* copyDir, const char* target_parent_folder);

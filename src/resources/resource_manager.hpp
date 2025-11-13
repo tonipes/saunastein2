@@ -8,7 +8,6 @@
 #include "data/string.hpp"
 #include "data/static_vector.hpp"
 #include "memory/chunk_allocator.hpp"
-#include <functional>
 
 #ifdef SFG_TOOLMODE
 #include "io/simple_file_watcher.hpp"
@@ -511,8 +510,8 @@ namespace SFG
 			vector<string>	dependencies = {};
 			string			root_dir	 = "";
 		};
-		void add_resource_watch(resource_handle base_handle, const char* relative_path, const vector<string>& dependencies, string_id type, const char* root_dir);
-		void on_watched_resource_modified(const char* path, uint64 last_modified, uint16 id);
+		void		add_resource_watch(resource_handle base_handle, const char* relative_path, const vector<string>& dependencies, string_id type, const char* root_dir);
+		static void on_watched_resource_modified(const char* path, uint64 last_modified, uint16 id, void* user_data);
 #endif
 
 	private:

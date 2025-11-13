@@ -493,7 +493,7 @@ namespace SFG
 			in.destroy();
 		}
 
-		log::instance().add_listener(TO_SIDC("debug_controller"), std::bind(&debug_controller::on_log, this, std::placeholders::_1, std::placeholders::_2));
+		log::instance().add_listener(TO_SIDC("debug_controller"), on_log, this);
 	}
 
 	void debug_controller::uninit()
@@ -981,9 +981,10 @@ namespace SFG
 		_input_field.caret_pos = math::min(_input_field.caret_pos, _input_field.text_size);
 	}
 
-	void debug_controller::on_log(log_level lvl, const char* msg)
+	void debug_controller::on_log(log_level lvl, const char* msg, void* user_data)
 	{
-		add_console_text(msg, lvl);
+		debug_controller* cont = reinterpret_cast<debug_controller*>(user_data);
+		cont->add_console_text(msg, lvl);
 	}
 
 	void debug_controller::add_console_text(const char* text, log_level level)

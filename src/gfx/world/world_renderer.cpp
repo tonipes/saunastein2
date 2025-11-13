@@ -15,12 +15,15 @@
 #include "gfx/world/renderable_collector.hpp"
 #include "gfx/util/shadow_util.hpp"
 
+#include "world/world.hpp"
+
+#include <functional>
 #include <algorithm>
 #include <execution>
 
 namespace SFG
 {
-	world_renderer::world_renderer(proxy_manager& pm) : _proxy_manager(pm) {};
+	world_renderer::world_renderer(proxy_manager& pm, world& w) : _proxy_manager(pm), _world(w) {};
 
 	void world_renderer::init(const vector2ui16& size, texture_queue* tq, buffer_queue* bq)
 	{
@@ -152,6 +155,10 @@ namespace SFG
 		_pass_object_id.init(size);
 		_pass_selection_outline.init(size);
 #endif
+
+#ifdef JPH_DEBUG_RENDERER
+		_pass_physics_debug.init(size);
+#endif
 	}
 
 	void world_renderer::uninit()
@@ -167,6 +174,9 @@ namespace SFG
 #ifdef SFG_TOOLMODE
 		_pass_object_id.uninit();
 		_pass_selection_outline.uninit();
+#endif
+#ifdef JPH_DEBUG_RENDERER
+		_pass_physics_debug.uninit();
 #endif
 
 		gfx_backend* backend = gfx_backend::get();
@@ -186,6 +196,13 @@ namespace SFG
 			pfd.point_lights_buffer.destroy();
 			pfd.float_buffer.destroy();
 		}
+	}
+
+	void world_renderer::tick()
+	{
+#ifdef JPH_DEBUG_RENDERER
+		_pass_physics_debug.tick(_world);
+#endif
 	}
 
 	void world_renderer::prepare(uint8 frame_index)
@@ -244,6 +261,10 @@ namespace SFG
 		_pass_ssao.prepare(_main_camera_view, _base_size, frame_index);
 		_pass_bloom.prepare(frame_index);
 		_pass_post.prepare(frame_index, _base_size);
+
+#ifdef JPH_DEBUG_RENDERER
+		_pass_physics_debug.prepare(_main_camera_view, _base_size, frame_index);
+#endif
 	}
 
 	void world_renderer::render(uint8 frame_index, gfx_id layout_global, gfx_id layout_global_compute, gfx_id bind_group_global, uint64 prev_copy, uint64 next_copy, gfx_id sem_copy)
@@ -263,6 +284,11 @@ namespace SFG
 		const gfx_id cmd_shadows  = _pass_shadows.get_cmd_buffer(frame_index);
 		const gfx_id cmd_bloom	  = _pass_bloom.get_cmd_buffer(frame_index);
 		const gfx_id cmd_forward  = _pass_forward.get_cmd_buffer(frame_index);
+
+#ifdef JPH_DEBUG_RENDERER
+		const gfx_id cmd_physics_debug = _pass_physics_debug.get_cmd_buffer(frame_index);
+#endif
+
 #ifdef SFG_TOOLMODE
 		const gfx_id cmd_object_id = _pass_object_id.get_cmd_buffer(frame_index);
 		const gfx_id cmd_outline   = _pass_selection_outline.get_cmd_buffer(frame_index);
@@ -302,7 +328,7 @@ namespace SFG
 
 		const static_vector<gpu_index, GBUFFER_COLOR_TEXTURES>& gpu_index_gbuffer_textures = _pass_opaque.get_output_gpu_index(frame_index);
 
-		static_vector<std::function<void()>, 10> tasks;
+		static_vector<std::function<void()>, 12> tasks;
 
 		tasks.push_back([&] {
 			_pass_pre_depth.render({
@@ -396,6 +422,21 @@ namespace SFG
 		});
 #endif
 
+#ifdef JPH_DEBUG_RENDERER
+
+		tasks.push_back([&] {
+			_pass_physics_debug.render({
+				.frame_index   = frame_index,
+				.size		   = resolution,
+				.depth_texture = depth_texture,
+				.input_texture = lighting_texture,
+				.global_layout = layout_global,
+				.global_group  = bind_group_global,
+			});
+		});
+
+#endif
+
 		tasks.push_back([&] {
 			_pass_forward.render({
 				.frame_index		= frame_index,
@@ -457,7 +498,13 @@ namespace SFG
 		// submit lighting, waits for ssao
 		backend->queue_wait(queue_gfx, &sem_ssao, &sem_ssao_val1, 1);
 		backend->submit_commands(queue_gfx, &cmd_lighting, 1);
+
+#ifdef JPH_DEBUG_RENDERER
+		backend->submit_commands(queue_gfx, &cmd_physics_debug, 1);
+#endif
+
 		backend->submit_commands(queue_gfx, &cmd_forward, 1);
+
 		backend->queue_signal(queue_gfx, &sem_lighting, &sem_lighting_val0, 1);
 
 		// bloom waits for forward

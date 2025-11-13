@@ -21,6 +21,10 @@
 #include "render_pass/render_pass_object_id.hpp"
 #include "render_pass/render_pass_selection_outline.hpp"
 #endif
+
+#ifdef JPH_DEBUG_RENDERER
+#include "render_pass/render_pass_physics_debug.hpp"
+#endif
 #include "view.hpp"
 
 namespace SFG
@@ -29,6 +33,7 @@ namespace SFG
 	class buffer_queue;
 	class texture;
 	class proxy_manager;
+	class world;
 
 	class world_renderer
 	{
@@ -56,7 +61,7 @@ namespace SFG
 
 	public:
 		world_renderer() = delete;
-		world_renderer(proxy_manager& pm);
+		world_renderer(proxy_manager& pm, world& w);
 
 		// -----------------------------------------------------------------------------
 		// lifecycle
@@ -64,6 +69,7 @@ namespace SFG
 
 		void init(const vector2ui16& size, texture_queue* tq, buffer_queue* bq);
 		void uninit();
+		void tick();
 
 		// -----------------------------------------------------------------------------
 		// rendering
@@ -114,6 +120,7 @@ namespace SFG
 
 	private:
 		proxy_manager&			  _proxy_manager;
+		world&					  _world;
 		per_frame_data			  _pfd[BACK_BUFFER_COUNT];
 		view					  _main_camera_view = {};
 		vector<renderable_object> _renderables;
@@ -126,6 +133,11 @@ namespace SFG
 		render_pass_bloom		  _pass_bloom	  = {};
 		render_pass_post_combiner _pass_post	  = {};
 		render_pass_forward		  _pass_forward	  = {};
+
+#ifdef JPH_DEBUG_RENDERER
+		render_pass_physics_debug _pass_physics_debug = {};
+#endif
+
 #ifdef SFG_TOOLMODE
 		render_pass_object_id		  _pass_object_id		  = {};
 		render_pass_selection_outline _pass_selection_outline = {};

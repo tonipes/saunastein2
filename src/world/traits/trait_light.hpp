@@ -23,18 +23,26 @@ namespace SFG
 	class trait_dir_light
 	{
 	public:
+		// -----------------------------------------------------------------------------
+		// trait
+		// -----------------------------------------------------------------------------
+
 		void on_add(world& w);
 		void on_remove(world& w);
 		void serialize(ostream& stream, world& w) const;
 		void deserialize(istream& stream, world& w);
 
-		void set_values(world& w, const color& c, float range, float intensity);
-		void set_shadow_values(world& w, uint8 cast_shadows, const vector2ui16& resolution);
-
 #ifdef SFG_TOOLMODE
 		void serialize_json(nlohmann::json& j, world& w) const;
 		void deserialize_json(const nlohmann::json& j, world& w);
 #endif
+
+		// -----------------------------------------------------------------------------
+		// accessors
+		// -----------------------------------------------------------------------------
+
+		void set_values(world& w, const color& c, float range, float intensity);
+		void set_shadow_values(world& w, uint8 cast_shadows, const vector2ui16& resolution);
 
 		inline const color& get_color() const
 		{
@@ -68,17 +76,26 @@ namespace SFG
 	class trait_spot_light
 	{
 	public:
+		// -----------------------------------------------------------------------------
+		// trait
+		// -----------------------------------------------------------------------------
+
 		void on_add(world& w);
 		void on_remove(world& w);
 		void serialize(ostream& stream, world& w) const;
 		void deserialize(istream& stream, world& w);
-		void set_values(world& w, const color& c, float range, float intensity, float inner_cone, float outer_cone);
-		void set_shadow_values(world& w, uint8 cast_shadows, const vector2ui16& resolution);
 
 #ifdef SFG_TOOLMODE
 		void serialize_json(nlohmann::json& j, world& w) const;
 		void deserialize_json(const nlohmann::json& j, world& w);
 #endif
+
+		// -----------------------------------------------------------------------------
+		// accessors
+		// -----------------------------------------------------------------------------
+
+		void set_values(world& w, const color& c, float range, float intensity, float inner_cone, float outer_cone);
+		void set_shadow_values(world& w, uint8 cast_shadows, const vector2ui16& resolution);
 
 		inline const color& get_color() const
 		{
@@ -124,17 +141,26 @@ namespace SFG
 	class trait_point_light
 	{
 	public:
+		// -----------------------------------------------------------------------------
+		// trait
+		// -----------------------------------------------------------------------------
+
 		void on_add(world& w);
 		void on_remove(world& w);
 		void serialize(ostream& stream, world& w) const;
 		void deserialize(istream& stream, world& w);
-		void set_values(world& w, const color& c, float range, float intensity);
-		void set_shadow_values(world& w, uint8 cast_shadows, const vector2ui16& resolution);
 
 #ifdef SFG_TOOLMODE
 		void serialize_json(nlohmann::json& j, world& w) const;
 		void deserialize_json(const nlohmann::json& j, world& w);
 #endif
+
+		// -----------------------------------------------------------------------------
+		// accessors
+		// -----------------------------------------------------------------------------
+
+		void set_values(world& w, const color& c, float range, float intensity);
+		void set_shadow_values(world& w, uint8 cast_shadows, const vector2ui16& resolution);
 
 		inline const color& get_color() const
 		{

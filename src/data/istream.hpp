@@ -13,18 +13,6 @@
 namespace SFG
 {
 
-	template <typename Stream, typename Key, typename Value> void deserialize_hash_map(Stream& stream, hash_map<Key, Value>& map)
-	{
-		uint32_t size = 0;
-		stream >> size;
-		Key	  key;
-		Value value;
-		for (uint32_t i = 0; i < size; ++i)
-		{
-			stream >> key >> value;
-			map[key] = value;
-		}
-	}
 
 	template <typename Stream, typename U> void deserialize_vector(Stream& stream, vector<U>& vec)
 	{
@@ -145,12 +133,6 @@ namespace SFG
 		else if constexpr (is_vector_v<T>)
 		{
 			deserialize_vector(stream, val);
-		}
-		else if constexpr (is_hashmap_v<T>)
-		{
-			using KeyType	= typename T::key_type;
-			using ValueType = typename T::mapped_type;
-			deserialize_hash_map(stream, val);
 		}
 		else if constexpr (std::is_class_v<T>)
 		{

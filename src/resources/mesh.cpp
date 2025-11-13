@@ -39,7 +39,7 @@ namespace SFG
 		stream.add_event(
 			{
 				.index		= static_cast<uint32>(handle.index),
-				.event_type = render_event_type::render_event_create_mesh,
+				.event_type = render_event_type::create_mesh,
 			},
 			ev);
 	}
@@ -58,7 +58,7 @@ namespace SFG
 
 		stream.add_event({
 			.index		= static_cast<uint32>(handle.index),
-			.event_type = render_event_type::render_event_destroy_mesh,
+			.event_type = render_event_type::destroy_mesh,
 		});
 
 		_node_index = _skin_index = _sid = 0;

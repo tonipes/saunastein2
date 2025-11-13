@@ -18,6 +18,10 @@ namespace SFG
 	class trait_ambient
 	{
 	public:
+		// -----------------------------------------------------------------------------
+		// trait
+		// -----------------------------------------------------------------------------
+
 		void on_add(world& w);
 		void on_remove(world& w);
 		void set_values(world& w, const color& base_color);
@@ -29,6 +33,10 @@ namespace SFG
 		void serialize_json(nlohmann::json& j, world& w) const;
 		void deserialize_json(const nlohmann::json& j, world& w);
 #endif
+
+		// -----------------------------------------------------------------------------
+		// accessors
+		// -----------------------------------------------------------------------------
 
 		inline const color& get_color() const
 		{

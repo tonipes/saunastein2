@@ -31,6 +31,8 @@ namespace SFG
 		paths.push_back("assets/engine/shaders/bloom/bloom_upsample.stkshader");
 		paths.push_back("assets/engine/shaders/post_combiner/post_combiner.stkshader");
 		paths.push_back("assets/engine/shaders/selection/selection_outline_write.stkshader");
+		paths.push_back("assets/engine/shaders/debug/debug_default.stkshader");
+		paths.push_back("assets/engine/shaders/debug/debug_line.stkshader");
 
 		shader_raw raw = {};
 
@@ -64,7 +66,7 @@ namespace SFG
 			raw.destroy();
 		}
 
-		_file_watcher.set_callback(std::bind(&engine_shaders::on_shader_reloaded, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+		_file_watcher.set_callback(engine_shaders::on_shader_reloaded, this);
 		_file_watcher.set_tick_interval(60);
 		return true;
 	}
@@ -86,23 +88,24 @@ namespace SFG
 		_file_watcher.tick();
 	}
 
-	void engine_shaders::on_shader_reloaded(const char* p, uint64 last_modified, uint16 id)
+	void engine_shaders::on_shader_reloaded(const char* p, uint64 last_modified, uint16 id, void* user_data)
 	{
+		engine_shaders*			 es	   = static_cast<engine_shaders*>(user_data);
 		const engine_shader_type type  = static_cast<engine_shader_type>(id);
-		shader_entry&			 entry = _shaders[id];
+		shader_entry&			 entry = es->_shaders[id];
 		shader_raw				 raw   = {};
 		if (!raw.load_from_file(entry.src_path.c_str(), SFG_ROOT_DIRECTORY))
 		{
 			return;
 		}
 
-		_app->join_render();
+		es->_app->join_render();
 		entry.direct.destroy();
 		entry.direct.create_from_loader(raw, entry.layout);
 		raw.destroy();
-		for (auto cb : _reload_callbacks)
+		for (auto cb : es->_reload_callbacks)
 			cb(type, entry.direct);
-		_app->kick_off_render();
+		es->_app->kick_off_render();
 	}
 
 #endif

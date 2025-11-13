@@ -10,18 +10,19 @@
 #include "data/bitmask.hpp"
 #include "memory/static_pool_allocator.hpp"
 #include "dx12_heap.hpp"
-#include "gfx/backend/dx12/sdk/d3dx12.h"
-#include "memory/memory_tracer.hpp"
-#include <functional>
 #include <wrl/client.h>
 #include <dxgi1_6.h>
-#include <dxcapi.h>
+#include "gfx/backend/dx12/sdk/d3dx12.h"
 
 namespace D3D12MA
 {
 	class Allocator;
 	class Allocation;
 } // namespace D3D12MA
+
+struct IDxcLibrary;
+struct IDXGISwapChain3;
+struct IDXGIAdapter1;
 
 namespace SFG
 {
@@ -78,8 +79,6 @@ namespace SFG
 #define BEGIN_DEBUG_EVENT(backend, CMD_BUF, LABEL)
 #define END_DEBUG_EVENT(backend, CMD_BUF)
 #endif
-
-	typedef std::function<void(ID3D12GraphicsCommandList4* cmd_list, uint8* data)> command_function;
 
 	class dx12_backend
 	{
@@ -345,6 +344,11 @@ namespace SFG
 		Microsoft::WRL::ComPtr<IDXGIFactory4>	   _factory	  = nullptr;
 		static Microsoft::WRL::ComPtr<IDxcLibrary> s_idxcLib;
 
+		gfx_id _queue_graphics	  = 0;
+		gfx_id _queue_transfer	  = 0;
+		gfx_id _queue_compute	  = 0;
+		bool   _tearing_supported = false;
+
 		vector<D3D12_CPU_DESCRIPTOR_HANDLE> _reuse_dest_descriptors_buffer	= {};
 		vector<D3D12_CPU_DESCRIPTOR_HANDLE> _reuse_dest_descriptors_sampler = {};
 		vector<D3D12_CPU_DESCRIPTOR_HANDLE> _reuse_src_descriptors_buffer	= {};
@@ -352,11 +356,6 @@ namespace SFG
 		vector<CD3DX12_ROOT_PARAMETER1>		_reuse_root_params				= {};
 		vector<CD3DX12_DESCRIPTOR_RANGE1>	_reuse_root_ranges				= {};
 		vector<D3D12_STATIC_SAMPLER_DESC>	_reuse_static_samplers			= {};
-
-		gfx_id _queue_graphics	  = 0;
-		gfx_id _queue_transfer	  = 0;
-		gfx_id _queue_compute	  = 0;
-		bool   _tearing_supported = false;
 
 		friend class game_app;
 

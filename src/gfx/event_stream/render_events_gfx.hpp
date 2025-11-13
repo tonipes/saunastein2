@@ -22,6 +22,30 @@ namespace SFG
 	class ostream;
 	class istream;
 
+	struct render_event_vertex_index_buffer
+	{
+
+#ifndef SFG_STRIP_DEBUG_NAMES
+		string name = "";
+#endif
+		uint16 cpu_flags = 0;
+		uint16 gpu_flags = 0;
+		uint32 max_size	 = 0;
+
+		void serialize(ostream& stream) const;
+		void deserialize(istream& stream);
+	};
+
+	struct render_event_update_vertex_index_buffer
+	{
+		uint8* data		  = nullptr;
+		uint32 size		  = 0;
+		uint32 item_count = 0;
+
+		void serialize(ostream& stream) const;
+		void deserialize(istream& stream);
+	};
+
 	struct render_event_texture
 	{
 #ifndef SFG_STRIP_DEBUG_NAMES

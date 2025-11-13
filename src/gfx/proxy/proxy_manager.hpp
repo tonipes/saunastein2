@@ -28,7 +28,7 @@ namespace SFG
 
 		void   init();
 		void   uninit();
-		void   fetch_render_events(render_event_stream& stream);
+		void   fetch_render_events(render_event_stream& stream, uint8 frame_index);
 		void   flush_destroys(bool force);
 		gfx_id get_shader_variant(resource_id shader_handle, uint32 flags);
 
@@ -189,7 +189,7 @@ namespace SFG
 		};
 
 	private:
-		void process_event(const render_event_header& header, istream& stream);
+		void process_event(const render_event_header& header, istream& stream, uint8 frame_index);
 		void destroy_texture(render_proxy_texture& proxy);
 		void destroy_sampler(render_proxy_sampler& proxy);
 		void destroy_shader(render_proxy_shader& proxy);
@@ -218,6 +218,8 @@ namespace SFG
 		using spot_lights_type	  = pool_allocator_simple<render_proxy_spot_light, MAX_WORLD_TRAIT_SPOT_LIGHTS>;
 		using dir_lights_type	  = pool_allocator_simple<render_proxy_dir_light, MAX_WORLD_TRAIT_DIR_LIGHTS>;
 
+		destroy_bucket _destroy_bucket[BACK_BUFFER_COUNT + 1];
+
 		chunk_allocator32	 _aux_memory;
 		textures_type*		 _textures		 = nullptr;
 		samplers_type*		 _samplers		 = nullptr;
@@ -241,9 +243,7 @@ namespace SFG
 		uint32	 _count_dir_lights	  = 0;
 		uint32	 _count_spot_lights	  = 0;
 		uint32	 _count_point_lights  = 0;
-		uint8	 _ambient_exists	  = 0;
 		uint32	 _peak_entities		  = 0;
-
-		destroy_bucket _destroy_bucket[BACK_BUFFER_COUNT + 1];
+		uint8	 _ambient_exists	  = 0;
 	};
 }

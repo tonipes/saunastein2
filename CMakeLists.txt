@@ -125,6 +125,7 @@ src/gfx/world/render_pass/*.cpp
 src/gfx/event_stream/*.cpp
 src/gfx/proxy/*.cpp
 src/resources/*.cpp
+src/physics/*.cpp
 src/gui/*.cpp
 src/game/*.cpp
 src/game/traits/*.cpp
@@ -159,6 +160,7 @@ src/project/*.hpp
 src/resources/*.hpp
 src/reflection/*.hpp
 src/serialization/*.hpp
+src/physics/*.hpp
 src/world/*.hpp
 src/world/traits/*.hpp
 src/vendor/stb/*.h
@@ -248,6 +250,7 @@ include(${CMAKE_SOURCE_DIR}/utils/cmake/executable_settings.cmake)
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/src/)
 target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/deps/phmap/include)
+target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/Dependencies/JoltPhysics-5.4.0)
 
 # ------------- DEPS -------------
 
@@ -279,6 +282,7 @@ target_link_libraries(${PROJECT_NAME}
 			PRIVATE d3d12.lib
 			PRIVATE dxgi.lib
 			PRIVATE dxguid.lib
+            PUBLIC Jolt
 		)
 
 add_custom_command(

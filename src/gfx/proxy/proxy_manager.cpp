@@ -82,11 +82,11 @@ namespace SFG
 
 	void proxy_manager::uninit()
 	{
-		auto& textures	= *_textures;
-		auto& samplers	= *_samplers;
-		auto& materials = *_materials;
-		auto& shaders	= *_shaders;
-		auto& meshes	= *_meshes;
+		auto& textures			   = *_textures;
+		auto& samplers			   = *_samplers;
+		auto& materials			   = *_materials;
+		auto& shaders			   = *_shaders;
+		auto& meshes			   = *_meshes;
 
 		for (auto& res : *_textures)
 		{
@@ -135,7 +135,7 @@ namespace SFG
 		_aux_memory.uninit();
 	}
 
-	void proxy_manager::fetch_render_events(render_event_stream& stream)
+	void proxy_manager::fetch_render_events(render_event_stream& stream, uint8 frame_index)
 	{
 		auto&							 events = stream.get_events();
 		render_event_stream::event_batch batch	= {};
@@ -154,7 +154,7 @@ namespace SFG
 			while (!in.is_eof())
 			{
 				header.deserialize(in);
-				process_event(header, in);
+				process_event(header, in, frame_index);
 			}
 			read = events.try_dequeue(batch);
 		}
@@ -200,14 +200,15 @@ namespace SFG
 		return NULL_GFX_ID;
 	}
 
-	void proxy_manager::process_event(const render_event_header& header, istream& stream)
+	void proxy_manager::process_event(const render_event_header& header, istream& stream, uint8 frame_index)
 	{
 		gfx_backend* backend = gfx_backend::get();
 
 		const world_id			index = header.index;
 		const render_event_type type  = header.event_type;
 
-		if (type == render_event_type::render_event_update_entity_transform)
+		
+		if (type == render_event_type::update_entity_transform)
 		{
 			render_event_entity_transform ev = {};
 			ev.deserialize(stream);
@@ -222,7 +223,7 @@ namespace SFG
 
 			_peak_entities = math::max(_peak_entities, index);
 		}
-		else if (type == render_event_type::render_event_update_entity_visibility)
+		else if (type == render_event_type::update_entity_visibility)
 		{
 			render_event_entity_visibility ev = {};
 			ev.deserialize(stream);
@@ -231,7 +232,7 @@ namespace SFG
 			proxy.handle			   = index;
 			proxy.flags.set(render_proxy_entity_flags::render_proxy_entity_invisible, !ev.visible);
 		}
-		else if (type == render_event_type::render_event_update_ambient)
+		else if (type == render_event_type::update_ambient)
 		{
 			render_event_ambient ev = {};
 			ev.deserialize(stream);
@@ -242,7 +243,7 @@ namespace SFG
 			proxy.entity				= ev.entity_index;
 			proxy.base_color			= ev.base_color;
 		}
-		else if (type == render_event_type::render_event_update_spot_light)
+		else if (type == render_event_type::update_spot_light)
 		{
 			render_event_spot_light ev = {};
 			ev.deserialize(stream);
@@ -323,7 +324,7 @@ namespace SFG
 				}
 			}
 		}
-		else if (type == render_event_type::render_event_update_point_light)
+		else if (type == render_event_type::update_point_light)
 		{
 			render_event_point_light ev = {};
 			ev.deserialize(stream);
@@ -406,7 +407,7 @@ namespace SFG
 				}
 			}
 		}
-		else if (type == render_event_type::render_event_update_dir_light)
+		else if (type == render_event_type::update_dir_light)
 		{
 			render_event_dir_light ev = {};
 			ev.deserialize(stream);
@@ -490,14 +491,14 @@ namespace SFG
 				}
 			}
 		}
-		else if (type == render_event_type::render_event_remove_ambient)
+		else if (type == render_event_type::remove_ambient)
 		{
 			render_proxy_ambient& proxy = get_ambient();
 			proxy.status				= render_proxy_status::rps_active;
 			proxy						= {};
 			_ambient_exists				= 0;
 		}
-		else if (type == render_event_type::render_event_remove_point_light)
+		else if (type == render_event_type::remove_point_light)
 		{
 			render_proxy_point_light& proxy = _point_lights->get(index);
 
@@ -518,7 +519,7 @@ namespace SFG
 			proxy.status = render_proxy_status::rps_active;
 			proxy		 = {};
 		}
-		else if (type == render_event_type::render_event_remove_spot_light)
+		else if (type == render_event_type::remove_spot_light)
 		{
 			render_proxy_spot_light& proxy = _spot_lights->get(index);
 
@@ -539,7 +540,7 @@ namespace SFG
 			proxy.status = render_proxy_status::rps_active;
 			proxy		 = {};
 		}
-		else if (type == render_event_type::render_event_remove_dir_light)
+		else if (type == render_event_type::remove_dir_light)
 		{
 			render_proxy_dir_light& proxy = _dir_lights->get(index);
 
@@ -560,7 +561,7 @@ namespace SFG
 			proxy.status = render_proxy_status::rps_active;
 			proxy		 = {};
 		}
-		else if (type == render_event_type::render_event_update_mesh_instance)
+		else if (type == render_event_type::update_mesh_instance)
 		{
 			render_event_mesh_instance ev = {};
 			ev.deserialize(stream);
@@ -573,12 +574,12 @@ namespace SFG
 			proxy.mesh	 = ev.mesh;
 			proxy.model	 = ev.model;
 		}
-		else if (type == render_event_type::render_event_remove_mesh_instance)
+		else if (type == render_event_type::remove_mesh_instance)
 		{
 			render_proxy_mesh_instance& proxy = get_mesh_instance(index);
 			proxy							  = {};
 		}
-		else if (type == render_event_type::render_event_update_camera)
+		else if (type == render_event_type::update_camera)
 		{
 			render_event_camera ev = {};
 			ev.deserialize(stream);
@@ -604,12 +605,12 @@ namespace SFG
 				proxy.cascade_count = cascade_levels;
 			}
 		}
-		else if (type == render_event_type::render_event_set_main_camera)
+		else if (type == render_event_type::set_main_camera)
 		{
 			render_proxy_camera& proxy = get_camera(index);
 			_main_camera_trait		   = index;
 		}
-		else if (type == render_event_type::render_event_remove_camera)
+		else if (type == render_event_type::remove_camera)
 		{
 			render_proxy_camera& proxy = get_camera(index);
 			if (index == _main_camera_trait)
@@ -620,7 +621,7 @@ namespace SFG
 
 			proxy = {};
 		}
-		else if (type == render_event_type::render_event_create_texture)
+		else if (type == render_event_type::create_texture)
 		{
 			render_event_texture ev = {};
 			ev.deserialize(stream);
@@ -651,12 +652,12 @@ namespace SFG
 
 			_texture_queue.add_request(ev.buffers, proxy.hw, proxy.intermediate, 1, resource_state::resource_state_ps_resource);
 		}
-		else if (type == render_event_type::render_event_destroy_texture)
+		else if (type == render_event_type::destroy_texture)
 		{
 			render_proxy_texture& proxy = get_texture(index);
 			destroy_texture(proxy);
 		}
-		else if (type == render_event_type::render_event_reload_texture)
+		else if (type == render_event_type::reload_texture)
 		{
 			render_event_resource_reloaded ev = {};
 			ev.deserialize(stream);
@@ -708,7 +709,7 @@ namespace SFG
 				}
 			}
 		}
-		else if (type == render_event_type::render_event_reload_sampler)
+		else if (type == render_event_type::reload_sampler)
 		{
 			render_event_resource_reloaded ev = {};
 			ev.deserialize(stream);
@@ -760,7 +761,7 @@ namespace SFG
 				}
 			}
 		}
-		else if (type == render_event_type::render_event_create_sampler)
+		else if (type == render_event_type::create_sampler)
 		{
 			render_event_sampler ev = {};
 			ev.deserialize(stream);
@@ -770,12 +771,12 @@ namespace SFG
 			proxy.hw					= backend->create_sampler(ev.desc);
 			proxy.heap_index			= backend->get_sampler_gpu_index(proxy.hw);
 		}
-		else if (type == render_event_type::render_event_destroy_sampler)
+		else if (type == render_event_type::destroy_sampler)
 		{
 			render_proxy_sampler& proxy = get_sampler(index);
 			destroy_sampler(proxy);
 		}
-		else if (type == render_event_type::render_event_create_shader)
+		else if (type == render_event_type::create_shader)
 		{
 			render_event_shader ev = {};
 			ev.deserialize(stream);
@@ -802,14 +803,14 @@ namespace SFG
 				cv.destroy();
 			ev.compile_variants.clear();
 		}
-		else if (type == render_event_type::render_event_destroy_shader)
+		else if (type == render_event_type::destroy_shader)
 		{
 			render_proxy_shader& proxy = get_shader(index);
 			const chunk_handle32 vars  = proxy.variants;
 			destroy_shader(proxy);
 			_aux_memory.free(vars);
 		}
-		else if (type == render_event_type::render_event_reload_shader)
+		else if (type == render_event_type::reload_shader)
 		{
 			render_event_resource_reloaded ev = {};
 			ev.deserialize(stream);
@@ -823,7 +824,7 @@ namespace SFG
 					mat.shader_handle = ev.new_id;
 			}
 		}
-		else if (type == render_event_type::render_event_create_material)
+		else if (type == render_event_type::create_material)
 		{
 			render_event_material ev = {};
 			ev.deserialize(stream);
@@ -925,7 +926,7 @@ namespace SFG
 
 			SFG_FREE(ev.data.data);
 		}
-		else if (type == render_event_type::render_event_update_material)
+		else if (type == render_event_type::update_material)
 		{
 			render_event_material ev = {};
 			ev.deserialize(stream);
@@ -944,12 +945,12 @@ namespace SFG
 					i);
 			}
 		}
-		else if (type == render_event_type::render_event_destroy_material)
+		else if (type == render_event_type::destroy_material)
 		{
 			render_proxy_material& proxy = get_material(index);
 			destroy_material(proxy);
 		}
-		else if (type == render_event_type::render_event_create_model)
+		else if (type == render_event_type::create_model)
 		{
 			render_proxy_model& proxy = get_model(index);
 			render_event_model	ev	  = {};
@@ -974,7 +975,7 @@ namespace SFG
 					mats[i] = ev.materials[i];
 			}
 		}
-		else if (type == render_event_type::render_event_update_model_materials)
+		else if (type == render_event_type::update_model_materials)
 		{
 			render_proxy_model&					proxy = get_model(index);
 			render_event_model_update_materials ev	  = {};
@@ -999,12 +1000,12 @@ namespace SFG
 					mats[i] = ev.materials[i];
 			}
 		}
-		else if (type == render_event_type::render_event_destroy_model)
+		else if (type == render_event_type::destroy_model)
 		{
 			render_proxy_model& proxy = get_model(index);
 			destroy_model(proxy);
 		}
-		else if (type == render_event_type::render_event_create_mesh)
+		else if (type == render_event_type::create_mesh)
 		{
 			render_event_mesh ev = {};
 			ev.deserialize(stream);
@@ -1113,7 +1114,7 @@ namespace SFG
 				SFG_ASSERT(false);
 			}
 		}
-		else if (type == render_event_type::render_event_destroy_mesh)
+		else if (type == render_event_type::destroy_mesh)
 		{
 			render_proxy_mesh& proxy = get_mesh(index);
 			destroy_mesh(proxy);
@@ -1216,5 +1217,4 @@ namespace SFG
 		destroy_bucket& bucket = _destroy_bucket[index];
 		bucket.list.push_back(data);
 	}
-
 }

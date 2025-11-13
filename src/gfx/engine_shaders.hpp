@@ -6,7 +6,6 @@
 #include "data/static_vector.hpp"
 #include "resources/shader_direct.hpp"
 #include "io/simple_file_watcher.hpp"
-#include "data/static_vector.hpp"
 #include <functional>
 
 namespace SFG
@@ -26,6 +25,8 @@ namespace SFG
 		engine_shader_type_bloom_upsample,
 		engine_shader_type_post_combiner,
 		engine_shader_type_object_outline_write,
+		engine_shader_debug_default,
+		engine_shader_debug_line,
 		engine_shader_type_max,
 	};
 
@@ -69,7 +70,7 @@ namespace SFG
 
 	private:
 #ifdef SFG_TOOLMODE
-		void on_shader_reloaded(const char* p, uint64 last_modified, uint16 id);
+		static void on_shader_reloaded(const char* p, uint64 last_modified, uint16 id, void* user_data);
 #endif
 
 	private:

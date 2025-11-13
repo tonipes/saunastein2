@@ -8,6 +8,7 @@
 #include "trait_manager.hpp"
 #include "gui/vekt.hpp"
 #include "resources/resource_manager.hpp"
+#include "physics/physics_world.hpp"
 
 namespace SFG
 {
@@ -21,8 +22,9 @@ namespace SFG
 	public:
 		enum flags
 		{
-			world_flags_is_init	   = 1 << 0,
-			world_flags_is_playing = 1 << 1,
+			world_flags_is_init			  = 1 << 0,
+			world_flags_is_playing		  = 1 << 1,
+			world_flags_is_physics_active = 1 << 2,
 		};
 
 	public:
@@ -43,6 +45,11 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 		// accessors
 		// -----------------------------------------------------------------------------
+
+		inline physics_world& get_physics_world()
+		{
+			return _phy_world;
+		}
 
 		inline entity_manager& get_entity_manager()
 		{
@@ -84,6 +91,7 @@ namespace SFG
 		entity_manager		 _entity_manager;
 		resource_manager	 _resource_manager;
 		trait_manager		 _trait_manager;
+		physics_world		 _phy_world;
 		vekt::font_manager	 _vekt_fonts = {};
 		text_allocator		 _text_allocator;
 		bitmask<uint8>		 _flags = 0;

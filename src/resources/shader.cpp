@@ -33,7 +33,7 @@ namespace SFG
 		stream.add_event(
 			{
 				.index		= static_cast<uint32>(handle.index),
-				.event_type = render_event_type::render_event_create_shader,
+				.event_type = render_event_type::create_shader,
 			},
 			ev);
 	}
@@ -52,7 +52,7 @@ namespace SFG
 
 		stream.add_event({
 			.index		= static_cast<uint32>(handle.index),
-			.event_type = render_event_type::render_event_destroy_shader,
+			.event_type = render_event_type::destroy_shader,
 		});
 	}
 }

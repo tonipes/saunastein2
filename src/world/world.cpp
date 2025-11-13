@@ -36,10 +36,11 @@
 #include "traits/trait_mesh_instance.hpp"
 #include "traits/trait_model_instance.hpp"
 #include "traits/trait_ambient.hpp"
+#include "traits/trait_physics.hpp"
 
 namespace SFG
 {
-	world::world(render_event_stream& rstream) : _entity_manager(*this), _trait_manager(*this), _render_stream(rstream), _resource_manager(*this)
+	world::world(render_event_stream& rstream) : _entity_manager(*this), _trait_manager(*this), _render_stream(rstream), _resource_manager(*this), _phy_world(*this)
 	{
 		_text_allocator.init(MAX_ENTITIES * 32);
 
@@ -64,11 +65,15 @@ namespace SFG
 		_trait_manager.register_cache<trait_model_instance, MAX_WORLD_TRAIT_MODEL_INSTANCES>();
 		_trait_manager.register_cache<trait_mesh_instance, MAX_WORLD_TRAIT_MESH_INSTANCES>();
 		_trait_manager.register_cache<trait_ambient, MAX_WORLD_TRAIT_AMBIENTS>();
+		_trait_manager.register_cache<trait_physics, MAX_WORLD_TRAIT_PHYSICS>();
+
+		_phy_world.init();
 	};
 
 	world::~world()
 	{
 		_text_allocator.uninit();
+		_phy_world.uninit();
 	}
 
 	void world::init()
@@ -98,6 +103,9 @@ namespace SFG
 	void world::tick(const vector2ui16& res, float dt)
 	{
 		_resource_manager.tick();
+
+		if (_flags.is_set(world_flags_is_physics_active))
+			_phy_world.simulate(dt);
 	}
 
 	void world::post_tick(double interpolation)

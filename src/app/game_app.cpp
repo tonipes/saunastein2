@@ -55,7 +55,7 @@ namespace SFG
 			delete _main_window;
 			return init_status::window_failed;
 		}
-		_main_window->set_event_callback(std::bind(&game_app::on_window_event, this, std::placeholders::_1));
+		_main_window->set_event_callback(on_window_event, this);
 
 		// backend
 		gfx_backend::s_instance = new gfx_backend();
@@ -246,21 +246,23 @@ namespace SFG
 		}
 	}
 
-	void game_app::on_window_event(const window_event& ev)
+	void game_app::on_window_event(const window_event& ev, void* user_data)
 	{
-		if (ev.type != window_event_type::focus && !_main_window->get_flags().is_set(window_flags::wf_has_focus))
+		game_app* app = static_cast<game_app*>(user_data);
+
+		if (ev.type != window_event_type::focus && !app->_main_window->get_flags().is_set(window_flags::wf_has_focus))
 			return;
 
-		if (_renderer && _renderer->on_window_event(ev))
+		if (app->_renderer && app->_renderer->on_window_event(ev))
 			return;
 
 #ifdef SFG_TOOLMODE
-		if (_editor && _editor->on_window_event(ev))
+		if (app->_editor && app->_editor->on_window_event(ev))
 			return;
 #endif
 
-		if (_world)
-			_world->on_window_event(ev);
+		if (app->_world)
+			app->_world->on_window_event(ev);
 	}
 
 	void game_app::join_render()

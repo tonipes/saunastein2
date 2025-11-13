@@ -1,0 +1,34 @@
+  # Repository Guidelines
+
+  ## Project Structure & Module Organization
+
+  - src/ — engine code by domain (gfx/, world/, resources/, memory/, platform/, app/, optional editor/ in Debug).
+  - assets/ — sample and development assets; avoid committing very large binaries.
+  - deps/ — third‑party libraries (e.g., lz4, DXC, PIX runtime).
+  - Utils/ — helper tooling and CMake snippets (Utils/CMake, Utils/clang-format(.exe)).
+  - _build/ — recommended out‑of‑source build directory.
+
+  ## Build, Test, and Development Commands
+
+  - No need to build or test. Only write code.
+
+  ## Coding Style & Naming Conventions
+
+  - Formatting: clang‑format required; config at .clang-format (BasedOnStyle: Microsoft, UseTab: Always, ColumnLimit: 260).
+      - Example: Utils\clang-format.exe -i src\path\to\file.cpp (or clang-format -i if in PATH).
+  - Indentation: tabs; braces on new lines; pointer alignment left.
+  - Naming: files lower_snake_case.(hpp|cpp); namespaces under SFG; functions and types prefer lower_snake_case (e.g., create_from_loader).
+  - Includes: use src/-relative includes (e.g., "resources/texture.hpp").
+  - File endings always use LF.
+
+  ## Testing Guidelines
+
+  - Dont write tests.
+
+  ## Commit & Pull Request Guidelines
+
+  - Never commit.
+
+  ## Platform & Debug Tips
+
+  - Runtime output: _build/bin/<Config>/. VS startup target is set by CMake.

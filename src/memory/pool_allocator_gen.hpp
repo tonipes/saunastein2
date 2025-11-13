@@ -102,6 +102,12 @@ namespace SFG
 			return _items[handle.index];
 		}
 
+		inline SIZE_TYPE get_generation(SIZE_TYPE index) const
+		{
+			SFG_ASSERT(index < N);
+			return _generations[index];
+		};
+
 		// -----------------------------------------------------------------------------
 		// iterator
 		// -----------------------------------------------------------------------------

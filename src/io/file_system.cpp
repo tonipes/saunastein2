@@ -4,6 +4,7 @@
 #include "log.hpp"
 #include "data/string_util.hpp"
 
+#include <filesystem>
 #include <fstream>
 
 #ifdef SFG_PLATFORM_OSX
@@ -61,43 +62,6 @@ namespace SFG
 		return true;
 	}
 
-	void file_system::get_files_in_directory(const char* path, vector<string>& outData, string ext_filter)
-	{
-		outData.clear();
-		for (const auto& entry : std::filesystem::directory_iterator(path))
-		{
-			if (!entry.is_directory())
-			{
-				if (ext_filter.empty())
-				{
-					string path = entry.path().string().c_str();
-					fix_path(path);
-					outData.push_back(path);
-				}
-				else
-				{
-					string fullpath = entry.path().string().c_str();
-					if (get_file_extension(fullpath).compare(ext_filter))
-					{
-						fix_path(fullpath);
-						outData.push_back(fullpath);
-					}
-				}
-			}
-		}
-	}
-
-	void file_system::get_all_in_directory(const char* path, vector<string>& out_data)
-	{
-		out_data.clear();
-		for (const auto& entry : std::filesystem::directory_iterator(path))
-		{
-			string path = entry.path().string();
-			fix_path(path);
-			out_data.push_back(path);
-		}
-	}
-
 	bool file_system::is_directory(const char* path)
 	{
 		return std::filesystem::is_directory(path);
@@ -139,7 +103,7 @@ namespace SFG
 		return static_cast<uint64_t>(std::chrono::duration_cast<dur>(ft.time_since_epoch()).count());
 	}
 
-	uint64 file_system::get_last_modified_ticks(const fs_path& path) noexcept
+	uint64 file_system::get_last_modified_ticks(const std::filesystem::path& path) noexcept
 	{
 		std::error_code					ec;
 		std::filesystem::file_time_type ft = std::filesystem::last_write_time(path, ec);
@@ -226,12 +190,12 @@ namespace SFG
 		return std::string(a, b);
 	}
 
-	void file_system::read_file_as_vector(const char* filePath, vector<char>& vec)
+	void file_system::read_file(const char* file_path, char*& out_data, size_t& out_size)
 	{
-		std::ifstream file(filePath, std::ios::binary);
+		std::ifstream file(file_path, std::ios::binary);
 		if (!file)
 		{
-			SFG_ERR("Could not open file! {0}", filePath);
+			SFG_ERR("Could not open file! {0}", file_path);
 			return;
 		}
 
@@ -239,10 +203,13 @@ namespace SFG
 		file.seekg(0, std::ios::end);
 		std::streampos length = file.tellg();
 		file.seekg(0, std::ios::beg);
+		out_size = length;
 
-		// Into vec
-		vec = vector<char>(length);
-		file.read(&vec[0], length);
+		if (out_size > 0)
+		{
+			out_data = new char[length];
+			file.read(out_data, length);
+		}
 	}
 
 	string file_system::get_running_directory()

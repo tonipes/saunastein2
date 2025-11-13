@@ -18,10 +18,12 @@ namespace SFG
 	class trait_camera
 	{
 	public:
+		// -----------------------------------------------------------------------------
+		// trait
+		// -----------------------------------------------------------------------------
+
 		void on_add(world& w);
 		void on_remove(world& w);
-		void set_values(world& w, float near_plane, float far_plane, float fov_degrees, std::initializer_list<float> cascades = {0.01f, 0.075f, 0.12f, 0.25f});
-		void set_main(world& w);
 
 		void serialize(ostream& stream, world& w) const;
 		void deserialize(istream& stream, world& w);
@@ -30,6 +32,13 @@ namespace SFG
 		void serialize_json(nlohmann::json& j, world& w) const;
 		void deserialize_json(const nlohmann::json& j, world& w);
 #endif
+
+		// -----------------------------------------------------------------------------
+		// accessors
+		// -----------------------------------------------------------------------------
+
+		void set_values(world& w, float near_plane, float far_plane, float fov_degrees, std::initializer_list<float> cascades = {0.01f, 0.075f, 0.12f, 0.25f});
+		void set_main(world& w);
 
 		inline float get_near() const
 		{

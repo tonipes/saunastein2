@@ -33,4 +33,18 @@ namespace SFG
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);
 	};
+
+	struct vertex_simple
+	{
+		vector3 pos	  = vector3::zero;
+		vector4 color = vector4::zero;
+	};
+
+	struct vertex_3d_line
+	{
+		vector3 pos		  = vector3::zero;
+		vector3 next_pos  = vector3::zero;
+		vector4 color	  = vector4::zero;
+		float	direction = 0.0f;
+	};
 }

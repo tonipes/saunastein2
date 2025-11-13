@@ -1,0 +1,131 @@
+// Copyright (c) 2025 Inan Evin
+
+#pragma once
+
+#ifdef JPH_DEBUG_RENDERER
+
+#include "data/vector.hpp"
+#include "resources/vertex.hpp"
+#include "resources/common_resources.hpp"
+#include "gfx/buffer.hpp"
+#include "memory/double_buffered_swap.hpp"
+
+#include <Jolt/Jolt.h>
+#include <Jolt/Renderer/DebugRenderer.h>
+
+namespace SFG
+{
+	class physics_debug_renderer : public JPH::DebugRenderer
+	{
+	public:
+		static constexpr size_t MAX_TRI_VERTICES_SIZE  = sizeof(vertex_simple) * 1000;
+		static constexpr size_t MAX_LINE_VERTICES_SIZE = sizeof(vertex_3d_line) * 1000;
+		static constexpr size_t MAX_TRI_INDICES_SIZE   = sizeof(uint32) * 4000;
+		static constexpr size_t MAX_LINE_INDICES_SIZE  = sizeof(uint32) * 4000;
+
+		physics_debug_renderer();
+		virtual ~physics_debug_renderer();
+
+		// -----------------------------------------------------------------------------
+		// JPH override
+		// -----------------------------------------------------------------------------
+
+		virtual void					  DrawLine(JPH::RVec3Arg inFrom, JPH::RVec3Arg inTo, JPH::ColorArg inColor) override;
+		virtual void					  DrawTriangle(JPH::RVec3Arg inV1, JPH::RVec3Arg inV2, JPH::RVec3Arg inV3, JPH::ColorArg inColor, JPH::DebugRenderer::ECastShadow inCastShadow) override;
+		virtual void					  DrawText3D(JPH::RVec3Arg inPosition, const std::string_view& inString, JPH::ColorArg inColor, float inHeight) override;
+		virtual JPH::DebugRenderer::Batch CreateTriangleBatch(const JPH::DebugRenderer::Triangle* inTriangles, int inTriangleCount) override;
+		virtual JPH::DebugRenderer::Batch CreateTriangleBatch(const JPH::DebugRenderer::Vertex* inVertices, int inVertexCount, const uint32* inIndices, int inIndexCount) override;
+
+		virtual void DrawGeometry(JPH::RMat44Arg						 inModelMatrix,
+								  const JPH::AABox&						 inWorldSpaceBounds,
+								  float									 inLODScaleSq,
+								  JPH::ColorArg							 inModelColor,
+								  const JPH::DebugRenderer::GeometryRef& inGeometry,
+								  JPH::DebugRenderer::ECullMode			 inCullMode	  = JPH::DebugRenderer::ECullMode::CullBackFace,
+								  JPH::DebugRenderer::ECastShadow		 inCastShadow = JPH::DebugRenderer::ECastShadow::On,
+								  JPH::DebugRenderer::EDrawMode			 inDrawMode	  = JPH::DebugRenderer::EDrawMode::Solid) override;
+
+		// -----------------------------------------------------------------------------
+		// accessors
+		// -----------------------------------------------------------------------------
+
+		inline void reset()
+		{
+			_vertex_count_line = 0;
+			_vertex_count_tri  = 0;
+		}
+
+		inline double_buffered_swap<MAX_TRI_VERTICES_SIZE>* get_triangle_vertices() const
+		{
+			return _triangle_vertices;
+		}
+
+		inline double_buffered_swap<MAX_TRI_INDICES_SIZE>* get_triangle_indices() const
+		{
+			return _triangle_indices;
+		}
+
+		inline double_buffered_swap<MAX_LINE_VERTICES_SIZE>* get_line_vertices() const
+		{
+			return _line_vertices;
+		}
+
+		inline double_buffered_swap<MAX_LINE_INDICES_SIZE>* get_line_indices() const
+		{
+			return _line_indices;
+		}
+
+		inline uint32 get_vertex_count_triangle() const
+		{
+			return _vertex_count_tri;
+		}
+
+		inline uint32 get_vertex_count_line() const
+		{
+			return _vertex_count_line;
+		}
+
+		inline uint32 get_index_count_triangle() const
+		{
+			return _vertex_count_tri * 3;
+		}
+
+		inline uint32 get_index_count_line() const
+		{
+			return _vertex_count_line * 6;
+		}
+
+	private:
+		/// Implementation specific batch object
+		class BatchImpl : public JPH::RefTargetVirtual
+		{
+		public:
+			JPH_OVERRIDE_NEW_DELETE
+
+			virtual void AddRef() override
+			{
+				++mRefCount;
+			}
+			virtual void Release() override
+			{
+				if (--mRefCount == 0)
+					delete this;
+			}
+
+			JPH::Array<JPH::DebugRenderer::Triangle> mTriangles;
+
+		private:
+			JPH::atomic<uint32> mRefCount = 0;
+		};
+
+	private:
+		double_buffered_swap<MAX_TRI_VERTICES_SIZE>*  _triangle_vertices = nullptr;
+		double_buffered_swap<MAX_TRI_INDICES_SIZE>*	  _triangle_indices	 = nullptr;
+		double_buffered_swap<MAX_LINE_VERTICES_SIZE>* _line_vertices	 = nullptr;
+		double_buffered_swap<MAX_LINE_INDICES_SIZE>*  _line_indices		 = nullptr;
+		uint8										  _vertex_count_line = 0;
+		uint8										  _vertex_count_tri	 = 0;
+	};
+}
+
+#endif

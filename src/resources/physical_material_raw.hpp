@@ -6,6 +6,7 @@
 #include "gfx/common/descriptions.hpp"
 #include "data/string.hpp"
 #include "data/vector.hpp"
+#include "physics/physics_material_settings.hpp"
 
 namespace SFG
 {
@@ -14,11 +15,8 @@ namespace SFG
 
 	struct physical_material_raw
 	{
-		string name			= "";
-		float  restitution	= 0.0f;
-		float  friction		= 0.0f;
-		float  angular_damp = 0.0f;
-		float  linear_damp	= 0.0f;
+		string					   name		= "";
+		physical_material_settings settings = {};
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);

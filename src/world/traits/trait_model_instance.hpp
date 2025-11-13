@@ -23,11 +23,12 @@ namespace SFG
 	public:
 		typedef void (*on_instantiated)(trait_model_instance* inst, resource_handle model, void* user_data);
 
+		// -----------------------------------------------------------------------------
+		// trait
+		// -----------------------------------------------------------------------------
+
 		void on_add(world& we);
 		void on_remove(world& w);
-		void set_model(resource_handle model);
-		void instantiate_model_to_world(world& w, resource_handle model);
-
 		void serialize(ostream& stream, world& w) const;
 		void deserialize(istream& stream, world& w);
 
@@ -35,6 +36,18 @@ namespace SFG
 		void serialize_json(nlohmann::json& j, world& w) const;
 		void deserialize_json(const nlohmann::json& j, world& w);
 #endif
+
+		// -----------------------------------------------------------------------------
+		// impl
+		// -----------------------------------------------------------------------------
+
+		void instantiate_model_to_world(world& w, resource_handle model);
+
+		// -----------------------------------------------------------------------------
+		// accessors
+		// -----------------------------------------------------------------------------
+
+		void set_model(resource_handle model);
 
 		inline resource_handle get_model() const
 		{
