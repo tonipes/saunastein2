@@ -122,6 +122,8 @@ namespace SFG
 		backend->cmd_end_render_pass(cmd_buffer, {});
 		END_DEBUG_EVENT(backend, cmd_buffer);
 
+#ifndef JPH_DEBUG_RENDERER
+
 		static_vector<barrier, 2> barriers;
 
 		barriers.push_back({
@@ -143,6 +145,8 @@ namespace SFG
 								 .barriers		= barriers.data(),
 								 .barrier_count = static_cast<uint16>(barriers.size()),
 							 });
+
+#endif
 
 		backend->close_command_buffer(cmd_buffer);
 	}

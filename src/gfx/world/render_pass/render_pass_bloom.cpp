@@ -109,6 +109,7 @@ namespace SFG
 			.from_states = resource_state::resource_state_common,
 			.to_states	 = resource_state::resource_state_non_ps_resource,
 		});
+
 		backend->cmd_barrier(cmd_buffer, {.barriers = barriers.data(), .barrier_count = static_cast<uint16>(barriers.size())});
 		barriers.resize(0);
 		backend->cmd_bind_layout_compute(cmd_buffer, {.layout = p.global_layout_compute});

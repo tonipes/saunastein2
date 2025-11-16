@@ -1,46 +1,4 @@
 {
     "source": "assets/engine/shaders/debug/debug_line.hlsl",
-    "desc":
-    {
-        "vertex_entry": "VSMain",
-        "pixel_entry": "PSMain",
-        "cull": "back",
-        "front": "cw",
-        "color_attachments": [
-            {
-                "format":"r8g8b8a8_srgb",
-                "blend_attachment":{
-                    "blend_enabled": false
-                }
-            }
-        ],
-        "vertex_inputs": [
-            {
-                "name": "POSITION",
-                "offset": 0,
-                "size": 12,
-                "format": "r32g32b32_sfloat"
-            },
-            {
-                "name": "POSITION",
-                "offset": 0,
-                "index": 1,
-                "size": 12,
-                "format": "r32g32b32_sfloat"
-            },
-            {
-                "name": "COLOR",
-                "offset": 24,
-                "size": 16,
-                "format": "r32g32b32a32_sfloat"
-            },
-            {
-                "name": "POSITION",
-                "offset": 40,
-                "index": 2,
-                "size": 4,
-                "format": "r32_sfloat"
-            }
-        ]
-    }
+    "variant_style": "debug_line_3d"
 }

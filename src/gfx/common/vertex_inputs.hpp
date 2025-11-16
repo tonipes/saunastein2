@@ -11,12 +11,13 @@ namespace SFG
 	{
 		position_normal_tangents_uv,
 		position_normal_tangents_uv_skinned,
+		line_3d,
+		position_color,
 	};
 
 	class vertex_inputs
 	{
 	public:
-
 		static void get_vertex_inputs(vertex_input_style, vector<vertex_input>& out_inputs);
 	};
 }

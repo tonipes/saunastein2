@@ -1,5 +1,6 @@
 // Copyright (c) 2025 Inan Evin
 #pragma once
+
 #include "common/size_definitions.hpp"
 #include "common/system_info.hpp"
 #include "common/string_id.hpp"
@@ -111,7 +112,7 @@ namespace SFG
 	{
 	public:
 		typedef std::function<void(T)> callback_function;
-		console_variable(T data, callback_function cb) : _data(data), _callback(cb){};
+		console_variable(T data, callback_function cb) : _data(data), _callback(cb) {};
 		virtual ~console_variable() = default;
 
 		T get_value() const
@@ -155,7 +156,7 @@ namespace SFG
 	public:
 		typedef std::function<void(TArgs... args)> function_type;
 
-		console_function(function_type func) : _func(func){};
+		console_function(function_type func) : _func(func) {};
 		virtual ~console_function() = default;
 
 		template <typename func, typename tuple, size_t... Is> void call_func_from_tuple(func&& f, tuple& tup, std::index_sequence<Is...>)

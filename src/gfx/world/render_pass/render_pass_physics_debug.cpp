@@ -46,7 +46,7 @@ namespace SFG
 				},
 				{
 					.size		= physics_debug_renderer::MAX_TRI_VERTICES_SIZE,
-					.flags		= resource_flags::rf_cpu_visible | resource_flags::rf_vertex_buffer,
+					.flags		= resource_flags::rf_gpu_only | resource_flags::rf_vertex_buffer,
 					.debug_name = "phy_dbg_tri_vtx",
 				});
 
@@ -58,7 +58,7 @@ namespace SFG
 				},
 				{
 					.size		= physics_debug_renderer::MAX_LINE_VERTICES_SIZE,
-					.flags		= resource_flags::rf_cpu_visible | resource_flags::rf_vertex_buffer,
+					.flags		= resource_flags::rf_gpu_only | resource_flags::rf_vertex_buffer,
 					.debug_name = "phy_dbg_line_vtx",
 				});
 
@@ -70,7 +70,7 @@ namespace SFG
 				},
 				{
 					.size		= physics_debug_renderer::MAX_TRI_INDICES_SIZE,
-					.flags		= resource_flags::rf_cpu_visible | resource_flags::rf_index_buffer,
+					.flags		= resource_flags::rf_gpu_only | resource_flags::rf_index_buffer,
 					.debug_name = "phy_dbg_tri_index",
 				});
 
@@ -82,7 +82,7 @@ namespace SFG
 				},
 				{
 					.size		= physics_debug_renderer::MAX_LINE_INDICES_SIZE,
-					.flags		= resource_flags::rf_cpu_visible | resource_flags::rf_index_buffer,
+					.flags		= resource_flags::rf_gpu_only | resource_flags::rf_index_buffer,
 					.debug_name = "phy_dbg_line_index",
 				});
 		}
@@ -137,6 +137,8 @@ namespace SFG
 		ds.mDrawVelocity				  = true;
 
 		w.get_physics_world().get_system()->DrawBodies(ds, _renderer);
+
+		_renderer->end();
 	}
 
 	void render_pass_physics_debug::prepare(const view& main_camera_view, const vector2ui16& resolution, uint8 frame_index)
@@ -146,6 +148,8 @@ namespace SFG
 		gfx_backend*	backend	   = gfx_backend::get();
 		per_frame_data& pfd		   = _pfd[frame_index];
 		const gfx_id	cmd_buffer = pfd.cmd_buffer;
+
+		backend->reset_command_buffer(cmd_buffer);
 
 		const ubo ubo_data = {
 			.view				   = main_camera_view.view_matrix,
@@ -179,14 +183,14 @@ namespace SFG
 			barriers.push_back({
 				.resource	 = pfd.triangle_vertices.get_hw_gpu(),
 				.flags		 = barrier_flags::baf_is_resource,
-				.from_states = resource_state::resource_state_non_ps_resource,
+				.from_states = resource_state::resource_state_vertex_cbv,
 				.to_states	 = resource_state::resource_state_copy_dest,
 			});
 
 			barriers.push_back({
 				.resource	 = pfd.triangle_indices.get_hw_gpu(),
 				.flags		 = barrier_flags::baf_is_resource,
-				.from_states = resource_state::resource_state_non_ps_resource,
+				.from_states = resource_state::resource_state_index_buffer,
 				.to_states	 = resource_state::resource_state_copy_dest,
 			});
 
@@ -194,14 +198,14 @@ namespace SFG
 				.resource	 = pfd.triangle_vertices.get_hw_gpu(),
 				.flags		 = barrier_flags::baf_is_resource,
 				.from_states = resource_state::resource_state_copy_dest,
-				.to_states	 = resource_state::resource_state_non_ps_resource,
+				.to_states	 = resource_state::resource_state_vertex_cbv,
 			});
 
 			barriers_after.push_back({
 				.resource	 = pfd.triangle_indices.get_hw_gpu(),
 				.flags		 = barrier_flags::baf_is_resource,
 				.from_states = resource_state::resource_state_copy_dest,
-				.to_states	 = resource_state::resource_state_non_ps_resource,
+				.to_states	 = resource_state::resource_state_index_buffer,
 			});
 		}
 
@@ -213,14 +217,14 @@ namespace SFG
 			barriers.push_back({
 				.resource	 = pfd.line_vertices.get_hw_gpu(),
 				.flags		 = barrier_flags::baf_is_resource,
-				.from_states = resource_state::resource_state_non_ps_resource,
+				.from_states = resource_state::resource_state_vertex_cbv,
 				.to_states	 = resource_state::resource_state_copy_dest,
 			});
 
 			barriers.push_back({
 				.resource	 = pfd.line_indices.get_hw_gpu(),
 				.flags		 = barrier_flags::baf_is_resource,
-				.from_states = resource_state::resource_state_non_ps_resource,
+				.from_states = resource_state::resource_state_index_buffer,
 				.to_states	 = resource_state::resource_state_copy_dest,
 			});
 
@@ -228,14 +232,14 @@ namespace SFG
 				.resource	 = pfd.line_vertices.get_hw_gpu(),
 				.flags		 = barrier_flags::baf_is_resource,
 				.from_states = resource_state::resource_state_copy_dest,
-				.to_states	 = resource_state::resource_state_non_ps_resource,
+				.to_states	 = resource_state::resource_state_vertex_cbv,
 			});
 
 			barriers_after.push_back({
 				.resource	 = pfd.line_indices.get_hw_gpu(),
 				.flags		 = barrier_flags::baf_is_resource,
 				.from_states = resource_state::resource_state_copy_dest,
-				.to_states	 = resource_state::resource_state_non_ps_resource,
+				.to_states	 = resource_state::resource_state_index_buffer,
 			});
 		}
 
@@ -290,9 +294,7 @@ namespace SFG
 		att.store_op							  = store_op::store;
 		att.texture								  = texture;
 
-		backend->reset_command_buffer(cmd_buffer);
-
-		BEGIN_DEBUG_EVENT(backend, cmd_buffer, "forward_pass");
+		BEGIN_DEBUG_EVENT(backend, cmd_buffer, "physics_debug_pass");
 
 		backend->cmd_begin_render_pass_depth_read_only(cmd_buffer,
 													   {
@@ -355,6 +357,28 @@ namespace SFG
 
 		backend->cmd_end_render_pass(cmd_buffer, {});
 		END_DEBUG_EVENT(backend, cmd_buffer);
+
+		static_vector<barrier, 2> barriers;
+
+		barriers.push_back({
+			.resource	 = p.depth_texture,
+			.flags		 = barrier_flags::baf_is_texture,
+			.from_states = resource_state::resource_state_depth_read | resource_state::resource_state_ps_resource | resource_state::resource_state_non_ps_resource,
+			.to_states	 = resource_state::resource_state_common,
+		});
+
+		barriers.push_back({
+			.resource	 = p.input_texture,
+			.flags		 = barrier_flags::baf_is_texture,
+			.from_states = resource_state::resource_state_render_target,
+			.to_states	 = resource_state::resource_state_ps_resource | resource_state::resource_state_non_ps_resource,
+		});
+
+		backend->cmd_barrier(cmd_buffer,
+							 {
+								 .barriers		= barriers.data(),
+								 .barrier_count = static_cast<uint16>(barriers.size()),
+							 });
 
 		backend->close_command_buffer(cmd_buffer);
 	}

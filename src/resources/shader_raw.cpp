@@ -33,6 +33,10 @@ namespace SFG
 			return shader_variant_compiler::compile_style_post_combiner(*this, shader_text, folder_paths);
 		else if (variant_style.compare("gizmo") == 0)
 			return shader_variant_compiler::compile_style_gizmo(*this, shader_text, folder_paths);
+		else if (variant_style.compare("debug_triangle") == 0)
+			return shader_variant_compiler::compile_style_debug_triangle(*this, shader_text, folder_paths);
+		else if (variant_style.compare("debug_line_3d") == 0)
+			return shader_variant_compiler::compile_style_debug_line(*this, shader_text, folder_paths);
 
 		SFG_ERR("Unrecognize shader variant style: {0} {1}", variant_style, name);
 		return false;

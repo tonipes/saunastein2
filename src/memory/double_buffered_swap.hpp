@@ -5,6 +5,7 @@
 #include "data/atomic.hpp"
 #include "memory/memory.hpp"
 #include "common/size_definitions.hpp"
+#include "io/assert.hpp"
 
 namespace SFG
 {
@@ -13,19 +14,22 @@ namespace SFG
 	public:
 		inline void write(const void* src, size_t padding, size_t n)
 		{
-			if (padding + n > SIZE)
-				n = SIZE;
+			SFG_ASSERT(padding + n < SIZE);
 
 			uint8_t cur	 = _index.load(std::memory_order_relaxed);
+			SFG_MEMCPY(_data[cur] + padding, src, n);
+		}
+
+		inline void swap()
+		{
+			uint8_t cur	 = _index.load(std::memory_order_relaxed);
 			uint8_t next = cur ^ 1;
-			SFG_MEMCPY(_data[next] + padding, src, n);
 			_index.store(next, std::memory_order_release);
 		}
 
 		inline void read(void* dst, size_t n) const
 		{
-			if (n > SIZE)
-				n = SIZE;
+			SFG_ASSERT(n < SIZE);
 
 			uint8_t cur = _index.load(std::memory_order_acquire);
 			std::memcpy(dst, _data[cur], n);

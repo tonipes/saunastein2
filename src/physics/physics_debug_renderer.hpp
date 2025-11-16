@@ -18,10 +18,10 @@ namespace SFG
 	class physics_debug_renderer : public JPH::DebugRenderer
 	{
 	public:
-		static constexpr size_t MAX_TRI_VERTICES_SIZE  = sizeof(vertex_simple) * 1000;
-		static constexpr size_t MAX_LINE_VERTICES_SIZE = sizeof(vertex_3d_line) * 1000;
-		static constexpr size_t MAX_TRI_INDICES_SIZE   = sizeof(uint32) * 4000;
-		static constexpr size_t MAX_LINE_INDICES_SIZE  = sizeof(uint32) * 4000;
+		static constexpr size_t MAX_TRI_VERTICES_SIZE  = sizeof(vertex_simple) * 12000;
+		static constexpr size_t MAX_LINE_VERTICES_SIZE = sizeof(vertex_3d_line) * 12000;
+		static constexpr size_t MAX_TRI_INDICES_SIZE   = sizeof(uint32) * 12000;
+		static constexpr size_t MAX_LINE_INDICES_SIZE  = sizeof(uint32) * 72000;
 
 		physics_debug_renderer();
 		virtual ~physics_debug_renderer();
@@ -53,6 +53,16 @@ namespace SFG
 		{
 			_vertex_count_line = 0;
 			_vertex_count_tri  = 0;
+			_triangle_vertices->swap();
+			_triangle_indices->swap();
+			_line_vertices->swap();
+			_line_indices->swap();
+		}
+
+		inline void end()
+		{
+			_read_vertex_count_line.store(_vertex_count_line, std::memory_order_release);
+			_read_vertex_count_tri.store(_vertex_count_tri, std::memory_order_release);
 		}
 
 		inline double_buffered_swap<MAX_TRI_VERTICES_SIZE>* get_triangle_vertices() const
@@ -77,22 +87,22 @@ namespace SFG
 
 		inline uint32 get_vertex_count_triangle() const
 		{
-			return _vertex_count_tri;
+			return _read_vertex_count_tri.load(std::memory_order_acquire);
 		}
 
 		inline uint32 get_vertex_count_line() const
 		{
-			return _vertex_count_line;
+			return _read_vertex_count_line.load(std::memory_order_acquire);
 		}
 
 		inline uint32 get_index_count_triangle() const
 		{
-			return _vertex_count_tri * 3;
+			return _read_vertex_count_tri.load(std::memory_order_acquire);
 		}
 
 		inline uint32 get_index_count_line() const
 		{
-			return _vertex_count_line * 6;
+			return (_read_vertex_count_line.load(std::memory_order_acquire) / 4 ) * 6;
 		}
 
 	private:
@@ -123,8 +133,12 @@ namespace SFG
 		double_buffered_swap<MAX_TRI_INDICES_SIZE>*	  _triangle_indices	 = nullptr;
 		double_buffered_swap<MAX_LINE_VERTICES_SIZE>* _line_vertices	 = nullptr;
 		double_buffered_swap<MAX_LINE_INDICES_SIZE>*  _line_indices		 = nullptr;
-		uint8										  _vertex_count_line = 0;
-		uint8										  _vertex_count_tri	 = 0;
+
+		uint32 _vertex_count_line = 0;
+		uint32 _vertex_count_tri  = 0;
+
+		atomic<uint32> _read_vertex_count_line = 0;
+		atomic<uint32> _read_vertex_count_tri  = 0;
 	};
 }
 

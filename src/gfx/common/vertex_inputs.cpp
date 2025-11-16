@@ -80,5 +80,50 @@ namespace SFG
 				.format = format::r32g32b32a32_uint,
 			});
 		}
+		else if (style == vertex_input_style::line_3d)
+		{
+			out_inputs.push_back({
+				.name	= "POSITION",
+				.offset = 0,
+				.size	= sizeof(float) * 3,
+				.format = format::r32g32b32_sfloat,
+			});
+			out_inputs.push_back({
+				.name	= "POSITION",
+				.index	= 1,
+				.offset = sizeof(float) * 3,
+				.size	= sizeof(float) * 3,
+				.format = format::r32g32b32_sfloat,
+			});
+			out_inputs.push_back({
+				.name	= "COLOR",
+				.offset = sizeof(float) * 6,
+				.size	= sizeof(float) * 4,
+				.format = format::r32g32b32a32_sfloat,
+			});
+			out_inputs.push_back({
+				.name	= "POSITION",
+				.index	= 2,
+				.offset = sizeof(float) * 10,
+				.size	= sizeof(float),
+				.format = format::r32_sfloat,
+			});
+		}
+		else if (style == vertex_input_style::position_color)
+		{
+			out_inputs.push_back({
+				.name	= "POSITION",
+				.offset = 0,
+				.size	= sizeof(float) * 3,
+				.format = format::r32g32b32_sfloat,
+			});
+
+			out_inputs.push_back({
+				.name	= "COLOR",
+				.offset = sizeof(float) * 3,
+				.size	= sizeof(float) * 4,
+				.format = format::r32g32b32a32_sfloat,
+			});
+		}
 	}
 }

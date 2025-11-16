@@ -81,11 +81,16 @@ namespace SFG
 
 		set_gravity(vector3(0.0f, -9.81f, 0.0f));
 		_added_bodies.reserve(MAX_ENTITIES);
+
+		const uint32 cMaxBodies				= 1024;
+		const uint32 cNumBodyMutexes		= 0;
+		const uint32 cMaxBodyPairs			= 1024;
+		const uint32 cMaxContactConstraints = 1024;
+		_system->Init(cMaxBodies, cNumBodyMutexes, cMaxBodyPairs, cMaxContactConstraints, _bp_layer_interface, _object_bp_layer_filter, _layer_filter);
 	}
 
 	void physics_world::uninit()
 	{
-
 		delete _job_system;
 		delete _allocator;
 		delete _system;
@@ -107,7 +112,6 @@ namespace SFG
 		trait_manager& tm = _game_world.get_trait_manager();
 		tm.view<trait_physics>([this](trait_physics& trait) -> trait_view_result {
 			JPH::Body* body = trait.get_body();
-			SFG_ASSERT(body != nullptr);
 
 			if (body == nullptr)
 			{
@@ -119,7 +123,10 @@ namespace SFG
 			return trait_view_result::cont;
 		});
 
-		add_bodies_to_world(reuse_body_ids.data(), static_cast<uint32>(reuse_body_ids.size()));
+		if (!reuse_body_ids.empty())
+			add_bodies_to_world(reuse_body_ids.data(), static_cast<uint32>(reuse_body_ids.size()));
+
+		_system->OptimizeBroadPhase();
 	}
 
 	void physics_world::uninit_simulation()
@@ -158,8 +165,8 @@ namespace SFG
 	void physics_world::add_bodies_to_world(JPH::BodyID* body_ids, uint32 count)
 	{
 		JPH::BodyInterface& body_interface = _system->GetBodyInterface();
-		body_interface.AddBodiesPrepare(body_ids, static_cast<int>(count));
-		body_interface.AddBodiesFinalize(body_ids, static_cast<int>(count), nullptr, JPH::EActivation::DontActivate);
+		const JPH::BodyInterface::AddState add_state = body_interface.AddBodiesPrepare(body_ids, static_cast<int>(count));
+		body_interface.AddBodiesFinalize(body_ids, static_cast<int>(count), add_state, JPH::EActivation::DontActivate);
 
 		for (uint32 i = 0; i < count; i++)
 			_added_bodies.push_back(body_ids[i].GetIndexAndSequenceNumber());

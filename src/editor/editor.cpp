@@ -24,6 +24,7 @@
 #include "world/traits/trait_model_instance.hpp"
 #include "world/traits/trait_ambient.hpp"
 #include "world/traits/trait_light.hpp"
+#include "world/traits/trait_physics.hpp"
 
 // resources
 #include "resources/model.hpp"
@@ -197,6 +198,16 @@ namespace SFG
 		_ambient_trait			 = tm.add_trait<trait_ambient>(_ambient_entity);
 		trait_ambient& trait_amb = tm.get_trait<trait_ambient>(_ambient_trait);
 		trait_amb.set_values(w, color(0.1f, 0.1f, 0.1f));
+
+		world_handle bb = em.find_entity("BoomBox.002");
+		if (!bb.is_null())
+		{
+			world_handle   t   = tm.add_trait<trait_physics>(bb);
+			trait_physics& phy = tm.get_trait<trait_physics>(t);
+			phy.set_body_type(physics_body_type::dynamic_body);
+			phy.set_shape_type(physics_shape_type::sphere);
+			phy.set_height_radius(0.0f, 0.5f);
+		}
 	}
 
 	void editor::destroy_demo_content()

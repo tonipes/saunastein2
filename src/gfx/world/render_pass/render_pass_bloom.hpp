@@ -40,6 +40,7 @@ namespace SFG
 		{
 			uint8			   frame_index;
 			const vector2ui16& size;
+			gfx_id			   lighting;
 			gpu_index		   gpu_index_lighting;
 			gfx_id			   global_layout_compute;
 			gfx_id			   global_group;

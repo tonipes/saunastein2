@@ -75,7 +75,6 @@ namespace SFG
 		// accessors
 		// -----------------------------------------------------------------------------
 
-
 		inline gfx_id get_cmd_buffer(uint8 frame_index) const
 		{
 			return _pfd[frame_index].cmd_buffer;

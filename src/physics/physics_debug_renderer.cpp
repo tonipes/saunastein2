@@ -15,7 +15,6 @@ namespace SFG
 		_line_indices	   = new double_buffered_swap<MAX_LINE_INDICES_SIZE>();
 
 		JPH::DebugRenderer::Initialize();
-
 	}
 
 	physics_debug_renderer::~physics_debug_renderer()
@@ -31,59 +30,57 @@ namespace SFG
 
 		const vector3	from	  = from_jph_vec3(inFrom);
 		const vector3	to		  = from_jph_vec3(inTo);
-		constexpr float thickness = 1.0f;
+		constexpr float thickness = 0.25f;
 
 		const vertex_3d_line vertices[4] = {{
 												.pos	   = from,
 												.next_pos  = to,
-												.color	   = vector4(inColor.r, inColor.g, inColor.b, inColor.a),
+												.color	   = vector4(inColor.r, inColor.g, inColor.b, inColor.a) / 255.0f,
 												.direction = thickness,
 											},
 											{
 												.pos	   = from,
 												.next_pos  = to,
-												.color	   = vector4(inColor.r, inColor.g, inColor.b, inColor.a),
+												.color	   = vector4(inColor.r, inColor.g, inColor.b, inColor.a) / 255.0f,
 												.direction = -thickness,
 											},
 											{
 												.pos	   = to,
 												.next_pos  = from,
-												.color	   = vector4(inColor.r, inColor.g, inColor.b, inColor.a),
+												.color	   = vector4(inColor.r, inColor.g, inColor.b, inColor.a) / 255.0f,
 												.direction = thickness,
 											},
 											{
 												.pos	   = to,
 												.next_pos  = from,
-												.color	   = vector4(inColor.r, inColor.g, inColor.b, inColor.a),
+												.color	   = vector4(inColor.r, inColor.g, inColor.b, inColor.a) / 255.0f,
 												.direction = -thickness,
 											}};
 
-		const uint32 idx_begin	= _vertex_count_line * 6;
+		const uint32 idx_begin	= _vertex_count_line;
 		const uint32 indices[6] = {idx_begin, idx_begin + 1, idx_begin + 2, idx_begin + 2, idx_begin + 3, idx_begin};
 
 		_line_vertices->write(vertices, static_cast<size_t>(_vertex_count_line) * sizeof(vertex_3d_line), sizeof(vertex_3d_line) * 4);
-		_line_indices->write(indices, idx_begin * sizeof(uint32), sizeof(uint32) * 6);
+		_line_indices->write(indices, (_vertex_count_line / 4 ) * 6 * sizeof(uint32), sizeof(uint32) * 6);
 		_vertex_count_line += 4;
 	}
 
 	void physics_debug_renderer::DrawTriangle(JPH::RVec3Arg inV1, JPH::RVec3Arg inV2, JPH::RVec3Arg inV3, JPH::ColorArg inColor, JPH::DebugRenderer::ECastShadow inCastShadow)
 	{
-		_vertex_count_tri++;
-
 		const vertex_simple vertices[3] = {{
 											   .pos	  = from_jph_vec3(inV1),
-											   .color = vector4(inColor.r, inColor.g, inColor.b, inColor.a),
+											   .color = vector4(inColor.r, inColor.g, inColor.b, inColor.a) / 255.0f,
 										   },
 										   {
 											   .pos	  = from_jph_vec3(inV2),
-											   .color = vector4(inColor.r, inColor.g, inColor.b, inColor.a),
+											   .color = vector4(inColor.r, inColor.g, inColor.b, inColor.a) / 255.0f,
 										   },
 										   {
 											   .pos	  = from_jph_vec3(inV3),
-											   .color = vector4(inColor.r, inColor.g, inColor.b, inColor.a),
+											   .color = vector4(inColor.r, inColor.g, inColor.b, inColor.a) / 255.0f,
 										   }};
 
-		const uint32 idx_begin	= _vertex_count_tri * 3;
+		const uint32 idx_begin	= _vertex_count_tri;
 		const uint32 indices[3] = {idx_begin, idx_begin + 1, idx_begin + 2};
 		_triangle_vertices->write(vertices, static_cast<size_t>(_vertex_count_tri) * sizeof(vertex_simple), sizeof(vertex_simple) * 3);
 		_triangle_indices->write(indices, idx_begin * sizeof(uint32), sizeof(uint32) * 3);

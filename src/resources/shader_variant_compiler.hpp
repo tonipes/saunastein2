@@ -46,5 +46,9 @@ namespace SFG
 
 		/* compiles variants for post combiner. */
 		static bool compile_style_gizmo(shader_raw& raw, const string& shader_text, const vector<string>& folder_path);
+
+		/* compiles variants for forward pass debug */
+		static bool compile_style_debug_triangle(shader_raw& raw, const string& shader_text, const vector<string>& folder_path);
+		static bool compile_style_debug_line(shader_raw& raw, const string& shader_text, const vector<string>& folder_path);
 	};
 }

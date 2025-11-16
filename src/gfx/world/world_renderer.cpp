@@ -379,6 +379,7 @@ namespace SFG
 			_pass_bloom.render({
 				.frame_index		   = frame_index,
 				.size				   = resolution,
+				.lighting			   = lighting_texture,
 				.gpu_index_lighting	   = gpu_index_lighting,
 				.global_layout_compute = layout_global_compute,
 				.global_group		   = bind_group_global,
@@ -498,12 +499,11 @@ namespace SFG
 		// submit lighting, waits for ssao
 		backend->queue_wait(queue_gfx, &sem_ssao, &sem_ssao_val1, 1);
 		backend->submit_commands(queue_gfx, &cmd_lighting, 1);
+		backend->submit_commands(queue_gfx, &cmd_forward, 1);
 
 #ifdef JPH_DEBUG_RENDERER
 		backend->submit_commands(queue_gfx, &cmd_physics_debug, 1);
 #endif
-
-		backend->submit_commands(queue_gfx, &cmd_forward, 1);
 
 		backend->queue_signal(queue_gfx, &sem_lighting, &sem_lighting_val0, 1);
 

@@ -38,6 +38,8 @@
 #include "traits/trait_ambient.hpp"
 #include "traits/trait_physics.hpp"
 
+#include "app/debug_console.hpp"
+
 namespace SFG
 {
 	world::world(render_event_stream& rstream) : _entity_manager(*this), _trait_manager(*this), _render_stream(rstream), _resource_manager(*this), _phy_world(*this)
@@ -68,6 +70,13 @@ namespace SFG
 		_trait_manager.register_cache<trait_physics, MAX_WORLD_TRAIT_PHYSICS>();
 
 		_phy_world.init();
+
+#ifdef SFG_TOOLMODE
+		debug_console::get()->register_console_function("start_playmode", [this]() { start_playmode(); });
+		debug_console::get()->register_console_function("stop_playmode", [this]() { stop_playmode(); });
+		debug_console::get()->register_console_function("start_physics", [this]() { start_physics(); });
+		debug_console::get()->register_console_function("stop_physics", [this]() { stop_physics(); });
+#endif
 	};
 
 	world::~world()
@@ -118,5 +127,65 @@ namespace SFG
 		if (!_flags.is_set(world_flags_is_init))
 			return false;
 		return false;
+	}
+
+	void world::start_playmode()
+	{
+		if (_flags.is_set(world_flags_is_playing))
+		{
+			SFG_ERR("Can't start playmode as already playing.");
+			return;
+		}
+
+		if (_flags.is_set(world_flags_is_physics_active))
+		{
+			SFG_ERR("Can't start playmode as simulating physics.");
+			return;
+		}
+
+		_phy_world.init_simulation();
+
+		_flags.set(world_flags_is_playing | world_flags_is_physics_active);
+	}
+
+	void world::stop_playmode()
+	{
+		if (!_flags.is_set(world_flags_is_playing))
+		{
+			SFG_ERR("Can't end playmode as its not active.");
+			return;
+		}
+
+		_phy_world.uninit_simulation();
+
+		_flags.remove(world_flags_is_playing | world_flags_is_physics_active);
+	}
+
+	void world::start_physics()
+	{
+		if (_flags.is_set(world_flags_is_playing))
+		{
+			SFG_ERR("Can't start physics as already playing.");
+			return;
+		}
+
+		if (_flags.is_set(world_flags_is_physics_active))
+		{
+			SFG_ERR("Can't start physics as already simulating physics.");
+			return;
+		}
+
+		_phy_world.init_simulation();
+	}
+
+	void world::stop_physics()
+	{
+		if (!_flags.is_set(world_flags_is_physics_active))
+		{
+			SFG_ERR("Can't end physics as its not active.");
+			return;
+		}
+
+		_phy_world.uninit_simulation();
 	}
 }
