@@ -9,6 +9,9 @@
 #include "gui/vekt.hpp"
 #include "resources/resource_manager.hpp"
 #include "physics/physics_world.hpp"
+#include "audio/audio_manager.hpp"
+
+struct ma_engine;
 
 namespace SFG
 {
@@ -94,7 +97,14 @@ namespace SFG
 			return _resource_manager;
 		}
 
+		inline audio_manager& get_audio_manager()
+		{
+			return _audio_manager;
+		}
+
 	private:
+		audio_manager		 _audio_manager = {};
+		ma_engine*			 _sound_engine	= nullptr;
 		render_event_stream& _render_stream;
 		entity_manager		 _entity_manager;
 		resource_manager	 _resource_manager;

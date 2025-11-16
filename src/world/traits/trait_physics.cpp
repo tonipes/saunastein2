@@ -69,7 +69,7 @@ namespace SFG
 	{
 		SFG_ASSERT(_body != nullptr);
 		physics_world& phy_world = w.get_physics_world();
-		phy_world.remove_body_from_world(_body);
+		phy_world.remove_body_from_world(*_body);
 		_flags.remove(trait_physics_flags_in_simulation);
 	}
 

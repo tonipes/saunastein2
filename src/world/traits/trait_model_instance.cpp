@@ -174,7 +174,7 @@ namespace SFG
 
 		for (world_handle e : root_entities)
 		{
-			report_entity(e);
+			// report_entity(e);
 		}
 
 		for (world_handle r : root_entities)

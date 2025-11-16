@@ -16,76 +16,70 @@ namespace SFG
 
 	void audio::create_from_loader(const audio_raw& raw, world& w, resource_handle handle)
 	{
-		resource_manager&	 rm		= w.get_resource_manager();
-		chunk_allocator32&	 alloc	= rm.get_aux();
+		resource_manager&  rm  = w.get_resource_manager();
+		chunk_allocator32& aux = rm.get_aux();
+		_decoder			   = aux.allocate<ma_decoder>(1);
 
 #ifndef SFG_STRIP_DEBUG_NAMES
 		if (!raw.name.empty())
-			_name = alloc.allocate_text(raw.name);
+			_name = aux.allocate_text(raw.name);
 #endif
-
-		if (_flags.is_set(audio::flags::is_init))
-			destroy(w, handle);
 
 		_flags.set(audio::flags::is_streaming, raw.is_stream);
 
 		if (_flags.is_set(audio::flags::is_streaming))
 		{
-			_audio_data = alloc.allocate<uint8>(raw.audio_data.size());
-			SFG_MEMCPY(alloc.get(_audio_data.head), raw.audio_data.data(), raw.audio_data.size());
 		}
+
+		_audio_data = aux.allocate<uint8>(raw.audio_data.size());
+		SFG_MEMCPY(aux.get(_audio_data.head), raw.audio_data.data(), raw.audio_data.size());
 
 		ma_result result;
 
 		char* raw_data = const_cast<char*>(raw.audio_data.data());
-		void* data	   = raw.is_stream ? static_cast<void*>(alloc.get(_audio_data.head)) : reinterpret_cast<void*>(raw_data);
+		void* data	   = static_cast<void*>(aux.get(_audio_data.head));
+
+		ma_decoder* dec = aux.get<ma_decoder>(_decoder);
 
 		result = ma_decoder_init_memory(data,
 										raw.audio_data.size(),
 										nullptr, // auto-detect format
-										&_decoder);
+										dec);
 		if (result != MA_SUCCESS)
 		{
 			SFG_ERR("Failed to init decoder from memory for {0}", raw.name);
 			return;
 		}
 
-		_flags.set(audio::flags::is_init);
-
 		SFG_INFO("Created audio resource: {0} (stream={1})", raw.name, _flags.is_set(audio::flags::is_streaming));
 	}
 
 	void audio::destroy(world& w, resource_handle handle)
 	{
-		resource_manager&	 rm		= w.get_resource_manager();
-		chunk_allocator32&	 alloc	= rm.get_aux();
+		resource_manager&  rm  = w.get_resource_manager();
+		chunk_allocator32& aux = rm.get_aux();
+
+		ma_decoder* dec = aux.get<ma_decoder>(_decoder);
+		ma_decoder_uninit(dec);
+
+		aux.free(_decoder);
+		_decoder = {};
 
 #ifndef SFG_STRIP_DEBUG_NAMES
 		if (_name.size != 0)
-			alloc.free(_name);
+			aux.free(_name);
 		_name = {};
 #endif
 
-		SFG_ASSERT(_flags.is_set(audio::flags::is_init));
-		ma_decoder_uninit(&_decoder);
-		_flags.remove(audio::flags::is_init);
 		if (_audio_data.size != 0)
-			alloc.free(_audio_data);
+			aux.free(_audio_data);
 		_audio_data = {};
 	}
 
-	// If streaming, we let ma_sound stream from decoder.
-	// If not streaming, ma_sound will also work (just reads everything immediately).
-	// ma_uint32 flags = _flags.is_set(audio::flags::is_streaming) ? MA_SOUND_FLAG_STREAM : 0;
-
-	/*
-	result = ma_sound_init_from_data_source(engine, &_decoder, flags, nullptr, &_sound);
-	if (result != MA_SUCCESS)
+	ma_decoder* audio::get_decoder(world& w) const
 	{
-		SFG_ERR("Failed to init sound for {0}", raw.name);
-		ma_decoder_uninit(&_decoder);
-		return;
+		resource_manager&  rm  = w.get_resource_manager();
+		chunk_allocator32& aux = rm.get_aux();
+		return aux.get<ma_decoder>(_decoder);
 	}
-	*/
-	// ma_sound_uninit(&_sound);
 }

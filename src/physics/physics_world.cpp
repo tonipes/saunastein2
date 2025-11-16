@@ -106,6 +106,7 @@ namespace SFG
 
 	void physics_world::init_simulation()
 	{
+		
 		static vector<JPH::BodyID> reuse_body_ids;
 		reuse_body_ids.resize(0);
 
@@ -132,22 +133,21 @@ namespace SFG
 
 		if (!reuse_body_ids.empty())
 			add_bodies_to_world(reuse_body_ids.data(), static_cast<uint32>(reuse_body_ids.size()));
+	
 
 		_system->OptimizeBroadPhase();
 	}
 
 	void physics_world::uninit_simulation()
 	{
-		JPH::BodyInterface& body_interface = _system->GetBodyInterface();
-
-		static vector<JPH::BodyID> reuse_body_ids;
-		reuse_body_ids.resize(0);
-
-		for (uint32 id : _added_bodies)
-			reuse_body_ids.push_back(JPH::BodyID(id));
-
-		body_interface.RemoveBodies(reuse_body_ids.data(), static_cast<int32>(reuse_body_ids.size()));
-		_added_bodies.resize(0);
+		 JPH::BodyInterface& body_interface = _system->GetBodyInterface();
+		 
+		 static vector<JPH::BodyID> reuse_body_ids;
+		 reuse_body_ids.resize(0);
+		 for (uint32 id : _added_bodies)
+		 	reuse_body_ids.push_back(JPH::BodyID(id));
+		 body_interface.RemoveBodies(reuse_body_ids.data(), static_cast<int32>(reuse_body_ids.size()));
+		 _added_bodies.resize(0);
 	}
 
 	void physics_world::simulate(float rate)

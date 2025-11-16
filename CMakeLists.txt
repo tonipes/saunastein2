@@ -106,6 +106,7 @@ endif()
 # ------------- SRC -------------
 
 file(GLOB SOURCES 
+src/audio/*.cpp
 src/common/*.cpp
 src/platform/*.cpp
 src/math/*.cpp
@@ -139,6 +140,7 @@ src/vendor/miniaudio/*.c
 )
 
 file(GLOB HEADERS 
+src/audio/*.hpp
 src/common/*.hpp
 src/platform/*.hpp
 src/math/*.hpp

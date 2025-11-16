@@ -25,12 +25,14 @@
 #include "world/traits/trait_ambient.hpp"
 #include "world/traits/trait_light.hpp"
 #include "world/traits/trait_physics.hpp"
+#include "world/traits/trait_audio.hpp"
 
 // resources
 #include "resources/model.hpp"
 #include "resources/model_raw.hpp"
 #include "resources/world_raw.hpp"
 #include "resources/material.hpp"
+#include "resources/audio.hpp"
 
 namespace SFG
 {
@@ -189,8 +191,9 @@ namespace SFG
 	{
 		world& w = _game.get_world();
 
-		entity_manager& em = w.get_entity_manager();
-		trait_manager&	tm = w.get_trait_manager();
+		entity_manager&	  em = w.get_entity_manager();
+		trait_manager&	  tm = w.get_trait_manager();
+		resource_manager& rm = w.get_resource_manager();
 
 		create_demo_model();
 
@@ -208,6 +211,7 @@ namespace SFG
 			phy.set_shape_type(physics_shape_type::sphere);
 			phy.set_height_radius(0.0f, 0.5f);
 			phy.create_body(w);
+			phy.add_to_simulation(w);
 		}
 
 		{
@@ -221,7 +225,16 @@ namespace SFG
 				phy.set_shape_type(physics_shape_type::plane);
 				phy.set_extent(vector3(1, 1, 1));
 				phy.create_body(w);
+				phy.add_to_simulation(w);
 			}
+		}
+
+		{
+			world_handle sound_handle = em.create_entity("sound");
+			world_handle trait		  = tm.add_trait<trait_audio>(sound_handle);
+			trait_audio& aud		  = tm.get_trait<trait_audio>(trait);
+			aud.set_audio(w, rm.get_resource_handle_by_hash<audio>(TO_SIDC("assets/audio/metal.stkaud")));
+			aud.play(w);
 		}
 	}
 

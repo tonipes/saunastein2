@@ -37,6 +37,7 @@
 #include "traits/trait_model_instance.hpp"
 #include "traits/trait_ambient.hpp"
 #include "traits/trait_physics.hpp"
+#include "traits/trait_audio.hpp"
 
 #include "app/debug_console.hpp"
 
@@ -68,8 +69,10 @@ namespace SFG
 		_trait_manager.register_cache<trait_mesh_instance, MAX_WORLD_TRAIT_MESH_INSTANCES>();
 		_trait_manager.register_cache<trait_ambient, MAX_WORLD_TRAIT_AMBIENTS>();
 		_trait_manager.register_cache<trait_physics, MAX_WORLD_TRAIT_PHYSICS>();
+		_trait_manager.register_cache<trait_audio, MAX_WORLD_TRAIT_AUDIO>();
 
 		_phy_world.init();
+		_audio_manager.init();
 
 #ifdef SFG_TOOLMODE
 		debug_console::get()->register_console_function("start_playmode", [this]() { start_playmode(); });
@@ -81,6 +84,8 @@ namespace SFG
 
 	world::~world()
 	{
+		_audio_manager.uninit();
+
 		_text_allocator.uninit();
 		_phy_world.uninit();
 	}
