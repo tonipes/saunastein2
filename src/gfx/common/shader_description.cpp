@@ -96,6 +96,32 @@ namespace SFG
 		SFG_ASSERT(false);
 	}
 
+	void to_json(nlohmann::json& j, const fill_mode& c)
+	{
+		switch (c)
+		{
+		case fill_mode::solid:
+			j = "solid";
+			break;
+		case fill_mode::wireframe:
+			j = "wireframe";
+			break;
+		}
+	}
+
+	void from_json(const nlohmann::json& j, fill_mode& c)
+	{
+		const string& str = j.get<string>();
+
+		if (str.compare("wireframe") == 0)
+		{
+			c = fill_mode::wireframe;
+			return;
+		}
+
+		c = fill_mode::solid;
+	}
+
 	void to_json(nlohmann::json& j, const front_face& f)
 	{
 		switch (f)
@@ -676,6 +702,7 @@ namespace SFG
 			stream << inp.format;
 		}
 
+		stream << fill;
 		stream << blend_logic_op;
 		stream << topo;
 		stream << cull;
@@ -694,7 +721,7 @@ namespace SFG
 		stream >> pixel_entry;
 		stream >> compute_entry;
 		stream >> sh_flags;
-	
+
 		uint16 att_count = 0;
 		stream >> att_count;
 		attachments.resize(att_count);
@@ -756,6 +783,7 @@ namespace SFG
 			inp.size   = static_cast<size_t>(size);
 		}
 
+		stream >> fill;
 		stream >> blend_logic_op;
 		stream >> topo;
 		stream >> cull;

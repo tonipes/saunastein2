@@ -18,10 +18,10 @@ namespace SFG
 	class physics_debug_renderer : public JPH::DebugRenderer
 	{
 	public:
-		static constexpr size_t MAX_TRI_VERTICES_SIZE  = sizeof(vertex_simple) * 12000;
-		static constexpr size_t MAX_LINE_VERTICES_SIZE = sizeof(vertex_3d_line) * 12000;
-		static constexpr size_t MAX_TRI_INDICES_SIZE   = sizeof(uint32) * 12000;
-		static constexpr size_t MAX_LINE_INDICES_SIZE  = sizeof(uint32) * 72000;
+		static constexpr size_t MAX_TRI_VERTICES_SIZE  = sizeof(vertex_simple) * 48000;
+		static constexpr size_t MAX_LINE_VERTICES_SIZE = sizeof(vertex_3d_line) * 4000;
+		static constexpr size_t MAX_TRI_INDICES_SIZE   = sizeof(uint32) * 48000;
+		static constexpr size_t MAX_LINE_INDICES_SIZE  = sizeof(uint32) * 12000;
 
 		physics_debug_renderer();
 		virtual ~physics_debug_renderer();

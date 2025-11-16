@@ -434,6 +434,17 @@ namespace SFG
 			}
 		}
 
+		D3D12_FILL_MODE get_fill_mode(fill_mode fm)
+		{
+			switch (fm)
+			{
+			case fill_mode::wireframe:
+				return D3D12_FILL_MODE_WIREFRAME;
+			default:
+				return D3D12_FILL_MODE_SOLID;
+			}
+		}
+
 		D3D12_PRIMITIVE_TOPOLOGY_TYPE get_topology_type(topology tp)
 		{
 			switch (tp)
@@ -1995,7 +2006,7 @@ namespace SFG
 		pso_desc.SampleDesc.Count					   = desc.samples;
 		pso_desc.PrimitiveTopologyType				   = get_topology_type(desc.topo);
 		pso_desc.NumRenderTargets					   = attachment_count;
-		pso_desc.RasterizerState.FillMode			   = D3D12_FILL_MODE_SOLID;
+		pso_desc.RasterizerState.FillMode			   = get_fill_mode(desc.fill);
 		pso_desc.RasterizerState.CullMode			   = get_cull_mode(desc.cull);
 		pso_desc.RasterizerState.FrontCounterClockwise = desc.front == front_face::ccw;
 		pso_desc.RasterizerState.DepthBias			   = static_cast<uint32>(desc.depth_bias_constant);

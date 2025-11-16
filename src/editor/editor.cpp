@@ -207,6 +207,21 @@ namespace SFG
 			phy.set_body_type(physics_body_type::dynamic_body);
 			phy.set_shape_type(physics_shape_type::sphere);
 			phy.set_height_radius(0.0f, 0.5f);
+			phy.create_body(w);
+		}
+
+		{
+
+			world_handle bb = em.find_entity("Ground");
+			if (!bb.is_null())
+			{
+				world_handle   t   = tm.add_trait<trait_physics>(bb);
+				trait_physics& phy = tm.get_trait<trait_physics>(t);
+				phy.set_body_type(physics_body_type::static_body);
+				phy.set_shape_type(physics_shape_type::plane);
+				phy.set_extent(vector3(1, 1, 1));
+				phy.create_body(w);
+			}
 		}
 	}
 

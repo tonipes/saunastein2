@@ -1,6 +1,7 @@
 // Copyright (c) 2025 Inan Evin
 #pragma once
 
+#include "data/bitmask.hpp"
 #include "world/traits/common_trait.hpp"
 #include "reflection/trait_reflection.hpp"
 #include "physics/common_physics.hpp"
@@ -21,6 +22,11 @@ namespace SFG
 	class trait_physics
 	{
 	public:
+		enum flags
+		{
+			trait_physics_flags_in_simulation = 1 << 0,
+		};
+
 		// -----------------------------------------------------------------------------
 		// trait
 		// -----------------------------------------------------------------------------
@@ -36,6 +42,9 @@ namespace SFG
 
 		void create_body(world& w);
 		void destroy_body(world& w);
+
+		void add_to_simulation(world& w);
+		void remove_from_simulation(world& w);
 
 		// -----------------------------------------------------------------------------
 		// accessors
@@ -97,6 +106,11 @@ namespace SFG
 			_material_handle = h;
 		}
 
+		inline bitmask<uint8>& get_flags()
+		{
+			return _flags;
+		}
+
 	private:
 		template <typename T, int> friend class trait_cache;
 
@@ -107,6 +121,7 @@ namespace SFG
 		resource_handle	   _material_handle			= {};
 		physics_body_type  _body_type				= physics_body_type::static_body;
 		physics_shape_type _shape_type				= physics_shape_type::box;
+		bitmask<uint8>	   _flags					= 0;
 	};
 
 	REGISTER_TRAIT(trait_physics);

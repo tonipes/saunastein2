@@ -65,6 +65,12 @@ namespace SFG
 		triangle_fan,
 	};
 
+	enum class fill_mode : uint8
+	{
+		solid,
+		wireframe
+	};
+
 	enum class polygon_mode : uint8
 	{
 		fill,
@@ -222,6 +228,7 @@ namespace SFG
 		shader_depth_stencil_desc depth_stencil_desc = {};
 		logic_op				  blend_logic_op	 = logic_op::and_;
 		topology				  topo				 = topology::triangle_list;
+		fill_mode				  fill				 = fill_mode::solid;
 		cull_mode				  cull				 = cull_mode::back;
 		front_face				  front				 = front_face::cw;
 		polygon_mode			  poly_mode			 = polygon_mode::fill;
@@ -266,6 +273,9 @@ namespace SFG
 
 	void to_json(nlohmann::json& j, const cull_mode& c);
 	void from_json(const nlohmann::json& j, cull_mode& c);
+
+	void to_json(nlohmann::json& j, const fill_mode& c);
+	void from_json(const nlohmann::json& j, fill_mode& c);
 
 	void to_json(nlohmann::json& j, const front_face& f);
 	void from_json(const nlohmann::json& j, front_face& f);

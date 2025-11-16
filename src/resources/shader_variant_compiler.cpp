@@ -707,19 +707,25 @@ namespace SFG
 
 		auto add_pso = [&](uint32 compile_variant_index, const bitmask<uint32>& variant_flags) {
 			raw.pso_variants.push_back({});
-			pso_variant& pso	 = raw.pso_variants.back();
-			pso.compile_variant	 = compile_variant_index;
-			pso.variant_flags	 = variant_flags;
-			pso.desc.debug_name	 = raw.name;
-			pso.desc.attachments = color_attachments;
-			pso.desc.inputs		 = vertex_inputs;
-			pso.desc.cull		 = cull_mode::back;
-			pso.desc.topo		 = topology::triangle_list;
-			pso.desc.front		 = front_face::ccw;
-			pso.desc.poly_mode	 = polygon_mode::fill;
+			pso_variant& pso			 = raw.pso_variants.back();
+			pso.compile_variant			 = compile_variant_index;
+			pso.variant_flags			 = variant_flags;
+			pso.desc.debug_name			 = raw.name;
+			pso.desc.attachments		 = color_attachments;
+			pso.desc.inputs				 = vertex_inputs;
+			pso.desc.cull				 = cull_mode::back;
+			pso.desc.topo				 = topology::triangle_list;
+			pso.desc.front				 = front_face::ccw;
+			pso.desc.poly_mode			 = polygon_mode::fill;
+			pso.desc.depth_bias_constant = 0.01f;
+			pso.desc.depth_bias_slope	 = 1;
+			pso.desc.fill				 = fill_mode::wireframe;
 
 			pso.desc.depth_stencil_desc = {
-				.flags =0,
+				.attachment_format = render_target_definitions::get_format_depth_default(),
+				.depth_compare	   = compare_op::gequal,
+				.flags			   = depth_stencil_flags::dsf_depth_test,
+
 			};
 		};
 
@@ -785,19 +791,22 @@ namespace SFG
 
 		auto add_pso = [&](uint32 compile_variant_index, const bitmask<uint32>& variant_flags) {
 			raw.pso_variants.push_back({});
-			pso_variant& pso	 = raw.pso_variants.back();
-			pso.compile_variant	 = compile_variant_index;
-			pso.variant_flags	 = variant_flags;
-			pso.desc.debug_name	 = raw.name;
-			pso.desc.attachments = color_attachments;
-			pso.desc.inputs		 = vertex_inputs;
-			pso.desc.cull		 = cull_mode::none;
-			pso.desc.topo		 = topology::triangle_list;
-			pso.desc.front		 = front_face::ccw;
-			pso.desc.poly_mode	 = polygon_mode::fill;
+			pso_variant& pso			 = raw.pso_variants.back();
+			pso.compile_variant			 = compile_variant_index;
+			pso.variant_flags			 = variant_flags;
+			pso.desc.debug_name			 = raw.name;
+			pso.desc.attachments		 = color_attachments;
+			pso.desc.inputs				 = vertex_inputs;
+			pso.desc.cull				 = cull_mode::none;
+			pso.desc.topo				 = topology::triangle_list;
+			pso.desc.front				 = front_face::ccw;
+			pso.desc.poly_mode			 = polygon_mode::fill;
+			pso.desc.depth_bias_constant = 0.5f;
 
 			pso.desc.depth_stencil_desc = {
-				.flags = 0,
+				.attachment_format = render_target_definitions::get_format_depth_default(),
+				.depth_compare	   = compare_op::gequal,
+				.flags			   = depth_stencil_flags::dsf_depth_test,
 			};
 		};
 

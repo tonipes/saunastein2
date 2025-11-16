@@ -119,7 +119,14 @@ namespace SFG
 				body = trait.get_body();
 			}
 
-			reuse_body_ids.push_back(body->GetID());
+			bitmask<uint8>& flags = trait.get_flags();
+
+			if (!flags.is_set(trait_physics::flags::trait_physics_flags_in_simulation))
+			{
+				flags.set(trait_physics::flags::trait_physics_flags_in_simulation);
+				reuse_body_ids.push_back(body->GetID());
+			}
+
 			return trait_view_result::cont;
 		});
 
@@ -164,26 +171,32 @@ namespace SFG
 
 	void physics_world::add_bodies_to_world(JPH::BodyID* body_ids, uint32 count)
 	{
-		JPH::BodyInterface& body_interface = _system->GetBodyInterface();
-		const JPH::BodyInterface::AddState add_state = body_interface.AddBodiesPrepare(body_ids, static_cast<int>(count));
-		body_interface.AddBodiesFinalize(body_ids, static_cast<int>(count), add_state, JPH::EActivation::DontActivate);
+		JPH::BodyInterface&				   body_interface = _system->GetBodyInterface();
+		const JPH::BodyInterface::AddState add_state	  = body_interface.AddBodiesPrepare(body_ids, static_cast<int>(count));
+		body_interface.AddBodiesFinalize(body_ids, static_cast<int>(count), add_state, JPH::EActivation::Activate);
 
 		for (uint32 i = 0; i < count; i++)
 			_added_bodies.push_back(body_ids[i].GetIndexAndSequenceNumber());
 	}
 
-	void physics_world::add_body_to_world(JPH::Body* body)
+	void physics_world::add_body_to_world(const JPH::Body& body)
 	{
-		JPH::BodyID jph_id = body->GetID();
+		JPH::BodyID jph_id = body.GetID();
 		add_bodies_to_world(&jph_id, 1);
 	}
 
-	void physics_world::remove_body_from_world(JPH::Body* body)
+	void physics_world::remove_body_from_world(const JPH::Body& body)
 	{
-		const uint32 body_id = body->GetID().GetIndexAndSequenceNumber();
+		const uint32 body_id = body.GetID().GetIndexAndSequenceNumber();
 		_added_bodies.erase(std::find_if(_added_bodies.begin(), _added_bodies.end(), [body_id](uint32 id) -> bool { return id == body_id; }));
 		JPH::BodyInterface& body_interface = _system->GetBodyInterface();
-		body_interface.RemoveBody(body->GetID());
+		body_interface.RemoveBody(body.GetID());
+	}
+
+	void physics_world::remove_bodies_from_world(JPH::BodyID* body_ids, uint32 count)
+	{
+		JPH::BodyInterface& body_interface = _system->GetBodyInterface();
+		body_interface.RemoveBodies(body_ids, static_cast<int>(count));
 	}
 
 	JPH::Body* physics_world::create_body(physics_body_type body_type, physics_shape_type shape, const vector3& extents_or_height_radius, resource_handle mat, const vector3& pos, const quat& rot, const vector3& scale)
@@ -211,23 +224,23 @@ namespace SFG
 		}
 		else if (shape == physics_shape_type::sphere)
 		{
+			JPH::SphereShapeSettings sphere(extents_or_height_radius.y);
+			shape_ref = sphere.Create().Get();
+		}
+		else if (shape == physics_shape_type::capsule)
+		{
 			JPH::CapsuleShapeSettings capsuleShapeSettings(extents_or_height_radius.x * 0.5f, extents_or_height_radius.y);
 			shape_ref = capsuleShapeSettings.Create().Get();
 		}
-		else if (shape == physics_shape_type::capsule)
+		else if (shape == physics_shape_type::cylinder)
 		{
 			JPH::CylinderShapeSettings cylinderShapeSettings(extents_or_height_radius.x * 0.5f, extents_or_height_radius.y);
 			shape_ref = cylinderShapeSettings.Create().Get();
 		}
-		else if (shape == physics_shape_type::cylinder)
+		else if (shape == physics_shape_type::plane)
 		{
 			JPH::PlaneShapeSettings plane(JPH::Plane(to_jph_vec3(rot.get_up()), 0.0f));
 			shape_ref = plane.Create().Get();
-		}
-		else if (shape == physics_shape_type::plane)
-		{
-			JPH::SphereShapeSettings sphere(extents_or_height_radius.y);
-			shape_ref = sphere.Create().Get();
 		}
 
 		body_settings.mRestitution					= mat_settings.restitution;
@@ -243,6 +256,7 @@ namespace SFG
 		body_settings.mRotation						= to_jph_quat(rot);
 		body_settings.SetShape(shape_ref);
 
+		JPH::Body* b = nullptr;
 		return body_interface.CreateBody(body_settings);
 	}
 

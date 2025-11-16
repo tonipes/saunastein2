@@ -48,8 +48,9 @@ namespace SFG
 		// impl
 		// -----------------------------------------------------------------------------
 		void	   add_bodies_to_world(JPH::BodyID* body_ids, uint32 count);
-		void	   add_body_to_world(JPH::Body* body);
-		void	   remove_body_from_world(JPH::Body* body);
+		void	   add_body_to_world(const JPH::Body& body);
+		void	   remove_body_from_world(const JPH::Body& body);
+		void	   remove_bodies_from_world(JPH::BodyID* body_ids, uint32 count);
 		JPH::Body* create_body(physics_body_type body_type, physics_shape_type shape, const vector3& extents_or_height_radius, resource_handle physical_material, const vector3& pos, const quat& rot, const vector3& scale);
 		void	   destroy_body(JPH::Body* body);
 		void	   set_gravity(const vector3& g);

@@ -175,6 +175,8 @@ namespace SFG
 			return;
 		}
 
+		_flags.set(world_flags_is_physics_active);
+
 		_phy_world.init_simulation();
 	}
 
@@ -185,6 +187,7 @@ namespace SFG
 			SFG_ERR("Can't end physics as its not active.");
 			return;
 		}
+		_flags.remove(world_flags_is_physics_active);
 
 		_phy_world.uninit_simulation();
 	}
