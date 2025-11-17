@@ -216,7 +216,7 @@ namespace vekt
 		std::sort(_draw_buffers.begin(), _draw_buffers.end(), [](const draw_buffer& a, const draw_buffer& b) { return a.draw_order < b.draw_order; });
 
 		for (draw_buffer& db : _draw_buffers)
-			_on_draw(db);
+			_on_draw(db, _on_draw_ud);
 	}
 
 	void builder::widget_add_child(id widget_id, id child_id)

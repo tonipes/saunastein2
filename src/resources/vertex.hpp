@@ -47,4 +47,11 @@ namespace SFG
 		vector4 color	  = vector4::zero;
 		float	direction = 0.0f;
 	};
+
+	struct vertex_gui
+	{
+		vector2 pos	  = vector2::zero;
+		vector2 uv	  = vector2::zero;
+		vector4 color = vector4::zero;
+	};
 }

@@ -53,13 +53,13 @@ namespace SFG
 	private:
 		static void on_log(log_level lvl, const char* msg, void* user_data);
 
-		void flush_key_events();
-		void build_console();
-		void console_logic();
-		void add_console_text(const char* text, log_level level);
-		void update_console_input_field();
-		void on_draw(const vekt::draw_buffer& buffer);
-		void set_console_visible(bool visible);
+		void		flush_key_events();
+		void		build_console();
+		void		console_logic();
+		void		add_console_text(const char* text, log_level level);
+		void		update_console_input_field();
+		static void on_draw(const vekt::draw_buffer& buffer, void* ud);
+		void		set_console_visible(bool visible);
 
 		static void on_atlas_created(vekt::atlas* atlas, void* user_data);
 		static void on_atlas_updated(vekt::atlas* atlas, void* user_data);

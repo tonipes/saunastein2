@@ -4,6 +4,7 @@
 
 #include "common/size_definitions.hpp"
 #include "gfx/common/gfx_constants.hpp"
+#include "math/vector4ui16.hpp"
 
 namespace SFG
 {
@@ -13,8 +14,6 @@ namespace SFG
 		uint32 start_index;
 		uint32 index_count;
 		uint32 base_vertex;
-		uint32 instance_count;
-		uint16 first_instance;
 
 		// state bindings
 		gpu_index material_constant_index;
@@ -39,8 +38,6 @@ namespace SFG
 		uint32 start_index;
 		uint32 index_count;
 		uint32 base_vertex;
-		uint32 instance_count;
-		uint16 first_instance;
 
 		// state bindings
 		gpu_index material_constant_index;
@@ -61,8 +58,25 @@ namespace SFG
 		float distance = 0.0f;
 	};
 
+	struct draw_command_gui
+	{
+		vector4ui16 clip;
+
+		uint32 start_index;
+		uint32 index_count;
+		uint32 base_vertex;
+
+		gpu_index material_constant_index;
+		gpu_index texture_constant_index;
+
+		gfx_id vb_hw;
+		gfx_id ib_hw;
+		gfx_id pipeline_hw;
+	};
+
 	static_assert(sizeof(draw_command) <= 64, "cache line pls");
 	static_assert(sizeof(draw_command_distance) <= 64, "cache line pls");
+	static_assert(sizeof(draw_command_gui) <= 64, "cache line pls");
 
 	class bump_allocator;
 
@@ -133,5 +147,22 @@ namespace SFG
 	private:
 		draw_command_distance* _commands	   = nullptr;
 		uint32				   _commands_count = 0;
+	};
+
+	class draw_stream_gui
+	{
+	public:
+		void prepare(bump_allocator& alloc, size_t max_commands);
+		void build();
+		void draw(gfx_id command_buffer);
+
+		inline void add_command(const draw_command_gui& cmd)
+		{
+			_commands[_commands_count++] = cmd;
+		}
+
+	private:
+		draw_command_gui* _commands		  = nullptr;
+		uint32			  _commands_count = 0;
 	};
 }

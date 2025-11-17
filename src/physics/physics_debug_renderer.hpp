@@ -53,10 +53,10 @@ namespace SFG
 		{
 			_vertex_count_line = 0;
 			_vertex_count_tri  = 0;
-			_triangle_vertices->swap();
-			_triangle_indices->swap();
-			_line_vertices->swap();
-			_line_indices->swap();
+			_triangle_vertices.swap();
+			_triangle_indices.swap();
+			_line_vertices.swap();
+			_line_indices.swap();
 		}
 
 		inline void end()
@@ -65,22 +65,22 @@ namespace SFG
 			_read_vertex_count_tri.store(_vertex_count_tri, std::memory_order_release);
 		}
 
-		inline double_buffered_swap<MAX_TRI_VERTICES_SIZE>* get_triangle_vertices() const
+		inline const double_buffered_swap& get_triangle_vertices() const
 		{
 			return _triangle_vertices;
 		}
 
-		inline double_buffered_swap<MAX_TRI_INDICES_SIZE>* get_triangle_indices() const
+		inline const double_buffered_swap& get_triangle_indices() const
 		{
 			return _triangle_indices;
 		}
 
-		inline double_buffered_swap<MAX_LINE_VERTICES_SIZE>* get_line_vertices() const
+		inline const double_buffered_swap& get_line_vertices() const
 		{
 			return _line_vertices;
 		}
 
-		inline double_buffered_swap<MAX_LINE_INDICES_SIZE>* get_line_indices() const
+		inline const double_buffered_swap& get_line_indices() const
 		{
 			return _line_indices;
 		}
@@ -102,7 +102,7 @@ namespace SFG
 
 		inline uint32 get_index_count_line() const
 		{
-			return (_read_vertex_count_line.load(std::memory_order_acquire) / 4 ) * 6;
+			return (_read_vertex_count_line.load(std::memory_order_acquire) / 4) * 6;
 		}
 
 	private:
@@ -129,10 +129,10 @@ namespace SFG
 		};
 
 	private:
-		double_buffered_swap<MAX_TRI_VERTICES_SIZE>*  _triangle_vertices = nullptr;
-		double_buffered_swap<MAX_TRI_INDICES_SIZE>*	  _triangle_indices	 = nullptr;
-		double_buffered_swap<MAX_LINE_VERTICES_SIZE>* _line_vertices	 = nullptr;
-		double_buffered_swap<MAX_LINE_INDICES_SIZE>*  _line_indices		 = nullptr;
+		double_buffered_swap _triangle_vertices = {};
+		double_buffered_swap _triangle_indices	= {};
+		double_buffered_swap _line_vertices		= {};
+		double_buffered_swap _line_indices		= {};
 
 		uint32 _vertex_count_line = 0;
 		uint32 _vertex_count_tri  = 0;

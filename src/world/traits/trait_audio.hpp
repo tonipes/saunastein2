@@ -3,7 +3,6 @@
 
 #include "world/traits/common_trait.hpp"
 #include "reflection/trait_reflection.hpp"
-#include "physics/common_physics.hpp"
 #include "resources/common_resources.hpp"
 #include "memory/chunk_handle.hpp"
 

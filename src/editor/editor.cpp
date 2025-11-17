@@ -215,7 +215,6 @@ namespace SFG
 		}
 
 		{
-
 			world_handle bb = em.find_entity("Ground");
 			if (!bb.is_null())
 			{

@@ -886,7 +886,7 @@ namespace vekt
 		}
 	};
 
-	typedef std::function<void(const draw_buffer& db)> draw_callback;
+	typedef void (*draw_callback)(const draw_buffer& db, void* user_data);
 
 	class theme
 	{
@@ -1102,9 +1102,10 @@ namespace vekt
 			return _clip_stack.empty() ? VEKT_VEC4() : _clip_stack[_clip_stack.size() - 1].rect;
 		}
 
-		inline void set_on_draw(draw_callback cb)
+		inline void set_on_draw(draw_callback cb, void* user_data)
 		{
-			_on_draw = cb;
+			_on_draw	= cb;
+			_on_draw_ud = user_data;
 		}
 
 		inline id get_root() const
@@ -1162,6 +1163,7 @@ namespace vekt
 		vector<draw_buffer> _draw_buffers;
 		id					_root			= 0;
 		draw_callback		_on_draw		= nullptr;
+		void*				_on_draw_ud		= nullptr;
 		VEKT_VEC2			_mouse_position = {};
 
 		arena _layout_arena = {};

@@ -9,20 +9,20 @@ namespace SFG
 {
 	physics_debug_renderer::physics_debug_renderer()
 	{
-		_triangle_vertices = new double_buffered_swap<MAX_TRI_VERTICES_SIZE>();
-		_triangle_indices  = new double_buffered_swap<MAX_TRI_INDICES_SIZE>();
-		_line_vertices	   = new double_buffered_swap<MAX_LINE_VERTICES_SIZE>();
-		_line_indices	   = new double_buffered_swap<MAX_LINE_INDICES_SIZE>();
+		_triangle_vertices.init(MAX_TRI_VERTICES_SIZE, alignof(vertex_simple));
+		_triangle_indices.init(MAX_TRI_INDICES_SIZE, alignof(uint32));
+		_line_vertices.init(MAX_LINE_VERTICES_SIZE, alignof(vertex_3d_line));
+		_line_indices.init(MAX_LINE_INDICES_SIZE, alignof(uint32));
 
 		JPH::DebugRenderer::Initialize();
 	}
 
 	physics_debug_renderer::~physics_debug_renderer()
 	{
-		delete _triangle_vertices;
-		delete _triangle_indices;
-		delete _line_vertices;
-		delete _line_indices;
+		_triangle_vertices.uninit();
+		_triangle_indices.uninit();
+		_line_vertices.uninit();
+		_line_indices.uninit();
 	}
 
 	void physics_debug_renderer::DrawLine(JPH::RVec3Arg inFrom, JPH::RVec3Arg inTo, JPH::ColorArg inColor)
@@ -60,8 +60,8 @@ namespace SFG
 		const uint32 idx_begin	= _vertex_count_line;
 		const uint32 indices[6] = {idx_begin, idx_begin + 1, idx_begin + 2, idx_begin + 2, idx_begin + 3, idx_begin};
 
-		_line_vertices->write(vertices, static_cast<size_t>(_vertex_count_line) * sizeof(vertex_3d_line), sizeof(vertex_3d_line) * 4);
-		_line_indices->write(indices, (_vertex_count_line / 4 ) * 6 * sizeof(uint32), sizeof(uint32) * 6);
+		_line_vertices.write(vertices, static_cast<size_t>(_vertex_count_line) * sizeof(vertex_3d_line), sizeof(vertex_3d_line) * 4);
+		_line_indices.write(indices, (_vertex_count_line / 4) * 6 * sizeof(uint32), sizeof(uint32) * 6);
 		_vertex_count_line += 4;
 	}
 
@@ -82,8 +82,8 @@ namespace SFG
 
 		const uint32 idx_begin	= _vertex_count_tri;
 		const uint32 indices[3] = {idx_begin, idx_begin + 1, idx_begin + 2};
-		_triangle_vertices->write(vertices, static_cast<size_t>(_vertex_count_tri) * sizeof(vertex_simple), sizeof(vertex_simple) * 3);
-		_triangle_indices->write(indices, idx_begin * sizeof(uint32), sizeof(uint32) * 3);
+		_triangle_vertices.write(vertices, static_cast<size_t>(_vertex_count_tri) * sizeof(vertex_simple), sizeof(vertex_simple) * 3);
+		_triangle_indices.write(indices, idx_begin * sizeof(uint32), sizeof(uint32) * 3);
 		_vertex_count_tri += 3;
 	}
 

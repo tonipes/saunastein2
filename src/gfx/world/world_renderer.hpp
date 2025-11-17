@@ -17,6 +17,7 @@
 #include "render_pass/render_pass_bloom.hpp"
 #include "render_pass/render_pass_post_combiner.hpp"
 #include "render_pass/render_pass_forward.hpp"
+#include "render_pass/render_pass_canvas_2d.hpp"
 #ifdef SFG_TOOLMODE
 #include "render_pass/render_pass_object_id.hpp"
 #include "render_pass/render_pass_selection_outline.hpp"
@@ -133,6 +134,7 @@ namespace SFG
 		render_pass_bloom		  _pass_bloom	  = {};
 		render_pass_post_combiner _pass_post	  = {};
 		render_pass_forward		  _pass_forward	  = {};
+		render_pass_canvas_2d	  _pass_canvas_2d = {};
 
 #ifdef JPH_DEBUG_RENDERER
 		render_pass_physics_debug _pass_physics_debug = {};

@@ -1,0 +1,119 @@
+// Copyright (c) 2025 Inan Evin
+
+#include "render_pass_canvas_2d.hpp"
+#include "resources/vertex.hpp"
+#include "math/math.hpp"
+
+// gfx
+#include "gfx/backend/backend.hpp"
+#include "gfx/common/descriptions.hpp"
+#include "gfx/common/commands.hpp"
+#include "gfx/util/gfx_util.hpp"
+#include "gfx/proxy/proxy_manager.hpp"
+#include "gfx/common/render_target_definitions.hpp"
+#include "gfx/world/view.hpp"
+#include "gfx/world/renderable.hpp"
+#include "gfx/world/renderable_collector.hpp"
+#include "gfx/engine_shaders.hpp"
+
+namespace SFG
+{
+	void render_pass_canvas_2d::init(const vector2ui16& size)
+	{
+		_alloc.init(MAIN_PASS_ALLOC_SIZE, 8);
+
+		gfx_backend* backend = gfx_backend::get();
+
+		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
+		{
+			per_frame_data& pfd = _pfd[i];
+
+			pfd.cmd_buffer = backend->create_command_buffer({.type = command_type::graphics, .debug_name = "forward_cmd"});
+			pfd.ubo.create_hw({.size = sizeof(ubo), .flags = resource_flags::rf_constant_buffer | resource_flags::rf_cpu_visible, .debug_name = "forward_ubo"});
+		}
+	}
+
+	void render_pass_canvas_2d::uninit()
+	{
+		_alloc.uninit();
+
+		gfx_backend* backend = gfx_backend::get();
+
+		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
+		{
+			per_frame_data& pfd = _pfd[i];
+			backend->destroy_command_buffer(pfd.cmd_buffer);
+			pfd.ubo.destroy();
+		}
+	}
+
+	void render_pass_canvas_2d::prepare(proxy_manager& pm, const vector<renderable_object>& renderables, const view& main_camera_view, const vector2ui16& resolution, uint8 frame_index)
+	{
+		_alloc.reset();
+		_draw_stream.prepare(_alloc, MAX_DRAW_CALLS);
+
+		// renderable_collector::populate_draw_stream(pm, renderables, _draw_stream, material_flags::material_flags_is_canvas_2d, 0, frame_index);
+
+		const uint8					ambient_exists = pm.get_ambient_exists();
+		const render_proxy_ambient& ambient		   = pm.get_ambient();
+		const vector3				ambient_color  = ambient_exists ? ambient.base_color : vector3(0.1f, 0.1f, 0.1f);
+
+		per_frame_data& pfd		 = _pfd[frame_index];
+		const ubo		ubo_data = {
+				  .view_proj  = main_camera_view.view_proj_matrix,
+				  .resolution = vector2(static_cast<float>(resolution.x), static_cast<float>(resolution.y)),
+		  };
+		pfd.ubo.buffer_data(0, &ubo_data, sizeof(ubo));
+	}
+
+	void render_pass_canvas_2d::render(const render_params& p)
+	{
+		gfx_backend*	backend			 = gfx_backend::get();
+		per_frame_data& pfd				 = _pfd[p.frame_index];
+		const gfx_id	cmd_buffer		 = pfd.cmd_buffer;
+		const gpu_index gpu_index_rp_ubo = pfd.ubo.get_gpu_index();
+
+		render_pass_color_attachment* attachments = _alloc.allocate<render_pass_color_attachment>(1);
+		render_pass_color_attachment& att		  = attachments[0];
+		att.clear_color							  = vector4(0, 0, 0, 1.0f);
+		att.load_op								  = load_op::load;
+		att.store_op							  = store_op::store;
+		att.texture								  = p.input_texture;
+
+		backend->reset_command_buffer(cmd_buffer);
+
+		BEGIN_DEBUG_EVENT(backend, cmd_buffer, "canvas_2d_pass");
+
+		backend->cmd_begin_render_pass(cmd_buffer,
+									   {
+										   .color_attachments = attachments,
+
+										   .color_attachment_count = 1,
+									   });
+
+		backend->cmd_bind_layout(cmd_buffer, {.layout = p.global_layout});
+		backend->cmd_bind_group(cmd_buffer, {.group = p.global_group});
+
+		const uint32 rp_constants[4] = {gpu_index_rp_ubo};
+		backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)rp_constants, .offset = constant_index_rp_constant0, .count = 4, .param_index = rpi_constants});
+
+		backend->cmd_set_scissors(cmd_buffer, {.width = static_cast<uint16>(p.size.x), .height = static_cast<uint16>(p.size.y)});
+		backend->cmd_set_viewport(cmd_buffer,
+								  {
+									  .min_depth = 0.0f,
+									  .max_depth = 1.0f,
+									  .width	 = static_cast<uint16>(p.size.x),
+									  .height	 = static_cast<uint16>(p.size.y),
+
+								  });
+
+		_draw_stream.build();
+		_draw_stream.draw(cmd_buffer);
+
+		backend->cmd_end_render_pass(cmd_buffer, {});
+		END_DEBUG_EVENT(backend, cmd_buffer);
+
+		backend->close_command_buffer(cmd_buffer);
+	}
+
+}

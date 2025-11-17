@@ -3,40 +3,31 @@
 #pragma once
 
 #include "data/atomic.hpp"
-#include "memory/memory.hpp"
 #include "common/size_definitions.hpp"
-#include "io/assert.hpp"
 
 namespace SFG
 {
-	template <int SIZE> class alignas(64) double_buffered_swap
+	class alignas(64) double_buffered_swap
 	{
 	public:
-		inline void write(const void* src, size_t padding, size_t n)
-		{
-			SFG_ASSERT(padding + n < SIZE);
+		// -----------------------------------------------------------------------------
+		// lifecycle
+		// -----------------------------------------------------------------------------
 
-			uint8_t cur	 = _index.load(std::memory_order_relaxed);
-			SFG_MEMCPY(_data[cur] + padding, src, n);
-		}
+		void init(size_t sz, size_t alignment = 8);
+		void uninit();
 
-		inline void swap()
-		{
-			uint8_t cur	 = _index.load(std::memory_order_relaxed);
-			uint8_t next = cur ^ 1;
-			_index.store(next, std::memory_order_release);
-		}
+		// -----------------------------------------------------------------------------
+		// impl
+		// -----------------------------------------------------------------------------
 
-		inline void read(void* dst, size_t n) const
-		{
-			SFG_ASSERT(n < SIZE);
-
-			uint8_t cur = _index.load(std::memory_order_acquire);
-			std::memcpy(dst, _data[cur], n);
-		}
+		void write(const void* src, size_t padding, size_t n);
+		void swap();
+		void read(void* dst, size_t n) const;
 
 	private:
-		uint8		  _data[2][SIZE];
+		uint8*		  _data[2] = {nullptr};
 		atomic<uint8> _index{0};
+		size_t		  _sz = 0;
 	};
 }

@@ -159,10 +159,10 @@ namespace SFG
 		};
 		pfd.ubo.buffer_data(0, &ubo_data, sizeof(ubo));
 
-		const auto* triangle_vertices = _renderer->get_triangle_vertices();
-		const auto* triangle_indices  = _renderer->get_triangle_indices();
-		const auto* line_vertices	  = _renderer->get_line_vertices();
-		const auto* line_indices	  = _renderer->get_line_indices();
+		const double_buffered_swap& triangle_vertices = _renderer->get_triangle_vertices();
+		const double_buffered_swap& triangle_indices  = _renderer->get_triangle_indices();
+		const double_buffered_swap& line_vertices	  = _renderer->get_line_vertices();
+		const double_buffered_swap& line_indices	  = _renderer->get_line_indices();
 
 		const uint32 vtx_count_triangle = _renderer->get_vertex_count_triangle();
 		const uint32 vtx_count_line		= _renderer->get_vertex_count_line();
@@ -177,8 +177,8 @@ namespace SFG
 
 		if (vtx_count_triangle != 0)
 		{
-			triangle_vertices->read((void*)pfd.triangle_vertices.get_mapped(), vtx_count_triangle * sizeof(vertex_simple));
-			triangle_indices->read((void*)pfd.triangle_indices.get_mapped(), idx_count_triangle * sizeof(uint32));
+			triangle_vertices.read((void*)pfd.triangle_vertices.get_mapped(), vtx_count_triangle * sizeof(vertex_simple));
+			triangle_indices.read((void*)pfd.triangle_indices.get_mapped(), idx_count_triangle * sizeof(uint32));
 
 			barriers.push_back({
 				.resource	 = pfd.triangle_vertices.get_hw_gpu(),
@@ -211,8 +211,8 @@ namespace SFG
 
 		if (vtx_count_line != 0)
 		{
-			line_vertices->read((void*)pfd.line_vertices.get_mapped(), vtx_count_line * sizeof(vertex_3d_line));
-			line_indices->read((void*)pfd.line_indices.get_mapped(), idx_count_line * sizeof(uint32));
+			line_vertices.read((void*)pfd.line_vertices.get_mapped(), vtx_count_line * sizeof(vertex_3d_line));
+			line_indices.read((void*)pfd.line_indices.get_mapped(), idx_count_line * sizeof(uint32));
 
 			barriers.push_back({
 				.resource	 = pfd.line_vertices.get_hw_gpu(),

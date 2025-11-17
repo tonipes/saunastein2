@@ -151,6 +151,8 @@ namespace SFG
 		_pass_bloom.init(size);
 		_pass_post.init(size);
 		_pass_forward.init(size);
+		_pass_canvas_2d.init(size);
+
 #ifdef SFG_TOOLMODE
 		_pass_object_id.init(size);
 		_pass_selection_outline.init(size);
@@ -171,6 +173,8 @@ namespace SFG
 		_pass_bloom.uninit();
 		_pass_post.uninit();
 		_pass_forward.uninit();
+		_pass_canvas_2d.uninit();
+
 #ifdef SFG_TOOLMODE
 		_pass_object_id.uninit();
 		_pass_selection_outline.uninit();
@@ -253,6 +257,8 @@ namespace SFG
 		_pass_pre_depth.prepare(_proxy_manager, _renderables, _main_camera_view, frame_index);
 		_pass_opaque.prepare(_proxy_manager, _renderables, _main_camera_view, frame_index);
 		_pass_forward.prepare(_proxy_manager, _renderables, _main_camera_view, _base_size, frame_index);
+		_pass_canvas_2d.prepare(_proxy_manager, _renderables, _main_camera_view, _base_size, frame_index);
+
 #ifdef SFG_TOOLMODE
 		_pass_object_id.prepare(_proxy_manager, _renderables, _main_camera_view, frame_index);
 		_pass_selection_outline.prepare(_proxy_manager, _renderables, _main_camera_view, frame_index);
@@ -276,14 +282,15 @@ namespace SFG
 		per_frame_data&	  pfd		 = _pfd[frame_index];
 		const vector2ui16 resolution = _base_size;
 
-		const gfx_id cmd_ssao	  = _pass_ssao.get_cmd_buffer(frame_index);
-		const gfx_id cmd_depth	  = _pass_pre_depth.get_cmd_buffer(frame_index);
-		const gfx_id cmd_opaque	  = _pass_opaque.get_cmd_buffer(frame_index);
-		const gfx_id cmd_lighting = _pass_lighting.get_cmd_buffer(frame_index);
-		const gfx_id cmd_post	  = _pass_post.get_cmd_buffer(frame_index);
-		const gfx_id cmd_shadows  = _pass_shadows.get_cmd_buffer(frame_index);
-		const gfx_id cmd_bloom	  = _pass_bloom.get_cmd_buffer(frame_index);
-		const gfx_id cmd_forward  = _pass_forward.get_cmd_buffer(frame_index);
+		const gfx_id cmd_canvas_2d = _pass_canvas_2d.get_cmd_buffer(frame_index);
+		const gfx_id cmd_ssao	   = _pass_ssao.get_cmd_buffer(frame_index);
+		const gfx_id cmd_depth	   = _pass_pre_depth.get_cmd_buffer(frame_index);
+		const gfx_id cmd_opaque	   = _pass_opaque.get_cmd_buffer(frame_index);
+		const gfx_id cmd_lighting  = _pass_lighting.get_cmd_buffer(frame_index);
+		const gfx_id cmd_post	   = _pass_post.get_cmd_buffer(frame_index);
+		const gfx_id cmd_shadows   = _pass_shadows.get_cmd_buffer(frame_index);
+		const gfx_id cmd_bloom	   = _pass_bloom.get_cmd_buffer(frame_index);
+		const gfx_id cmd_forward   = _pass_forward.get_cmd_buffer(frame_index);
 
 #ifdef JPH_DEBUG_RENDERER
 		const gfx_id cmd_physics_debug = _pass_physics_debug.get_cmd_buffer(frame_index);
@@ -452,6 +459,16 @@ namespace SFG
 		});
 
 		tasks.push_back([&] {
+			_pass_canvas_2d.render({
+				.frame_index   = frame_index,
+				.size		   = resolution,
+				.input_texture = post_combiner_texture,
+				.global_layout = layout_global,
+				.global_group  = bind_group_global,
+			});
+		});
+
+		tasks.push_back([&] {
 			_pass_lighting.render({
 				.frame_index				  = frame_index,
 				.size						  = resolution,
@@ -515,6 +532,10 @@ namespace SFG
 		// post combine waits for bloom
 		backend->queue_wait(queue_gfx, &sem_lighting, &sem_lighting_val1, 1);
 		backend->submit_commands(queue_gfx, &cmd_post, 1);
+
+		// canvas2d writes after post combiner..
+		backend->submit_commands(queue_gfx, &cmd_canvas_2d, 1);
+
 		backend->queue_signal(queue_compute, &sem_frame, &sem_frame_val, 1);
 	}
 

@@ -132,7 +132,7 @@ namespace SFG
 
 	void trait_audio::set_sound_params(world& w, ma_sound* snd)
 	{
-		// ma_sound_set_volume(snd, _volume);
-		// ma_sound_set_looping(snd, _is_looping);
+		ma_sound_set_volume(snd, _volume);
+		ma_sound_set_looping(snd, _is_looping);
 	}
 }

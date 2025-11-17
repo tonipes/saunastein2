@@ -112,7 +112,7 @@ namespace SFG
 		};
 
 	private:
-		static void on_draw(const vekt::draw_buffer& buffer, void* ud);
+		void		on_draw(const vekt::draw_buffer& buffer);
 		static void on_atlas_created(vekt::atlas* atlas, void* user_data);
 		static void on_atlas_updated(vekt::atlas* atlas, void* user_data);
 		static void on_atlas_destroyed(vekt::atlas* atlas, void* user_data);

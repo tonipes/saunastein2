@@ -72,7 +72,7 @@ namespace SFG
 			.buffer_count				 = 3,
 		});
 
-		_builder->set_on_draw(on_draw, this);
+		_builder->set_on_draw([this](const vekt::draw_buffer& buffer) { on_draw(buffer); });
 		_font_manager->init();
 		_font_manager->set_callback_user_data(this);
 		_font_manager->set_atlas_created_callback(on_atlas_created);
@@ -229,10 +229,8 @@ namespace SFG
 		_gfx_data.window_size = size;
 	}
 
-	void editor_gui_renderer::on_draw(const vekt::draw_buffer& buffer, void* ud)
+	void editor_gui_renderer::on_draw(const vekt::draw_buffer& buffer)
 	{
-		editor_gui_renderer* rnd = static_cast<editor_gui_renderer*>(ud);
-
 		const vekt::font*	  font			   = buffer.used_font;
 		const vekt::atlas*	  atlas			   = font ? font->_atlas : nullptr;
 		const vekt::font_type font_type		   = font ? font->type : vekt::font_type::normal;
@@ -242,11 +240,11 @@ namespace SFG
 		const uint32		  buffer_idx_count = buffer.index_count;
 		const uint32		  buffer_vtx_count = buffer.vertex_count;
 
-		const gfx_id sdf_shader		= rnd->_shaders.gui_sdf;
-		const gfx_id text_shader	= rnd->_shaders.gui_text;
-		const gfx_id default_shader = rnd->_shaders.gui_default;
+		const gfx_id sdf_shader		= _shaders.gui_sdf;
+		const gfx_id text_shader	= _shaders.gui_text;
+		const gfx_id default_shader = _shaders.gui_default;
 
-		per_frame_data& pfd			= rnd->_pfd[rnd->_gfx_data.frame_index];
+		per_frame_data& pfd			= _pfd[_gfx_data.frame_index];
 		const uint32	vtx_counter = pfd.counter_vtx;
 		const uint32	idx_counter = pfd.counter_idx;
 		const uint16	dc_index	= pfd.draw_call_count++;
@@ -255,7 +253,7 @@ namespace SFG
 		pfd.buf_gui_vtx.buffer_data(sizeof(vekt::vertex) * static_cast<size_t>(vtx_counter), buffer_vtx_start, static_cast<size_t>(buffer_vtx_count) * sizeof(vekt::vertex));
 		pfd.buf_gui_idx.buffer_data(sizeof(vekt::index) * static_cast<size_t>(idx_counter), buffer_idx_start, static_cast<size_t>(buffer_idx_count) * sizeof(vekt::index));
 
-		gui_draw_call& dc = rnd->_gui_draw_calls[dc_index];
+		gui_draw_call& dc = _gui_draw_calls[dc_index];
 		dc				  = {};
 		dc.start_idx	  = static_cast<uint16>(idx_counter);
 		dc.start_vtx	  = static_cast<uint16>(vtx_counter);
@@ -288,7 +286,7 @@ namespace SFG
 			dc.shader = font_type == vekt::font_type::sdf ? sdf_shader : text_shader;
 
 			bool found = false;
-			for (atlas_ref& ref : rnd->_gfx_data.atlases)
+			for (atlas_ref& ref : _gfx_data.atlases)
 			{
 				if (ref.atlas == atlas)
 				{
