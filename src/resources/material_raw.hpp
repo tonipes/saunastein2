@@ -34,6 +34,7 @@ namespace SFG
 	{
 		gbuffer,
 		forward,
+		gui,
 	};
 
 	struct material_raw

@@ -9,9 +9,16 @@
 #endif
 namespace SFG
 {
+	physical_material::~physical_material()
+	{
+		SFG_ASSERT(!_flags.is_set(physical_material::flags::created));
+	}
 
 	void physical_material::create_from_loader(const physical_material_raw& raw, world& w, resource_handle handle)
 	{
+		SFG_ASSERT(!_flags.is_set(physical_material::flags::created));
+		_flags.set(physical_material::flags::created);
+
 		resource_manager&  rm	 = w.get_resource_manager();
 		chunk_allocator32& alloc = rm.get_aux();
 #ifndef SFG_STRIP_DEBUG_NAMES
@@ -23,6 +30,11 @@ namespace SFG
 
 	void physical_material::destroy(world& w, resource_handle handle)
 	{
+		if (!_flags.is_set(physical_material::flags::created))
+			return;
+
+		_flags.remove(physical_material::flags::created);
+
 		resource_manager&  rm	 = w.get_resource_manager();
 		chunk_allocator32& alloc = rm.get_aux();
 #ifndef SFG_STRIP_DEBUG_NAMES

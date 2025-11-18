@@ -38,6 +38,7 @@
 #include "traits/trait_ambient.hpp"
 #include "traits/trait_physics.hpp"
 #include "traits/trait_audio.hpp"
+#include "traits/trait_canvas.hpp"
 
 #include "app/debug_console.hpp"
 
@@ -45,6 +46,7 @@ namespace SFG
 {
 	world::world(render_event_stream& rstream) : _entity_manager(*this), _trait_manager(*this), _render_stream(rstream), _resource_manager(*this), _phy_world(*this)
 	{
+		_vekt_atlases.reserve(32);
 		_text_allocator.init(MAX_ENTITIES * 32);
 
 		// resource registry
@@ -70,6 +72,7 @@ namespace SFG
 		_trait_manager.register_cache<trait_ambient, MAX_WORLD_TRAIT_AMBIENTS>();
 		_trait_manager.register_cache<trait_physics, MAX_WORLD_TRAIT_PHYSICS>();
 		_trait_manager.register_cache<trait_audio, MAX_WORLD_TRAIT_AUDIO>();
+		_trait_manager.register_cache<trait_canvas, MAX_WORLD_TRAIT_CANVAS>();
 
 		_phy_world.init();
 		_audio_manager.init();
@@ -80,14 +83,19 @@ namespace SFG
 		debug_console::get()->register_console_function("start_physics", [this]() { start_physics(); });
 		debug_console::get()->register_console_function("stop_physics", [this]() { stop_physics(); });
 #endif
+
+		_vekt_fonts.set_callback_user_data(this);
+		_vekt_fonts.set_atlas_created_callback(on_atlas_created);
+		_vekt_fonts.set_atlas_updated_callback(on_atlas_updated);
+		_vekt_fonts.set_atlas_destroyed_callback(on_atlas_destroyed);
 	};
 
 	world::~world()
 	{
 		_audio_manager.uninit();
-
 		_text_allocator.uninit();
 		_phy_world.uninit();
+		_vekt_fonts.uninit();
 	}
 
 	void world::init()
@@ -120,11 +128,16 @@ namespace SFG
 
 		if (_flags.is_set(world_flags_is_physics_active))
 			_phy_world.simulate(dt);
+
+		_trait_manager.view<trait_canvas>([&](trait_canvas& cnv) -> trait_view_result {
+			cnv.draw(*this, res);
+			return trait_view_result::cont;
+		});
 	}
 
-	void world::post_tick(double interpolation)
+	void world::interpolate(double interpolation)
 	{
-		_entity_manager.post_tick(interpolation);
+		_entity_manager.interpolate_entities(interpolation);
 	}
 
 	bool world::on_window_event(const window_event& ev)
@@ -195,5 +208,64 @@ namespace SFG
 		_flags.remove(world_flags_is_physics_active);
 
 		_phy_world.uninit_simulation();
+	}
+
+	resource_handle world::find_atlas_texture(vekt::atlas* atlas)
+	{
+		auto it = std::find_if(_vekt_atlases.begin(), _vekt_atlases.end(), [atlas](const atlas_data& d) -> bool { return d.atlas == atlas; });
+		SFG_ASSERT(it != _vekt_atlases.end());
+		return it->handle;
+	}
+
+	void world::on_atlas_created(vekt::atlas* atlas, void* user_data)
+	{
+		world*			w			 = static_cast<world*>(user_data);
+		resource_handle atlas_handle = w->_resource_manager.add_resource<texture>(0);
+		texture&		t			 = w->_resource_manager.get_resource<texture>(atlas_handle);
+
+		w->_vekt_atlases.push_back({
+			.atlas	= atlas,
+			.handle = atlas_handle,
+		});
+	}
+
+	void world::on_atlas_updated(vekt::atlas* atlas, void* user_data)
+	{
+		world* w  = static_cast<world*>(user_data);
+		auto   it = std::find_if(w->_vekt_atlases.begin(), w->_vekt_atlases.end(), [atlas](const atlas_data& d) -> bool { return d.atlas == atlas; });
+		SFG_ASSERT(it != w->_vekt_atlases.end());
+		const resource_handle handle = it->handle;
+
+		texture& t = w->_resource_manager.get_resource<texture>(handle);
+		t.destroy(*w, handle);
+
+		texture_raw	 raw = {};
+		const format fmt = format::r8_unorm;
+
+		const size_t sz = atlas->get_width() * atlas->get_height();
+
+		uint8* data = reinterpret_cast<uint8*>(SFG_MALLOC(sz));
+
+		if (data != 0)
+			SFG_MEMCPY(data, atlas->get_data(), sz);
+
+		raw.load_from_data(data, vector2ui16(atlas->get_width(), atlas->get_height()), static_cast<uint8>(fmt), false);
+		t.create_from_loader(raw, *w, handle);
+	}
+
+	void world::on_atlas_destroyed(vekt::atlas* atlas, void* user_data)
+	{
+		world* w  = static_cast<world*>(user_data);
+		auto   it = std::find_if(w->_vekt_atlases.begin(), w->_vekt_atlases.end(), [atlas](const atlas_data& d) -> bool { return d.atlas == atlas; });
+		SFG_ASSERT(it != w->_vekt_atlases.end());
+
+		const resource_handle handle = it->handle;
+		if (w->_resource_manager.is_valid<texture>(handle))
+		{
+			texture& t = w->_resource_manager.get_resource<texture>(handle);
+			t.destroy(*w, handle);
+			w->_resource_manager.remove_resource<texture>(handle);
+		}
+		w->_vekt_atlases.erase(it);
 	}
 }

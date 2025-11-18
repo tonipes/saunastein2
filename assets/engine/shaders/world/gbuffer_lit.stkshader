@@ -1,0 +1,4 @@
+{
+    "source": "assets/engine/shaders/world/gbuffer_lit.hlsl",
+    "variant_style": "gbuffer_object"
+}

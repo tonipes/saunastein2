@@ -41,6 +41,11 @@ namespace SFG
 		remove_dir_light,
 		remove_point_light,
 		remove_spot_light,
+		create_canvas,
+		destroy_canvas,
+		canvas_add_draw,
+		canvas_reset_draws,
+		canvas_update,
 	};
 
 }

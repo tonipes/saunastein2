@@ -1,0 +1,4 @@
+{
+    "source": "assets/engine/shaders/world/forward.hlsl",
+    "variant_style": "forward_object"
+}

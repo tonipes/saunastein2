@@ -28,8 +28,8 @@ namespace SFG
 		{
 			per_frame_data& pfd = _pfd[i];
 
-			pfd.cmd_buffer = backend->create_command_buffer({.type = command_type::graphics, .debug_name = "forward_cmd"});
-			pfd.ubo.create_hw({.size = sizeof(ubo), .flags = resource_flags::rf_constant_buffer | resource_flags::rf_cpu_visible, .debug_name = "forward_ubo"});
+			pfd.cmd_buffer = backend->create_command_buffer({.type = command_type::graphics, .debug_name = "canvas_2d_cmd"});
+			pfd.ubo.create_hw({.size = sizeof(ubo), .flags = resource_flags::rf_constant_buffer | resource_flags::rf_cpu_visible, .debug_name = "canvas_2d_ubo"});
 		}
 	}
 
@@ -52,17 +52,142 @@ namespace SFG
 		_alloc.reset();
 		_draw_stream.prepare(_alloc, MAX_DRAW_CALLS);
 
-		// renderable_collector::populate_draw_stream(pm, renderables, _draw_stream, material_flags::material_flags_is_canvas_2d, 0, frame_index);
+		per_frame_data& pfd		   = _pfd[frame_index];
+		const gfx_id	cmd_buffer = pfd.cmd_buffer;
 
-		const uint8					ambient_exists = pm.get_ambient_exists();
-		const render_proxy_ambient& ambient		   = pm.get_ambient();
-		const vector3				ambient_color  = ambient_exists ? ambient.base_color : vector3(0.1f, 0.1f, 0.1f);
+		gfx_backend* backend = gfx_backend::get();
+		backend->reset_command_buffer(cmd_buffer);
 
-		per_frame_data& pfd		 = _pfd[frame_index];
-		const ubo		ubo_data = {
-				  .view_proj  = main_camera_view.view_proj_matrix,
-				  .resolution = vector2(static_cast<float>(resolution.x), static_cast<float>(resolution.y)),
-		  };
+		auto*		 canvases	   = pm.get_canvases();
+		auto*		 materials	   = pm.get_materials();
+		auto*		 entities	   = pm.get_entities();
+		const uint32 peak_canvases = pm.get_peak_canvases();
+
+		// -----------------------------------------------------------------------------
+		// record barriers & draw calls
+		// -----------------------------------------------------------------------------
+
+		static_vector<barrier, 24> barriers;
+		static_vector<barrier, 24> barriers_after;
+
+		for (uint32 i = 0; i < peak_canvases; i++)
+		{
+			render_proxy_canvas& proxy = canvases->get(i);
+			if (proxy.status != render_proxy_status::rps_active)
+				continue;
+
+			if (proxy.is_3d)
+				continue;
+
+			const render_proxy_entity& entity = entities->get(proxy.entity);
+			SFG_ASSERT(entity.status == render_proxy_status::rps_active);
+
+			if (entity.flags.is_set(render_proxy_entity_flags::render_proxy_entity_invisible))
+				continue;
+
+			const gfx_id vb = proxy.vertex_buffers[frame_index].get_hw_gpu();
+			const gfx_id ib = proxy.index_buffers[frame_index].get_hw_gpu();
+
+			barriers.push_back({
+				.resource	 = vb,
+				.flags		 = barrier_flags::baf_is_resource,
+				.from_states = resource_state::resource_state_vertex_cbv,
+				.to_states	 = resource_state::resource_state_copy_dest,
+			});
+
+			barriers.push_back({
+				.resource	 = ib,
+				.flags		 = barrier_flags::baf_is_resource,
+				.from_states = resource_state::resource_state_index_buffer,
+				.to_states	 = resource_state::resource_state_copy_dest,
+			});
+
+			barriers_after.push_back({
+				.resource	 = vb,
+				.flags		 = barrier_flags::baf_is_resource,
+				.from_states = resource_state::resource_state_copy_dest,
+				.to_states	 = resource_state::resource_state_vertex_cbv,
+			});
+
+			barriers_after.push_back({
+				.resource	 = ib,
+				.flags		 = barrier_flags::baf_is_resource,
+				.from_states = resource_state::resource_state_copy_dest,
+				.to_states	 = resource_state::resource_state_index_buffer,
+			});
+
+			for (const render_proxy_canvas_dc& dc : proxy._draw_calls)
+			{
+				render_proxy_material& mat = materials->get(dc.mat_id);
+				SFG_ASSERT(mat.status == render_proxy_status::rps_active);
+
+				const gfx_id	pipeline   = pm.get_shader_variant(mat.shader_handle, 0);
+				const gpu_index mat_const  = mat.gpu_index_buffers[frame_index];
+				const gpu_index txt_const  = mat.gpu_index_texture_buffers[frame_index];
+				gpu_index		font_index = NULL_GPU_INDEX;
+
+				if (dc.atlas_exists)
+				{
+					render_proxy_texture& txt = pm.get_texture(dc.atlas_id);
+					SFG_ASSERT(txt.status == render_proxy_status::rps_active);
+					font_index = txt.heap_index;
+				}
+
+				_draw_stream.add_command({
+					.clip					 = dc.clip,
+					.start_index			 = dc.start_index,
+					.index_count			 = dc.index_count,
+					.base_vertex			 = dc.start_vertex,
+					.material_constant_index = mat_const,
+					.texture_constant_index	 = txt_const,
+					.font_index				 = font_index,
+					.vb_hw					 = vb,
+					.ib_hw					 = ib,
+					.pipeline_hw			 = pipeline,
+				});
+			}
+		}
+
+		// -----------------------------------------------------------------------------
+		// apply the barriers & perform the copies
+		// -----------------------------------------------------------------------------
+
+		backend->cmd_barrier(cmd_buffer,
+							 {
+								 .barriers		= barriers.data(),
+								 .barrier_count = static_cast<uint16>(barriers.size()),
+							 });
+
+		// Copy regions
+		for (uint32 i = 0; i < peak_canvases; i++)
+		{
+			render_proxy_canvas& proxy = canvases->get(i);
+			if (proxy.status != render_proxy_status::rps_active)
+				continue;
+
+			if (proxy.is_3d)
+				continue;
+
+			const render_proxy_entity& entity = entities->get(proxy.entity);
+			SFG_ASSERT(entity.status == render_proxy_status::rps_active);
+
+			if (entity.flags.is_set(render_proxy_entity_flags::render_proxy_entity_invisible))
+				continue;
+
+			proxy.vertex_buffers[frame_index].copy_region(cmd_buffer, 0, proxy._max_vertex_offset);
+			proxy.index_buffers[frame_index].copy_region(cmd_buffer, 0, proxy._max_index_offset);
+		}
+
+		backend->cmd_barrier(cmd_buffer,
+							 {
+								 .barriers		= barriers_after.data(),
+								 .barrier_count = static_cast<uint16>(barriers_after.size()),
+							 });
+
+		const ubo ubo_data = {
+			.proj		= matrix4x4::ortho_reverse_z(0, static_cast<float>(resolution.x), 0, static_cast<float>(resolution.y), 0.0f, 1.0f),
+			.resolution = vector2(static_cast<float>(resolution.x), static_cast<float>(resolution.y)),
+		};
 		pfd.ubo.buffer_data(0, &ubo_data, sizeof(ubo));
 	}
 
@@ -72,15 +197,14 @@ namespace SFG
 		per_frame_data& pfd				 = _pfd[p.frame_index];
 		const gfx_id	cmd_buffer		 = pfd.cmd_buffer;
 		const gpu_index gpu_index_rp_ubo = pfd.ubo.get_gpu_index();
+		const gfx_id	target_texture	 = p.input_texture;
 
 		render_pass_color_attachment* attachments = _alloc.allocate<render_pass_color_attachment>(1);
 		render_pass_color_attachment& att		  = attachments[0];
 		att.clear_color							  = vector4(0, 0, 0, 1.0f);
 		att.load_op								  = load_op::load;
 		att.store_op							  = store_op::store;
-		att.texture								  = p.input_texture;
-
-		backend->reset_command_buffer(cmd_buffer);
+		att.texture								  = target_texture;
 
 		BEGIN_DEBUG_EVENT(backend, cmd_buffer, "canvas_2d_pass");
 
@@ -112,6 +236,19 @@ namespace SFG
 
 		backend->cmd_end_render_pass(cmd_buffer, {});
 		END_DEBUG_EVENT(backend, cmd_buffer);
+
+		static_vector<barrier, 1> barriers;
+		barriers.push_back({
+			.resource	 = target_texture,
+			.flags		 = barrier_flags::baf_is_texture,
+			.from_states = resource_state::resource_state_render_target,
+			.to_states	 = resource_state::resource_state_ps_resource,
+		});
+		backend->cmd_barrier(cmd_buffer,
+							 {
+								 .barriers		= barriers.data(),
+								 .barrier_count = static_cast<uint16>(barriers.size()),
+							 });
 
 		backend->close_command_buffer(cmd_buffer);
 	}

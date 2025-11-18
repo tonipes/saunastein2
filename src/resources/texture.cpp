@@ -17,10 +17,14 @@ namespace SFG
 {
 	texture::~texture()
 	{
+		SFG_ASSERT(!_flags.is_set(texture::flags::created));
 	}
 
 	void texture::create_from_loader(const texture_raw& raw, world& w, resource_handle handle)
 	{
+		SFG_ASSERT(!_flags.is_set(texture::flags::created));
+		_flags.set(texture::flags::created);
+
 		render_event_stream& stream = w.get_render_stream();
 		resource_manager&	 rm		= w.get_resource_manager();
 		chunk_allocator32&	 alloc	= rm.get_aux();
@@ -54,10 +58,16 @@ namespace SFG
 				.event_type = render_event_type::create_texture,
 			},
 			stg);
+
 	}
 
 	void texture::destroy(world& w, resource_handle handle)
 	{
+		if (!_flags.is_set(texture::flags::created))
+			return;
+
+		_flags.remove(texture::flags::created);
+
 		render_event_stream& stream = w.get_render_stream();
 		resource_manager&	 rm		= w.get_resource_manager();
 		chunk_allocator32&	 alloc	= rm.get_aux();

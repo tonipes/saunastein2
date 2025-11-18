@@ -25,7 +25,7 @@ namespace SFG
 
 		void init();
 		void uninit();
-		void post_tick(double interpolation);
+		void interpolate_entities(double interpolation);
 
 		// -----------------------------------------------------------------------------
 		// entity api

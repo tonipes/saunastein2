@@ -7,7 +7,7 @@
 
 namespace SFG
 {
-	class alignas(64) double_buffered_swap
+	class double_buffered_swap
 	{
 	public:
 		// -----------------------------------------------------------------------------
@@ -26,8 +26,12 @@ namespace SFG
 		void read(void* dst, size_t n) const;
 
 	private:
-		uint8*		  _data[2] = {nullptr};
+		uint8* _data[2] = {nullptr};
+
+#ifdef SFG_DEBUG
+		uint32 _sz = 0;
+#endif
+
 		atomic<uint8> _index{0};
-		size_t		  _sz = 0;
 	};
 }

@@ -24,7 +24,7 @@ namespace SFG
 		}
 
 		SFG_INFO("[Audio] Playback Device Info:");
-		SFG_INFO("  Name:           {0}", device->playback.name);
+		SFG_INFO("Name:           {0}", device->playback.name);
 	}
 
 	void audio_manager::uninit()

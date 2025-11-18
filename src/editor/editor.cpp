@@ -26,6 +26,7 @@
 #include "world/traits/trait_light.hpp"
 #include "world/traits/trait_physics.hpp"
 #include "world/traits/trait_audio.hpp"
+#include "world/traits/trait_canvas.hpp"
 
 // resources
 #include "resources/model.hpp"
@@ -33,6 +34,7 @@
 #include "resources/world_raw.hpp"
 #include "resources/material.hpp"
 #include "resources/audio.hpp"
+#include "resources/font.hpp"
 
 namespace SFG
 {
@@ -229,11 +231,28 @@ namespace SFG
 		}
 
 		{
-			world_handle sound_handle = em.create_entity("sound");
-			world_handle trait		  = tm.add_trait<trait_audio>(sound_handle);
-			trait_audio& aud		  = tm.get_trait<trait_audio>(trait);
-			aud.set_audio(w, rm.get_resource_handle_by_hash<audio>(TO_SIDC("assets/audio/metal.stkaud")));
-			aud.play(w);
+			// world_handle sound_handle = em.create_entity("sound");
+			// world_handle trait		  = tm.add_trait<trait_audio>(sound_handle);
+			// trait_audio& aud		  = tm.get_trait<trait_audio>(trait);
+			// aud.set_audio(w, rm.get_resource_handle_by_hash<audio>(TO_SIDC("assets/audio/metal.stkaud")));
+			// aud.play(w);
+		}
+
+		{
+			world_handle  canvas_handle = em.create_entity("canvas");
+			world_handle  trait			= tm.add_trait<trait_canvas>(canvas_handle);
+			trait_canvas& cnv			= tm.get_trait<trait_canvas>(trait);
+			cnv.update_counts_and_init(w, 1024, 10);
+			vekt::builder* b	= cnv.get_builder();
+			vekt::id	   test = b->allocate();
+			b->widget_add_child(b->get_root(), test);
+
+			b->widget_set_pos(test, vector2(0.5, 0.5), vekt::helper_pos_type::relative, vekt::helper_pos_type::relative, vekt::helper_anchor_type::start, vekt::helper_anchor_type::start);
+			b->widget_set_size(test, vector2(0.25, 0.25), vekt::helper_size_type::relative, vekt::helper_size_type::relative);
+
+			b->widget_get_text(test).text = w.get_text_allocator().allocate("hello");
+			b->widget_get_text(test).font = w.get_resource_manager().get_resource_by_hash<font>(TO_SIDC("assets/fonts/roboto.stkfont")).get_vekt_font();
+			b->widget_update_text(test);
 		}
 	}
 

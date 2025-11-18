@@ -18,9 +18,16 @@
 
 namespace SFG
 {
+	material::~material()
+	{
+		SFG_ASSERT(!_flags.is_set(material_flags::material_flags_created));
+	}
 
 	void material::create_from_loader(const material_raw& raw, world& w, resource_handle handle, const vector<resource_handle>& samplers)
 	{
+		SFG_ASSERT(!_flags.is_set(material_flags::material_flags_created));
+		_flags.set(material_flags::material_flags_created);
+
 		render_event_stream& stream = w.get_render_stream();
 		resource_manager&	 rm		= w.get_resource_manager();
 		chunk_allocator32&	 alloc	= rm.get_aux();
@@ -37,6 +44,7 @@ namespace SFG
 		_flags.set(material_flags::material_flags_is_forward, raw.pass_mode == material_pass_mode::forward);
 		_flags.set(material_flags::material_flags_is_alpha_cutoff, raw.use_alpha_cutoff);
 		_flags.set(material_flags::material_flags_is_double_sided, raw.double_sided);
+		_flags.set(material_flags::material_flags_is_gui, raw.pass_mode == material_pass_mode::gui);
 		SFG_ASSERT(raw.shader != 0);
 
 		render_event_material stg = {};
@@ -69,10 +77,15 @@ namespace SFG
 				.event_type = render_event_type::create_material,
 			},
 			stg);
+
 	}
 
 	void material::destroy(world& w, resource_handle handle)
 	{
+		if (!_flags.is_set(material_flags::material_flags_created))
+			return;
+		_flags.remove(material_flags::material_flags_created);
+
 		render_event_stream& stream = w.get_render_stream();
 		resource_manager&	 rm		= w.get_resource_manager();
 		chunk_allocator32&	 alloc	= rm.get_aux();

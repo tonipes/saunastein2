@@ -22,12 +22,13 @@ namespace SFG
 
 	model::~model()
 	{
-		SFG_ASSERT(!_flags.is_set(model::flags::hw_exists));
+		SFG_ASSERT(!_flags.is_set(model::flags::created));
 	}
 
 	void model::create_from_loader(const model_raw& raw, world& w, resource_handle handle)
 	{
-		SFG_ASSERT(!_flags.is_set(model::flags::hw_exists));
+		SFG_ASSERT(!_flags.is_set(model::flags::created));
+		_flags.set(model::flags::created);
 
 		render_event_stream& stream = w.get_render_stream();
 		resource_manager&	 rm		= w.get_resource_manager();
@@ -178,12 +179,14 @@ namespace SFG
 		_materials_count = materials_count;
 		_textures_count	 = textures_count;
 		_lights_count	 = lights_count;
-		_flags.set(model::flags::pending_upload | model::flags::hw_exists);
 	}
 
 	void model::destroy(world& w, resource_handle handle)
 	{
-		SFG_ASSERT(_flags.is_set(model::flags::hw_exists));
+		if (!_flags.is_set(model::flags::created))
+			return;
+		_flags.remove(model::flags::created);
+
 
 		render_event_stream& stream = w.get_render_stream();
 		resource_manager&	 rm		= w.get_resource_manager();
@@ -310,6 +313,5 @@ namespace SFG
 		_created_skins	   = {};
 		_created_anims	   = {};
 		_created_lights	   = {};
-		_flags.remove(model::flags::hw_exists);
 	}
 }

@@ -13,9 +13,16 @@
 
 namespace SFG
 {
+	shader::~shader()
+	{
+		SFG_ASSERT(!_flags.is_set(shader::flags::created));
+	}
 
 	void shader::create_from_loader(const shader_raw& raw, world& w, resource_handle handle)
 	{
+		SFG_ASSERT(!_flags.is_set(shader::flags::created));
+		_flags.set(shader::flags::created);
+
 		render_event_stream& stream = w.get_render_stream();
 		resource_manager&	 rm		= w.get_resource_manager();
 		chunk_allocator32&	 alloc	= rm.get_aux();
@@ -40,6 +47,11 @@ namespace SFG
 
 	void shader::destroy(world& w, resource_handle handle)
 	{
+		if (!_flags.is_set(shader::flags::created))
+			return;
+
+		_flags.remove(shader::flags::created);
+
 		render_event_stream& stream = w.get_render_stream();
 		resource_manager&	 rm		= w.get_resource_manager();
 		chunk_allocator32&	 alloc	= rm.get_aux();

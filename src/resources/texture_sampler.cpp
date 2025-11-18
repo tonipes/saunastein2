@@ -16,9 +16,15 @@
 
 namespace SFG
 {
-
+	texture_sampler::~texture_sampler()
+	{
+		SFG_ASSERT(!_flags.is_set(texture_sampler::flags::created));
+	}
 	void texture_sampler::create_from_loader(const texture_sampler_raw& raw, world& w, resource_handle handle)
 	{
+		SFG_ASSERT(!_flags.is_set(texture_sampler::flags::created));
+		_flags.set(texture_sampler::flags::created);
+
 		render_event_stream& stream = w.get_render_stream();
 		resource_manager&	 rm		= w.get_resource_manager();
 		chunk_allocator32&	 alloc	= rm.get_aux();
@@ -38,10 +44,15 @@ namespace SFG
 				.event_type = render_event_type::create_sampler,
 			},
 			stg);
+
 	}
 
 	void texture_sampler::destroy(world& w, resource_handle handle)
 	{
+		if (!_flags.is_set(texture_sampler::flags::created))
+			return;
+		_flags.remove(texture_sampler::flags::created);
+
 		render_event_stream& stream = w.get_render_stream();
 		resource_manager&	 rm		= w.get_resource_manager();
 		chunk_allocator32&	 alloc	= rm.get_aux();

@@ -1,0 +1,4 @@
+{
+    "source": "assets/engine/shaders/world/gui_sdf.hlsl",
+    "variant_style": "gui"
+}

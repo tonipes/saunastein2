@@ -29,7 +29,7 @@ namespace SFG
 	private:
 		struct ubo
 		{
-			matrix4x4 view_proj	 = matrix4x4::identity;
+			matrix4x4 proj		 = matrix4x4::identity;
 			vector2	  resolution = vector2::zero;
 		};
 

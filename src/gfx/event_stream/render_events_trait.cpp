@@ -121,4 +121,54 @@ namespace SFG
 		stream >> outer_cone;
 	}
 
+	void render_event_canvas::serialize(ostream& stream) const
+	{
+		stream << entity_index;
+		stream << is_3d;
+		stream << vertex_size;
+		stream << index_size;
+	}
+
+	void render_event_canvas::deserialize(istream& stream)
+	{
+		stream >> entity_index;
+		stream >> is_3d;
+		stream >> vertex_size;
+		stream >> index_size;
+	}
+
+	void render_event_canvas_add_draw::serialize(ostream& stream) const
+	{
+		stream << clip;
+		stream << start_index;
+		stream << start_vertex;
+		stream << index_count;
+		stream << material_handle;
+		stream << atlas_handle;
+		stream << atlas_exists;
+		stream << vertex_data_size;
+		stream << index_data_size;
+
+		stream.write_raw(vertex_data, vertex_data_size);
+		stream.write_raw(index_data, index_data_size);
+	}
+
+	void render_event_canvas_add_draw::deserialize(istream& stream)
+	{
+		stream >> clip;
+		stream >> start_index;
+		stream >> start_vertex;
+		stream >> index_count;
+		stream >> material_handle;
+		stream >> atlas_handle;
+		stream >> atlas_exists;
+		stream >> vertex_data_size;
+		stream >> index_data_size;
+
+		vertex_data = stream.get_data_current();
+		stream.skip_by(vertex_data_size);
+		index_data = stream.get_data_current();
+		stream.skip_by(index_data_size);
+	}
+
 }

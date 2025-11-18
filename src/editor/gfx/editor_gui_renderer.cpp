@@ -173,6 +173,8 @@ namespace SFG
 			.from_states = resource_state::resource_state_copy_dest,
 			.to_states	 = resource_state::resource_state_vertex_cbv,
 		});
+
+		backend->cmd_barrier(cmd_buffer, {.barriers = barriers.data(), .barrier_count = 2});
 	}
 
 	void editor_gui_renderer::render_in_swapchain(gfx_id cmd_buffer, uint8 frame_index, bump_allocator& /*alloc*/)

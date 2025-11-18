@@ -15,6 +15,7 @@
 #include "common/system_info.hpp"
 #include "data/istream.hpp"
 #include "math/math.hpp"
+#include "gui/vekt.hpp"
 
 namespace SFG
 {
@@ -34,6 +35,7 @@ namespace SFG
 		_point_lights	= new point_lights_type();
 		_spot_lights	= new spot_lights_type();
 		_dir_lights		= new dir_lights_type();
+		_canvases		= new canvas_type();
 	}
 
 	proxy_manager::~proxy_manager()
@@ -51,6 +53,7 @@ namespace SFG
 		delete _point_lights;
 		delete _spot_lights;
 		delete _dir_lights;
+		delete _canvases;
 	}
 
 	void proxy_manager::reset()
@@ -68,6 +71,7 @@ namespace SFG
 		_point_lights->reset();
 		_spot_lights->reset();
 		_dir_lights->reset();
+		_canvases->reset();
 	}
 
 	void proxy_manager::init()
@@ -82,11 +86,11 @@ namespace SFG
 
 	void proxy_manager::uninit()
 	{
-		auto& textures			   = *_textures;
-		auto& samplers			   = *_samplers;
-		auto& materials			   = *_materials;
-		auto& shaders			   = *_shaders;
-		auto& meshes			   = *_meshes;
+		auto& textures	= *_textures;
+		auto& samplers	= *_samplers;
+		auto& materials = *_materials;
+		auto& shaders	= *_shaders;
+		auto& meshes	= *_meshes;
 
 		for (auto& res : *_textures)
 		{
@@ -207,8 +211,90 @@ namespace SFG
 		const world_id			index = header.index;
 		const render_event_type type  = header.event_type;
 
-		
-		if (type == render_event_type::update_entity_transform)
+		if (type == render_event_type::create_canvas)
+		{
+			render_event_canvas ev = {};
+			ev.deserialize(stream);
+
+			render_proxy_canvas& proxy = get_canvas(index);
+			proxy.entity			   = ev.entity_index;
+			proxy.status			   = render_proxy_status::rps_active;
+			proxy.is_3d				   = ev.is_3d;
+
+			for (uint8 i = 0; i < BACK_BUFFER_COUNT; i++)
+			{
+				proxy.vertex_buffers[i].create(
+					{
+						.size		= ev.vertex_size,
+						.flags		= resource_flags::rf_cpu_visible,
+						.debug_name = "canvas_vertex",
+					},
+					{
+						.size		= ev.vertex_size,
+						.flags		= resource_flags::rf_vertex_buffer | resource_flags::rf_gpu_only,
+						.debug_name = "canvas_vertex_gpu",
+					});
+
+				proxy.index_buffers[i].create(
+					{
+						.size		= ev.index_size,
+						.flags		= resource_flags::rf_cpu_visible,
+						.debug_name = "canvas_index",
+					},
+					{
+						.size		= ev.index_size,
+						.flags		= resource_flags::rf_index_buffer | resource_flags::rf_gpu_only,
+						.debug_name = "canvas_index_index",
+					});
+			}
+
+			proxy._draw_calls.reserve(1024);
+		}
+
+		else if (type == render_event_type::destroy_canvas)
+		{
+			render_proxy_canvas& proxy = get_canvas(index);
+			destroy_canvas(proxy);
+		}
+		else if (type == render_event_type::canvas_reset_draws)
+		{
+			render_proxy_canvas& proxy = get_canvas(index);
+			proxy._draw_calls.resize(0);
+			proxy._max_vertex_offset = 0;
+			proxy._max_index_offset	 = 0;
+		}
+		else if (type == render_event_type::canvas_update)
+		{
+			render_event_canvas ev = {};
+			ev.deserialize(stream);
+
+			render_proxy_canvas& proxy = get_canvas(index);
+			proxy.is_3d				   = ev.is_3d;
+		}
+		else if (type == render_event_type::canvas_add_draw)
+		{
+			render_event_canvas_add_draw ev = {};
+			ev.deserialize(stream);
+
+			render_proxy_canvas& proxy = get_canvas(index);
+			proxy._draw_calls.push_back({
+				.clip		  = ev.clip,
+				.start_index  = ev.start_index,
+				.start_vertex = ev.start_vertex,
+				.index_count  = ev.index_count,
+				.mat_id		  = ev.material_handle,
+				.atlas_id	  = ev.atlas_handle,
+				.atlas_exists = ev.atlas_exists,
+			});
+
+			proxy.vertex_buffers[frame_index].buffer_data(proxy._max_vertex_offset, ev.vertex_data, ev.vertex_data_size);
+			proxy.index_buffers[frame_index].buffer_data(proxy._max_index_offset, ev.index_data, ev.index_data_size);
+			proxy._max_vertex_offset += ev.vertex_data_size;
+			proxy._max_index_offset += ev.index_data_size;
+
+			_peak_canvases = math::max(_peak_canvases, index);
+		}
+		else if (type == render_event_type::update_entity_transform)
 		{
 			render_event_entity_transform ev = {};
 			ev.deserialize(stream);
@@ -849,21 +935,32 @@ namespace SFG
 
 			for (uint8 i = 0; i < BACK_BUFFER_COUNT; i++)
 			{
-				proxy.buffers[i].create_staging_hw(
-					{
-						.size  = static_cast<uint32>(ev.data.size),
-						.flags = resource_flags::rf_constant_buffer | resource_flags::rf_cpu_visible,
+				if (ev.data.size != 0)
+				{
+					proxy.buffers[i].create_staging_hw(
+						{
+							.size  = static_cast<uint32>(ev.data.size),
+							.flags = resource_flags::rf_constant_buffer | resource_flags::rf_cpu_visible,
 #ifndef SFG_STRIP_DEBUG_NAMES
-						.debug_name = ev.name.c_str(),
+							.debug_name = ev.name.c_str(),
 #endif
-					},
-					{
-						.size  = static_cast<uint32>(ev.data.size),
-						.flags = resource_flags::rf_constant_buffer | resource_flags::rf_gpu_only,
+						},
+						{
+							.size  = static_cast<uint32>(ev.data.size),
+							.flags = resource_flags::rf_constant_buffer | resource_flags::rf_gpu_only,
 #ifndef SFG_STRIP_DEBUG_NAMES
-						.debug_name = ev.name.c_str(),
+							.debug_name = ev.name.c_str(),
 #endif
+						});
+
+					proxy.buffers[i].buffer_data(0, ev.data.data, ev.data.size);
+					proxy.gpu_index_buffers[i] = backend->get_resource_gpu_index(proxy.buffers[i].get_hw_gpu());
+
+					_buffer_queue.add_request({
+						.buffer	  = &proxy.buffers[i],
+						.to_state = resource_state::resource_state_vertex_cbv,
 					});
+				}
 
 				const uint32 texture_buffer_size = static_cast<uint32>(sizeof(gpu_index) * ev.textures.size() + sizeof(gpu_index) * ev.samplers.size());
 
@@ -886,37 +983,25 @@ namespace SFG
 						});
 
 					proxy.gpu_index_texture_buffers[i] = backend->get_resource_gpu_index(proxy.texture_buffers[i].get_hw_gpu());
-				}
 
-				proxy.buffers[i].buffer_data(0, ev.data.data, ev.data.size);
+					size_t offset = 0;
 
-				proxy.gpu_index_buffers[i] = backend->get_resource_gpu_index(proxy.buffers[i].get_hw_gpu());
+					for (resource_handle txt_handle : ev.textures)
+					{
+						const render_proxy_texture& txt = get_texture(txt_handle.index);
+						SFG_ASSERT(txt.status == render_proxy_status::rps_active);
+						proxy.texture_buffers[i].buffer_data(offset, &txt.heap_index, sizeof(gpu_index));
+						offset += sizeof(gpu_index);
+					}
 
-				size_t offset = 0;
+					for (resource_handle smp_handle : ev.samplers)
+					{
+						const render_proxy_sampler& smp = get_sampler(smp_handle.index);
+						SFG_ASSERT(smp.status == render_proxy_status::rps_active);
+						proxy.texture_buffers[i].buffer_data(offset, &smp.heap_index, sizeof(gpu_index));
+						offset += sizeof(gpu_index);
+					}
 
-				for (resource_handle txt_handle : ev.textures)
-				{
-					const render_proxy_texture& txt = get_texture(txt_handle.index);
-					SFG_ASSERT(txt.status == render_proxy_status::rps_active);
-					proxy.texture_buffers[i].buffer_data(offset, &txt.heap_index, sizeof(gpu_index));
-					offset += sizeof(gpu_index);
-				}
-
-				for (resource_handle smp_handle : ev.samplers)
-				{
-					const render_proxy_sampler& smp = get_sampler(smp_handle.index);
-					SFG_ASSERT(smp.status == render_proxy_status::rps_active);
-					proxy.texture_buffers[i].buffer_data(offset, &smp.heap_index, sizeof(gpu_index));
-					offset += sizeof(gpu_index);
-				}
-
-				_buffer_queue.add_request({
-					.buffer	  = &proxy.buffers[i],
-					.to_state = resource_state::resource_state_vertex_cbv,
-				});
-
-				if (texture_buffer_size != 0)
-				{
 					_buffer_queue.add_request({
 						.buffer	  = &proxy.texture_buffers[i],
 						.to_state = resource_state::resource_state_vertex_cbv,
@@ -1169,6 +1254,20 @@ namespace SFG
 		proxy = {};
 	}
 
+	void proxy_manager::destroy_canvas(render_proxy_canvas& proxy)
+	{
+		for (uint8 i = 0; i < BACK_BUFFER_COUNT; i++)
+		{
+			const uint8 safe_bucket = (frame_info::get_render_frame() + i) % (BACK_BUFFER_COUNT + 1);
+			add_to_destroy_bucket({.id = proxy.vertex_buffers[i].get_hw_staging(), .type = destroy_data_type::resource}, safe_bucket);
+			add_to_destroy_bucket({.id = proxy.vertex_buffers[i].get_hw_gpu(), .type = destroy_data_type::resource}, safe_bucket);
+			add_to_destroy_bucket({.id = proxy.index_buffers[i].get_hw_staging(), .type = destroy_data_type::resource}, safe_bucket);
+			add_to_destroy_bucket({.id = proxy.index_buffers[i].get_hw_gpu(), .type = destroy_data_type::resource}, safe_bucket);
+		}
+
+		proxy = {};
+	}
+
 	void proxy_manager::destroy_material(render_proxy_material& proxy)
 	{
 		gfx_backend* backend = gfx_backend::get();
@@ -1182,8 +1281,11 @@ namespace SFG
 				add_to_destroy_bucket({.id = proxy.texture_buffers[i].get_hw_gpu(), .type = destroy_data_type::resource}, safe_bucket);
 			}
 
-			add_to_destroy_bucket({.id = proxy.buffers[i].get_hw_staging(), .type = destroy_data_type::resource}, safe_bucket);
-			add_to_destroy_bucket({.id = proxy.buffers[i].get_hw_gpu(), .type = destroy_data_type::resource}, safe_bucket);
+			if (proxy.buffers[i].get_hw_gpu() != NULL_GFX_ID)
+			{
+				add_to_destroy_bucket({.id = proxy.buffers[i].get_hw_staging(), .type = destroy_data_type::resource}, safe_bucket);
+				add_to_destroy_bucket({.id = proxy.buffers[i].get_hw_gpu(), .type = destroy_data_type::resource}, safe_bucket);
+			}
 		}
 		proxy = {};
 	}

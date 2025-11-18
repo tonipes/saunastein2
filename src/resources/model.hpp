@@ -17,14 +17,21 @@ namespace SFG
 	public:
 		enum flags
 		{
-			hw_exists	   = 1 << 0,
-			pending_upload = 1 << 1,
+			created = 1 << 0,
 		};
 
 		~model();
 
+		// -----------------------------------------------------------------------------
+		// resource
+		// -----------------------------------------------------------------------------
+
 		void create_from_loader(const model_raw& raw, world& w, resource_handle handle);
 		void destroy(world& w, resource_handle handle);
+
+		// -----------------------------------------------------------------------------
+		// accessors
+		// -----------------------------------------------------------------------------
 
 		inline bitmask<uint8>& get_flags()
 		{

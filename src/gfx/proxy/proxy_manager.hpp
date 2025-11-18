@@ -82,6 +82,11 @@ namespace SFG
 			return _ambients->get(0);
 		}
 
+		inline render_proxy_canvas& get_canvas(world_id idx)
+		{
+			return _canvases->get(idx);
+		}
+
 		inline chunk_allocator32& get_aux()
 		{
 			return _aux_memory;
@@ -115,6 +120,16 @@ namespace SFG
 		inline auto get_dir_lights()
 		{
 			return _dir_lights;
+		}
+
+		inline auto get_materials()
+		{
+			return _materials;
+		}
+
+		inline auto get_canvases()
+		{
+			return _canvases;
 		}
 
 		inline world_id get_main_camera() const
@@ -167,6 +182,11 @@ namespace SFG
 			return _peak_entities + 1;
 		}
 
+		inline uint32 get_peak_canvases() const
+		{
+			return _peak_canvases + 1;
+		}
+
 	private:
 		enum destroy_data_type : uint8
 		{
@@ -196,6 +216,7 @@ namespace SFG
 		void destroy_material(render_proxy_material& proxy);
 		void destroy_mesh(render_proxy_mesh& proxy);
 		void destroy_model(render_proxy_model& proxy);
+		void destroy_canvas(render_proxy_canvas& proxy);
 		void destroy_target_bucket(uint8 index);
 		void add_to_destroy_bucket(const destroy_data& data, uint8 bucket);
 		void reset();
@@ -217,6 +238,7 @@ namespace SFG
 		using point_lights_type	  = pool_allocator_simple<render_proxy_point_light, MAX_WORLD_TRAIT_POINT_LIGHTS>;
 		using spot_lights_type	  = pool_allocator_simple<render_proxy_spot_light, MAX_WORLD_TRAIT_SPOT_LIGHTS>;
 		using dir_lights_type	  = pool_allocator_simple<render_proxy_dir_light, MAX_WORLD_TRAIT_DIR_LIGHTS>;
+		using canvas_type		  = pool_allocator_simple<render_proxy_canvas, MAX_WORLD_TRAIT_CANVAS>;
 
 		destroy_bucket _destroy_bucket[BACK_BUFFER_COUNT + 1];
 
@@ -234,6 +256,7 @@ namespace SFG
 		point_lights_type*	 _point_lights	 = nullptr;
 		spot_lights_type*	 _spot_lights	 = nullptr;
 		dir_lights_type*	 _dir_lights	 = nullptr;
+		canvas_type*		 _canvases		 = nullptr;
 
 		world_id _main_camera_trait	  = NULL_WORLD_ID;
 		uint32	 _peak_mesh_instances = 0;
@@ -244,6 +267,7 @@ namespace SFG
 		uint32	 _count_spot_lights	  = 0;
 		uint32	 _count_point_lights  = 0;
 		uint32	 _peak_entities		  = 0;
+		uint32	 _peak_canvases		  = 0;
 		uint8	 _ambient_exists	  = 0;
 	};
 }

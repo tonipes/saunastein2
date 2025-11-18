@@ -11,15 +11,21 @@ namespace SFG
 	{
 		_data[0] = reinterpret_cast<uint8*>(SFG_ALIGNED_MALLOC(alignment, sz));
 		_data[1] = reinterpret_cast<uint8*>(SFG_ALIGNED_MALLOC(alignment, sz));
-		_sz		 = sz;
+
+#ifdef SFG_DEBUG
+		_sz = static_cast<uint32>(sz);
 		PUSH_ALLOCATION_SZ(sz * 2);
+#endif
 	}
 
 	void double_buffered_swap::uninit()
 	{
 		SFG_ALIGNED_FREE(_data[0]);
 		SFG_ALIGNED_FREE(_data[1]);
+
+#ifdef SFG_DEBUG
 		PUSH_DEALLOCATION_SZ(_sz * 2);
+#endif
 	}
 
 	void double_buffered_swap::write(const void* src, size_t padding, size_t n)

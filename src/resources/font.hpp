@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "data/bitmask.hpp"
 #include "reflection/resource_reflection.hpp"
 #include "resources/common_resources.hpp"
 
@@ -22,11 +23,33 @@ namespace SFG
 	class font
 	{
 	public:
+		enum flags : uint8
+		{
+			created = 1 << 0,
+		};
+
+		~font();
+
+		// -----------------------------------------------------------------------------
+		// resource
+		// -----------------------------------------------------------------------------
+
 		void create_from_loader(const font_raw& raw, world& w, resource_handle handle);
 		void destroy(world& w, resource_handle handle);
 
+		// -----------------------------------------------------------------------------
+		// accessors
+		// -----------------------------------------------------------------------------
+
+		inline vekt::font* get_vekt_font() const
+		{
+			return _font;
+		}
+
 	private:
-		vekt::font* _font = nullptr;
+		vekt::font*	   _font  = nullptr;
+		bitmask<uint8> _flags = 0;
+
 #ifndef SFG_STRIP_DEBUG_NAMES
 		chunk_handle32 _name;
 #endif

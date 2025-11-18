@@ -11,9 +11,8 @@ namespace SFG
 	class render_event_stream
 	{
 	public:
-		static constexpr size_t MAX_RENDER_EVENTS = 2048;
 		static constexpr size_t BATCH_SIZE		  = 1024 * 1024 * 5;
-		static constexpr size_t MAX_BATCHES		  = 256;
+		static constexpr size_t MAX_BATCHES		  = 8;
 
 		struct event_batch
 		{

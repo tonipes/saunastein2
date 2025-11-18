@@ -1317,7 +1317,6 @@ namespace SFG
 
 	void dx12_backend::destroy_texture(gfx_id id)
 	{
-
 		SFG_VERIFY_RENDER_NOT_RUNNING_OR_RENDER_THREAD();
 
 		texture& txt = _textures.get(id);

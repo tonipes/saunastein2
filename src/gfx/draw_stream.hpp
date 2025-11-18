@@ -11,67 +11,68 @@ namespace SFG
 	struct draw_command
 	{
 		// geometry
-		uint32 start_index;
-		uint32 index_count;
-		uint32 base_vertex;
+		uint32 start_index = 0;
+		uint32 index_count = 0;
+		uint32 base_vertex = 0;
 
 		// state bindings
-		gpu_index material_constant_index;
-		gpu_index texture_constant_index;
-		gpu_index entity_constant_index; // entity constant maps to object_constant0
+		gpu_index material_constant_index = NULL_GPU_INDEX;
+		gpu_index texture_constant_index  = NULL_GPU_INDEX;
+		gpu_index entity_constant_index	  = NULL_GPU_INDEX; // entity constant maps to object_constant0
 #ifdef SFG_TOOLMODE
-		gpu_index entity_world_id; // extra per-draw constant: actual world_id -> object_constant1
+		gpu_index entity_world_id = NULL_GPU_INDEX; // extra per-draw constant: actual world_id -> object_constant1
 #endif
 
 		// state bindings
-		gfx_id vb_hw;
-		gfx_id ib_hw;
-		gfx_id pipeline_hw;
+		gfx_id vb_hw	   = NULL_GFX_ID;
+		gfx_id ib_hw	   = NULL_GFX_ID;
+		gfx_id pipeline_hw = NULL_GFX_ID;
 
-		uint16 vertex_size;
-		uint16 priority;
+		uint16 vertex_size = 0;
+		uint16 priority	   = 0;
 	};
 
 	struct draw_command_distance
 	{
 		// geometry
-		uint32 start_index;
-		uint32 index_count;
-		uint32 base_vertex;
+		uint32 start_index = 0;
+		uint32 index_count = 0;
+		uint32 base_vertex = 0;
 
 		// state bindings
-		gpu_index material_constant_index;
-		gpu_index texture_constant_index;
-		gpu_index entity_constant_index; // entity constant maps to object_constant0
+		gpu_index material_constant_index = NULL_GPU_INDEX;
+		gpu_index texture_constant_index  = NULL_GPU_INDEX;
+		gpu_index entity_constant_index	  = NULL_GPU_INDEX; // entity constant maps to object_constant0
 #ifdef SFG_TOOLMODE
-		gpu_index entity_world_id; // extra per-draw constant: actual world_id -> object_constant1
+		gpu_index entity_world_id = NULL_GPU_INDEX; // extra per-draw constant: actual world_id -> object_constant1
 #endif
 
 		// state bindings
-		gfx_id vb_hw;
-		gfx_id ib_hw;
-		gfx_id pipeline_hw;
+		gfx_id vb_hw	   = NULL_GFX_ID;
+		gfx_id ib_hw	   = NULL_GFX_ID;
+		gfx_id pipeline_hw = NULL_GFX_ID;
 
-		uint16 vertex_size;
-		uint16 priority;
+		uint16 vertex_size = 0;
+		uint16 priority	   = 0;
 
 		float distance = 0.0f;
 	};
 
 	struct draw_command_gui
 	{
-		vector4ui16 clip;
+		vector4ui16 clip = vector4ui16::zero;
 
-		uint32 start_index;
-		uint32 index_count;
-		uint32 base_vertex;
+		uint32 start_index = 0;
+		uint32 index_count = 0;
+		uint32 base_vertex = 0;
 
-		gpu_index material_constant_index;
-		gpu_index texture_constant_index;
+		gpu_index material_constant_index = NULL_GPU_INDEX;
+		gpu_index texture_constant_index  = NULL_GPU_INDEX;
+		gpu_index font_index			  = NULL_GPU_INDEX;
 
-		gfx_id vb_hw;
-		gfx_id ib_hw;
-		gfx_id pipeline_hw;
+		gfx_id vb_hw	   = NULL_GFX_ID;
+		gfx_id ib_hw	   = NULL_GFX_ID;
+		gfx_id pipeline_hw = NULL_GFX_ID;
 	};
 
 	static_assert(sizeof(draw_command) <= 64, "cache line pls");

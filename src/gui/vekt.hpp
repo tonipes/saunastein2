@@ -1154,61 +1154,60 @@ namespace vekt
 			size_t capacity = 0;
 		};
 
-		vector<id>	 _free_list;
-		unsigned int _widget_head  = 0;
-		unsigned int _widget_count = 0;
-
-		vector<clip_info>	_clip_stack;
-		vector<input_layer> _input_layers;
-		vector<draw_buffer> _draw_buffers;
-		id					_root			= 0;
-		draw_callback		_on_draw		= nullptr;
-		void*				_on_draw_ud		= nullptr;
-		VEKT_VEC2			_mouse_position = {};
+		vector<id>					   _free_list;
+		vector<clip_info>			   _clip_stack;
+		vector<input_layer>			   _input_layers;
+		vector<draw_buffer>			   _draw_buffers;
+		vector<id>					   _depth_first_widgets;
+		vector<id>					   _reverse_depth_first_widgets;
+		vector<depth_first_child_info> _depth_first_child_info;
+		vector<text_cache>			   _text_cache = {};
+		vector<VEKT_VEC2>			   _reuse_outer_path;
+		vector<VEKT_VEC2>			   _reuse_inner_path;
+		vector<VEKT_VEC2>			   _reuse_outline_path;
+		vector<VEKT_VEC2>			   _reuse_aa_outer_path;
+		vector<VEKT_VEC2>			   _reuse_aa_inner_path;
 
 		arena _layout_arena = {};
 		arena _gfx_arena	= {};
 		arena _misc_arena	= {};
 
-		vector<id>					   _depth_first_widgets;
-		vector<id>					   _reverse_depth_first_widgets;
-		vector<depth_first_child_info> _depth_first_child_info;
-		vector<text_cache>			   _text_cache = {};
+		unsigned int _widget_head  = 0;
+		unsigned int _widget_count = 0;
 
-		widget_meta*		_metas			 = nullptr;
-		size_props*			_size_properties = {};
-		pos_props*			_pos_properties	 = {};
-		size_result*		_size_results	 = {};
-		pos_result*			_pos_results	 = {};
-		widget_gfx*			_gfxs			 = {};
-		stroke_props*		_strokes		 = {};
-		second_color_props* _second_colors	 = {};
-		rounding_props*		_roundings		 = {};
-		aa_props*			_aa_props		 = {};
-		text_props*			_texts			 = {};
-		hover_callback*		_hover_callbacks = {};
-		mouse_callback*		_mouse_callbacks = {};
-		key_callback*		_key_callbacks	 = {};
-		custom_passes*		_custom_passes	 = {};
+		draw_callback		_on_draw				  = nullptr;
+		void*				_on_draw_ud				  = nullptr;
+		widget_meta*		_metas					  = nullptr;
+		size_props*			_size_properties		  = {};
+		pos_props*			_pos_properties			  = {};
+		size_result*		_size_results			  = {};
+		pos_result*			_pos_results			  = {};
+		widget_gfx*			_gfxs					  = {};
+		stroke_props*		_strokes				  = {};
+		second_color_props* _second_colors			  = {};
+		rounding_props*		_roundings				  = {};
+		aa_props*			_aa_props				  = {};
+		text_props*			_texts					  = {};
+		hover_callback*		_hover_callbacks		  = {};
+		mouse_callback*		_mouse_callbacks		  = {};
+		key_callback*		_key_callbacks			  = {};
+		custom_passes*		_custom_passes			  = {};
+		vertex*				_vertex_buffer			  = nullptr;
+		index*				_index_buffer			  = nullptr;
+		vertex*				_text_cache_vertex_buffer = nullptr;
+		index*				_text_cache_index_buffer  = nullptr;
+		VEKT_VEC2			_mouse_position			  = {};
 
-		vector<VEKT_VEC2> _reuse_outer_path;
-		vector<VEKT_VEC2> _reuse_inner_path;
-		vector<VEKT_VEC2> _reuse_outline_path;
-		vector<VEKT_VEC2> _reuse_aa_outer_path;
-		vector<VEKT_VEC2> _reuse_aa_inner_path;
-
-		vertex*		 _vertex_buffer			   = nullptr;
-		index*		 _index_buffer			   = nullptr;
-		vertex*		 _text_cache_vertex_buffer = nullptr;
-		index*		 _text_cache_index_buffer  = nullptr;
-		unsigned int _vertex_count_per_buffer  = 0;
-		unsigned int _index_count_per_buffer   = 0;
-		unsigned int _buffer_count			   = 0;
-		unsigned int _buffer_counter		   = 0;
-		unsigned int _text_cache_vertex_count  = 0;
-		unsigned int _text_cache_vertex_size   = 0;
-		unsigned int _text_cache_index_count   = 0;
-		unsigned int _text_cache_index_size	   = 0;
+		size_t		 _total_sz				  = 0;
+		unsigned int _vertex_count_per_buffer = 0;
+		unsigned int _index_count_per_buffer  = 0;
+		unsigned int _buffer_count			  = 0;
+		unsigned int _buffer_counter		  = 0;
+		unsigned int _text_cache_vertex_count = 0;
+		unsigned int _text_cache_vertex_size  = 0;
+		unsigned int _text_cache_index_count  = 0;
+		unsigned int _text_cache_index_size	  = 0;
+		id			 _root					  = 0;
 	};
 
 	////////////////////////////////////////////////////////////////////////////////
@@ -1323,7 +1322,7 @@ namespace vekt
 		void init();
 		void uninit();
 
-		font* load_font_from_file(const char* file, unsigned int size, unsigned int range_start = 0, unsigned int range_end = 128, font_type type = font_type::normal, int sdf_padding = 3, int sdf_edge = 128, float sdf_distance = 32.0f);
+		font* load_font_from_file(const char* file, unsigned int size, unsigned int range_start = 32, unsigned int range_end = 128, font_type type = font_type::normal, int sdf_padding = 3, int sdf_edge = 128, float sdf_distance = 32.0f);
 		font* load_font(unsigned char* data, unsigned int data_size, unsigned int size, unsigned int range0, unsigned int range1, font_type type = font_type::normal, int sdf_padding = 3, int sdf_edge = 128, float sdf_distance = 32.0f);
 		void  unload_font(font* fnt);
 

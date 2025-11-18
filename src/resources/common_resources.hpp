@@ -12,12 +12,34 @@
 namespace SFG
 {
 
-#define DUMMY_COLOR_TEXTURE_SID	   UINT64_MAX - 1000
-#define DUMMY_NORMAL_TEXTURE_SID   UINT64_MAX - 999
-#define DUMMY_ORM_TEXTURE_SID	   UINT64_MAX - 998
-#define DUMMY_SAMPLER_SID		   UINT64_MAX - 997
-#define DEFAULT_OPAQUE_SHADER_SID  UINT64_MAX - 996
-#define DEFAULT_FORWARD_SHADER_SID UINT64_MAX - 995
+#define DUMMY_COLOR_TEXTURE_SID	 UINT64_MAX - 1000
+#define DUMMY_NORMAL_TEXTURE_SID UINT64_MAX - 999
+#define DUMMY_ORM_TEXTURE_SID	 UINT64_MAX - 998
+#define DUMMY_SAMPLER_SID		 UINT64_MAX - 997
+
+#define DEFAULT_OPAQUE_SHADER_PATH "assets/engine/shaders/world/gbuffer_lit.stkshader"
+#define DEFAULT_OPAQUE_SHADER_SID  "assets/engine/shaders/world/gbuffer_lit.stkshader"_hs
+
+#define DEFAULT_FORWARD_SHADER_PATH "assets/engine/shaders/world/forward.stkshader"
+#define DEFAULT_FORWARD_SHADER_SID	"assets/engine/shaders/world/forward.stkshader"_hs
+
+#define DEFAULT_GUI_SHADER_PATH "assets/engine/shaders/world/gui_default.stkshader"
+#define DEFAULT_GUI_SHADER_SID	"assets/engine/shaders/world/gui_default.stkshader"_hs
+
+#define DEFAULT_GUI_TEXT_SHADER_PATH "assets/engine/shaders/world/gui_text.stkshader"
+#define DEFAULT_GUI_TEXT_SHADER_SID	 "assets/engine/shaders/world/gui_text.stkshader"_hs
+
+#define DEFAULT_GUI_SDF_SHADER_PATH "assets/engine/shaders/world/gui_sdf.stkshader"
+#define DEFAULT_GUI_SDF_SHADER_SID	"assets/engine/shaders/world/gui_sdf.stkshader"_hs
+
+#define DEFAULT_GUI_MAT_PATH "assets/engine/materials/world/gui_default.stkmat"
+#define DEFAULT_GUI_MAT_SID	 "assets/engine/materials/world/gui_default.stkmat"_hs
+
+#define DEFAULT_GUI_TEXT_MAT_PATH "assets/engine/materials/world/gui_text.stkmat"
+#define DEFAULT_GUI_TEXT_MAT_SID  "assets/engine/materials/world/gui_text.stkmat"_hs
+
+#define DEFAULT_GUI_SDF_MAT_PATH "assets/engine/materials/world/gui_sdf.stkmat"
+#define DEFAULT_GUI_SDF_MAT_SID	 "assets/engine/materials/world/gui_sdf.stkmat"_hs
 
 	typedef pool_handle16 resource_handle;
 	typedef uint16		  resource_id;
@@ -30,6 +52,8 @@ namespace SFG
 		material_flags_is_alpha_cutoff = 1 << 1,
 		material_flags_is_forward	   = 1 << 2,
 		material_flags_is_double_sided = 1 << 3,
+		material_flags_is_gui		   = 1 << 4,
+		material_flags_created		   = 1 << 5,
 	};
 
 	enum shader_variant_flags : uint32

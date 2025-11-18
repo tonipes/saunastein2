@@ -12,6 +12,7 @@
 #include "resources/texture_sampler.hpp"
 #include "resources/texture_sampler_raw.hpp"
 #include "resources/shader_raw.hpp"
+#include "resources/material_raw.hpp"
 
 #ifdef SFG_TOOLMODE
 #include "serialization/serialization.hpp"
@@ -20,6 +21,7 @@
 #include "resources/model.hpp"
 #include "resources/mesh.hpp"
 #include "resources/shader.hpp"
+#include "resources/material.hpp"
 #include "gfx/event_stream/render_events_gfx.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"
 #include "world/traits/trait_model_instance.hpp"
@@ -92,27 +94,79 @@ namespace SFG
 			dummy_normal_txt.create_from_loader(dummy_normal_raw, _world, _dummy_normal_texture);
 			dummy_orm_txt.create_from_loader(dummy_orm_raw, _world, _dummy_orm_texture);
 
-			shader_raw default_gbuffer_raw = {};
-			shader_raw default_forward_raw = {};
+			// -----------------------------------------------------------------------------
+			// default shaders
+			// -----------------------------------------------------------------------------
+
+			shader_raw default_gbuffer_raw	= {};
+			shader_raw default_forward_raw	= {};
+			shader_raw default_gui_raw		= {};
+			shader_raw default_gui_text_raw = {};
+			shader_raw default_gui_sdf_raw	= {};
 
 #ifdef SFG_TOOLMODE
-			default_gbuffer_raw.load_from_file("assets/engine/shaders/object/gbuffer_lit.stkshader", SFG_ROOT_DIRECTORY);
-			default_forward_raw.load_from_file("assets/engine/shaders/object/forward.stkshader", SFG_ROOT_DIRECTORY);
+			default_gbuffer_raw.load_from_file(DEFAULT_OPAQUE_SHADER_PATH, SFG_ROOT_DIRECTORY);
+			default_forward_raw.load_from_file(DEFAULT_FORWARD_SHADER_PATH, SFG_ROOT_DIRECTORY);
+			default_gui_raw.load_from_file(DEFAULT_GUI_SHADER_PATH, SFG_ROOT_DIRECTORY);
+			default_gui_text_raw.load_from_file(DEFAULT_GUI_TEXT_SHADER_PATH, SFG_ROOT_DIRECTORY);
+			default_gui_sdf_raw.load_from_file(DEFAULT_GUI_SDF_SHADER_PATH, SFG_ROOT_DIRECTORY);
 #else
 			SFG_NOTIMPLEMENTED();
 #endif
 
-			_default_gbuffer_shader = add_resource<shader>(DEFAULT_OPAQUE_SHADER_SID);
-			_default_forward_shader = add_resource<shader>(DEFAULT_FORWARD_SHADER_SID);
-			shader& gbuffer_sh		= get_resource<shader>(_default_gbuffer_shader);
-			shader& forward_sh		= get_resource<shader>(_default_forward_shader);
+			_default_gbuffer_shader	 = add_resource<shader>(DEFAULT_OPAQUE_SHADER_SID);
+			_default_forward_shader	 = add_resource<shader>(DEFAULT_FORWARD_SHADER_SID);
+			_default_gui_shader		 = add_resource<shader>(DEFAULT_GUI_SHADER_SID);
+			_default_gui_text_shader = add_resource<shader>(DEFAULT_GUI_TEXT_SHADER_SID);
+			_default_gui_sdf_shader	 = add_resource<shader>(DEFAULT_GUI_SDF_SHADER_SID);
+			shader& gbuffer_sh		 = get_resource<shader>(_default_gbuffer_shader);
+			shader& forward_sh		 = get_resource<shader>(_default_forward_shader);
+			shader& gui_sh			 = get_resource<shader>(_default_gui_shader);
+			shader& gui_text_sh		 = get_resource<shader>(_default_gui_text_shader);
+			shader& gui_sdf_sh		 = get_resource<shader>(_default_gui_sdf_shader);
 
 			gbuffer_sh.create_from_loader(default_gbuffer_raw, _world, _default_gbuffer_shader);
 			forward_sh.create_from_loader(default_forward_raw, _world, _default_forward_shader);
+			gui_sh.create_from_loader(default_gui_raw, _world, _default_gui_shader);
+			gui_text_sh.create_from_loader(default_gui_text_raw, _world, _default_gui_text_shader);
+			gui_sdf_sh.create_from_loader(default_gui_sdf_raw, _world, _default_gui_sdf_shader);
+
+			// -----------------------------------------------------------------------------
+			// default materials
+			// -----------------------------------------------------------------------------
+
+			material_raw default_gui_mat_raw	  = {};
+			material_raw default_gui_text_mat_raw = {};
+			material_raw default_gui_sdf_mat_raw  = {};
 
 #ifdef SFG_TOOLMODE
-			add_resource_watch(_default_gbuffer_shader, "assets/engine/shaders/object/gbuffer_lit.stkshader", {default_gbuffer_raw.source}, type_id<shader>::value, SFG_ROOT_DIRECTORY);
-			add_resource_watch(_default_forward_shader, "assets/engine/shaders/object/forward.stkshader", {default_forward_raw.source}, type_id<shader>::value, SFG_ROOT_DIRECTORY);
+			default_gui_mat_raw.load_from_file(DEFAULT_GUI_MAT_PATH, SFG_ROOT_DIRECTORY);
+			default_gui_text_mat_raw.load_from_file(DEFAULT_GUI_TEXT_MAT_PATH, SFG_ROOT_DIRECTORY);
+			default_gui_sdf_mat_raw.load_from_file(DEFAULT_GUI_SDF_MAT_PATH, SFG_ROOT_DIRECTORY);
+#else
+			SFG_NOTIMPLEMENTED();
+#endif
+
+			_default_gui_mat			 = add_resource<material>(DEFAULT_GUI_MAT_SID);
+			_default_gui_text_mat		 = add_resource<material>(DEFAULT_GUI_TEXT_MAT_SID);
+			_default_gui_sdf_mat		 = add_resource<material>(DEFAULT_GUI_SDF_MAT_SID);
+			material& default_gui_m		 = get_resource<material>(_default_gui_mat);
+			material& default_gui_text_m = get_resource<material>(_default_gui_text_mat);
+			material& default_gui_sdf_m	 = get_resource<material>(_default_gui_sdf_mat);
+
+			default_gui_m.create_from_loader(default_gui_mat_raw, _world, _default_gui_mat);
+			default_gui_text_m.create_from_loader(default_gui_text_mat_raw, _world, _default_gui_text_mat);
+			default_gui_sdf_m.create_from_loader(default_gui_sdf_mat_raw, _world, _default_gui_sdf_mat);
+
+#ifdef SFG_TOOLMODE
+			add_resource_watch(_default_gbuffer_shader, DEFAULT_OPAQUE_SHADER_PATH, {default_gbuffer_raw.source}, type_id<shader>::value, SFG_ROOT_DIRECTORY);
+			add_resource_watch(_default_forward_shader, DEFAULT_FORWARD_SHADER_PATH, {default_forward_raw.source}, type_id<shader>::value, SFG_ROOT_DIRECTORY);
+			add_resource_watch(_default_gui_shader, DEFAULT_GUI_SHADER_PATH, {default_gui_raw.source}, type_id<shader>::value, SFG_ROOT_DIRECTORY);
+			add_resource_watch(_default_gui_text_shader, DEFAULT_GUI_TEXT_SHADER_PATH, {default_gui_text_raw.source}, type_id<shader>::value, SFG_ROOT_DIRECTORY);
+			add_resource_watch(_default_gui_sdf_shader, DEFAULT_GUI_SDF_SHADER_PATH, {default_gui_sdf_raw.source}, type_id<shader>::value, SFG_ROOT_DIRECTORY);
+			add_resource_watch(_default_gui_mat, DEFAULT_GUI_MAT_PATH, {default_gui_sdf_raw.source}, type_id<shader>::value, SFG_ROOT_DIRECTORY);
+			add_resource_watch(_default_gui_text_mat, DEFAULT_GUI_TEXT_MAT_PATH, {default_gui_sdf_raw.source}, type_id<shader>::value, SFG_ROOT_DIRECTORY);
+			add_resource_watch(_default_gui_sdf_mat, DEFAULT_GUI_SDF_MAT_PATH, {default_gui_sdf_raw.source}, type_id<shader>::value, SFG_ROOT_DIRECTORY);
 #endif
 		}
 	}

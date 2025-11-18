@@ -13,9 +13,16 @@
 
 namespace SFG
 {
+	audio::~audio()
+	{
+		_flags.set(audio::flags::is_created);
+	}
 
 	void audio::create_from_loader(const audio_raw& raw, world& w, resource_handle handle)
 	{
+		SFG_ASSERT(!_flags.is_set(audio::flags::is_created));
+		_flags.set(audio::flags::is_created);
+
 		resource_manager&  rm  = w.get_resource_manager();
 		chunk_allocator32& aux = rm.get_aux();
 		_decoder			   = aux.allocate<ma_decoder>(1);
@@ -56,6 +63,10 @@ namespace SFG
 
 	void audio::destroy(world& w, resource_handle handle)
 	{
+		if (!_flags.is_set(audio::flags::is_created))
+			return;
+		_flags.remove(audio::flags::is_created);
+
 		resource_manager&  rm  = w.get_resource_manager();
 		chunk_allocator32& aux = rm.get_aux();
 

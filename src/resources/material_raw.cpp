@@ -90,6 +90,8 @@ namespace SFG
 				pass_mode = material_pass_mode::gbuffer;
 			else if (pass.compare("forward") == 0)
 				pass_mode = material_pass_mode::forward;
+			else if (pass.compare("gui") == 0)
+				pass_mode = material_pass_mode::gui;
 			else
 				pass_mode = material_pass_mode::gbuffer;
 

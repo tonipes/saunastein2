@@ -18,9 +18,24 @@ namespace SFG
 	class material
 	{
 	public:
+		~material();
+
+		// -----------------------------------------------------------------------------
+		// resource
+		// -----------------------------------------------------------------------------
+
 		void create_from_loader(const material_raw& raw, world& w, resource_handle handle, const vector<resource_handle>& samplers = {});
 		void destroy(world& w, resource_handle handle);
+
+		// -----------------------------------------------------------------------------
+		// impl
+		// -----------------------------------------------------------------------------
+
 		void update_data(world& w, resource_handle handle);
+
+		// -----------------------------------------------------------------------------
+		// accessors
+		// -----------------------------------------------------------------------------
 
 		inline const bitmask<uint32>& get_flags() const
 		{

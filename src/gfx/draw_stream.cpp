@@ -7,7 +7,7 @@
 #include "gfx/common/commands.hpp"
 #include "gfx/util/gfx_util.hpp"
 #include "resources/vertex.hpp"
-
+#include "gui/vekt.hpp"
 #include <algorithm>
 
 namespace SFG
@@ -152,15 +152,15 @@ namespace SFG
 				backend->cmd_bind_pipeline(cmd_buffer, {.pipeline = draw.pipeline_hw});
 
 			if (diff & 1u << 1)
-				backend->cmd_bind_vertex_buffers(cmd_buffer, {.buffer = draw.vb_hw, .vertex_size = sizeof(vertex_gui)});
+				backend->cmd_bind_vertex_buffers(cmd_buffer, {.buffer = draw.vb_hw, .vertex_size = sizeof(vekt::vertex)});
 
 			if (diff & 1u << 2)
-				backend->cmd_bind_index_buffers(cmd_buffer, {.buffer = draw.ib_hw, .index_size = static_cast<uint8>(sizeof(primitive_index))});
+				backend->cmd_bind_index_buffers(cmd_buffer, {.buffer = draw.ib_hw, .index_size = static_cast<uint8>(sizeof(vekt::index))});
 
 			backend->cmd_set_scissors(cmd_buffer, {.x = draw.clip.x, .y = draw.clip.y, .width = draw.clip.z, .height = draw.clip.w});
 
-			const uint32 mat_constants[2] = {draw.material_constant_index, draw.texture_constant_index};
-			backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)mat_constants, .offset = constant_index_mat_constant0, .count = 2, .param_index = rpi_constants});
+			const uint32 mat_constants[3] = {draw.material_constant_index, draw.texture_constant_index, draw.font_index};
+			backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)mat_constants, .offset = constant_index_mat_constant0, .count = 3, .param_index = rpi_constants});
 			backend->cmd_draw_indexed_instanced(cmd_buffer,
 												{
 													.index_count_per_instance = draw.index_count,

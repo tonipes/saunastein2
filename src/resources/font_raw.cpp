@@ -60,7 +60,7 @@ namespace SFG
 
 			name					 = relative_file;
 			source					 = json_data.value<string>("source", "");
-			const string full_source = base_path + name;
+			const string full_source = base_path + source;
 			if (!file_system::exists(full_source.c_str()))
 			{
 				SFG_ERR("File don't exist! {0}", full_source.c_str());
@@ -98,9 +98,9 @@ namespace SFG
 			else if (type.compare("lcd") == 0)
 				font_type = static_cast<uint8>(vekt::font_type::lcd);
 
-			sdf_padding	 = json_data.value<int16>("sdf_padding", 0);
-			sdf_edge	 = json_data.value<int16>("sdf_edge", 0);
-			sdf_distance = json_data.value<float>("sdf_distance", 0);
+			sdf_padding	 = json_data.value<int16>("sdf_padding", 3);
+			sdf_edge	 = json_data.value<int16>("sdf_edge", 128);
+			sdf_distance = json_data.value<float>("sdf_distance", 32);
 		}
 		catch (std::exception e)
 		{

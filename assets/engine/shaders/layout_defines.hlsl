@@ -18,10 +18,6 @@ cbuffer sfg_globals : register(b0, space0)
     float f2;
 }
 
-    uint sfg_rp_ubo_index;
-    uint sfg_material_ubo_index;
-    uint sfg_texture_ubo_index;
-
 cbuffer sfg_constants : register(b1, space0)
 {
     uint sfg_rp_constant0;

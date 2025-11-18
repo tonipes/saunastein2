@@ -11,8 +11,15 @@
 
 namespace SFG
 {
+	font::~font()
+	{
+		SFG_ASSERT(!_flags.is_set(font::flags::created));
+	}
 	void font::create_from_loader(const font_raw& raw, world& w, resource_handle handle)
 	{
+		SFG_ASSERT(!_flags.is_set(font::flags::created));
+		_flags.set(font::flags::created);
+
 		resource_manager&	rm	  = w.get_resource_manager();
 		chunk_allocator32&	alloc = rm.get_aux();
 		vekt::font_manager& fm	  = w.get_font_manager();
@@ -29,6 +36,10 @@ namespace SFG
 
 	void font::destroy(world& w, resource_handle handle)
 	{
+		if (!_flags.is_set(font::flags::created))
+			return;
+		_flags.remove(font::flags::created);
+
 		resource_manager&	rm	  = w.get_resource_manager();
 		chunk_allocator32&	alloc = rm.get_aux();
 		vekt::font_manager& fm	  = w.get_font_manager();

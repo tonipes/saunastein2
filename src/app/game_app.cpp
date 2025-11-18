@@ -232,7 +232,7 @@ namespace SFG
 
 			// interpolation
 			const double interpolation = static_cast<double>(accumulator_ns) / static_cast<double>(FIXED_INTERVAL_NS);
-			_world->post_tick(interpolation);
+			_world->interpolate(interpolation);
 
 #ifdef SFG_TOOLMODE
 			_editor->post_tick(interpolation);

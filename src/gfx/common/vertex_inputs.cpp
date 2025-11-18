@@ -125,5 +125,27 @@ namespace SFG
 				.format = format::r32g32b32a32_sfloat,
 			});
 		}
+		else if (style == vertex_input_style::gui)
+		{
+			out_inputs.push_back({
+				.name	= "POSITION",
+				.offset = 0,
+				.size	= sizeof(float) * 2,
+				.format = format::r32g32_sfloat,
+			});
+
+			out_inputs.push_back({
+				.name	= "TEXCOORD",
+				.offset = sizeof(float) * 2,
+				.size	= sizeof(float) * 2,
+				.format = format::r32g32_sfloat,
+			});
+			out_inputs.push_back({
+				.name	= "COLOR",
+				.offset = sizeof(float) * 4,
+				.size	= sizeof(float) * 4,
+				.format = format::r32g32b32a32_sfloat,
+			});
+		}
 	}
 }

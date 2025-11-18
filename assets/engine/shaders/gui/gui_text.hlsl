@@ -1,4 +1,4 @@
-#include "../layout_defines.hlsl"
+#include "layout_defines.hlsl"
 
 //------------------------------------------------------------------------------
 // In & Outs

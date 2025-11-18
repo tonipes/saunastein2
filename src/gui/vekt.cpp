@@ -1,6 +1,7 @@
 // Copyright (c) 2025 Inan Evin
 
 #include "vekt.hpp"
+#include "memory/memory_tracer.hpp"
 #define STB_TRUETYPE_IMPLEMENTATION
 #include "vendor/stb/stb_truetype.h"
 
@@ -129,14 +130,17 @@ namespace vekt
 		for (size_t i = 0; i < index_count; i++)
 			new (&_index_buffer[i]) index();
 
-		const size_t total_sz = _layout_arena.capacity + _gfx_arena.capacity + _misc_arena.capacity + conf.vertex_buffer_sz + conf.index_buffer_sz + conf.text_cache_vertex_buffer_sz + conf.text_cache_index_buffer_sz;
-		V_LOG("Vekt builder initialized with %d widgets. Total memory reserved: %zu bytes - %0.2f mb", _widget_count, total_sz, static_cast<float>(total_sz) / 1000000.f);
+		_total_sz = _layout_arena.capacity + _gfx_arena.capacity + _misc_arena.capacity + conf.vertex_buffer_sz + conf.index_buffer_sz + conf.text_cache_vertex_buffer_sz + conf.text_cache_index_buffer_sz;
+		V_LOG("Vekt builder initialized with %d widgets. Total memory reserved: %zu bytes - %0.2f mb", _widget_count, _total_sz, static_cast<float>(_total_sz) / 1000000.f);
+		PUSH_ALLOCATION_SZ(_total_sz);
 
 		_root = allocate();
 	}
 
 	void builder::uninit()
 	{
+		PUSH_DEALLOCATION_SZ(_total_sz);
+
 		deallocate(_root);
 
 		for (size_t i = 0; i < _widget_count; i++)
@@ -2136,7 +2140,11 @@ namespace vekt
 		_data_size		= width * height * (is_lcd ? 3 : 1);
 		const size_t sz = static_cast<size_t>(_data_size);
 		_data			= reinterpret_cast<unsigned char*>(MALLOC(sz));
-		memset(_data, 0, sz);
+		PUSH_ALLOCATION_SZ(_data_size);
+
+		_ASSERT(_data != 0);
+		if (_data != 0)
+			memset(_data, 0, sz);
 	}
 
 	atlas::~atlas()
@@ -2145,6 +2153,7 @@ namespace vekt
 			delete slc;
 		_available_slices.clear();
 
+		PUSH_DEALLOCATION_SZ(_data_size);
 		FREE(_data);
 	}
 

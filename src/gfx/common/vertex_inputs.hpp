@@ -13,6 +13,7 @@ namespace SFG
 		position_normal_tangents_uv_skinned,
 		line_3d,
 		position_color,
+		gui
 	};
 
 	class vertex_inputs

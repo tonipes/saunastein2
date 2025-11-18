@@ -11,9 +11,16 @@
 
 namespace SFG
 {
+	mesh::~mesh()
+	{
+		SFG_ASSERT(!_flags.is_set(mesh::flags::created));
+	}
 
 	void mesh::create_from_loader(const mesh_raw& raw, world& w, resource_handle handle)
 	{
+		SFG_ASSERT(!_flags.is_set(mesh::flags::created));
+		_flags.set(mesh::flags::created);
+
 		render_event_stream& stream = w.get_render_stream();
 		resource_manager&	 rm		= w.get_resource_manager();
 		chunk_allocator32&	 alloc	= rm.get_aux();
@@ -42,10 +49,16 @@ namespace SFG
 				.event_type = render_event_type::create_mesh,
 			},
 			ev);
+
 	}
 
 	void mesh::destroy(world& w, resource_handle handle)
 	{
+		if (!_flags.is_set(mesh::flags::created))
+			return;
+
+		_flags.remove(mesh::flags::created);
+
 		render_event_stream& stream = w.get_render_stream();
 		resource_manager&	 rm		= w.get_resource_manager();
 		chunk_allocator32&	 alloc	= rm.get_aux();

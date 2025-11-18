@@ -158,19 +158,6 @@ namespace SFG
 		backend->cmd_end_render_pass(cmd_buffer, {});
 		END_DEBUG_EVENT(backend, cmd_buffer);
 
-		barriers.push_back({
-			.resource	 = render_target,
-			.flags		 = barrier_flags::baf_is_texture,
-			.from_states = resource_state::resource_state_render_target,
-			.to_states	 = resource_state::resource_state_ps_resource,
-		});
-
-		backend->cmd_barrier(cmd_buffer,
-							 {
-								 .barriers		= barriers.data(),
-								 .barrier_count = static_cast<uint16>(barriers.size()),
-							 });
-
 		backend->close_command_buffer(cmd_buffer);
 	}
 

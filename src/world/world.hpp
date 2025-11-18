@@ -3,6 +3,7 @@
 #pragma once
 
 #include "data/bitmask.hpp"
+#include "data/vector.hpp"
 #include "memory/text_allocator.hpp"
 #include "entity_manager.hpp"
 #include "trait_manager.hpp"
@@ -12,6 +13,11 @@
 #include "audio/audio_manager.hpp"
 
 struct ma_engine;
+
+namespace vekt
+{
+	class atlas;
+}
 
 namespace SFG
 {
@@ -42,7 +48,7 @@ namespace SFG
 		void uninit();
 		void create_from_loader(world_raw& raw);
 		void tick(const vector2ui16& res, float dt);
-		void post_tick(double interpolation);
+		void interpolate(double interpolation);
 		bool on_window_event(const window_event& ev);
 
 		// -----------------------------------------------------------------------------
@@ -52,6 +58,11 @@ namespace SFG
 		void stop_playmode();
 		void start_physics();
 		void stop_physics();
+
+		// -----------------------------------------------------------------------------
+		// atlas
+		// -----------------------------------------------------------------------------
+		resource_handle find_atlas_texture(vekt::atlas* atl);
 
 		// -----------------------------------------------------------------------------
 		// accessors
@@ -103,7 +114,23 @@ namespace SFG
 		}
 
 	private:
+		// -----------------------------------------------------------------------------
+		// vekt
+		// -----------------------------------------------------------------------------
+
+		struct atlas_data
+		{
+			vekt::atlas*	atlas  = nullptr;
+			resource_handle handle = {};
+		};
+
+		static void on_atlas_created(vekt::atlas* atlas, void* user_data);
+		static void on_atlas_updated(vekt::atlas* atlas, void* user_data);
+		static void on_atlas_destroyed(vekt::atlas* atlas, void* user_data);
+
+	private:
 		audio_manager		 _audio_manager = {};
+		vector<atlas_data>	 _vekt_atlases	= {};
 		ma_engine*			 _sound_engine	= nullptr;
 		render_event_stream& _render_stream;
 		entity_manager		 _entity_manager;

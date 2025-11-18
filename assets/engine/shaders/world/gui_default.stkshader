@@ -1,0 +1,4 @@
+{
+    "source": "assets/engine/shaders/world/gui_default.hlsl",
+    "variant_style": "gui"
+}

@@ -20,10 +20,22 @@ namespace SFG
 		enum flags
 		{
 			is_streaming = 1 << 0,
+			is_created	 = 1 << 1,
 		};
 
-		void		create_from_loader(const audio_raw& raw, world& w, resource_handle handle);
-		void		destroy(world& w, resource_handle handle);
+		~audio();
+
+		// -----------------------------------------------------------------------------
+		// resource
+		// -----------------------------------------------------------------------------
+
+		void create_from_loader(const audio_raw& raw, world& w, resource_handle handle);
+		void destroy(world& w, resource_handle handle);
+
+		// -----------------------------------------------------------------------------
+		// accessors
+		// -----------------------------------------------------------------------------
+
 		ma_decoder* get_decoder(world& w) const;
 
 		inline const bitmask<uint8>& get_flags() const
@@ -34,10 +46,10 @@ namespace SFG
 	private:
 		chunk_handle32 _decoder	   = {};
 		chunk_handle32 _audio_data = {};
-		bitmask<uint8> _flags	   = 0;
 #ifndef SFG_STRIP_DEBUG_NAMES
 		chunk_handle32 _name;
 #endif
+		bitmask<uint8> _flags = 0;
 	};
 
 	REGISTER_RESOURCE(audio, "stkaud");

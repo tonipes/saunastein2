@@ -458,7 +458,7 @@ namespace SFG
 
 #ifdef SFG_TOOLMODE
 		const string p		  = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/VT323-Regular.ttf");
-		const string p2		  = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/VT323-Regular.ttf");
+		const string p2		  = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/icons.ttf");
 		_vekt_data.font_debug = _vekt_data.font_manager->load_font_from_file(p.c_str(), DEBUG_FONT_SIZE);
 		_vekt_data.font_icon  = _vekt_data.font_manager->load_font_from_file(p2.c_str(), 12, 32, 128, vekt::font_type::sdf);
 #else

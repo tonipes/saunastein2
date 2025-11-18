@@ -49,7 +49,7 @@ namespace SFG
 	{
 	}
 
-	void entity_manager::post_tick(double interpolation)
+	void entity_manager::interpolate_entities(double interpolation)
 	{
 		const float i = static_cast<float>(interpolation);
 

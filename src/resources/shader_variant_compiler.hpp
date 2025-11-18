@@ -50,5 +50,8 @@ namespace SFG
 		/* compiles variants for forward pass debug */
 		static bool compile_style_debug_triangle(shader_raw& raw, const string& shader_text, const vector<string>& folder_path);
 		static bool compile_style_debug_line(shader_raw& raw, const string& shader_text, const vector<string>& folder_path);
+
+		/* compiles variants for 2d & 3d gui */
+		static bool compile_style_gui(shader_raw& raw, const string& shader_text, const vector<string>& folder_path);
 	};
 }

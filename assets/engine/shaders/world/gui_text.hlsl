@@ -26,16 +26,15 @@ struct VSOutput
 struct render_pass_data
 {
 	float4x4 projection;
-	float sdf_thickness;
-	float sdf_softness;
+	float2 resolution;
 };
 
 VSOutput VSMain(VSInput IN)
 {
 	VSOutput OUT;
-    
 	render_pass_data rp_data = sfg_get_cbv<render_pass_data>(sfg_rp_constant0);
-
+    
+    // Transform 2D pos into clip space.
 	float4 worldPos = float4(IN.pos, 0.0f, 1.0f);
 	OUT.pos = mul(rp_data.projection, worldPos);
 	OUT.uv = IN.uv;
@@ -43,18 +42,14 @@ VSOutput VSMain(VSInput IN)
 	return OUT;
 }
 
-//------------------------------------------------------------------------------
-// Pixel Shader
-//------------------------------------------------------------------------------
-
 SamplerState sampler_base : static_sampler_gui_text;
 
+//------------------------------------------------------------------------------
+// Pixel Shader: just output the interpolated vertex color
+//------------------------------------------------------------------------------
 float4 PSMain(VSOutput IN) : SV_TARGET
 {
-	render_pass_data rp_data = sfg_get_cbv<render_pass_data>(sfg_rp_constant0);
-	Texture2D txt_atlas = sfg_get_texture<Texture2D>(sfg_object_constant0);
-	
-	float distance = txt_atlas.SampleLevel(sampler_base, IN.uv, 0).x;
-	float alpha = smoothstep(rp_data.sdf_thickness - rp_data.sdf_softness, rp_data.sdf_thickness + rp_data.sdf_softness, distance);
-	return float4(IN.color.xyz, alpha);
+	Texture2D txt_atlas = sfg_get_texture<Texture2D>(sfg_mat_constant2);
+	float4 tex_color = txt_atlas.SampleLevel(sampler_base, IN.uv, 0);
+	return float4(IN.color.xyz, tex_color.r * IN.color.w);
 }

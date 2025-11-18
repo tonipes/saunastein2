@@ -1,7 +1,7 @@
 // Copyright (c) 2025 Inan Evin
 
 #pragma once
-
+#include "data/bitmask.hpp"
 #include "resources/common_resources.hpp"
 #include "reflection/resource_reflection.hpp"
 #include "gfx/common/descriptions.hpp"
@@ -18,8 +18,15 @@ namespace SFG
 	class texture_sampler
 	{
 	public:
+		enum flags
+		{
+			created = 1 << 0,
+		};
+
+		~texture_sampler();
+
 		// -----------------------------------------------------------------------------
-		// trait
+		// resource
 		// -----------------------------------------------------------------------------
 
 		void create_from_loader(const texture_sampler_raw& raw, world& w, resource_handle handle);
@@ -35,7 +42,8 @@ namespace SFG
 		chunk_handle32 _name;
 #endif
 
-		sampler_desc _desc = {};
+		sampler_desc   _desc  = {};
+		bitmask<uint8> _flags = 0;
 	};
 
 	REGISTER_RESOURCE(texture_sampler, "stksampler");
