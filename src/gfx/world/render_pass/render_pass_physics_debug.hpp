@@ -5,7 +5,6 @@
 #include "gfx/buffer.hpp"
 #include "gfx/common/gfx_constants.hpp"
 
-#include "memory/bump_allocator.hpp"
 #include "math/matrix4x4.hpp"
 #include "math/vector2.hpp"
 
@@ -80,7 +79,6 @@ namespace SFG
 
 	private:
 		per_frame_data			_pfd[BACK_BUFFER_COUNT];
-		bump_allocator			_alloc				  = {};
 		gfx_id					_shader_debug_default = {};
 		gfx_id					_shader_debug_line	  = {};
 		physics_debug_renderer* _renderer			  = nullptr;

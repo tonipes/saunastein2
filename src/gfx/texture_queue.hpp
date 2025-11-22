@@ -3,7 +3,7 @@
 #pragma once
 #include "data/vector.hpp"
 #include "common/size_definitions.hpp"
-#include "world/world_max_defines.hpp"
+#include "game/game_max_defines.hpp"
 #include "gfx/common/texture_buffer.hpp"
 #include "data/static_vector.hpp"
 #include "gfx/common/barrier_description.hpp"

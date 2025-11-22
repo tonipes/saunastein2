@@ -80,6 +80,11 @@ namespace SFG
 			_flags.set(window_flags::wf_size_dirty, dirty);
 		}
 
+		inline const vector2i16& get_mouse_position() const
+		{
+			return _mouse_position;
+		}
+
 #ifdef SFG_PLATFORM_WINDOWS
 		static __int64 wnd_proc(HWND__* hwnd, unsigned int msg, unsigned __int64 wParam, __int64 lParam);
 #endif

@@ -14,7 +14,7 @@
 #include "math/matrix4x4.hpp"
 #include "math/vector4.hpp"
 #include "math/vector2.hpp"
-#include "world/world_max_defines.hpp"
+#include "game/game_max_defines.hpp"
 
 namespace SFG
 {

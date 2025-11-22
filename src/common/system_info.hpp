@@ -32,7 +32,7 @@ namespace SFG
 		}
 
 	private:
-		friend class game_app;
+		friend class app;
 
 		static inline void SFG_REGISTER_THREAD_MAIN(std::thread::id id)
 		{
@@ -110,7 +110,7 @@ namespace SFG
 		}
 
 	private:
-		friend class game_app;
+		friend class app;
 		friend class renderer;
 
 	private:

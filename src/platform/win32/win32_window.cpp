@@ -276,7 +276,6 @@ namespace SFG
 				key = extended == 0 ? VK_LCONTROL : VK_RCONTROL;
 
 			const window_event ev = {
-
 				.value	  = vector2i16(scanCode, 0),
 				.button	  = static_cast<uint16>(key),
 				.type	  = window_event_type::key,
@@ -313,7 +312,6 @@ namespace SFG
 		}
 
 		case WM_MOUSEMOVE: {
-
 			if (wnd->_flags.is_set(wf_high_freq))
 				return 0;
 

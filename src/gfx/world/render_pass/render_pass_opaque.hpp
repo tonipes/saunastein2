@@ -12,7 +12,7 @@
 
 #include "memory/bump_allocator.hpp"
 #include "math/matrix4x4.hpp"
-#include "world/world_max_defines.hpp"
+#include "game/game_max_defines.hpp"
 
 namespace SFG
 {

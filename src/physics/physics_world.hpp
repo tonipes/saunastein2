@@ -11,7 +11,7 @@
 #include "physics/physics_material_settings.hpp"
 
 #include "world/world_constants.hpp"
-#include "world/world_max_defines.hpp"
+#include "game/game_max_defines.hpp"
 #include "resources/common_resources.hpp"
 
 namespace JPH

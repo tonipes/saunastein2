@@ -6,7 +6,6 @@
 #include "gfx/util/gfx_util.hpp"
 #include "io/assert.hpp"
 #include "world/world.hpp"
-#include "gfx/world/world_renderer.hpp"
 #include "resources/texture.hpp"
 #include "resources/shader.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"

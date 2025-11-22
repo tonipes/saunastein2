@@ -3,7 +3,7 @@
 
 #include "world/traits/common_trait.hpp"
 #include "reflection/trait_reflection.hpp"
-#include "world/world_max_defines.hpp"
+#include "game/game_max_defines.hpp"
 
 #ifdef SFG_TOOLMODE
 #include "vendor/nhlohmann/json_fwd.hpp"

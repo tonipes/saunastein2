@@ -1,6 +1,6 @@
 // Copyright (c) 2025 Inan Evin
 
-#include "world_renderer.hpp"
+#include "game_world_renderer.hpp"
 #include "math/math.hpp"
 
 // gfx
@@ -23,13 +23,13 @@
 
 namespace SFG
 {
-	world_renderer::world_renderer(proxy_manager& pm, world& w) : _proxy_manager(pm), _world(w) {};
+	game_world_renderer::game_world_renderer(proxy_manager& pm, world& w) : _proxy_manager(pm), _world(w) {};
 
-	void world_renderer::init(const vector2ui16& size, texture_queue* tq, buffer_queue* bq)
+	void game_world_renderer::init(const vector2ui16& size, texture_queue* tq, buffer_queue* bq)
 	{
 		gfx_backend* backend = gfx_backend::get();
 
-		_renderables.reserve(MAX_DRAW_CALLS);
+		_renderables.reserve(MAX_RENDERABLES_ALL);
 
 		const bitmask16 color_flags = texture_flags::tf_is_2d | texture_flags::tf_render_target | texture_flags::tf_sampled;
 
@@ -163,7 +163,7 @@ namespace SFG
 #endif
 	}
 
-	void world_renderer::uninit()
+	void game_world_renderer::uninit()
 	{
 		_pass_pre_depth.uninit();
 		_pass_opaque.uninit();
@@ -202,14 +202,14 @@ namespace SFG
 		}
 	}
 
-	void world_renderer::tick()
+	void game_world_renderer::tick()
 	{
 #ifdef JPH_DEBUG_RENDERER
 		_pass_physics_debug.tick(_world);
 #endif
 	}
 
-	void world_renderer::prepare(uint8 frame_index)
+	void game_world_renderer::prepare(uint8 frame_index)
 	{
 		per_frame_data& pfd = _pfd[frame_index];
 		pfd.reset();
@@ -273,7 +273,7 @@ namespace SFG
 #endif
 	}
 
-	void world_renderer::render(uint8 frame_index, gfx_id layout_global, gfx_id layout_global_compute, gfx_id bind_group_global, uint64 prev_copy, uint64 next_copy, gfx_id sem_copy)
+	void game_world_renderer::render(uint8 frame_index, gfx_id layout_global, gfx_id layout_global_compute, gfx_id bind_group_global, uint64 prev_copy, uint64 next_copy, gfx_id sem_copy)
 	{
 		gfx_backend* backend	   = gfx_backend::get();
 		const gfx_id queue_gfx	   = backend->get_queue_gfx();
@@ -539,7 +539,7 @@ namespace SFG
 		backend->queue_signal(queue_compute, &sem_frame, &sem_frame_val, 1);
 	}
 
-	void world_renderer::resize(const vector2ui16& size)
+	void game_world_renderer::resize(const vector2ui16& size)
 	{
 		_base_size			 = size;
 		gfx_backend* backend = gfx_backend::get();
@@ -557,7 +557,7 @@ namespace SFG
 #endif
 	}
 
-	uint32 world_renderer::add_to_float_buffer(uint8 frame_index, float f)
+	uint32 game_world_renderer::add_to_float_buffer(uint8 frame_index, float f)
 	{
 		per_frame_data& pfd = _pfd[frame_index];
 		pfd.float_buffer.buffer_data(pfd._float_buffer_count * sizeof(float), &f, sizeof(float));
@@ -565,7 +565,7 @@ namespace SFG
 		return pfd._float_buffer_count - 1;
 	}
 
-	void world_renderer::collect_and_upload(uint8 frame_index)
+	void game_world_renderer::collect_and_upload(uint8 frame_index)
 	{
 		gfx_backend* backend   = gfx_backend::get();
 		const gfx_id queue_gfx = backend->get_queue_gfx();
@@ -698,7 +698,7 @@ namespace SFG
 		backend->submit_commands(queue_gfx, &cmd, 1);
 	}
 
-	void world_renderer::collect_and_upload_entities(gfx_id cmd_buffer, uint8 frame_index)
+	void game_world_renderer::collect_and_upload_entities(gfx_id cmd_buffer, uint8 frame_index)
 	{
 		per_frame_data& pfd			  = _pfd[frame_index];
 		auto&			entities	  = *_proxy_manager.get_entities();
@@ -738,11 +738,11 @@ namespace SFG
 			pfd.entity_buffer.copy_region(cmd_buffer, 0, assigned_index * sizeof(gpu_entity));
 	}
 
-	void world_renderer::collect_and_upload_bones(gfx_id cmd_buffer, uint8 frame_index)
+	void game_world_renderer::collect_and_upload_bones(gfx_id cmd_buffer, uint8 frame_index)
 	{
 	}
 
-	void world_renderer::collect_and_upload_lights(gfx_id cmd_buffer, uint8 frame_index)
+	void game_world_renderer::collect_and_upload_lights(gfx_id cmd_buffer, uint8 frame_index)
 	{
 		per_frame_data& pfd = _pfd[frame_index];
 

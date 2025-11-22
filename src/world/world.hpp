@@ -5,8 +5,9 @@
 #include "data/bitmask.hpp"
 #include "data/vector.hpp"
 #include "memory/text_allocator.hpp"
-#include "entity_manager.hpp"
-#include "trait_manager.hpp"
+#include "world/entity_manager.hpp"
+#include "world/trait_manager.hpp"
+#include "world/common_world.hpp"
 #include "gui/vekt.hpp"
 #include "resources/resource_manager.hpp"
 #include "physics/physics_world.hpp"
@@ -25,15 +26,15 @@ namespace SFG
 	struct vector2ui16;
 	struct world_raw;
 	class render_event_stream;
+	class window;
+	class world_listener;
 
 	class world
 	{
 	public:
 		enum flags
 		{
-			world_flags_is_init			  = 1 << 0,
-			world_flags_is_playing		  = 1 << 1,
-			world_flags_is_physics_active = 1 << 2,
+			world_flags_is_init = 1 << 0,
 		};
 
 	public:
@@ -49,15 +50,12 @@ namespace SFG
 		void create_from_loader(world_raw& raw);
 		void tick(const vector2ui16& res, float dt);
 		void interpolate(double interpolation);
-		bool on_window_event(const window_event& ev);
+		bool on_window_event(const window_event& ev, window* wnd);
 
 		// -----------------------------------------------------------------------------
 		// playmode
 		// -----------------------------------------------------------------------------
-		void start_playmode();
-		void stop_playmode();
-		void start_physics();
-		void stop_physics();
+		void set_playmode(play_mode mode);
 
 		// -----------------------------------------------------------------------------
 		// atlas
@@ -113,6 +111,11 @@ namespace SFG
 			return _audio_manager;
 		}
 
+		inline void set_listener(world_listener* list)
+		{
+			_listener = list;
+		}
+
 	private:
 		// -----------------------------------------------------------------------------
 		// vekt
@@ -129,16 +132,20 @@ namespace SFG
 		static void on_atlas_destroyed(vekt::atlas* atlas, void* user_data);
 
 	private:
-		audio_manager		 _audio_manager = {};
-		vector<atlas_data>	 _vekt_atlases	= {};
-		ma_engine*			 _sound_engine	= nullptr;
+		resource_manager   _resource_manager;
+		entity_manager	   _entity_manager;
+		physics_world	   _phy_world;
+		trait_manager	   _trait_manager;
+		text_allocator	   _text_allocator;
+		audio_manager	   _audio_manager = {};
+		vekt::font_manager _vekt_fonts	  = {};
+
+		vector<atlas_data>	 _vekt_atlases = {};
+		ma_engine*			 _sound_engine = nullptr;
+		world_listener*		 _listener	   = nullptr;
 		render_event_stream& _render_stream;
-		entity_manager		 _entity_manager;
-		resource_manager	 _resource_manager;
-		trait_manager		 _trait_manager;
-		physics_world		 _phy_world;
-		vekt::font_manager	 _vekt_fonts = {};
-		text_allocator		 _text_allocator;
-		bitmask<uint8>		 _flags = 0;
+
+		bitmask<uint8> _flags	  = 0;
+		play_mode	   _play_mode = play_mode::none;
 	};
 }

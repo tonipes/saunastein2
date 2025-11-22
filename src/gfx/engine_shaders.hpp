@@ -30,7 +30,7 @@ namespace SFG
 		engine_shader_type_max,
 	};
 
-	class game_app;
+	class app;
 
 	class engine_shaders
 	{
@@ -45,7 +45,7 @@ namespace SFG
 			return inst;
 		}
 
-		bool init(gfx_id bind_layout, gfx_id bind_layout_compute, game_app* app);
+		bool init(gfx_id bind_layout, gfx_id bind_layout_compute, app* app);
 		void uninit();
 
 #ifdef SFG_TOOLMODE
@@ -76,7 +76,7 @@ namespace SFG
 	private:
 		static_vector<shader_entry, engine_shader_type_max> _shaders;
 		simple_file_watcher									_file_watcher;
-		game_app*											_app = nullptr;
+		app*											_app = nullptr;
 
 #ifdef SFG_TOOLMODE
 		static_vector<reload_callback, engine_shader_type_max> _reload_callbacks;

@@ -7,7 +7,6 @@
 // gfx
 #include "gfx/buffer.hpp"
 #include "gfx/common/gfx_constants.hpp"
-#include "memory/bump_allocator.hpp"
 #include "math/vector2.hpp"
 
 namespace SFG
@@ -93,6 +92,5 @@ namespace SFG
 	private:
 		per_frame_data _pfd[BACK_BUFFER_COUNT];
 		gfx_id		   _shader_post_combiner = 0;
-		bump_allocator _alloc				 = {};
 	};
 }

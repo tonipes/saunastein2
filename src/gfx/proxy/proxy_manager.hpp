@@ -9,7 +9,7 @@
 #include "memory/chunk_allocator.hpp"
 #include "data/vector.hpp"
 #include "gfx/common/gfx_constants.hpp"
-#include "world/world_max_defines.hpp"
+#include "game/game_max_defines.hpp"
 
 namespace SFG
 {

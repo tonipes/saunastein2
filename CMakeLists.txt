@@ -116,6 +116,7 @@ src/memory/*.cpp
 src/reflection/*.cpp
 src/serialization/*.cpp
 src/input/*.cpp
+src/game/*.cpp
 src/project/*.cpp
 src/gfx/*.cpp
 src/gfx/util/*.cpp
@@ -148,6 +149,7 @@ src/io/*.hpp
 src/data/*.hpp
 src/memory/*.hpp
 src/input/*.hpp
+src/game/*.hpp
 src/gfx/*.hpp
 src/gfx/util/*.hpp
 src/gfx/backend/*.hpp

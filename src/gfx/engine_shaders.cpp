@@ -3,12 +3,12 @@
 #include "engine_shaders.hpp"
 #include "resources/shader_raw.hpp"
 #include "data/string.hpp"
-#include "app/game_app.hpp"
+#include "app/app.hpp"
 
 namespace SFG
 {
 
-	bool engine_shaders::init(gfx_id bind_layout, gfx_id bind_layout_compute, game_app* app)
+	bool engine_shaders::init(gfx_id bind_layout, gfx_id bind_layout_compute, app* app)
 	{
 		_app = app;
 

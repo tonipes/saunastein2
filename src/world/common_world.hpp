@@ -6,5 +6,10 @@
 
 namespace SFG
 {
-
+	enum class play_mode : uint8
+	{
+		none,
+		full,
+		physics_only,
+	};
 }

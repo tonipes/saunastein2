@@ -17,8 +17,6 @@ namespace SFG
 {
 	void render_pass_post_combiner::init(const vector2ui16& size)
 	{
-		_alloc.init(1024, 8);
-
 		gfx_backend* backend = gfx_backend::get();
 
 		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
@@ -50,8 +48,6 @@ namespace SFG
 
 	void render_pass_post_combiner::uninit()
 	{
-		_alloc.uninit();
-
 		gfx_backend* backend = gfx_backend::get();
 
 		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
@@ -67,8 +63,6 @@ namespace SFG
 
 	void render_pass_post_combiner::prepare(uint8 frame_index, const vector2ui16& resolution)
 	{
-		_alloc.reset();
-
 		per_frame_data& pfd = _pfd[frame_index];
 
 		const ubo ubo_data = {
@@ -118,17 +112,17 @@ namespace SFG
 
 		BEGIN_DEBUG_EVENT(backend, cmd_buffer, "post_combiner_pass");
 
-		render_pass_color_attachment* attachments = _alloc.allocate<render_pass_color_attachment>(1);
-		render_pass_color_attachment& att		  = attachments[0];
-		att.clear_color							  = vector4(0, 0, 0, 1.0f);
-		att.load_op								  = load_op::clear;
-		att.store_op							  = store_op::store;
-		att.texture								  = render_target;
-		att.view_index							  = 0;
+		const render_pass_color_attachment att = {
+			.clear_color = vector4(0, 0, 0, 1.0f),
+			.texture	 = render_target,
+			.load_op	 = load_op::clear,
+			.store_op	 = store_op::store,
+			.view_index	 = 0,
+		};
 
 		backend->cmd_begin_render_pass(cmd_buffer,
 									   {
-										   .color_attachments	   = attachments,
+										   .color_attachments	   = &att,
 										   .color_attachment_count = 1,
 									   });
 

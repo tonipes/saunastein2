@@ -19,7 +19,7 @@ namespace SFG
 {
 	void render_pass_selection_outline::init(const vector2ui16& size)
 	{
-		_alloc.init(MAIN_PASS_ALLOC_SIZE, 8);
+		_alloc.init(64, 8);
 
 		gfx_backend* backend = gfx_backend::get();
 

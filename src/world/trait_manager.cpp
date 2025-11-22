@@ -2,7 +2,7 @@
 
 #include "trait_manager.hpp"
 #include "world.hpp"
-#include "world/world_max_defines.hpp"
+#include "game/game_max_defines.hpp"
 
 namespace SFG
 {

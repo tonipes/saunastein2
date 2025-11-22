@@ -5,7 +5,7 @@
 #include "math/matrix4x4.hpp"
 #include "math/frustum.hpp"
 #include "data/static_vector.hpp"
-#include "world/world_max_defines.hpp"
+#include "game/game_max_defines.hpp"
 
 namespace SFG
 {

@@ -77,8 +77,8 @@ namespace SFG
 	{
 		static constexpr uint8 TID = 0;
 
-		render_pass_color_attachment* color_attachments		 = {};
-		uint8						  color_attachment_count = 0;
+		const render_pass_color_attachment* color_attachments	   = {};
+		uint8								color_attachment_count = 0;
 	};
 
 	struct command_end_render_pass
@@ -258,7 +258,7 @@ namespace SFG
 	{
 		static constexpr uint8 TID = 19;
 
-		render_pass_color_attachment*		 color_attachments		  = {};
+		const render_pass_color_attachment*	 color_attachments		  = {};
 		render_pass_depth_stencil_attachment depth_stencil_attachment = {};
 		uint8								 color_attachment_count	  = 0;
 	};

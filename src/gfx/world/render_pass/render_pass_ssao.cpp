@@ -50,8 +50,6 @@ namespace SFG
 
 	void render_pass_ssao::init(const vector2ui16& size, texture_queue& tq)
 	{
-		_alloc.init(1024, 8);
-
 		gfx_backend* backend = gfx_backend::get();
 
 		// Noise texture.
@@ -107,8 +105,6 @@ namespace SFG
 
 	void render_pass_ssao::uninit()
 	{
-		_alloc.uninit();
-
 		gfx_backend* backend = gfx_backend::get();
 
 		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
@@ -126,8 +122,6 @@ namespace SFG
 
 	void render_pass_ssao::prepare(const view& camera_view, const vector2ui16& resolution, uint8 frame_index)
 	{
-		_alloc.reset();
-
 		per_frame_data& pfd = _pfd[frame_index];
 
 		const ubo ubo_data = {

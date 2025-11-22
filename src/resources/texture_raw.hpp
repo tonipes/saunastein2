@@ -7,7 +7,7 @@
 #include "common/string_id.hpp"
 #include "data/static_vector.hpp"
 #include "gfx/common/texture_buffer.hpp"
-#include "world/world_max_defines.hpp"
+#include "game/game_max_defines.hpp"
 #include "data/vector.hpp"
 
 namespace SFG

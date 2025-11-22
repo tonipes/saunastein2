@@ -16,6 +16,7 @@ namespace SFG
 	{
 		_commands		= alloc.allocate<draw_command>(max_commands);
 		_commands_count = 0;
+		_max_commands	= max_commands;
 	}
 
 	void draw_stream::build()
@@ -64,10 +65,17 @@ namespace SFG
 		}
 	}
 
+	void draw_stream::add_command(const draw_command& cmd)
+	{
+		SFG_ASSERT(_commands_count <= _max_commands);
+		_commands[_commands_count++] = cmd;
+	}
+
 	void draw_stream_distance::prepare(bump_allocator& alloc, size_t max_commands)
 	{
 		_commands		= alloc.allocate<draw_command_distance>(max_commands);
 		_commands_count = 0;
+		_max_commands	= max_commands;
 	}
 
 	void draw_stream_distance::build()
@@ -126,10 +134,17 @@ namespace SFG
 												});
 		}
 	}
+	void draw_stream_distance::add_command(const draw_command_distance& cmd)
+	{
+		SFG_ASSERT(_commands_count <= _max_commands);
+		_commands[_commands_count++] = cmd;
+	}
+
 	void draw_stream_gui::prepare(bump_allocator& alloc, size_t max_commands)
 	{
 		_commands		= alloc.allocate<draw_command_gui>(max_commands);
 		_commands_count = 0;
+		_max_commands	= max_commands;
 	}
 
 	void draw_stream_gui::build()
@@ -170,5 +185,11 @@ namespace SFG
 													.start_instance_location  = 0,
 												});
 		}
+	}
+
+	void draw_stream_gui::add_command(const draw_command_gui& cmd)
+	{
+		SFG_ASSERT(_commands_count <= _max_commands);
+		_commands[_commands_count++] = cmd;
 	}
 }

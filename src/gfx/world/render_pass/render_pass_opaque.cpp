@@ -19,7 +19,7 @@ namespace SFG
 {
 	void render_pass_opaque::init(const vector2ui16& size)
 	{
-		_alloc.init(MAIN_PASS_ALLOC_SIZE, 8);
+		_alloc.init(PASS_ALLOC_SIZE_OPAQUE, 8);
 
 		gfx_backend* backend = gfx_backend::get();
 
@@ -54,7 +54,7 @@ namespace SFG
 	void render_pass_opaque::prepare(proxy_manager& pm, const vector<renderable_object>& renderables, const view& main_camera_view, uint8 frame_index)
 	{
 		_alloc.reset();
-		_draw_stream.prepare(_alloc, MAX_DRAW_CALLS);
+		_draw_stream.prepare(_alloc, MAX_DRAW_CALLS_OPAQUE);
 
 		renderable_collector::populate_draw_stream(pm, renderables, _draw_stream, material_flags::material_flags_is_gbuffer, 0, frame_index);
 

@@ -20,8 +20,6 @@ namespace SFG
 
 	void render_pass_bloom::init(const vector2ui16& size)
 	{
-		_alloc.init(1024, 8);
-
 		gfx_backend* backend = gfx_backend::get();
 
 		// ofd
@@ -56,8 +54,6 @@ namespace SFG
 
 	void render_pass_bloom::uninit()
 	{
-		_alloc.uninit();
-
 		gfx_backend* backend = gfx_backend::get();
 
 		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
@@ -73,7 +69,6 @@ namespace SFG
 
 	void render_pass_bloom::prepare(uint8 frame_index)
 	{
-		_alloc.reset();
 		per_frame_data& pfd		 = _pfd[frame_index];
 		const ubo		ubo_data = {
 				  .filter_radius = 0.01f,
@@ -83,7 +78,6 @@ namespace SFG
 
 	void render_pass_bloom::render(const render_params& p)
 	{
-
 		gfx_backend*	  backend				  = gfx_backend::get();
 		per_frame_data&	  pfd					  = _pfd[p.frame_index];
 		const gfx_id	  cmd_buffer			  = pfd.cmd_buffer;

@@ -4,7 +4,7 @@
 #include "data/ostream.hpp"
 #include "data/istream.hpp"
 #include "data/pair.hpp"
-#include "world/world_max_defines.hpp"
+#include "game/game_max_defines.hpp"
 
 // resources
 #include "resources/texture.hpp"

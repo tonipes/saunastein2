@@ -13,9 +13,10 @@ namespace SFG
 	class window;
 	class world;
 	class renderer;
+	class game;
 	class editor;
 
-	class game_app
+	class app
 	{
 	public:
 		enum class game_app_flags
@@ -72,6 +73,13 @@ namespace SFG
 			return *_world;
 		}
 
+		#ifdef SFG_TOOLMODE
+		inline editor* get_editor() const
+		{
+			return _editor;
+	}
+		#endif
+
 	private:
 		void		render_loop();
 		static void on_window_event(const window_event& ev, void* user_data);
@@ -80,6 +88,8 @@ namespace SFG
 		window*	  _main_window = nullptr;
 		renderer* _renderer	   = nullptr;
 		world*	  _world	   = nullptr;
+		game*	  _game		   = nullptr;
+
 #ifdef SFG_TOOLMODE
 		editor* _editor = nullptr;
 #endif

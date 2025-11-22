@@ -24,7 +24,7 @@
 #include "memory/memory.hpp"
 #include "memory/memory_tracer.hpp"
 #include "math/math_common.hpp"
-#include "world/world_max_defines.hpp"
+#include "game/game_max_defines.hpp"
 
 #ifdef SFG_DEBUG
 #include <WinPixEventRuntime/pix3.h>

@@ -50,12 +50,12 @@
 
 namespace SFG
 {
-	class game_app;
+	class app;
 }
 
 extern "C"
 {
 
-	SFG_EXPORT SFG::game_app* create_app(uint32 width, uint32 height);
-	SFG_EXPORT void			  destroy_app(SFG::game_app* app);
+	SFG_EXPORT SFG::app* create_app(uint32 width, uint32 height);
+	SFG_EXPORT void			  destroy_app(SFG::app* app);
 }

@@ -1,6 +1,6 @@
 // Copyright (c) 2025 Inan Evin
 
-#include "game_app.hpp"
+#include "app.hpp"
 #include "common/system_info.hpp"
 #include "memory/memory_tracer.hpp"
 #include "io/log.hpp"
@@ -15,6 +15,9 @@
 #include "gfx/backend/backend.hpp"
 #include "gfx/engine_shaders.hpp"
 
+// game
+#include "game/game.hpp"
+
 #include "debug_console.hpp"
 #include "world/world.hpp"
 
@@ -26,7 +29,7 @@
 
 namespace SFG
 {
-	game_app::init_status game_app::init(const vector2ui16& render_target_size)
+	app::init_status app::init(const vector2ui16& render_target_size)
 	{
 		SFG_SET_INIT(true);
 		SFG_REGISTER_THREAD_MAIN();
@@ -131,12 +134,24 @@ namespace SFG
 		// finalize
 		_render_joined.store(1);
 		kick_off_render();
+
+#ifdef SFG_TOOLMODE
+		_game = new game(*this, *_renderer, *_world, *_editor);
+#else
+		_game = new game(*this, *_renderer, *_world);
+#endif
+
+		_game->init();
 		SFG_SET_INIT(false);
 		return init_status::ok;
 	}
 
-	void game_app::uninit()
+	void app::uninit()
 	{
+		_game->uninit();
+		delete _game;
+		_game = nullptr;
+
 		// editor
 #ifdef SFG_TOOLMODE
 		_editor->uninit();
@@ -180,7 +195,7 @@ namespace SFG
 		debug_console::uninit();
 	}
 
-	void game_app::tick()
+	void app::tick()
 	{
 		constexpr double ema_fixed_ns	= 16'666'667.0;
 		int64			 previous_time	= time::get_cpu_microseconds();
@@ -210,6 +225,7 @@ namespace SFG
 				_main_window->set_size_dirty(false);
 				join_render();
 				_renderer->on_window_resize(ws);
+				_game->on_window_resize(ws);
 				kick_off_render();
 			}
 
@@ -223,7 +239,11 @@ namespace SFG
 			while (accumulator_ns >= FIXED_INTERVAL_NS && ticks < MAX_TICKS)
 			{
 				accumulator_ns -= FIXED_INTERVAL_NS;
+
+				_game->pre_tick(dt_seconds);
 				_world->tick(ws, dt_seconds);
+				_game->tick(dt_seconds);
+
 #ifdef SFG_TOOLMODE
 				_editor->tick(dt_seconds);
 #endif
@@ -235,7 +255,6 @@ namespace SFG
 			_world->interpolate(interpolation);
 
 #ifdef SFG_TOOLMODE
-			_editor->post_tick(interpolation);
 			engine_shaders::get().tick();
 #endif
 
@@ -246,26 +265,28 @@ namespace SFG
 		}
 	}
 
-	void game_app::on_window_event(const window_event& ev, void* user_data)
+	void app::on_window_event(const window_event& ev, void* user_data)
 	{
-		game_app* app = static_cast<game_app*>(user_data);
+		app* application = static_cast<app*>(user_data);
 
-		if (ev.type != window_event_type::focus && !app->_main_window->get_flags().is_set(window_flags::wf_has_focus))
+		if (ev.type != window_event_type::focus && !application->_main_window->get_flags().is_set(window_flags::wf_has_focus))
 			return;
 
-		if (app->_renderer && app->_renderer->on_window_event(ev))
+		if (application->_renderer && application->_renderer->on_window_event(ev))
 			return;
 
 #ifdef SFG_TOOLMODE
-		if (app->_editor && app->_editor->on_window_event(ev))
+		if (application->_editor && application->_editor->on_window_event(ev))
 			return;
 #endif
 
-		if (app->_world)
-			app->_world->on_window_event(ev);
+		if (application->_world && application->_world->on_window_event(ev, application->_main_window))
+			return;
+
+		application->_game->on_window_event(ev, application->_main_window);
 	}
 
-	void game_app::join_render()
+	void app::join_render()
 	{
 		if (_render_joined.load() == 1)
 			return;
@@ -278,22 +299,23 @@ namespace SFG
 		_renderer->wait_backend();
 	}
 
-	void game_app::kick_off_render()
+	void app::kick_off_render()
 	{
 		if (_render_joined.load() == 0)
 			return;
 		_render_joined.store(0, std::memory_order_release);
-		_render_thread				   = std::thread(&game_app::render_loop, this);
+		_render_thread				   = std::thread(&app::render_loop, this);
 		frame_info::s_is_render_active = true;
 	}
 
-	void game_app::render_loop()
+	void app::render_loop()
 	{
 		SFG_REGISTER_THREAD_RENDER();
 
 		while (_render_joined.load(std::memory_order_acquire) == 0)
 		{
 			_renderer->render();
+			_game->post_render();
 			frame_info::s_render_frame.fetch_add(1);
 
 #ifndef SFG_PRODUCTION

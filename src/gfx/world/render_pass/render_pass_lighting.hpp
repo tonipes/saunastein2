@@ -9,7 +9,6 @@
 #include "gfx/buffer.hpp"
 #include "gfx/common/gfx_constants.hpp"
 
-#include "memory/bump_allocator.hpp"
 #include "math/vector4.hpp"
 #include "math/matrix4x4.hpp"
 
@@ -109,7 +108,6 @@ namespace SFG
 
 	private:
 		per_frame_data _pfd[BACK_BUFFER_COUNT];
-		bump_allocator _alloc					= {};
 		gfx_id		   _shader_lighting			= 0;
 		uint32		   _points_count_this_frame = 0;
 		uint32		   _spots_count_this_frame	= 0;

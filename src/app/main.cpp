@@ -1,6 +1,6 @@
 // Copyright (c) 2025 Inan Evin
 
-#include "game_app.hpp"
+#include "app.hpp"
 #include "memory/memory_tracer.hpp"
 #include "platform/process.hpp"
 
@@ -18,7 +18,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	PUSH_MEMORY_CATEGORY("General");
 
 	{
-		SFG::game_app app;
+		SFG::app app;
 
 		try
 		{
@@ -31,18 +31,18 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 			return 0;
 		}
 
-		const SFG::game_app::init_status status = app.init(SFG::vector2ui16(1920, 1080));
-		if (status != SFG::game_app::init_status::ok)
+		const SFG::app::init_status status = app.init(SFG::vector2ui16(1920, 1080));
+		if (status != SFG::app::init_status::ok)
 		{
-			if (status == SFG::game_app::init_status::working_directory_dont_exist)
+			if (status == SFG::app::init_status::working_directory_dont_exist)
 				SFG::process::message_box("Toolmode requires a valid working directory!");
-			else if (status == SFG::game_app::init_status::renderer_failed)
+			else if (status == SFG::app::init_status::renderer_failed)
 				SFG::process::message_box("Renderer failed initializing!");
-			else if (status == SFG::game_app::init_status::backend_failed)
+			else if (status == SFG::app::init_status::backend_failed)
 				SFG::process::message_box("Gfx backend failed initializing!");
-			else if (status == SFG::game_app::init_status::window_failed)
+			else if (status == SFG::app::init_status::window_failed)
 				SFG::process::message_box("Main window failed initializing!");
-			else if (status == SFG::game_app::init_status::engine_shaders_failed)
+			else if (status == SFG::app::init_status::engine_shaders_failed)
 				SFG::process::message_box("Failed loading engine shaders!");
 
 			SFG::process::uninit();

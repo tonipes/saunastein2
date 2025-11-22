@@ -26,7 +26,7 @@ namespace SFG
 	class vector2ui;
 	class window;
 	class render_data;
-	class world_renderer;
+	class game_world_renderer;
 	class world;
 	class render_event_stream;
 	class editor;
@@ -70,7 +70,7 @@ namespace SFG
 			return s_bind_layout_global_compute;
 		}
 
-		inline world_renderer* get_world_renderer() const
+		inline game_world_renderer* get_world_renderer() const
 		{
 			return _world_renderer;
 		}
@@ -116,7 +116,7 @@ namespace SFG
 		world&				 _world;
 		render_event_stream& _event_stream;
 		window&				 _main_window;
-		world_renderer*		 _world_renderer = nullptr;
+		game_world_renderer*		 _world_renderer = nullptr;
 
 #ifdef SFG_USE_DEBUG_CONTROLLER
 		debug_controller _debug_controller = {};

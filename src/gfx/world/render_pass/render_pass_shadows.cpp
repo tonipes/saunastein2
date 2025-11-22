@@ -13,7 +13,7 @@
 #include "gfx/util/shadow_util.hpp"
 #include "gfx/world/renderable_collector.hpp"
 #include "world/world.hpp"
-#include "world/world_max_defines.hpp"
+#include "game/game_max_defines.hpp"
 #include "resources/vertex.hpp"
 #include "math/vector2ui16.hpp"
 #include "math/math.hpp"
@@ -26,7 +26,7 @@ namespace SFG
 
 	void render_pass_shadows::init()
 	{
-		_alloc.init(MAIN_PASS_ALLOC_SIZE * 100, 8);
+		_alloc.init(PASS_ALLOC_SIZE_OPAQUE * MAX_PASS_COUNT, 8);
 		_barriers.reserve(64);
 
 		_passes = new pass[MAX_PASS_COUNT];
@@ -116,7 +116,7 @@ namespace SFG
 			.fov_degrees		  = props.fov,
 		};
 
-		p.stream.prepare(_alloc, MAX_DRAW_CALLS);
+		p.stream.prepare(_alloc, MAX_DRAW_CALLS_OPAQUE);
 		p.renderables.resize(0);
 
 		renderable_collector::collect_model_instances(props.pm, p.pass_view, p.renderables);

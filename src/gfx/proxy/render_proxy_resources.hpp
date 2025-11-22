@@ -10,7 +10,7 @@
 #include "memory/chunk_handle.hpp"
 #include "render_proxy_common.hpp"
 #include "resources/common_resources.hpp"
-#include "world/world_max_defines.hpp"
+#include "game/game_max_defines.hpp"
 
 namespace SFG
 {

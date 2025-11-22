@@ -1,6 +1,6 @@
 // Copyright (c) 2025 Inan Evin
 
-#include "editor_first_person_controller.hpp"
+#include "editor_camera.hpp"
 
 #include "platform/window_common.hpp"
 #include "platform/window.hpp"
@@ -11,32 +11,66 @@
 #include "math/quat.hpp"
 #include "math/math.hpp"
 
+#include "world/traits/trait_camera.hpp"
+
 namespace SFG
 {
-	void editor_first_person_controller::init(world& world, world_handle entity, window* wnd)
+	void editor_camera::init(world& world, window* wnd)
 	{
-		_window		 = wnd;
-		_world		 = &world;
-		_entity		 = entity;
-		_mouse_delta = vector2::zero;
+		_window = wnd;
+		_world	= &world;
 
-		if (_entity.is_null())
-			return;
-
-		entity_manager& manager = world.get_entity_manager();
-		const quat&		rot		= manager.get_entity_rotation(entity);
-		const vector3	euler	= quat::to_euler(rot);
-		_yaw_degrees			= euler.x;
-		_pitch_degrees			= euler.y;
 	}
 
-	void editor_first_person_controller::uninit()
+	void editor_camera::uninit()
 	{
+		if (_is_active)
+			deactivate();
+
 		_entity = {};
 		reset_runtime();
 	}
 
-	void editor_first_person_controller::reset_runtime()
+	void editor_camera::activate()
+	{
+		SFG_ASSERT(_entity.is_null());
+
+		world&			w  = *_world;
+		entity_manager& em = w.get_entity_manager();
+		trait_manager&	tm = w.get_trait_manager();
+
+		_entity		  = em.create_entity("editor_camera");
+		_camera_trait = tm.add_trait<trait_camera>(_entity);
+
+		trait_camera& cam_trait = tm.get_trait<trait_camera>(_camera_trait);
+		cam_trait.set_values(w, 0.01f, 250.0f, 60.0f, {0.01f, 0.04f, 0.125f, 0.25f, 0.5f});
+		cam_trait.set_main(w);
+
+		em.set_entity_position(_entity, vector3(0.0f, 0, 5));
+		em.set_entity_rotation(_entity, quat::identity);
+
+		const quat&	  rot	= em.get_entity_rotation(_entity);
+		const vector3 euler = quat::to_euler(rot);
+		_yaw_degrees		= euler.x;
+		_pitch_degrees		= euler.y;
+		_is_active			= 1;
+	}
+
+	void editor_camera::deactivate()
+	{
+		world&			w  = *_world;
+		entity_manager& em = w.get_entity_manager();
+		trait_manager&	tm = w.get_trait_manager();
+
+		em.destroy_entity(_entity);
+		_entity		  = {};
+		_camera_trait = {};
+
+		reset_runtime();
+		_is_active = 0;
+	}
+
+	void editor_camera::reset_runtime()
 	{
 		_direction_input = vector3::zero;
 		_mouse_delta	 = vector2::zero;
@@ -44,10 +78,10 @@ namespace SFG
 		_window->set_cursor_visible(true);
 	}
 
-	void editor_first_person_controller::on_window_event(const window_event& ev)
+	bool editor_camera::on_window_event(const window_event& ev)
 	{
-		if (!_world || _entity.is_null())
-			return;
+		if (_is_active == 0)
+			return false;
 
 		const uint16 button = ev.button;
 
@@ -131,25 +165,21 @@ namespace SFG
 		default:
 			break;
 		}
+
+		return true;
 	}
 
-	void editor_first_person_controller::tick(float dt_seconds)
+	void editor_camera::tick(float dt_seconds)
 	{
-		if (!_world || _entity.is_null())
+		if (_is_active == 0)
 			return;
 
 		update_rotation();
 		apply_movement(dt_seconds);
 	}
 
-	void editor_first_person_controller::update_rotation()
+	void editor_camera::update_rotation()
 	{
-		if (!_world || _entity.is_null())
-			return;
-
-		if (_mouse_delta.is_zero())
-			return;
-
 		_yaw_degrees -= _mouse_delta.x * _mouse_sensitivity;
 		_pitch_degrees -= _mouse_delta.y * _mouse_sensitivity;
 		_pitch_degrees = math::clamp(_pitch_degrees, -89.0f, 89.0f);
@@ -161,13 +191,8 @@ namespace SFG
 		_mouse_delta = vector2::zero;
 	}
 
-	void editor_first_person_controller::apply_movement(float dt_seconds)
+	void editor_camera::apply_movement(float dt_seconds)
 	{
-		if (!_world || _entity.is_null())
-			return;
-
-		auto is_down = [this](uint16 code) -> bool { return false; };
-
 		entity_manager& manager = _world->get_entity_manager();
 		const quat&		rot		= manager.get_entity_rotation(_entity);
 

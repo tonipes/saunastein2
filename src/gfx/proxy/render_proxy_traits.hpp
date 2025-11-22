@@ -17,7 +17,7 @@
 
 // world
 #include "world/world_constants.hpp"
-#include "world/world_max_defines.hpp"
+#include "game/game_max_defines.hpp"
 #include "gfx/buffer.hpp"
 
 namespace SFG

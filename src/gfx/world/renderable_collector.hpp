@@ -4,7 +4,7 @@
 #include "gfx/world/renderable.hpp"
 #include "gfx/common/gfx_constants.hpp"
 #include "data/vector.hpp"
-#include "world/world_max_defines.hpp"
+#include "game/game_max_defines.hpp"
 
 namespace SFG
 {

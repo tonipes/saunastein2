@@ -8,7 +8,7 @@
 #include "math/vector3.hpp"
 #include "math/vector2ui16.hpp"
 #include "math/vector4ui16.hpp"
-#include "world/world_max_defines.hpp"
+#include "game/game_max_defines.hpp"
 #include "world/world_constants.hpp"
 #include "resources/common_resources.hpp"
 

@@ -8,7 +8,6 @@
 #include "gfx/buffer.hpp"
 #include "gfx/common/gfx_constants.hpp"
 
-#include "memory/bump_allocator.hpp"
 #include "math/vector4.hpp"
 #include "math/vector2ui.hpp"
 #include "math/vector2.hpp"
@@ -112,6 +111,5 @@ namespace SFG
 		gfx_id		   _noise_tex			   = 0;
 		gfx_id		   _noise_tex_intermediate = 0;
 		gpu_index	   _gpu_index_noise		   = 0;
-		bump_allocator _alloc				   = {};
 	};
 }

@@ -239,7 +239,7 @@ namespace SFG
 		void unregister_console_function(const char* name);
 
 	private:
-		friend class game_app;
+		friend class app;
 		static void init();
 		static void uninit();
 

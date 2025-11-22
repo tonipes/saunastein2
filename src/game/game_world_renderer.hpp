@@ -9,24 +9,26 @@
 #include "gfx/common/semaphore_data.hpp"
 #include "gfx/buffer.hpp"
 #include "gfx/world/renderable.hpp"
-#include "render_pass/render_pass_opaque.hpp"
-#include "render_pass/render_pass_pre_depth.hpp"
-#include "render_pass/render_pass_lighting.hpp"
-#include "render_pass/render_pass_shadows.hpp"
-#include "render_pass/render_pass_ssao.hpp"
-#include "render_pass/render_pass_bloom.hpp"
-#include "render_pass/render_pass_post_combiner.hpp"
-#include "render_pass/render_pass_forward.hpp"
-#include "render_pass/render_pass_canvas_2d.hpp"
+#include "gfx/world/render_pass/render_pass_opaque.hpp"
+#include "gfx/world/render_pass/render_pass_pre_depth.hpp"
+#include "gfx/world/render_pass/render_pass_lighting.hpp"
+#include "gfx/world/render_pass/render_pass_shadows.hpp"
+#include "gfx/world/render_pass/render_pass_ssao.hpp"
+#include "gfx/world/render_pass/render_pass_bloom.hpp"
+#include "gfx/world/render_pass/render_pass_post_combiner.hpp"
+#include "gfx/world/render_pass/render_pass_forward.hpp"
+#include "gfx/world/render_pass/render_pass_canvas_2d.hpp"
+
 #ifdef SFG_TOOLMODE
-#include "render_pass/render_pass_object_id.hpp"
-#include "render_pass/render_pass_selection_outline.hpp"
+#include "gfx/world/render_pass/render_pass_object_id.hpp"
+#include "gfx/world/render_pass/render_pass_selection_outline.hpp"
 #endif
 
 #ifdef JPH_DEBUG_RENDERER
-#include "render_pass/render_pass_physics_debug.hpp"
+#include "gfx/world/render_pass/render_pass_physics_debug.hpp"
 #endif
-#include "view.hpp"
+
+#include "gfx/world/view.hpp"
 
 namespace SFG
 {
@@ -36,7 +38,7 @@ namespace SFG
 	class proxy_manager;
 	class world;
 
-	class world_renderer
+	class game_world_renderer
 	{
 	private:
 		struct per_frame_data
@@ -61,8 +63,8 @@ namespace SFG
 		};
 
 	public:
-		world_renderer() = delete;
-		world_renderer(proxy_manager& pm, world& w);
+		game_world_renderer() = delete;
+		game_world_renderer(proxy_manager& pm, world& w);
 
 		// -----------------------------------------------------------------------------
 		// lifecycle

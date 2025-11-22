@@ -1,7 +1,9 @@
 // Copyright (c) 2025 Inan Evin
 
 #include "world.hpp"
-#include "world/world_max_defines.hpp"
+#include "world/world_listener.hpp"
+#include "game/game_max_defines.hpp"
+#include "platform/window.hpp"
 
 // resources
 #include "resources/texture.hpp"
@@ -40,8 +42,6 @@
 #include "traits/trait_audio.hpp"
 #include "traits/trait_canvas.hpp"
 
-#include "app/debug_console.hpp"
-
 namespace SFG
 {
 	world::world(render_event_stream& rstream) : _entity_manager(*this), _trait_manager(*this), _render_stream(rstream), _resource_manager(*this), _phy_world(*this)
@@ -76,13 +76,6 @@ namespace SFG
 
 		_phy_world.init();
 		_audio_manager.init();
-
-#ifdef SFG_TOOLMODE
-		debug_console::get()->register_console_function("start_playmode", [this]() { start_playmode(); });
-		debug_console::get()->register_console_function("stop_playmode", [this]() { stop_playmode(); });
-		debug_console::get()->register_console_function("start_physics", [this]() { start_physics(); });
-		debug_console::get()->register_console_function("stop_physics", [this]() { stop_physics(); });
-#endif
 
 		_vekt_fonts.set_callback_user_data(this);
 		_vekt_fonts.set_atlas_created_callback(on_atlas_created);
@@ -126,7 +119,7 @@ namespace SFG
 	{
 		_resource_manager.tick();
 
-		if (_flags.is_set(world_flags_is_physics_active))
+		if (_play_mode != play_mode::none)
 			_phy_world.simulate(dt);
 
 		_trait_manager.view<trait_canvas>([&](trait_canvas& cnv) -> trait_view_result {
@@ -140,74 +133,110 @@ namespace SFG
 		_entity_manager.interpolate_entities(interpolation);
 	}
 
-	bool world::on_window_event(const window_event& ev)
+	bool world::on_window_event(const window_event& ev, window* wnd)
 	{
 		if (!_flags.is_set(world_flags_is_init))
 			return false;
-		return false;
+
+		bool handled = false;
+
+		_trait_manager.view<trait_canvas>([&](trait_canvas& cnv) -> trait_view_result {
+			vekt::builder* builder = cnv.get_builder();
+
+			const world_handle entity_handle = cnv.get_header().entity;
+			const bool		   is_invisible	 = _entity_manager.get_entity_meta(entity_handle).flags.is_set(entity_flags::entity_flags_invisible);
+			if (is_invisible)
+				return trait_view_result::cont;
+
+			const vekt::input_event_type ev_type = ev.sub_type == window_event_sub_type::press ? vekt::input_event_type::pressed : vekt::input_event_type::released;
+
+			if (ev.type == window_event_type::key)
+			{
+				const vekt::input_event_result res = builder->on_key_event({
+					.type	   = ev_type,
+					.key	   = ev.button,
+					.scan_code = ev.value.x,
+				});
+
+				handled = res == vekt::input_event_result::handled;
+			}
+			else if (ev.type == window_event_type::mouse)
+			{
+				const vekt::input_event_result res = builder->on_mouse_event({
+					.type	  = ev_type,
+					.button	  = ev.button,
+					.position = vector2(ev.value.x, ev.value.y),
+				});
+
+				handled = res == vekt::input_event_result::handled;
+			}
+			else if (ev.type == window_event_type::wheel)
+			{
+				const vekt::input_event_result res = builder->on_mouse_wheel_event({
+					.amount = static_cast<float>(ev.value.x),
+				});
+
+				handled = res == vekt::input_event_result::handled;
+			}
+			else if (ev.type == window_event_type::delta)
+			{
+				const vector2i16& mp = wnd->get_mouse_position();
+				builder->on_mouse_move(vector2(mp.x, mp.y));
+			}
+
+			return handled ? trait_view_result::stop : trait_view_result::cont;
+		});
+
+		return handled;
 	}
 
-	void world::start_playmode()
+	void world::set_playmode(play_mode mode)
 	{
-		if (_flags.is_set(world_flags_is_playing))
+		if (mode == _play_mode)
+			return;
+
+		if (mode == play_mode::none && _play_mode == play_mode::physics_only)
 		{
-			SFG_ERR("Can't start playmode as already playing.");
+			_phy_world.uninit_simulation();
+
+			if (_listener)
+				_listener->on_stopped_physics();
+		}
+		else if (mode == play_mode::none && _play_mode == play_mode::full)
+		{
+			_phy_world.uninit_simulation();
+			// stop playing
+
+			if (_listener)
+				_listener->on_stopped_play();
+		}
+		else if (mode == play_mode::physics_only && _play_mode == play_mode::full)
+		{
+			SFG_ERR("Can't switch to physics playmode from full mode.");
 			return;
 		}
-
-		if (_flags.is_set(world_flags_is_physics_active))
+		else if (mode == play_mode::full && _play_mode == play_mode::physics_only)
 		{
-			SFG_ERR("Can't start playmode as simulating physics.");
+			SFG_ERR("Can't switch to full playmode from physics only mode.");
 			return;
 		}
-
-		_phy_world.init_simulation();
-
-		_flags.set(world_flags_is_playing | world_flags_is_physics_active);
-	}
-
-	void world::stop_playmode()
-	{
-		if (!_flags.is_set(world_flags_is_playing))
+		else if (mode == play_mode::physics_only && _play_mode == play_mode::none)
 		{
-			SFG_ERR("Can't end playmode as its not active.");
-			return;
+			_phy_world.init_simulation();
+
+			if (_listener)
+				_listener->on_started_physics();
+		}
+		else if (mode == play_mode::full && _play_mode == play_mode::none)
+		{
+			_phy_world.init_simulation();
+			// start playing
+
+			if (_listener)
+				_listener->on_started_play();
 		}
 
-		_phy_world.uninit_simulation();
-
-		_flags.remove(world_flags_is_playing | world_flags_is_physics_active);
-	}
-
-	void world::start_physics()
-	{
-		if (_flags.is_set(world_flags_is_playing))
-		{
-			SFG_ERR("Can't start physics as already playing.");
-			return;
-		}
-
-		if (_flags.is_set(world_flags_is_physics_active))
-		{
-			SFG_ERR("Can't start physics as already simulating physics.");
-			return;
-		}
-
-		_flags.set(world_flags_is_physics_active);
-
-		_phy_world.init_simulation();
-	}
-
-	void world::stop_physics()
-	{
-		if (!_flags.is_set(world_flags_is_physics_active))
-		{
-			SFG_ERR("Can't end physics as its not active.");
-			return;
-		}
-		_flags.remove(world_flags_is_physics_active);
-
-		_phy_world.uninit_simulation();
+		_play_mode = mode;
 	}
 
 	resource_handle world::find_atlas_texture(vekt::atlas* atlas)

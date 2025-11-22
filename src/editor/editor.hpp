@@ -4,21 +4,21 @@
 #include "world/common_world.hpp"
 #include "resources/common_resources.hpp"
 
-#include "editor_first_person_controller.hpp"
+#include "editor_camera.hpp"
 #include "editor/gfx/editor_gui_renderer.hpp"
 
 namespace SFG
 {
 	struct window_event;
 	struct vector2ui16;
-	class game_app;
+	class app;
 	class trait_model_instance;
 	class texture_queue;
 
 	class editor
 	{
 	public:
-		explicit editor(game_app& game);
+		explicit editor(app& game);
 		~editor();
 
 		// -----------------------------------------------------------------------------
@@ -29,7 +29,6 @@ namespace SFG
 		void uninit();
 		void uninit_gfx();
 		void tick(float dt_seconds);
-		void post_tick(double interpolation);
 		bool on_window_event(const window_event& ev);
 
 		// -----------------------------------------------------------------------------
@@ -40,6 +39,15 @@ namespace SFG
 		void render_in_swapchain(gfx_id cmd_buffer, uint8 frame_index, bump_allocator& alloc);
 		void resize(const vector2ui16& size);
 
+		// -----------------------------------------------------------------------------
+		// accessors
+		// -----------------------------------------------------------------------------
+
+		inline editor_camera& get_camera()
+		{
+			return _camera_controller;
+		}
+
 	private:
 		void		create_default_camera();
 		void		create_demo_content();
@@ -49,14 +57,14 @@ namespace SFG
 		static void on_model_instance_instantiate(trait_model_instance* t, resource_handle model, void* ud);
 
 	private:
-		game_app&					   _game;
-		world_handle				   _camera_entity	= {};
-		world_handle				   _camera_trait	= {};
-		world_handle				   _demo_model_root = {};
-		world_handle				   _ambient_entity	= {};
-		world_handle				   _ambient_trait	= {};
-		editor_first_person_controller _camera_controller;
-		world_handle				   _gizmo_entity = {};
+		app&		  _game;
+		world_handle  _camera_entity   = {};
+		world_handle  _camera_trait	   = {};
+		world_handle  _demo_model_root = {};
+		world_handle  _ambient_entity  = {};
+		world_handle  _ambient_trait   = {};
+		editor_camera _camera_controller;
+		world_handle  _gizmo_entity = {};
 
 		// gfx
 		editor_gui_renderer _gui_renderer = {};

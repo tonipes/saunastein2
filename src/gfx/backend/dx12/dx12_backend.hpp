@@ -357,7 +357,7 @@ namespace SFG
 		vector<CD3DX12_DESCRIPTOR_RANGE1>	_reuse_root_ranges				= {};
 		vector<D3D12_STATIC_SAMPLER_DESC>	_reuse_static_samplers			= {};
 
-		friend class game_app;
+		friend class app;
 
 		static dx12_backend* s_instance;
 	};

@@ -2,7 +2,9 @@
 
 #include "editor.hpp"
 
-#include "app/game_app.hpp"
+// app
+#include "app/app.hpp"
+#include "app/debug_console.hpp"
 
 #include "platform/window.hpp"
 #include "math/vector3.hpp"
@@ -11,9 +13,11 @@
 #include "project/engine_data.hpp"
 #include "input/input_mappings.hpp"
 
+// game
+#include "game/game_world_renderer.hpp"
+
 // gfx
 #include "gfx/renderer.hpp"
-#include "gfx/world/world_renderer.hpp"
 #include "gfx/event_stream/render_events_gfx.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"
 
@@ -38,7 +42,7 @@
 
 namespace SFG
 {
-	editor::editor(game_app& game) : _game(game)
+	editor::editor(app& game) : _game(game)
 	{
 	}
 
@@ -46,13 +50,18 @@ namespace SFG
 
 	void editor::init(texture_queue* tq, const vector2ui16& size)
 	{
-		// Panels init
-		world_raw raw = {};
-		raw.load_from_file("assets/world/demo_world.stkworld", engine_data::get().get_working_dir().c_str());
-		_game.get_world().create_from_loader(raw);
+		_camera_controller.init(_game.get_world(), _game.get_window());
 
-		create_default_camera();
-		create_demo_content();
+#ifdef SFG_TOOLMODE
+		debug_console::get()->register_console_function("start_playmode", [this]() { _game.get_world().set_playmode(play_mode::full); });
+		debug_console::get()->register_console_function("stop_playmode", [this]() { _game.get_world().set_playmode(play_mode::none); });
+		debug_console::get()->register_console_function("start_physics", [this]() { _game.get_world().set_playmode(play_mode::physics_only); });
+		debug_console::get()->register_console_function("stop_physics", [this]() { _game.get_world().set_playmode(play_mode::none); });
+#endif
+
+		// world_raw raw = {};
+		// raw.load_from_file("assets/world/demo_world.stkworld", engine_data::get().get_working_dir().c_str());
+		// _game.get_world().create_from_loader(raw);
 
 		/*
 		{
@@ -102,41 +111,23 @@ namespace SFG
 
 	void editor::uninit()
 	{
-		destroy_demo_content();
+		_camera_controller.uninit();
 	}
 
 	void editor::uninit_gfx()
 	{
 		_gui_renderer.uninit();
 	}
+
 	void editor::tick(float dt_seconds)
 	{
-		if (_camera_controller.is_active())
-			_camera_controller.tick(dt_seconds);
-	}
-
-	void editor::post_tick(double)
-	{
+		_camera_controller.tick(dt_seconds);
 	}
 
 	bool editor::on_window_event(const window_event& ev)
 	{
-		if (_camera_controller.is_active())
-			_camera_controller.on_window_event(ev);
-
-		if (ev.type == window_event_type::key && ev.sub_type == window_event_sub_type::press)
-		{
-			if (ev.button == input_code::key_k)
-			{
-				create_demo_model();
-				return true;
-			}
-			else if (ev.button == input_code::key_l)
-			{
-				destroy_demo_model();
-				return true;
-			}
-		}
+		if (_camera_controller.on_window_event(ev))
+			return true;
 
 		if (ev.type == window_event_type::mouse && ev.sub_type == window_event_sub_type::press)
 		{
@@ -151,7 +142,7 @@ namespace SFG
 			}
 		}
 
-		return true;
+		return false;
 	}
 
 	void editor::prepare_render(gfx_id cmd_buffer, uint8 frame_index)
@@ -167,26 +158,6 @@ namespace SFG
 	void editor::resize(const vector2ui16& size)
 	{
 		_gui_renderer.resize(size);
-	}
-
-	void editor::create_default_camera()
-	{
-
-		world&			w  = _game.get_world();
-		entity_manager& em = w.get_entity_manager();
-		trait_manager&	tm = w.get_trait_manager();
-		_camera_entity	   = em.create_entity("editor_camera");
-		_camera_trait	   = tm.add_trait<trait_camera>(_camera_entity);
-
-		trait_camera& cam_trait = tm.get_trait<trait_camera>(_camera_trait);
-		cam_trait.set_values(w, 0.01f, 250.0f, 60.0f, {0.01f, 0.04f, 0.125f, 0.25f, 0.5f});
-		cam_trait.set_main(w);
-
-		em.set_entity_position(_camera_entity, vector3(0.0f, 0, 5));
-		em.set_entity_rotation(_camera_entity, quat::identity);
-
-		window* main_window = _game.get_main_window();
-		_camera_controller.init(w, _camera_entity, main_window);
 	}
 
 	void editor::create_demo_content()

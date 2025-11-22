@@ -13,7 +13,7 @@
 #include "gfx/draw_stream.hpp"
 #include "gfx/common/barrier_description.hpp"
 
-#include "world/world_max_defines.hpp"
+#include "game/game_max_defines.hpp"
 #include "memory/bump_allocator.hpp"
 #include "math/vector4.hpp"
 #include "math/matrix4x4.hpp"

@@ -27,8 +27,6 @@ namespace SFG
 	{
 		_renderer = new physics_debug_renderer();
 
-		_alloc.init(512, 8);
-
 		gfx_backend* backend = gfx_backend::get();
 
 		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
@@ -112,8 +110,6 @@ namespace SFG
 		delete _renderer;
 		_renderer = nullptr;
 
-		_alloc.uninit();
-
 		gfx_backend* backend = gfx_backend::get();
 
 		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
@@ -143,8 +139,6 @@ namespace SFG
 
 	void render_pass_physics_debug::prepare(const view& main_camera_view, const vector2ui16& resolution, uint8 frame_index)
 	{
-		_alloc.reset();
-
 		gfx_backend*	backend	   = gfx_backend::get();
 		per_frame_data& pfd		   = _pfd[frame_index];
 		const gfx_id	cmd_buffer = pfd.cmd_buffer;
@@ -287,18 +281,18 @@ namespace SFG
 		const uint32	tri_idx_count	 = pfd._triangle_idx_count;
 		const uint32	line_idx_count	 = pfd._line_idx_count;
 
-		render_pass_color_attachment* attachments = _alloc.allocate<render_pass_color_attachment>(1);
-		render_pass_color_attachment& att		  = attachments[0];
-		att.clear_color							  = vector4(0, 0, 0, 1.0f);
-		att.load_op								  = load_op::load;
-		att.store_op							  = store_op::store;
-		att.texture								  = texture;
+		const render_pass_color_attachment att = {
+			.clear_color = vector4(0, 0, 0, 1.0f),
+			.texture	 = texture,
+			.load_op	 = load_op::load,
+			.store_op	 = store_op::store,
+		};
 
 		BEGIN_DEBUG_EVENT(backend, cmd_buffer, "physics_debug_pass");
 
 		backend->cmd_begin_render_pass_depth_read_only(cmd_buffer,
 													   {
-														   .color_attachments = attachments,
+														   .color_attachments = &att,
 														   .depth_stencil_attachment =
 															   {
 																   .texture		   = depth,

@@ -122,14 +122,11 @@ namespace SFG
 		void prepare(bump_allocator& alloc, size_t max_commands);
 		void build();
 		void draw(gfx_id command_buffer);
-
-		inline void add_command(const draw_command& cmd)
-		{
-			_commands[_commands_count++] = cmd;
-		}
+		void add_command(const draw_command& cmd);
 
 	private:
 		draw_command* _commands		  = nullptr;
+		uint32		  _max_commands	  = 0;
 		uint32		  _commands_count = 0;
 	};
 
@@ -139,14 +136,11 @@ namespace SFG
 		void prepare(bump_allocator& alloc, size_t max_commands);
 		void build();
 		void draw(gfx_id command_buffer);
-
-		inline void add_command(const draw_command_distance& cmd)
-		{
-			_commands[_commands_count++] = cmd;
-		}
+		void add_command(const draw_command_distance& cmd);
 
 	private:
 		draw_command_distance* _commands	   = nullptr;
+		uint32				   _max_commands   = 0;
 		uint32				   _commands_count = 0;
 	};
 
@@ -156,14 +150,11 @@ namespace SFG
 		void prepare(bump_allocator& alloc, size_t max_commands);
 		void build();
 		void draw(gfx_id command_buffer);
-
-		inline void add_command(const draw_command_gui& cmd)
-		{
-			_commands[_commands_count++] = cmd;
-		}
+		void add_command(const draw_command_gui& cmd);
 
 	private:
 		draw_command_gui* _commands		  = nullptr;
+		uint32			  _max_commands	  = 0;
 		uint32			  _commands_count = 0;
 	};
 }

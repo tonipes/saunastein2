@@ -4,7 +4,6 @@
 
 #include "gfx/buffer.hpp"
 #include "gfx/common/gfx_constants.hpp"
-#include "memory/bump_allocator.hpp"
 
 namespace SFG
 {
@@ -83,6 +82,5 @@ namespace SFG
 		per_frame_data _pfd[BACK_BUFFER_COUNT];
 		gfx_id		   _shader_bloom_downsample = 0;
 		gfx_id		   _shader_bloom_upsample	= 0;
-		bump_allocator _alloc					= {};
 	};
 }

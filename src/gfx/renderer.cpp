@@ -3,16 +3,23 @@
 
 #include "renderer.hpp"
 
+// gfx
 #include "gfx/backend/backend.hpp"
 #include "gfx/common/descriptions.hpp"
 #include "gfx/common/commands.hpp"
 #include "gfx/util/gfx_util.hpp"
-#include "gfx/world/world_renderer.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"
 #include "gfx/event_stream/render_events_gfx.hpp"
 #include "gfx/common/render_target_definitions.hpp"
+
+// game
+#include "game/game_world_renderer.hpp"
+
+// platform
 #include "platform/window.hpp"
 #include "platform/time.hpp"
+
+// misc
 #include "math/vector4.hpp"
 #include "memory/memory_tracer.hpp"
 #include "io/log.hpp"
@@ -76,7 +83,7 @@ namespace SFG
 		_debug_controller.init(&_texture_queue, s_bind_layout_global, _base_size);
 #endif
 
-		_world_renderer = new world_renderer(_proxy_manager, _world);
+		_world_renderer = new game_world_renderer(_proxy_manager, _world);
 		_world_renderer->init(_base_size, &_texture_queue, &_buffer_queue);
 
 		// pfd

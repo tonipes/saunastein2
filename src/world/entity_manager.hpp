@@ -9,7 +9,7 @@
 #include "math/aabb.hpp"
 #include "math/matrix4x3.hpp"
 #include "math/quat.hpp"
-#include "world/world_max_defines.hpp"
+#include "game/game_max_defines.hpp"
 #include "common/type_id.hpp"
 
 namespace SFG
