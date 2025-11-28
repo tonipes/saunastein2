@@ -10,15 +10,16 @@ namespace SFG
 
 	struct renderable_object
 	{
-		buffer*		vertex_buffer = nullptr;
-		buffer*		index_buffer  = nullptr;
-		uint32		vertex_start  = 0;
-		uint32		index_start	  = 0;
-		uint32		index_count	  = 0;
-		uint32		gpu_entity	  = 0;
-		uint32		world_entity  = 0;
-		float		distance	  = 0.0f;
-		resource_id material	  = {};
-		uint8		is_skinned	  = 0;
+		buffer*		vertex_buffer	  = nullptr;
+		buffer*		index_buffer	  = nullptr;
+		uint32		vertex_start	  = 0;
+		uint32		index_start		  = 0;
+		uint32		index_count		  = 0;
+		uint32		gpu_entity		  = 0;
+		uint32		bones_start_index = 0;
+		uint32		world_entity	  = 0;
+		float		distance		  = 0.0f;
+		resource_id material		  = {};
+		uint8		is_skinned		  = 0;
 	};
 }

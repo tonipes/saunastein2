@@ -47,7 +47,7 @@ namespace SFG
 
 	void trait_camera::on_add(world& w)
 	{
-		w.get_entity_manager().on_add_render_proxy(_header.entity);
+		w.get_entity_manager().add_render_proxy(_header.entity);
 
 		const render_event_camera ev = {
 			.entity_index = _header.entity.index,
@@ -66,7 +66,7 @@ namespace SFG
 
 	void trait_camera::on_remove(world& w)
 	{
-		w.get_entity_manager().on_remove_render_proxy(_header.entity);
+		w.get_entity_manager().remove_render_proxy(_header.entity);
 
 		w.get_render_stream().add_event({
 			.index		= _header.own_handle.index,

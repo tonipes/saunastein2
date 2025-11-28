@@ -16,7 +16,7 @@ namespace SFG
 
 	void trait_ambient::on_add(world& w)
 	{
-		w.get_entity_manager().on_add_render_proxy(_header.entity);
+		w.get_entity_manager().add_render_proxy(_header.entity);
 
 		const render_event_ambient ev = {
 			.base_color	  = vector3(_base_color.x, _base_color.y, _base_color.z),
@@ -33,7 +33,7 @@ namespace SFG
 
 	void trait_ambient::on_remove(world& w)
 	{
-		w.get_entity_manager().on_remove_render_proxy(_header.entity);
+		w.get_entity_manager().remove_render_proxy(_header.entity);
 
 		w.get_render_stream().add_event({
 			.index		= _header.own_handle.index,

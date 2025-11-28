@@ -6,6 +6,7 @@
 #include "gfx/common/descriptions.hpp"
 #include "data/static_vector.hpp"
 #include "math/vector2ui16.hpp"
+#include "math/matrix4x3.hpp"
 #include "math/aabb.hpp"
 #include "resources/primitive_raw.hpp"
 #include "resources/common_resources.hpp"
@@ -137,6 +138,16 @@ namespace SFG
 	{
 		resource_id prev_id;
 		resource_id new_id;
+
+		void serialize(ostream& stream) const;
+		void deserialize(istream& stream);
+	};
+
+	struct render_event_skin
+	{
+		vector<uint16>	  nodes;
+		vector<matrix4x3> matrices;
+		int16			  root_index = -1;
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);

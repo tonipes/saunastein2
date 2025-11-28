@@ -11,6 +11,8 @@ namespace SFG
 		stream << entity_index;
 		stream << model;
 		stream << mesh;
+		stream << skin;
+		stream << skin_node_entities;
 	}
 
 	void render_event_mesh_instance::deserialize(istream& stream)
@@ -18,6 +20,8 @@ namespace SFG
 		stream >> entity_index;
 		stream >> model;
 		stream >> mesh;
+		stream >> skin;
+		stream >> skin_node_entities;
 	}
 
 	void render_event_camera::serialize(ostream& stream) const

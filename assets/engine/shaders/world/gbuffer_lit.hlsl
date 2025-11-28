@@ -83,11 +83,10 @@ vs_output VSMain(vs_input IN)
     [unroll]
     for (int i = 0; i < 4; ++i)
     {
-        uint bone_index   = IN.bone_indices[i];
+        uint bone_index   = sfg_object_constant1 + IN.bone_indices[i];
         float weight      = IN.bone_weights[i];
-        float3x4 bone_mat = bone_buffer[bone_index].bone;
-
-        skinned_pos    += float4(mul(bone_mat, float4(IN.pos, 1.0f)) * weight, 1.0f);
+        float4x4 bone_mat = bone_buffer[bone_index].bone;
+        skinned_pos += mul(bone_mat, float4(IN.pos, 1.0f)) * weight;
     }
 
     obj_pos  = skinned_pos;
@@ -127,11 +126,11 @@ vs_output VSMain(vs_input IN)
     [unroll]
     for (int i = 0; i < 4; ++i)
     {
-        uint bone_index   = IN.bone_indices[i];
+        uint bone_index   = sfg_object_constant1 + IN.bone_indices[i];
         float weight      = IN.bone_weights[i];
-        float3x4 bone_mat = bone_buffer[bone_index].bone;
+        float4x4 bone_mat = bone_buffer[bone_index].bone;
 
-        skinned_pos    += float4(mul(bone_mat, float4(IN.pos, 1.0f)) * weight, 1.0f);
+        skinned_pos    += mul(bone_mat, float4(IN.pos, 1.0f)) * weight;
         skinned_normal += mul(IN.normal, (float3x3)bone_mat) * weight;
         skinned_tan    += mul(IN.tangent.xyz, (float3x3)bone_mat) * weight;
     }
@@ -194,7 +193,7 @@ struct texture_data
 
 uint PSMain(vs_output IN) : SV_TARGET
 {
-    return sfg_object_constant1;
+    return sfg_object_constant2;
 }
 
 #else

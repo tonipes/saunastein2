@@ -49,6 +49,8 @@ namespace SFG
 			if (proxy_model.materials.size == 0)
 				continue;
 
+			SFG_ASSERT(buffer_index != UINT32_MAX && mesh_instance._assigned_bone_index != UINT32_MAX);
+
 			const resource_id* materials = aux.get<resource_id>(proxy_model.materials);
 
 			for (uint32 j = 0; j < proxy_mesh.primitive_count; j++)
@@ -58,16 +60,17 @@ namespace SFG
 				const resource_id mat = materials[prim.material_index];
 
 				out_objects.emplace_back(renderable_object{
-					.vertex_buffer = const_cast<buffer*>(&proxy_mesh.vertex_buffer),
-					.index_buffer  = const_cast<buffer*>(&proxy_mesh.index_buffer),
-					.vertex_start  = prim.vertex_start,
-					.index_start   = prim.index_start,
-					.index_count   = prim.index_count,
-					.gpu_entity	   = buffer_index,
-					.world_entity  = proxy_entity.handle,
-					.distance	   = vector3::distance_sqr(proxy_entity.position, target_view.position),
-					.material	   = mat,
-					.is_skinned	   = proxy_mesh.is_skinned,
+					.vertex_buffer	   = const_cast<buffer*>(&proxy_mesh.vertex_buffer),
+					.index_buffer	   = const_cast<buffer*>(&proxy_mesh.index_buffer),
+					.vertex_start	   = prim.vertex_start,
+					.index_start	   = prim.index_start,
+					.index_count	   = prim.index_count,
+					.gpu_entity		   = buffer_index,
+					.bones_start_index = mesh_instance._assigned_bone_index,
+					.world_entity	   = proxy_entity.handle,
+					.distance		   = vector3::distance_sqr(proxy_entity.position, target_view.position),
+					.material		   = mat,
+					.is_skinned		   = proxy_mesh.is_skinned,
 				});
 			}
 		}
@@ -103,6 +106,7 @@ namespace SFG
 				.material_constant_index = gpu_index_mat,
 				.texture_constant_index	 = gpu_index_mat_textures,
 				.entity_constant_index	 = obj.gpu_entity,
+				.bone_constant_index	 = obj.bones_start_index,
 				.entity_world_id		 = obj.world_entity,
 				.vb_hw					 = obj.vertex_buffer->get_hw_gpu(),
 				.ib_hw					 = obj.index_buffer->get_hw_gpu(),
@@ -143,6 +147,7 @@ namespace SFG
 				.material_constant_index = gpu_index_mat,
 				.texture_constant_index	 = gpu_index_mat_textures,
 				.entity_constant_index	 = obj.gpu_entity,
+				.bone_constant_index	 = obj.bones_start_index,
 				.entity_world_id		 = obj.world_entity,
 				.vb_hw					 = obj.vertex_buffer->get_hw_gpu(),
 				.ib_hw					 = obj.index_buffer->get_hw_gpu(),

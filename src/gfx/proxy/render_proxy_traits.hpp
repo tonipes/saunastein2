@@ -24,10 +24,14 @@ namespace SFG
 {
 	struct render_proxy_mesh_instance
 	{
-		world_id			entity = 0;
-		resource_id			model  = 0;
-		resource_id			mesh   = 0;
-		render_proxy_status status = render_proxy_status::rps_inactive;
+		uint32				_assigned_bone_index = 0;
+		chunk_handle32		skin_entities		 = {};
+		uint16				skin_entities_count	 = 0;
+		world_id			entity				 = 0;
+		resource_id			model				 = 0;
+		resource_id			mesh				 = 0;
+		resource_id			skin				 = NULL_RESOURCE_ID;
+		render_proxy_status status				 = render_proxy_status::rps_inactive;
 	};
 
 	struct render_proxy_camera

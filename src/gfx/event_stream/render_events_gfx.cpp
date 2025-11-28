@@ -252,4 +252,18 @@ namespace SFG
 		stream.skip_by(size);
 	}
 
+	void render_event_skin::serialize(ostream& stream) const
+	{
+		stream << root_index;
+		stream << nodes;
+		stream << matrices;
+	}
+
+	void render_event_skin::deserialize(istream& stream)
+	{
+		stream >> root_index;
+		stream >> nodes;
+		stream >> matrices;
+	}
+
 }

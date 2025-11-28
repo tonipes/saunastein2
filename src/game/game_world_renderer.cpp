@@ -740,6 +740,69 @@ namespace SFG
 
 	void game_world_renderer::collect_and_upload_bones(gfx_id cmd_buffer, uint8 frame_index)
 	{
+		per_frame_data& pfd = _pfd[frame_index];
+
+		auto&			   meshes	   = *_proxy_manager.get_mesh_instances();
+		const uint32	   meshes_peak = _proxy_manager.get_peak_mesh_instances();
+		auto&			   entities	   = *_proxy_manager.get_entities();
+		auto&			   skins	   = *_proxy_manager.get_skins();
+		chunk_allocator32& aux		   = _proxy_manager.get_aux();
+
+		uint32 assigned_index = 0;
+
+		for (uint32 i = 0; i < meshes_peak; i++)
+		{
+			render_proxy_mesh_instance& mi = meshes.get(i);
+			if (mi.status != render_proxy_status::rps_active)
+				continue;
+
+			// early out if entity or skin is invalid.
+			const render_proxy_entity& e = entities.get(mi.entity);
+			if (e._assigned_index == UINT32_MAX)
+			{
+				mi._assigned_bone_index = UINT32_MAX;
+				return;
+			}
+			if (mi.skin == NULL_RESOURCE_ID)
+				continue;
+
+			mi._assigned_bone_index = assigned_index;
+
+			const render_proxy_skin& skin = skins.get(mi.skin);
+			SFG_ASSERT(skin.status == render_proxy_status::rps_active);
+
+			const uint16*	 node_indices	   = aux.get<uint16>(skin.nodes);
+			const world_id*	 skin_entities_ptr = aux.get<world_id>(mi.skin_entities);
+			const matrix4x3* matrices_ptr	   = aux.get<matrix4x3>(skin.matrices);
+
+			matrix4x3 root_global = e.model;
+			if (skin.root_node != -1)
+			{
+				const world_id			   root_entity_id = skin_entities_ptr[node_indices[skin.root_node]];
+				const render_proxy_entity& root_entity	  = entities.get(root_entity_id);
+				SFG_ASSERT(root_entity.status == render_proxy_status::rps_active);
+				root_global = root_entity.model;
+			}
+			root_global = root_global.inverse();
+
+			for (uint16 i = 0; i < skin.node_count; i++)
+			{
+				const uint16			   node_index	  = node_indices[i];
+				const world_id			   skin_entity_id = skin_entities_ptr[node_index];
+				const render_proxy_entity& skin_entity	  = entities.get(skin_entity_id);
+				SFG_ASSERT(skin_entity.status == render_proxy_status::rps_active);
+
+				const gpu_bone bone = {
+					.mat = (root_global * skin_entity.model * matrices_ptr[i]).to_matrix4x4(),
+				};
+
+				pfd.bones_buffer.buffer_data(assigned_index * sizeof(gpu_bone), &bone, sizeof(gpu_bone));
+				assigned_index++;
+			}
+		}
+
+		if (assigned_index != 0)
+			pfd.bones_buffer.copy_region(cmd_buffer, 0, assigned_index * sizeof(gpu_bone));
 	}
 
 	void game_world_renderer::collect_and_upload_lights(gfx_id cmd_buffer, uint8 frame_index)

@@ -47,8 +47,6 @@ namespace SFG
 		// accessors
 		// -----------------------------------------------------------------------------
 
-		void set_model(resource_handle model);
-
 		inline resource_handle get_model() const
 		{
 			return _target_model;
@@ -77,6 +75,8 @@ namespace SFG
 		trait_header	_header				   = {};
 		resource_handle _target_model		   = {};
 		chunk_handle32	_root_entities		   = {};
+		chunk_handle32	_skin_entities		   = {};
+		uint16			_skin_entities_count   = 0;
 		uint32			_root_entities_count   = 0;
 	};
 

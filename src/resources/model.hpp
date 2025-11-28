@@ -68,6 +68,11 @@ namespace SFG
 			return _lights_count;
 		}
 
+		inline uint16 get_skin_count() const
+		{
+			return _skins_count;
+		}
+
 		inline chunk_handle32 get_created_meshes() const
 		{
 			return _created_meshes;

@@ -21,6 +21,7 @@ namespace SFG
 		_mesh_index	  = raw.mesh_index;
 		_local_matrix = raw.local_matrix;
 		_light_index  = raw.light_index;
+		_skin_index	  = raw.skin_index;
 	}
 
 	void model_node::destroy(world& w, resource_handle handle)

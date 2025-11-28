@@ -39,7 +39,7 @@ namespace SFG
 		// accessors
 		// -----------------------------------------------------------------------------
 
-		void set_mesh(world& w, resource_handle model, resource_handle mesh);
+		void set_mesh(world& w, resource_handle model, resource_handle mesh, resource_handle skin, world_handle* skin_node_entities, uint32 skin_node_entity_count);
 
 		inline resource_handle get_model() const
 		{
@@ -66,6 +66,7 @@ namespace SFG
 		trait_header	_header		  = {};
 		resource_handle _target_model = {};
 		resource_handle _target_mesh  = {};
+		resource_handle _target_skin  = {};
 	};
 
 	REGISTER_TRAIT(trait_mesh_instance);

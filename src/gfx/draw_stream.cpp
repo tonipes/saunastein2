@@ -47,9 +47,10 @@ namespace SFG
 				backend->cmd_bind_index_buffers(cmd_buffer, {.buffer = draw.ib_hw, .index_size = static_cast<uint8>(sizeof(primitive_index))});
 
 			backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)&draw.entity_constant_index, .offset = constant_index_object_constant0, .count = 1, .param_index = rpi_constants});
+			backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)&draw.bone_constant_index, .offset = constant_index_object_constant1, .count = 1, .param_index = rpi_constants});
 
 #ifdef SFG_TOOLMODE
-			backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)&draw.entity_world_id, .offset = constant_index_object_constant1, .count = 1, .param_index = rpi_constants});
+			backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)&draw.entity_world_id, .offset = constant_index_object_constant2, .count = 1, .param_index = rpi_constants});
 #endif
 
 			const uint32 mat_constants[2] = {draw.material_constant_index, draw.texture_constant_index};
@@ -117,9 +118,10 @@ namespace SFG
 				backend->cmd_bind_index_buffers(cmd_buffer, {.buffer = draw.ib_hw, .index_size = static_cast<uint8>(sizeof(primitive_index))});
 
 			backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)&draw.entity_constant_index, .offset = constant_index_object_constant0, .count = 1, .param_index = rpi_constants});
+			backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)&draw.bone_constant_index, .offset = constant_index_object_constant1, .count = 1, .param_index = rpi_constants});
 
 #ifdef SFG_TOOLMODE
-			backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)&draw.entity_world_id, .offset = constant_index_object_constant1, .count = 1, .param_index = rpi_constants});
+			backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)&draw.entity_world_id, .offset = constant_index_object_constant2, .count = 1, .param_index = rpi_constants});
 #endif
 
 			const uint32 mat_constants[2] = {draw.material_constant_index, draw.texture_constant_index};

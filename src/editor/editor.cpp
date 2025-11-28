@@ -42,7 +42,7 @@
 
 namespace SFG
 {
-	editor::editor(app& game) : _game(game)
+	editor::editor(app& game) : _app(game)
 	{
 	}
 
@@ -50,13 +50,17 @@ namespace SFG
 
 	void editor::init(texture_queue* tq, const vector2ui16& size)
 	{
-		_camera_controller.init(_game.get_world(), _game.get_window());
+		_camera_controller.init(_app.get_world(), _app.get_window());
 
 #ifdef SFG_TOOLMODE
-		debug_console::get()->register_console_function("start_playmode", [this]() { _game.get_world().set_playmode(play_mode::full); });
-		debug_console::get()->register_console_function("stop_playmode", [this]() { _game.get_world().set_playmode(play_mode::none); });
-		debug_console::get()->register_console_function("start_physics", [this]() { _game.get_world().set_playmode(play_mode::physics_only); });
-		debug_console::get()->register_console_function("stop_physics", [this]() { _game.get_world().set_playmode(play_mode::none); });
+		debug_console::get()->register_console_function("start_playmode", [this]() { _app.get_world().set_playmode(play_mode::full); });
+		debug_console::get()->register_console_function("stop_playmode", [this]() { _app.get_world().set_playmode(play_mode::none); });
+		debug_console::get()->register_console_function("start_physics", [this]() { _app.get_world().set_playmode(play_mode::physics_only); });
+		debug_console::get()->register_console_function("stop_physics", [this]() { _app.get_world().set_playmode(play_mode::none); });
+		debug_console::get()->register_console_function<const char*>("load_level", [this](const char* lvl) {
+			
+		});
+
 #endif
 
 		// world_raw raw = {};
@@ -162,7 +166,7 @@ namespace SFG
 
 	void editor::create_demo_content()
 	{
-		world& w = _game.get_world();
+		world& w = _app.get_world();
 
 		entity_manager&	  em = w.get_entity_manager();
 		trait_manager&	  tm = w.get_trait_manager();
@@ -229,7 +233,7 @@ namespace SFG
 
 	void editor::destroy_demo_content()
 	{
-		world&			w  = _game.get_world();
+		world&			w  = _app.get_world();
 		entity_manager& em = w.get_entity_manager();
 		trait_manager&	tm = w.get_trait_manager();
 
@@ -260,7 +264,7 @@ namespace SFG
 
 	void editor::create_demo_model()
 	{
-		world&			  w	 = _game.get_world();
+		world&			  w	 = _app.get_world();
 		entity_manager&	  em = w.get_entity_manager();
 		trait_manager&	  tm = w.get_trait_manager();
 		resource_manager& rm = w.get_resource_manager();
@@ -275,21 +279,20 @@ namespace SFG
 
 		const world_handle	  model_inst_handle = tm.add_trait<trait_model_instance>(_demo_model_root);
 		trait_model_instance& mi				= tm.get_trait<trait_model_instance>(model_inst_handle);
-		mi.set_model(boombox);
 		mi.set_instantiate_callback(on_model_instance_instantiate, this);
 		mi.instantiate_model_to_world(w, boombox);
 	}
 
 	void editor::destroy_demo_model()
 	{
-		world&			w  = _game.get_world();
+		world&			w  = _app.get_world();
 		entity_manager& em = w.get_entity_manager();
 		em.destroy_entity(_demo_model_root);
 	}
 
 	void editor::on_model_instance_instantiate(trait_model_instance* t, resource_handle model, void* ud)
 	{
-		world&			w  = (static_cast<editor*>(ud)->_game).get_world();
+		world&			w  = (static_cast<editor*>(ud)->_app).get_world();
 		entity_manager& em = w.get_entity_manager();
 		trait_manager&	tm = w.get_trait_manager();
 

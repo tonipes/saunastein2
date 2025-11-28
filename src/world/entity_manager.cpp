@@ -367,7 +367,7 @@ namespace SFG
 		return _families->get(entity.index);
 	}
 
-	void entity_manager::on_add_render_proxy(world_handle entity)
+	void entity_manager::add_render_proxy(world_handle entity)
 	{
 		SFG_ASSERT(_entities->is_valid(entity));
 		entity_meta& meta = _metas->get(entity.index);
@@ -375,7 +375,7 @@ namespace SFG
 		meta.flags.set(entity_flags::entity_flags_render_proxy_dirty);
 	}
 
-	void entity_manager::on_remove_render_proxy(world_handle entity)
+	void entity_manager::remove_render_proxy(world_handle entity)
 	{
 		SFG_ASSERT(_entities->is_valid(entity));
 

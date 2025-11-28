@@ -5,14 +5,20 @@
 namespace SFG
 {
 
+	class ostream;
+	class istream;
+
 	class vector4i
 	{
 	public:
-		vector4i(){};
-		vector4i(int32 _x, int32 _y, int32 _z, int32 _w) : x(_x), y(_y), z(_z), w(_w){};
+		vector4i() {};
+		vector4i(int32 _x, int32 _y, int32 _z, int32 _w) : x(_x), y(_y), z(_z), w(_w) {};
 
 		static vector4i zero;
 		static vector4i one;
+
+		void serialize(ostream& stream) const;
+		void deserialize(istream& stream);
 
 		vector4i operator-(const vector4i& other) const
 		{

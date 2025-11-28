@@ -19,12 +19,12 @@ namespace SFG
 	void trait_mesh_instance::on_add(world& w)
 	{
 
-		w.get_entity_manager().on_add_render_proxy(_header.entity);
+		w.get_entity_manager().add_render_proxy(_header.entity);
 	}
 
 	void trait_mesh_instance::on_remove(world& w)
 	{
-		w.get_entity_manager().on_remove_render_proxy(_header.entity);
+		w.get_entity_manager().remove_render_proxy(_header.entity);
 
 		w.get_render_stream().add_event({
 			.index		= _header.own_handle.index,
@@ -32,7 +32,7 @@ namespace SFG
 		});
 	}
 
-	void trait_mesh_instance::set_mesh(world& w, resource_handle model_handle, resource_handle mesh)
+	void trait_mesh_instance::set_mesh(world& w, resource_handle model_handle, resource_handle mesh, resource_handle skin, world_handle* skin_node_entities, uint32 skin_node_entity_count)
 	{
 		_target_model = model_handle;
 		_target_mesh  = mesh;
@@ -41,6 +41,12 @@ namespace SFG
 		stg.entity_index			   = _header.entity.index;
 		stg.model					   = _target_model.index;
 		stg.mesh					   = _target_mesh.index;
+		stg.skin					   = skin.is_null() ? NULL_RESOURCE_ID : skin.index;
+
+		for (uint32 i = 0; i < skin_node_entity_count; i++)
+		{
+			stg.skin_node_entities.push_back(skin_node_entities[i].index);
+		}
 
 		w.get_render_stream().add_event(
 			{

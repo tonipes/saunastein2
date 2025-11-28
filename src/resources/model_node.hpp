@@ -17,10 +17,12 @@ namespace SFG
 		void create_from_loader(const model_node_raw& raw, world& w, resource_handle handle);
 		void destroy(world& w, resource_handle handle);
 
+#ifndef SFG_STRIP_DEBUG_NAMES
 		inline chunk_handle32 get_name() const
 		{
 			return _name;
 		}
+#endif
 
 		inline int16 get_parent_index() const
 		{
@@ -30,6 +32,11 @@ namespace SFG
 		inline int16 get_mesh_index() const
 		{
 			return _mesh_index;
+		}
+
+		inline int16 get_skin_index() const
+		{
+			return _skin_index;
 		}
 
 		inline int16 get_light_index() const
@@ -49,6 +56,7 @@ namespace SFG
 		int16	  _parent_index = -1;
 		int16	  _light_index	= -1;
 		int16	  _mesh_index	= -1;
+		int16	  _skin_index	= -1;
 		matrix4x3 _local_matrix = {};
 	};
 }

@@ -47,6 +47,11 @@ namespace SFG
 			return _meshes->get(idx);
 		}
 
+		inline render_proxy_skin& get_skin(resource_id idx)
+		{
+			return _skins->get(idx);
+		}
+
 		inline render_proxy_model& get_model(resource_id idx)
 		{
 			return _models->get(idx);
@@ -100,6 +105,11 @@ namespace SFG
 		inline auto get_entities()
 		{
 			return _entities;
+		}
+
+		inline auto get_skins()
+		{
+			return _skins;
 		}
 
 		inline auto& get_cameras()
@@ -217,6 +227,7 @@ namespace SFG
 		void destroy_mesh(render_proxy_mesh& proxy);
 		void destroy_model(render_proxy_model& proxy);
 		void destroy_canvas(render_proxy_canvas& proxy);
+		void destroy_skin(render_proxy_skin& proxy);
 		void destroy_target_bucket(uint8 index);
 		void add_to_destroy_bucket(const destroy_data& data, uint8 bucket);
 		void reset();
@@ -230,6 +241,7 @@ namespace SFG
 		using materials_type	  = pool_allocator_simple<render_proxy_material, MAX_WORLD_MATERIALS>;
 		using shaders_type		  = pool_allocator_simple<render_proxy_shader, MAX_WORLD_SHADERS>;
 		using meshes_type		  = pool_allocator_simple<render_proxy_mesh, MAX_WORLD_MESHES>;
+		using skins_type		  = pool_allocator_simple<render_proxy_skin, MAX_WORLD_SKINS>;
 		using models_type		  = pool_allocator_simple<render_proxy_model, MAX_WORLD_MODELS>;
 		using entity_type		  = pool_allocator_simple<render_proxy_entity, MAX_ENTITIES>;
 		using mesh_instances_type = pool_allocator_simple<render_proxy_mesh_instance, MAX_WORLD_TRAIT_MESH_INSTANCES>;
@@ -248,6 +260,7 @@ namespace SFG
 		materials_type*		 _materials		 = nullptr;
 		shaders_type*		 _shaders		 = nullptr;
 		meshes_type*		 _meshes		 = nullptr;
+		skins_type*			 _skins			 = nullptr;
 		models_type*		 _models		 = nullptr;
 		entity_type*		 _entities		 = nullptr;
 		mesh_instances_type* _mesh_instances = nullptr;

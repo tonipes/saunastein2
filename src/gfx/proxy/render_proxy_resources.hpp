@@ -98,4 +98,13 @@ namespace SFG
 		uint8		   is_skinned	   = 0;
 	};
 
+	struct render_proxy_skin
+	{
+		chunk_handle32 nodes	  = {};
+		chunk_handle32 matrices	  = {};
+		uint16		   node_count = 0;
+		int16		   root_node  = -1;
+		uint8		   status	  = render_proxy_status::rps_inactive;
+	};
+
 }

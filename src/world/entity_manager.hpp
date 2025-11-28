@@ -41,8 +41,8 @@ namespace SFG
 		const aabb&			 get_entity_aabb(world_handle entity);
 		const entity_meta&	 get_entity_meta(world_handle entity) const;
 		const entity_family& get_entity_family(world_handle entity) const;
-		void				 on_add_render_proxy(world_handle entity);
-		void				 on_remove_render_proxy(world_handle entity);
+		void				 add_render_proxy(world_handle entity);
+		void				 remove_render_proxy(world_handle entity);
 		void				 set_entity_visible(world_handle entity, bool is_visible);
 		void				 remove_all_entity_traits(world_handle entity);
 		world_handle		 get_valid_handle_by_index(world_id id);

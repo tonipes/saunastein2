@@ -73,12 +73,17 @@ namespace SFG
 			return *_world;
 		}
 
-		#ifdef SFG_TOOLMODE
+		inline game& get_game() const
+		{
+			return *_game;
+		}
+
+#ifdef SFG_TOOLMODE
 		inline editor* get_editor() const
 		{
 			return _editor;
-	}
-		#endif
+		}
+#endif
 
 	private:
 		void		render_loop();

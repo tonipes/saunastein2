@@ -341,29 +341,35 @@ namespace SFG
 
 					for (size_t j = 0; j < num_joints; j++)
 					{
-						const uint32 vertex_index = start_vertex + j / 4;
+						const uint32 vertex_index = start_vertex + j;
 
 						if (joints_a.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT)
 						{
 							const size_t  stride					 = joints_bv.byteStride == 0 ? sizeof(uint16) * 4 : joints_bv.byteStride;
 							const uint16* rawData					 = reinterpret_cast<const uint16*>(joints_b.data.data() + joints_a.byteOffset + joints_bv.byteOffset + j * stride);
-							prim.vertices[vertex_index].bone_indices = vector4i16(rawData[0], rawData[1], rawData[2], rawData[3]);
+							prim.vertices[vertex_index].bone_indices = vector4i(rawData[0], rawData[1], rawData[2], rawData[3]);
+						}
+						else if (joints_a.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE)
+						{
+							const size_t   stride					 = joints_bv.byteStride == 0 ? sizeof(uint8) * 4 : joints_bv.byteStride;
+							const uint8*   rawData					 = reinterpret_cast<const uint8*>(joints_b.data.data() + joints_a.byteOffset + joints_bv.byteOffset + j * stride);
+							const vector4i idx						 = vector4i(rawData[0], rawData[1], rawData[2], rawData[3]);
+							prim.vertices[vertex_index].bone_indices = idx;
 						}
 						else
 						{
-							const size_t stride						 = joints_bv.byteStride == 0 ? sizeof(uint8) * 4 : joints_bv.byteStride;
-							const uint8* rawData					 = reinterpret_cast<const uint8*>(joints_b.data.data() + joints_a.byteOffset + joints_bv.byteOffset + j * stride);
-							prim.vertices[vertex_index].bone_indices = vector4i16(rawData[0], rawData[1], rawData[2], rawData[3]);
+							SFG_ASSERT(false);
 						}
 					}
 
 					const size_t num_weights = weights_a.count;
 					for (size_t j = 0; j < num_weights; ++j)
 					{
-						const uint32 vertex_index				 = start_vertex + j / 4;
-						const size_t stride						 = weights_bv.byteStride == 0 ? sizeof(float) * 4 : weights_bv.byteStride;
-						const float* rawData					 = reinterpret_cast<const float*>(weights_b.data.data() + weights_a.byteOffset + weights_bv.byteOffset + j * stride);
-						prim.vertices[vertex_index].bone_weights = vector4(rawData[0], rawData[1], rawData[2], rawData[3]);
+						const uint32  vertex_index				 = start_vertex + j;
+						const size_t  stride					 = weights_bv.byteStride == 0 ? sizeof(float) * 4 : weights_bv.byteStride;
+						const float*  rawData					 = reinterpret_cast<const float*>(weights_b.data.data() + weights_a.byteOffset + weights_bv.byteOffset + j * stride);
+						const vector4 weights					 = vector4(rawData[0], rawData[1], rawData[2], rawData[3]);
+						prim.vertices[vertex_index].bone_weights = weights;
 					}
 
 					fill_prim(prim, model, tprim, vertex_accessor, vertex_buffer_view, vertex_buffer, num_vertices, start_vertex, start_index);
@@ -381,6 +387,7 @@ namespace SFG
 
 				fill_prim(prim, model, tprim, vertex_accessor, vertex_buffer_view, vertex_buffer, num_vertices, start_vertex, start_index);
 			}
+
 		}
 
 		const size_t all_skins_sz = model.skins.size();
@@ -1003,7 +1010,7 @@ namespace SFG
 		const string sid_str		 = std::to_string(TO_SID(relative_path));
 		const string meta_cache_path = cache_folder_path + sid_str + "_meta" + extension;
 		const string data_cache_path = cache_folder_path + sid_str + "_data" + extension;
-		
+
 		if (!file_system::exists(meta_cache_path.c_str()))
 			return false;
 

@@ -18,9 +18,11 @@ namespace SFG
 		// state bindings
 		gpu_index material_constant_index = NULL_GPU_INDEX;
 		gpu_index texture_constant_index  = NULL_GPU_INDEX;
-		gpu_index entity_constant_index	  = NULL_GPU_INDEX; // entity constant maps to object_constant0
+		gpu_index entity_constant_index	  = NULL_GPU_INDEX;
+		gpu_index bone_constant_index	  = NULL_GPU_INDEX;
+
 #ifdef SFG_TOOLMODE
-		gpu_index entity_world_id = NULL_GPU_INDEX; // extra per-draw constant: actual world_id -> object_constant1
+		gpu_index entity_world_id = NULL_GPU_INDEX;
 #endif
 
 		// state bindings
@@ -42,9 +44,11 @@ namespace SFG
 		// state bindings
 		gpu_index material_constant_index = NULL_GPU_INDEX;
 		gpu_index texture_constant_index  = NULL_GPU_INDEX;
-		gpu_index entity_constant_index	  = NULL_GPU_INDEX; // entity constant maps to object_constant0
+		gpu_index entity_constant_index	  = NULL_GPU_INDEX;
+		gpu_index bone_constant_index	  = NULL_GPU_INDEX;
+
 #ifdef SFG_TOOLMODE
-		gpu_index entity_world_id = NULL_GPU_INDEX; // extra per-draw constant: actual world_id -> object_constant1
+		gpu_index entity_world_id = NULL_GPU_INDEX;
 #endif
 
 		// state bindings

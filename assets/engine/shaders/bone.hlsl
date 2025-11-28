@@ -1,4 +1,4 @@
 struct gpu_bone
 {
-    float3x4 bone;
+    float4x4 bone;
 };

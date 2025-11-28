@@ -57,7 +57,7 @@ namespace SFG
 		static void on_model_instance_instantiate(trait_model_instance* t, resource_handle model, void* ud);
 
 	private:
-		app&		  _game;
+		app&		  _app;
 		world_handle  _camera_entity   = {};
 		world_handle  _camera_trait	   = {};
 		world_handle  _demo_model_root = {};

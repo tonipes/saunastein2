@@ -33,7 +33,7 @@ namespace SFG
 
 	void editor_camera::activate()
 	{
-		SFG_ASSERT(_entity.is_null());
+		SFG_ASSERT(_is_active == 0);
 
 		world&			w  = *_world;
 		entity_manager& em = w.get_entity_manager();
@@ -46,7 +46,7 @@ namespace SFG
 		cam_trait.set_values(w, 0.01f, 250.0f, 60.0f, {0.01f, 0.04f, 0.125f, 0.25f, 0.5f});
 		cam_trait.set_main(w);
 
-		em.set_entity_position(_entity, vector3(0.0f, 0, 5));
+		em.set_entity_position(_entity, vector3(0.0f, 0, 0));
 		em.set_entity_rotation(_entity, quat::identity);
 
 		const quat&	  rot	= em.get_entity_rotation(_entity);
@@ -58,6 +58,8 @@ namespace SFG
 
 	void editor_camera::deactivate()
 	{
+		SFG_ASSERT(_is_active == 1);
+
 		world&			w  = *_world;
 		entity_manager& em = w.get_entity_manager();
 		trait_manager&	tm = w.get_trait_manager();

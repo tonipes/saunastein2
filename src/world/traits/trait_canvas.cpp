@@ -14,7 +14,7 @@ namespace SFG
 {
 	void trait_canvas::on_add(world& w)
 	{
-		w.get_entity_manager().on_add_render_proxy(_header.entity);
+		w.get_entity_manager().add_render_proxy(_header.entity);
 
 		chunk_allocator32& aux = w.get_trait_manager().get_aux();
 		_builder			   = new vekt::builder();
@@ -22,7 +22,7 @@ namespace SFG
 
 	void trait_canvas::on_remove(world& w)
 	{
-		w.get_entity_manager().on_remove_render_proxy(_header.entity);
+		w.get_entity_manager().remove_render_proxy(_header.entity);
 
 		if (_flags.is_set(trait_canvas::flags::is_init))
 			uninit_builder(w);

@@ -18,13 +18,13 @@ namespace SFG
 
 	void trait_dir_light::on_add(world& w)
 	{
-		w.get_entity_manager().on_add_render_proxy(_header.entity);
+		w.get_entity_manager().add_render_proxy(_header.entity);
 		send_event(w);
 	}
 
 	void trait_dir_light::on_remove(world& w)
 	{
-		w.get_entity_manager().on_remove_render_proxy(_header.entity);
+		w.get_entity_manager().remove_render_proxy(_header.entity);
 		w.get_render_stream().add_event({
 			.index		= _header.own_handle.index,
 			.event_type = render_event_type::remove_dir_light,
@@ -75,12 +75,12 @@ namespace SFG
 
 	void trait_spot_light::on_add(world& w)
 	{
-		w.get_entity_manager().on_add_render_proxy(_header.entity);
+		w.get_entity_manager().add_render_proxy(_header.entity);
 		send_event(w);
 	}
 	void trait_spot_light::on_remove(world& w)
 	{
-		w.get_entity_manager().on_remove_render_proxy(_header.entity);
+		w.get_entity_manager().remove_render_proxy(_header.entity);
 		w.get_render_stream().add_event({
 			.index		= _header.own_handle.index,
 			.event_type = render_event_type::remove_spot_light,
@@ -135,12 +135,12 @@ namespace SFG
 
 	void trait_point_light::on_add(world& w)
 	{
-		w.get_entity_manager().on_add_render_proxy(_header.entity);
+		w.get_entity_manager().add_render_proxy(_header.entity);
 		send_event(w);
 	}
 	void trait_point_light::on_remove(world& w)
 	{
-		w.get_entity_manager().on_remove_render_proxy(_header.entity);
+		w.get_entity_manager().remove_render_proxy(_header.entity);
 		w.get_render_stream().add_event({
 			.index		= _header.own_handle.index,
 			.event_type = render_event_type::remove_point_light,
