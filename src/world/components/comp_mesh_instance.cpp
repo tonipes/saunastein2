@@ -1,5 +1,5 @@
 // Copyright (c) 2025 Inan Evin
-#include "trait_mesh_instance.hpp"
+#include "comp_mesh_instance.hpp"
 #include "data/ostream.hpp"
 #include "data/istream.hpp"
 #include "world/world.hpp"
@@ -16,13 +16,13 @@ using json = nlohmann::json;
 
 namespace SFG
 {
-	void trait_mesh_instance::on_add(world& w)
+	void comp_mesh_instance::on_add(world& w)
 	{
 
 		w.get_entity_manager().add_render_proxy(_header.entity);
 	}
 
-	void trait_mesh_instance::on_remove(world& w)
+	void comp_mesh_instance::on_remove(world& w)
 	{
 		w.get_entity_manager().remove_render_proxy(_header.entity);
 
@@ -32,7 +32,7 @@ namespace SFG
 		});
 	}
 
-	void trait_mesh_instance::set_mesh(world& w, resource_handle model_handle, resource_handle mesh, resource_handle skin, world_handle* skin_node_entities, uint32 skin_node_entity_count)
+	void comp_mesh_instance::set_mesh(world& w, resource_handle model_handle, resource_handle mesh, resource_handle skin, world_handle* skin_node_entities, uint32 skin_node_entity_count)
 	{
 		_target_model = model_handle;
 		_target_mesh  = mesh;
@@ -56,7 +56,7 @@ namespace SFG
 			stg);
 	}
 
-	void trait_mesh_instance::serialize(ostream& stream, world& w) const
+	void comp_mesh_instance::serialize(ostream& stream, world& w) const
 	{
 		resource_manager& rm = w.get_resource_manager();
 
@@ -69,7 +69,7 @@ namespace SFG
 		stream << target_mesh_hash;
 	}
 
-	void trait_mesh_instance::deserialize(istream& stream, world& w)
+	void comp_mesh_instance::deserialize(istream& stream, world& w)
 	{
 		string_id target_model_hash = 0;
 		string_id target_mesh_hash	= 0;
@@ -80,7 +80,7 @@ namespace SFG
 
 #ifdef SFG_TOOLMODE
 
-	void trait_mesh_instance::serialize_json(nlohmann::json& j, world& w) const
+	void comp_mesh_instance::serialize_json(nlohmann::json& j, world& w) const
 	{
 		resource_manager& rm = w.get_resource_manager();
 
@@ -93,7 +93,7 @@ namespace SFG
 		j["target_mesh"]  = target_mesh_hash;
 	}
 
-	void trait_mesh_instance::deserialize_json(const nlohmann::json& j, world& w)
+	void comp_mesh_instance::deserialize_json(const nlohmann::json& j, world& w)
 	{
 		resource_manager& rm = w.get_resource_manager();
 
@@ -103,13 +103,13 @@ namespace SFG
 	}
 #endif
 
-	void trait_mesh_instance::fetch_refs(resource_manager& rm, string_id& out_target, string_id& out_target_mesh) const
+	void comp_mesh_instance::fetch_refs(resource_manager& rm, string_id& out_target, string_id& out_target_mesh) const
 	{
 		out_target		= rm.get_resource_hash<model>(_target_model);
 		out_target_mesh = rm.get_resource_hash<mesh>(_target_mesh);
 	}
 
-	void trait_mesh_instance::fill_refs(resource_manager& rm, string_id target_model, string_id target_mesh)
+	void comp_mesh_instance::fill_refs(resource_manager& rm, string_id target_model, string_id target_mesh)
 	{
 		_target_model = rm.get_resource_handle_by_hash<model>(target_model);
 		_target_mesh  = rm.get_resource_handle_by_hash<mesh>(target_mesh);

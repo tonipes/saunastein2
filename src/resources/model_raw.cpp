@@ -14,7 +14,7 @@
 #include "math/math.hpp"
 #include "gfx/common/format.hpp"
 #include "vendor/nhlohmann/json.hpp"
-#include "world/traits/trait_light.hpp"
+#include "world/components/comp_light.hpp"
 #include "project/engine_data.hpp"
 #define TINYGLTF_NO_INCLUDE_STB_IMAGE
 #define TINYGLTF_NO_INCLUDE_STB_IMAGE_WRITE

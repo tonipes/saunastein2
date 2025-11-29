@@ -33,18 +33,19 @@
 #include "resources/world_raw.hpp"
 
 // traits
-#include "traits/trait_camera.hpp"
-#include "traits/trait_light.hpp"
-#include "traits/trait_mesh_instance.hpp"
-#include "traits/trait_model_instance.hpp"
-#include "traits/trait_ambient.hpp"
-#include "traits/trait_physics.hpp"
-#include "traits/trait_audio.hpp"
-#include "traits/trait_canvas.hpp"
+#include "components/comp_camera.hpp"
+#include "components/comp_light.hpp"
+#include "components/comp_mesh_instance.hpp"
+#include "components/comp_model_instance.hpp"
+#include "components/comp_ambient.hpp"
+#include "components/comp_physics.hpp"
+#include "components/comp_audio.hpp"
+#include "components/comp_canvas.hpp"
+#include "components/comp_animation_controller.hpp"
 
 namespace SFG
 {
-	world::world(render_event_stream& rstream) : _entity_manager(*this), _trait_manager(*this), _render_stream(rstream), _resource_manager(*this), _phy_world(*this)
+	world::world(render_event_stream& rstream) : _entity_manager(*this), _comp_manager(*this), _render_stream(rstream), _resource_manager(*this), _phy_world(*this)
 	{
 		_vekt_atlases.reserve(32);
 		_text_allocator.init(MAX_ENTITIES * 32);
@@ -63,16 +64,17 @@ namespace SFG
 		_resource_manager.register_cache<physical_material, physical_material_raw, MAX_WORLD_PHYSICAL_MATERIALS, 0>();
 
 		// trait registry
-		_trait_manager.register_cache<trait_camera, MAX_WORLD_TRAIT_CAMERAS>();
-		_trait_manager.register_cache<trait_point_light, MAX_WORLD_TRAIT_POINT_LIGHTS>();
-		_trait_manager.register_cache<trait_spot_light, MAX_WORLD_TRAIT_SPOT_LIGHTS>();
-		_trait_manager.register_cache<trait_dir_light, MAX_WORLD_TRAIT_DIR_LIGHTS>();
-		_trait_manager.register_cache<trait_model_instance, MAX_WORLD_TRAIT_MODEL_INSTANCES>();
-		_trait_manager.register_cache<trait_mesh_instance, MAX_WORLD_TRAIT_MESH_INSTANCES>();
-		_trait_manager.register_cache<trait_ambient, MAX_WORLD_TRAIT_AMBIENTS>();
-		_trait_manager.register_cache<trait_physics, MAX_WORLD_TRAIT_PHYSICS>();
-		_trait_manager.register_cache<trait_audio, MAX_WORLD_TRAIT_AUDIO>();
-		_trait_manager.register_cache<trait_canvas, MAX_WORLD_TRAIT_CANVAS>();
+		_comp_manager.register_cache<comp_camera, MAX_WORLD_COMP_CAMERAS>();
+		_comp_manager.register_cache<comp_point_light, MAX_WORLD_COMP_POINT_LIGHTS>();
+		_comp_manager.register_cache<comp_spot_light, MAX_WORLD_COMP_SPOT_LIGHTS>();
+		_comp_manager.register_cache<comp_dir_light, MAX_WORLD_COMP_DIR_LIGHTS>();
+		_comp_manager.register_cache<comp_model_instance, MAX_WORLD_COMP_MODEL_INSTANCES>();
+		_comp_manager.register_cache<comp_mesh_instance, MAX_WORLD_COMP_MESH_INSTANCES>();
+		_comp_manager.register_cache<comp_ambient, MAX_WORLD_COMP_AMBIENT>();
+		_comp_manager.register_cache<comp_physics, MAX_WORLD_COMP_PHYSICS>();
+		_comp_manager.register_cache<comp_audio, MAX_WORLD_COMP_AUDIO>();
+		_comp_manager.register_cache<comp_canvas, MAX_WORLD_COMP_CANVAS>();
+		_comp_manager.register_cache<comp_animation_controller, MAX_WORLD_COMP_ANIMS>();
 
 		_phy_world.init();
 		_audio_manager.init();
@@ -96,12 +98,12 @@ namespace SFG
 		_flags.set(world_flags_is_init);
 		_resource_manager.init();
 		_entity_manager.init();
-		_trait_manager.init();
+		_comp_manager.init();
 	}
 
 	void world::uninit()
 	{
-		_trait_manager.uninit();
+		_comp_manager.uninit();
 		_entity_manager.uninit();
 		_resource_manager.uninit();
 		_text_allocator.reset();
@@ -122,9 +124,9 @@ namespace SFG
 		if (_play_mode != play_mode::none)
 			_phy_world.simulate(dt);
 
-		_trait_manager.view<trait_canvas>([&](trait_canvas& cnv) -> trait_view_result {
+		_comp_manager.view<comp_canvas>([&](comp_canvas& cnv) -> comp_view_result {
 			cnv.draw(*this, res);
-			return trait_view_result::cont;
+			return comp_view_result::cont;
 		});
 	}
 
@@ -140,13 +142,13 @@ namespace SFG
 
 		bool handled = false;
 
-		_trait_manager.view<trait_canvas>([&](trait_canvas& cnv) -> trait_view_result {
+		_comp_manager.view<comp_canvas>([&](comp_canvas& cnv) -> comp_view_result {
 			vekt::builder* builder = cnv.get_builder();
 
 			const world_handle entity_handle = cnv.get_header().entity;
 			const bool		   is_invisible	 = _entity_manager.get_entity_meta(entity_handle).flags.is_set(entity_flags::entity_flags_invisible);
 			if (is_invisible)
-				return trait_view_result::cont;
+				return comp_view_result::cont;
 
 			const vekt::input_event_type ev_type = ev.sub_type == window_event_sub_type::press ? vekt::input_event_type::pressed : vekt::input_event_type::released;
 
@@ -184,7 +186,7 @@ namespace SFG
 				builder->on_mouse_move(vector2(mp.x, mp.y));
 			}
 
-			return handled ? trait_view_result::stop : trait_view_result::cont;
+			return handled ? comp_view_result::stop : comp_view_result::cont;
 		});
 
 		return handled;

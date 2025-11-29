@@ -1,5 +1,5 @@
 // Copyright (c) 2025 Inan Evin
-#include "trait_physics.hpp"
+#include "comp_physics.hpp"
 #include "data/ostream.hpp"
 #include "data/istream.hpp"
 #include "world/world.hpp"
@@ -10,32 +10,32 @@
 namespace SFG
 {
 
-	void trait_physics::on_add(world& w)
+	void comp_physics::on_add(world& w)
 	{
 	}
 
-	void trait_physics::on_remove(world& w)
+	void comp_physics::on_remove(world& w)
 	{
 		if (_body)
 		{
 			physics_world& phy_world = w.get_physics_world();
 
-			if (_flags.is_set(trait_physics_flags_in_simulation))
+			if (_flags.is_set(comp_physics_flags_in_sim))
 				remove_from_simulation(w);
 
 			destroy_body(w);
 		}
 	}
 
-	void trait_physics::serialize(ostream& stream, world& w) const
+	void comp_physics::serialize(ostream& stream, world& w) const
 	{
 	}
 
-	void trait_physics::deserialize(istream& stream, world& w)
+	void comp_physics::deserialize(istream& stream, world& w)
 	{
 	}
 
-	void trait_physics::create_body(world& w)
+	void comp_physics::create_body(world& w)
 	{
 		SFG_ASSERT(_body == nullptr);
 
@@ -48,7 +48,7 @@ namespace SFG
 		_body				  = phy_world.create_body(_body_type, _shape_type, _extent_or_height_radius, _material_handle, pos, rot, scale);
 	}
 
-	void trait_physics::destroy_body(world& w)
+	void comp_physics::destroy_body(world& w)
 	{
 		physics_world& phy_world = w.get_physics_world();
 		SFG_ASSERT(_body != nullptr);
@@ -56,21 +56,21 @@ namespace SFG
 		_body = nullptr;
 	}
 
-	void trait_physics::add_to_simulation(world& w)
+	void comp_physics::add_to_simulation(world& w)
 	{
 		SFG_ASSERT(_body != nullptr);
 		physics_world& phy_world = w.get_physics_world();
 		auto		   id		 = _body->GetID();
 		phy_world.add_bodies_to_world(&id, 1);
-		_flags.set(trait_physics_flags_in_simulation);
+		_flags.set(comp_physics_flags_in_sim);
 	}
 
-	void trait_physics::remove_from_simulation(world& w)
+	void comp_physics::remove_from_simulation(world& w)
 	{
 		SFG_ASSERT(_body != nullptr);
 		physics_world& phy_world = w.get_physics_world();
 		phy_world.remove_body_from_world(*_body);
-		_flags.remove(trait_physics_flags_in_simulation);
+		_flags.remove(comp_physics_flags_in_sim);
 	}
 
 }

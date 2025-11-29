@@ -44,7 +44,7 @@ namespace SFG
 		void				 add_render_proxy(world_handle entity);
 		void				 remove_render_proxy(world_handle entity);
 		void				 set_entity_visible(world_handle entity, bool is_visible);
-		void				 remove_all_entity_traits(world_handle entity);
+		void				 remove_all_entity_components(world_handle entity);
 		world_handle		 get_valid_handle_by_index(world_id id);
 
 		inline bool is_valid(world_handle entity) const
@@ -80,11 +80,11 @@ namespace SFG
 		template <typename T> world_handle get_entity_trait(world_handle entity)
 		{
 			SFG_ASSERT(is_valid(entity));
-			const entity_trait_register& reg = _trait_registers->get(entity.index);
-			for (const entity_trait& t : reg.traits)
+			const entity_comp_register& reg = _comp_registers->get(entity.index);
+			for (const entity_comp& t : reg.comps)
 			{
-				if (t.trait_type == type_id<T>::value)
-					return t.trait_handle;
+				if (t.comp_type == type_id<T>::value)
+					return t.comp_handle;
 			}
 			return {};
 		}
@@ -131,29 +131,29 @@ namespace SFG
 		}
 
 	private:
-		friend class trait_manager;
+		friend class component_manager;
 
-		void on_trait_added(world_handle entity, world_handle trait_handle, string_id trait_type);
-		void on_trait_removed(world_handle entity, world_handle trait_handle, string_id trait_type);
+		void on_component_added(world_handle entity, world_handle comp_handle, string_id comp_type);
+		void on_component_removed(world_handle entity, world_handle comp_handle, string_id comp_type);
 		void reset_all_entity_data();
 		void reset_entity_data(world_handle handle);
 
 	private:
 		world& _world;
 
-		pool_allocator_gen<world_id, world_id, MAX_ENTITIES>*		_entities		 = {};
-		pool_allocator_simple<entity_meta, MAX_ENTITIES>*			_metas			 = {};
-		pool_allocator_simple<entity_family, MAX_ENTITIES>*			_families		 = {};
-		pool_allocator_simple<vector3, MAX_ENTITIES>*				_positions		 = {};
-		pool_allocator_simple<vector3, MAX_ENTITIES>*				_prev_positions	 = {};
-		pool_allocator_simple<quat, MAX_ENTITIES>*					_rotations		 = {};
-		pool_allocator_simple<quat, MAX_ENTITIES>*					_rotations_abs	 = {};
-		pool_allocator_simple<quat, MAX_ENTITIES>*					_prev_rotations	 = {};
-		pool_allocator_simple<vector3, MAX_ENTITIES>*				_scales			 = {};
-		pool_allocator_simple<vector3, MAX_ENTITIES>*				_prev_scales	 = {};
-		pool_allocator_simple<aabb, MAX_ENTITIES>*					_aabbs			 = {};
-		pool_allocator_simple<matrix4x3, MAX_ENTITIES>*				_matrices		 = {};
-		pool_allocator_simple<matrix4x3, MAX_ENTITIES>*				_abs_matrices	 = {};
-		pool_allocator_simple<entity_trait_register, MAX_ENTITIES>* _trait_registers = {};
+		pool_allocator_gen<world_id, world_id, MAX_ENTITIES>*	   _entities	   = {};
+		pool_allocator_simple<entity_meta, MAX_ENTITIES>*		   _metas		   = {};
+		pool_allocator_simple<entity_family, MAX_ENTITIES>*		   _families	   = {};
+		pool_allocator_simple<vector3, MAX_ENTITIES>*			   _positions	   = {};
+		pool_allocator_simple<vector3, MAX_ENTITIES>*			   _prev_positions = {};
+		pool_allocator_simple<quat, MAX_ENTITIES>*				   _rotations	   = {};
+		pool_allocator_simple<quat, MAX_ENTITIES>*				   _rotations_abs  = {};
+		pool_allocator_simple<quat, MAX_ENTITIES>*				   _prev_rotations = {};
+		pool_allocator_simple<vector3, MAX_ENTITIES>*			   _scales		   = {};
+		pool_allocator_simple<vector3, MAX_ENTITIES>*			   _prev_scales	   = {};
+		pool_allocator_simple<aabb, MAX_ENTITIES>*				   _aabbs		   = {};
+		pool_allocator_simple<matrix4x3, MAX_ENTITIES>*			   _matrices	   = {};
+		pool_allocator_simple<matrix4x3, MAX_ENTITIES>*			   _abs_matrices   = {};
+		pool_allocator_simple<entity_comp_register, MAX_ENTITIES>* _comp_registers = {};
 	};
 }

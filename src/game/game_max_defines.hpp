@@ -35,17 +35,18 @@ namespace SFG
 	// traits
 	// -----------------------------------------------------------------------------
 
-#define MAX_WORLD_TRAITS_AUX_MEMORY		1024 * 512
-#define MAX_WORLD_TRAIT_CAMERAS			32
-#define MAX_WORLD_TRAIT_DIR_LIGHTS		8
-#define MAX_WORLD_TRAIT_POINT_LIGHTS	128
-#define MAX_WORLD_TRAIT_SPOT_LIGHTS		128
-#define MAX_WORLD_TRAIT_MESH_INSTANCES	1024 * 10
-#define MAX_WORLD_TRAIT_MODEL_INSTANCES 1024
-#define MAX_WORLD_TRAIT_AMBIENTS		1
-#define MAX_WORLD_TRAIT_PHYSICS			1000
-#define MAX_WORLD_TRAIT_AUDIO			256
-#define MAX_WORLD_TRAIT_CANVAS			32
+#define MAX_WORLD_COMPONENTS_AUX_MEMORY 1024 * 512
+#define MAX_WORLD_COMP_CAMERAS			32
+#define MAX_WORLD_COMP_DIR_LIGHTS		8
+#define MAX_WORLD_COMP_POINT_LIGHTS		128
+#define MAX_WORLD_COMP_SPOT_LIGHTS		128
+#define MAX_WORLD_COMP_MESH_INSTANCES	1024 * 10
+#define MAX_WORLD_COMP_MODEL_INSTANCES	1024
+#define MAX_WORLD_COMP_AMBIENT			1
+#define MAX_WORLD_COMP_PHYSICS			1000
+#define MAX_WORLD_COMP_AUDIO			256
+#define MAX_WORLD_COMP_CANVAS			32
+#define MAX_WORLD_COMP_ANIMS			32
 
 	// -----------------------------------------------------------------------------
 	// gfx

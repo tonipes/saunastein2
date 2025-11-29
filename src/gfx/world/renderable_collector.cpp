@@ -2,7 +2,7 @@
 
 #include "renderable_collector.hpp"
 #include "gfx/proxy/render_proxy_entity.hpp"
-#include "gfx/proxy/render_proxy_traits.hpp"
+#include "gfx/proxy/render_proxy_components.hpp"
 #include "gfx/proxy/proxy_manager.hpp"
 #include "gfx/world/view.hpp"
 #include "gfx/draw_stream.hpp"

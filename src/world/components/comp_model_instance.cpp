@@ -1,10 +1,10 @@
 // Copyright (c) 2025 Inan Evin
-#include "trait_model_instance.hpp"
+#include "comp_model_instance.hpp"
 #include "data/ostream.hpp"
 #include "data/istream.hpp"
 #include "world/world.hpp"
-#include "world/traits/trait_mesh_instance.hpp"
-#include "world/traits/trait_light.hpp"
+#include "world/components/comp_mesh_instance.hpp"
+#include "world/components/comp_light.hpp"
 #include "resources/model.hpp"
 #include "resources/model_node.hpp"
 #include "resources/mesh.hpp"
@@ -22,18 +22,18 @@ using json = nlohmann::json;
 namespace SFG
 {
 
-	void trait_model_instance::on_add(world& w)
+	void comp_model_instance::on_add(world& w)
 	{
 		w.get_entity_manager().add_render_proxy(_header.entity);
 	}
 
-	void trait_model_instance::on_remove(world& w)
+	void comp_model_instance::on_remove(world& w)
 	{
 		entity_manager& em = w.get_entity_manager();
 		em.remove_render_proxy(_header.entity);
 
-		trait_manager&	   tm  = w.get_trait_manager();
-		chunk_allocator32& aux = tm.get_aux();
+		component_manager& cm  = w.get_comp_manager();
+		chunk_allocator32& aux = cm.get_aux();
 
 		if (_skin_entities.size != 0)
 		{
@@ -56,14 +56,14 @@ namespace SFG
 		_skin_entities		 = {};
 	}
 
-	void trait_model_instance::instantiate_model_to_world(world& w, resource_handle model_handle)
+	void comp_model_instance::instantiate_model_to_world(world& w, resource_handle model_handle)
 	{
 		_target_model = model_handle;
 
 		entity_manager&	   em	   = w.get_entity_manager();
-		trait_manager&	   tm	   = w.get_trait_manager();
+		component_manager& cm	   = w.get_comp_manager();
 		resource_manager&  res	   = w.get_resource_manager();
-		chunk_allocator32& tm_aux  = tm.get_aux();
+		chunk_allocator32& tm_aux  = cm.get_aux();
 		chunk_allocator32& res_aux = res.get_aux();
 
 		model&				 mdl		  = res.get_resource<model>(model_handle);
@@ -217,21 +217,21 @@ namespace SFG
 
 				if (lr.type == light_raw_type::point)
 				{
-					const world_handle light_handle = tm.add_trait<trait_point_light>(entity);
-					trait_point_light& trait_light	= tm.get_trait<trait_point_light>(light_handle);
-					trait_light.set_values(w, lr.base_color, lr.range, lr.intensity);
+					const world_handle light_handle = cm.add_component<comp_point_light>(entity);
+					comp_point_light&  comp_light	= cm.get_component<comp_point_light>(light_handle);
+					comp_light.set_values(w, lr.base_color, lr.range, lr.intensity);
 				}
 				else if (lr.type == light_raw_type::spot)
 				{
-					const world_handle light_handle = tm.add_trait<trait_spot_light>(entity);
-					trait_spot_light&  trait_light	= tm.get_trait<trait_spot_light>(light_handle);
-					trait_light.set_values(w, lr.base_color, lr.range, lr.intensity, lr.inner_cone, lr.outer_cone);
+					const world_handle light_handle = cm.add_component<comp_spot_light>(entity);
+					comp_spot_light&   comp_light	= cm.get_component<comp_spot_light>(light_handle);
+					comp_light.set_values(w, lr.base_color, lr.range, lr.intensity, lr.inner_cone, lr.outer_cone);
 				}
 				else if (lr.type == light_raw_type::sun)
 				{
-					const world_handle light_handle = tm.add_trait<trait_dir_light>(entity);
-					trait_dir_light&   trait_light	= tm.get_trait<trait_dir_light>(light_handle);
-					trait_light.set_values(w, lr.base_color, lr.range, lr.intensity);
+					const world_handle light_handle = cm.add_component<comp_dir_light>(entity);
+					comp_dir_light&	   comp_light	= cm.get_component<comp_dir_light>(light_handle);
+					comp_light.set_values(w, lr.base_color, lr.range, lr.intensity);
 				}
 			}
 
@@ -248,10 +248,10 @@ namespace SFG
 				skin_handle = model_skins[skin_index];
 			}
 
-			const resource_handle& mesh_handle	= ptr_meshes_handle[node.get_mesh_index()];
-			const mesh&			   m			= res.get_resource<mesh>(mesh_handle);
-			const world_handle	   trait_handle = tm.add_trait<trait_mesh_instance>(entity);
-			trait_mesh_instance&   mi			= tm.get_trait<trait_mesh_instance>(trait_handle);
+			const resource_handle& mesh_handle = ptr_meshes_handle[node.get_mesh_index()];
+			const mesh&			   m		   = res.get_resource<mesh>(mesh_handle);
+			const world_handle	   comp_handle = cm.add_component<comp_mesh_instance>(entity);
+			comp_mesh_instance&	   mi		   = cm.get_component<comp_mesh_instance>(comp_handle);
 			mi.set_mesh(w, model_handle, mesh_handle, skin_handle, skin_index != -1 ? created_node_entities.data() : nullptr, skin_index != -1 ? static_cast<uint32>(created_node_entities.size()) : 0);
 		}
 
@@ -277,7 +277,7 @@ namespace SFG
 			_instantiate_callback(this, model_handle, _instantiate_user_data);
 	}
 
-	void trait_model_instance::serialize(ostream& stream, world& w) const
+	void comp_model_instance::serialize(ostream& stream, world& w) const
 	{
 		resource_manager& rm = w.get_resource_manager();
 
@@ -287,7 +287,7 @@ namespace SFG
 		stream << target_model_hash;
 	}
 
-	void trait_model_instance::deserialize(istream& stream, world& w)
+	void comp_model_instance::deserialize(istream& stream, world& w)
 	{
 		string_id target_model_hash = 0;
 		stream >> target_model_hash;
@@ -296,7 +296,7 @@ namespace SFG
 
 #ifdef SFG_TOOLMODE
 
-	void trait_model_instance::serialize_json(nlohmann::json& j, world& w) const
+	void comp_model_instance::serialize_json(nlohmann::json& j, world& w) const
 	{
 		resource_manager& rm = w.get_resource_manager();
 
@@ -306,7 +306,7 @@ namespace SFG
 		j["target_model"] = target_model_hash;
 	}
 
-	void trait_model_instance::deserialize_json(const nlohmann::json& j, world& w)
+	void comp_model_instance::deserialize_json(const nlohmann::json& j, world& w)
 	{
 		resource_manager& rm = w.get_resource_manager();
 
@@ -315,12 +315,12 @@ namespace SFG
 	}
 #endif
 
-	void trait_model_instance::fetch_refs(resource_manager& rm, string_id& out_target) const
+	void comp_model_instance::fetch_refs(resource_manager& rm, string_id& out_target) const
 	{
 		out_target = rm.get_resource_hash<model>(_target_model);
 	}
 
-	void trait_model_instance::fill_refs(resource_manager& rm, string_id target_model)
+	void comp_model_instance::fill_refs(resource_manager& rm, string_id target_model)
 	{
 		_target_model = rm.get_resource_handle_by_hash<model>(target_model);
 	}

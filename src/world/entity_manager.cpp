@@ -11,20 +11,20 @@ namespace SFG
 {
 	entity_manager::entity_manager(world& w) : _world(w)
 	{
-		_entities		 = new pool_allocator_gen<world_id, world_id, MAX_ENTITIES>();
-		_metas			 = new pool_allocator_simple<entity_meta, MAX_ENTITIES>();
-		_families		 = new pool_allocator_simple<entity_family, MAX_ENTITIES>();
-		_positions		 = new pool_allocator_simple<vector3, MAX_ENTITIES>();
-		_prev_positions	 = new pool_allocator_simple<vector3, MAX_ENTITIES>();
-		_rotations		 = new pool_allocator_simple<quat, MAX_ENTITIES>();
-		_rotations_abs	 = new pool_allocator_simple<quat, MAX_ENTITIES>();
-		_prev_rotations	 = new pool_allocator_simple<quat, MAX_ENTITIES>();
-		_scales			 = new pool_allocator_simple<vector3, MAX_ENTITIES>();
-		_prev_scales	 = new pool_allocator_simple<vector3, MAX_ENTITIES>();
-		_aabbs			 = new pool_allocator_simple<aabb, MAX_ENTITIES>();
-		_matrices		 = new pool_allocator_simple<matrix4x3, MAX_ENTITIES>();
-		_abs_matrices	 = new pool_allocator_simple<matrix4x3, MAX_ENTITIES>();
-		_trait_registers = new pool_allocator_simple<entity_trait_register, MAX_ENTITIES>();
+		_entities		= new pool_allocator_gen<world_id, world_id, MAX_ENTITIES>();
+		_metas			= new pool_allocator_simple<entity_meta, MAX_ENTITIES>();
+		_families		= new pool_allocator_simple<entity_family, MAX_ENTITIES>();
+		_positions		= new pool_allocator_simple<vector3, MAX_ENTITIES>();
+		_prev_positions = new pool_allocator_simple<vector3, MAX_ENTITIES>();
+		_rotations		= new pool_allocator_simple<quat, MAX_ENTITIES>();
+		_rotations_abs	= new pool_allocator_simple<quat, MAX_ENTITIES>();
+		_prev_rotations = new pool_allocator_simple<quat, MAX_ENTITIES>();
+		_scales			= new pool_allocator_simple<vector3, MAX_ENTITIES>();
+		_prev_scales	= new pool_allocator_simple<vector3, MAX_ENTITIES>();
+		_aabbs			= new pool_allocator_simple<aabb, MAX_ENTITIES>();
+		_matrices		= new pool_allocator_simple<matrix4x3, MAX_ENTITIES>();
+		_abs_matrices	= new pool_allocator_simple<matrix4x3, MAX_ENTITIES>();
+		_comp_registers = new pool_allocator_simple<entity_comp_register, MAX_ENTITIES>();
 	}
 
 	entity_manager::~entity_manager()
@@ -42,7 +42,7 @@ namespace SFG
 		delete _aabbs;
 		delete _matrices;
 		delete _abs_matrices;
-		delete _trait_registers;
+		delete _comp_registers;
 	}
 
 	void entity_manager::init()
@@ -77,29 +77,29 @@ namespace SFG
 		reset_all_entity_data();
 	}
 
-	void entity_manager::on_trait_added(world_handle entity, world_handle trait_handle, string_id trait_type)
+	void entity_manager::on_component_added(world_handle entity, world_handle comp_handle, string_id comp_type)
 	{
 		SFG_ASSERT(_entities->is_valid(entity));
-		entity_trait_register& reg = _trait_registers->get(entity.index);
+		entity_comp_register& reg = _comp_registers->get(entity.index);
 
-		const entity_trait target = {
-			.trait_type	  = trait_type,
-			.trait_handle = trait_handle,
+		const entity_comp target = {
+			.comp_type	 = comp_type,
+			.comp_handle = comp_handle,
 		};
 
-		reg.traits.push_back(target);
+		reg.comps.push_back(target);
 	}
 
-	void entity_manager::on_trait_removed(world_handle entity, world_handle trait_handle, string_id trait_type)
+	void entity_manager::on_component_removed(world_handle entity, world_handle comp_handle, string_id comp_type)
 	{
 		SFG_ASSERT(_entities->is_valid(entity));
-		entity_trait_register& reg = _trait_registers->get(entity.index);
+		entity_comp_register& reg = _comp_registers->get(entity.index);
 
-		const entity_trait target = {
-			.trait_type	  = trait_type,
-			.trait_handle = trait_handle,
+		const entity_comp target = {
+			.comp_type	 = comp_type,
+			.comp_handle = comp_handle,
 		};
-		reg.traits.remove_swap(target);
+		reg.comps.remove_swap(target);
 	}
 
 	void entity_manager::reset_all_entity_data()
@@ -117,7 +117,7 @@ namespace SFG
 		_matrices->reset();
 		_abs_matrices->reset();
 		_families->reset();
-		_trait_registers->reset();
+		_comp_registers->reset();
 	}
 
 	void entity_manager::reset_entity_data(world_handle handle)
@@ -126,12 +126,12 @@ namespace SFG
 		entity_meta&   meta = _metas->get(id);
 		_world.get_text_allocator().deallocate(meta.name);
 
-		entity_trait_register& reg			 = _trait_registers->get(id);
-		auto				   copied_traits = reg.traits;
+		entity_comp_register& reg		   = _comp_registers->get(id);
+		auto				  copied_comps = reg.comps;
 
-		trait_manager& tm = _world.get_trait_manager();
-		for (const entity_trait& t : copied_traits)
-			tm.remove_trait(t.trait_type, handle, t.trait_handle);
+		component_manager& cm = _world.get_comp_manager();
+		for (const entity_comp& t : copied_comps)
+			cm.remove_component(t.comp_type, handle, t.comp_handle);
 
 		_aabbs->reset(id);
 		_metas->reset(id);
@@ -145,7 +145,7 @@ namespace SFG
 		_matrices->reset(id);
 		_abs_matrices->reset(id);
 		_families->reset(id);
-		_trait_registers->reset(id);
+		_comp_registers->reset(id);
 	}
 
 	world_handle entity_manager::create_entity(const char* name)
@@ -222,7 +222,7 @@ namespace SFG
 			target_child = next;
 		}
 
-		remove_all_entity_traits(entity);
+		remove_all_entity_components(entity);
 		reset_entity_data(entity);
 		_entities->remove(entity);
 	}
@@ -393,8 +393,18 @@ namespace SFG
 		meta.flags.set(entity_flags::entity_flags_invisible, !is_visible);
 	}
 
-	void entity_manager::remove_all_entity_traits(world_handle entity)
+	void entity_manager::remove_all_entity_components(world_handle entity)
 	{
+		SFG_ASSERT(is_valid(entity));
+		entity_comp_register& reg = _comp_registers->get(entity.index);
+		component_manager&	  cm  = _world.get_comp_manager();
+
+		for (const entity_comp& c : reg.comps)
+		{
+			cm.remove_component(c.comp_type, entity, c.comp_handle);
+		}
+
+		reg.comps.resize(0);
 	}
 
 	world_handle entity_manager::get_valid_handle_by_index(world_id id)

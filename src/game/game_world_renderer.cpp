@@ -88,42 +88,42 @@ namespace SFG
 
 			pfd.dir_lights_buffer.create_staging_hw(
 				{
-					.size		= sizeof(gpu_dir_light) * MAX_WORLD_TRAIT_DIR_LIGHTS,
+					.size		= sizeof(gpu_dir_light) * MAX_WORLD_COMP_DIR_LIGHTS,
 					.flags		= resource_flags::rf_cpu_visible,
 					.debug_name = "lighting_dir_lights_cpu",
 				},
 				{
-					.size			 = sizeof(gpu_dir_light) * MAX_WORLD_TRAIT_DIR_LIGHTS,
+					.size			 = sizeof(gpu_dir_light) * MAX_WORLD_COMP_DIR_LIGHTS,
 					.structure_size	 = sizeof(gpu_dir_light),
-					.structure_count = MAX_WORLD_TRAIT_DIR_LIGHTS,
+					.structure_count = MAX_WORLD_COMP_DIR_LIGHTS,
 					.flags			 = resource_flags::rf_gpu_only | resource_flags::rf_storage_buffer,
 					.debug_name		 = "lighting_dir_lights_gpu",
 				});
 
 			pfd.point_lights_buffer.create_staging_hw(
 				{
-					.size		= sizeof(gpu_point_light) * MAX_WORLD_TRAIT_POINT_LIGHTS,
+					.size		= sizeof(gpu_point_light) * MAX_WORLD_COMP_POINT_LIGHTS,
 					.flags		= resource_flags::rf_cpu_visible,
 					.debug_name = "lighting_point_lights_cpu",
 				},
 				{
-					.size			 = sizeof(gpu_point_light) * MAX_WORLD_TRAIT_POINT_LIGHTS,
+					.size			 = sizeof(gpu_point_light) * MAX_WORLD_COMP_POINT_LIGHTS,
 					.structure_size	 = sizeof(gpu_point_light),
-					.structure_count = MAX_WORLD_TRAIT_POINT_LIGHTS,
+					.structure_count = MAX_WORLD_COMP_POINT_LIGHTS,
 					.flags			 = resource_flags::rf_gpu_only | resource_flags::rf_storage_buffer,
 					.debug_name		 = "lighting_point_lights_gpu",
 				});
 
 			pfd.spot_lights_buffer.create_staging_hw(
 				{
-					.size		= sizeof(gpu_spot_light) * MAX_WORLD_TRAIT_SPOT_LIGHTS,
+					.size		= sizeof(gpu_spot_light) * MAX_WORLD_COMP_SPOT_LIGHTS,
 					.flags		= resource_flags::rf_cpu_visible,
 					.debug_name = "lighting_spot_lights_cpu",
 				},
 				{
-					.size			 = sizeof(gpu_spot_light) * MAX_WORLD_TRAIT_SPOT_LIGHTS,
+					.size			 = sizeof(gpu_spot_light) * MAX_WORLD_COMP_SPOT_LIGHTS,
 					.structure_size	 = sizeof(gpu_spot_light),
-					.structure_count = MAX_WORLD_TRAIT_SPOT_LIGHTS,
+					.structure_count = MAX_WORLD_COMP_SPOT_LIGHTS,
 					.flags			 = resource_flags::rf_gpu_only | resource_flags::rf_storage_buffer,
 					.debug_name		 = "lighting_spot_lights_gpu",
 				});

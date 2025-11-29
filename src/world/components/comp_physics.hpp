@@ -2,8 +2,8 @@
 #pragma once
 
 #include "data/bitmask.hpp"
-#include "world/traits/common_trait.hpp"
-#include "reflection/trait_reflection.hpp"
+#include "world/components/common_comps.hpp"
+#include "reflection/component_reflection.hpp"
 #include "physics/common_physics.hpp"
 #include "resources/common_resources.hpp"
 #include "math/vector3.hpp"
@@ -19,12 +19,12 @@ namespace SFG
 	class istream;
 	class world;
 
-	class trait_physics
+	class comp_physics
 	{
 	public:
 		enum flags
 		{
-			trait_physics_flags_in_simulation = 1 << 0,
+			comp_physics_flags_in_sim = 1 << 0,
 		};
 
 		// -----------------------------------------------------------------------------
@@ -50,7 +50,7 @@ namespace SFG
 		// accessors
 		// -----------------------------------------------------------------------------
 
-		inline const trait_header& get_header() const
+		inline const component_header& get_header() const
 		{
 			return _header;
 		}
@@ -112,10 +112,10 @@ namespace SFG
 		}
 
 	private:
-		template <typename T, int> friend class trait_cache;
+		template <typename T, int> friend class comp_cache;
 
 	private:
-		trait_header	   _header					= {};
+		component_header   _header					= {};
 		JPH::Body*		   _body					= nullptr;
 		vector3			   _extent_or_height_radius = vector3::zero;
 		resource_handle	   _material_handle			= {};
@@ -124,5 +124,5 @@ namespace SFG
 		bitmask<uint8>	   _flags					= 0;
 	};
 
-	REGISTER_TRAIT(trait_physics);
+	REGISTER_TRAIT(comp_physics);
 }

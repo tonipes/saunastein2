@@ -1,4 +1,4 @@
-// Copyright (c) 2025 Inan Evin
+// Copyright (cm) 2025 Inan Evin
 
 #include "editor_camera.hpp"
 
@@ -11,7 +11,7 @@
 #include "math/quat.hpp"
 #include "math/math.hpp"
 
-#include "world/traits/trait_camera.hpp"
+#include "world/components/comp_camera.hpp"
 
 namespace SFG
 {
@@ -19,7 +19,6 @@ namespace SFG
 	{
 		_window = wnd;
 		_world	= &world;
-
 	}
 
 	void editor_camera::uninit()
@@ -35,14 +34,14 @@ namespace SFG
 	{
 		SFG_ASSERT(_is_active == 0);
 
-		world&			w  = *_world;
-		entity_manager& em = w.get_entity_manager();
-		trait_manager&	tm = w.get_trait_manager();
+		world&			   w  = *_world;
+		entity_manager&	   em = w.get_entity_manager();
+		component_manager& cm = w.get_comp_manager();
 
 		_entity		  = em.create_entity("editor_camera");
-		_camera_trait = tm.add_trait<trait_camera>(_entity);
+		_camera_trait = cm.add_component<comp_camera>(_entity);
 
-		trait_camera& cam_trait = tm.get_trait<trait_camera>(_camera_trait);
+		comp_camera& cam_trait = cm.get_component<comp_camera>(_camera_trait);
 		cam_trait.set_values(w, 0.01f, 250.0f, 60.0f, {0.01f, 0.04f, 0.125f, 0.25f, 0.5f});
 		cam_trait.set_main(w);
 
@@ -60,9 +59,9 @@ namespace SFG
 	{
 		SFG_ASSERT(_is_active == 1);
 
-		world&			w  = *_world;
-		entity_manager& em = w.get_entity_manager();
-		trait_manager&	tm = w.get_trait_manager();
+		world&			   w  = *_world;
+		entity_manager&	   em = w.get_entity_manager();
+		component_manager& tm = w.get_comp_manager();
 
 		em.destroy_entity(_entity);
 		_entity		  = {};

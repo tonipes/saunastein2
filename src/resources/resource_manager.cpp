@@ -24,7 +24,7 @@
 #include "resources/material.hpp"
 #include "gfx/event_stream/render_events_gfx.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"
-#include "world/traits/trait_model_instance.hpp"
+#include "world/components/comp_model_instance.hpp"
 #include "world/world.hpp"
 #include "platform/time.hpp"
 #endif
@@ -462,9 +462,9 @@ namespace SFG
 				}
 			}
 
-			trait_manager& tm			   = rm->_world.get_trait_manager();
-			auto&		   model_instances = tm.underlying_pool<trait_cache<trait_model_instance, MAX_WORLD_MODEL_INSTANCES>, trait_model_instance>();
-			for (trait_model_instance& mi : model_instances)
+			component_manager& cm			   = rm->_world.get_comp_manager();
+			auto&			   model_instances = cm.underlying_pool<comp_cache<comp_model_instance, MAX_WORLD_MODEL_INSTANCES>, comp_model_instance>();
+			for (comp_model_instance& mi : model_instances)
 			{
 				if (mi.get_model() != prev_handle)
 					continue;

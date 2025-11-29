@@ -6,7 +6,7 @@
 #include "data/vector.hpp"
 #include "memory/text_allocator.hpp"
 #include "world/entity_manager.hpp"
-#include "world/trait_manager.hpp"
+#include "world/component_manager.hpp"
 #include "world/common_world.hpp"
 #include "gui/vekt.hpp"
 #include "resources/resource_manager.hpp"
@@ -76,9 +76,9 @@ namespace SFG
 			return _entity_manager;
 		}
 
-		inline trait_manager& get_trait_manager()
+		inline component_manager& get_comp_manager()
 		{
-			return _trait_manager;
+			return _comp_manager;
 		}
 
 		inline bitmask<uint8>& get_flags()
@@ -135,7 +135,7 @@ namespace SFG
 		resource_manager   _resource_manager;
 		entity_manager	   _entity_manager;
 		physics_world	   _phy_world;
-		trait_manager	   _trait_manager;
+		component_manager  _comp_manager;
 		text_allocator	   _text_allocator;
 		audio_manager	   _audio_manager = {};
 		vekt::font_manager _vekt_fonts	  = {};

@@ -1,9 +1,9 @@
 // Copyright (c) 2025 Inan Evin
 #pragma once
 
-#include "world/traits/common_trait.hpp"
+#include "world/components/common_comps.hpp"
 #include "game/game_max_defines.hpp"
-#include "reflection/trait_reflection.hpp"
+#include "reflection/component_reflection.hpp"
 #include "data/static_vector.hpp"
 #include "math/color.hpp"
 #include "math/vector2ui16.hpp"
@@ -20,7 +20,7 @@ namespace SFG
 	class istream;
 	class world;
 
-	class trait_dir_light
+	class comp_dir_light
 	{
 	public:
 		// -----------------------------------------------------------------------------
@@ -60,20 +60,20 @@ namespace SFG
 		}
 
 	private:
-		template <typename T, int> friend class trait_cache;
+		template <typename T, int> friend class comp_cache;
 
 		void send_event(world& w);
 
 	private:
-		trait_header _header			= {};
-		color		 _base_color		= color::white;
-		vector2ui16	 _shadow_resolution = vector2ui16(256, 256);
-		float		 _range				= 0.0f;
-		float		 _intensity			= 0.0f;
-		uint8		 _cast_shadows		= 0;
+		component_header _header			= {};
+		color			 _base_color		= color::white;
+		vector2ui16		 _shadow_resolution = vector2ui16(256, 256);
+		float			 _range				= 0.0f;
+		float			 _intensity			= 0.0f;
+		uint8			 _cast_shadows		= 0;
 	};
 
-	class trait_spot_light
+	class comp_spot_light
 	{
 	public:
 		// -----------------------------------------------------------------------------
@@ -123,22 +123,22 @@ namespace SFG
 		}
 
 	private:
-		template <typename T, int> friend class trait_cache;
+		template <typename T, int> friend class comp_cache;
 
 		void send_event(world& w);
 
 	private:
-		trait_header _header			= {};
-		color		 _base_color		= color::white;
-		vector2ui16	 _shadow_resolution = vector2ui16(256, 256);
-		float		 _range				= 0.0f;
-		float		 _intensity			= 0.0f;
-		float		 _inner_cone		= 0.0f;
-		float		 _outer_cone		= 0.0f;
-		uint8		 _cast_shadows		= 0;
+		component_header _header			= {};
+		color			 _base_color		= color::white;
+		vector2ui16		 _shadow_resolution = vector2ui16(256, 256);
+		float			 _range				= 0.0f;
+		float			 _intensity			= 0.0f;
+		float			 _inner_cone		= 0.0f;
+		float			 _outer_cone		= 0.0f;
+		uint8			 _cast_shadows		= 0;
 	};
 
-	class trait_point_light
+	class comp_point_light
 	{
 	public:
 		// -----------------------------------------------------------------------------
@@ -178,20 +178,20 @@ namespace SFG
 		}
 
 	private:
-		template <typename T, int> friend class trait_cache;
+		template <typename T, int> friend class comp_cache;
 
 		void send_event(world& w);
 
 	private:
-		trait_header _header			= {};
-		color		 _base_color		= color::white;
-		vector2ui16	 _shadow_resolution = vector2ui16(256, 256);
-		float		 _range				= 0.0f;
-		float		 _intensity			= 0.0f;
-		uint8		 _cast_shadows		= 0;
+		component_header _header			= {};
+		color			 _base_color		= color::white;
+		vector2ui16		 _shadow_resolution = vector2ui16(256, 256);
+		float			 _range				= 0.0f;
+		float			 _intensity			= 0.0f;
+		uint8			 _cast_shadows		= 0;
 	};
 
-	REGISTER_TRAIT(trait_dir_light);
-	REGISTER_TRAIT(trait_spot_light);
-	REGISTER_TRAIT(trait_point_light);
+	REGISTER_TRAIT(comp_dir_light);
+	REGISTER_TRAIT(comp_spot_light);
+	REGISTER_TRAIT(comp_point_light);
 }

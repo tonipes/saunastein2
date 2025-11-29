@@ -23,7 +23,7 @@ namespace SFG
 	class ostream;
 	class meta;
 
-	enum class trait_view_result : uint8
+	enum class comp_view_result : uint8
 	{
 		cont,
 		stop
@@ -33,9 +33,9 @@ namespace SFG
 	// base impl
 	// -----------------------------------------------------------------------------
 
-	struct trait_cache_base
+	struct comp_cache_base
 	{
-		virtual ~trait_cache_base() = default;
+		virtual ~comp_cache_base() = default;
 
 		// Lifecycle
 		virtual world_handle add(world_handle entity, world& w)								 = 0;
@@ -54,21 +54,21 @@ namespace SFG
 		virtual const void* get_const_ptr(world_handle h) const = 0;
 
 		// Iteration
-		virtual void for_each(void* ctx, trait_view_result (*fn)(void* ctx, void* elem)) noexcept						= 0;
-		virtual void for_each_handle(void* ctx, trait_view_result (*fn)(void* ctx, const world_handle&)) const noexcept = 0;
+		virtual void for_each(void* ctx, comp_view_result (*fn)(void* ctx, void* elem)) noexcept					   = 0;
+		virtual void for_each_handle(void* ctx, comp_view_result (*fn)(void* ctx, const world_handle&)) const noexcept = 0;
 	};
 
 	// -----------------------------------------------------------------------------
 	// cache impl
 	// -----------------------------------------------------------------------------
 
-	template <typename T, int MAX_COUNT> class trait_cache final : public trait_cache_base
+	template <typename T, int MAX_COUNT> class comp_cache final : public comp_cache_base
 	{
 	public:
-		using cache_type = trait_cache<T, MAX_COUNT>;
+		using cache_type = comp_cache<T, MAX_COUNT>;
 		using pool_type	 = pool_allocator_gen<T, world_id, MAX_COUNT>;
 
-		virtual ~trait_cache() = default;
+		virtual ~comp_cache() = default;
 
 		// -----------------------------------------------------------------------------
 		// lifecycle
@@ -76,70 +76,70 @@ namespace SFG
 
 		virtual world_handle add(world_handle entity, world& w) override
 		{
-			const world_handle handle = _traits.add();
-			T&				   trait  = _traits.get(handle);
-			trait._header.entity	  = entity;
-			trait._header.own_handle  = handle;
-			trait.on_add(w);
+			const world_handle handle = _components.add();
+			T&				   comp	  = _components.get(handle);
+			comp._header.entity		  = entity;
+			comp._header.own_handle	  = handle;
+			comp.on_add(w);
 			return handle;
 		}
 
 		virtual world_handle add_from_stream(istream& stream, world_handle entity, world& w) override
 		{
-			const world_handle handle = _traits.add();
-			T&				   trait  = _traits.get(handle);
-			trait._header.entity	  = entity;
-			trait._header.own_handle  = handle;
-			trait.deserialize(stream, w);
-			trait.on_add(w);
+			const world_handle handle = _components.add();
+			T&				   comp	  = _components.get(handle);
+			comp._header.entity		  = entity;
+			comp._header.own_handle	  = handle;
+			comp.deserialize(stream, w);
+			comp.on_add(w);
 			return handle;
 		}
 
 #ifdef SFG_TOOLMODE
 		virtual world_handle add_from_json(const json& j, world_handle entity, world& w) override
 		{
-			const world_handle handle = _traits.add();
-			T&				   trait  = _traits.get(handle);
-			trait._header.entity	  = entity;
-			trait._header.own_handle  = handle;
-		//	trait.deserialize_json(j, w);
-			trait.on_add(w);
+			const world_handle handle = _components.add();
+			T&				   comp	  = _components.get(handle);
+			comp._header.entity		  = entity;
+			comp._header.own_handle	  = handle;
+			//	comp.deserialize_json(j, w);
+			comp.on_add(w);
 			return handle;
 		}
 
 		virtual void save_to_json(json& j, world_handle handle, world& w) override
 		{
-			T& trait = _traits.get(handle);
-			//trait.serialize_json(j, w);
+			T& comp = _components.get(handle);
+			// comp.serialize_json(j, w);
 		}
 #endif
 
 		virtual void save_to_stream(ostream& stream, world_handle handle, world& w) override
 		{
-			T& trait = _traits.get(handle);
-			trait.serialize(stream, w);
+			T& comp = _components.get(handle);
+			comp.serialize(stream, w);
 		}
 
 		virtual void remove(world_handle handle, world& w) override
 		{
-			T& trait = _traits.get(handle);
-			trait.on_remove(w);
-			_traits.remove(handle);
+			T& comp = _components.get(handle);
+			comp.on_remove(w);
+			_components.remove(handle);
 		}
 
 		virtual void reset(world& w) override
 		{
-			for (T& trait : _traits)
+			for (T& comp : _components)
 			{
-				trait.on_remove(w);
+				comp.on_remove(w);
 			}
 
-			_traits.reset();
+			_components.reset();
 		}
 
 		bool is_valid(world_handle handle) const override
 		{
-			return _traits.is_valid(handle);
+			return _components.is_valid(handle);
 		}
 
 		// -----------------------------------------------------------------------------
@@ -148,74 +148,74 @@ namespace SFG
 
 		void* get_ptr(world_handle h) override
 		{
-			return &(_traits.get(h));
+			return &(_components.get(h));
 		}
 
 		const void* get_const_ptr(world_handle h) const override
 		{
-			return &(_traits.get(h));
+			return &(_components.get(h));
 		}
 
 		// -----------------------------------------------------------------------------
 		// Iteration
 		// -----------------------------------------------------------------------------
 
-		void for_each(void* ctx, trait_view_result (*fn)(void*, void*)) noexcept override
+		void for_each(void* ctx, comp_view_result (*fn)(void*, void*)) noexcept override
 		{
-			for (auto it = _traits.begin(); it != _traits.end(); ++it)
+			for (auto it = _components.begin(); it != _components.end(); ++it)
 			{
 				T& obj = *it;
-				if (fn(ctx, &obj) == trait_view_result::stop)
+				if (fn(ctx, &obj) == comp_view_result::stop)
 					break;
 			}
 		}
 
-		void for_each_handle(void* ctx, trait_view_result (*fn)(void*, const world_handle&)) const noexcept override
+		void for_each_handle(void* ctx, comp_view_result (*fn)(void*, const world_handle&)) const noexcept override
 		{
-			for (auto it = _traits.handles_begin(); it != _traits.handles_end(); ++it)
+			for (auto it = _components.handles_begin(); it != _components.handles_end(); ++it)
 			{
 				const world_handle& handle = *it;
-				if (fn(ctx, handle) == trait_view_result::stop)
+				if (fn(ctx, handle) == comp_view_result::stop)
 					break;
 			}
 		}
 
 		inline pool_type& get_pool()
 		{
-			return _traits;
+			return _components;
 		}
 
 	private:
-		pool_type _traits;
+		pool_type _components;
 	};
 
 	// -----------------------------------------------------------------------------
-	// trait manager
+	// comp manager
 	// -----------------------------------------------------------------------------
 
-	class trait_manager
+	class component_manager
 	{
 	private:
-		struct trait_cache_storage
+		struct comp_cache_storage
 		{
-			trait_cache_base* cache_ptr = nullptr;
-			string_id		  type		= 0;
+			comp_cache_base* cache_ptr = nullptr;
+			string_id		 type	   = 0;
 		};
 
 	public:
-		trait_manager() = delete;
-		trait_manager(world& w);
-		~trait_manager();
+		component_manager() = delete;
+		component_manager(world& w);
+		~component_manager();
 
 		void init();
 		void uninit();
 
 		template <typename T, int MAX_COUNT> void register_cache()
 		{
-			trait_cache_base* cache = new trait_cache<T, MAX_COUNT>();
-			const string_id	  tid	= type_id<T>::value;
+			comp_cache_base* cache = new comp_cache<T, MAX_COUNT>();
+			const string_id	 tid   = type_id<T>::value;
 
-			trait_cache_storage storage = {
+			comp_cache_storage storage = {
 				.cache_ptr = cache,
 				.type	   = tid,
 			};
@@ -226,28 +226,28 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 		// Lifecycle
 		// -----------------------------------------------------------------------------
-		world_handle add_trait(string_id type, world_handle entity);
-		world_handle add_trait_from_stream(string_id type, istream& stream, world_handle entity);
-		void		 save_trait_to_stream(string_id type, ostream& stream, world_handle trait);
-		void		 remove_trait(string_id type, world_handle entity, world_handle handle);
+		world_handle add_component(string_id type, world_handle entity);
+		world_handle add_component_from_stream(string_id type, istream& stream, world_handle entity);
+		void		 save_component_to_stream(string_id type, ostream& stream, world_handle trait);
+		void		 remove_component(string_id type, world_handle entity, world_handle handle);
 		bool		 is_valid(string_id type, world_handle handle) const;
-		void*		 get_trait(string_id type, world_handle handle) const;
+		void*		 get_component(string_id type, world_handle handle) const;
 
 #ifdef SFG_TOOLMODE
-		world_handle add_trait_from_json(string_id type, const json& json, world_handle entity);
-		void		 save_trait_to_json(string_id type, json& j, world_handle trait);
+		world_handle add_component_from_json(string_id type, const json& json, world_handle entity);
+		void		 save_comp(string_id type, json& j, world_handle handle);
 #endif
 
-		template <typename T> inline world_handle add_trait(world_handle entity)
+		template <typename T> inline world_handle add_component(world_handle entity)
 		{
 			const string_id type = type_id<T>::value;
-			return add_trait(type, entity);
+			return add_component(type, entity);
 		}
 
-		template <typename T> inline void remove_trait(world_handle entity, world_handle handle)
+		template <typename T> inline void remove_component(world_handle entity, world_handle handle)
 		{
 			const string_id type = type_id<T>::value;
-			remove_trait(type, entity, handle);
+			remove_component(type, entity, handle);
 		}
 
 		template <typename T> inline bool is_valid(world_handle handle) const
@@ -260,10 +260,10 @@ namespace SFG
 		// accessors
 		// -----------------------------------------------------------------------------
 
-		template <typename T> inline T& get_trait(world_handle handle) const
+		template <typename T> inline T& get_component(world_handle handle) const
 		{
 			const string_id type	 = type_id<T>::value;
-			void*			ptr		 = get_trait(type, handle);
+			void*			ptr		 = get_component(type, handle);
 			T*				type_ptr = reinterpret_cast<T*>(ptr);
 			return *type_ptr;
 		}
@@ -279,10 +279,10 @@ namespace SFG
 
 		template <typename T, typename Fn> inline void view(Fn&& fn)
 		{
-			const string_id			   type = type_id<T>::value;
-			const trait_cache_storage& stg	= get_storage(type);
+			const string_id			  type = type_id<T>::value;
+			const comp_cache_storage& stg  = get_storage(type);
 
-			auto bounce = +[](void* ctx, void* elem) -> trait_view_result {
+			auto bounce = +[](void* ctx, void* elem) -> comp_view_result {
 				auto* f = static_cast<std::remove_reference_t<Fn>*>(ctx);
 				return (*f)(*static_cast<T*>(elem));
 			};
@@ -294,10 +294,10 @@ namespace SFG
 
 		template <typename T, typename Fn> inline void view_handles(Fn&& fn)
 		{
-			const string_id			   type = type_id<T>::value;
-			const trait_cache_storage& stg	= get_storage(type);
+			const string_id			  type = type_id<T>::value;
+			const comp_cache_storage& stg  = get_storage(type);
 
-			auto bounce = +[](void* ctx, const world_handle& handle) -> trait_view_result {
+			auto bounce = +[](void* ctx, const world_handle& handle) -> comp_view_result {
 				auto* f = static_cast<std::remove_reference_t<Fn>*>(ctx);
 				return (*f)(handle);
 			};
@@ -309,19 +309,19 @@ namespace SFG
 
 		template <typename CACHE_TYPE, typename T> inline auto& underlying_pool()
 		{
-			const string_id			   type	 = type_id<T>::value;
-			const trait_cache_storage& stg	 = get_storage(type);
-			CACHE_TYPE*				   cache = static_cast<CACHE_TYPE*>(stg.cache_ptr);
+			const string_id			  type	= type_id<T>::value;
+			const comp_cache_storage& stg	= get_storage(type);
+			CACHE_TYPE*				  cache = static_cast<CACHE_TYPE*>(stg.cache_ptr);
 			return cache->get_pool();
 		}
 
 	private:
-		const trait_cache_storage& get_storage(string_id type) const;
-		trait_cache_storage&	   get_storage(string_id type);
+		const comp_cache_storage& get_storage(string_id type) const;
+		comp_cache_storage&		  get_storage(string_id type);
 
 	private:
-		chunk_allocator32			_aux_memory = {};
-		vector<trait_cache_storage> _storages	= {};
-		world&						_world;
+		chunk_allocator32		   _aux_memory = {};
+		vector<comp_cache_storage> _storages   = {};
+		world&					   _world;
 	};
 }

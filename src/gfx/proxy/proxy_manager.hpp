@@ -4,7 +4,7 @@
 #include "common/size_definitions.hpp"
 #include "render_proxy_resources.hpp"
 #include "render_proxy_entity.hpp"
-#include "render_proxy_traits.hpp"
+#include "render_proxy_components.hpp"
 #include "memory/pool_allocator_simple.hpp"
 #include "memory/chunk_allocator.hpp"
 #include "data/vector.hpp"
@@ -244,13 +244,13 @@ namespace SFG
 		using skins_type		  = pool_allocator_simple<render_proxy_skin, MAX_WORLD_SKINS>;
 		using models_type		  = pool_allocator_simple<render_proxy_model, MAX_WORLD_MODELS>;
 		using entity_type		  = pool_allocator_simple<render_proxy_entity, MAX_ENTITIES>;
-		using mesh_instances_type = pool_allocator_simple<render_proxy_mesh_instance, MAX_WORLD_TRAIT_MESH_INSTANCES>;
-		using cameras_type		  = pool_allocator_simple<render_proxy_camera, MAX_WORLD_TRAIT_CAMERAS>;
-		using ambients_type		  = pool_allocator_simple<render_proxy_ambient, MAX_WORLD_TRAIT_AMBIENTS>;
-		using point_lights_type	  = pool_allocator_simple<render_proxy_point_light, MAX_WORLD_TRAIT_POINT_LIGHTS>;
-		using spot_lights_type	  = pool_allocator_simple<render_proxy_spot_light, MAX_WORLD_TRAIT_SPOT_LIGHTS>;
-		using dir_lights_type	  = pool_allocator_simple<render_proxy_dir_light, MAX_WORLD_TRAIT_DIR_LIGHTS>;
-		using canvas_type		  = pool_allocator_simple<render_proxy_canvas, MAX_WORLD_TRAIT_CANVAS>;
+		using mesh_instances_type = pool_allocator_simple<render_proxy_mesh_instance, MAX_WORLD_COMP_MESH_INSTANCES>;
+		using cameras_type		  = pool_allocator_simple<render_proxy_camera, MAX_WORLD_COMP_CAMERAS>;
+		using ambients_type		  = pool_allocator_simple<render_proxy_ambient, MAX_WORLD_COMP_AMBIENT>;
+		using point_lights_type	  = pool_allocator_simple<render_proxy_point_light, MAX_WORLD_COMP_POINT_LIGHTS>;
+		using spot_lights_type	  = pool_allocator_simple<render_proxy_spot_light, MAX_WORLD_COMP_SPOT_LIGHTS>;
+		using dir_lights_type	  = pool_allocator_simple<render_proxy_dir_light, MAX_WORLD_COMP_DIR_LIGHTS>;
+		using canvas_type		  = pool_allocator_simple<render_proxy_canvas, MAX_WORLD_COMP_CANVAS>;
 
 		destroy_bucket _destroy_bucket[BACK_BUFFER_COUNT + 1];
 

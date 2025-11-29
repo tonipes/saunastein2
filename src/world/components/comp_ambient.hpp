@@ -1,8 +1,8 @@
 // Copyright (c) 2025 Inan Evin
 #pragma once
 
-#include "world/traits/common_trait.hpp"
-#include "reflection/trait_reflection.hpp"
+#include "world/components/common_comps.hpp"
+#include "reflection/component_reflection.hpp"
 #include "math/color.hpp"
 
 #ifdef SFG_TOOLMODE
@@ -15,7 +15,7 @@ namespace SFG
 	class istream;
 	class world;
 
-	class trait_ambient
+	class comp_ambient
 	{
 	public:
 		// -----------------------------------------------------------------------------
@@ -44,12 +44,12 @@ namespace SFG
 		}
 
 	private:
-		template <typename T, int> friend class trait_cache;
+		template <typename T, int> friend class comp_cache;
 
 	private:
-		trait_header _header	 = {};
-		color		 _base_color = {};
+		component_header _header	 = {};
+		color			 _base_color = {};
 	};
 
-	REGISTER_TRAIT(trait_ambient);
+	REGISTER_TRAIT(comp_ambient);
 }

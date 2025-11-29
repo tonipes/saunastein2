@@ -36,21 +36,21 @@ namespace SFG
 		world_handle next_sibling = {};
 	};
 
-	struct entity_trait
+	struct entity_comp
 	{
-		string_id	 trait_type	  = 0;
-		world_handle trait_handle = {};
+		string_id	 comp_type	 = 0;
+		world_handle comp_handle = {};
 
-		bool operator==(const entity_trait& other) const
+		bool operator==(const entity_comp& other) const
 		{
-			return trait_type == other.trait_type && trait_handle == other.trait_handle;
+			return comp_type == other.comp_type && comp_handle == other.comp_handle;
 		}
 	};
 
-#define MAX_TRAITS_PER_ENTITY 8
+#define MAX_COMPS_PER_ENTITY 8
 
-	struct entity_trait_register
+	struct entity_comp_register
 	{
-		static_vector<entity_trait, MAX_TRAITS_PER_ENTITY> traits;
+		static_vector<entity_comp, MAX_COMPS_PER_ENTITY> comps;
 	};
 }

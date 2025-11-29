@@ -12,7 +12,7 @@ namespace SFG
 	struct window_event;
 	struct vector2ui16;
 	class app;
-	class trait_model_instance;
+	class comp_model_instance;
 	class texture_queue;
 
 	class editor
@@ -54,7 +54,7 @@ namespace SFG
 		void		destroy_demo_content();
 		void		create_demo_model();
 		void		destroy_demo_model();
-		static void on_model_instance_instantiate(trait_model_instance* t, resource_handle model, void* ud);
+		static void on_model_instance_instantiate(comp_model_instance* t, resource_handle model, void* ud);
 
 	private:
 		app&		  _app;

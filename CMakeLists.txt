@@ -130,9 +130,9 @@ src/resources/*.cpp
 src/physics/*.cpp
 src/gui/*.cpp
 src/game/*.cpp
-src/game/traits/*.cpp
 src/world/*.cpp
-src/world/traits/*.cpp
+src/world/components/*.cpp
+src/world/animation/*.cpp
 src/app/*.cpp
 src/sfg_api.cpp
 src/sfg_api.cpp
@@ -166,7 +166,8 @@ src/reflection/*.hpp
 src/serialization/*.hpp
 src/physics/*.hpp
 src/world/*.hpp
-src/world/traits/*.hpp
+src/world/animation/*.hpp
+src/world/components/*.hpp
 src/vendor/stb/*.h
 src/vendor/moodycamel/*.h
 src/vendor/nhlohmann/*.hpp

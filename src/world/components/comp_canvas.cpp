@@ -1,5 +1,5 @@
 // Copyright (c) 2025 Inan Evin
-#include "trait_canvas.hpp"
+#include "comp_canvas.hpp"
 #include "data/ostream.hpp"
 #include "data/istream.hpp"
 #include "math/math.hpp"
@@ -12,46 +12,46 @@
 
 namespace SFG
 {
-	void trait_canvas::on_add(world& w)
+	void comp_canvas::on_add(world& w)
 	{
 		w.get_entity_manager().add_render_proxy(_header.entity);
 
-		chunk_allocator32& aux = w.get_trait_manager().get_aux();
+		chunk_allocator32& aux = w.get_comp_manager().get_aux();
 		_builder			   = new vekt::builder();
 	}
 
-	void trait_canvas::on_remove(world& w)
+	void comp_canvas::on_remove(world& w)
 	{
 		w.get_entity_manager().remove_render_proxy(_header.entity);
 
-		if (_flags.is_set(trait_canvas::flags::is_init))
+		if (_flags.is_set(comp_canvas::flags::is_init))
 			uninit_builder(w);
 
 		delete _builder;
 		_builder = nullptr;
 	}
 
-	void trait_canvas::serialize(ostream& stream, world& w) const
+	void comp_canvas::serialize(ostream& stream, world& w) const
 	{
 	}
 
-	void trait_canvas::deserialize(istream& stream, world& w)
+	void comp_canvas::deserialize(istream& stream, world& w)
 	{
 	}
 
-	void trait_canvas::update_counts_and_init(world& w, uint32 max_widget_count, uint16 max_buffer_count)
+	void comp_canvas::update_counts_and_init(world& w, uint32 max_widget_count, uint16 max_buffer_count)
 	{
 		_max_buffer_count = max_buffer_count;
 		_max_widget_count = max_widget_count;
 
-		if (_flags.is_set(trait_canvas::flags::is_init))
+		if (_flags.is_set(comp_canvas::flags::is_init))
 			uninit_builder(w);
 		init_builder(w);
 	}
 
-	void trait_canvas::draw(world& w, const vector2ui16& size)
+	void comp_canvas::draw(world& w, const vector2ui16& size)
 	{
-		SFG_ASSERT(_flags.is_set(trait_canvas::flags::is_init));
+		SFG_ASSERT(_flags.is_set(comp_canvas::flags::is_init));
 
 		_world = &w;
 
@@ -68,15 +68,15 @@ namespace SFG
 		_builder->flush();
 	}
 
-	void trait_canvas::set_is_3d(world& w, uint8 is_3d)
+	void comp_canvas::set_is_3d(world& w, uint8 is_3d)
 	{
-		_flags.set(trait_canvas::flags::is_3d, is_3d);
+		_flags.set(comp_canvas::flags::is_3d, is_3d);
 
-		if (_flags.is_set(trait_canvas::flags::is_init))
+		if (_flags.is_set(comp_canvas::flags::is_init))
 		{
 			const render_event_canvas ev = {
 				.entity_index = _header.entity.index,
-				.is_3d		  = _flags.is_set(trait_canvas::flags::is_3d),
+				.is_3d		  = _flags.is_set(comp_canvas::flags::is_3d),
 			};
 
 			w.get_render_stream().add_event(
@@ -88,7 +88,7 @@ namespace SFG
 		}
 	}
 
-	void trait_canvas::init_builder(world& w)
+	void comp_canvas::init_builder(world& w)
 	{
 		const vekt::builder::init_config cnf = {
 			.widget_count				 = _max_widget_count,
@@ -101,13 +101,13 @@ namespace SFG
 
 		_builder->init(cnf);
 		_builder->set_on_draw(on_draw, this);
-		_flags.set(trait_canvas::flags::is_init);
+		_flags.set(comp_canvas::flags::is_init);
 
 		const render_event_canvas ev = {
 			.entity_index = _header.entity.index,
 			.vertex_size  = static_cast<uint32>(cnf.vertex_buffer_sz),
 			.index_size	  = static_cast<uint32>(cnf.index_buffer_sz),
-			.is_3d		  = _flags.is_set(trait_canvas::flags::is_3d),
+			.is_3d		  = _flags.is_set(comp_canvas::flags::is_3d),
 		};
 
 		w.get_render_stream().add_event(
@@ -118,10 +118,10 @@ namespace SFG
 			ev);
 	}
 
-	void trait_canvas::uninit_builder(world& w)
+	void comp_canvas::uninit_builder(world& w)
 	{
 		_builder->uninit();
-		_flags.remove(trait_canvas::flags::is_init);
+		_flags.remove(comp_canvas::flags::is_init);
 
 		w.get_render_stream().add_event({
 			.index		= _header.own_handle.index,
@@ -129,9 +129,9 @@ namespace SFG
 		});
 	}
 
-	void trait_canvas::on_draw(const vekt::draw_buffer& buffer, void* ud)
+	void comp_canvas::on_draw(const vekt::draw_buffer& buffer, void* ud)
 	{
-		trait_canvas* cnv = static_cast<trait_canvas*>(ud);
+		comp_canvas* cnv = static_cast<comp_canvas*>(ud);
 
 		render_event_canvas_add_draw ev = {};
 

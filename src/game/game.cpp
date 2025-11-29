@@ -7,7 +7,7 @@
 #include "resources/world_raw.hpp"
 #include "resources/model.hpp"
 
-#include "world/traits/trait_model_instance.hpp"
+#include "world/components/comp_model_instance.hpp"
 
 #ifdef SFG_TOOLMODE
 #include "editor/editor.hpp"
@@ -23,10 +23,10 @@ namespace SFG
 
 		_app.get_editor()->get_camera().activate();
 
-		world&			  w	 = _app.get_world();
-		entity_manager&	  em = w.get_entity_manager();
-		trait_manager&	  tm = w.get_trait_manager();
-		resource_manager& rm = w.get_resource_manager();
+		world&			   w  = _app.get_world();
+		entity_manager&	   em = w.get_entity_manager();
+		component_manager& cm = w.get_comp_manager();
+		resource_manager&  rm = w.get_resource_manager();
 
 		const world_handle root = em.create_entity("boombox_root");
 		em.set_entity_position(root, vector3::zero);
@@ -36,8 +36,8 @@ namespace SFG
 		if (!rm.is_valid<model>(boombox))
 			return;
 
-		const world_handle	  model_inst_handle = tm.add_trait<trait_model_instance>(root);
-		trait_model_instance& mi				= tm.get_trait<trait_model_instance>(model_inst_handle);
+		const world_handle	 model_inst_handle = cm.add_component<comp_model_instance>(root);
+		comp_model_instance& mi				   = cm.get_component<comp_model_instance>(model_inst_handle);
 		mi.instantiate_model_to_world(w, boombox);
 	}
 

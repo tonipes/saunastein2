@@ -1,8 +1,8 @@
 // Copyright (c) 2025 Inan Evin
 #pragma once
 
-#include "world/traits/common_trait.hpp"
-#include "reflection/trait_reflection.hpp"
+#include "world/components/common_comps.hpp"
+#include "reflection/component_reflection.hpp"
 #include "resources/common_resources.hpp"
 #include "memory/chunk_handle.hpp"
 #include "data/vector.hpp"
@@ -18,10 +18,10 @@ namespace SFG
 	class world;
 	class resource_manager;
 
-	class trait_model_instance
+	class comp_model_instance
 	{
 	public:
-		typedef void (*on_instantiated)(trait_model_instance* inst, resource_handle model, void* user_data);
+		typedef void (*on_instantiated)(comp_model_instance* inst, resource_handle model, void* user_data);
 
 		// -----------------------------------------------------------------------------
 		// trait
@@ -52,7 +52,7 @@ namespace SFG
 			return _target_model;
 		}
 
-		inline const trait_header& get_header() const
+		inline const component_header& get_header() const
 		{
 			return _header;
 		}
@@ -64,7 +64,7 @@ namespace SFG
 		}
 
 	private:
-		template <typename T, int> friend class trait_cache;
+		template <typename T, int> friend class comp_cache;
 
 		void fetch_refs(resource_manager& res, string_id& out_target) const;
 		void fill_refs(resource_manager& res, string_id target);
@@ -72,7 +72,7 @@ namespace SFG
 	private:
 		on_instantiated _instantiate_callback  = nullptr;
 		void*			_instantiate_user_data = nullptr;
-		trait_header	_header				   = {};
+		component_header	_header				   = {};
 		resource_handle _target_model		   = {};
 		chunk_handle32	_root_entities		   = {};
 		chunk_handle32	_skin_entities		   = {};
@@ -80,5 +80,5 @@ namespace SFG
 		uint32			_root_entities_count   = 0;
 	};
 
-	REGISTER_TRAIT(trait_model_instance);
+	REGISTER_TRAIT(comp_model_instance);
 }

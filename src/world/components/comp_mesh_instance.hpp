@@ -1,8 +1,8 @@
 // Copyright (c) 2025 Inan Evin
 #pragma once
 
-#include "world/traits/common_trait.hpp"
-#include "reflection/trait_reflection.hpp"
+#include "world/components/common_comps.hpp"
+#include "reflection/component_reflection.hpp"
 #include "resources/common_resources.hpp"
 #include "memory/chunk_handle.hpp"
 #include "data/vector.hpp"
@@ -18,7 +18,7 @@ namespace SFG
 	class world;
 	class resource_manager;
 
-	class trait_mesh_instance
+	class comp_mesh_instance
 	{
 	public:
 		// -----------------------------------------------------------------------------
@@ -51,23 +51,23 @@ namespace SFG
 			return _target_mesh;
 		}
 
-		inline const trait_header& get_header() const
+		inline const component_header& get_header() const
 		{
 			return _header;
 		}
 
 	private:
-		template <typename T, int> friend class trait_cache;
+		template <typename T, int> friend class comp_cache;
 
 		void fetch_refs(resource_manager& res, string_id& out_target, string_id& out_target_mesh) const;
 		void fill_refs(resource_manager& res, string_id target, string_id target_mesh);
 
 	private:
-		trait_header	_header		  = {};
-		resource_handle _target_model = {};
-		resource_handle _target_mesh  = {};
-		resource_handle _target_skin  = {};
+		component_header _header	   = {};
+		resource_handle	 _target_model = {};
+		resource_handle	 _target_mesh  = {};
+		resource_handle	 _target_skin  = {};
 	};
 
-	REGISTER_TRAIT(trait_mesh_instance);
+	REGISTER_TRAIT(comp_mesh_instance);
 }

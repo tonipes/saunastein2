@@ -2,8 +2,8 @@
 #pragma once
 
 #include "data/bitmask.hpp"
-#include "world/traits/common_trait.hpp"
-#include "reflection/trait_reflection.hpp"
+#include "world/components/common_comps.hpp"
+#include "reflection/component_reflection.hpp"
 #include "resources/common_resources.hpp"
 #include "math/vector2ui16.hpp"
 #include "memory/chunk_handle.hpp"
@@ -20,7 +20,7 @@ namespace SFG
 	class istream;
 	class world;
 
-	class trait_canvas
+	class comp_canvas
 	{
 	public:
 		enum flags
@@ -54,7 +54,7 @@ namespace SFG
 			return _flags;
 		}
 
-		inline const trait_header& get_header() const
+		inline const component_header& get_header() const
 		{
 			return _header;
 		}
@@ -76,19 +76,19 @@ namespace SFG
 		static void on_draw(const vekt::draw_buffer& buffer, void* ud);
 
 	private:
-		template <typename T, int> friend class trait_cache;
+		template <typename T, int> friend class comp_cache;
 
 	private:
-		trait_header   _header			 = {};
-		vekt::builder* _builder			 = nullptr;
-		world*		   _world			 = nullptr;
-		vector2ui16	   _size			 = vector2ui16::zero;
-		uint32		   _max_widget_count = 1024;
-		uint16		   _max_buffer_count = 50;
-		uint32		   _idx_counter		 = 0;
-		uint32		   _vtx_counter		 = 0;
-		bitmask<uint8> _flags			 = 0;
+		component_header _header		   = {};
+		vekt::builder*	 _builder		   = nullptr;
+		world*			 _world			   = nullptr;
+		vector2ui16		 _size			   = vector2ui16::zero;
+		uint32			 _max_widget_count = 1024;
+		uint16			 _max_buffer_count = 50;
+		uint32			 _idx_counter	   = 0;
+		uint32			 _vtx_counter	   = 0;
+		bitmask<uint8>	 _flags			   = 0;
 	};
 
-	REGISTER_TRAIT(trait_canvas);
+	REGISTER_TRAIT(comp_canvas);
 }

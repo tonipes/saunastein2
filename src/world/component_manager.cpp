@@ -1,0 +1,123 @@
+// Copyright (c) 2025 Inan Evin
+
+#include "component_manager.hpp"
+#include "world.hpp"
+#include "game/game_max_defines.hpp"
+
+namespace SFG
+{
+
+	component_manager::component_manager(world& w) : _world(w)
+	{
+		_aux_memory.init(MAX_WORLD_COMPONENTS_AUX_MEMORY);
+	}
+
+	component_manager::~component_manager()
+	{
+		for (const comp_cache_storage& stg : _storages)
+			delete stg.cache_ptr;
+
+		_aux_memory.uninit();
+	}
+
+	void component_manager::init()
+	{
+	}
+
+	void component_manager::uninit()
+	{
+		for (comp_cache_storage& stg : _storages)
+			stg.cache_ptr->reset(_world);
+		_aux_memory.reset();
+	}
+
+	world_handle component_manager::add_component(string_id type, world_handle entity)
+	{
+		entity_manager& em = _world.get_entity_manager();
+		SFG_ASSERT(em.is_valid(entity));
+
+		comp_cache_storage& stg	   = get_storage(type);
+		const world_handle	handle = stg.cache_ptr->add(entity, _world);
+		em.on_component_added(entity, handle, type);
+		return handle;
+	}
+
+	world_handle component_manager::add_component_from_stream(string_id type, istream& stream, world_handle entity)
+	{
+		entity_manager& em = _world.get_entity_manager();
+		SFG_ASSERT(em.is_valid(entity));
+
+		comp_cache_storage& stg	   = get_storage(type);
+		const world_handle	handle = stg.cache_ptr->add_from_stream(stream, entity, _world);
+		em.on_component_added(entity, handle, type);
+		return handle;
+	}
+
+	void component_manager::save_component_to_stream(string_id type, ostream& stream, world_handle handle)
+	{
+		comp_cache_storage& stg = get_storage(type);
+		stg.cache_ptr->save_to_stream(stream, handle, _world);
+	}
+
+	void component_manager::remove_component(string_id type, world_handle entity, world_handle handle)
+	{
+		entity_manager& em = _world.get_entity_manager();
+		SFG_ASSERT(em.is_valid(entity));
+
+		comp_cache_storage& stg = get_storage(type);
+		em.on_component_removed(entity, handle, type);
+		stg.cache_ptr->remove(handle, _world);
+	}
+
+	bool component_manager::is_valid(string_id type, world_handle handle) const
+	{
+		const comp_cache_storage& stg = get_storage(type);
+		return stg.cache_ptr->is_valid(handle);
+	}
+
+	void* component_manager::get_component(string_id type, world_handle handle) const
+	{
+		const comp_cache_storage& stg = get_storage(type);
+		return stg.cache_ptr->get_ptr(handle);
+	}
+
+	const component_manager::comp_cache_storage& component_manager::get_storage(string_id type) const
+	{
+		auto it = std::find_if(_storages.begin(), _storages.end(), [type](const comp_cache_storage& stg) -> bool { return stg.type == type; });
+		if (it == _storages.end())
+		{
+			SFG_ASSERT(false);
+			throw std::runtime_error("Component storage not found, did you register it?");
+		}
+
+		return *it;
+	}
+
+	component_manager::comp_cache_storage& component_manager::get_storage(string_id type)
+	{
+		auto it = std::find_if(_storages.begin(), _storages.end(), [type](const comp_cache_storage& stg) -> bool { return stg.type == type; });
+		if (it == _storages.end())
+		{
+			SFG_ASSERT(false);
+			throw std::runtime_error("Component storage not found, did you register it?");
+		}
+
+		return *it;
+	}
+
+#ifdef SFG_TOOLMODE
+
+	world_handle component_manager::add_component_from_json(string_id type, const json& j, world_handle entity)
+	{
+		const comp_cache_storage& stg = get_storage(type);
+		return stg.cache_ptr->add_from_json(j, entity, _world);
+	}
+
+	void component_manager::save_comp(string_id type, json& j, world_handle handle)
+	{
+		const comp_cache_storage& stg = get_storage(type);
+		stg.cache_ptr->save_to_json(j, handle, _world);
+	}
+
+#endif
+}

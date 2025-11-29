@@ -1,8 +1,8 @@
 // Copyright (c) 2025 Inan Evin
 #pragma once
 
-#include "world/traits/common_trait.hpp"
-#include "reflection/trait_reflection.hpp"
+#include "world/components/common_comps.hpp"
+#include "reflection/component_reflection.hpp"
 #include "game/game_max_defines.hpp"
 
 #ifdef SFG_TOOLMODE
@@ -15,7 +15,7 @@ namespace SFG
 	class istream;
 	class world;
 
-	class trait_camera
+	class comp_camera
 	{
 	public:
 		// -----------------------------------------------------------------------------
@@ -56,10 +56,10 @@ namespace SFG
 		}
 
 	private:
-		template <typename T, int> friend class trait_cache;
+		template <typename T, int> friend class comp_cache;
 
 	private:
-		trait_header _header = {};
+		component_header _header = {};
 
 		static_vector<float, MAX_SHADOW_CASCADES> _cascades;
 		float									  _near		   = 0.1f;
@@ -67,5 +67,5 @@ namespace SFG
 		float									  _fov_degrees = 45.0f;
 	};
 
-	REGISTER_TRAIT(trait_camera);
+	REGISTER_TRAIT(comp_camera);
 }
