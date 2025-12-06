@@ -341,7 +341,7 @@ namespace SFG
 		const gpu_index gpu_index_float_buffer		 = pfd.float_buffer.get_gpu_index();
 
 		const static_vector<gpu_index, GBUFFER_COLOR_TEXTURES>& gpu_index_gbuffer_textures = _pass_opaque.get_output_gpu_index(frame_index);
-
+			/*
 		_pass_pre_depth.render({
 			.frame_index		= frame_index,
 			.size				= resolution,
@@ -463,8 +463,8 @@ namespace SFG
 			.global_layout				  = layout_global,
 			.global_group				  = bind_group_global,
 		});
-
-		/*
+		*/
+	
 		static_vector<std::function<void()>, 12> tasks;
 
 		tasks.push_back([&] {
@@ -616,7 +616,7 @@ namespace SFG
 			});
 		});
 
-		std::for_each(std::execution::par, tasks.begin(), tasks.end(), [](auto&& task) { task(); });*/
+		std::for_each(std::execution::par, tasks.begin(), tasks.end(), [](auto&& task) { task(); });
 
 		if (prev_copy != next_copy)
 			backend->queue_wait(queue_gfx, &sem_copy, &next_copy, 1);
