@@ -17,6 +17,7 @@
 
 #include "world/world.hpp"
 
+#include <tracy/Tracy.hpp>
 #include <functional>
 #include <algorithm>
 #include <execution>
@@ -204,6 +205,8 @@ namespace SFG
 
 	void game_world_renderer::tick()
 	{
+		ZoneScoped;
+
 #ifdef JPH_DEBUG_RENDERER
 		_pass_physics_debug.tick(_world);
 #endif
@@ -211,6 +214,8 @@ namespace SFG
 
 	void game_world_renderer::prepare(uint8 frame_index)
 	{
+		ZoneScoped;
+
 		per_frame_data& pfd = _pfd[frame_index];
 		pfd.reset();
 
@@ -275,6 +280,8 @@ namespace SFG
 
 	void game_world_renderer::render(uint8 frame_index, gfx_id layout_global, gfx_id layout_global_compute, gfx_id bind_group_global, uint64 prev_copy, uint64 next_copy, gfx_id sem_copy)
 	{
+		ZoneScoped;
+
 		gfx_backend* backend	   = gfx_backend::get();
 		const gfx_id queue_gfx	   = backend->get_queue_gfx();
 		const gfx_id queue_compute = backend->get_queue_compute();
@@ -335,6 +342,129 @@ namespace SFG
 
 		const static_vector<gpu_index, GBUFFER_COLOR_TEXTURES>& gpu_index_gbuffer_textures = _pass_opaque.get_output_gpu_index(frame_index);
 
+		_pass_pre_depth.render({
+			.frame_index		= frame_index,
+			.size				= resolution,
+			.gpu_index_entities = gpu_index_entities,
+			.gpu_index_bones	= gpu_index_bones,
+			.global_layout		= layout_global,
+			.global_group		= bind_group_global,
+		});
+
+		_pass_shadows.render({
+			.frame_index		= frame_index,
+			.size				= resolution,
+			.gpu_index_entities = gpu_index_entities,
+			.gpu_index_bones	= gpu_index_bones,
+			.global_layout		= layout_global,
+			.global_group		= bind_group_global,
+		});
+
+		_pass_ssao.render({
+			.frame_index		   = frame_index,
+			.size				   = resolution,
+			.gpu_index_depth	   = gpu_index_depth_texture,
+			.gpu_index_normals	   = gpu_index_gbuffer_textures[1],
+			.global_layout_compute = layout_global_compute,
+			.global_group		   = bind_group_global,
+		});
+
+		_pass_post.render({
+			.frame_index				 = frame_index,
+			.size						 = resolution,
+			.gpu_index_lighting			 = gpu_index_lighting,
+			.gpu_index_bloom			 = gpu_index_bloom,
+			.gpu_index_selection_outline = gpu_index_selection_outline,
+			.global_layout				 = layout_global,
+			.global_group				 = bind_group_global,
+		});
+
+		_pass_bloom.render({
+			.frame_index		   = frame_index,
+			.size				   = resolution,
+			.lighting			   = lighting_texture,
+			.gpu_index_lighting	   = gpu_index_lighting,
+			.global_layout_compute = layout_global_compute,
+			.global_group		   = bind_group_global,
+		});
+
+		_pass_opaque.render({
+			.frame_index		= frame_index,
+			.size				= resolution,
+			.gpu_index_entities = gpu_index_entities,
+			.gpu_index_bones	= gpu_index_bones,
+			.depth_texture		= depth_texture,
+			.global_layout		= layout_global,
+			.global_group		= bind_group_global,
+		});
+
+#ifdef SFG_TOOLMODE
+		_pass_object_id.render({
+			.frame_index		= frame_index,
+			.size				= resolution,
+			.gpu_index_entities = gpu_index_entities,
+			.gpu_index_bones	= gpu_index_bones,
+			.depth_texture		= depth_texture,
+			.global_layout		= layout_global,
+			.global_group		= bind_group_global,
+		});
+
+		_pass_selection_outline.render({
+			.frame_index		= frame_index,
+			.size				= resolution,
+			.gpu_index_entities = gpu_index_entities,
+			.gpu_index_bones	= gpu_index_bones,
+			.global_layout		= layout_global,
+			.global_group		= bind_group_global,
+		});
+#endif
+
+#ifdef JPH_DEBUG_RENDERER
+
+		_pass_physics_debug.render({
+			.frame_index   = frame_index,
+			.size		   = resolution,
+			.depth_texture = depth_texture,
+			.input_texture = lighting_texture,
+			.global_layout = layout_global,
+			.global_group  = bind_group_global,
+		});
+
+#endif
+		_pass_forward.render({
+			.frame_index		= frame_index,
+			.size				= resolution,
+			.gpu_index_entities = gpu_index_entities,
+			.gpu_index_bones	= gpu_index_bones,
+			.depth_texture		= depth_texture,
+			.input_texture		= lighting_texture,
+			.global_layout		= layout_global,
+			.global_group		= bind_group_global,
+		});
+		_pass_canvas_2d.render({
+			.frame_index   = frame_index,
+			.size		   = resolution,
+			.input_texture = post_combiner_texture,
+			.global_layout = layout_global,
+			.global_group  = bind_group_global,
+		});
+		_pass_lighting.render({
+			.frame_index				  = frame_index,
+			.size						  = resolution,
+			.gpu_index_gbuffer_textures	  = gpu_index_gbuffer_textures,
+			.gpu_index_depth_texture	  = gpu_index_depth_texture,
+			.gpu_index_point_lights		  = gpu_index_point_lights,
+			.gpu_index_spot_lights		  = gpu_index_spot_lights,
+			.gpu_index_dir_lights		  = gpu_index_dir_lights,
+			.gpu_index_entities			  = gpu_index_entities,
+			.gpu_index_shadow_data_buffer = gpu_index_shadow_data_buffer,
+			.gpu_index_float_buffer		  = gpu_index_float_buffer,
+			.gpu_index_ao_out			  = gpu_index_ao_out,
+			.global_layout				  = layout_global,
+			.global_group				  = bind_group_global,
+		});
+
+		/*
 		static_vector<std::function<void()>, 12> tasks;
 
 		tasks.push_back([&] {
@@ -486,7 +616,7 @@ namespace SFG
 			});
 		});
 
-		std::for_each(std::execution::par, tasks.begin(), tasks.end(), [](auto&& task) { task(); });
+		std::for_each(std::execution::par, tasks.begin(), tasks.end(), [](auto&& task) { task(); });*/
 
 		if (prev_copy != next_copy)
 			backend->queue_wait(queue_gfx, &sem_copy, &next_copy, 1);
@@ -785,15 +915,15 @@ namespace SFG
 			}
 			root_global = root_global.inverse();
 
-			for (uint16 i = 0; i < skin.node_count; i++)
+			for (uint16 j = 0; j < skin.node_count; j++)
 			{
-				const uint16			   node_index	  = node_indices[i];
+				const uint16			   node_index	  = node_indices[j];
 				const world_id			   skin_entity_id = skin_entities_ptr[node_index];
 				const render_proxy_entity& skin_entity	  = entities.get(skin_entity_id);
 				SFG_ASSERT(skin_entity.status == render_proxy_status::rps_active);
 
 				const gpu_bone bone = {
-					.mat = (root_global * skin_entity.model * matrices_ptr[i]).to_matrix4x4(),
+					.mat = (root_global * skin_entity.model * matrices_ptr[j]).to_matrix4x4(),
 				};
 
 				pfd.bones_buffer.buffer_data(assigned_index * sizeof(gpu_bone), &bone, sizeof(gpu_bone));

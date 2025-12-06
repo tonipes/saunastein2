@@ -63,7 +63,7 @@ namespace SFG
 		entity_manager&	   em	   = w.get_entity_manager();
 		component_manager& cm	   = w.get_comp_manager();
 		resource_manager&  res	   = w.get_resource_manager();
-		chunk_allocator32& tm_aux  = cm.get_aux();
+		chunk_allocator32& cm_aux  = cm.get_aux();
 		chunk_allocator32& res_aux = res.get_aux();
 
 		model&				 mdl		  = res.get_resource<model>(model_handle);
@@ -84,15 +84,15 @@ namespace SFG
 
 		if (_root_entities_count != 0)
 		{
-			world_handle* root_entities_ptr = tm_aux.get<world_handle>(_root_entities);
+			world_handle* root_entities_ptr = cm_aux.get<world_handle>(_root_entities);
 			for (uint32 i = 0; i < _root_entities_count; i++)
 				em.destroy_entity(root_entities_ptr[i]);
 
 			if (_root_entities.size != 0)
-				tm_aux.free(_root_entities);
+				cm_aux.free(_root_entities);
 
 			if (_skin_entities.size != 0)
-				tm_aux.free(_skin_entities);
+				cm_aux.free(_skin_entities);
 
 			_skin_entities		 = {};
 			_root_entities		 = {};
@@ -150,8 +150,8 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 
 		_skin_entities_count			= static_cast<uint16>(skin_entities.size());
-		_skin_entities					= tm_aux.allocate<world_handle>(_skin_entities_count);
-		world_handle* skin_entities_ptr = tm_aux.get<world_handle>(_skin_entities);
+		_skin_entities					= cm_aux.allocate<world_handle>(_skin_entities_count);
+		world_handle* skin_entities_ptr = cm_aux.get<world_handle>(_skin_entities);
 		for (uint32 i = 0; i < _skin_entities_count; i++)
 		{
 			skin_entities_ptr[i] = skin_entities[i];
@@ -163,7 +163,7 @@ namespace SFG
 
 		world_handle* root_entities_ptr = nullptr;
 		_root_entities_count			= static_cast<uint32>(root_entities.size());
-		_root_entities					= tm_aux.allocate<world_handle>(root_entities.size(), root_entities_ptr);
+		_root_entities					= cm_aux.allocate<world_handle>(root_entities.size(), root_entities_ptr);
 		for (uint32 i = 0; i < _root_entities_count; i++)
 			root_entities_ptr[i] = root_entities[i];
 

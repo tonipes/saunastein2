@@ -1,5 +1,9 @@
 // Copyright (c) 2025 Inan Evin
 
+#ifdef TRACY_ENABLE
+#include <TracyClient.cpp>
+#endif
+
 #include "app.hpp"
 #include "common/system_info.hpp"
 #include "memory/memory_tracer.hpp"
@@ -197,16 +201,24 @@ namespace SFG
 
 	void app::tick()
 	{
+#ifdef TRACY_ENABLE
+		tracy::SetThreadName("main_thread");
+#endif
+
 		constexpr double ema_fixed_ns	= 16'666'667.0;
 		int64			 previous_time	= time::get_cpu_microseconds();
 		int64			 accumulator_ns = static_cast<int64>(ema_fixed_ns);
 
 		while (_should_close.load(std::memory_order_acquire) == 0)
 		{
+#ifdef TRACY_ENABLE
+			TracyCFrameMarkNamed("main_frame");
+#endif
+
 			// timing.
 			const int64 _current_time = time::get_cpu_microseconds();
-			const int64 delta_micro	 = _current_time - previous_time;
-			previous_time			 = _current_time;
+			const int64 delta_micro	  = _current_time - previous_time;
+			previous_time			  = _current_time;
 			frame_info::s_main_thread_time_milli.store(static_cast<double>(delta_micro) * 0.001);
 
 			// OS & window.
@@ -232,7 +244,7 @@ namespace SFG
 			// world timing
 			const int64		 FIXED_INTERVAL_NS = static_cast<int64>(ema_fixed_ns);
 			const float		 dt_seconds		   = static_cast<float>(static_cast<double>(FIXED_INTERVAL_NS) / 1'000'000'000.0);
-			constexpr uint32 MAX_TICKS		   = 4;
+			constexpr uint32 MAX_TICKS		   = 2;
 			uint32			 ticks			   = 0;
 
 			accumulator_ns += delta_micro * 1000;
@@ -311,9 +323,16 @@ namespace SFG
 	void app::render_loop()
 	{
 		SFG_REGISTER_THREAD_RENDER();
+#ifdef TRACY_ENABLE
+		tracy::SetThreadName("render_thread");
+#endif
 
 		while (_render_joined.load(std::memory_order_acquire) == 0)
 		{
+#ifdef TRACY_ENABLE
+			TracyCFrameMarkNamed("render_frame");
+#endif
+
 			_renderer->render();
 			_game->post_render();
 			frame_info::s_render_frame.fetch_add(1);

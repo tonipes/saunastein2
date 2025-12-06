@@ -31,6 +31,9 @@
 #include "editor/editor.hpp"
 #endif
 
+#include <tracy/Tracy.hpp>
+
+
 namespace SFG
 {
 	gfx_id renderer::s_bind_group_global[BACK_BUFFER_COUNT] = {};
@@ -193,6 +196,8 @@ namespace SFG
 
 	void renderer::tick()
 	{
+		ZoneScoped;
+
 #ifdef SFG_USE_DEBUG_CONTROLLER
 		_debug_controller.tick();
 #endif
@@ -202,6 +207,8 @@ namespace SFG
 
 	void renderer::render()
 	{
+		ZoneScoped;
+
 		gfx_backend*	  backend		 = gfx_backend::get();
 		const gfx_id	  queue_gfx		 = backend->get_queue_gfx();
 		const gfx_id	  queue_transfer = backend->get_queue_transfer();

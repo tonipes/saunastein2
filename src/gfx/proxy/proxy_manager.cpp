@@ -16,6 +16,8 @@
 #include "data/istream.hpp"
 #include "math/math.hpp"
 #include "gui/vekt.hpp"
+#include <tracy/Tracy.hpp>
+
 
 namespace SFG
 {
@@ -144,6 +146,8 @@ namespace SFG
 
 	void proxy_manager::fetch_render_events(render_event_stream& stream, uint8 frame_index)
 	{
+		ZoneScoped;
+
 		auto&							 events = stream.get_events();
 		render_event_stream::event_batch batch	= {};
 

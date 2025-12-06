@@ -28,6 +28,8 @@
 
 #include "gui/vekt.hpp"
 
+#include <tracy/Tracy.hpp>
+
 namespace SFG
 {
 
@@ -549,6 +551,8 @@ namespace SFG
 
 	void debug_controller::prepare(uint8 frame_index)
 	{
+		ZoneScoped;
+
 		_gfx_data.frame_index = frame_index;
 
 		per_frame_data& pfd = _pfd[frame_index];
@@ -571,6 +575,8 @@ namespace SFG
 
 	void debug_controller::tick()
 	{
+		ZoneScoped;
+
 		const char* cmd = nullptr;
 		while (_commands.try_dequeue(cmd))
 		{
@@ -581,6 +587,8 @@ namespace SFG
 
 	void debug_controller::render(gfx_id cmd_buffer, uint8 frame_index, bump_allocator& alloc)
 	{
+		ZoneScoped;
+
 		gfx_backend* backend = gfx_backend::get();
 
 		per_frame_data&	  pfd				   = _pfd[frame_index];

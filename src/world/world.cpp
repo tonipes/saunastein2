@@ -43,6 +43,8 @@
 #include "components/comp_canvas.hpp"
 #include "components/comp_animation_controller.hpp"
 
+#include <tracy/Tracy.hpp>
+
 namespace SFG
 {
 	world::world(render_event_stream& rstream) : _entity_manager(*this), _comp_manager(*this), _render_stream(rstream), _resource_manager(*this), _phy_world(*this)
@@ -121,6 +123,8 @@ namespace SFG
 
 	void world::tick(const vector2ui16& res, float dt)
 	{
+		ZoneScoped;
+
 		_anim_graph.tick(*this, dt);
 		_resource_manager.tick();
 
@@ -135,6 +139,7 @@ namespace SFG
 
 	void world::interpolate(double interpolation)
 	{
+		ZoneScoped;
 		_entity_manager.interpolate_entities(interpolation);
 	}
 

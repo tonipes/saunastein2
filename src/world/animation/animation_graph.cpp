@@ -4,6 +4,8 @@
 #include "animation_pose.hpp"
 #include "math/math.hpp"
 #include "world/world.hpp"
+#include "io/log.hpp"
+#include <tracy/Tracy.hpp>
 
 namespace SFG
 {
@@ -15,7 +17,6 @@ namespace SFG
 		_masks		 = new masks_type();
 		_machines	 = new state_machines_type();
 		_samples	 = new state_samples_type();
-		_poses		 = new poses_type();
 	}
 
 	animation_graph::~animation_graph()
@@ -26,14 +27,12 @@ namespace SFG
 		delete _masks;
 		delete _machines;
 		delete _samples;
-		delete _poses;
 		_states		 = nullptr;
 		_transitions = nullptr;
 		_params		 = nullptr;
 		_masks		 = nullptr;
 		_machines	 = nullptr;
 		_samples	 = nullptr;
-		_poses		 = nullptr;
 	}
 
 	void animation_graph::init()
@@ -48,18 +47,19 @@ namespace SFG
 		_params->reset();
 		_machines->reset();
 		_samples->reset();
-		_poses->reset();
 	}
 
 	void animation_graph::tick(world& w, float dt)
 	{
+		ZoneScoped;
+
 		auto& machines	  = *_machines;
 		auto& transitions = *_transitions;
 		auto& states	  = *_states;
 		auto& samples	  = *_samples;
-		auto& poses		  = *_poses;
 
 		animation_pose transition_blend_pose = {};
+		animation_pose final_pose			 = {};
 
 		uint16 pose_counter = 0;
 
@@ -71,8 +71,7 @@ namespace SFG
 			if (m.active_state.is_null() || m.joint_entities.size == 0)
 				continue;
 
-			animation_state& state		= states.get(m.active_state);
-			animation_pose&	 final_pose = poses.get(pose_counter);
+			animation_state& state = states.get(m.active_state);
 			pose_counter++;
 
 			// get state's pose.
@@ -95,7 +94,7 @@ namespace SFG
 				}
 
 				// transition passed, and no on-going transitions alive, make this on-going, switch  to next one.
-				if (existing_transition_handle.is_null())
+				if (existing_transition_handle.is_null() || existing_transition_handle == target_transition_handle)
 				{
 					existing_transition_handle = target_transition_handle;
 					target_transition_handle   = t._next_transition;
@@ -119,61 +118,40 @@ namespace SFG
 			m._active_transition = existing_transition_handle;
 			if (m._active_transition.is_null())
 			{
+				apply_pose(w, m, final_pose);
 				continue;
 			}
 
 			// Sample the target state of the active transition and blend into the current final pose using transition percentage.
 			animation_transition& active	   = transitions.get(m._active_transition);
 			animation_state&	  target_state = states.get(active.to_state);
-			const float			  ratio		   = progress_transition(active, dt);
 
+			// transition instantly
+			if (math::almost_equal(active.duration, 0.0f))
+			{
+				final_pose.reset();
+				calculate_pose_for_state(w, samples, final_pose, target_state);
+				apply_pose(w, m, final_pose);
+				m._active_transition = {};
+				set_machine_active_state(machine_handle, active.to_state);
+				reset_transition(active);
+				continue;
+			}
+
+			transition_blend_pose.reset();
+			const float ratio = progress_transition(active, dt);
 			calculate_pose_for_state(w, samples, transition_blend_pose, target_state);
 			progress_state(target_state, dt);
-			final_pose.blend_from(transition_blend_pose, 1.0f - ratio);
+			final_pose.blend_from(transition_blend_pose, ratio);
+
+			apply_pose(w, m, final_pose);
 
 			// reset transition if complete & switch state
 			if (math::almost_equal(ratio, 1.0f, 0.001f))
 			{
 				m._active_transition = {};
-				m.active_state		 = active.to_state;
 				set_machine_active_state(machine_handle, active.to_state);
 				reset_transition(active);
-			}
-		}
-
-		uint16 i = 0;
-
-		chunk_allocator32& aux = w.get_comp_manager().get_aux();
-		entity_manager&	   em  = w.get_entity_manager();
-
-		// now apply generated poses
-		for (auto it = machines.handles_begin(); it != machines.handles_end(); ++it)
-		{
-			const pool_handle16		 machine_handle = *it;
-			animation_state_machine& m				= machines.get(machine_handle);
-
-			if (m.active_state.is_null() || m.joint_entities.size == 0)
-				continue;
-
-			animation_pose& p = poses.get(i);
-			i++;
-
-			const uint16  sz			 = m.joint_entities_count;
-			world_handle* entity_handles = aux.get<world_handle>(m.joint_entities);
-
-			const auto& joint_poses = p.get_joint_poses();
-			for (const joint_pose& jp : joint_poses)
-			{
-				const world_handle entity = entity_handles[jp.node_index];
-
-				if (jp.flags.is_set(joint_pose_flags::has_position))
-					em.set_entity_position(entity, jp.pos);
-
-				if (jp.flags.is_set(joint_pose_flags::has_rotation))
-					em.set_entity_rotation(entity, jp.rot);
-
-				if (jp.flags.is_set(joint_pose_flags::has_scale))
-					em.set_entity_scale(entity, jp.scale);
 			}
 		}
 	}
@@ -189,34 +167,48 @@ namespace SFG
 
 	pool_handle16 animation_graph::add_state(pool_handle16 state_machine_handle)
 	{
+		return add_state(state_machine_handle, {}, {}, {}, 1.0f, animation_state_flags_is_looping);
+	}
+
+	pool_handle16 animation_graph::add_state(pool_handle16 state_machine_handle, pool_handle16 mask, pool_handle16 blend_param_x, pool_handle16 blend_param_y, float duration, uint8 flags)
+	{
 		const pool_handle16 new_state = _states->add();
 
 		animation_state_machine& machine = _machines->get(state_machine_handle);
 		if (machine._first_state.is_null())
 		{
 			machine._first_state = new_state;
-			return new_state;
 		}
-
-		pool_handle16 next = machine._first_state;
-		while (true)
+		else
 		{
-			animation_state&	target = _states->get(next);
-			const pool_handle16 h	   = target._next_state;
-			if (!h.is_null())
-			{
-				next = h;
-				continue;
-			}
 
-			target._next_state = new_state;
-			break;
+			pool_handle16 next = machine._first_state;
+			while (true)
+			{
+				animation_state&	target = _states->get(next);
+				const pool_handle16 h	   = target._next_state;
+				if (!h.is_null())
+				{
+					next = h;
+					continue;
+				}
+
+				target._next_state = new_state;
+				break;
+			}
 		}
+
+		animation_state& state	   = get_state(new_state);
+		state.blend_weight_param_x = blend_param_x;
+		state.blend_weight_param_y = blend_param_y;
+		state.mask				   = mask;
+		state.duration			   = duration;
+		state.flags				   = flags;
 
 		return new_state;
 	}
 
-	pool_handle16 animation_graph::add_state_sample(pool_handle16 state_handle)
+	pool_handle16 animation_graph::add_state_sample(pool_handle16 state_handle, resource_handle animation, const vector2& blend_point)
 	{
 		const pool_handle16 new_sample = _samples->add();
 
@@ -225,28 +217,38 @@ namespace SFG
 		if (state._first_sample.is_null())
 		{
 			state._first_sample = new_sample;
-			return new_sample;
 		}
-
-		pool_handle16 next = state._first_sample;
-		while (true)
+		else
 		{
-			animation_state_sample& sample = get_sample(next);
-			const pool_handle16		h	   = sample._next_sample;
-			if (!h.is_null())
-			{
-				next = h;
-				continue;
-			}
 
-			sample._next_sample = new_sample;
-			break;
+			pool_handle16 next = state._first_sample;
+			while (true)
+			{
+				animation_state_sample& sample = get_sample(next);
+				const pool_handle16		h	   = sample._next_sample;
+				if (!h.is_null())
+				{
+					next = h;
+					continue;
+				}
+
+				sample._next_sample = new_sample;
+				break;
+			}
 		}
 
+		animation_state_sample& smp = get_sample(new_sample);
+		smp.animation				= animation;
+		smp.blend_point				= blend_point;
 		return new_sample;
 	}
 
-	pool_handle16 animation_graph::add_parameter(pool_handle16 state_machine_handle)
+	pool_handle16 animation_graph::add_state_sample(pool_handle16 state_handle)
+	{
+		return add_state_sample(state_handle, {}, {});
+	}
+
+	pool_handle16 animation_graph::add_parameter(pool_handle16 state_machine_handle, float val)
 	{
 		const pool_handle16 new_param = _params->add();
 
@@ -254,53 +256,71 @@ namespace SFG
 		if (machine._first_parameter.is_null())
 		{
 			machine._first_parameter = new_param;
-			return new_param;
+		}
+		else
+		{
+			pool_handle16 next = machine._first_parameter;
+			while (true)
+			{
+				animation_parameter& target = _params->get(next);
+				const pool_handle16	 h		= target._next_param;
+				if (!h.is_null())
+				{
+					next = h;
+					continue;
+				}
+				target._next_param = new_param;
+				break;
+			}
 		}
 
-		pool_handle16 next = machine._first_parameter;
-		while (true)
-		{
-			animation_parameter& target = _params->get(next);
-			const pool_handle16	 h		= target._next_param;
-			if (!h.is_null())
-			{
-				next = h;
-				continue;
-			}
-			target._next_param = new_param;
-			break;
-		}
+		animation_parameter& p = get_parameter(new_param);
+		p.value				   = val;
 
 		return new_param;
 	}
 
-	pool_handle16 animation_graph::add_transition_from_state(pool_handle16 state_handle)
+	pool_handle16 animation_graph::add_transition(pool_handle16 state_handle, pool_handle16 to_state_handle)
+	{
+		return add_transition(state_handle, to_state_handle, {}, 0.0f, 0.0f, animation_transition_compare::greater, 0);
+	}
+
+	pool_handle16 animation_graph::add_transition(pool_handle16 from_state_handle, pool_handle16 to_state_handle, pool_handle16 param_handle, float duration, float target_value, animation_transition_compare compare, uint8 priority)
 	{
 		const pool_handle16 transition = _transitions->add();
 
 		// add if first transition out of the state
-		animation_state& state = _states->get(state_handle);
+		animation_state& state = _states->get(from_state_handle);
 		pool_handle16	 next  = state._first_out_transition;
 		if (next.is_null())
 		{
 			state._first_out_transition = transition;
-			return transition;
 		}
-
-		// if not add into the chain.
-		while (true)
+		else
 		{
-			animation_transition& target = _transitions->get(next);
-			const pool_handle16	  h		 = target._next_transition;
-			if (!h.is_null())
+			// if not add into the chain.
+			while (true)
 			{
-				next = h;
-				continue;
-			}
+				animation_transition& target = _transitions->get(next);
+				const pool_handle16	  h		 = target._next_transition;
+				if (!h.is_null())
+				{
+					next = h;
+					continue;
+				}
 
-			target._next_transition = transition;
-			break;
+				target._next_transition = transition;
+				break;
+			}
 		}
+
+		animation_transition& t = get_transition(transition);
+		t.to_state				= to_state_handle;
+		t.parameter				= param_handle;
+		t.duration				= duration;
+		t.target_value			= target_value;
+		t.compare				= compare;
+		t.priority				= priority;
 
 		return transition;
 	}
@@ -414,6 +434,32 @@ namespace SFG
 		}
 
 		m.active_state = state;
+	}
+
+	void animation_graph::apply_pose(world& w, animation_state_machine& m, const animation_pose& pose)
+	{
+		ZoneScoped;
+
+		entity_manager&	   em  = w.get_entity_manager();
+		chunk_allocator32& aux = w.get_comp_manager().get_aux();
+
+		const uint16  sz			 = m.joint_entities_count;
+		world_handle* entity_handles = aux.get<world_handle>(m.joint_entities);
+
+		const auto& joint_poses = pose.get_joint_poses();
+		for (const joint_pose& jp : joint_poses)
+		{
+			const world_handle entity = entity_handles[jp.node_index];
+
+			if (jp.flags.is_set(joint_pose_flags::has_position))
+				em.set_entity_position(entity, jp.pos);
+
+			if (jp.flags.is_set(joint_pose_flags::has_rotation))
+				em.set_entity_rotation(entity, jp.rot);
+
+			if (jp.flags.is_set(joint_pose_flags::has_scale))
+				em.set_entity_scale(entity, jp.scale);
+		}
 	}
 
 	void animation_graph::calculate_pose_for_state(world& w, const state_samples_type& samples, animation_pose& out_pose, animation_state& state)

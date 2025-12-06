@@ -8,6 +8,7 @@
 #include "animation_state.hpp"
 #include "animation_transition.hpp"
 #include "animation_mask.hpp"
+#include "animation_pose.hpp"
 #include "animation_state_machine.hpp"
 #include "game/game_max_defines.hpp"
 
@@ -21,14 +22,12 @@ namespace SFG
 	};
 
 	class world;
-	struct animation_pose;
 
 	class animation_graph
 	{
 
 	private:
 		using states_type		  = pool_allocator_gen<animation_state, uint16, MAX_WORLD_ANIM_GRAPH_STATES>;
-		using poses_type		  = pool_allocator_simple<animation_pose, MAX_WORLD_ANIM_GRAPH_STATES, uint16>;
 		using transitions_type	  = pool_allocator_gen<animation_transition, uint16, MAX_WORLD_ANIM_GRAPH_TRANSITION>;
 		using params_type		  = pool_allocator_gen<animation_parameter, uint16, MAX_WORLD_ANIM_GRAPH_PARAMETER>;
 		using masks_type		  = pool_allocator_gen<animation_mask, uint16, MAX_WORLD_ANIM_GRAPH_MASK>;
@@ -53,9 +52,12 @@ namespace SFG
 
 		pool_handle16			 add_state_machine();
 		pool_handle16			 add_state(pool_handle16 state_machine_handle);
+		pool_handle16			 add_state(pool_handle16 state_machine_handle, pool_handle16 mask, pool_handle16 blend_param_x, pool_handle16 blend_param_y, float duration, uint8 flags);
+		pool_handle16			 add_state_sample(pool_handle16 state_handle, resource_handle animation, const vector2& blend_point);
 		pool_handle16			 add_state_sample(pool_handle16 state_handle);
-		pool_handle16			 add_parameter(pool_handle16 state_machine_handle);
-		pool_handle16			 add_transition_from_state(pool_handle16 state_handle);
+		pool_handle16			 add_parameter(pool_handle16 state_machine_handle, float val = 0.0f);
+		pool_handle16			 add_transition(pool_handle16 from_state_handle, pool_handle16 to_state_handle);
+		pool_handle16			 add_transition(pool_handle16 from_state_handle, pool_handle16 to_state_handle, pool_handle16 param_handle, float duration, float target_value, animation_transition_compare compare, uint8 priority);
 		pool_handle16			 add_mask();
 		void					 remove_state_machine(pool_handle16 handle);
 		void					 remove_mask(pool_handle16 handle);
@@ -69,8 +71,14 @@ namespace SFG
 
 	private:
 		// -----------------------------------------------------------------------------
+		// machine
+		// -----------------------------------------------------------------------------
+		void apply_pose(world& w, animation_state_machine& m, const animation_pose& pose);
+
+		// -----------------------------------------------------------------------------
 		// states
 		// -----------------------------------------------------------------------------
+
 		void calculate_pose_for_state(world& w, const state_samples_type& samples, animation_pose& out_pose, animation_state& state);
 		void progress_state(animation_state& state, float dt);
 		void reset_state(animation_state& state);
@@ -93,7 +101,6 @@ namespace SFG
 
 	private:
 		states_type*		 _states	  = nullptr;
-		poses_type*			 _poses		  = nullptr;
 		transitions_type*	 _transitions = nullptr;
 		params_type*		 _params	  = nullptr;
 		masks_type*			 _masks		  = nullptr;

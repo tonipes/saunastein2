@@ -4,6 +4,7 @@
 #include "common/size_definitions.hpp"
 #include "data/ostream.hpp"
 #include "gfx/event_stream/render_events.hpp"
+#include "game/game_max_defines.hpp"
 #include <vendor/moodycamel/readerwriterqueue.h>
 
 namespace SFG
@@ -11,8 +12,8 @@ namespace SFG
 	class render_event_stream
 	{
 	public:
-		static constexpr size_t BATCH_SIZE		  = 1024 * 1024 * 5;
-		static constexpr size_t MAX_BATCHES		  = 8;
+		static constexpr size_t BATCH_SIZE		  = RENDER_STREAM_BATCH_SIZE;
+		static constexpr size_t MAX_BATCHES		  = RENDER_STREAM_MAX_BATCHES;
 
 		struct event_batch
 		{

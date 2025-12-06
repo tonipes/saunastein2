@@ -2,6 +2,8 @@
 
 #include "render_event_stream.hpp"
 #include "io/log.hpp"
+#include <tracy/Tracy.hpp>
+
 namespace SFG
 {
 	void render_event_stream::init()
@@ -20,6 +22,8 @@ namespace SFG
 
 	void render_event_stream::publish()
 	{
+		ZoneScoped;
+
 		if (_main_thread_data.get_size() == 0)
 			return;
 
