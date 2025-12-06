@@ -50,6 +50,7 @@ add_compile_definitions($<$<CONFIG:Debug>:SFG_GFX_SERIALIZE_SHADERS_PDB>)
 add_compile_definitions($<$<CONFIG:Debug>:SFG_GFX_USE_DEBUG_LAYERS>)
 add_compile_definitions($<$<CONFIG:Debug>:SFG_USE_DEBUG_CONTROLLER>)
 add_compile_definitions($<$<CONFIG:Debug>:SFG_DUMP_LOG_TRACE>)
+add_compile_definitions($<$<CONFIG:Debug>:TRACY_ENABLED>)
 
 add_compile_definitions($<$<CONFIG:Production>:_ITERATOR_DEBUG_LEVEL=0>)
 add_compile_definitions($<$<CONFIG:Production>:NDEBUG>)
@@ -62,7 +63,8 @@ add_compile_definitions($<$<CONFIG:Release>:SFG_ENABLE_MEMORY_TRACER>)
 add_compile_definitions($<$<CONFIG:Release>:SFG_GFX_SERIALIZE_SHADERS_PDB>)
 add_compile_definitions($<$<CONFIG:Release>:SFG_GFX_USE_DEBUG_LAYERS>)
 add_compile_definitions($<$<CONFIG:Release>:SFG_USE_DEBUG_CONTROLLER>)
-add_compile_definitions($<$<CONFIG:Debug>:SFG_DUMP_LOG_TRACE>)
+add_compile_definitions($<$<CONFIG:Release>:SFG_DUMP_LOG_TRACE>)
+add_compile_definitions($<$<CONFIG:Release>:TRACY_ENABLED>)
 
 add_definitions(-DSFG_CONFIGURATION="$<CONFIGURATION>")
 add_definitions(-DSFG_ROOT_DIRECTORY="${CMAKE_SOURCE_DIR}/")
@@ -236,6 +238,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     ${ICON}
     # Only in Debug configs:
     $<$<CONFIG:Debug>:${EDITOR_SOURCES} ${EDITOR_HEADERS}>
+    $<$<CONFIG:Release>:${EDITOR_SOURCES} ${EDITOR_HEADERS}>
 )
 # Shared library (DLL/.dylib/.so)
 # add_library(${PROJECT_NAME} SHARED
@@ -255,7 +258,7 @@ include(${CMAKE_SOURCE_DIR}/utils/cmake/executable_settings.cmake)
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/src/)
 target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/deps/phmap/include)
-target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/Dependencies/JoltPhysics-5.4.0)
+
 
 # ------------- DEPS -------------
 
@@ -270,11 +273,13 @@ add_subdirectory(deps/JoltPhysics-5.4.0/Build)
 set_property(TARGET Jolt PROPERTY FOLDER Dependencies)
 
 
+
 if (MSVC)
   target_compile_options(Jolt PRIVATE /wd4865)  # ignore C4865 for Jolt
 endif()
 
 add_subdirectory(deps/lz4-1.9.4)
+
 
 if(WIN32)
 
