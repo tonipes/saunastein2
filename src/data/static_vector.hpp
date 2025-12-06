@@ -127,13 +127,15 @@ namespace SFG
 		void push_back(const T& value)
 		{
 			SFG_ASSERT(!full());
-			_data[_head++] = value;
+			_data[_head] = value;
+			_head++;
 		}
 
 		void push_back(T&& value)
 		{
 			SFG_ASSERT(!full());
-			_data[_head++] = std::move(value);
+			_data[_head] = std::move(value);
+			_head++;
 		}
 
 		void pop_back()

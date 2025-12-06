@@ -4,9 +4,7 @@
 #include "world/components/common_comps.hpp"
 #include "reflection/component_reflection.hpp"
 #include "resources/common_resources.hpp"
-#include "memory/chunk_handle.hpp"
-#include "memory/pool_allocator_gen.hpp"
-#include "world/animation/animation_state.hpp"
+#include "memory/pool_handle.hpp"
 
 namespace SFG
 {
@@ -27,17 +25,6 @@ namespace SFG
 		void deserialize(istream& stream, world& w);
 
 		// -----------------------------------------------------------------------------
-		// impl
-		// -----------------------------------------------------------------------------
-
-		void		  tick(float dt);
-		pool_handle16 add_state();
-		bool		  is_valid(pool_handle16 state);
-		void		  remove_state(pool_handle16 state);
-		void		  switch_to_state(pool_handle16 state, float transition_duration);
-		void		  switch_to_state_immediate(pool_handle16 state);
-
-		// -----------------------------------------------------------------------------
 		// accessors
 		// -----------------------------------------------------------------------------
 
@@ -46,16 +33,17 @@ namespace SFG
 			return _header;
 		}
 
+		inline pool_handle16 get_state_machine() const
+		{
+			return _state_machine;
+		}
+
 	private:
 		template <typename T, int> friend class comp_cache;
 
 	private:
-		component_header								 _header			 = {};
-		pool_allocator_gen<animation_state, uint16, 16>* _states			 = nullptr;
-		pool_handle16									 _active_state		 = {};
-		pool_handle16									 _target_state		 = {};
-		float											 _transition_counter = 0.0f;
-		float											 _target_transition	 = 0.0f;
+		component_header _header		= {};
+		pool_handle16	 _state_machine = {};
 	};
 
 	REGISTER_TRAIT(comp_animation_controller);

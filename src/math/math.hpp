@@ -99,6 +99,10 @@ namespace SFG
 			return out_min + normalized_value * (out_max - out_min);
 		}
 
+		inline float fmodf(float value, float mod)
+		{
+			return std::fmodf(value, mod);
+		}
 		inline float modf(float value, float* integral_part)
 		{
 			return std::modf(value, integral_part);

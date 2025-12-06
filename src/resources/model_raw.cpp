@@ -387,7 +387,40 @@ namespace SFG
 
 				fill_prim(prim, model, tprim, vertex_accessor, vertex_buffer_view, vertex_buffer, num_vertices, start_vertex, start_index);
 			}
+		}
 
+		const size_t all_nodes_sz = model.nodes.size();
+		loaded_nodes.resize(all_nodes_sz);
+
+		for (size_t i = 0; i < all_nodes_sz; i++)
+		{
+			const tinygltf::Node& tnode = model.nodes[i];
+			model_node_raw&		  node	= loaded_nodes[i];
+			node.name					= tnode.name;
+			node.mesh_index				= static_cast<int16>(tnode.mesh);
+			node.skin_index				= static_cast<int16>(tnode.skin);
+			node.light_index			= static_cast<int16>(tnode.light);
+
+			if (tnode.matrix.empty())
+			{
+				const vector3 p	  = tnode.translation.empty() ? vector3::zero : vector3(tnode.translation[0], tnode.translation[1], tnode.translation[2]);
+				const vector3 s	  = tnode.scale.empty() ? vector3::one : vector3(tnode.scale[0], tnode.scale[1], tnode.scale[2]);
+				const quat	  r	  = tnode.rotation.empty() ? quat::identity : quat(tnode.rotation[0], tnode.rotation[1], tnode.rotation[2], tnode.rotation[3]);
+				node.local_matrix = matrix4x3::transform(p, r, s);
+			}
+			else
+			{
+				node.local_matrix = make_mat43(tnode.matrix);
+			}
+
+			for (int child : tnode.children)
+				loaded_nodes[child].parent_index = i;
+
+			if (tnode.mesh != -1)
+			{
+				loaded_meshes[tnode.mesh].node_index = static_cast<uint16>(i);
+				loaded_meshes[tnode.mesh].skin_index = node.skin_index;
+			}
 		}
 
 		const size_t all_skins_sz = model.skins.size();
@@ -423,43 +456,10 @@ namespace SFG
 
 				skin_joint& sj		= skin.joints[j];
 				sj.model_node_index = static_cast<int16>(joint_index);
+				sj.name_hash		= TO_SID(loaded_nodes[joint_index].name);
 
 				for (size_t k = 0; k < 16; k++)
 					sj.inverse_bind_matrix.m[k] = raw[k];
-			}
-		}
-
-		const size_t all_nodes_sz = model.nodes.size();
-		loaded_nodes.resize(all_nodes_sz);
-
-		for (size_t i = 0; i < all_nodes_sz; i++)
-		{
-			const tinygltf::Node& tnode = model.nodes[i];
-			model_node_raw&		  node	= loaded_nodes[i];
-			node.name					= tnode.name;
-			node.mesh_index				= static_cast<int16>(tnode.mesh);
-			node.skin_index				= static_cast<int16>(tnode.skin);
-			node.light_index			= static_cast<int16>(tnode.light);
-
-			if (tnode.matrix.empty())
-			{
-				const vector3 p	  = tnode.translation.empty() ? vector3::zero : vector3(tnode.translation[0], tnode.translation[1], tnode.translation[2]);
-				const vector3 s	  = tnode.scale.empty() ? vector3::one : vector3(tnode.scale[0], tnode.scale[1], tnode.scale[2]);
-				const quat	  r	  = tnode.rotation.empty() ? quat::identity : quat(tnode.rotation[0], tnode.rotation[1], tnode.rotation[2], tnode.rotation[3]);
-				node.local_matrix = matrix4x3::transform(p, r, s);
-			}
-			else
-			{
-				node.local_matrix = make_mat43(tnode.matrix);
-			}
-
-			for (int child : tnode.children)
-				loaded_nodes[child].parent_index = i;
-
-			if (tnode.mesh != -1)
-			{
-				loaded_meshes[tnode.mesh].node_index = static_cast<uint16>(i);
-				loaded_meshes[tnode.mesh].skin_index = node.skin_index;
 			}
 		}
 
@@ -819,16 +819,17 @@ namespace SFG
 				const size_t input_count  = input_a.count;
 				const size_t output_count = output_a.count;
 
-				const float*  raw_float_data = reinterpret_cast<const float*>(output_b.data.data() + output_a.byteOffset + output_bv.byteOffset);
 				vector<float> keyframe_times = {};
 				keyframe_times.resize(input_count);
 
+				const size_t   stride = input_bv.byteStride == 0 ? sizeof(float) : input_bv.byteStride;
+				const uint8_t* base	  = input_b.data.data() + input_a.byteOffset + input_bv.byteOffset;
+
 				for (size_t k = 0; k < input_count; k++)
 				{
-					const size_t stride = input_bv.byteStride == 0 ? sizeof(float) : input_bv.byteStride;
-					const float* raw	= reinterpret_cast<const float*>(input_b.data.data() + input_a.byteOffset + input_bv.byteOffset + j * stride);
-					keyframe_times[k]	= raw[0];
-					anim.duration		= math::max(anim.duration, raw[0]);
+					const float* raw  = reinterpret_cast<const float*>(base + k * stride);
+					keyframe_times[k] = *raw;
+					anim.duration	  = math::max(anim.duration, keyframe_times[k]);
 				}
 
 				animation_interpolation interpolation = animation_interpolation::linear;
@@ -848,8 +849,10 @@ namespace SFG
 					SFG_ASSERT(input_count == output_count, "Input & output counts do not match!");
 				}
 
-				const bool is_translation = tchannel.target_path.compare("translation");
-				const bool is_scale		  = tchannel.target_path.compare("scale");
+				const float* raw_float_data = reinterpret_cast<const float*>(output_b.data.data() + output_a.byteOffset + output_bv.byteOffset);
+
+				const bool is_translation = tchannel.target_path.compare("translation") == 0;
+				const bool is_scale		  = tchannel.target_path.compare("scale") == 0;
 
 				if (is_translation || is_scale)
 				{
@@ -907,7 +910,7 @@ namespace SFG
 						{
 							size_t base = k * 12;
 							channel.keyframes_spline.push_back({});
-							animation_keyframe_q_spline kf = channel.keyframes_spline.back();
+							animation_keyframe_q_spline& kf = channel.keyframes_spline.back();
 
 							kf.in_tangent  = quat(raw_float_data[base], raw_float_data[base + 1], raw_float_data[base + 2], raw_float_data[base + 3]);
 							kf.value	   = quat(raw_float_data[base + 4], raw_float_data[base + 5], raw_float_data[base + 6], raw_float_data[base + 7]);

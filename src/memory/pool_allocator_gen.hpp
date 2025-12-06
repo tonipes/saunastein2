@@ -26,6 +26,7 @@ namespace SFG
 				_free_list[i]	= 0;
 				_actives[i]		= 0;
 			}
+			_free_count = 0;
 		}
 
 		// -----------------------------------------------------------------------------
@@ -46,11 +47,12 @@ namespace SFG
 				};
 			}
 
+			SFG_ASSERT(_head < N);
+
 			const SIZE_TYPE index = _head;
 			new (&_items[index]) T();
 			_actives[index] = 1;
 			_head++;
-			SFG_ASSERT(_head <= N);
 			return {
 				.generation = _generations[index],
 				.index		= index,
@@ -247,12 +249,12 @@ namespace SFG
 		}
 
 	private:
-		T		  _items[N];
-		SIZE_TYPE _free_count = 0;
-		SIZE_TYPE _free_list[N];
-		SIZE_TYPE _generations[N];
-		uint8	  _actives[N];
-		SIZE_TYPE _head = 0;
+		T		  _items[N]		  = {};
+		SIZE_TYPE _free_count	  = 0;
+		SIZE_TYPE _free_list[N]	  = {};
+		SIZE_TYPE _generations[N] = {};
+		uint8	  _actives[N]	  = {};
+		SIZE_TYPE _head			  = 0;
 	};
 
 }

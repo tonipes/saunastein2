@@ -18,12 +18,16 @@ namespace SFG
 {
 	void comp_mesh_instance::on_add(world& w)
 	{
-
 		w.get_entity_manager().add_render_proxy(_header.entity);
 	}
 
 	void comp_mesh_instance::on_remove(world& w)
 	{
+		chunk_allocator32& aux = w.get_comp_manager().get_aux();
+		if (_skin_entities.size != 0)
+			aux.free(_skin_entities);
+		_skin_entities = {};
+
 		w.get_entity_manager().remove_render_proxy(_header.entity);
 
 		w.get_render_stream().add_event({
@@ -32,7 +36,7 @@ namespace SFG
 		});
 	}
 
-	void comp_mesh_instance::set_mesh(world& w, resource_handle model_handle, resource_handle mesh, resource_handle skin, world_handle* skin_node_entities, uint32 skin_node_entity_count)
+	void comp_mesh_instance::set_mesh(world& w, resource_handle model_handle, resource_handle mesh, resource_handle skin, world_handle* skin_node_entities, uint16 skin_node_entity_count)
 	{
 		_target_model = model_handle;
 		_target_mesh  = mesh;
@@ -43,9 +47,25 @@ namespace SFG
 		stg.mesh					   = _target_mesh.index;
 		stg.skin					   = skin.is_null() ? NULL_RESOURCE_ID : skin.index;
 
-		for (uint32 i = 0; i < skin_node_entity_count; i++)
+		for (uint16 i = 0; i < skin_node_entity_count; i++)
 		{
 			stg.skin_node_entities.push_back(skin_node_entities[i].index);
+		}
+
+		chunk_allocator32& aux = w.get_comp_manager().get_aux();
+
+		if (_skin_entities.size != 0)
+			aux.free(_skin_entities);
+		_skin_entities		 = {};
+		_skin_entities_count = skin_node_entity_count;
+
+		if (_skin_entities_count != 0)
+		{
+			_skin_entities	  = aux.allocate<world_handle>(_skin_entities_count);
+			world_handle* ptr = aux.get<world_handle>(_skin_entities);
+
+			for (uint16 i = 0; i < _skin_entities_count; i++)
+				ptr[i] = skin_node_entities[i];
 		}
 
 		w.get_render_stream().add_event(

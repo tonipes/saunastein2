@@ -9,7 +9,7 @@
 
 namespace SFG
 {
-	template <typename T, int N> struct pool_allocator_simple
+	template <typename T, int N, typename SIZE_TYPE = uint32> struct pool_allocator_simple
 	{
 		~pool_allocator_simple()
 		{
@@ -24,11 +24,11 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 		inline void reset()
 		{
-			for (uint32 i = 0; i < N; i++)
+			for (SIZE_TYPE i = 0; i < N; i++)
 				_items[i] = T();
 		}
 
-		inline void reset(uint32 idx)
+		inline void reset(SIZE_TYPE idx)
 		{
 			SFG_ASSERT(idx < N);
 			_items[idx] = T();
@@ -38,13 +38,13 @@ namespace SFG
 		// accessors
 		// -----------------------------------------------------------------------------
 
-		T& get(uint32 idx)
+		T& get(SIZE_TYPE idx)
 		{
 			SFG_ASSERT(idx < N);
 			return _items[idx];
 		}
 
-		const T& get(uint32 idx) const
+		const T& get(SIZE_TYPE idx) const
 		{
 			SFG_ASSERT(idx < N);
 			return _items[idx];
@@ -59,7 +59,7 @@ namespace SFG
 			using reference = TYPE&;
 			using pointer	= TYPE*;
 
-			iterator(pointer ptr, uint32 begin, uint32 end) : _ptr(ptr), _current(begin), _end(end)
+			iterator(pointer ptr, SIZE_TYPE begin, SIZE_TYPE end) : _ptr(ptr), _current(begin), _end(end)
 			{
 			}
 
@@ -95,9 +95,9 @@ namespace SFG
 				return a._current != b._current;
 			}
 
-			pointer _ptr	 = nullptr;
-			uint32	_current = 0;
-			uint32	_end	 = 0;
+			pointer	  _ptr	   = nullptr;
+			SIZE_TYPE _current = 0;
+			SIZE_TYPE _end	   = 0;
 		};
 
 		iterator<const T> begin() const

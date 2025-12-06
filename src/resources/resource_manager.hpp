@@ -393,6 +393,11 @@ namespace SFG
 			return _aux_memory;
 		}
 
+		inline const chunk_allocator32& get_aux() const
+		{
+			return _aux_memory;
+		}
+
 		inline resource_handle get_default_gui_mat() const
 		{
 			return _default_gui_mat;

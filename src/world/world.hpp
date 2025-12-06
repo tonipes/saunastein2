@@ -12,6 +12,7 @@
 #include "resources/resource_manager.hpp"
 #include "physics/physics_world.hpp"
 #include "audio/audio_manager.hpp"
+#include "animation/animation_graph.hpp"
 
 struct ma_engine;
 
@@ -111,6 +112,11 @@ namespace SFG
 			return _audio_manager;
 		}
 
+		inline animation_graph& get_animation_graph()
+		{
+			return _anim_graph;
+		}
+
 		inline void set_listener(world_listener* list)
 		{
 			_listener = list;
@@ -138,6 +144,7 @@ namespace SFG
 		component_manager  _comp_manager;
 		text_allocator	   _text_allocator;
 		audio_manager	   _audio_manager = {};
+		animation_graph	   _anim_graph	  = {};
 		vekt::font_manager _vekt_fonts	  = {};
 
 		vector<atlas_data>	 _vekt_atlases = {};

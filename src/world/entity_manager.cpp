@@ -173,6 +173,24 @@ namespace SFG
 		return {};
 	}
 
+	world_handle entity_manager::find_entity(world_handle parent, const char* name)
+	{
+		SFG_ASSERT(_entities->is_valid(parent));
+
+		const entity_family& f = _families->get(parent.index);
+		world_handle h = {};
+		visit_children(parent, [&](world_handle c)  {
+			const entity_meta& m = get_entity_meta(c);
+			if (strcmp(m.name, name) == 0)
+			{
+				h = c;
+				return;
+			}
+			});
+
+		return h;
+	}
+
 	void entity_manager::destroy_entity(world_handle entity)
 	{
 		SFG_ASSERT(_entities->is_valid(entity));
@@ -414,6 +432,18 @@ namespace SFG
 			.generation = gen,
 			.index		= id,
 		};
+	}
+
+	world_handle entity_manager::get_entity_component(string_id comp_type, world_handle entity)
+	{
+		entity_comp_register& reg = _comp_registers->get(entity.index);
+		for (const entity_comp& c : reg.comps)
+		{
+			if (c.comp_type == comp_type)
+				return c.comp_handle;
+		}
+
+		return {};
 	}
 
 	/* ----------------                   ---------------- */

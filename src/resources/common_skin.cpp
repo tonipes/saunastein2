@@ -9,11 +9,13 @@ namespace SFG
 	{
 		stream << model_node_index;
 		stream << inverse_bind_matrix;
+		stream << name_hash;
 	}
 
 	void skin_joint::deserialize(istream& stream)
 	{
 		stream >> model_node_index;
 		stream >> inverse_bind_matrix;
+		stream >> name_hash;
 	}
 }

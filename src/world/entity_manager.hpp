@@ -33,6 +33,7 @@ namespace SFG
 
 		world_handle		 create_entity(const char* name = "entity");
 		world_handle		 find_entity(const char* name);
+		world_handle		 find_entity(world_handle parent, const char* name);
 		void				 destroy_entity(world_handle handle);
 		void				 add_child(world_handle parent, world_handle child);
 		void				 remove_child(world_handle parent, world_handle child);
@@ -46,6 +47,7 @@ namespace SFG
 		void				 set_entity_visible(world_handle entity, bool is_visible);
 		void				 remove_all_entity_components(world_handle entity);
 		world_handle		 get_valid_handle_by_index(world_id id);
+		world_handle		 get_entity_component(string_id comp_type, world_handle entity);
 
 		inline bool is_valid(world_handle entity) const
 		{
@@ -87,6 +89,12 @@ namespace SFG
 					return t.comp_handle;
 			}
 			return {};
+		}
+
+		template <typename T> world_handle get_entity_component(world_handle entity)
+		{
+			const string_id id = type_id<T>::value;
+			return get_entity_component(id, entity);
 		}
 
 		// -----------------------------------------------------------------------------

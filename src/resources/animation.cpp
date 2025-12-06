@@ -13,21 +13,24 @@ namespace SFG
 		interpolation = raw.interpolation;
 		node_index	  = raw.node_index;
 
-		const uint32 kf_count		  = static_cast<uint32>(raw.keyframes.size());
-		const uint32 kf_splines_count = static_cast<uint32>(raw.keyframes_spline.size());
+		keyframes_count		   = static_cast<uint16>(raw.keyframes.size());
+		keyframes_spline_count = static_cast<uint16>(raw.keyframes_spline.size());
 
-		if (kf_count != 0)
+		if (keyframes_count != 0)
 		{
-			keyframes					  = alloc.allocate<animation_keyframe_v3>(kf_count);
+			keyframes					  = alloc.allocate<animation_keyframe_v3>(keyframes_count);
 			animation_keyframe_v3* ptr_kf = alloc.get<animation_keyframe_v3>(keyframes);
-			SFG_MEMCPY(ptr_kf, raw.keyframes.data(), raw.keyframes.size());
+
+			for (uint16 i = 0; i < keyframes_count; i++)
+				ptr_kf[i] = raw.keyframes[i];
 		}
 
-		if (kf_splines_count != 0)
+		if (keyframes_spline_count != 0)
 		{
-			keyframes_spline					 = alloc.allocate<animation_keyframe_v3_spline>(kf_splines_count);
+			keyframes_spline					 = alloc.allocate<animation_keyframe_v3_spline>(keyframes_spline_count);
 			animation_keyframe_v3_spline* ptr_kf = alloc.get<animation_keyframe_v3_spline>(keyframes_spline);
-			SFG_MEMCPY(ptr_kf, raw.keyframes_spline.data(), raw.keyframes_spline.size());
+			for (uint16 i = 0; i < keyframes_spline_count; i++)
+				ptr_kf[i] = raw.keyframes_spline[i];
 		}
 	}
 
@@ -45,15 +48,11 @@ namespace SFG
 		if (keyframes.size == 0 && keyframes_spline.size == 0)
 			return vector3::zero; // Return a default value.
 
-		animation_keyframe_v3*		  ptr					 = alloc.get<animation_keyframe_v3>(keyframes);
-		animation_keyframe_v3_spline* ptr_spline			 = alloc.get<animation_keyframe_v3_spline>(keyframes_spline);
-		const uint32				  keyframes_count		 = keyframes.size == 0 ? 0 : sizeof(animation_keyframe_v3) / keyframes.size;
-		const uint32				  keyframes_spline_count = keyframes.size == 0 ? 0 : sizeof(animation_keyframe_v3_spline) / keyframes_spline.size;
-
 		if (interpolation == animation_interpolation::cubic_spline && keyframes_spline_count != 0)
 		{
-			const animation_keyframe_v3_spline& front = ptr_spline[0];
-			const animation_keyframe_v3_spline& back  = ptr_spline[keyframes_spline_count - 1];
+			animation_keyframe_v3_spline*		ptr_spline = alloc.get<animation_keyframe_v3_spline>(keyframes_spline);
+			const animation_keyframe_v3_spline& front	   = ptr_spline[0];
+			const animation_keyframe_v3_spline& back	   = ptr_spline[keyframes_spline_count - 1];
 			if (time <= front.time)
 				return front.value;
 			if (time >= back.time)
@@ -88,9 +87,15 @@ namespace SFG
 		}
 		else if (keyframes_count != 0)
 		{
+			animation_keyframe_v3*		 ptr   = alloc.get<animation_keyframe_v3>(keyframes);
 			const animation_keyframe_v3& front = ptr[0];
 			const animation_keyframe_v3& back  = ptr[keyframes_count - 1];
 
+			for (int i = 0; i < keyframes_count; i++)
+			{
+				auto& huh = ptr[i];
+				int	  a	  = 5;
+			}
 			if (time <= front.time)
 				return front.value;
 			if (time >= back.time)
@@ -128,24 +133,26 @@ namespace SFG
 
 	void animation_channel_q::create_from_loader(const animation_channel_q_raw& raw, chunk_allocator32& alloc)
 	{
-		interpolation = interpolation;
-		node_index	  = node_index;
+		interpolation = raw.interpolation;
+		node_index	  = raw.node_index;
 
-		const uint32 kf_count		  = static_cast<uint32>(raw.keyframes.size());
-		const uint32 kf_splines_count = static_cast<uint32>(raw.keyframes_spline.size());
+		keyframes_count		   = static_cast<uint16>(raw.keyframes.size());
+		keyframes_spline_count = static_cast<uint16>(raw.keyframes_spline.size());
 
-		if (kf_count != 0)
+		if (keyframes_count != 0)
 		{
-			keyframes					 = alloc.allocate<animation_keyframe_q>(kf_count);
+			keyframes					 = alloc.allocate<animation_keyframe_q>(keyframes_count);
 			animation_keyframe_q* ptr_kf = alloc.get<animation_keyframe_q>(keyframes);
-			SFG_MEMCPY(ptr_kf, raw.keyframes.data(), raw.keyframes.size());
+			for (uint16 i = 0; i < keyframes_count; i++)
+				ptr_kf[i] = raw.keyframes[i];
 		}
 
-		if (kf_splines_count != 0)
+		if (keyframes_spline_count != 0)
 		{
-			keyframes_spline					= alloc.allocate<animation_keyframe_q_spline>(kf_splines_count);
+			keyframes_spline					= alloc.allocate<animation_keyframe_q_spline>(keyframes_spline_count);
 			animation_keyframe_q_spline* ptr_kf = alloc.get<animation_keyframe_q_spline>(keyframes_spline);
-			SFG_MEMCPY(ptr_kf, raw.keyframes_spline.data(), raw.keyframes_spline.size());
+			for (uint16 i = 0; i < keyframes_spline_count; i++)
+				ptr_kf[i] = raw.keyframes_spline[i];
 		}
 	}
 
@@ -163,18 +170,14 @@ namespace SFG
 		if (keyframes.size == 0 && keyframes_spline.size == 0)
 			return quat::identity;
 
-		animation_keyframe_q*		 ptr					= alloc.get<animation_keyframe_q>(keyframes);
-		animation_keyframe_q_spline* ptr_spline				= alloc.get<animation_keyframe_q_spline>(keyframes_spline);
-		const uint32				 keyframes_count		= keyframes.size == 0 ? 0 : sizeof(animation_keyframe_q) / keyframes.size;
-		const uint32				 keyframes_spline_count = keyframes.size == 0 ? 0 : sizeof(animation_keyframe_q_spline) / keyframes_spline.size;
-
 		if (interpolation == animation_interpolation::cubic_spline)
 		{
 			if (keyframes_spline_count == 0)
 				return quat::identity;
 
-			const animation_keyframe_q_spline& front = ptr_spline[0];
-			const animation_keyframe_q_spline& back	 = ptr_spline[keyframes_spline_count - 1];
+			animation_keyframe_q_spline*	   ptr_spline = alloc.get<animation_keyframe_q_spline>(keyframes_spline);
+			const animation_keyframe_q_spline& front	  = ptr_spline[0];
+			const animation_keyframe_q_spline& back		  = ptr_spline[keyframes_spline_count - 1];
 
 			if (time <= front.time)
 				return front.value;
@@ -215,6 +218,7 @@ namespace SFG
 			if (keyframes_count == 0)
 				return quat::identity;
 
+			animation_keyframe_q*		ptr	  = alloc.get<animation_keyframe_q>(keyframes);
 			const animation_keyframe_q& front = ptr[0];
 			const animation_keyframe_q& back  = ptr[keyframes_count - 1];
 
@@ -256,8 +260,8 @@ namespace SFG
 
 	void animation::create_from_loader(const animation_raw& raw, world& w, resource_handle handle)
 	{
-		resource_manager&	 rm		= w.get_resource_manager();
-		chunk_allocator32&	 alloc	= rm.get_aux();
+		resource_manager&  rm	 = w.get_resource_manager();
+		chunk_allocator32& alloc = rm.get_aux();
 
 #ifndef SFG_STRIP_DEBUG_NAMES
 		if (!raw.name.empty())
@@ -317,8 +321,8 @@ namespace SFG
 
 	void animation::destroy(world& w, resource_handle handle)
 	{
-		resource_manager&	 rm		= w.get_resource_manager();
-		chunk_allocator32&	 alloc	= rm.get_aux();
+		resource_manager&  rm	 = w.get_resource_manager();
+		chunk_allocator32& alloc = rm.get_aux();
 
 #ifndef SFG_STRIP_DEBUG_NAMES
 		if (_name.size != 0)

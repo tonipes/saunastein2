@@ -19,7 +19,9 @@ namespace SFG
 		animation_interpolation interpolation = animation_interpolation::linear;
 		chunk_handle32			keyframes;
 		chunk_handle32			keyframes_spline;
-		int16					node_index = -1;
+		uint16					keyframes_count		   = 0;
+		uint16					keyframes_spline_count = 0;
+		int16					node_index			   = -1;
 
 		void	create_from_loader(const animation_channel_v3_raw& raw, chunk_allocator32& alloc);
 		void	destroy(chunk_allocator32& alloc);
@@ -31,7 +33,9 @@ namespace SFG
 		animation_interpolation interpolation = animation_interpolation::linear;
 		chunk_handle32			keyframes;
 		chunk_handle32			keyframes_spline;
-		int16					node_index = -1;
+		uint16					keyframes_count		   = 0;
+		uint16					keyframes_spline_count = 0;
+		int16					node_index			   = -1;
 
 		void create_from_loader(const animation_channel_q_raw& raw, chunk_allocator32& alloc);
 		void destroy(chunk_allocator32& alloc);
@@ -41,8 +45,51 @@ namespace SFG
 	class animation
 	{
 	public:
+		// -----------------------------------------------------------------------------
+		// resource
+		// -----------------------------------------------------------------------------
+
 		void create_from_loader(const animation_raw& raw, world& w, resource_handle handle);
 		void destroy(world& w, resource_handle handle);
+
+		// -----------------------------------------------------------------------------
+		// accessors
+		// -----------------------------------------------------------------------------
+
+		inline chunk_handle32 get_position_channels() const
+		{
+			return _position_channels;
+		}
+
+		inline chunk_handle32 get_rotation_channels() const
+		{
+			return _rotation_channels;
+		}
+
+		inline chunk_handle32 get_scale_channels() const
+		{
+			return _scale_channels;
+		}
+
+		inline uint16 get_position_channels_count() const
+		{
+			return _position_count;
+		}
+
+		inline uint16 get_rotation_channels_count() const
+		{
+			return _rotation_count;
+		}
+
+		inline uint16 get_scale_channels_count() const
+		{
+			return _scale_count;
+		}
+
+		inline float get_duration() const
+		{
+			return _duration;
+		}
 
 	private:
 		float _duration = 0.0f;

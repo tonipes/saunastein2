@@ -118,7 +118,7 @@ namespace SFG
 
 				vekt::text_props& tp = _vekt_data.builder->widget_get_text(w);
 				tp.font				 = _vekt_data.font_debug;
-				tp.text				 = _text_allocator.allocate("Main Thread (ms): 0.000000 ");
+				tp.text				 = _text_allocator.allocate("Main: 0.000000 ");
 				_vekt_data.builder->widget_update_text(w);
 
 				_vekt_data.widget_main_thread = w;
@@ -146,7 +146,7 @@ namespace SFG
 
 				vekt::text_props& tp = _vekt_data.builder->widget_get_text(w);
 				tp.font				 = _vekt_data.font_debug;
-				tp.text				 = _text_allocator.allocate("Render Thread (ms): 0.000000 ");
+				tp.text				 = _text_allocator.allocate("Render: 0.000000 ");
 				_vekt_data.builder->widget_update_text(w);
 
 				_vekt_data.widget_render_thread = w;
@@ -174,7 +174,7 @@ namespace SFG
 
 				vekt::text_props& tp = _vekt_data.builder->widget_get_text(w);
 				tp.font				 = _vekt_data.font_debug;
-				tp.text				 = _text_allocator.allocate("Present (ms): 0.000000 ");
+				tp.text				 = _text_allocator.allocate("Present: 0.000000 ");
 				_vekt_data.builder->widget_update_text(w);
 
 				_vekt_data.widget_present_time = w;
@@ -202,7 +202,7 @@ namespace SFG
 
 				vekt::text_props& tp = _vekt_data.builder->widget_get_text(w);
 				tp.font				 = _vekt_data.font_debug;
-				tp.text				 = _text_allocator.allocate("Glob Memory (mb): 0.00000");
+				tp.text				 = _text_allocator.allocate("RAM: 0.00000");
 				_vekt_data.builder->widget_update_text(w);
 
 				_vekt_data.widget_global_mem = w;
@@ -230,7 +230,7 @@ namespace SFG
 
 				vekt::text_props& tp = _vekt_data.builder->widget_get_text(w);
 				tp.font				 = _vekt_data.font_debug;
-				tp.text				 = _text_allocator.allocate("Gfx Memory (mb): 0.00000");
+				tp.text				 = _text_allocator.allocate("VRAM: 0.00000");
 				_vekt_data.builder->widget_update_text(w);
 
 				_vekt_data.widget_gfx_mem = w;
@@ -916,9 +916,9 @@ namespace SFG
 			const vekt::text_props& render_props  = _vekt_data.builder->widget_get_text(_vekt_data.widget_render_thread);
 			const vekt::text_props& present_props = _vekt_data.builder->widget_get_text(_vekt_data.widget_present_time);
 			string_util::append_float(static_cast<float>(frame_info::get_fps()), (char*)fps_props.text + 5, 4, 1, true);
-			string_util::append_float(static_cast<float>(frame_info::get_main_thread_time_milli()), (char*)update_props.text + 18, 7, 4, true);
-			string_util::append_float(static_cast<float>(frame_info::get_render_thread_time_milli()), (char*)render_props.text + 20, 7, 4, true);
-			string_util::append_float(static_cast<float>(frame_info::get_present_time_milli()), (char*)present_props.text + 14, 7, 4, true);
+			string_util::append_float(static_cast<float>(frame_info::get_main_thread_time_milli()), (char*)update_props.text + 6, 7, 4, true);
+			string_util::append_float(static_cast<float>(frame_info::get_render_thread_time_milli()), (char*)render_props.text + 8, 7, 4, true);
+			string_util::append_float(static_cast<float>(frame_info::get_present_time_milli()), (char*)present_props.text + 9, 7, 4, true);
 
 #ifdef SFG_ENABLE_MEMORY_TRACER
 			memory_tracer& tracer = memory_tracer::get();
@@ -931,11 +931,11 @@ namespace SFG
 			{
 				if (TO_SID(cat.name) == TO_SID("General"))
 				{
-					string_util::append_float(static_cast<float>(cat.total_size) / B_TO_MB, (char*)glob_mem_props.text + 18, 6, 4, true);
+					string_util::append_float(static_cast<float>(cat.total_size) / B_TO_MB, (char*)glob_mem_props.text + 5, 6, 4, true);
 				}
 				else if (TO_SID(cat.name) == TO_SID("Gfx"))
 				{
-					string_util::append_float(static_cast<float>(cat.total_size) / B_TO_MB, (char*)gfx_mem_props.text + 17, 6, 4, true);
+					string_util::append_float(static_cast<float>(cat.total_size) / B_TO_MB, (char*)gfx_mem_props.text + 6, 6, 4, true);
 				}
 			}
 #endif

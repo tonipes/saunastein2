@@ -39,7 +39,7 @@ namespace SFG
 		// accessors
 		// -----------------------------------------------------------------------------
 
-		void set_mesh(world& w, resource_handle model, resource_handle mesh, resource_handle skin, world_handle* skin_node_entities, uint32 skin_node_entity_count);
+		void set_mesh(world& w, resource_handle model, resource_handle mesh, resource_handle skin, world_handle* skin_node_entities, uint16 skin_node_entity_count);
 
 		inline resource_handle get_model() const
 		{
@@ -56,6 +56,16 @@ namespace SFG
 			return _header;
 		}
 
+		inline chunk_handle32 get_skin_entities() const
+		{
+			return _skin_entities;
+		}
+
+		inline uint16 get_skin_entities_count() const
+		{
+			return _skin_entities_count;
+		}
+
 	private:
 		template <typename T, int> friend class comp_cache;
 
@@ -63,10 +73,12 @@ namespace SFG
 		void fill_refs(resource_manager& res, string_id target, string_id target_mesh);
 
 	private:
-		component_header _header	   = {};
-		resource_handle	 _target_model = {};
-		resource_handle	 _target_mesh  = {};
-		resource_handle	 _target_skin  = {};
+		component_header _header			  = {};
+		resource_handle	 _target_model		  = {};
+		resource_handle	 _target_mesh		  = {};
+		resource_handle	 _target_skin		  = {};
+		chunk_handle32	 _skin_entities		  = {};
+		uint16			 _skin_entities_count = 0;
 	};
 
 	REGISTER_TRAIT(comp_mesh_instance);

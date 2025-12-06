@@ -99,6 +99,7 @@ namespace SFG
 		_resource_manager.init();
 		_entity_manager.init();
 		_comp_manager.init();
+		_anim_graph.init();
 	}
 
 	void world::uninit()
@@ -106,6 +107,7 @@ namespace SFG
 		_comp_manager.uninit();
 		_entity_manager.uninit();
 		_resource_manager.uninit();
+		_anim_graph.uninit();
 		_text_allocator.reset();
 		_flags.remove(world_flags_is_init);
 	}
@@ -119,6 +121,7 @@ namespace SFG
 
 	void world::tick(const vector2ui16& res, float dt)
 	{
+		_anim_graph.tick(*this, dt);
 		_resource_manager.tick();
 
 		if (_play_mode != play_mode::none)

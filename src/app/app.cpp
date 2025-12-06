@@ -204,9 +204,9 @@ namespace SFG
 		while (_should_close.load(std::memory_order_acquire) == 0)
 		{
 			// timing.
-			const int64 current_time = time::get_cpu_microseconds();
-			const int64 delta_micro	 = current_time - previous_time;
-			previous_time			 = current_time;
+			const int64 _current_time = time::get_cpu_microseconds();
+			const int64 delta_micro	 = _current_time - previous_time;
+			previous_time			 = _current_time;
 			frame_info::s_main_thread_time_milli.store(static_cast<double>(delta_micro) * 0.001);
 
 			// OS & window.

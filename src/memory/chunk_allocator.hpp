@@ -102,6 +102,12 @@ namespace SFG
 			return reinterpret_cast<T*>(_raw + handle.head);
 		}
 
+		template <typename T> T* get(chunk_handle32 handle) const
+		{
+			SFG_ASSERT(handle.size != 0);
+			return reinterpret_cast<T*>(_raw + handle.head);
+		}
+
 		inline uint8* get(uint32 index)
 		{
 			return _raw + index;
