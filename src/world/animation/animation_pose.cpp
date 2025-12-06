@@ -4,11 +4,14 @@
 #include "world/world.hpp"
 #include "resources/animation.hpp"
 #include "world/animation/animation_mask.hpp"
+#include <tracy/Tracy.hpp>
 
 namespace SFG
 {
 	void animation_pose::sample_from_animation(world& w, resource_handle anim_handle, float time, const animation_mask& mask)
 	{
+		ZoneScoped;
+
 		_joint_poses.resize(0);
 
 		const auto&		   masked_joints = mask.get_mask();
@@ -107,6 +110,8 @@ namespace SFG
 
 	void animation_pose::blend_from(animation_pose& other, float other_ratio)
 	{
+		ZoneScoped;
+
 		for (joint_pose& p : _joint_poses)
 		{
 			const int16 node_index = p.node_index;

@@ -73,13 +73,14 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 		// machine
 		// -----------------------------------------------------------------------------
-		void apply_pose(world& w, animation_state_machine& m, const animation_pose& pose);
+
+		void apply_pose(world& w, const animation_state_machine& m, const animation_pose& pose);
 
 		// -----------------------------------------------------------------------------
 		// states
 		// -----------------------------------------------------------------------------
 
-		void calculate_pose_for_state(world& w, const state_samples_type& samples, animation_pose& out_pose, animation_state& state);
+		void calculate_pose_for_state(world& w, const state_samples_type& samples, animation_pose& out_pose, const animation_state& state);
 		void progress_state(animation_state& state, float dt);
 		void reset_state(animation_state& state);
 
@@ -87,8 +88,8 @@ namespace SFG
 		// weights
 		// -----------------------------------------------------------------------------
 
-		void compute_state_weights_1d(animation_state& state, static_vector<resource_handle, MAX_WORLD_BLEND_STATE_ANIMS>& out_anims, static_vector<float, MAX_WORLD_BLEND_STATE_ANIMS>& out_weights);
-		void compute_state_weights_2d(animation_state& state, static_vector<resource_handle, MAX_WORLD_BLEND_STATE_ANIMS>& out_anims, static_vector<float, MAX_WORLD_BLEND_STATE_ANIMS>& out_weights);
+		void compute_state_weights_1d(const animation_state& state, static_vector<resource_handle, MAX_WORLD_BLEND_STATE_ANIMS>& out_anims, static_vector<float, MAX_WORLD_BLEND_STATE_ANIMS>& out_weights);
+		void compute_state_weights_2d(const animation_state& state, static_vector<resource_handle, MAX_WORLD_BLEND_STATE_ANIMS>& out_anims, static_vector<float, MAX_WORLD_BLEND_STATE_ANIMS>& out_weights);
 
 		// -----------------------------------------------------------------------------
 		// transitions

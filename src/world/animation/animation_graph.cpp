@@ -126,24 +126,12 @@ namespace SFG
 			animation_transition& active	   = transitions.get(m._active_transition);
 			animation_state&	  target_state = states.get(active.to_state);
 
-			// transition instantly
-			if (math::almost_equal(active.duration, 0.0f))
-			{
-				final_pose.reset();
-				calculate_pose_for_state(w, samples, final_pose, target_state);
-				apply_pose(w, m, final_pose);
-				m._active_transition = {};
-				set_machine_active_state(machine_handle, active.to_state);
-				reset_transition(active);
-				continue;
-			}
-
+			const float ratio = math::almost_equal(active.duration, 0.0f) ? 1.0f : progress_transition(active, dt);
 			transition_blend_pose.reset();
-			const float ratio = progress_transition(active, dt);
 			calculate_pose_for_state(w, samples, transition_blend_pose, target_state);
 			progress_state(target_state, dt);
-			final_pose.blend_from(transition_blend_pose, ratio);
 
+			final_pose.blend_from(transition_blend_pose, ratio);
 			apply_pose(w, m, final_pose);
 
 			// reset transition if complete & switch state
@@ -436,7 +424,7 @@ namespace SFG
 		m.active_state = state;
 	}
 
-	void animation_graph::apply_pose(world& w, animation_state_machine& m, const animation_pose& pose)
+	void animation_graph::apply_pose(world& w, const animation_state_machine& m, const animation_pose& pose)
 	{
 		ZoneScoped;
 
@@ -462,8 +450,10 @@ namespace SFG
 		}
 	}
 
-	void animation_graph::calculate_pose_for_state(world& w, const state_samples_type& samples, animation_pose& out_pose, animation_state& state)
+	void animation_graph::calculate_pose_for_state(world& w, const state_samples_type& samples, animation_pose& out_pose, const animation_state& state)
 	{
+		ZoneScoped;
+
 		resource_manager&  rm	   = w.get_resource_manager();
 		chunk_allocator32& res_aux = rm.get_aux();
 
@@ -532,8 +522,10 @@ namespace SFG
 		state._current_time = 0.0f;
 	}
 
-	void animation_graph::compute_state_weights_1d(animation_state& state, static_vector<resource_handle, MAX_WORLD_BLEND_STATE_ANIMS>& out_anims, static_vector<float, MAX_WORLD_BLEND_STATE_ANIMS>& out_weights)
+	void animation_graph::compute_state_weights_1d(const animation_state& state, static_vector<resource_handle, MAX_WORLD_BLEND_STATE_ANIMS>& out_anims, static_vector<float, MAX_WORLD_BLEND_STATE_ANIMS>& out_weights)
 	{
+		ZoneScoped;
+
 		const vector2	blend_point = vector2(get_parameter(state.blend_weight_param_x).value, get_parameter(state.blend_weight_param_y).value);
 		constexpr float epsilon		= 1e-10f;
 		constexpr float epsilon2	= epsilon * epsilon;
@@ -575,8 +567,10 @@ namespace SFG
 			out_weights[i] *= inv_sum;
 	}
 
-	void animation_graph::compute_state_weights_2d(animation_state& state, static_vector<resource_handle, MAX_WORLD_BLEND_STATE_ANIMS>& out_anims, static_vector<float, MAX_WORLD_BLEND_STATE_ANIMS>& out_weights)
+	void animation_graph::compute_state_weights_2d(const animation_state& state, static_vector<resource_handle, MAX_WORLD_BLEND_STATE_ANIMS>& out_anims, static_vector<float, MAX_WORLD_BLEND_STATE_ANIMS>& out_weights)
 	{
+		ZoneScoped;
+
 		const vector2	blend_point = vector2(get_parameter(state.blend_weight_param_x).value, get_parameter(state.blend_weight_param_y).value);
 		constexpr float epsilon		= 1e-10f;
 		constexpr float epsilon2	= epsilon * epsilon;

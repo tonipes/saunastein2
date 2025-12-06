@@ -11,6 +11,7 @@
 #include "world/components/comp_model_instance.hpp"
 #include "world/components/comp_mesh_instance.hpp"
 #include "world/components/comp_animation_controller.hpp"
+#include "world/components/comp_light.hpp"
 #include "math/math.hpp"
 #include "math/random.hpp"
 
@@ -24,10 +25,14 @@ namespace SFG
 {
 
 	vector<pool_handle16> params;
+	vector<world_handle>  ents;
+	vector<vector3>		  randoms;
 
 	void game::init()
 	{
 		params.reserve(10000);
+		ents.reserve(10000);
+		randoms.reserve(10000);
 
 		world_raw raw = {};
 		raw.load_from_file("assets/world/demo_world.stkworld", engine_data::get().get_working_dir().c_str());
@@ -40,8 +45,8 @@ namespace SFG
 		component_manager& cm = w.get_comp_manager();
 		resource_manager&  rm = w.get_resource_manager();
 
-		const resource_handle boombox = rm.get_resource_handle_by_hash<model>(TO_SIDC("assets/character/character.stkmodel"));
-		if (!rm.is_valid<model>(boombox))
+		const resource_handle mdl = rm.get_resource_handle_by_hash<model>(TO_SIDC("assets/character/character.stkmodel"));
+		if (!rm.is_valid<model>(mdl))
 			return;
 
 		constexpr float START = -20.0f;
@@ -59,15 +64,25 @@ namespace SFG
 			"assets/character/character.stkmodel/Idle_Talking_Loop"_hs,
 		};
 
-		for (uint32 i = 0; i < 2000; i++)
+		const world_handle s_h = em.create_entity("sun");
+		const world_handle lh  = cm.add_component<comp_dir_light>(s_h);
+		comp_dir_light&	   dl  = cm.get_component<comp_dir_light>(lh);
+
+		em.set_entity_rotation(s_h, quat::from_euler(45, 145, 0));
+		dl.set_values(w, color(1, 1, 1, 1), 1000, 10);
+
+		for (uint32 i = 0; i < 512; i++)
 		{
 			const world_handle root = em.create_entity("root");
 			em.set_entity_position(root, vector3::zero);
 			em.set_entity_rotation(root, quat::identity);
+			ents.push_back(root);
+
+			randoms.push_back(vector3((random::random_01() * 2.f) - 1.f, 0.0f, (random::random_01() * 2.0f) - 1.0f) * 0.01f);
 
 			const world_handle	 model_inst_handle = cm.add_component<comp_model_instance>(root);
 			comp_model_instance& mi				   = cm.get_component<comp_model_instance>(model_inst_handle);
-			mi.instantiate_model_to_world(w, boombox);
+			mi.instantiate_model_to_world(w, mdl);
 
 			const world_handle		   ces				= em.find_entity(root, "Mannequin");
 			const world_handle		   comp_anim_handle = cm.add_component<comp_animation_controller>(ces);
@@ -104,8 +119,8 @@ namespace SFG
 				ag.add_state_sample(state2_handle, anim_handle2, {});
 
 				// add transition between states
-				ag.add_transition(state1_handle, state2_handle, param_handle, 1.0f, 0.5f, animation_transition_compare::greater, 0);
-				ag.add_transition(state2_handle, state1_handle, param_handle, 1.0f, 0.5f, animation_transition_compare::lesser, 0);
+				ag.add_transition(state1_handle, state2_handle, param_handle, 0.0f, 0.5f, animation_transition_compare::greater, 0);
+				ag.add_transition(state2_handle, state1_handle, param_handle, 0.0f, 0.5f, animation_transition_compare::lesser, 0);
 			}
 
 			const float x = x_pos;
@@ -142,6 +157,16 @@ namespace SFG
 		{
 			animation_parameter& param = _world.get_animation_graph().get_parameter(p);
 			param.value				   = val;
+		}
+
+		auto& em = _world.get_entity_manager();
+
+		uint32 i = 0;
+		for (auto e : ents)
+		{
+			auto& p = em.get_entity_position(e);
+			em.set_entity_position(e, p + randoms[i]);
+			i++;
 		}
 
 		ctr += dt;

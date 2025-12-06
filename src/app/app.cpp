@@ -244,7 +244,7 @@ namespace SFG
 			// world timing
 			const int64		 FIXED_INTERVAL_NS = static_cast<int64>(ema_fixed_ns);
 			const float		 dt_seconds		   = static_cast<float>(static_cast<double>(FIXED_INTERVAL_NS) / 1'000'000'000.0);
-			constexpr uint32 MAX_TICKS		   = 2;
+			constexpr uint32 MAX_TICKS		   = 4;
 			uint32			 ticks			   = 0;
 
 			accumulator_ns += delta_micro * 1000;

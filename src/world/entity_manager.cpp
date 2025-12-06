@@ -6,6 +6,7 @@
 #include "gfx/event_stream/render_event_stream.hpp"
 #include "gfx/event_stream/render_events_entity.hpp"
 #include "math/math.hpp"
+#include <tracy/Tracy.hpp>
 
 namespace SFG
 {
@@ -51,6 +52,8 @@ namespace SFG
 
 	void entity_manager::interpolate_entities(double interpolation)
 	{
+		ZoneScoped;
+
 		const float i = static_cast<float>(interpolation);
 
 		entity_meta*		 metas	= &_metas->get(0);
@@ -178,15 +181,15 @@ namespace SFG
 		SFG_ASSERT(_entities->is_valid(parent));
 
 		const entity_family& f = _families->get(parent.index);
-		world_handle h = {};
-		visit_children(parent, [&](world_handle c)  {
+		world_handle		 h = {};
+		visit_children(parent, [&](world_handle c) {
 			const entity_meta& m = get_entity_meta(c);
 			if (strcmp(m.name, name) == 0)
 			{
 				h = c;
 				return;
 			}
-			});
+		});
 
 		return h;
 	}
@@ -482,6 +485,8 @@ namespace SFG
 
 	vector3 entity_manager::get_entity_position_abs(world_handle entity)
 	{
+		ZoneScoped;
+
 		SFG_ASSERT(_entities->is_valid(entity));
 		return get_entity_transform_abs(entity).get_translation();
 	}
@@ -520,6 +525,8 @@ namespace SFG
 
 	const quat& entity_manager::get_entity_rotation_abs(world_handle entity)
 	{
+		ZoneScoped;
+
 		entity_family& fam			  = _families->get(entity.index);
 		world_handle   parent		  = fam.parent;
 		const quat&	   local_rotation = _rotations->get(entity.index);
@@ -547,6 +554,8 @@ namespace SFG
 
 	vector3 entity_manager::get_entity_scale_abs(world_handle entity)
 	{
+		ZoneScoped;
+
 		SFG_ASSERT(_entities->is_valid(entity));
 		return get_entity_transform_abs(entity).get_scale();
 	}
@@ -654,6 +663,8 @@ namespace SFG
 
 	void entity_manager::calculate_interpolated_transform_abs(world_handle entity, float interpolation, vector3& out_position, quat& out_rotation, vector3& out_scale)
 	{
+		ZoneScoped;
+
 		SFG_ASSERT(_entities->is_valid(entity));
 
 		entity_meta&  meta			= _metas->get(entity.index);

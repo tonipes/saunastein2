@@ -82,7 +82,55 @@ float4 PSMain(vs_output IN) : SV_TARGET
 
     // background early-out (reversed-Z)
     if (is_background(device_depth))
-        return float4(0,0,0,1);
+       {
+          float2 uv = IN.uv;
+
+        // --- World-space view ray ---
+        float3 camPos = rp_data.view_pos_slights_count.xyz;
+        // Use depth 0.0 (will still lie on the correct ray whether reversed-Z or not)
+        float3 worldPosOnRay = reconstruct_world_position(uv, 0.0, rp_data.inv_view_proj);
+        float3 viewDir = normalize(worldPosOnRay - camPos);  // world-space view direction
+
+        // --- Simple vertical gradient in screen-space (sunrise-ish) ---
+        float3 bottomColor = float3(0.98, 0.60, 0.35); // orange near horizon
+        float3 midColor    = float3(0.95, 0.75, 0.55); // peach
+        float3 topColor    = float3(0.06, 0.10, 0.25); // deep blue
+
+        // uv.y: 0 = top, 1 = bottom
+        float t = saturate(1.0 - uv.y); // 0 bottom, 1 top
+
+        float midBlend = saturate((t - 0.3) / 0.4);
+        float3 lowSky  = lerp(bottomColor, midColor, midBlend);
+        float3 skyCol  = lerp(lowSky,     topColor,  saturate((t - 0.7) / 0.3));
+
+        // --- World-space circular sun ---
+
+        // Hardcoded world-space sun direction (rising a bit above horizon)
+        // Think of this as “where in the world the sun actually is”.
+        float3 sunDir = normalize(float3(0.3, 0.4, -0.8));  // tweak to taste
+
+        // Cosine of angle between view ray and sun direction
+        float cosTheta = dot(normalize(viewDir), sunDir);
+
+        // Hardcoded angular radius & softness via cosine thresholds
+        // (values very close to 1.0 => small angles)
+        float innerCos = 0.9995; // core radius
+        float outerCos = 0.9980; // soft edge
+
+        // 0 outside, 1 at center; perfectly circular on the unit sphere
+        float sunFactor = smoothstep(outerCos, innerCos, cosTheta);
+
+        // Make center a bit “punchier”
+        float innerCoreCos = 0.9998;
+        float coreFactor = smoothstep(innerCos, innerCoreCos, cosTheta);
+        sunFactor = max(sunFactor, coreFactor);
+
+        float3 sunColor = float3(1.0, 0.95, 0.75)* 200;
+
+        // Additive glow over the gradient
+
+        return float4(skyCol, 1.0);
+       }
 
     
     // reconstruct world position
@@ -102,7 +150,7 @@ float4 PSMain(vs_output IN) : SV_TARGET
     float  metallic  = saturate(orm_data.b);
     float3 N = oct_decode(normal_data.xy);
 
-    float3 ambientColor = rp_data.ambient_color_plights_count.xyz;
+    float3 ambientColor = rp_data.ambient_color_plights_count.xyz * 4;
     float3 lighting = ambientColor * albedo * ao;
 
     // fetch light prep
