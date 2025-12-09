@@ -50,6 +50,7 @@ namespace SFG
 		void uninit();
 		void create_from_loader(world_raw& raw);
 		void tick(const vector2ui16& res, float dt);
+		void calculate_abs_transforms();
 		void interpolate(double interpolation);
 		bool on_window_event(const window_event& ev, window* wnd);
 

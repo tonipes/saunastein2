@@ -208,5 +208,6 @@ namespace SFG
 
 		const vector3 position = manager.get_entity_position(_entity) + (move_dir * (_current_move_speed * dt_seconds));
 		manager.set_entity_position(_entity, position);
+
 	}
 }

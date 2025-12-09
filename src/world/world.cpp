@@ -137,6 +137,12 @@ namespace SFG
 		});
 	}
 
+	void world::calculate_abs_transforms()
+	{
+		ZoneScoped;
+		_entity_manager.calculate_abs_transforms();
+	}
+
 	void world::interpolate(double interpolation)
 	{
 		ZoneScoped;

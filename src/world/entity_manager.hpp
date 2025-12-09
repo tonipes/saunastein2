@@ -25,6 +25,7 @@ namespace SFG
 
 		void init();
 		void uninit();
+		void calculate_abs_transforms();
 		void interpolate_entities(double interpolation);
 
 		// -----------------------------------------------------------------------------

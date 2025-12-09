@@ -21,6 +21,7 @@
 
 // game
 #include "game/game.hpp"
+#include "game/app_defines.hpp"
 
 #include "debug_console.hpp"
 #include "world/world.hpp"
@@ -242,24 +243,14 @@ namespace SFG
 			}
 
 			// world timing
-			const int64		 FIXED_INTERVAL_NS = static_cast<int64>(ema_fixed_ns);
-			const float		 dt_seconds		   = static_cast<float>(static_cast<double>(FIXED_INTERVAL_NS) / 1'000'000'000.0);
-			constexpr uint32 MAX_TICKS		   = 4;
-			uint32			 ticks			   = 0;
+			const float dt_seconds = FIXED_FRAMERATE_S;
+			uint32		ticks	  = 0;
 
-			// 			auto dtt = static_cast<double>(delta_micro) * 1e-6;
-			// 			_game->pre_tick(dtt);
-			// 			_world->tick(ws, dtt);
-			// 			_game->tick(dtt);
-			//
-			// #ifdef SFG_TOOLMODE
-			// 				_editor->tick(dtt);
-			// #endif
-
+#if FIXED_FRAMERATE_ENABLED
 			accumulator_ns += delta_micro * 1000;
-			while (accumulator_ns >= FIXED_INTERVAL_NS && ticks < MAX_TICKS)
+			while (accumulator_ns >= FIXED_FRAMERATE_NS && ticks < FIXED_FRAMERATE_MAX_TICKS)
 			{
-				accumulator_ns -= FIXED_INTERVAL_NS;
+				accumulator_ns -= FIXED_FRAMERATE_NS;
 
 				_game->pre_tick(dt_seconds);
 				_world->tick(ws, dt_seconds);
@@ -272,8 +263,20 @@ namespace SFG
 			}
 
 			// interpolation
-			const double interpolation = static_cast<double>(accumulator_ns) / static_cast<double>(FIXED_INTERVAL_NS);
+			const double interpolation = static_cast<double>(accumulator_ns) / FIXED_FRAMERATE_NS_D;
 			_world->interpolate(interpolation);
+
+#else
+			const double dtt = static_cast<double>(delta_micro) * 1e-6;
+			_game->pre_tick(dtt);
+			_world->tick(ws, dtt);
+			_game->tick(dtt);
+
+#ifdef SFG_TOOLMODE
+			_editor->tick(dtt);
+#endif
+			_world->calculate_abs_transforms();
+#endif
 
 #ifdef SFG_TOOLMODE
 			engine_shaders::get().tick();

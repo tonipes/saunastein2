@@ -72,7 +72,7 @@ namespace SFG
 				update.abs_model = matrix4x3::transform(update.position, update.rotation, scale);
 
 				stream.add_event({.index = h.index, .event_type = render_event_type::update_entity_transform}, update);
-			//	m.flags.remove(entity_flags::entity_flags_render_proxy_dirty);
+				//	m.flags.remove(entity_flags::entity_flags_render_proxy_dirty);
 			}
 		}
 	}
@@ -80,6 +80,34 @@ namespace SFG
 	void entity_manager::uninit()
 	{
 		reset_all_entity_data();
+	}
+
+	void entity_manager::calculate_abs_transforms()
+	{
+
+		entity_meta* metas = &_metas->get(0);
+		render_event_stream& stream = _world.get_render_stream();
+		render_event_entity_transform update = {};
+
+		for (auto it = _entities->handles_begin(); it != _entities->handles_end(); ++it)
+		{
+			const world_handle h = *it;
+			entity_meta&	   m = metas[h.index];
+			if (m.render_proxy_count != 0)
+			{
+				const vector3 ent_pos_abs	= get_entity_position_abs(h);
+				const quat	  ent_rot_abs	= get_entity_rotation_abs(h);
+				const vector3 ent_scale_abs = get_entity_scale_abs(h);
+
+				//calculate_interpolated_transform_abs(h, i, update.position, update.rotation, scale);
+				update.position = ent_pos_abs;
+				update.rotation = ent_rot_abs;
+				update.abs_model = matrix4x3::transform(ent_pos_abs, ent_rot_abs, ent_scale_abs);
+
+				stream.add_event({.index = h.index, .event_type = render_event_type::update_entity_transform}, update);
+				//	m.flags.remove(entity_flags::entity_flags_render_proxy_dirty);
+			}
+		}
 	}
 
 	void entity_manager::on_component_added(world_handle entity, world_handle comp_handle, string_id comp_type)
