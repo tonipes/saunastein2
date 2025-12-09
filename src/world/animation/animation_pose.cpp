@@ -11,8 +11,6 @@ namespace SFG
 {
 	void animation_pose::sample_from_animation(world& w, resource_handle anim_handle, float time,  const animation_mask* mask)
 	{
-		ZoneScoped;
-
 		_joint_count = 0;
 
 		const animation&   anim = w.get_resource_manager().get_resource<animation>(anim_handle);
@@ -74,7 +72,6 @@ namespace SFG
 
 	void animation_pose::blend_from(animation_pose& other, float other_ratio)
 	{
-		ZoneScoped;
 
 		for (uint16 i = 0; i < _joint_count; i++)
 		{
