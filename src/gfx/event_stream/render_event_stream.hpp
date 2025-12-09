@@ -5,21 +5,31 @@
 #include "data/ostream.hpp"
 #include "gfx/event_stream/render_events.hpp"
 #include "game/game_max_defines.hpp"
+
+#include "data/atomic.hpp"
 #include <vendor/moodycamel/readerwriterqueue.h>
 
 namespace SFG
 {
+	class istream;
+
 	class render_event_stream
 	{
 	public:
-		static constexpr size_t BATCH_SIZE		  = RENDER_STREAM_BATCH_SIZE;
-		static constexpr size_t MAX_BATCHES		  = RENDER_STREAM_MAX_BATCHES;
+		static constexpr size_t BATCH_SIZE	= RENDER_STREAM_BATCH_SIZE;
+		static constexpr size_t MAX_BATCHES = RENDER_STREAM_MAX_BATCHES;
 
 		struct event_batch
 		{
-			uint8* data	 = nullptr;
-			size_t size	 = 0;
-			size_t ident = 0;
+			atomic<bool> ready;
+			uint8*		 data = nullptr;
+			size_t		 size = 0;
+		};
+
+		struct buffered_data
+		{
+			uint8* data = nullptr;
+			size_t size = 0;
 		};
 
 		// -----------------------------------------------------------------------------
@@ -29,6 +39,7 @@ namespace SFG
 		void init();
 		void uninit();
 		void publish();
+		void open_into(istream& stream);
 
 		// -----------------------------------------------------------------------------
 		// event api
@@ -38,7 +49,7 @@ namespace SFG
 		{
 			header.serialize(_main_thread_data);
 			ev.serialize(_main_thread_data);
-			SFG_ASSERT(_main_thread_data.get_size() < BATCH_SIZE);
+			SFG_ASSERT(_main_thread_data.get_size() < RENDER_STREAM_BATCH_SIZE);
 		}
 
 		inline void add_event(const render_event_header& header)
@@ -50,15 +61,23 @@ namespace SFG
 		// accessors
 		// -----------------------------------------------------------------------------
 
-		inline moodycamel::ReaderWriterQueue<event_batch, MAX_BATCHES>& get_events()
-		{
-			return _event_queue;
-		}
+		// inline moodycamel::ReaderWriterQueue<uint32, MAX_BATCHES>& get_events()
+		//{
+		//	return _event_queue;
+		// }
+		//
+		// inline event_batch& get_batch(uint32 idx)
+		//{
+		//	return _batches[idx];
+		// }
 
 	private:
-		ostream													_main_thread_data = {};
-		moodycamel::ReaderWriterQueue<event_batch, MAX_BATCHES> _event_queue;
-		event_batch												_batches[MAX_BATCHES];
-		size_t													_batch_counter = 0;
+		buffered_data _stream_data[RENDER_STREAM_MAX_BATCHES];
+		atomic<int8>  _latest			= {-1};
+		atomic<int8>  _rendered			= {-1};
+		ostream		  _main_thread_data = {};
+		// moodycamel::ReaderWriterQueue<uint32, MAX_BATCHES> _event_queue;
+		// event_batch										   _batches[MAX_BATCHES];
+		// uint32											   _write_index = 0;
 	};
 }

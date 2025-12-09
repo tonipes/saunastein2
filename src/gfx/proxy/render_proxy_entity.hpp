@@ -23,7 +23,6 @@ namespace SFG
 		matrix3x3			normal			= {};
 		quat				rotation		= quat::identity;
 		vector3				position		= vector3::zero;
-		vector3				scale			= vector3::one;
 		uint32				_assigned_index = 0;
 		world_id			handle			= 0;
 		render_proxy_status status			= render_proxy_status::rps_inactive;

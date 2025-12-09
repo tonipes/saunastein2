@@ -16,8 +16,8 @@
 #include "data/istream.hpp"
 #include "math/math.hpp"
 #include "gui/vekt.hpp"
+#include "platform/time.hpp"
 #include <tracy/Tracy.hpp>
-
 
 namespace SFG
 {
@@ -148,27 +148,46 @@ namespace SFG
 	{
 		ZoneScoped;
 
-		auto&							 events = stream.get_events();
-		render_event_stream::event_batch batch	= {};
-
-		istream				in;
+		istream in;
+		stream.open_into(in);
 		render_event_header header = {};
 
-		bool read = events.try_dequeue(batch);
-
-		while (read)
+		while (!in.is_eof())
 		{
-			size_t		 offset = 0;
-			const size_t total	= batch.size;
-			in.open(batch.data, total);
-
-			while (!in.is_eof())
-			{
-				header.deserialize(in);
-				process_event(header, in, frame_index);
-			}
-			read = events.try_dequeue(batch);
+			header.deserialize(in);
+			process_event(header, in, frame_index);
 		}
+
+		//
+		//	uint32 idx = 0;
+		//	while (events.try_dequeue(idx))
+		//	{
+		//		render_event_stream::event_batch& b = stream.get_batch(idx);
+		//
+		//		while (!b.ready.load(std::memory_order_release))
+		//			time::yield_thread();
+		//
+		//		const size_t total = b.size;
+		//		in.open(b.data, total);
+		//		header.deserialize(in);
+		//		process_event(header, in, frame_index);
+		//
+		//		b.ready.store(false, std::memory_order_release);
+		//	}
+
+		// while (read)
+		//{
+		//	size_t		 offset = 0;
+		//	const size_t total	= batch.size;
+		//	in.open(batch.data, total);
+		//
+		//	while (!in.is_eof())
+		//	{
+		//		header.deserialize(in);
+		//		process_event(header, in, frame_index);
+		//	}
+		//	read = events.try_dequeue(batch);
+		// }
 	}
 
 	void proxy_manager::flush_destroys(bool force)
@@ -308,7 +327,6 @@ namespace SFG
 			proxy.normal			   = ev.abs_model.to_linear3x3().inversed().transposed();
 			proxy.position			   = ev.position;
 			proxy.rotation			   = ev.rotation;
-			proxy.scale				   = ev.scale;
 
 			_peak_entities = math::max(_peak_entities, index);
 		}

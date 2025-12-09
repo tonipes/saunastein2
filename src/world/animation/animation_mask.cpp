@@ -19,13 +19,8 @@ namespace SFG
 
 		for (uint16 i = 0; i < sk.get_joints_count(); i++)
 		{
-			const skin_joint& j = joints_ptr[i];
-
-			auto it = std::find_if(name_hashes, name_hashes + name_hashes_count, [&](string_id str) -> bool { return str == j.name_hash; });
-			if (it != name_hashes + name_hashes_count)
-			{
-				_masked_joints.push_back(j.model_node_index);
-			}
+			const skin_joint& j					  = joints_ptr[i];
+			_joints[j.model_node_index].is_masked = 1;
 		}
 	}
 
@@ -43,7 +38,7 @@ namespace SFG
 
 			if (j.name_hash == hash)
 			{
-				_masked_joints.push_back(j.model_node_index);
+				_joints[j.model_node_index].is_masked = 1;
 				break;
 			}
 		}

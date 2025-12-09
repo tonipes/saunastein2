@@ -434,10 +434,16 @@ namespace SFG
 		const uint16  sz			 = m.joint_entities_count;
 		world_handle* entity_handles = aux.get<world_handle>(m.joint_entities);
 
-		const auto& joint_poses = pose.get_joint_poses();
-		for (const joint_pose& jp : joint_poses)
+		const uint16	  count = pose.get_joint_count();
+		const joint_pose* p		= pose.get_joint_poses();
+
+		for (uint16 i = 0; i < count; i++)
 		{
-			const world_handle entity = entity_handles[jp.node_index];
+			const joint_pose& jp = p[i];
+			if (jp.flags == 0)
+				continue;
+
+			const world_handle entity = entity_handles[i];
 
 			if (jp.flags.is_set(joint_pose_flags::has_position))
 				em.set_entity_position(entity, jp.pos);
@@ -470,26 +476,31 @@ namespace SFG
 		}
 		else
 		{
-			state_animations.push_back(_samples->get(state._first_sample).animation);
+			animation_state_sample& smp = _samples->get(state._first_sample);
+			state_animations.push_back(smp.animation);
 			state_weights.push_back(1.0f);
 		}
 
-		const animation_mask mask = state.mask.is_null() ? animation_mask() : get_mask(state.mask);
+		animation_mask* mask = nullptr;
+		if (!state.mask.is_null())
+			mask = &get_mask(state.mask);
 
 		bool  init	  = false;
 		float total_w = 0.0f;
 
 		const uint16 anims_size = static_cast<uint16>(state_animations.size());
 
+		animation_pose pose_i = {};
+
 		for (uint16 i = 0; i < anims_size; i++)
 		{
-			const resource_handle anim_handle = state_animations[i];
-			const float			  wi		  = state_weights[i];
-
+			const float wi = state_weights[i];
 			if (math::almost_equal(wi, 0.0f))
 				continue;
 
-			animation_pose pose_i = {};
+			const resource_handle anim_handle = state_animations[i];
+
+			pose_i.reset();
 			pose_i.sample_from_animation(w, anim_handle, state._current_time, mask);
 
 			if (!init)
@@ -519,7 +530,7 @@ namespace SFG
 
 	void animation_graph::reset_state(animation_state& state)
 	{
-		state._current_time = 0.0f;
+		state._current_time			= 0.0f;
 	}
 
 	void animation_graph::compute_state_weights_1d(const animation_state& state, static_vector<resource_handle, MAX_WORLD_BLEND_STATE_ANIMS>& out_anims, static_vector<float, MAX_WORLD_BLEND_STATE_ANIMS>& out_weights)

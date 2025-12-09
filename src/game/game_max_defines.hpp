@@ -77,7 +77,7 @@ namespace SFG
 #define MAX_GPU_SHADOW_DATA			   64
 #define MAX_SHADOW_CASCADES			   8
 #define LIGHT_CULLING_ENERGY_THRESHOLD 0.01f
-#define RENDER_STREAM_BATCH_SIZE	   1024 * 1024 * 32 // * 5 default
+#define RENDER_STREAM_BATCH_SIZE	   1024 * 1024 * 16 // * 5 default
 #define RENDER_STREAM_MAX_BATCHES	   8
 
 }

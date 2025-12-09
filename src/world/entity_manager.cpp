@@ -60,17 +60,19 @@ namespace SFG
 		render_event_stream& stream = _world.get_render_stream();
 
 		render_event_entity_transform update = {};
+		vector3						  scale	 = vector3::zero;
+
 		for (auto it = _entities->handles_begin(); it != _entities->handles_end(); ++it)
 		{
 			const world_handle h = *it;
 			entity_meta&	   m = metas[h.index];
-			if (m.render_proxy_count != 0 && m.flags.is_set(entity_flags::entity_flags_render_proxy_dirty))
+			if (m.render_proxy_count != 0)
 			{
-				calculate_interpolated_transform_abs(h, i, update.position, update.rotation, update.scale);
-				update.abs_model = matrix4x3::transform(update.position, update.rotation, update.scale);
+				calculate_interpolated_transform_abs(h, i, update.position, update.rotation, scale);
+				update.abs_model = matrix4x3::transform(update.position, update.rotation, scale);
 
 				stream.add_event({.index = h.index, .event_type = render_event_type::update_entity_transform}, update);
-				m.flags.remove(entity_flags::entity_flags_render_proxy_dirty);
+			//	m.flags.remove(entity_flags::entity_flags_render_proxy_dirty);
 			}
 		}
 	}

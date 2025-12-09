@@ -4,33 +4,57 @@
 #include "animation_raw.hpp"
 #include "memory/chunk_allocator.hpp"
 #include "world/world.hpp"
+#include "io/log.hpp"
 
 namespace SFG
 {
+	namespace
+	{
+		template <typename T> uint16 find_segment(const T* keys, uint16 count, float time)
+		{
+			// assume time is clamped between front/back and count >= 2
+			uint16 lo = 0;
+			uint16 hi = count - 1;
+			while (hi - lo > 1)
+			{
+				uint16 mid = (lo + hi) >> 1;
+				if (time < keys[mid].time)
+					hi = mid;
+				else
+					lo = mid;
+			}
+			return lo; // segment [lo, lo+1]
+		}
 
+	}
 	void animation_channel_v3::create_from_loader(const animation_channel_v3_raw& raw, chunk_allocator32& alloc)
 	{
 		interpolation = raw.interpolation;
 		node_index	  = raw.node_index;
 
-		keyframes_count		   = static_cast<uint16>(raw.keyframes.size());
-		keyframes_spline_count = static_cast<uint16>(raw.keyframes_spline.size());
-
-		if (keyframes_count != 0)
+		if (interpolation == animation_interpolation::cubic_spline)
 		{
-			keyframes					  = alloc.allocate<animation_keyframe_v3>(keyframes_count);
-			animation_keyframe_v3* ptr_kf = alloc.get<animation_keyframe_v3>(keyframes);
+			keyframes_count = static_cast<uint16>(raw.keyframes_spline.size());
 
-			for (uint16 i = 0; i < keyframes_count; i++)
-				ptr_kf[i] = raw.keyframes[i];
+			if (keyframes_count != 0)
+			{
+				keyframes							 = alloc.allocate<animation_keyframe_v3_spline>(keyframes_count);
+				animation_keyframe_v3_spline* ptr_kf = alloc.get<animation_keyframe_v3_spline>(keyframes);
+				for (uint16 i = 0; i < keyframes_count; i++)
+					ptr_kf[i] = raw.keyframes_spline[i];
+			}
 		}
-
-		if (keyframes_spline_count != 0)
+		else
 		{
-			keyframes_spline					 = alloc.allocate<animation_keyframe_v3_spline>(keyframes_spline_count);
-			animation_keyframe_v3_spline* ptr_kf = alloc.get<animation_keyframe_v3_spline>(keyframes_spline);
-			for (uint16 i = 0; i < keyframes_spline_count; i++)
-				ptr_kf[i] = raw.keyframes_spline[i];
+			keyframes_count = static_cast<uint16>(raw.keyframes.size());
+			if (keyframes_count != 0)
+			{
+				keyframes					  = alloc.allocate<animation_keyframe_v3>(keyframes_count);
+				animation_keyframe_v3* ptr_kf = alloc.get<animation_keyframe_v3>(keyframes);
+
+				for (uint16 i = 0; i < keyframes_count; i++)
+					ptr_kf[i] = raw.keyframes[i];
+			}
 		}
 	}
 
@@ -38,34 +62,31 @@ namespace SFG
 	{
 		if (keyframes.size != 0)
 			alloc.free(keyframes);
-
-		if (keyframes_spline.size != 0)
-			alloc.free(keyframes_spline);
+		keyframes		= {};
+		keyframes_count = 0;
 	}
 
 	vector3 animation_channel_v3::sample(float time, chunk_allocator32& alloc) const
 	{
-		if (keyframes.size == 0 && keyframes_spline.size == 0)
-			return vector3::zero; // Return a default value.
+		if (keyframes.size == 0)
+			return vector3::zero;
 
-		if (interpolation == animation_interpolation::cubic_spline && keyframes_spline_count != 0)
+		if (interpolation == animation_interpolation::cubic_spline)
 		{
-			animation_keyframe_v3_spline*		ptr_spline = alloc.get<animation_keyframe_v3_spline>(keyframes_spline);
-			const animation_keyframe_v3_spline& front	   = ptr_spline[0];
-			const animation_keyframe_v3_spline& back	   = ptr_spline[keyframes_spline_count - 1];
+			animation_keyframe_v3_spline*		ptr	  = alloc.get<animation_keyframe_v3_spline>(keyframes);
+			const animation_keyframe_v3_spline& front = ptr[0];
+			const animation_keyframe_v3_spline& back  = ptr[keyframes_count - 1];
 			if (time <= front.time)
 				return front.value;
 			if (time >= back.time)
 				return back.value;
 
-			size_t i = 0;
-			while (i < keyframes_spline_count - 1 && time > ptr_spline[i + 1].time)
-			{
+			uint16 i = 0;
+			while (i < keyframes_count - 1 && time > ptr[i + 1].time)
 				++i;
-			}
 
-			const auto& kf0 = ptr_spline[i];
-			const auto& kf1 = ptr_spline[i + 1];
+			const auto& kf0 = ptr[i];
+			const auto& kf1 = ptr[i + 1];
 
 			float t0 = kf0.time;
 			float t1 = kf1.time;
@@ -85,50 +106,38 @@ namespace SFG
 
 			return h00 * kf0.value + h10 * kf0.out_tangent * (t1 - t0) + h01 * kf1.value + h11 * kf1.in_tangent * (t1 - t0);
 		}
-		else if (keyframes_count != 0)
+
+		animation_keyframe_v3*		 ptr   = alloc.get<animation_keyframe_v3>(keyframes);
+		const animation_keyframe_v3& front = ptr[0];
+		const animation_keyframe_v3& back  = ptr[keyframes_count - 1];
+
+		if (time <= front.time)
+			return front.value;
+		if (time >= back.time)
+			return back.value;
+
+		uint16 i = 0;
+		while (i < keyframes_count - 1 && time > ptr[i + 1].time)
+			++i;
+
+		const auto& kf0 = ptr[i];
+		const auto& kf1 = ptr[i + 1];
+
+		float t0 = kf0.time;
+		float t1 = kf1.time;
+
+		float localT = (time - t0) / (t1 - t0);
+
+		switch (interpolation)
 		{
-			animation_keyframe_v3*		 ptr   = alloc.get<animation_keyframe_v3>(keyframes);
-			const animation_keyframe_v3& front = ptr[0];
-			const animation_keyframe_v3& back  = ptr[keyframes_count - 1];
+		case animation_interpolation::linear:
+			return kf0.value + (kf1.value - kf0.value) * localT;
 
-			for (int i = 0; i < keyframes_count; i++)
-			{
-				auto& huh = ptr[i];
-				int	  a	  = 5;
-			}
-			if (time <= front.time)
-				return front.value;
-			if (time >= back.time)
-				return back.value;
-
-			size_t i = 0;
-			while (i < keyframes_count - 1 && time > ptr[i + 1].time)
-			{
-				++i;
-			}
-
-			const auto& kf0 = ptr[i];
-			const auto& kf1 = ptr[i + 1];
-
-			float t0 = kf0.time;
-			float t1 = kf1.time;
-
-			float localT = (time - t0) / (t1 - t0);
-
-			switch (interpolation)
-			{
-			case animation_interpolation::linear:
-				return kf0.value + (kf1.value - kf0.value) * localT;
-
-			case animation_interpolation::step:
-				return kf0.value;
-
-			default:
-				return vector3::zero;
-			}
+		case animation_interpolation::step:
+			return kf0.value;
+		default:
+			return vector3::zero;
 		}
-
-		return vector3::zero;
 	}
 
 	void animation_channel_q::create_from_loader(const animation_channel_q_raw& raw, chunk_allocator32& alloc)
@@ -136,23 +145,29 @@ namespace SFG
 		interpolation = raw.interpolation;
 		node_index	  = raw.node_index;
 
-		keyframes_count		   = static_cast<uint16>(raw.keyframes.size());
-		keyframes_spline_count = static_cast<uint16>(raw.keyframes_spline.size());
-
-		if (keyframes_count != 0)
+		if (interpolation == animation_interpolation::cubic_spline)
 		{
-			keyframes					 = alloc.allocate<animation_keyframe_q>(keyframes_count);
-			animation_keyframe_q* ptr_kf = alloc.get<animation_keyframe_q>(keyframes);
-			for (uint16 i = 0; i < keyframes_count; i++)
-				ptr_kf[i] = raw.keyframes[i];
+			keyframes_count = static_cast<uint16>(raw.keyframes_spline.size());
+
+			if (keyframes_count != 0)
+			{
+				keyframes							= alloc.allocate<animation_keyframe_q_spline>(keyframes_count);
+				animation_keyframe_q_spline* ptr_kf = alloc.get<animation_keyframe_q_spline>(keyframes);
+				for (uint16 i = 0; i < keyframes_count; i++)
+					ptr_kf[i] = raw.keyframes_spline[i];
+			}
 		}
-
-		if (keyframes_spline_count != 0)
+		else
 		{
-			keyframes_spline					= alloc.allocate<animation_keyframe_q_spline>(keyframes_spline_count);
-			animation_keyframe_q_spline* ptr_kf = alloc.get<animation_keyframe_q_spline>(keyframes_spline);
-			for (uint16 i = 0; i < keyframes_spline_count; i++)
-				ptr_kf[i] = raw.keyframes_spline[i];
+			keyframes_count = static_cast<uint16>(raw.keyframes.size());
+
+			if (keyframes_count != 0)
+			{
+				keyframes					 = alloc.allocate<animation_keyframe_q>(keyframes_count);
+				animation_keyframe_q* ptr_kf = alloc.get<animation_keyframe_q>(keyframes);
+				for (uint16 i = 0; i < keyframes_count; i++)
+					ptr_kf[i] = raw.keyframes[i];
+			}
 		}
 	}
 
@@ -160,38 +175,32 @@ namespace SFG
 	{
 		if (keyframes.size != 0)
 			alloc.free(keyframes);
-
-		if (keyframes_spline.size != 0)
-			alloc.free(keyframes_spline);
+		keyframes		= {};
+		keyframes_count = 0;
 	}
 
 	quat animation_channel_q::sample(float time, chunk_allocator32& alloc) const
 	{
-		if (keyframes.size == 0 && keyframes_spline.size == 0)
+		if (keyframes.size == 0)
 			return quat::identity;
 
 		if (interpolation == animation_interpolation::cubic_spline)
 		{
-			if (keyframes_spline_count == 0)
-				return quat::identity;
-
-			animation_keyframe_q_spline*	   ptr_spline = alloc.get<animation_keyframe_q_spline>(keyframes_spline);
-			const animation_keyframe_q_spline& front	  = ptr_spline[0];
-			const animation_keyframe_q_spline& back		  = ptr_spline[keyframes_spline_count - 1];
+			animation_keyframe_q_spline*	   ptr	 = alloc.get<animation_keyframe_q_spline>(keyframes);
+			const animation_keyframe_q_spline& front = ptr[0];
+			const animation_keyframe_q_spline& back	 = ptr[keyframes_count - 1];
 
 			if (time <= front.time)
 				return front.value;
 			if (time >= back.time)
 				return back.value;
 
-			size_t i = 0;
-			while (i < keyframes_spline_count - 1 && time > ptr_spline[i + 1].time)
-			{
+			uint16 i = 0;
+			while (i < keyframes_count - 1 && time > ptr[i + 1].time)
 				++i;
-			}
 
-			const auto& kf0 = ptr_spline[i];
-			const auto& kf1 = ptr_spline[i + 1];
+			const auto& kf0 = ptr[i];
+			const auto& kf1 = ptr[i + 1];
 
 			float t0 = kf0.time;
 			float t1 = kf1.time;
@@ -213,48 +222,43 @@ namespace SFG
 
 			return h00 * q0 + h10 * tangentOut0 * (t1 - t0) + h01 * q1 + h11 * tangentIn0 * (t1 - t0);
 		}
-		else
+
+		if (keyframes_count == 0)
+			return quat::identity;
+
+		animation_keyframe_q*		ptr	  = alloc.get<animation_keyframe_q>(keyframes);
+		const animation_keyframe_q& front = ptr[0];
+		const animation_keyframe_q& back  = ptr[keyframes_count - 1];
+
+		if (time <= front.time)
+			return front.value;
+		if (time >= back.time)
+			return back.value;
+
+		uint16 i = 0;
+		while (i < keyframes_count - 1 && time > ptr[i + 1].time)
+			++i;
+
+		const auto& kf0 = ptr[i];
+		const auto& kf1 = ptr[i + 1];
+
+		float t0 = kf0.time;
+		float t1 = kf1.time;
+
+		const quat& q0 = kf0.value;
+		const quat& q1 = kf1.value;
+
+		float localT = (time - t0) / (t1 - t0);
+
+		switch (interpolation)
 		{
-			if (keyframes_count == 0)
-				return quat::identity;
+		case animation_interpolation::linear:
+			return quat::slerp(q0, q1, localT);
 
-			animation_keyframe_q*		ptr	  = alloc.get<animation_keyframe_q>(keyframes);
-			const animation_keyframe_q& front = ptr[0];
-			const animation_keyframe_q& back  = ptr[keyframes_count - 1];
-
-			if (time <= front.time)
-				return front.value;
-			if (time >= back.time)
-				return back.value;
-
-			size_t i = 0;
-			while (i < keyframes_count - 1 && time > ptr[i + 1].time)
-			{
-				++i;
-			}
-
-			const auto& kf0 = ptr[i];
-			const auto& kf1 = ptr[i + 1];
-
-			float t0 = kf0.time;
-			float t1 = kf1.time;
-
-			const quat& q0 = kf0.value;
-			const quat& q1 = kf1.value;
-
-			float localT = (time - t0) / (t1 - t0);
-
-			switch (interpolation)
-			{
-			case animation_interpolation::linear:
-				return quat::slerp(q0, q1, localT);
-
-			case animation_interpolation::step:
-				return q0;
-
-			default:
-				return quat::identity;
-			}
+		case animation_interpolation::step:
+			return q0;
+		default:
+			return quat::identity;
 		}
 	}
 

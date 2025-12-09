@@ -18,10 +18,8 @@ namespace SFG
 	{
 		animation_interpolation interpolation = animation_interpolation::linear;
 		chunk_handle32			keyframes;
-		chunk_handle32			keyframes_spline;
-		uint16					keyframes_count		   = 0;
-		uint16					keyframes_spline_count = 0;
-		int16					node_index			   = -1;
+		uint16					keyframes_count = 0;
+		int16					node_index		= -1;
 
 		void	create_from_loader(const animation_channel_v3_raw& raw, chunk_allocator32& alloc);
 		void	destroy(chunk_allocator32& alloc);
@@ -32,10 +30,8 @@ namespace SFG
 	{
 		animation_interpolation interpolation = animation_interpolation::linear;
 		chunk_handle32			keyframes;
-		chunk_handle32			keyframes_spline;
-		uint16					keyframes_count		   = 0;
-		uint16					keyframes_spline_count = 0;
-		int16					node_index			   = -1;
+		uint16					keyframes_count = 0;
+		int16					node_index		= -1;
 
 		void create_from_loader(const animation_channel_q_raw& raw, chunk_allocator32& alloc);
 		void destroy(chunk_allocator32& alloc);

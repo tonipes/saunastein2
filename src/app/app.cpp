@@ -247,6 +247,15 @@ namespace SFG
 			constexpr uint32 MAX_TICKS		   = 4;
 			uint32			 ticks			   = 0;
 
+			// 			auto dtt = static_cast<double>(delta_micro) * 1e-6;
+			// 			_game->pre_tick(dtt);
+			// 			_world->tick(ws, dtt);
+			// 			_game->tick(dtt);
+			//
+			// #ifdef SFG_TOOLMODE
+			// 				_editor->tick(dtt);
+			// #endif
+
 			accumulator_ns += delta_micro * 1000;
 			while (accumulator_ns >= FIXED_INTERVAL_NS && ticks < MAX_TICKS)
 			{

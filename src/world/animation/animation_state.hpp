@@ -18,9 +18,9 @@ namespace SFG
 
 	struct animation_state_sample
 	{
+		vector2			blend_point	 = vector2::zero;
 		resource_handle animation	 = {};
 		pool_handle16	_next_sample = {};
-		vector2			blend_point	 = vector2::zero;
 	};
 
 	struct animation_state

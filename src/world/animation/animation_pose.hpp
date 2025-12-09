@@ -26,31 +26,38 @@ namespace SFG
 
 	struct joint_pose
 	{
-		int16		   node_index = -1;
-		vector3		   pos		  = vector3::zero;
-		quat		   rot		  = quat::identity;
-		vector3		   scale	  = vector3::zero;
-		bitmask<uint8> flags	  = 0;
+		vector3		   pos	 = vector3::zero;
+		quat		   rot	 = quat::identity;
+		vector3		   scale = vector3::zero;
+		bitmask<uint8> flags = 0;
 	};
 
 	class animation_pose
 	{
 	public:
-		void sample_from_animation(world& w, resource_handle anim, float time, const animation_mask& mask);
+		void sample_from_animation(world& w, resource_handle anim, float time, const animation_mask* mask);
 		void blend_from(animation_pose& other, float other_ratio);
 
 		inline void reset()
 		{
-			_joint_poses.resize(0);
+			_joint_count = 0;
+			for (uint16 i = 0; i < MAX_WORLD_SKELETON_JOINTS; i++)
+				_joint_poses[i].flags = 0;
 		}
 
-		inline const static_vector<joint_pose, MAX_WORLD_SKELETON_JOINTS>& get_joint_poses() const
+		inline const joint_pose* get_joint_poses() const
 		{
 			return _joint_poses;
 		}
 
+		inline uint16 get_joint_count() const
+		{
+			return _joint_count;
+		}
+
 	private:
-		static_vector<joint_pose, MAX_WORLD_SKELETON_JOINTS> _joint_poses = {};
+		joint_pose _joint_poses[MAX_WORLD_SKELETON_JOINTS];
+		uint16	   _joint_count = 0;
 	};
 
 }

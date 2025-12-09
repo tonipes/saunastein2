@@ -11,7 +11,6 @@ namespace SFG
 		stream << abs_model;
 		stream << position;
 		stream << rotation;
-		stream << scale;
 	}
 
 	void render_event_entity_transform::deserialize(istream& stream)
@@ -19,7 +18,6 @@ namespace SFG
 		stream >> abs_model;
 		stream >> position;
 		stream >> rotation;
-		stream >> scale;
 	}
 
 	void render_event_entity_visibility::serialize(ostream& stream) const

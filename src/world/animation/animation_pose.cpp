@@ -4,19 +4,19 @@
 #include "world/world.hpp"
 #include "resources/animation.hpp"
 #include "world/animation/animation_mask.hpp"
+#include "math/math.hpp"
 #include <tracy/Tracy.hpp>
 
 namespace SFG
 {
-	void animation_pose::sample_from_animation(world& w, resource_handle anim_handle, float time, const animation_mask& mask)
+	void animation_pose::sample_from_animation(world& w, resource_handle anim_handle, float time,  const animation_mask* mask)
 	{
 		ZoneScoped;
 
-		_joint_poses.resize(0);
+		_joint_count = 0;
 
-		const auto&		   masked_joints = mask.get_mask();
-		const animation&   anim			 = w.get_resource_manager().get_resource<animation>(anim_handle);
-		chunk_allocator32& aux			 = w.get_resource_manager().get_aux();
+		const animation&   anim = w.get_resource_manager().get_resource<animation>(anim_handle);
+		chunk_allocator32& aux	= w.get_resource_manager().get_aux();
 
 		const chunk_handle32 positions		 = anim.get_position_channels();
 		const chunk_handle32 rotations		 = anim.get_rotation_channels();
@@ -32,79 +32,43 @@ namespace SFG
 		for (uint16 i = 0; i < positions_count; i++)
 		{
 			const animation_channel_v3& ch		   = positions_ptr[i];
-			const vector3				value	   = ch.sample(time, aux);
 			const int16					node_index = ch.node_index;
 
-			const int16* it_masked = masked_joints.find_if([node_index](int16 idx) -> bool { return idx == node_index; });
-			if (it_masked != masked_joints.end())
+			if (mask && mask->is_masked(node_index))
 				continue;
 
-			auto it = _joint_poses.find_if([node_index](const joint_pose& p) -> bool { return p.node_index == node_index; });
-
-			joint_pose* p = nullptr;
-			if (it == _joint_poses.end())
-			{
-				_joint_poses.push_back({});
-				p = &_joint_poses.back();
-			}
-			else
-				p = &(*it);
-
-			p->pos = value;
-			p->flags.set(joint_pose_flags::has_position);
-			p->node_index = node_index;
+			_joint_count = static_cast<uint16>(math::max(static_cast<int16>(_joint_count), node_index));
+			auto& jp	 = _joint_poses[node_index];
+			jp.pos		 = ch.sample(time, aux);
+			jp.flags.set(joint_pose_flags::has_position);
 		}
 
 		for (uint16 i = 0; i < rotations_count; i++)
 		{
 			const animation_channel_q& ch		  = rotations_ptr[i];
-			const quat				   value	  = ch.sample(time, aux);
 			const int16				   node_index = ch.node_index;
 
-			const int16* it_masked = masked_joints.find_if([node_index](int16 idx) -> bool { return idx == node_index; });
-			if (it_masked != masked_joints.end())
+			if (mask && mask->is_masked(node_index))
 				continue;
 
-			auto it = _joint_poses.find_if([node_index](const joint_pose& p) -> bool { return p.node_index == node_index; });
-
-			joint_pose* p = nullptr;
-			if (it == _joint_poses.end())
-			{
-				_joint_poses.push_back({});
-				p = &_joint_poses.back();
-			}
-			else
-				p = &(*it);
-
-			p->rot = value;
-			p->flags.set(joint_pose_flags::has_rotation);
-			p->node_index = node_index;
+			_joint_count = static_cast<uint16>(math::max(static_cast<int16>(_joint_count), node_index));
+			auto& jp	 = _joint_poses[node_index];
+			jp.rot		 = ch.sample(time, aux);
+			jp.flags.set(joint_pose_flags::has_rotation);
 		}
 
 		for (uint16 i = 0; i < scales_count; i++)
 		{
 			const animation_channel_v3& ch		   = scales_ptr[i];
-			const vector3				value	   = ch.sample(time, aux);
 			const int16					node_index = ch.node_index;
 
-			const int16* it_masked = masked_joints.find_if([node_index](int16 idx) -> bool { return idx == node_index; });
-			if (it_masked != masked_joints.end())
+			if (mask && mask->is_masked(node_index))
 				continue;
 
-			auto it = _joint_poses.find_if([node_index](const joint_pose& p) -> bool { return p.node_index == node_index; });
-
-			joint_pose* p = nullptr;
-			if (it == _joint_poses.end())
-			{
-				_joint_poses.push_back({});
-				p = &_joint_poses.back();
-			}
-			else
-				p = &(*it);
-
-			p->scale = value;
-			p->flags.set(joint_pose_flags::has_scale);
-			p->node_index = node_index;
+			_joint_count = static_cast<uint16>(math::max(static_cast<int16>(_joint_count), node_index));
+			auto& jp	 = _joint_poses[node_index];
+			jp.scale	 = ch.sample(time, aux);
+			jp.flags.set(joint_pose_flags::has_scale);
 		}
 	}
 
@@ -112,37 +76,36 @@ namespace SFG
 	{
 		ZoneScoped;
 
-		for (joint_pose& p : _joint_poses)
+		for (uint16 i = 0; i < _joint_count; i++)
 		{
-			const int16 node_index = p.node_index;
-
-			auto it = std::find_if(other._joint_poses.begin(), other._joint_poses.end(), [node_index](const joint_pose& other_pose) -> bool { return node_index == other_pose.node_index; });
-			if (it == other._joint_poses.end())
+			joint_pose&			  p		= _joint_poses[i];
+			const bitmask<uint8>& flags = p.flags;
+			if (flags == 0)
 				continue;
 
-			const joint_pose& other = *it;
+			const joint_pose& other_pose = other._joint_poses[i];
 
-			const bool has_pos		   = p.flags.is_set(joint_pose_flags::has_position);
-			const bool has_rot		   = p.flags.is_set(joint_pose_flags::has_rotation);
-			const bool has_scale	   = p.flags.is_set(joint_pose_flags::has_scale);
-			const bool other_has_pos   = other.flags.is_set(joint_pose_flags::has_position);
-			const bool other_has_rot   = other.flags.is_set(joint_pose_flags::has_rotation);
-			const bool other_has_scale = other.flags.is_set(joint_pose_flags::has_scale);
+			const bool has_pos		   = flags.is_set(joint_pose_flags::has_position);
+			const bool has_rot		   = flags.is_set(joint_pose_flags::has_rotation);
+			const bool has_scale	   = flags.is_set(joint_pose_flags::has_scale);
+			const bool other_has_pos   = other_pose.flags.is_set(joint_pose_flags::has_position);
+			const bool other_has_rot   = other_pose.flags.is_set(joint_pose_flags::has_rotation);
+			const bool other_has_scale = other_pose.flags.is_set(joint_pose_flags::has_scale);
 
 			if (has_pos && other_has_pos)
-				p.pos = vector3::lerp(p.pos, other.pos, other_ratio);
+				p.pos = vector3::lerp(p.pos, other_pose.pos, other_ratio);
 			else if (!has_pos && other_has_pos)
-				p.pos = other.pos;
+				p.pos = other_pose.pos;
 
 			if (has_rot && other_has_rot)
-				p.rot = quat::slerp(p.rot, other.rot, other_ratio);
+				p.rot = quat::slerp(p.rot, other_pose.rot, other_ratio);
 			else if (!has_rot && other_has_rot)
-				p.rot = other.rot;
+				p.rot = other_pose.rot;
 
 			if (has_scale && other_has_scale)
-				p.scale = vector3::lerp(p.scale, other.scale, other_ratio);
+				p.scale = vector3::lerp(p.scale, other_pose.scale, other_ratio);
 			else if (!has_scale && other_has_scale)
-				p.scale = other.scale;
+				p.scale = other_pose.scale;
 		}
 	}
 

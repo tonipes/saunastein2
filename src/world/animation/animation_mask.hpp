@@ -15,21 +15,37 @@ namespace SFG
 	class animation_mask
 	{
 	public:
+		struct joint_data
+		{
+			uint8 is_masked = 0;
+		};
+
 		void mask_joints(world& w, resource_handle skin, string_id* name_hashes, uint16 name_hashes_count);
 		void mask_joint(world& w, resource_handle skin, string_id hash);
 
-		inline const static_vector<int16, MAX_WORLD_SKELETON_JOINTS>& get_mask() const
+		inline const joint_data* get_mask() const
 		{
-			return _masked_joints;
+			return _joints;
 		}
 
 		inline void mask_joint(int16 j)
 		{
-			_masked_joints.push_back(j);
+			_joints[j].is_masked = 1;
+		}
+
+		inline bool is_masked(int16 j) const
+		{
+			return _joints[j].is_masked;
+		}
+
+		inline void reset()
+		{
+			for (uint16 i = 0; i < MAX_WORLD_SKELETON_JOINTS; i++)
+				_joints[i].is_masked = 0;
 		}
 
 	private:
-		static_vector<int16, MAX_WORLD_SKELETON_JOINTS> _masked_joints = {};
+		joint_data _joints[MAX_WORLD_SKELETON_JOINTS];
 	};
 
 }

@@ -18,7 +18,6 @@ namespace SFG
 		matrix4x3 abs_model = matrix4x3::identity;
 		vector3	  position	= vector3::zero;
 		quat	  rotation	= quat::identity;
-		vector3	  scale		= vector3::one;
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);
