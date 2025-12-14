@@ -5,7 +5,7 @@
 #include "data/ostream.hpp"
 #include "gfx/event_stream/render_events.hpp"
 #include "game/game_max_defines.hpp"
-
+#include "io/log.hpp"
 #include "data/atomic.hpp"
 #include <vendor/moodycamel/readerwriterqueue.h>
 

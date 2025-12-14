@@ -1,7 +1,6 @@
 // Copyright (c) 2025 Inan Evin
 
 #include "render_event_stream.hpp"
-#include "io/log.hpp"
 #include "data/istream.hpp"
 #include <tracy/Tracy.hpp>
 
@@ -40,11 +39,18 @@ namespace SFG
 		const int8 last_rendered = _rendered.load(std::memory_order_acquire);
 		const int8 write_index	 = (last_rendered + 1) % RENDER_STREAM_MAX_BATCHES;
 
+		buffered_data& buf	   = _stream_data[write_index];
+		const size_t   data_sz = _main_thread_data.get_size();
 
-		buffered_data& buf = _stream_data[write_index];
-		SFG_MEMCPY(buf.data + buf.size, _main_thread_data.get_raw(), _main_thread_data.get_size());
-		buf.size += _main_thread_data.get_size();
-		SFG_ASSERT(buf.size < RENDER_STREAM_BATCH_SIZE);
+		if (buf.size + data_sz >= RENDER_STREAM_BATCH_SIZE)
+		{
+			SFG_FATAL("writing too much data to event_stream data! grow RENDER_STREAM_BATCH_SIZE!");
+			return;
+		}
+
+		SFG_ASSERT(buf.size + data_sz < RENDER_STREAM_BATCH_SIZE);
+		SFG_MEMCPY(buf.data + buf.size, _main_thread_data.get_raw(), data_sz);
+		buf.size += data_sz;
 
 		_main_thread_data.shrink(0);
 		_latest.store(write_index, std::memory_order_release);

@@ -244,7 +244,7 @@ namespace SFG
 
 			// world timing
 			const float dt_seconds = FIXED_FRAMERATE_S;
-			uint32		ticks	  = 0;
+			uint32		ticks	   = 0;
 
 #if FIXED_FRAMERATE_ENABLED
 			accumulator_ns += delta_micro * 1000;
@@ -261,6 +261,9 @@ namespace SFG
 #endif
 				ticks++;
 			}
+
+			if (ticks != 0)
+				_world->calculate_abs_transforms();
 
 			// interpolation
 			const double interpolation = static_cast<double>(accumulator_ns) / FIXED_FRAMERATE_NS_D;

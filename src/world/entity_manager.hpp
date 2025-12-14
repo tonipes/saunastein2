@@ -16,6 +16,13 @@ namespace SFG
 {
 	class world;
 
+	struct entity_transform
+	{
+		vector3 position = vector3::zero;
+		vector3 scale	 = vector3::zero;
+		quat	rotation = quat::identity;
+	};
+
 	class entity_manager
 	{
 	public:
@@ -116,14 +123,14 @@ namespace SFG
 		vector3			 get_entity_scale_abs(world_handle entity);
 		const matrix4x3& get_entity_transform(world_handle entity);
 		const matrix4x3& get_entity_transform_abs(world_handle entity);
-		void			 set_entity_prev_position_abs(world_handle entity, const vector3& pos);
-		void			 set_entity_prev_rotation_abs(world_handle entity, const quat& rot);
-		void			 set_entity_prev_scale_abs(world_handle entity, const vector3& scale);
-		const vector3&	 get_entity_prev_position_abs(world_handle entity) const;
-		const quat&		 get_entity_prev_rotation_abs(world_handle entity) const;
-		const vector3&	 get_entity_prev_scale_abs(world_handle entity) const;
-		void			 calculate_interpolated_transform_abs(world_handle entity, float interpolation, vector3& out_position, quat& out_rotation, vector3& out_scale);
-		void			 teleport_entity(world_handle entity);
+		// void			 set_entity_prev_position_abs(world_handle entity, const vector3& pos);
+		// void			 set_entity_prev_rotation_abs(world_handle entity, const quat& rot);
+		// void			 set_entity_prev_scale_abs(world_handle entity, const vector3& scale);
+		// const vector3& get_entity_prev_position_abs(world_handle entity) const;
+		// const quat&	   get_entity_prev_rotation_abs(world_handle entity) const;
+		// const vector3& get_entity_prev_scale_abs(world_handle entity) const;
+		void calculate_interpolated_transform_abs(world_handle entity, float interpolation, vector3& out_position, quat& out_rotation, vector3& out_scale);
+		void teleport_entity(world_handle entity);
 
 		// -----------------------------------------------------------------------------
 		// accessors
@@ -139,8 +146,12 @@ namespace SFG
 			return _entities;
 		}
 
+		void build_hierarchy();
+
 	private:
 		friend class component_manager;
+
+		void calculate_abs_transform(world_id entity);
 
 		void on_component_added(world_handle entity, world_handle comp_handle, string_id comp_type);
 		void on_component_removed(world_handle entity, world_handle comp_handle, string_id comp_type);
@@ -150,19 +161,34 @@ namespace SFG
 	private:
 		world& _world;
 
-		pool_allocator_gen<world_id, world_id, MAX_ENTITIES>*	   _entities	   = {};
-		pool_allocator_simple<entity_meta, MAX_ENTITIES>*		   _metas		   = {};
-		pool_allocator_simple<entity_family, MAX_ENTITIES>*		   _families	   = {};
-		pool_allocator_simple<vector3, MAX_ENTITIES>*			   _positions	   = {};
-		pool_allocator_simple<vector3, MAX_ENTITIES>*			   _prev_positions = {};
-		pool_allocator_simple<quat, MAX_ENTITIES>*				   _rotations	   = {};
-		pool_allocator_simple<quat, MAX_ENTITIES>*				   _rotations_abs  = {};
-		pool_allocator_simple<quat, MAX_ENTITIES>*				   _prev_rotations = {};
-		pool_allocator_simple<vector3, MAX_ENTITIES>*			   _scales		   = {};
-		pool_allocator_simple<vector3, MAX_ENTITIES>*			   _prev_scales	   = {};
-		pool_allocator_simple<aabb, MAX_ENTITIES>*				   _aabbs		   = {};
-		pool_allocator_simple<matrix4x3, MAX_ENTITIES>*			   _matrices	   = {};
-		pool_allocator_simple<matrix4x3, MAX_ENTITIES>*			   _abs_matrices   = {};
+		pool_allocator_gen<world_id, world_id, MAX_ENTITIES>* _entities = {};
+		pool_allocator_simple<entity_meta, MAX_ENTITIES>*	  _metas	= {};
+		pool_allocator_simple<entity_family, MAX_ENTITIES>*	  _families = {};
+		// pool_allocator_simple<vector3, MAX_ENTITIES>*			   _positions	   = {};
+		// pool_allocator_simple<vector3, MAX_ENTITIES>*			   _prev_positions = {};
+		// pool_allocator_simple<quat, MAX_ENTITIES>*				   _rotations	   = {};
+		// pool_allocator_simple<quat, MAX_ENTITIES>*				   _rotations_abs  = {};
+		// pool_allocator_simple<quat, MAX_ENTITIES>*				   _prev_rotations = {};
+		// pool_allocator_simple<vector3, MAX_ENTITIES>*			   _scales		   = {};
+		// pool_allocator_simple<vector3, MAX_ENTITIES>*			   _prev_scales	   = {};
+		pool_allocator_simple<aabb, MAX_ENTITIES>* _aabbs = {};
+		// pool_allocator_simple<matrix4x3, MAX_ENTITIES>*			   _matrices	   = {};
+		// pool_allocator_simple<matrix4x3, MAX_ENTITIES>*			   _abs_matrices   = {};
 		pool_allocator_simple<entity_comp_register, MAX_ENTITIES>* _comp_registers = {};
+
+		pool_allocator_simple<entity_transform, MAX_ENTITIES>* _local_transforms	= {};
+		pool_allocator_simple<entity_transform, MAX_ENTITIES>* _abs_transforms		= {};
+		pool_allocator_simple<entity_transform, MAX_ENTITIES>* _abs_transforms_prev = {};
+		pool_allocator_simple<bitmask<uint16>, MAX_ENTITIES>*  _flags				= {};
+		pool_allocator_simple<matrix4x3, MAX_ENTITIES>*		   _abs_matrices		= {};
+		pool_allocator_simple<matrix4x3, MAX_ENTITIES>*		   _prev_abs_matrices	= {};
+		pool_allocator_simple<matrix4x3, MAX_ENTITIES>*		   _local_matrices		= {};
+		pool_allocator_simple<uint32, MAX_ENTITIES>*		   _hierarchy_orders	= {};
+		pool_allocator_simple<quat, MAX_ENTITIES>*			   _abs_rots			= {};
+		pool_allocator_simple<quat, MAX_ENTITIES>*			   _prev_abs_rots		= {};
+
+		static_vector<uint32, MAX_ENTITIES> _ordered_entities  = {};
+		uint32								_root_entity_count = 0;
 	};
+
 }

@@ -150,7 +150,7 @@ float4 PSMain(vs_output IN) : SV_TARGET
     float  metallic  = saturate(orm_data.b);
     float3 N = oct_decode(normal_data.xy);
 
-    float3 ambientColor = rp_data.ambient_color_plights_count.xyz * 4;
+    float3 ambientColor = rp_data.ambient_color_plights_count.xyz;
     float3 lighting = ambientColor * albedo * ao;
 
     // fetch light prep

@@ -5,7 +5,7 @@
 namespace SFG
 {
 
-#define FIXED_FRAMERATE_ENABLED	  0
+#define FIXED_FRAMERATE_ENABLED	  1
 #define FIXED_FRAMERATE_MAX_TICKS 4
 
 	static inline constexpr double FIXED_FRAMERATE_NS_D = 16'666'667.0;

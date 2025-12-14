@@ -135,6 +135,8 @@ namespace SFG
 
 			em.set_entity_position(root, vector3(x, 0.0f, z));
 		}
+
+		em.build_hierarchy();
 	}
 
 	void game::uninit()
