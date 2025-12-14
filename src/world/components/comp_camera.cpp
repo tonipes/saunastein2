@@ -39,6 +39,8 @@ namespace SFG
 
 	void comp_camera::set_main(world& w)
 	{
+		w.get_entity_manager().set_main_camera(_header.entity, _header.own_handle);
+
 		w.get_render_stream().add_event({
 			.index		= _header.own_handle.index,
 			.event_type = render_event_type::set_main_camera,
@@ -66,7 +68,12 @@ namespace SFG
 
 	void comp_camera::on_remove(world& w)
 	{
-		w.get_entity_manager().remove_render_proxy(_header.entity);
+		entity_manager& em = w.get_entity_manager();
+
+		em.remove_render_proxy(_header.entity);
+
+		if (em.get_main_camera_comp() == _header.own_handle)
+			em.set_main_camera({}, {});
 
 		w.get_render_stream().add_event({
 			.index		= _header.own_handle.index,

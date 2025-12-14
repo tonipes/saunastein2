@@ -61,14 +61,23 @@ namespace SFG
 		animation_pose transition_blend_pose = {};
 		animation_pose final_pose			 = {};
 
-		uint16 pose_counter = 0;
+		uint16			pose_counter = 0;
+		entity_manager& em			 = w.get_entity_manager();
+
+		const world_handle camera_entity   = em.get_main_camera_entity();
+		const vector3	   camera_position = em.get_entity_position_abs(camera_entity);
 
 		for (auto it = machines.handles_begin(); it != machines.handles_end(); ++it)
 		{
 			const pool_handle16		 machine_handle = *it;
 			animation_state_machine& m				= machines.get(machine_handle);
 
-			if (m.active_state.is_null() || m.joint_entities.size == 0)
+			if (m.active_state.is_null() || m.joint_entities.size == 0 || m.entity.is_null())
+				continue;
+
+			const vector3 machine_position = em.get_entity_position_abs(m.entity);
+
+			if (vector3::distance_sqr(machine_position, camera_position) > 100)
 				continue;
 
 			animation_state& state = states.get(m.active_state);
@@ -530,7 +539,7 @@ namespace SFG
 
 	void animation_graph::reset_state(animation_state& state)
 	{
-		state._current_time			= 0.0f;
+		state._current_time = 0.0f;
 	}
 
 	void animation_graph::compute_state_weights_1d(const animation_state& state, static_vector<resource_handle, MAX_WORLD_BLEND_STATE_ANIMS>& out_anims, static_vector<float, MAX_WORLD_BLEND_STATE_ANIMS>& out_weights)

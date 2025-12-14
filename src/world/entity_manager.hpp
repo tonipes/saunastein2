@@ -139,6 +139,22 @@ namespace SFG
 			return _entities;
 		}
 
+		inline void set_main_camera(world_handle entity, world_handle comp)
+		{
+			_camera_entity = entity;
+			_camera_comp   = comp;
+		}
+
+		inline world_handle get_main_camera_entity() const
+		{
+			return _camera_entity;
+		}
+
+		inline world_handle get_main_camera_comp() const
+		{
+			return _camera_comp;
+		}
+
 	private:
 		friend class component_manager;
 
@@ -166,6 +182,9 @@ namespace SFG
 		pool_allocator_simple<matrix4x3, MAX_ENTITIES>*			   _prev_abs_matrices = {};
 		pool_allocator_simple<quat, MAX_ENTITIES>*				   _abs_rots		  = {};
 		pool_allocator_simple<quat, MAX_ENTITIES>*				   _prev_abs_rots	  = {};
+
+		world_handle _camera_entity = {};
+		world_handle _camera_comp	= {};
 	};
 
 }

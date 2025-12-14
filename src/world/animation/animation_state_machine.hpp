@@ -4,16 +4,18 @@
 
 #include "memory/pool_handle.hpp"
 #include "memory/chunk_handle.hpp"
+#include "world/common_entity.hpp"
 
 namespace SFG
 {
 	struct animation_state_machine
 	{
+		world_handle   entity				= {};
+		chunk_handle32 joint_entities		= {};
 		pool_handle16  active_state			= {};
 		pool_handle16  _first_state			= {};
 		pool_handle16  _first_parameter		= {};
 		pool_handle16  _active_transition	= {};
-		chunk_handle32 joint_entities		= {};
 		uint16		   joint_entities_count = 0;
 	};
 }
