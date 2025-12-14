@@ -39,23 +39,24 @@ namespace SFG
 		// entity api
 		// -----------------------------------------------------------------------------
 
-		world_handle		 create_entity(const char* name = "entity");
-		world_handle		 find_entity(const char* name);
-		world_handle		 find_entity(world_handle parent, const char* name);
-		void				 destroy_entity(world_handle handle);
-		void				 add_child(world_handle parent, world_handle child);
-		void				 remove_child(world_handle parent, world_handle child);
-		void				 remove_from_parent(world_handle entity);
-		world_handle		 get_child_by_index(world_handle parent, uint32 index);
-		const aabb&			 get_entity_aabb(world_handle entity);
-		const entity_meta&	 get_entity_meta(world_handle entity) const;
-		const entity_family& get_entity_family(world_handle entity) const;
-		void				 add_render_proxy(world_handle entity);
-		void				 remove_render_proxy(world_handle entity);
-		void				 set_entity_visible(world_handle entity, bool is_visible);
-		void				 remove_all_entity_components(world_handle entity);
-		world_handle		 get_valid_handle_by_index(world_id id);
-		world_handle		 get_entity_component(string_id comp_type, world_handle entity);
+		world_handle		  create_entity(const char* name = "entity");
+		world_handle		  find_entity(const char* name);
+		world_handle		  find_entity(world_handle parent, const char* name);
+		void				  destroy_entity(world_handle handle);
+		void				  add_child(world_handle parent, world_handle child);
+		void				  remove_child(world_handle parent, world_handle child);
+		void				  remove_from_parent(world_handle entity);
+		world_handle		  get_child_by_index(world_handle parent, uint32 index);
+		const aabb&			  get_entity_aabb(world_handle entity);
+		const entity_meta&	  get_entity_meta(world_handle entity) const;
+		const entity_family&  get_entity_family(world_handle entity) const;
+		const bitmask<uint16> get_entity_flags(world_handle entity) const;
+		void				  add_render_proxy(world_handle entity);
+		void				  remove_render_proxy(world_handle entity);
+		void				  set_entity_visible(world_handle entity, bool is_visible);
+		void				  remove_all_entity_components(world_handle entity);
+		world_handle		  get_valid_handle_by_index(world_id id);
+		world_handle		  get_entity_component(string_id comp_type, world_handle entity);
 
 		inline bool is_valid(world_handle entity) const
 		{
@@ -111,26 +112,18 @@ namespace SFG
 
 		void			 set_entity_position(world_handle entity, const vector3& pos);
 		void			 set_entity_position_abs(world_handle entity, const vector3& pos);
-		const vector3&	 get_entity_position(world_handle entity) const;
-		vector3			 get_entity_position_abs(world_handle entity);
 		void			 set_entity_rotation(world_handle entity, const quat& rot);
 		void			 set_entity_rotation_abs(world_handle entity, const quat& rot);
-		const quat&		 get_entity_rotation(world_handle entity) const;
-		const quat&		 get_entity_rotation_abs(world_handle entity);
 		void			 set_entity_scale(world_handle entity, const vector3& scale);
 		void			 set_entity_scale_abs(world_handle entity, const vector3& scale);
+		const vector3&	 get_entity_position(world_handle entity) const;
+		const quat&		 get_entity_rotation(world_handle entity) const;
 		const vector3&	 get_entity_scale(world_handle entity) const;
+		vector3			 get_entity_position_abs(world_handle entity);
+		const quat&		 get_entity_rotation_abs(world_handle entity);
 		vector3			 get_entity_scale_abs(world_handle entity);
-		const matrix4x3& get_entity_transform(world_handle entity);
-		const matrix4x3& get_entity_transform_abs(world_handle entity);
-		// void			 set_entity_prev_position_abs(world_handle entity, const vector3& pos);
-		// void			 set_entity_prev_rotation_abs(world_handle entity, const quat& rot);
-		// void			 set_entity_prev_scale_abs(world_handle entity, const vector3& scale);
-		// const vector3& get_entity_prev_position_abs(world_handle entity) const;
-		// const quat&	   get_entity_prev_rotation_abs(world_handle entity) const;
-		// const vector3& get_entity_prev_scale_abs(world_handle entity) const;
-		void calculate_interpolated_transform_abs(world_handle entity, float interpolation, vector3& out_position, quat& out_rotation, vector3& out_scale);
-		void teleport_entity(world_handle entity);
+		matrix4x3		 get_entity_matrix(world_handle entity) const;
+		const matrix4x3& get_entity_matrix_abs(world_handle entity);
 
 		// -----------------------------------------------------------------------------
 		// accessors
@@ -146,12 +139,13 @@ namespace SFG
 			return _entities;
 		}
 
-		void build_hierarchy();
-
 	private:
 		friend class component_manager;
 
 		void calculate_abs_transform(world_id entity);
+		void calculate_abs_transform_direct(world_id entity);
+		void calculate_abs_rot_direct(world_id entity);
+		void calculate_abs_transform_and_rot_direct(world_id entity);
 
 		void on_component_added(world_handle entity, world_handle comp_handle, string_id comp_type);
 		void on_component_removed(world_handle entity, world_handle comp_handle, string_id comp_type);
@@ -161,34 +155,17 @@ namespace SFG
 	private:
 		world& _world;
 
-		pool_allocator_gen<world_id, world_id, MAX_ENTITIES>* _entities = {};
-		pool_allocator_simple<entity_meta, MAX_ENTITIES>*	  _metas	= {};
-		pool_allocator_simple<entity_family, MAX_ENTITIES>*	  _families = {};
-		// pool_allocator_simple<vector3, MAX_ENTITIES>*			   _positions	   = {};
-		// pool_allocator_simple<vector3, MAX_ENTITIES>*			   _prev_positions = {};
-		// pool_allocator_simple<quat, MAX_ENTITIES>*				   _rotations	   = {};
-		// pool_allocator_simple<quat, MAX_ENTITIES>*				   _rotations_abs  = {};
-		// pool_allocator_simple<quat, MAX_ENTITIES>*				   _prev_rotations = {};
-		// pool_allocator_simple<vector3, MAX_ENTITIES>*			   _scales		   = {};
-		// pool_allocator_simple<vector3, MAX_ENTITIES>*			   _prev_scales	   = {};
-		pool_allocator_simple<aabb, MAX_ENTITIES>* _aabbs = {};
-		// pool_allocator_simple<matrix4x3, MAX_ENTITIES>*			   _matrices	   = {};
-		// pool_allocator_simple<matrix4x3, MAX_ENTITIES>*			   _abs_matrices   = {};
-		pool_allocator_simple<entity_comp_register, MAX_ENTITIES>* _comp_registers = {};
-
-		pool_allocator_simple<entity_transform, MAX_ENTITIES>* _local_transforms	= {};
-		pool_allocator_simple<entity_transform, MAX_ENTITIES>* _abs_transforms		= {};
-		pool_allocator_simple<entity_transform, MAX_ENTITIES>* _abs_transforms_prev = {};
-		pool_allocator_simple<bitmask<uint16>, MAX_ENTITIES>*  _flags				= {};
-		pool_allocator_simple<matrix4x3, MAX_ENTITIES>*		   _abs_matrices		= {};
-		pool_allocator_simple<matrix4x3, MAX_ENTITIES>*		   _prev_abs_matrices	= {};
-		pool_allocator_simple<matrix4x3, MAX_ENTITIES>*		   _local_matrices		= {};
-		pool_allocator_simple<uint32, MAX_ENTITIES>*		   _hierarchy_orders	= {};
-		pool_allocator_simple<quat, MAX_ENTITIES>*			   _abs_rots			= {};
-		pool_allocator_simple<quat, MAX_ENTITIES>*			   _prev_abs_rots		= {};
-
-		static_vector<uint32, MAX_ENTITIES> _ordered_entities  = {};
-		uint32								_root_entity_count = 0;
+		pool_allocator_gen<world_id, world_id, MAX_ENTITIES>*	   _entities		  = {};
+		pool_allocator_simple<entity_meta, MAX_ENTITIES>*		   _metas			  = {};
+		pool_allocator_simple<entity_family, MAX_ENTITIES>*		   _families		  = {};
+		pool_allocator_simple<aabb, MAX_ENTITIES>*				   _aabbs			  = {};
+		pool_allocator_simple<entity_comp_register, MAX_ENTITIES>* _comp_registers	  = {};
+		pool_allocator_simple<entity_transform, MAX_ENTITIES>*	   _local_transforms  = {};
+		pool_allocator_simple<bitmask<uint16>, MAX_ENTITIES>*	   _flags			  = {};
+		pool_allocator_simple<matrix4x3, MAX_ENTITIES>*			   _abs_matrices	  = {};
+		pool_allocator_simple<matrix4x3, MAX_ENTITIES>*			   _prev_abs_matrices = {};
+		pool_allocator_simple<quat, MAX_ENTITIES>*				   _abs_rots		  = {};
+		pool_allocator_simple<quat, MAX_ENTITIES>*				   _prev_abs_rots	  = {};
 	};
 
 }

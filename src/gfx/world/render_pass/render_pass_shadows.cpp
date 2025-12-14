@@ -19,6 +19,8 @@
 #include "math/math.hpp"
 #include "resources/shader_raw.hpp"
 
+#include <tracy/Tracy.hpp>
+
 namespace SFG
 {
 
@@ -125,6 +127,8 @@ namespace SFG
 
 	void render_pass_shadows::render(const render_params& p)
 	{
+		ZoneScoped;
+
 		gfx_backend*	backend	   = gfx_backend::get();
 		per_frame_data& pfd		   = _pfd[p.frame_index];
 		const gfx_id	cmd_buffer = pfd.cmd_buffer;

@@ -15,6 +15,8 @@
 #include "gfx/world/renderable_collector.hpp"
 #include "gfx/engine_shaders.hpp"
 
+#include <tracy/Tracy.hpp>
+
 namespace SFG
 {
 	void render_pass_opaque::init(const vector2ui16& size)
@@ -53,6 +55,8 @@ namespace SFG
 
 	void render_pass_opaque::prepare(proxy_manager& pm, const vector<renderable_object>& renderables, const view& main_camera_view, uint8 frame_index)
 	{
+		ZoneScoped;
+
 		_alloc.reset();
 		_draw_stream.prepare(_alloc, MAX_DRAW_CALLS_OPAQUE);
 
@@ -67,6 +71,8 @@ namespace SFG
 
 	void render_pass_opaque::render(const render_params& p)
 	{
+		ZoneScoped;
+
 		gfx_backend*	backend			 = gfx_backend::get();
 		per_frame_data& pfd				 = _pfd[p.frame_index];
 		const gfx_id*	textures		 = pfd.color_textures.data();

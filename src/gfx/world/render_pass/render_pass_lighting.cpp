@@ -13,6 +13,8 @@
 #include "gfx/common/render_target_definitions.hpp"
 #include "gfx/world/view.hpp"
 
+#include <tracy/Tracy.hpp>
+
 namespace SFG
 {
 	void render_pass_lighting::init(const vector2ui16& size)
@@ -59,6 +61,8 @@ namespace SFG
 
 	void render_pass_lighting::prepare(proxy_manager& pm, const view& camera_view, uint8 frame_index)
 	{
+		ZoneScoped;
+
 		const uint8					ambient_exists = pm.get_ambient_exists();
 		const render_proxy_ambient& ambient		   = pm.get_ambient();
 		const vector3				ambient_color  = ambient_exists ? ambient.base_color : vector3(0.1f, 0.1f, 0.1f);
@@ -81,6 +85,8 @@ namespace SFG
 
 	void render_pass_lighting::render(const render_params& p)
 	{
+		ZoneScoped;
+
 		gfx_backend*	backend			 = gfx_backend::get();
 		per_frame_data& pfd				 = _pfd[p.frame_index];
 		const gfx_id	queue_gfx		 = backend->get_queue_gfx();

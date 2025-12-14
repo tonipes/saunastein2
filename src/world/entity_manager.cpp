@@ -13,30 +13,17 @@ namespace SFG
 {
 	entity_manager::entity_manager(world& w) : _world(w)
 	{
-		_entities = new pool_allocator_gen<world_id, world_id, MAX_ENTITIES>();
-		_metas	  = new pool_allocator_simple<entity_meta, MAX_ENTITIES>();
-		_families = new pool_allocator_simple<entity_family, MAX_ENTITIES>();
-		//_positions		  = new pool_allocator_simple<vector3, MAX_ENTITIES>();
-		//_prev_positions	  = new pool_allocator_simple<vector3, MAX_ENTITIES>();
-		//_rotations		  = new pool_allocator_simple<quat, MAX_ENTITIES>();
-		//_rotations_abs	  = new pool_allocator_simple<quat, MAX_ENTITIES>();
-		//_prev_rotations	  = new pool_allocator_simple<quat, MAX_ENTITIES>();
-		//_scales			  = new pool_allocator_simple<vector3, MAX_ENTITIES>();
-		//_prev_scales	  = new pool_allocator_simple<vector3, MAX_ENTITIES>();
-		_aabbs = new pool_allocator_simple<aabb, MAX_ENTITIES>();
-		//_matrices			 = new pool_allocator_simple<matrix4x3, MAX_ENTITIES>();
-		//_abs_matrices		 = new pool_allocator_simple<matrix4x3, MAX_ENTITIES>();
-		_comp_registers		 = new pool_allocator_simple<entity_comp_register, MAX_ENTITIES>();
-		_local_transforms	 = new pool_allocator_simple<entity_transform, MAX_ENTITIES>();
-		_abs_transforms		 = new pool_allocator_simple<entity_transform, MAX_ENTITIES>();
-		_abs_transforms_prev = new pool_allocator_simple<entity_transform, MAX_ENTITIES>();
-		_flags				 = new pool_allocator_simple<bitmask<uint16>, MAX_ENTITIES>();
-		_abs_matrices		 = new pool_allocator_simple<matrix4x3, MAX_ENTITIES>();
-		_prev_abs_matrices	 = new pool_allocator_simple<matrix4x3, MAX_ENTITIES>();
-		_local_matrices		 = new pool_allocator_simple<matrix4x3, MAX_ENTITIES>();
-		_hierarchy_orders	 = new pool_allocator_simple<world_id, MAX_ENTITIES>();
-		_abs_rots			 = new pool_allocator_simple<quat, MAX_ENTITIES>();
-		_prev_abs_rots		 = new pool_allocator_simple<quat, MAX_ENTITIES>();
+		_entities		   = new pool_allocator_gen<world_id, world_id, MAX_ENTITIES>();
+		_metas			   = new pool_allocator_simple<entity_meta, MAX_ENTITIES>();
+		_families		   = new pool_allocator_simple<entity_family, MAX_ENTITIES>();
+		_aabbs			   = new pool_allocator_simple<aabb, MAX_ENTITIES>();
+		_comp_registers	   = new pool_allocator_simple<entity_comp_register, MAX_ENTITIES>();
+		_local_transforms  = new pool_allocator_simple<entity_transform, MAX_ENTITIES>();
+		_flags			   = new pool_allocator_simple<bitmask<uint16>, MAX_ENTITIES>();
+		_abs_matrices	   = new pool_allocator_simple<matrix4x3, MAX_ENTITIES>();
+		_prev_abs_matrices = new pool_allocator_simple<matrix4x3, MAX_ENTITIES>();
+		_abs_rots		   = new pool_allocator_simple<quat, MAX_ENTITIES>();
+		_prev_abs_rots	   = new pool_allocator_simple<quat, MAX_ENTITIES>();
 	}
 
 	entity_manager::~entity_manager()
@@ -44,25 +31,12 @@ namespace SFG
 		delete _entities;
 		delete _metas;
 		delete _families;
-		// delete _positions;
-		// delete _prev_positions;
-		// delete _rotations;
-		// delete _rotations_abs;
-		// delete _prev_rotations;
-		// delete _scales;
-		// delete _prev_scales;
 		delete _aabbs;
-		// delete _matrices;
-		// delete _abs_matrices;
 		delete _comp_registers;
 		delete _local_transforms;
-		delete _abs_transforms;
-		delete _abs_transforms_prev;
 		delete _flags;
 		delete _abs_matrices;
 		delete _prev_abs_matrices;
-		delete _local_matrices;
-		delete _hierarchy_orders;
 		delete _abs_rots;
 		delete _prev_abs_rots;
 	}
@@ -75,7 +49,7 @@ namespace SFG
 	{
 		bitmask<uint16>& f = _flags->get(e);
 
-		if (!f.is_set(entity_flags::entity_flags_abs_transforms_dirty_v2))
+		if (!f.is_set(entity_flags::entity_flags_abs_transforms_dirty))
 			return;
 
 		const world_handle parent  = _families->get(e).parent;
@@ -109,84 +83,85 @@ namespace SFG
 			abs_rot = _abs_rots->get(parent.index) * local.rotation;
 		}
 
-		f.remove(entity_flags::entity_flags_abs_transforms_dirty_v2);
+		f.remove(entity_flags::entity_flags_abs_transforms_dirty);
+	}
+
+	void entity_manager::calculate_abs_transform_direct(world_id e)
+	{
+		const world_handle parent = _families->get(e).parent;
+		entity_transform&  local  = _local_transforms->get(e);
+
+		if (parent.is_null())
+		{
+			matrix4x3& abs = _abs_matrices->get(e);
+			abs			   = matrix4x3::transform(local.position, local.rotation, local.scale);
+		}
+		else
+		{
+			calculate_abs_transform_direct(parent.index);
+
+			const matrix4x3& parent_abs_mat = _abs_matrices->get(parent.index);
+			matrix4x3&		 abs			= _abs_matrices->get(e);
+			abs								= parent_abs_mat * matrix4x3::transform(local.position, local.rotation, local.scale);
+		}
+	}
+
+	void entity_manager::calculate_abs_rot_direct(world_id e)
+	{
+		const world_handle parent  = _families->get(e).parent;
+		quat&			   abs_rot = _abs_rots->get(e);
+		entity_transform&  local   = _local_transforms->get(e);
+
+		if (parent.is_null())
+		{
+			abs_rot = local.rotation;
+		}
+		else
+		{
+			calculate_abs_rot_direct(parent.index);
+			abs_rot = _abs_rots->get(parent.index) * local.rotation;
+		}
+	}
+
+	void entity_manager::calculate_abs_transform_and_rot_direct(world_id e)
+	{
+		const world_handle parent  = _families->get(e).parent;
+		quat&			   abs_rot = _abs_rots->get(e);
+		entity_transform&  local   = _local_transforms->get(e);
+
+		if (parent.is_null())
+		{
+			matrix4x3& abs = _abs_matrices->get(e);
+			abs			   = matrix4x3::transform(local.position, local.rotation, local.scale);
+			abs_rot		   = local.rotation;
+		}
+		else
+		{
+			calculate_abs_transform_and_rot_direct(parent.index);
+
+			const matrix4x3& parent_abs_mat = _abs_matrices->get(parent.index);
+			matrix4x3&		 abs			= _abs_matrices->get(e);
+
+			abs		= parent_abs_mat * matrix4x3::transform(local.position, local.rotation, local.scale);
+			abs_rot = _abs_rots->get(parent.index) * local.rotation;
+		}
 	}
 
 	void entity_manager::calculate_abs_transforms()
 	{
-		render_event_stream&		  stream = _world.get_render_stream();
-		render_event_entity_transform update = {};
+		render_event_stream& stream = _world.get_render_stream();
 
-		auto& fams	   = *_families;
-		auto& locals   = *_local_transforms;
 		auto& abs_mats = *_abs_matrices;
 		auto& rots	   = *_abs_rots;
-		/*
-	uint32 id = 0;
-
-	for (world_id index : _ordered_entities)
-	{
-		const world_handle parent_handle = fams.get(index).parent;
-
-		if (parent_handle.is_null())
-		{
-			entity_transform& local	  = locals.get(index);
-			matrix4x3&		  abs	  = abs_mats.get(index);
-			quat&			  abs_rot = rots.get(index);
-
-#ifdef FIXED_FRAMERATE_ENABLED
-			_prev_abs_matrices->get(index) = abs;
-			_prev_abs_rots->get(index)	   = abs_rot;
-#endif
-
-			abs		= matrix4x3::transform(local.position, local.rotation, local.scale);
-			abs_rot = local.rotation;
-
-			update.position	 = local.position;
-			update.rotation	 = local.rotation;
-			update.abs_model = abs;
-
-#ifndef FIXED_FRAMERATE_ENABLED
-			stream.add_event({.index = index, .event_type = render_event_type::update_entity_transform}, update);
-#endif
-			continue;
-		}
-
-		entity_transform& local			 = locals.get(index);
-		matrix4x3&		  abs			 = abs_mats.get(index);
-		quat&			  abs_rot		 = rots.get(index);
-		matrix4x3&		  abs_parent	 = abs_mats.get(parent_handle.index);
-		quat&			  parent_abs_rot = rots.get(parent_handle.index);
-
-#ifdef FIXED_FRAMERATE_ENABLED
-		_prev_abs_matrices->get(index) = abs;
-		_prev_abs_rots->get(index)	   = abs_rot;
-#endif
-
-		abs		= abs_parent * matrix4x3::transform(local.position, local.rotation, local.scale);
-		abs_rot = parent_abs_rot * local.rotation;
-
-		// entity_transform& abs_transform = absolutes.get(index);
-		// matrix4x3&		  abs_mat		= abs_mats.get(index);
-
-		update.position	 = abs.get_translation();
-		update.rotation	 = abs_rot;
-		update.abs_model = abs;
-
-#ifndef FIXED_FRAMERATE_ENABLED
-		stream.add_event({.index = index, .event_type = render_event_type::update_entity_transform}, update);
-#endif
-		id++;
-	}
-*/
-
-		auto& flags = *_flags;
+		auto& flags	   = *_flags;
 
 		for (auto it = _entities->handles_begin(); it != _entities->handles_end(); ++it)
 		{
 			const world_handle h = *it;
-			flags.get(h.index).set(entity_flags::entity_flags_abs_transforms_dirty_v2);
+			flags.get(h.index).set(entity_flags::entity_flags_abs_transforms_dirty);
 		}
+
+		render_event_entity_transform update = {};
 
 		for (auto it = _entities->handles_begin(); it != _entities->handles_end(); ++it)
 		{
@@ -196,7 +171,7 @@ namespace SFG
 			if (!ff.is_set(entity_flags::entity_flags_is_render_proxy) || ff.is_set(entity_flags::entity_flags_invisible))
 				continue;
 
-			if (ff.is_set(entity_flags::entity_flags_abs_transforms_dirty_v2))
+			if (ff.is_set(entity_flags::entity_flags_abs_transforms_dirty))
 			{
 				calculate_abs_transform(index);
 			}
@@ -282,25 +257,12 @@ namespace SFG
 		_entities->reset();
 		_aabbs->reset();
 		_metas->reset();
-		//_positions->reset();
-		//_prev_positions->reset();
-		//_rotations->reset();
-		//_rotations_abs->reset();
-		//_prev_rotations->reset();
-		//_scales->reset();
-		//_prev_scales->reset();
-		//_matrices->reset();
-		//_abs_matrices->reset();
 		_families->reset();
 		_comp_registers->reset();
 		_local_transforms->reset();
-		_abs_transforms->reset();
-		_abs_transforms_prev->reset();
 		_flags->reset();
 		_abs_matrices->reset();
 		_prev_abs_matrices->reset();
-		_local_matrices->reset();
-		_hierarchy_orders->reset();
 		_abs_rots->reset();
 		_prev_abs_rots->reset();
 	}
@@ -320,25 +282,12 @@ namespace SFG
 
 		_aabbs->reset(id);
 		_metas->reset(id);
-		// _positions->reset(id);
-		// _prev_positions->reset(id);
-		// _rotations->reset(id);
-		// _rotations_abs->reset(id);
-		// _prev_rotations->reset(id);
-		// _scales->reset(id);
-		// _prev_scales->reset(id);
-		//_matrices->reset(id);
-		//_abs_matrices->reset(id);
 		_families->reset(id);
 		_comp_registers->reset(id);
 		_local_transforms->reset(id);
-		_abs_transforms->reset(id);
-		_abs_transforms_prev->reset(id);
 		_flags->reset(id);
 		_abs_matrices->reset(id);
 		_prev_abs_matrices->reset(id);
-		_local_matrices->reset(id);
-		_hierarchy_orders->reset(id);
 		_abs_rots->reset(id);
 		_prev_abs_rots->reset(id);
 	}
@@ -347,9 +296,6 @@ namespace SFG
 	{
 		world_handle handle = _entities->add();
 		set_entity_scale(handle, vector3::one);
-		_abs_transforms->get(handle.index).scale	  = vector3::one;
-		_abs_transforms_prev->get(handle.index).scale = vector3::one;
-		// set_entity_prev_scale_abs(handle, vector3::one);
 
 		entity_meta& meta = _metas->get(handle.index);
 		meta.name		  = _world.get_text_allocator().allocate(name);
@@ -540,28 +486,6 @@ namespace SFG
 		fam_child.parent	   = {};
 	}
 
-	void entity_manager::build_hierarchy()
-	{
-		_ordered_entities.resize(0);
-		_root_entity_count = 0;
-
-		for (auto it = _entities->handles_begin(); it != _entities->handles_end(); ++it)
-		{
-			const world_id id = (*it).index;
-
-			entity_family& fam = _families->get(id);
-			if (!fam.parent.is_null())
-				continue;
-
-			_ordered_entities.push_back(id);
-
-			visit_children(*it, [&](world_handle child) { _ordered_entities.push_back(child.index); });
-		}
-
-		// std::stable_sort(_ordered_entities.begin(), _ordered_entities.end(), [this](world_id id0, world_id id1) -> bool { return _hierarchy_orders->get(id0) < _hierarchy_orders->get(id1); });
-		int a = 5;
-	}
-
 	void entity_manager::remove_from_parent(world_handle entity)
 	{
 		SFG_ASSERT(_entities->is_valid(entity));
@@ -604,6 +528,12 @@ namespace SFG
 		return _families->get(entity.index);
 	}
 
+	const bitmask<uint16> entity_manager::get_entity_flags(world_handle entity) const
+	{
+		SFG_ASSERT(_entities->is_valid(entity));
+		return _flags->get(entity.index);
+	}
+
 	void entity_manager::add_render_proxy(world_handle entity)
 	{
 		SFG_ASSERT(_entities->is_valid(entity));
@@ -625,8 +555,8 @@ namespace SFG
 
 	void entity_manager::set_entity_visible(world_handle entity, bool is_visible)
 	{
-		entity_meta& meta = _metas->get(entity.index);
-		meta.flags.set(entity_flags::entity_flags_invisible, !is_visible);
+		SFG_ASSERT(is_valid(entity));
+		_flags->get(entity.index).set(entity_flags::entity_flags_invisible, !is_visible);
 	}
 
 	void entity_manager::remove_all_entity_components(world_handle entity)
@@ -674,44 +604,34 @@ namespace SFG
 		_local_transforms->get(entity.index).position = pos;
 	}
 
+	void entity_manager::set_entity_rotation(world_handle entity, const quat& rot)
+	{
+		SFG_ASSERT(_entities->is_valid(entity));
+		_local_transforms->get(entity.index).rotation = rot;
+	}
+
+	void entity_manager::set_entity_scale(world_handle entity, const vector3& scale)
+	{
+		SFG_ASSERT(_entities->is_valid(entity));
+		_local_transforms->get(entity.index).scale = scale;
+	}
+
 	void entity_manager::set_entity_position_abs(world_handle entity, const vector3& pos)
 	{
 		SFG_ASSERT(_entities->is_valid(entity));
-		entity_family& fam = _families->get(entity.index);
+		entity_family& fam	  = _families->get(entity.index);
+		world_handle   parent = fam.parent;
 
-		if (fam.parent.is_null())
+		if (parent.is_null())
 		{
 			set_entity_position(entity, pos);
 			return;
 		}
 
-		calculate_abs_transform(fam.parent.index);
-		const matrix4x3& abs = _abs_matrices->get(fam.parent.index);
-
-		const matrix4x3 inverse_parent = abs.inverse();
-		const vector3	local_position = inverse_parent * pos;
+		calculate_abs_transform_direct(parent.index);
+		const matrix4x3& parent_abs		= _abs_matrices->get(parent.index);
+		const vector3	 local_position = parent_abs.inverse() * pos;
 		set_entity_position(entity, local_position);
-	}
-
-	const vector3& entity_manager::get_entity_position(world_handle entity) const
-	{
-		SFG_ASSERT(_entities->is_valid(entity));
-		// return _positions->get(entity.index);
-		return _local_transforms->get(entity.index).position;
-	}
-
-	vector3 entity_manager::get_entity_position_abs(world_handle entity)
-	{
-		ZoneScoped;
-
-		SFG_ASSERT(_entities->is_valid(entity));
-		return get_entity_transform_abs(entity).get_translation();
-	}
-
-	void entity_manager::set_entity_rotation(world_handle entity, const quat& rot)
-	{
-		SFG_ASSERT(_entities->is_valid(entity));
-		_local_transforms->get(entity.index).rotation = rot;
 	}
 
 	void entity_manager::set_entity_rotation_abs(world_handle entity, const quat& rot)
@@ -727,61 +647,10 @@ namespace SFG
 			return;
 		}
 
-		const quat parent_abs_inv = get_entity_rotation_abs(parent).conjugate();
-		const quat local_rotation = parent_abs_inv * rot;
+		calculate_abs_rot_direct(parent.index);
+		const quat& parent_rot	   = _abs_rots->get(parent.index);
+		const quat	local_rotation = parent_rot.conjugate() * rot;
 		set_entity_rotation(entity, local_rotation);
-	}
-
-	const quat& entity_manager::get_entity_rotation(world_handle entity) const
-	{
-		SFG_ASSERT(_entities->is_valid(entity));
-		// return _rotations->get(entity.index);
-		return _local_transforms->get(entity.index).rotation;
-	}
-
-	const quat& entity_manager::get_entity_rotation_abs(world_handle entity)
-	{
-		ZoneScoped;
-
-		// entity_family& fam			  = _families->get(entity.index);
-		// world_handle   parent		  = fam.parent;
-		// const quat&	   local_rotation = _rotations->get(entity.index);
-		//
-		// if (parent.is_null())
-		// 	return local_rotation;
-		//
-		// bitmask<uint16>& flags	 = _metas->get(entity.index).flags;
-		// quat&			 abs_rot = _rotations_abs->get(entity.index);
-		//
-		// if (flags.is_set(entity_flags::entity_flags_abs_rotation_dirty))
-		// {
-		// 	abs_rot = get_entity_rotation_abs(parent) * local_rotation;
-		// 	flags.remove(entity_flags::entity_flags_abs_rotation_dirty);
-		// }
-		//
-		// return abs_rot;
-		return {};
-	}
-
-	const vector3& entity_manager::get_entity_scale(world_handle entity) const
-	{
-		SFG_ASSERT(_entities->is_valid(entity));
-		// return _scales->get(entity.index);
-		return _local_transforms->get(entity.index).scale;
-	}
-
-	vector3 entity_manager::get_entity_scale_abs(world_handle entity)
-	{
-		ZoneScoped;
-
-		SFG_ASSERT(_entities->is_valid(entity));
-		return get_entity_transform_abs(entity).get_scale();
-	}
-
-	void entity_manager::set_entity_scale(world_handle entity, const vector3& scale)
-	{
-		SFG_ASSERT(_entities->is_valid(entity));
-		_local_transforms->get(entity.index).scale = scale;
 	}
 
 	void entity_manager::set_entity_scale_abs(world_handle entity, const vector3& scale)
@@ -797,148 +666,71 @@ namespace SFG
 			return;
 		}
 
-		const matrix4x3 parent_abs_inv		 = get_entity_transform_abs(parent).inverse();
-		const quat&		current_abs_rot		 = get_entity_rotation_abs(entity);
-		const matrix4x3 rot_matrix			 = matrix4x3::rotation(current_abs_rot);
-		const matrix4x3 desired_scale_matrix = matrix4x3::scale(scale);
-		const matrix4x3 desired_abs_linear	 = rot_matrix * desired_scale_matrix;
-		const matrix4x3 new_local_linear	 = parent_abs_inv * desired_abs_linear;
-		const vector3	new_local_scale		 = new_local_linear.get_scale();
+		calculate_abs_transform_direct(parent.index);
+
+		const matrix4x3& parent_abs			  = _abs_matrices->get(parent.index);
+		const matrix4x3	 parent_abs_inv		  = parent_abs.inverse();
+		const quat&		 current_abs_rot	  = get_entity_rotation_abs(entity);
+		const matrix4x3	 rot_matrix			  = matrix4x3::rotation(current_abs_rot);
+		const matrix4x3	 desired_scale_matrix = matrix4x3::scale(scale);
+		const matrix4x3	 desired_abs_linear	  = rot_matrix * desired_scale_matrix;
+		const matrix4x3	 new_local_linear	  = parent_abs_inv * desired_abs_linear;
+		const vector3	 new_local_scale	  = new_local_linear.get_scale();
 		set_entity_scale(entity, new_local_scale);
 	}
 
-	const matrix4x3& entity_manager::get_entity_transform(world_handle entity)
+	const vector3& entity_manager::get_entity_position(world_handle entity) const
 	{
 		SFG_ASSERT(_entities->is_valid(entity));
-		// matrix4x3& transform = _matrices->get(entity.index);
-		//  bitmask<uint16>& flags	   = _metas->get(entity.index).flags;
-		//
-		//  if (flags.is_set(entity_flags::entity_flags_local_transform_dirty))
-		//  {
-		//  	transform = matrix4x3::transform(_positions->get(entity.index), _rotations->get(entity.index), _scales->get(entity.index));
-		//  	flags.remove(entity_flags::entity_flags_local_transform_dirty);
-		//  }
-
-		// return transform;
-		return {};
+		return _local_transforms->get(entity.index).position;
 	}
 
-	const matrix4x3& entity_manager::get_entity_transform_abs(world_handle entity)
+	const quat& entity_manager::get_entity_rotation(world_handle entity) const
 	{
 		SFG_ASSERT(_entities->is_valid(entity));
-
-		// bitmask<uint16>& flags		= _metas->get(entity.index).flags;
-		// matrix4x3&		 abs_matrix = _abs_matrices->get(entity.index);
-		//
-		// if (!flags.is_set(entity_flags::entity_flags_abs_transform_dirty))
-		// 	return abs_matrix;
-		//
-		// entity_family& fam	  = _families->get(entity.index);
-		// world_handle   parent = fam.parent;
-		//
-		// const matrix4x3& local_transform = get_entity_transform(entity);
-		// abs_matrix						 = parent.is_null() ? local_transform : (get_entity_transform_abs(parent) * local_transform);
-		// flags.remove(entity_flags::entity_flags_abs_transform_dirty);
-		// return abs_matrix;
-
-		return {};
+		return _local_transforms->get(entity.index).rotation;
 	}
 
-	// void entity_manager::set_entity_prev_position_abs(world_handle entity, const vector3& pos)
-	// {
-	// 	SFG_ASSERT(_entities->is_valid(entity));
-	// 	_prev_positions->get(entity.index) = pos;
-	// }
-	//
-	// void entity_manager::set_entity_prev_rotation_abs(world_handle entity, const quat& rot)
-	// {
-	// 	SFG_ASSERT(_entities->is_valid(entity));
-	// 	_prev_rotations->get(entity.index) = rot;
-	// }
-	//
-	// void entity_manager::set_entity_prev_scale_abs(world_handle entity, const vector3& scale)
-	// {
-	// 	SFG_ASSERT(_entities->is_valid(entity));
-	// 	_prev_scales->get(entity.index) = scale;
-	// }
-
-	// const vector3& entity_manager::get_entity_prev_position_abs(world_handle entity) const
-	// {
-	// 	SFG_ASSERT(_entities->is_valid(entity));
-	// 	return _prev_positions->get(entity.index);
-	// }
-	//
-	// const quat& entity_manager::get_entity_prev_rotation_abs(world_handle entity) const
-	// {
-	// 	SFG_ASSERT(_entities->is_valid(entity));
-	// 	return _prev_rotations->get(entity.index);
-	// }
-	//
-	// const vector3& entity_manager::get_entity_prev_scale_abs(world_handle entity) const
-	// {
-	// 	SFG_ASSERT(_entities->is_valid(entity));
-	// 	return _prev_scales->get(entity.index);
-	// }
-
-	void entity_manager::calculate_interpolated_transform_abs(world_handle entity, float interpolation, vector3& out_position, quat& out_rotation, vector3& out_scale)
+	const vector3& entity_manager::get_entity_scale(world_handle entity) const
 	{
-		ZoneScoped;
-
 		SFG_ASSERT(_entities->is_valid(entity));
-
-		entity_transform& current_abs = _abs_transforms->get(entity.index);
-		entity_transform& prev_abs	  = _abs_transforms_prev->get(entity.index);
-		out_position				  = vector3::lerp(prev_abs.position, current_abs.position, interpolation);
-		out_scale					  = vector3::lerp(prev_abs.scale, current_abs.scale, interpolation);
-		out_rotation				  = quat::slerp(prev_abs.rotation, current_abs.rotation, interpolation);
-
-		// entity_meta&  meta			= _metas->get(entity.index);
-		// const vector3 ent_pos_abs	= get_entity_position_abs(entity);
-		// const quat	  ent_rot_abs	= get_entity_rotation_abs(entity);
-		// const vector3 ent_scale_abs = get_entity_scale_abs(entity);
-		// const float	  blend			= math::clamp(1.0f - static_cast<float>(interpolation), 0.0f, 1.0f);
-		//
-		// if (!meta.flags.is_set(entity_flags::entity_flags_prev_transform_init))
-		// {
-		// 	out_position = ent_pos_abs;
-		// 	out_rotation = ent_rot_abs;
-		// 	out_scale	 = ent_scale_abs;
-		// 	meta.flags.set(entity_flags::entity_flags_prev_transform_init);
-		// }
-		// else
-		// {
-		// 	const vector3& ent_prev_pos_abs	  = get_entity_prev_position_abs(entity);
-		// 	const quat&	   ent_prev_rot_abs	  = get_entity_prev_rotation_abs(entity);
-		// 	const vector3& ent_prev_scale_abs = get_entity_prev_scale_abs(entity);
-		// 	out_position					  = vector3::lerp(ent_prev_pos_abs, ent_pos_abs, blend);
-		// 	out_scale						  = vector3::lerp(ent_prev_scale_abs, ent_scale_abs, blend);
-		// 	out_rotation					  = quat::slerp(ent_prev_rot_abs, ent_rot_abs, blend);
-		// }
-		//
-		// set_entity_prev_position_abs(entity, ent_pos_abs);
-		// set_entity_prev_rotation_abs(entity, ent_rot_abs);
-		// set_entity_prev_scale_abs(entity, ent_scale_abs);
+		return _local_transforms->get(entity.index).scale;
 	}
 
-	void entity_manager::teleport_entity(world_handle entity)
+	vector3 entity_manager::get_entity_position_abs(world_handle entity)
 	{
 		SFG_ASSERT(_entities->is_valid(entity));
+		calculate_abs_transform_direct(entity.index);
+		const matrix4x3& abs = _abs_matrices->get(entity.index);
+		return abs.get_translation();
+	}
 
-		// auto sync_prev = [this](world_handle handle) {
-		// 	entity_meta&  meta		= _metas->get(handle.index);
-		// 	const vector3 abs_pos	= get_entity_position_abs(handle);
-		// 	const quat	  abs_rot	= get_entity_rotation_abs(handle);
-		// 	const vector3 abs_scale = get_entity_scale_abs(handle);
-		//
-		// 	set_entity_prev_position_abs(handle, abs_pos);
-		// 	set_entity_prev_rotation_abs(handle, abs_rot);
-		// 	set_entity_prev_scale_abs(handle, abs_scale);
-		// 	meta.flags.remove(entity_flags::entity_flags_prev_transform_init);
-		// 	meta.flags.set(entity_flags::entity_flags_render_proxy_dirty);
-		// };
-		//
-		// sync_prev(entity);
-		// visit_children(entity, sync_prev);
+	const quat& entity_manager::get_entity_rotation_abs(world_handle entity)
+	{
+		SFG_ASSERT(_entities->is_valid(entity));
+		calculate_abs_rot_direct(entity.index);
+		return _abs_rots->get(entity.index);
+	}
+
+	vector3 entity_manager::get_entity_scale_abs(world_handle entity)
+	{
+		SFG_ASSERT(_entities->is_valid(entity));
+		calculate_abs_transform_direct(entity.index);
+		const matrix4x3& abs = _abs_matrices->get(entity.index);
+		return abs.get_scale();
+	}
+
+	matrix4x3 entity_manager::get_entity_matrix(world_handle entity) const
+	{
+		const entity_transform& local = _local_transforms->get(entity.index);
+		return matrix4x3::transform(local.position, local.rotation, local.scale);
+	}
+
+	const matrix4x3& entity_manager::get_entity_matrix_abs(world_handle entity)
+	{
+		SFG_ASSERT(_entities->is_valid(entity));
+		calculate_abs_transform_direct(entity.index);
+		return _abs_matrices->get(entity.index);
 	}
 
 }

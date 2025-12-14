@@ -20,6 +20,7 @@
 #include "physics/physics_world.hpp"
 #include "physics/physics_debug_renderer.hpp"
 #include <Jolt/Physics/PhysicsSystem.h>
+#include <tracy/Tracy.hpp>
 
 namespace SFG
 {
@@ -107,6 +108,8 @@ namespace SFG
 
 	void render_pass_physics_debug::uninit()
 	{
+		ZoneScoped;
+
 		delete _renderer;
 		_renderer = nullptr;
 
@@ -139,6 +142,8 @@ namespace SFG
 
 	void render_pass_physics_debug::prepare(const view& main_camera_view, const vector2ui16& resolution, uint8 frame_index)
 	{
+		ZoneScoped;
+
 		gfx_backend*	backend	   = gfx_backend::get();
 		per_frame_data& pfd		   = _pfd[frame_index];
 		const gfx_id	cmd_buffer = pfd.cmd_buffer;

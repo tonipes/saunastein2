@@ -16,6 +16,7 @@
 #include "gfx/texture_queue.hpp"
 
 // misc
+#include <tracy/Tracy.hpp>
 #include <random>
 #include <cmath>
 #include <cstdint>
@@ -122,6 +123,8 @@ namespace SFG
 
 	void render_pass_ssao::prepare(const view& camera_view, const vector2ui16& resolution, uint8 frame_index)
 	{
+		ZoneScoped;
+
 		per_frame_data& pfd = _pfd[frame_index];
 
 		const ubo ubo_data = {
@@ -153,6 +156,7 @@ namespace SFG
 
 	void render_pass_ssao::render(const render_params& p)
 	{
+		ZoneScoped;
 
 		gfx_backend*	  backend			   = gfx_backend::get();
 		per_frame_data&	  pfd				   = _pfd[p.frame_index];

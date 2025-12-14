@@ -15,6 +15,8 @@
 #include "gfx/world/view.hpp"
 #include "gfx/texture_queue.hpp"
 
+#include <tracy/Tracy.hpp>
+
 namespace SFG
 {
 
@@ -69,6 +71,8 @@ namespace SFG
 
 	void render_pass_bloom::prepare(uint8 frame_index)
 	{
+		ZoneScoped;
+
 		per_frame_data& pfd		 = _pfd[frame_index];
 		const ubo		ubo_data = {
 				  .filter_radius = 0.01f,
@@ -78,6 +82,8 @@ namespace SFG
 
 	void render_pass_bloom::render(const render_params& p)
 	{
+		ZoneScoped;
+
 		gfx_backend*	  backend				  = gfx_backend::get();
 		per_frame_data&	  pfd					  = _pfd[p.frame_index];
 		const gfx_id	  cmd_buffer			  = pfd.cmd_buffer;

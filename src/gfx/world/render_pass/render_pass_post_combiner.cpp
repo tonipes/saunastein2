@@ -13,6 +13,8 @@
 #include "gfx/common/render_target_definitions.hpp"
 #include "gfx/world/view.hpp"
 
+#include <tracy/Tracy.hpp>
+
 namespace SFG
 {
 	void render_pass_post_combiner::init(const vector2ui16& size)
@@ -63,6 +65,8 @@ namespace SFG
 
 	void render_pass_post_combiner::prepare(uint8 frame_index, const vector2ui16& resolution)
 	{
+		ZoneScoped;
+
 		per_frame_data& pfd = _pfd[frame_index];
 
 		const ubo ubo_data = {
@@ -81,6 +85,8 @@ namespace SFG
 
 	void render_pass_post_combiner::render(const render_params& p)
 	{
+		ZoneScoped;
+
 		gfx_backend*	backend						= gfx_backend::get();
 		per_frame_data& pfd							= _pfd[p.frame_index];
 		const gfx_id	queue_gfx					= backend->get_queue_gfx();

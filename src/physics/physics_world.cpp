@@ -22,6 +22,7 @@
 #include <Jolt/Physics/Collision/Shape/CylinderShape.h>
 #include <regex>
 #include <stdarg.h>
+#include <tracy/Tracy.hpp>
 
 #ifdef JPH_DEBUG_RENDERER
 #include "physics_debug_renderer.hpp"
@@ -151,6 +152,8 @@ namespace SFG
 
 	void physics_world::simulate(float rate)
 	{
+		ZoneScoped;
+
 		constexpr int collision_steps = 1;
 		_system->Update(rate, collision_steps, _allocator, _job_system);
 

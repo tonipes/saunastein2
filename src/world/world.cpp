@@ -160,7 +160,7 @@ namespace SFG
 			vekt::builder* builder = cnv.get_builder();
 
 			const world_handle entity_handle = cnv.get_header().entity;
-			const bool		   is_invisible	 = _entity_manager.get_entity_meta(entity_handle).flags.is_set(entity_flags::entity_flags_invisible);
+			const bool		   is_invisible	 = _entity_manager.get_entity_flags(entity_handle).is_set(entity_flags::entity_flags_invisible);
 			if (is_invisible)
 				return comp_view_result::cont;
 

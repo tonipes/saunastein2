@@ -16,6 +16,8 @@
 #include "gfx/world/renderable_collector.hpp"
 #include "gfx/engine_shaders.hpp"
 
+#include <tracy/Tracy.hpp>
+
 namespace SFG
 {
 	void render_pass_canvas_2d::init(const vector2ui16& size)
@@ -49,6 +51,8 @@ namespace SFG
 
 	void render_pass_canvas_2d::prepare(proxy_manager& pm, const vector<renderable_object>& renderables, const view& main_camera_view, const vector2ui16& resolution, uint8 frame_index)
 	{
+		ZoneScoped;
+
 		_alloc.reset();
 		_draw_stream.prepare(_alloc, MAX_DRAW_CALLS_CANVAS_2D);
 
@@ -193,6 +197,8 @@ namespace SFG
 
 	void render_pass_canvas_2d::render(const render_params& p)
 	{
+		ZoneScoped;
+
 		gfx_backend*	backend			 = gfx_backend::get();
 		per_frame_data& pfd				 = _pfd[p.frame_index];
 		const gfx_id	cmd_buffer		 = pfd.cmd_buffer;

@@ -341,130 +341,130 @@ namespace SFG
 		const gpu_index gpu_index_float_buffer		 = pfd.float_buffer.get_gpu_index();
 
 		const static_vector<gpu_index, GBUFFER_COLOR_TEXTURES>& gpu_index_gbuffer_textures = _pass_opaque.get_output_gpu_index(frame_index);
-			/*
-		_pass_pre_depth.render({
-			.frame_index		= frame_index,
-			.size				= resolution,
-			.gpu_index_entities = gpu_index_entities,
-			.gpu_index_bones	= gpu_index_bones,
-			.global_layout		= layout_global,
-			.global_group		= bind_group_global,
-		});
+		/*
+	_pass_pre_depth.render({
+		.frame_index		= frame_index,
+		.size				= resolution,
+		.gpu_index_entities = gpu_index_entities,
+		.gpu_index_bones	= gpu_index_bones,
+		.global_layout		= layout_global,
+		.global_group		= bind_group_global,
+	});
 
-		_pass_shadows.render({
-			.frame_index		= frame_index,
-			.size				= resolution,
-			.gpu_index_entities = gpu_index_entities,
-			.gpu_index_bones	= gpu_index_bones,
-			.global_layout		= layout_global,
-			.global_group		= bind_group_global,
-		});
+	_pass_shadows.render({
+		.frame_index		= frame_index,
+		.size				= resolution,
+		.gpu_index_entities = gpu_index_entities,
+		.gpu_index_bones	= gpu_index_bones,
+		.global_layout		= layout_global,
+		.global_group		= bind_group_global,
+	});
 
-		_pass_ssao.render({
-			.frame_index		   = frame_index,
-			.size				   = resolution,
-			.gpu_index_depth	   = gpu_index_depth_texture,
-			.gpu_index_normals	   = gpu_index_gbuffer_textures[1],
-			.global_layout_compute = layout_global_compute,
-			.global_group		   = bind_group_global,
-		});
+	_pass_ssao.render({
+		.frame_index		   = frame_index,
+		.size				   = resolution,
+		.gpu_index_depth	   = gpu_index_depth_texture,
+		.gpu_index_normals	   = gpu_index_gbuffer_textures[1],
+		.global_layout_compute = layout_global_compute,
+		.global_group		   = bind_group_global,
+	});
 
-		_pass_post.render({
-			.frame_index				 = frame_index,
-			.size						 = resolution,
-			.gpu_index_lighting			 = gpu_index_lighting,
-			.gpu_index_bloom			 = gpu_index_bloom,
-			.gpu_index_selection_outline = gpu_index_selection_outline,
-			.global_layout				 = layout_global,
-			.global_group				 = bind_group_global,
-		});
+	_pass_post.render({
+		.frame_index				 = frame_index,
+		.size						 = resolution,
+		.gpu_index_lighting			 = gpu_index_lighting,
+		.gpu_index_bloom			 = gpu_index_bloom,
+		.gpu_index_selection_outline = gpu_index_selection_outline,
+		.global_layout				 = layout_global,
+		.global_group				 = bind_group_global,
+	});
 
-		_pass_bloom.render({
-			.frame_index		   = frame_index,
-			.size				   = resolution,
-			.lighting			   = lighting_texture,
-			.gpu_index_lighting	   = gpu_index_lighting,
-			.global_layout_compute = layout_global_compute,
-			.global_group		   = bind_group_global,
-		});
+	_pass_bloom.render({
+		.frame_index		   = frame_index,
+		.size				   = resolution,
+		.lighting			   = lighting_texture,
+		.gpu_index_lighting	   = gpu_index_lighting,
+		.global_layout_compute = layout_global_compute,
+		.global_group		   = bind_group_global,
+	});
 
-		_pass_opaque.render({
-			.frame_index		= frame_index,
-			.size				= resolution,
-			.gpu_index_entities = gpu_index_entities,
-			.gpu_index_bones	= gpu_index_bones,
-			.depth_texture		= depth_texture,
-			.global_layout		= layout_global,
-			.global_group		= bind_group_global,
-		});
+	_pass_opaque.render({
+		.frame_index		= frame_index,
+		.size				= resolution,
+		.gpu_index_entities = gpu_index_entities,
+		.gpu_index_bones	= gpu_index_bones,
+		.depth_texture		= depth_texture,
+		.global_layout		= layout_global,
+		.global_group		= bind_group_global,
+	});
 
 #ifdef SFG_TOOLMODE
-		_pass_object_id.render({
-			.frame_index		= frame_index,
-			.size				= resolution,
-			.gpu_index_entities = gpu_index_entities,
-			.gpu_index_bones	= gpu_index_bones,
-			.depth_texture		= depth_texture,
-			.global_layout		= layout_global,
-			.global_group		= bind_group_global,
-		});
+	_pass_object_id.render({
+		.frame_index		= frame_index,
+		.size				= resolution,
+		.gpu_index_entities = gpu_index_entities,
+		.gpu_index_bones	= gpu_index_bones,
+		.depth_texture		= depth_texture,
+		.global_layout		= layout_global,
+		.global_group		= bind_group_global,
+	});
 
-		_pass_selection_outline.render({
-			.frame_index		= frame_index,
-			.size				= resolution,
-			.gpu_index_entities = gpu_index_entities,
-			.gpu_index_bones	= gpu_index_bones,
-			.global_layout		= layout_global,
-			.global_group		= bind_group_global,
-		});
+	_pass_selection_outline.render({
+		.frame_index		= frame_index,
+		.size				= resolution,
+		.gpu_index_entities = gpu_index_entities,
+		.gpu_index_bones	= gpu_index_bones,
+		.global_layout		= layout_global,
+		.global_group		= bind_group_global,
+	});
 #endif
 
 #ifdef JPH_DEBUG_RENDERER
 
-		_pass_physics_debug.render({
-			.frame_index   = frame_index,
-			.size		   = resolution,
-			.depth_texture = depth_texture,
-			.input_texture = lighting_texture,
-			.global_layout = layout_global,
-			.global_group  = bind_group_global,
-		});
+	_pass_physics_debug.render({
+		.frame_index   = frame_index,
+		.size		   = resolution,
+		.depth_texture = depth_texture,
+		.input_texture = lighting_texture,
+		.global_layout = layout_global,
+		.global_group  = bind_group_global,
+	});
 
 #endif
-		_pass_forward.render({
-			.frame_index		= frame_index,
-			.size				= resolution,
-			.gpu_index_entities = gpu_index_entities,
-			.gpu_index_bones	= gpu_index_bones,
-			.depth_texture		= depth_texture,
-			.input_texture		= lighting_texture,
-			.global_layout		= layout_global,
-			.global_group		= bind_group_global,
-		});
-		_pass_canvas_2d.render({
-			.frame_index   = frame_index,
-			.size		   = resolution,
-			.input_texture = post_combiner_texture,
-			.global_layout = layout_global,
-			.global_group  = bind_group_global,
-		});
-		_pass_lighting.render({
-			.frame_index				  = frame_index,
-			.size						  = resolution,
-			.gpu_index_gbuffer_textures	  = gpu_index_gbuffer_textures,
-			.gpu_index_depth_texture	  = gpu_index_depth_texture,
-			.gpu_index_point_lights		  = gpu_index_point_lights,
-			.gpu_index_spot_lights		  = gpu_index_spot_lights,
-			.gpu_index_dir_lights		  = gpu_index_dir_lights,
-			.gpu_index_entities			  = gpu_index_entities,
-			.gpu_index_shadow_data_buffer = gpu_index_shadow_data_buffer,
-			.gpu_index_float_buffer		  = gpu_index_float_buffer,
-			.gpu_index_ao_out			  = gpu_index_ao_out,
-			.global_layout				  = layout_global,
-			.global_group				  = bind_group_global,
-		});
-		*/
-	
+	_pass_forward.render({
+		.frame_index		= frame_index,
+		.size				= resolution,
+		.gpu_index_entities = gpu_index_entities,
+		.gpu_index_bones	= gpu_index_bones,
+		.depth_texture		= depth_texture,
+		.input_texture		= lighting_texture,
+		.global_layout		= layout_global,
+		.global_group		= bind_group_global,
+	});
+	_pass_canvas_2d.render({
+		.frame_index   = frame_index,
+		.size		   = resolution,
+		.input_texture = post_combiner_texture,
+		.global_layout = layout_global,
+		.global_group  = bind_group_global,
+	});
+	_pass_lighting.render({
+		.frame_index				  = frame_index,
+		.size						  = resolution,
+		.gpu_index_gbuffer_textures	  = gpu_index_gbuffer_textures,
+		.gpu_index_depth_texture	  = gpu_index_depth_texture,
+		.gpu_index_point_lights		  = gpu_index_point_lights,
+		.gpu_index_spot_lights		  = gpu_index_spot_lights,
+		.gpu_index_dir_lights		  = gpu_index_dir_lights,
+		.gpu_index_entities			  = gpu_index_entities,
+		.gpu_index_shadow_data_buffer = gpu_index_shadow_data_buffer,
+		.gpu_index_float_buffer		  = gpu_index_float_buffer,
+		.gpu_index_ao_out			  = gpu_index_ao_out,
+		.global_layout				  = layout_global,
+		.global_group				  = bind_group_global,
+	});
+	*/
+
 		static_vector<std::function<void()>, 12> tasks;
 
 		tasks.push_back([&] {
@@ -830,6 +830,8 @@ namespace SFG
 
 	void game_world_renderer::collect_and_upload_entities(gfx_id cmd_buffer, uint8 frame_index)
 	{
+		ZoneScoped;
+
 		per_frame_data& pfd			  = _pfd[frame_index];
 		auto&			entities	  = *_proxy_manager.get_entities();
 		const uint32	entities_peak = _proxy_manager.get_peak_entities();
@@ -870,6 +872,8 @@ namespace SFG
 
 	void game_world_renderer::collect_and_upload_bones(gfx_id cmd_buffer, uint8 frame_index)
 	{
+		ZoneScoped;
+
 		per_frame_data& pfd = _pfd[frame_index];
 
 		auto&			   meshes	   = *_proxy_manager.get_mesh_instances();
@@ -937,6 +941,8 @@ namespace SFG
 
 	void game_world_renderer::collect_and_upload_lights(gfx_id cmd_buffer, uint8 frame_index)
 	{
+		ZoneScoped;
+
 		per_frame_data& pfd = _pfd[frame_index];
 
 		const uint32 points_peak  = _proxy_manager.get_peak_point_lights();
