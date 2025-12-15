@@ -61,10 +61,9 @@ add_compile_definitions($<$<CONFIG:Production>:SFG_DUMP_LOG_TRACE>)
 # Release is profiling enabled production client.
 
 add_compile_definitions($<$<CONFIG:Release>:_ITERATOR_DEBUG_LEVEL=0>)
+add_compile_definitions($<$<CONFIG:Release>:NDEBUG>)
 add_compile_definitions($<$<CONFIG:Release>:SFG_TOOLMODE>)
 add_compile_definitions($<$<CONFIG:Release>:SFG_ENABLE_MEMORY_TRACER>)
-add_compile_definitions($<$<CONFIG:Release>:SFG_GFX_SERIALIZE_SHADERS_PDB>)
-add_compile_definitions($<$<CONFIG:Release>:SFG_GFX_USE_DEBUG_LAYERS>)
 add_compile_definitions($<$<CONFIG:Release>:SFG_USE_DEBUG_CONTROLLER>)
 add_compile_definitions($<$<CONFIG:Release>:SFG_DUMP_LOG_TRACE>)
 add_compile_definitions($<$<CONFIG:Release>:TRACY_ENABLE>)

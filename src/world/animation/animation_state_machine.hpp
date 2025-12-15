@@ -17,5 +17,6 @@ namespace SFG
 		pool_handle16  _first_parameter		= {};
 		pool_handle16  _active_transition	= {};
 		uint16		   joint_entities_count = 0;
+		uint8		   _throttle_count			= 0;
 	};
 }

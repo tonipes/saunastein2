@@ -5,6 +5,7 @@
 #include "physics/physics_convert.hpp"
 #include "resources/physical_material.hpp"
 #include "world/components/comp_physics.hpp"
+#include "platform/time.hpp"
 
 #include <Jolt/Jolt.h>
 #include <Jolt/RegisterTypes.h>
@@ -154,8 +155,18 @@ namespace SFG
 	{
 		ZoneScoped;
 
+#if !USE_FIXED_FRAMERATE
+		if (_dt_counter < PHYSICS_RATE_WITHOUT_FIXED_FRAMERATE_S)
+		{
+			_dt_counter += rate;
+			return;
+		}
+
+		_dt_counter -= PHYSICS_RATE_WITHOUT_FIXED_FRAMERATE_S;
+#endif
+
 		constexpr int collision_steps = 1;
-		_system->Update(rate, collision_steps, _allocator, _job_system);
+		_system->Update(PHYSICS_RATE_WITHOUT_FIXED_FRAMERATE_S, collision_steps, _allocator, _job_system);
 
 		entity_manager& em = _game_world.get_entity_manager();
 

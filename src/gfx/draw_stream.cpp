@@ -9,6 +9,7 @@
 #include "resources/vertex.hpp"
 #include "gui/vekt.hpp"
 #include <algorithm>
+#include <tracy/Tracy.hpp>
 
 namespace SFG
 {
@@ -21,6 +22,8 @@ namespace SFG
 
 	void draw_stream::build()
 	{
+		ZoneScoped;
+
 		std::stable_sort(_commands, _commands + _commands_count, [&](auto const& A, auto const& B) {
 			return A.priority < B.priority && draw_stream_bound_state::make_sort_key(A.pipeline_hw, A.vb_hw, A.ib_hw) < draw_stream_bound_state::make_sort_key(B.pipeline_hw, B.vb_hw, B.ib_hw);
 		});
@@ -28,6 +31,8 @@ namespace SFG
 
 	void draw_stream::draw(gfx_id cmd_buffer)
 	{
+		ZoneScoped;
+
 		gfx_backend* backend = gfx_backend::get();
 
 		draw_stream_bound_state bound = {};
@@ -81,6 +86,8 @@ namespace SFG
 
 	void draw_stream_distance::build()
 	{
+		ZoneScoped;
+
 		std::stable_sort(_commands, _commands + _commands_count, [&](auto const& A, auto const& B) {
 			const float da = A.distance, db = B.distance;
 			if (A.priority == B.priority)
@@ -99,6 +106,8 @@ namespace SFG
 
 	void draw_stream_distance::draw(gfx_id cmd_buffer)
 	{
+		ZoneScoped;
+
 		gfx_backend* backend = gfx_backend::get();
 
 		draw_stream_bound_state bound = {};
@@ -151,11 +160,15 @@ namespace SFG
 
 	void draw_stream_gui::build()
 	{
+		ZoneScoped;
+
 		std::stable_sort(_commands, _commands + _commands_count, [&](auto const& A, auto const& B) { return draw_stream_bound_state::make_sort_key(A.pipeline_hw, A.vb_hw, A.ib_hw) < draw_stream_bound_state::make_sort_key(B.pipeline_hw, B.vb_hw, B.ib_hw); });
 	}
 
 	void draw_stream_gui::draw(gfx_id cmd_buffer)
 	{
+		ZoneScoped;
+
 		gfx_backend* backend = gfx_backend::get();
 
 		draw_stream_bound_state bound = {};

@@ -14,6 +14,8 @@
 #include "game/game_max_defines.hpp"
 #include "resources/common_resources.hpp"
 
+#include "game/app_defines.hpp"
+
 namespace JPH
 {
 	class PhysicsSystem;
@@ -87,5 +89,9 @@ namespace SFG
 		physics_layer_filter		   _layer_filter = {};
 		physics_object_bp_layer_filter _object_bp_layer_filter;
 		physics_bp_layer_interface	   _bp_layer_interface;
+
+#if !USE_FIXED_FRAMERATE
+		float _dt_counter = 0.0f;
+#endif
 	};
 }

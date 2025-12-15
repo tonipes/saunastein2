@@ -69,6 +69,16 @@ namespace SFG
 		animation_state_sample&	 get_sample(pool_handle16 handle);
 		void					 set_machine_active_state(pool_handle16 machine, pool_handle16 state);
 
+		// -----------------------------------------------------------------------------
+		// accessors
+		// -----------------------------------------------------------------------------
+
+		inline void set_throttle_values(float max_distance_sqr, uint8 max_frames)
+		{
+			_throttle_distance_sqr = max_distance_sqr;
+			_throttle_max_frames   = max_frames;
+		}
+
 	private:
 		// -----------------------------------------------------------------------------
 		// machine
@@ -107,5 +117,8 @@ namespace SFG
 		masks_type*			 _masks		  = nullptr;
 		state_machines_type* _machines	  = nullptr;
 		state_samples_type*	 _samples	  = nullptr;
+
+		float _throttle_distance_sqr = 500.0f;
+		uint8 _throttle_max_frames	 = 4;
 	};
 }

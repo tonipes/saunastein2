@@ -4,6 +4,7 @@
 #include "animation_pose.hpp"
 #include "math/math.hpp"
 #include "world/world.hpp"
+#include "world/components/comp_camera.hpp"
 #include "io/log.hpp"
 #include <tracy/Tracy.hpp>
 
@@ -61,11 +62,19 @@ namespace SFG
 		animation_pose transition_blend_pose = {};
 		animation_pose final_pose			 = {};
 
-		uint16			pose_counter = 0;
-		entity_manager& em			 = w.get_entity_manager();
+		entity_manager& em = w.get_entity_manager();
 
-		const world_handle camera_entity   = em.get_main_camera_entity();
-		const vector3	   camera_position = em.get_entity_position_abs(camera_entity);
+		const world_handle camera_entity = em.get_main_camera_entity();
+		const world_handle camera_comp	 = em.get_main_camera_comp();
+
+		if (camera_entity.is_null() || camera_comp.is_null())
+			return;
+
+		const comp_camera& cam		 = w.get_comp_manager().get_component<comp_camera>(camera_comp);
+		const float		   dot_limit = 0.8f - (cam.get_fov_degrees() / 90.0f); // 0.2 runway
+
+		const vector3 camera_position = em.get_entity_position_abs(camera_entity);
+		const quat	  camera_rotation = em.get_entity_rotation_abs(camera_entity);
 
 		for (auto it = machines.handles_begin(); it != machines.handles_end(); ++it)
 		{
@@ -77,16 +86,19 @@ namespace SFG
 
 			const vector3 machine_position = em.get_entity_position_abs(m.entity);
 
-			if (vector3::distance_sqr(machine_position, camera_position) > 100)
-				continue;
+			const float dot		   = vector3::dot((machine_position - camera_position).normalized(), camera_rotation.get_forward());
+			const bool	dist_fails = vector3::distance_sqr(machine_position, camera_position) > _throttle_distance_sqr && m._throttle_count < _throttle_max_frames;
+			const bool	skip_pose  = dot < dot_limit || dist_fails;
+			m._throttle_count	   = dist_fails ? (m._throttle_count + 1) : 0;
 
 			animation_state& state = states.get(m.active_state);
-			pose_counter++;
 
 			// get state's pose.
 			final_pose.reset();
-			calculate_pose_for_state(w, samples, final_pose, state);
-			progress_state(state, dt);
+
+			if (!skip_pose)
+				calculate_pose_for_state(w, samples, final_pose, state);
+			progress_state(state, dt * state.speed);
 
 			pool_handle16 existing_transition_handle = m._active_transition;
 			pool_handle16 target_transition_handle	 = state._first_out_transition;
@@ -127,7 +139,8 @@ namespace SFG
 			m._active_transition = existing_transition_handle;
 			if (m._active_transition.is_null())
 			{
-				apply_pose(w, m, final_pose);
+				if (!skip_pose)
+					apply_pose(w, m, final_pose);
 				continue;
 			}
 
@@ -137,11 +150,15 @@ namespace SFG
 
 			const float ratio = math::almost_equal(active.duration, 0.0f) ? 1.0f : progress_transition(active, dt);
 			transition_blend_pose.reset();
-			calculate_pose_for_state(w, samples, transition_blend_pose, target_state);
-			progress_state(target_state, dt);
 
-			final_pose.blend_from(transition_blend_pose, ratio);
-			apply_pose(w, m, final_pose);
+			if (!skip_pose)
+			{
+				calculate_pose_for_state(w, samples, transition_blend_pose, target_state);
+				final_pose.blend_from(transition_blend_pose, ratio);
+				apply_pose(w, m, final_pose);
+			}
+
+			progress_state(target_state, dt * state.speed);
 
 			// reset transition if complete & switch state
 			if (math::almost_equal(ratio, 1.0f, 0.001f))

@@ -102,12 +102,14 @@ namespace SFG
 		_entity_manager.init();
 		_comp_manager.init();
 		_anim_graph.init();
+		_time_manager.init();
 	}
 
 	void world::uninit()
 	{
 		_comp_manager.uninit();
 		_entity_manager.uninit();
+		_time_manager.uninit();
 		_resource_manager.uninit();
 		_anim_graph.uninit();
 		_text_allocator.reset();
@@ -124,6 +126,11 @@ namespace SFG
 	void world::tick(const vector2ui16& res, float dt)
 	{
 		ZoneScoped;
+
+		// modify dt
+		dt = _time_manager.tick(dt);
+
+		const float time_speed = _time_manager.get_time_speed();
 
 		_anim_graph.tick(*this, dt);
 		_resource_manager.tick();

@@ -10,6 +10,7 @@
 #include "resources/vertex.hpp"
 #include "resources/shader_direct.hpp"
 
+#include "io/log.hpp"
 namespace SFG
 {
 	void renderable_collector::collect_model_instances(proxy_manager& pm, const view& target_view, vector<renderable_object>& out_objects)

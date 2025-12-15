@@ -13,15 +13,16 @@ namespace SFG
 {
 	enum entity_flags : uint8
 	{
-		entity_flags_invisible			  = 1 << 0,
-		entity_flags_abs_transforms_dirty = 1 << 1,
-		entity_flags_is_render_proxy	  = 1 << 2,
+		entity_flags_invisible					  = 1 << 0,
+		entity_flags_transient_abs_transform_mark = 1 << 1,
+		entity_flags_is_render_proxy			  = 1 << 2,
+		entity_flags_prev_transform_init		  = 1 << 3,
 	};
 
 	struct entity_meta
 	{
-		const char*		name			   = "";
-		uint8			render_proxy_count = 0;
+		const char* name			   = "";
+		uint8		render_proxy_count = 0;
 	};
 
 	struct entity_family

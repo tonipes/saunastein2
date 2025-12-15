@@ -242,11 +242,10 @@ namespace SFG
 				kick_off_render();
 			}
 
-			// world timing
+#if FIXED_FRAMERATE_ENABLED
+
 			const float dt_seconds = FIXED_FRAMERATE_S;
 			uint32		ticks	   = 0;
-
-#if FIXED_FRAMERATE_ENABLED
 			accumulator_ns += delta_micro * 1000;
 			while (accumulator_ns >= FIXED_FRAMERATE_NS && ticks < FIXED_FRAMERATE_MAX_TICKS)
 			{
@@ -266,11 +265,13 @@ namespace SFG
 				_world->calculate_abs_transforms();
 
 			// interpolation
+#if FIXED_FRAMERATE_USE_INTERPOLATION
 			const double interpolation = static_cast<double>(accumulator_ns) / FIXED_FRAMERATE_NS_D;
-			_world->interpolate(interpolation);
+			_world->interpolate(interpolation * time_speed);
+#endif
 
 #else
-			const double dtt = static_cast<double>(delta_micro) * 1e-6;
+			const float dtt = static_cast<float>(static_cast<double>(delta_micro) * 1e-6);
 			_game->pre_tick(dtt);
 			_world->tick(ws, dtt);
 			_game->tick(dtt);

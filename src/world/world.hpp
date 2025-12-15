@@ -8,6 +8,7 @@
 #include "world/entity_manager.hpp"
 #include "world/component_manager.hpp"
 #include "world/common_world.hpp"
+#include "world/time_manager.hpp"
 #include "gui/vekt.hpp"
 #include "resources/resource_manager.hpp"
 #include "physics/physics_world.hpp"
@@ -123,6 +124,11 @@ namespace SFG
 			_listener = list;
 		}
 
+		inline time_manager& get_time_manager()
+		{
+			return _time_manager;
+		}
+
 	private:
 		// -----------------------------------------------------------------------------
 		// vekt
@@ -147,6 +153,7 @@ namespace SFG
 		audio_manager	   _audio_manager = {};
 		animation_graph	   _anim_graph	  = {};
 		vekt::font_manager _vekt_fonts	  = {};
+		time_manager	   _time_manager  = {};
 
 		vector<atlas_data>	 _vekt_atlases = {};
 		ma_engine*			 _sound_engine = nullptr;

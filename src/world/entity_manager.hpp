@@ -182,7 +182,7 @@ namespace SFG
 		pool_allocator_simple<matrix4x3, MAX_ENTITIES>*			   _prev_abs_matrices = {};
 		pool_allocator_simple<quat, MAX_ENTITIES>*				   _abs_rots		  = {};
 		pool_allocator_simple<quat, MAX_ENTITIES>*				   _prev_abs_rots	  = {};
-
+		
 		world_handle _camera_entity = {};
 		world_handle _camera_comp	= {};
 	};

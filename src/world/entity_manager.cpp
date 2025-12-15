@@ -49,7 +49,7 @@ namespace SFG
 	{
 		bitmask<uint16>& f = _flags->get(e);
 
-		if (!f.is_set(entity_flags::entity_flags_abs_transforms_dirty))
+		if (!f.is_set(entity_flags::entity_flags_transient_abs_transform_mark))
 			return;
 
 		const world_handle parent  = _families->get(e).parent;
@@ -58,13 +58,24 @@ namespace SFG
 
 		if (parent.is_null())
 		{
-			matrix4x3& abs = _abs_matrices->get(e);
+			matrix4x3&		abs		= _abs_matrices->get(e);
+			const matrix4x3 new_abs = matrix4x3::transform(local.position, local.rotation, local.scale);
 
-#ifdef FIXED_FRAMERATE_ENABLED
-			_prev_abs_matrices->get(e) = abs;
-			_prev_abs_rots->get(e)	   = local.rotation;
+#if FIXED_FRAMERATE_ENABLED
+			if (!f.is_set(entity_flags::entity_flags_prev_transform_init))
+			{
+				_prev_abs_matrices->get(e) = new_abs;
+				_prev_abs_rots->get(e)	   = local.rotation;
+				f.set(entity_flags::entity_flags_prev_transform_init);
+			}
+			else
+			{
+				_prev_abs_matrices->get(e) = abs;
+				_prev_abs_rots->get(e)	   = local.rotation;
+			}
+
 #endif
-			abs		= matrix4x3::transform(local.position, local.rotation, local.scale);
+			abs		= new_abs;
 			abs_rot = local.rotation;
 		}
 		else
@@ -73,17 +84,29 @@ namespace SFG
 
 			const matrix4x3& parent_abs_mat = _abs_matrices->get(parent.index);
 			matrix4x3&		 abs			= _abs_matrices->get(e);
+			const matrix4x3	 new_abs		= parent_abs_mat * matrix4x3::transform(local.position, local.rotation, local.scale);
+			const quat		 new_rot		= _abs_rots->get(parent.index) * local.rotation;
 
-#ifdef FIXED_FRAMERATE_ENABLED
-			_prev_abs_matrices->get(e) = abs;
-			_prev_abs_rots->get(e)	   = _abs_rots->get(e);
+#if FIXED_FRAMERATE_ENABLED
+			if (!f.is_set(entity_flags::entity_flags_prev_transform_init))
+			{
+				_prev_abs_matrices->get(e) = new_abs;
+				_prev_abs_rots->get(e)	   = new_rot;
+				f.set(entity_flags::entity_flags_prev_transform_init);
+			}
+			else
+			{
+				_prev_abs_matrices->get(e) = abs;
+				_prev_abs_rots->get(e)	   = _abs_rots->get(e);
+			}
+
 #endif
 
-			abs		= parent_abs_mat * matrix4x3::transform(local.position, local.rotation, local.scale);
+			abs		= new_abs;
 			abs_rot = _abs_rots->get(parent.index) * local.rotation;
 		}
 
-		f.remove(entity_flags::entity_flags_abs_transforms_dirty);
+		f.remove(entity_flags::entity_flags_transient_abs_transform_mark);
 	}
 
 	void entity_manager::calculate_abs_transform_direct(world_id e)
@@ -158,7 +181,7 @@ namespace SFG
 		for (auto it = _entities->handles_begin(); it != _entities->handles_end(); ++it)
 		{
 			const world_handle h = *it;
-			flags.get(h.index).set(entity_flags::entity_flags_abs_transforms_dirty);
+			flags.get(h.index).set(entity_flags::entity_flags_transient_abs_transform_mark);
 		}
 
 		render_event_entity_transform update = {};
@@ -167,11 +190,11 @@ namespace SFG
 		{
 			const world_id index = (*it).index;
 
-			const bitmask<uint16>& ff = flags.get(index);
+			bitmask<uint16>& ff = flags.get(index);
 			if (!ff.is_set(entity_flags::entity_flags_is_render_proxy) || ff.is_set(entity_flags::entity_flags_invisible))
 				continue;
 
-			if (ff.is_set(entity_flags::entity_flags_abs_transforms_dirty))
+			if (ff.is_set(entity_flags::entity_flags_transient_abs_transform_mark))
 			{
 				calculate_abs_transform(index);
 			}
@@ -182,7 +205,8 @@ namespace SFG
 			update.position	 = abs_mat.get_translation();
 			update.rotation	 = abs_rot;
 			update.abs_model = abs_mat;
-#ifndef FIXED_FRAMERATE_ENABLED
+
+#if !(FIXED_FRAMERATE_ENABLED && FIXED_FRAMERATE_USE_INTERPOLATION)
 			stream.add_event({.index = index, .event_type = render_event_type::update_entity_transform}, update);
 #endif
 		}
@@ -212,12 +236,13 @@ namespace SFG
 			const quat&		 abs_rot	  = _abs_rots->get(handle_index);
 			const quat&		 prev_abs_rot = _prev_abs_rots->get(handle_index);
 
-			const vector3 pos = vector3::lerp(prev_abs.get_translation(), abs.get_translation(), interp);
-			const quat	  rot = quat::slerp(prev_abs_rot, abs_rot, interp);
-			update.position	  = pos;
-			update.rotation	  = rot;
+			const vector3 pos	= vector3::lerp(prev_abs.get_translation(), abs.get_translation(), interp);
+			const quat	  rot	= quat::slerp(prev_abs_rot, abs_rot, interp);
+			const vector3 scale = vector3::lerp(prev_abs.get_scale(), abs.get_scale(), interp);
+			update.position		= pos;
+			update.rotation		= rot;
 
-			update.abs_model = matrix4x3::transform(pos, rot, vector3::lerp(prev_abs.get_scale(), abs.get_scale(), interp));
+			update.abs_model = matrix4x3::transform(pos, rot, scale);
 			stream.add_event({.index = handle_index, .event_type = render_event_type::update_entity_transform}, update);
 		}
 	}
@@ -296,6 +321,9 @@ namespace SFG
 	{
 		world_handle handle = _entities->add();
 		set_entity_scale(handle, vector3::one);
+		const matrix4x3 def					  = matrix4x3::transform(vector3::zero, quat::identity, vector3::one);
+		_prev_abs_matrices->get(handle.index) = def;
+		_abs_matrices->get(handle.index)	  = def;
 
 		entity_meta& meta = _metas->get(handle.index);
 		meta.name		  = _world.get_text_allocator().allocate(name);

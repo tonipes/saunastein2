@@ -32,6 +32,7 @@ namespace SFG
 		pool_handle16  blend_weight_param_x	 = {};
 		pool_handle16  blend_weight_param_y	 = {};
 		float		   duration				 = 0.0f;
+		float		   speed				 = 1.0f;
 		float		   _current_time		 = 0.0f;
 		bitmask<uint8> flags				 = 0;
 	};
