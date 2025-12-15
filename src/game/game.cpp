@@ -71,7 +71,7 @@ namespace SFG
 		em.set_entity_rotation(s_h, quat::from_euler(45, 145, 0));
 		dl.set_values(w, color(1, 1, 1, 1), 1000, 10);
 
-		for (uint32 i = 0; i < 1024; i++)
+		for (uint32 i = 0; i < 12; i++)
 		{
 			const world_handle root = em.create_entity("root");
 			em.set_entity_position(root, vector3::zero);

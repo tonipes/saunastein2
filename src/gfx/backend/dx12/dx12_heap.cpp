@@ -9,6 +9,8 @@
 #include "io/log.hpp"
 #include "io/assert.hpp"
 
+#include <tracy/Tracy.hpp>
+
 namespace SFG
 {
 
@@ -34,6 +36,8 @@ namespace SFG
 			SFG_ERR("Exception when creating a descriptor heap! {0}", e.what());
 		}
 
+		TracyAllocN(_heap, num_descriptors * descriptor_size, "GPU: Total");
+
 		_heap->SetName(L"Descriptor Heap");
 		_cpu_start = static_cast<uint64>(_heap->GetCPUDescriptorHandleForHeapStart().ptr);
 		if (_shader_access)
@@ -42,6 +46,7 @@ namespace SFG
 
 	void dx12_heap::uninit()
 	{
+		TracyFreeN(_heap, "GPU: Total");
 		_heap->Release();
 		_heap = NULL;
 	}

@@ -26,6 +26,8 @@
 #include "math/math_common.hpp"
 #include "game/game_max_defines.hpp"
 
+#include <tracy/Tracy.hpp>
+
 #ifdef SFG_DEBUG
 #include <WinPixEventRuntime/pix3.h>
 #endif
@@ -708,10 +710,15 @@ namespace SFG
 		const uint32 size_rtv		  = _device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 		const uint32 size_sampler	  = _device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
 
-		_heap_dsv.init(_device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 1024, size_dsv, false);
-		_heap_rtv.init(_device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 1024, size_rtv, false);
-		_heap_gpu_buffer.init(_device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 1024, size_cbv_srv_uav, true);
-		_heap_gpu_sampler.init(_device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, 1024, size_sampler, true);
+		constexpr size_t count_dsv		   = 1024;
+		constexpr size_t count_rtv		   = 1024;
+		constexpr size_t count_cbv_srv_uav = 1024;
+		constexpr size_t count_sampler	   = 1024;
+
+		_heap_dsv.init(_device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_DSV, count_dsv, size_dsv, false);
+		_heap_rtv.init(_device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_RTV, count_rtv, size_rtv, false);
+		_heap_gpu_buffer.init(_device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, count_cbv_srv_uav, size_cbv_srv_uav, true);
+		_heap_gpu_sampler.init(_device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER, count_sampler, size_sampler, true);
 
 		_reuse_dest_descriptors_buffer.reserve(100);
 		_reuse_dest_descriptors_sampler.reserve(100);
@@ -850,9 +857,6 @@ namespace SFG
 
 	gfx_id dx12_backend::create_resource(const resource_desc& desc)
 	{
-		PUSH_MEMORY_CATEGORY("Gfx");
-		PUSH_ALLOCATION_SZ(desc.size);
-		POP_MEMORY_CATEGORY();
 
 		SFG_VERIFY_RENDER_NOT_RUNNING_OR_RENDER_THREAD();
 
@@ -905,6 +909,13 @@ namespace SFG
 		}
 
 		throw_if_failed(_allocator->CreateResource(&allocation_desc, &resource_desc, state, NULL, &res.ptr, IID_NULL, NULL));
+
+		PUSH_MEMORY_CATEGORY("Gfx");
+		PUSH_ALLOCATION_SZ(desc.size);
+		POP_MEMORY_CATEGORY();
+
+		TracyAllocN(res.ptr, res.ptr->GetSize(), "GPU: Resource");
+		TracyAllocN(res.ptr, res.ptr->GetSize(), "GPU: Total");
 
 		if (desc.flags.is_set(resource_flags::rf_constant_buffer))
 		{
@@ -991,6 +1002,9 @@ namespace SFG
 		PUSH_DEALLOCATION_SZ(res.size);
 		POP_MEMORY_CATEGORY();
 
+		TracyFreeN(res.ptr, "GPU: Total");
+		TracyFreeN(res.ptr, "GPU: Resource");
+
 		if (res.descriptor_index != -1)
 		{
 			descriptor_handle& dh = _descriptors.get(static_cast<gfx_id>(res.descriptor_index));
@@ -1009,28 +1023,6 @@ namespace SFG
 
 		const gfx_id id	 = _textures.add();
 		texture&	 txt = _textures.get(id);
-
-		PUSH_MEMORY_CATEGORY("Gfx");
-
-#ifdef SFG_ENABLE_MEMORY_TRACER
-
-		{
-			const uint8 bpp	  = desc.flags.is_set(texture_flags::tf_depth_texture) ? format_get_bpp(desc.depth_stencil_format) : format_get_bpp(desc.texture_format);
-			uint16		width = desc.size.x, height = desc.size.y;
-			size_t		sz = 0;
-			for (uint8 i = 0; i < desc.mip_levels; i++)
-			{
-				sz += width * height * bpp;
-				width /= 2;
-				height /= 2;
-			}
-
-			PUSH_ALLOCATION_SZ(sz);
-			txt.size = sz;
-		}
-
-#endif
-		POP_MEMORY_CATEGORY();
 
 		const DXGI_FORMAT color_format = get_format(desc.texture_format);
 		const DXGI_FORMAT depth_format = get_format(desc.depth_stencil_format);
@@ -1090,6 +1082,16 @@ namespace SFG
 
 		throw_if_failed(_allocator->CreateResource(&allocation_desc, &resource_desc, state, clear_value_ptr, &txt.ptr, IID_NULL, NULL));
 		NAME_DX12_OBJECT_CSTR(txt.ptr->GetResource(), desc.debug_name);
+
+#ifdef SFG_ENABLE_MEMORY_TRACER
+		txt.size = txt.ptr->GetSize();
+		PUSH_MEMORY_CATEGORY("Gfx");
+		PUSH_ALLOCATION_SZ(txt.ptr->GetSize());
+		POP_MEMORY_CATEGORY();
+#endif
+
+		TracyAllocN(txt.ptr, txt.ptr->GetSize(), "GPU: Texture");
+		TracyAllocN(txt.ptr, txt.ptr->GetSize(), "GPU: Total");
 
 		if (desc.flags.is_set(texture_flags::tf_shared))
 		{
@@ -1350,6 +1352,8 @@ namespace SFG
 			_descriptors.remove(v.handle);
 		}
 
+		TracyFreeN(txt.ptr, "GPU: Total");
+		TracyFreeN(txt.ptr, "GPU: Texture");
 		txt.ptr->Release();
 		txt.ptr = NULL;
 		_textures.remove(id);
@@ -1401,13 +1405,6 @@ namespace SFG
 		const gfx_id id	 = _swapchains.add();
 		swapchain&	 swp = _swapchains.get(id);
 
-#ifdef SFG_ENABLE_MEMORY_TRACER
-		PUSH_MEMORY_CATEGORY("Gfx");
-		swp.size = desc.size.x * desc.size.y * 4;
-		PUSH_ALLOCATION_SZ(swp.size);
-		POP_MEMORY_CATEGORY();
-#endif
-
 		if (desc.flags.is_set(swapchain_flags::sf_vsync_every_v_blank))
 			swp.vsync = 1;
 		else if (desc.flags.is_set(swapchain_flags::sf_vsync_every_2v_blank))
@@ -1455,6 +1452,16 @@ namespace SFG
 		throw_if_failed(_factory->CreateSwapChainForHwnd(_queues.get(_queue_graphics).ptr.Get(), (HWND)desc.window, &swapchain_desc, nullptr, nullptr, &swapchain));
 		throw_if_failed(swapchain.As(&swp.ptr));
 
+#ifdef SFG_ENABLE_MEMORY_TRACER
+		PUSH_MEMORY_CATEGORY("Gfx");
+		swp.size = desc.size.x * desc.size.y * 4;
+		PUSH_ALLOCATION_SZ(swp.size);
+		POP_MEMORY_CATEGORY();
+#endif
+
+		TracyAllocN(swp.ptr.Get(), swapchain_desc.Width * swapchain_desc.Height * 4, "GPU: Resource");
+		TracyAllocN(swp.ptr.Get(), swapchain_desc.Width * swapchain_desc.Height * 4, "GPU: Total");
+
 		Microsoft::WRL::ComPtr<IDXGISwapChain2> sc2;
 		if (SUCCEEDED(swp.ptr.As(&sc2)))
 		{
@@ -1493,14 +1500,6 @@ namespace SFG
 		DXGI_SWAP_CHAIN_DESC swp_desc = {};
 		swp.ptr->GetDesc(&swp_desc);
 
-#ifdef SFG_ENABLE_MEMORY_TRACER
-		PUSH_MEMORY_CATEGORY("Gfx");
-		PUSH_DEALLOCATION_SZ(swp.size);
-		PUSH_ALLOCATION_SZ(desc.size.x * desc.size.y * 4);
-		swp.size = desc.size.x * desc.size.y * 4;
-		POP_MEMORY_CATEGORY();
-#endif
-
 		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
 			swp.textures[i].Reset();
@@ -1517,9 +1516,23 @@ namespace SFG
 		else
 			swp.vsync = 0;
 
+#ifdef SFG_ENABLE_MEMORY_TRACER
+		PUSH_MEMORY_CATEGORY("Gfx");
+		PUSH_DEALLOCATION_SZ(swp.size);
+		PUSH_ALLOCATION_SZ(desc.size.x * desc.size.y * 4);
+		swp.size = desc.size.x * desc.size.y * 4;
+		POP_MEMORY_CATEGORY();
+#endif
+
+		TracyFreeN(swp.ptr.Get(), "GPU: Total");
+		TracyFreeN(swp.ptr.Get(), "GPU: Texture");
+
 		throw_if_failed(
 			swp.ptr->ResizeBuffers(BACK_BUFFER_COUNT, static_cast<UINT>(desc.size.x), static_cast<UINT>(desc.size.y), swp_desc.BufferDesc.Format, (tearing ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : (UINT)0) | DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT));
 		swp.image_index = swp.ptr->GetCurrentBackBufferIndex();
+
+		TracyAllocN(swp.ptr.Get(), desc.size.x * desc.size.y * 4, "GPU: Total");
+		TracyAllocN(swp.ptr.Get(), desc.size.x * desc.size.y * 4, "GPU: Texture");
 
 		// Re-apply frame latency settings and refresh waitable object after resize
 		{
@@ -1554,12 +1567,6 @@ namespace SFG
 
 		swapchain& swp = _swapchains.get(id);
 
-#ifdef SFG_ENABLE_MEMORY_TRACER
-		PUSH_MEMORY_CATEGORY("Gfx");
-		PUSH_DEALLOCATION_SZ(swp.size);
-		POP_MEMORY_CATEGORY();
-#endif
-
 		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
 			descriptor_handle& dh = _descriptors.get(swp.rtv_indices[i]);
@@ -1567,6 +1574,15 @@ namespace SFG
 			_descriptors.remove(swp.rtv_indices[i]);
 			swp.textures[i].Reset();
 		}
+
+#ifdef SFG_ENABLE_MEMORY_TRACER
+		PUSH_MEMORY_CATEGORY("Gfx");
+		PUSH_DEALLOCATION_SZ(swp.size);
+		POP_MEMORY_CATEGORY();
+#endif
+
+		TracyFreeN(swp.ptr.Get(), "GPU: Resource");
+		TracyFreeN(swp.ptr.Get(), "GPU: Total");
 
 		swp.ptr.Reset();
 		_swapchains.remove(id);
