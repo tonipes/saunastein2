@@ -5,7 +5,7 @@
 #include "resources/common_resources.hpp"
 
 #include "editor_camera.hpp"
-#include "editor/gfx/editor_gui_renderer.hpp"
+#include "editor/gfx/editor_renderer.hpp"
 
 namespace SFG
 {
@@ -25,18 +25,10 @@ namespace SFG
 		// lifecycle
 		// -----------------------------------------------------------------------------
 
-		void init(texture_queue* tq, const vector2ui16& size);
+		void init();
 		void uninit();
-		void uninit_gfx();
 		void tick(float dt_seconds);
 		bool on_window_event(const window_event& ev);
-
-		// -----------------------------------------------------------------------------
-		// rendering
-		// -----------------------------------------------------------------------------
-
-		void prepare_render(gfx_id cmd_buffer, uint8 frame_index);
-		void render_in_swapchain(gfx_id cmd_buffer, uint8 frame_index, bump_allocator& alloc);
 		void resize(const vector2ui16& size);
 
 		// -----------------------------------------------------------------------------
@@ -48,8 +40,10 @@ namespace SFG
 			return _camera_controller;
 		}
 
-	private:
-		void create_default_camera();
+		inline editor_renderer& get_renderer()
+		{
+			return _gui_renderer;
+		}
 
 	private:
 		app&		  _app;
@@ -62,6 +56,6 @@ namespace SFG
 		world_handle  _gizmo_entity = {};
 
 		// gfx
-		editor_gui_renderer _gui_renderer = {};
+		editor_renderer _gui_renderer = {};
 	};
 }

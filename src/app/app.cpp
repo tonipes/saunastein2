@@ -133,7 +133,7 @@ namespace SFG
 
 		// editor
 #ifdef SFG_TOOLMODE
-		_editor->init(_renderer->get_texture_queue(), _main_window->get_size());
+		_editor->init();
 #endif
 
 		// finalize
@@ -169,18 +169,17 @@ namespace SFG
 		// renderer
 		join_render();
 
-#ifdef SFG_TOOLMODE
-		_editor->uninit_gfx();
-		delete _editor;
-		_editor = nullptr;
-#endif
-
 		_render_stream.publish();
 		_renderer->uninit();
 		renderer::destroy_bind_layout_global();
 		delete _renderer;
 		_renderer = nullptr;
 		_render_stream.uninit();
+
+#ifdef SFG_TOOLMODE
+		delete _editor;
+		_editor = nullptr;
+#endif
 
 		// window
 		_main_window->destroy();

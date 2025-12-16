@@ -1,6 +1,6 @@
 // Copyright (c) 2025 Inan Evin
 
-#include "editor_gui_renderer.hpp"
+#include "editor_renderer.hpp"
 #include "project/engine_data.hpp"
 #include "data/vector_util.hpp"
 
@@ -16,15 +16,18 @@
 #include "gfx/util/gfx_util.hpp"
 #include "gfx/engine_shaders.hpp"
 #include "gfx/texture_queue.hpp"
+#include "gfx/common/render_target_definitions.hpp"
 
 #include "gui/vekt.hpp"
 
 namespace SFG
 {
-	void editor_gui_renderer::init(texture_queue* texture_queue, const vector2ui16& screen_size)
+	void editor_renderer::init(texture_queue* texture_queue, const vector2ui16& screen_size)
 	{
 		_gfx_data.texture_queue = texture_queue;
 		_gfx_data.window_size	= screen_size;
+
+		create_textures(screen_size);
 
 		// Shaders
 		_shaders.gui_default = engine_shaders::get().get_shader(engine_shader_type::engine_shader_type_gui_default).get_hw();
@@ -55,7 +58,8 @@ namespace SFG
 		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
 			per_frame_data& pfd = _pfd[i];
-			pfd.buf_gui_pass_view.create_hw({.size = sizeof(gui_pass_view), .flags = resource_flags::rf_cpu_visible | resource_flags::rf_constant_buffer, .debug_name = "cbv_editor_gui_pass"});
+
+			pfd.buf_pass_data.create_hw({.size = sizeof(gui_pass_view), .flags = resource_flags::rf_cpu_visible | resource_flags::rf_constant_buffer, .debug_name = "cbv_editor_gui_pass"});
 			pfd.buf_gui_vtx.create_staging_hw({.size = sizeof(vekt::vertex) * 240000, .flags = resource_flags::rf_vertex_buffer | resource_flags::rf_cpu_visible, .debug_name = "editor_gui_vertex_stg"},
 											  {.size = sizeof(vekt::vertex) * 240000, .flags = resource_flags::rf_vertex_buffer | resource_flags::rf_gpu_only, .debug_name = "editor_gui_vertex_gpu"});
 			pfd.buf_gui_idx.create_staging_hw({.size = sizeof(vekt::index) * 320000, .flags = resource_flags::rf_index_buffer | resource_flags::rf_cpu_visible, .debug_name = "editor_gui_index_stg"},
@@ -88,7 +92,7 @@ namespace SFG
 #endif
 	}
 
-	void editor_gui_renderer::uninit()
+	void editor_renderer::uninit()
 	{
 		gfx_backend* backend = gfx_backend::get();
 
@@ -111,84 +115,163 @@ namespace SFG
 		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
 			per_frame_data& pfd = _pfd[i];
-			pfd.buf_gui_pass_view.destroy();
+			pfd.buf_pass_data.destroy();
 			pfd.buf_gui_vtx.destroy();
 			pfd.buf_gui_idx.destroy();
 		}
+
+		destroy_textures();
 	}
 
-	void editor_gui_renderer::prepare(gfx_id cmd_buffer, uint8 frame_index)
+	void editor_renderer::prepare(gfx_id cmd_buffer, uint8 frame_index)
 	{
-		gfx_backend* backend = gfx_backend::get();
-
+		gfx_backend* backend  = gfx_backend::get();
 		_gfx_data.frame_index = frame_index;
-		per_frame_data& pfd	  = _pfd[frame_index];
+
+		per_frame_data& pfd = _pfd[frame_index];
 		pfd.reset();
+
+		// -----------------------------------------------------------------------------
+		// render pass data
+		// -----------------------------------------------------------------------------
 
 		const gui_pass_view view = {
 			.proj		   = matrix4x4::ortho_reverse_z(0, static_cast<float>(_gfx_data.window_size.x), 0, static_cast<float>(_gfx_data.window_size.y), 0.0f, 1.0f),
 			.sdf_thickness = 0.5f,
 			.sdf_softness  = 0.02f,
 		};
-		pfd.buf_gui_pass_view.buffer_data(0, (void*)&view, sizeof(gui_pass_view));
+		pfd.buf_pass_data.buffer_data(0, (void*)&view, sizeof(gui_pass_view));
 
-		// Build UI via panels description
+		// -----------------------------------------------------------------------------
+		// flush commands and draw gui here.
+		// -----------------------------------------------------------------------------
+
 		_builder->build_begin(vector2(_gfx_data.window_size.x, _gfx_data.window_size.y));
+
+		vekt::widget_gfx r_gfx = {};
+
+		vekt::builder::rect_props p = {
+			.gfx		 = r_gfx,
+			.min		 = vector2ui16(100, 100),
+			.max		 = vector2ui16(400, 400),
+			.color_start = vector4(1, 1, 1, 1),
+			.color_end	 = vector4(1, 1, 1, 1),
+		};
+
+		_builder->add_filled_rect(p);
+
 		_builder->build_end();
 		_builder->flush();
 
-		static_vector<barrier, 2> barriers;
-		barriers.push_back({
-			.resource	 = pfd.buf_gui_idx.get_hw_gpu(),
-			.flags		 = barrier_flags::baf_is_resource,
-			.from_states = resource_state::resource_state_index_buffer,
-			.to_states	 = resource_state::resource_state_copy_dest,
-		});
+		// -----------------------------------------------------------------------------
+		// copy vtx-index
+		// -----------------------------------------------------------------------------
+		{
+			static_vector<barrier, 2> barriers;
+			barriers.push_back({
+				.resource	 = pfd.buf_gui_idx.get_hw_gpu(),
+				.flags		 = barrier_flags::baf_is_resource,
+				.from_states = resource_state::resource_state_index_buffer,
+				.to_states	 = resource_state::resource_state_copy_dest,
+			});
 
-		barriers.push_back({
-			.resource	 = pfd.buf_gui_vtx.get_hw_gpu(),
-			.flags		 = barrier_flags::baf_is_resource,
-			.from_states = resource_state::resource_state_vertex_cbv,
-			.to_states	 = resource_state::resource_state_copy_dest,
-		});
-		backend->cmd_barrier(cmd_buffer, {.barriers = barriers.data(), .barrier_count = 2});
-		barriers.resize(0);
+			barriers.push_back({
+				.resource	 = pfd.buf_gui_vtx.get_hw_gpu(),
+				.flags		 = barrier_flags::baf_is_resource,
+				.from_states = resource_state::resource_state_vertex_cbv,
+				.to_states	 = resource_state::resource_state_copy_dest,
+			});
+			backend->cmd_barrier(cmd_buffer, {.barriers = barriers.data(), .barrier_count = 2});
+			barriers.resize(0);
 
-		// Copy from staging to GPU
-		if (pfd.counter_vtx != 0)
-			pfd.buf_gui_vtx.copy_region(cmd_buffer, 0, pfd.counter_vtx * sizeof(vekt::vertex));
-		if (pfd.counter_idx != 0)
-			pfd.buf_gui_idx.copy_region(cmd_buffer, 0, pfd.counter_idx * sizeof(vekt::index));
+			// Copy from staging to GPU
+			if (pfd.counter_vtx != 0)
+				pfd.buf_gui_vtx.copy_region(cmd_buffer, 0, pfd.counter_vtx * sizeof(vekt::vertex));
+			if (pfd.counter_idx != 0)
+				pfd.buf_gui_idx.copy_region(cmd_buffer, 0, pfd.counter_idx * sizeof(vekt::index));
 
-		barriers.push_back({
-			.resource	 = pfd.buf_gui_idx.get_hw_gpu(),
-			.flags		 = barrier_flags::baf_is_resource,
-			.from_states = resource_state::resource_state_copy_dest,
-			.to_states	 = resource_state::resource_state_index_buffer,
-		});
+			barriers.push_back({
+				.resource	 = pfd.buf_gui_idx.get_hw_gpu(),
+				.flags		 = barrier_flags::baf_is_resource,
+				.from_states = resource_state::resource_state_copy_dest,
+				.to_states	 = resource_state::resource_state_index_buffer,
+			});
 
-		barriers.push_back({
-			.resource	 = pfd.buf_gui_vtx.get_hw_gpu(),
-			.flags		 = barrier_flags::baf_is_resource,
-			.from_states = resource_state::resource_state_copy_dest,
-			.to_states	 = resource_state::resource_state_vertex_cbv,
-		});
+			barriers.push_back({
+				.resource	 = pfd.buf_gui_vtx.get_hw_gpu(),
+				.flags		 = barrier_flags::baf_is_resource,
+				.from_states = resource_state::resource_state_copy_dest,
+				.to_states	 = resource_state::resource_state_vertex_cbv,
+			});
 
-		backend->cmd_barrier(cmd_buffer, {.barriers = barriers.data(), .barrier_count = 2});
+			backend->cmd_barrier(cmd_buffer, {.barriers = barriers.data(), .barrier_count = 2});
+		}
 	}
 
-	void editor_gui_renderer::render_in_swapchain(gfx_id cmd_buffer, uint8 frame_index, bump_allocator& /*alloc*/)
+	void editor_renderer::render(const render_params& p)
 	{
 		gfx_backend*	backend = gfx_backend::get();
-		per_frame_data& pfd		= _pfd[frame_index];
+		per_frame_data& pfd		= _pfd[p.frame_index];
 
-		const gfx_id gui_vertex			= pfd.buf_gui_vtx.get_hw_gpu();
-		const gfx_id gui_index			= pfd.buf_gui_idx.get_hw_gpu();
-		const uint16 dc_count			= pfd.draw_call_count;
-		const uint32 gui_pass_gpu_index = pfd.buf_gui_pass_view.get_gpu_index();
+		const gfx_id cmd_buffer			 = p.cmd_buffer;
+		const gfx_id render_target		 = pfd.hw_rt;
+		const gfx_id gui_vertex			 = pfd.buf_gui_vtx.get_hw_gpu();
+		const gfx_id gui_index			 = pfd.buf_gui_idx.get_hw_gpu();
+		const uint16 dc_count			 = pfd.draw_call_count;
+		const uint32 gpu_index_pass_data = pfd.buf_pass_data.get_gpu_index();
+
+		static_vector<barrier, 1> barriers;
+
+		// in barrier
+		{
+			barriers.push_back({
+				.resource	 = render_target,
+				.flags		 = barrier_flags::baf_is_texture,
+				.from_states = resource_state::resource_state_ps_resource | resource_state::resource_state_non_ps_resource,
+				.to_states	 = resource_state::resource_state_render_target,
+			});
+
+			backend->cmd_barrier(cmd_buffer,
+								 {
+									 .barriers		= barriers.data(),
+									 .barrier_count = static_cast<uint16>(barriers.size()),
+								 });
+		}
+
+		BEGIN_DEBUG_EVENT(backend, cmd_buffer, "editor_pass");
+
+		const render_pass_color_attachment att = {
+			.clear_color = vector4(0, 0, 0, 0.0f),
+			.texture	 = render_target,
+			.load_op	 = load_op::clear,
+			.store_op	 = store_op::store,
+			.view_index	 = 0,
+		};
+
+		backend->cmd_begin_render_pass(cmd_buffer,
+									   {
+										   .color_attachments	   = &att,
+										   .color_attachment_count = 1,
+									   });
+
+		backend->cmd_bind_layout(cmd_buffer, {.layout = p.global_layout});
+		backend->cmd_bind_group(cmd_buffer, {.group = p.global_group});
+
+		static_vector<uint32, 4> rp_constants;
+		rp_constants.push_back(gpu_index_pass_data);
 
 		// Bind GUI pass constants (CBV index)
-		backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)&gui_pass_gpu_index, .offset = constant_index_rp_constant0, .count = 1, .param_index = rpi_constants});
+		backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)rp_constants.data(), .offset = constant_index_rp_constant0, .count = static_cast<uint8>(rp_constants.size()), .param_index = rpi_constants});
+
+		backend->cmd_set_scissors(cmd_buffer, {.width = static_cast<uint16>(p.size.x), .height = static_cast<uint16>(p.size.y)});
+		backend->cmd_set_viewport(cmd_buffer,
+								  {
+									  .min_depth = 0.0f,
+									  .max_depth = 1.0f,
+									  .width	 = static_cast<uint16>(p.size.x),
+									  .height	 = static_cast<uint16>(p.size.y),
+
+								  });
 
 		// Vertex/index buffers
 		backend->cmd_bind_vertex_buffers(cmd_buffer, {.buffer = gui_vertex, .vertex_size = sizeof(vekt::vertex)});
@@ -224,16 +307,76 @@ namespace SFG
 													.start_instance_location  = 0,
 												});
 		}
+
+		backend->cmd_end_render_pass(cmd_buffer, {});
+		END_DEBUG_EVENT(backend, cmd_buffer);
+
+		// out barrier
+		{
+			barriers.resize(0);
+			barriers.push_back({
+				.resource	 = render_target,
+				.flags		 = barrier_flags::baf_is_texture,
+				.from_states = resource_state::resource_state_render_target,
+				.to_states	 = resource_state::resource_state_ps_resource | resource_state::resource_state_non_ps_resource,
+			});
+
+			backend->cmd_barrier(cmd_buffer,
+								 {
+									 .barriers		= barriers.data(),
+									 .barrier_count = static_cast<uint16>(barriers.size()),
+								 });
+		}
 	}
 
-	void editor_gui_renderer::resize(const vector2ui16& size)
+	void editor_renderer::resize(const vector2ui16& size)
 	{
+		if (_gfx_data.window_size == size)
+			return;
+
 		_gfx_data.window_size = size;
+
+		destroy_textures();
+		create_textures(size);
 	}
 
-	void editor_gui_renderer::on_draw(const vekt::draw_buffer& buffer, void* ud)
+	void editor_renderer::create_textures(const vector2ui16& size)
 	{
-		editor_gui_renderer* rnd = static_cast<editor_gui_renderer*>(ud);
+		gfx_backend* backend = gfx_backend::get();
+
+		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
+		{
+			per_frame_data& pfd = _pfd[i];
+
+			pfd.hw_rt = backend->create_texture({
+				.texture_format = render_target_definitions::get_format_editor(),
+				.size			= size,
+				.flags			= texture_flags::tf_render_target | texture_flags::tf_is_2d | texture_flags::tf_sampled,
+				.views			= {{.type = view_type::render_target}, {.type = view_type::sampled}},
+				.clear_values	= {0.0f, 0.0f, 0.0f, 0.0f},
+				.debug_name		= "editor_rt",
+			});
+
+			pfd.gpu_index_rt = backend->get_texture_gpu_index(pfd.hw_rt, 1);
+		}
+	}
+
+	void editor_renderer::destroy_textures()
+	{
+		gfx_backend* backend = gfx_backend::get();
+
+		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
+		{
+			per_frame_data& pfd = _pfd[i];
+
+			backend->destroy_texture(pfd.hw_rt);
+			pfd.gpu_index_rt = NULL_GPU_INDEX;
+		}
+	}
+
+	void editor_renderer::on_draw(const vekt::draw_buffer& buffer, void* ud)
+	{
+		editor_renderer* rnd = static_cast<editor_renderer*>(ud);
 
 		const vekt::font*	  font			   = buffer.used_font;
 		const vekt::atlas*	  atlas			   = font ? font->_atlas : nullptr;
@@ -308,11 +451,11 @@ namespace SFG
 		}
 	}
 
-	void editor_gui_renderer::on_atlas_created(vekt::atlas* atlas, void* user_data)
+	void editor_renderer::on_atlas_created(vekt::atlas* atlas, void* user_data)
 	{
-		editor_gui_renderer* r		 = static_cast<editor_gui_renderer*>(user_data);
-		gfx_backend*		 backend = gfx_backend::get();
-		engine_shaders&		 es		 = engine_shaders::get();
+		editor_renderer* r		 = static_cast<editor_renderer*>(user_data);
+		gfx_backend*	 backend = gfx_backend::get();
+		engine_shaders&	 es		 = engine_shaders::get();
 
 		atlas_ref ref		  = {};
 		ref.atlas			  = atlas;
@@ -334,10 +477,10 @@ namespace SFG
 		r->_gfx_data.atlases.push_back(ref);
 	}
 
-	void editor_gui_renderer::on_atlas_updated(vekt::atlas* atlas, void* user_data)
+	void editor_renderer::on_atlas_updated(vekt::atlas* atlas, void* user_data)
 	{
-		editor_gui_renderer* r		 = static_cast<editor_gui_renderer*>(user_data);
-		gfx_backend*		 backend = gfx_backend::get();
+		editor_renderer* r		 = static_cast<editor_renderer*>(user_data);
+		gfx_backend*	 backend = gfx_backend::get();
 
 		for (atlas_ref& ref : r->_gfx_data.atlases)
 		{
@@ -363,10 +506,10 @@ namespace SFG
 		}
 	}
 
-	void editor_gui_renderer::on_atlas_destroyed(vekt::atlas* atlas, void* user_data)
+	void editor_renderer::on_atlas_destroyed(vekt::atlas* atlas, void* user_data)
 	{
-		editor_gui_renderer* r		 = static_cast<editor_gui_renderer*>(user_data);
-		gfx_backend*		 backend = gfx_backend::get();
+		editor_renderer* r		 = static_cast<editor_renderer*>(user_data);
+		gfx_backend*	 backend = gfx_backend::get();
 
 		for (atlas_ref& ref : r->_gfx_data.atlases)
 		{

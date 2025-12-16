@@ -92,7 +92,7 @@ namespace SFG
 		{
 			buffer buf_gui_vtx		   = {};
 			buffer buf_gui_idx		   = {};
-			buffer buf_gui_pass_view   = {};
+			buffer buf_pass_data   = {};
 			uint32 rt_console_index	   = 0;
 			uint32 rt_fullscreen_index = 0;
 			uint32 counter_vtx		   = 0;

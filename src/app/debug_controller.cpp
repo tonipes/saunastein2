@@ -409,7 +409,7 @@ namespace SFG
 			pfd.rt_console_index	= backend->get_texture_gpu_index(pfd.rt_console, 1);
 			pfd.rt_fullscreen_index = backend->get_texture_gpu_index(pfd.rt_post, 1);
 
-			pfd.buf_gui_pass_view.create_hw({
+			pfd.buf_pass_data.create_hw({
 				.size		= sizeof(gui_pass_view),
 				.flags		= resource_flags::rf_cpu_visible | resource_flags::rf_constant_buffer,
 				.debug_name = "cbv_gui_pass",
@@ -537,10 +537,10 @@ namespace SFG
 			per_frame_data& pfd = _pfd[i];
 			backend->destroy_texture(pfd.rt_console);
 			backend->destroy_texture(pfd.rt_post);
-			backend->unmap_resource(pfd.buf_gui_pass_view.get_hw_gpu());
+			backend->unmap_resource(pfd.buf_pass_data.get_hw_gpu());
 			backend->unmap_resource(pfd.buf_gui_vtx.get_hw_staging());
 			backend->unmap_resource(pfd.buf_gui_idx.get_hw_staging());
-			pfd.buf_gui_pass_view.destroy();
+			pfd.buf_pass_data.destroy();
 			pfd.buf_gui_vtx.destroy();
 			pfd.buf_gui_idx.destroy();
 		}
@@ -563,7 +563,7 @@ namespace SFG
 			.sdf_thickness = 0.5f,
 			.sdf_softness  = 0.02f,
 		};
-		pfd.buf_gui_pass_view.buffer_data(0, (void*)&view, sizeof(gui_pass_view));
+		pfd.buf_pass_data.buffer_data(0, (void*)&view, sizeof(gui_pass_view));
 
 		flush_key_events();
 
@@ -600,7 +600,7 @@ namespace SFG
 		const gfx_id	  shader_fullscreen	   = _shaders.debug_controller_console_draw;
 		const uint16	  dc_count			   = pfd.draw_call_count;
 		const uint32	  rt_console_gpu_index = pfd.rt_console_index;
-		const uint32	  gui_pass_gpu_index   = pfd.buf_gui_pass_view.get_gpu_index();
+		const uint32	  gui_pass_gpu_index   = pfd.buf_pass_data.get_gpu_index();
 
 		// Copy vtx idx buffers. First transition barriers will be executed via collect_barriers
 		static_vector<barrier, 4> barriers;

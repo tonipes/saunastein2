@@ -48,7 +48,7 @@ namespace SFG
 
 	editor::~editor() = default;
 
-	void editor::init(texture_queue* tq, const vector2ui16& size)
+	void editor::init()
 	{
 		_camera_controller.init(_app.get_world(), _app.get_window());
 
@@ -110,17 +110,11 @@ namespace SFG
 			gizmos_mi.instantiate_model_to_world(w, gizmos_handle);
 		}*/
 
-		_gui_renderer.init(tq, size);
 	}
 
 	void editor::uninit()
 	{
 		_camera_controller.uninit();
-	}
-
-	void editor::uninit_gfx()
-	{
-		_gui_renderer.uninit();
 	}
 
 	void editor::tick(float dt_seconds)
@@ -147,16 +141,6 @@ namespace SFG
 		}
 
 		return false;
-	}
-
-	void editor::prepare_render(gfx_id cmd_buffer, uint8 frame_index)
-	{
-		_gui_renderer.prepare(cmd_buffer, frame_index);
-	}
-
-	void editor::render_in_swapchain(gfx_id cmd_buffer, uint8 frame_index, bump_allocator& alloc)
-	{
-		_gui_renderer.render_in_swapchain(cmd_buffer, frame_index, alloc);
 	}
 
 	void editor::resize(const vector2ui16& size)

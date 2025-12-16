@@ -97,7 +97,11 @@ namespace SFG
 			gfx_id		   bind_group_global  = 0;
 			uint32		   gpu_index_world_rt = 0;
 #ifdef SFG_USE_DEBUG_CONTROLLER
-			uint32 gpu_index_debug_controller_rt = 0;
+			gpu_index gpu_index_debug_controller_rt = 0;
+#endif
+
+#ifdef SFG_TOOLMODE
+			gpu_index gpu_index_editor_rt = 0;
 #endif
 		};
 
@@ -116,7 +120,7 @@ namespace SFG
 		world&				 _world;
 		render_event_stream& _event_stream;
 		window&				 _main_window;
-		game_world_renderer*		 _world_renderer = nullptr;
+		game_world_renderer* _world_renderer = nullptr;
 
 #ifdef SFG_USE_DEBUG_CONTROLLER
 		debug_controller _debug_controller = {};

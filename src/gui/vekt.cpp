@@ -416,8 +416,17 @@ namespace vekt
 		_depth_first_widgets.resize_explicit(0);
 		_depth_first_child_info.resize_explicit(0);
 		populate_hierarchy(_root, 0);
-		_reverse_depth_first_widgets = _depth_first_widgets;
-		_reverse_depth_first_widgets.reverse();
+
+		_reverse_depth_first_widgets.resize_explicit(0);
+
+		const unsigned int sz = _depth_first_widgets.size();
+		if (sz == 0)
+			return;
+
+		for (unsigned int i = sz - 1; i >= sz; i--)
+		{
+			_reverse_depth_first_widgets.push_back(_depth_first_widgets[i]);
+		}
 	}
 
 	void builder::calculate_sizes()

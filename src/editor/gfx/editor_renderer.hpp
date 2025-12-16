@@ -25,9 +25,19 @@ namespace SFG
 {
 	class texture_queue;
 
-	class editor_gui_renderer
+	class editor_renderer
 	{
 	public:
+		struct render_params
+		{
+			gfx_id			cmd_buffer;
+			uint8			frame_index;
+			bump_allocator& alloc;
+			vector2ui16		size;
+			gfx_id			global_layout;
+			gfx_id			global_group;
+		};
+
 		// -----------------------------------------------------------------------------
 		// lifecycle
 		// -----------------------------------------------------------------------------
@@ -40,12 +50,17 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 
 		void prepare(gfx_id cmd_buffer, uint8 frame_index);
-		void render_in_swapchain(gfx_id cmd_buffer, uint8 frame_index, bump_allocator& alloc);
+		void render(const render_params& p);
 		void resize(const vector2ui16& size);
 
 		// -----------------------------------------------------------------------------
 		// accessors
 		// -----------------------------------------------------------------------------
+
+		inline gpu_index get_output_gpu_index(uint8 frame)
+		{
+			return _pfd[frame].gpu_index_rt;
+		}
 
 	private:
 		struct gui_draw_call
@@ -60,12 +75,14 @@ namespace SFG
 
 		struct per_frame_data
 		{
-			buffer buf_gui_vtx		 = {};
-			buffer buf_gui_idx		 = {};
-			buffer buf_gui_pass_view = {};
-			uint32 counter_vtx		 = 0;
-			uint32 counter_idx		 = 0;
-			uint16 draw_call_count	 = 0;
+			buffer	  buf_gui_vtx	  = {};
+			buffer	  buf_gui_idx	  = {};
+			buffer	  buf_pass_data	  = {};
+			uint32	  counter_vtx	  = 0;
+			uint32	  counter_idx	  = 0;
+			gpu_index gpu_index_rt	  = NULL_GPU_INDEX;
+			gfx_id	  hw_rt			  = NULL_GFX_ID;
+			uint16	  draw_call_count = 0;
 
 			inline void reset()
 			{
@@ -112,6 +129,9 @@ namespace SFG
 		};
 
 	private:
+		void create_textures(const vector2ui16& size);
+		void destroy_textures();
+
 		static void on_draw(const vekt::draw_buffer& buffer, void* ud);
 		static void on_atlas_created(vekt::atlas* atlas, void* user_data);
 		static void on_atlas_updated(vekt::atlas* atlas, void* user_data);

@@ -33,7 +33,6 @@
 
 #include <tracy/Tracy.hpp>
 
-
 namespace SFG
 {
 	gfx_id renderer::s_bind_group_global[BACK_BUFFER_COUNT] = {};
@@ -86,8 +85,13 @@ namespace SFG
 		_debug_controller.init(&_texture_queue, s_bind_layout_global, _base_size);
 #endif
 
+#ifdef SFG_TOOLMODE
+		_editor->get_renderer().init(&_texture_queue, _base_size);
+#endif
+
 		_world_renderer = new game_world_renderer(_proxy_manager, _world);
 		_world_renderer->init(_base_size, &_texture_queue, &_buffer_queue);
+
 
 		// pfd
 		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
@@ -108,6 +112,10 @@ namespace SFG
 			pfd.buf_engine_global.create_hw({.size = sizeof(buf_engine_global), .flags = resource_flags::rf_constant_buffer | resource_flags::rf_cpu_visible, .debug_name = "engine_globals"});
 			pfd.bind_group_global  = backend->create_empty_bind_group();
 			pfd.gpu_index_world_rt = _world_renderer->get_output_gpu_index(i);
+
+#ifdef SFG_TOOLMODE
+			pfd.gpu_index_editor_rt = _editor->get_renderer().get_output_gpu_index(i);
+#endif
 
 #ifdef SFG_USE_DEBUG_CONTROLLER
 			pfd.gpu_index_debug_controller_rt = _debug_controller.get_output_gpu_index(i);
@@ -153,6 +161,9 @@ namespace SFG
 		_debug_controller.uninit();
 #endif
 
+#ifdef SFG_TOOLMODE
+		_editor->get_renderer().uninit();
+#endif
 		// utils
 		_texture_queue.uninit();
 		_buffer_queue.uninit();
@@ -230,13 +241,17 @@ namespace SFG
 		const uint8	 frame_index		   = _gfx_data.frame_index;
 		const gfx_id layout_global		   = s_bind_layout_global;
 		const gfx_id layout_global_compute = s_bind_layout_global_compute;
-		const gfx_id render_target		   = _gfx_data.swapchain;
+		const gfx_id swapchain_rt		   = _gfx_data.swapchain;
 
 		per_frame_data& pfd			   = _pfd[frame_index];
-		const uint32	rt_world_index = pfd.gpu_index_world_rt;
+		const gpu_index rt_world_index = pfd.gpu_index_world_rt;
 
 #ifdef SFG_USE_DEBUG_CONTROLLER
-		const uint32 rt_console_index = pfd.gpu_index_debug_controller_rt;
+		const gpu_index rt_console_index = pfd.gpu_index_debug_controller_rt;
+#endif
+
+#ifdef SFG_TOOLMODE
+		const gpu_index rt_editor_index = pfd.gpu_index_editor_rt;
 #endif
 
 		bump_allocator& alloc = _frame_allocator[frame_index];
@@ -302,7 +317,7 @@ namespace SFG
 
 		static_vector<barrier, 1> barriers;
 		barriers.push_back({
-			.resource	 = render_target,
+			.resource	 = swapchain_rt,
 			.flags		 = barrier_flags::baf_is_swapchain,
 			.from_states = resource_state::resource_state_present,
 			.to_states	 = resource_state::resource_state_render_target,
@@ -315,17 +330,26 @@ namespace SFG
 							 });
 		barriers.resize(0);
 
+		_world_renderer->prepare(frame_index);
+		_world_renderer->render(frame_index, layout_global, layout_global_compute, bg_global, prev_copy_value, next_copy_value, sem_copy);
+
 #ifdef SFG_USE_DEBUG_CONTROLLER
 		_debug_controller.prepare(frame_index);
 		_debug_controller.render(cmd_list, frame_index, alloc);
 #endif
 
 #ifdef SFG_TOOLMODE
-		_editor->prepare_render(cmd_list, frame_index);
+		_editor->get_renderer().prepare(cmd_list, frame_index);
+		_editor->get_renderer().render({
+			.cmd_buffer	   = cmd_list,
+			.frame_index   = frame_index,
+			.alloc		   = alloc,
+			.size		   = size,
+			.global_layout = layout_global,
+			.global_group  = bg_global,
+		});
 #endif
 
-		_world_renderer->prepare(frame_index);
-		_world_renderer->render(frame_index, layout_global, layout_global_compute, bg_global, prev_copy_value, next_copy_value, sem_copy);
 		const semaphore_data& sem_world_data  = _world_renderer->get_final_semaphore(frame_index);
 		const gfx_id		  sem_world		  = sem_world_data.semaphore;
 		const uint64		  sem_world_value = sem_world_data.value;
@@ -336,7 +360,7 @@ namespace SFG
 			attachment->clear_color					 = vector4(0.8f, 0.7f, 0.7f, 1.0f);
 			attachment->load_op						 = load_op::clear;
 			attachment->store_op					 = store_op::store;
-			attachment->texture						 = render_target;
+			attachment->texture						 = swapchain_rt;
 
 			BEGIN_DEBUG_EVENT(backend, cmd_list, "swapchain_pass");
 			backend->cmd_begin_render_pass_swapchain(cmd_list, {.color_attachments = attachment, .color_attachment_count = 1});
@@ -345,18 +369,24 @@ namespace SFG
 
 			// gui pass bind group
 			{
+
+				static_vector<gpu_index, 4> constants;
+
+				constants.push_back(rt_world_index);
+
 #ifdef SFG_USE_DEBUG_CONTROLLER
-				const uint32 constants[2] = {rt_console_index, rt_world_index};
-				const uint32 count		  = 2;
-#else
-				const uint32 constants[2] = {rt_world_index, 0};
-				const uint32 count		  = 1;
+				constants.push_back(rt_console_index);
 #endif
+
+#ifdef SFG_TOOLMODE
+				constants.push_back(rt_editor_index);
+#endif
+
 				backend->cmd_bind_constants(cmd_list,
 											{
-												.data		 = (uint8*)&constants,
+												.data		 = (uint8*)constants.data(),
 												.offset		 = constant_index_rp_constant0,
-												.count		 = count,
+												.count		 = static_cast<uint8>(constants.size()),
 												.param_index = rpi_constants,
 											});
 			}
@@ -364,16 +394,12 @@ namespace SFG
 			backend->cmd_bind_pipeline(cmd_list, {.pipeline = shader_swp});
 			backend->cmd_draw_instanced(cmd_list, {.vertex_count_per_instance = 6, .instance_count = 1});
 
-#ifdef SFG_TOOLMODE
-			// Draw editor GUI on top, in the same pass
-			_editor->render_in_swapchain(cmd_list, frame_index, alloc);
-#endif
 			backend->cmd_end_render_pass(cmd_list, {});
 			END_DEBUG_EVENT(backend, cmd_list);
 		}
 
 		barriers.push_back({
-			.resource	 = render_target,
+			.resource	 = swapchain_rt,
 			.flags		 = barrier_flags::baf_is_swapchain,
 			.from_states = resource_state::resource_state_render_target,
 			.to_states	 = resource_state::resource_state_present,
@@ -395,7 +421,7 @@ namespace SFG
 
 		backend->submit_commands(queue_gfx, &cmd_list, 1);
 
-		backend->present(&render_target, 1);
+		backend->present(&swapchain_rt, 1);
 		_gfx_data.frame_index = backend->get_back_buffer_index(_gfx_data.swapchain);
 
 		backend->queue_signal(queue_gfx, &sem_frame, &next_frame_value, 1);
@@ -444,6 +470,10 @@ namespace SFG
 			pfd.gpu_index_world_rt = _world_renderer->get_output_gpu_index(i);
 #ifdef SFG_USE_DEBUG_CONTROLLER
 			pfd.gpu_index_debug_controller_rt = _debug_controller.get_output_gpu_index(i);
+#endif
+
+#ifdef SFG_TOOLMODE
+			pfd.gpu_index_editor_rt = _editor->get_renderer().get_output_gpu_index(i);
 #endif
 		}
 	}

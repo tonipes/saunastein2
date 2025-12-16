@@ -73,5 +73,10 @@ namespace SFG
 		{
 			return format::d32_sfloat;
 		}
+
+		static inline format get_format_editor()
+		{
+			return format::r8g8b8a8_srgb;
+		}
 	};
 }
