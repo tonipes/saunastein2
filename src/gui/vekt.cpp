@@ -240,7 +240,7 @@ namespace vekt
 		widget_meta& child_meta = _metas[child_id];
 
 		meta.children.remove(child_id);
-		child_meta.parent = -1;
+		child_meta.parent = NULL_WIDGET_ID;
 
 		build_hierarchy();
 	}
@@ -372,7 +372,7 @@ namespace vekt
 
 		widget_meta& meta = _metas[w];
 
-		if (meta.parent != -1)
+		if (meta.parent != NULL_WIDGET_ID)
 		{
 			widget_meta& parent_meta = _metas[meta.parent];
 			parent_meta.children.remove(w);
@@ -420,10 +420,12 @@ namespace vekt
 		_reverse_depth_first_widgets.resize_explicit(0);
 
 		const unsigned int sz = _depth_first_widgets.size();
-		if (sz == 0)
+		if (sz < 1)
 			return;
 
-		for (unsigned int i = sz - 1; i >= sz; i--)
+		const int start = static_cast<int>(sz - 1);
+
+		for (int i = start; i >= 0; --i)
 		{
 			_reverse_depth_first_widgets.push_back(_depth_first_widgets[i]);
 		}
@@ -479,7 +481,7 @@ namespace vekt
 		// bottom-up
 		vector<id> fill_x_children;
 		vector<id> fill_y_children;
-		id		   fill_parent = -1;
+		id		   fill_parent = NULL_WIDGET_ID;
 		for (id widget : _reverse_depth_first_widgets)
 		{
 			const size_props&  sz	= _size_properties[widget];
@@ -523,7 +525,7 @@ namespace vekt
 
 			if (widget == fill_parent)
 			{
-				fill_parent			= -1;
+				fill_parent			= NULL_WIDGET_ID;
 				size_result& res	= _size_results[widget];
 				float		 x_left = res.size.x - sz.child_margins.left - sz.child_margins.right;
 				float		 y_left = res.size.y - sz.child_margins.top - sz.child_margins.bottom;

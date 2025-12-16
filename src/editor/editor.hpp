@@ -7,6 +7,7 @@
 #include "editor_camera.hpp"
 #include "editor/gfx/editor_renderer.hpp"
 
+
 namespace SFG
 {
 	struct window_event;

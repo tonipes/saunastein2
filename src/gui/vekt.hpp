@@ -98,7 +98,8 @@ namespace vekt
 	// :: COMMON CONTAINERS
 	////////////////////////////////////////////////////////////////////////////////
 
-	typedef int id;
+	typedef unsigned int id;
+#define NULL_WIDGET_ID UINT32_MAX
 
 	template <typename T> class vector
 	{
@@ -927,7 +928,7 @@ namespace vekt
 
 	struct widget_meta
 	{
-		id		   parent = -1;
+		id		   parent = NULL_WIDGET_ID;
 		vector<id> children;
 	};
 
@@ -1012,7 +1013,7 @@ namespace vekt
 		struct input_layer
 		{
 			unsigned int priority = 0;
-			id			 root	  = -1;
+			id			 root	  = NULL_WIDGET_ID;
 			bool		 operator==(const input_layer& other) const
 			{
 				return priority == other.priority && root == other.root;
@@ -1143,7 +1144,7 @@ namespace vekt
 
 		struct depth_first_child_info
 		{
-			id			 widget_id		= -1;
+			id			 widget_id		= NULL_WIDGET_ID;
 			unsigned int depth			= 0;
 			unsigned int owned_children = 0;
 		};

@@ -90,6 +90,9 @@ namespace SFG
 #else
 		SFG_NOTIMPLEMENTED();
 #endif
+
+		// gui
+		_gui_world_overlays.init(_builder);
 	}
 
 	void editor_renderer::uninit()
@@ -148,17 +151,7 @@ namespace SFG
 
 		_builder->build_begin(vector2(_gfx_data.window_size.x, _gfx_data.window_size.y));
 
-		vekt::widget_gfx r_gfx = {};
-
-		vekt::builder::rect_props p = {
-			.gfx		 = r_gfx,
-			.min		 = vector2ui16(100, 100),
-			.max		 = vector2ui16(400, 400),
-			.color_start = vector4(1, 1, 1, 1),
-			.color_end	 = vector4(1, 1, 1, 1),
-		};
-
-		_builder->add_filled_rect(p);
+		_gui_world_overlays.draw(_builder);
 
 		_builder->build_end();
 		_builder->flush();

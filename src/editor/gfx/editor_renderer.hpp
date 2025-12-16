@@ -3,14 +3,22 @@
 
 #include "data/static_vector.hpp"
 
+// gfx
 #include "gfx/common/gfx_constants.hpp"
 #include "gfx/buffer.hpp"
 #include "gfx/common/texture_buffer.hpp"
 #include "gfx/common/barrier_description.hpp"
-#include "memory/bump_allocator.hpp"
+
+// math
 #include "math/vector2ui16.hpp"
 #include "math/matrix4x4.hpp"
 #include "math/vector4ui16.hpp"
+
+// misc
+#include "memory/bump_allocator.hpp"
+
+// gui
+#include "editor/gui/editor_gui_world_overlays.hpp"
 
 namespace vekt
 {
@@ -145,5 +153,8 @@ namespace SFG
 		vekt::builder*		_builder				= nullptr;
 		vekt::font_manager* _font_manager			= nullptr;
 		vekt::font*			_font_main				= nullptr;
+
+		// gui
+		editor_gui_world_overlays _gui_world_overlays = {};
 	};
 }

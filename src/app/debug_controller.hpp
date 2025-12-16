@@ -37,13 +37,26 @@ namespace SFG
 	class debug_controller
 	{
 	public:
+		// -----------------------------------------------------------------------------
+		// lifecycle
+		// -----------------------------------------------------------------------------
+
 		void init(texture_queue* texture_queue, gfx_id global_bind_layout, const vector2ui16& screen_size);
 		void uninit();
 		void tick();
+
+		// -----------------------------------------------------------------------------
+		// render
+		// -----------------------------------------------------------------------------
+
 		void prepare(uint8 frame_index);
 		void render(gfx_id cmd_buffer, uint8 frame_index, bump_allocator& alloc);
 		void on_window_resize(const vector2ui16& size);
 		bool on_window_event(const window_event& ev);
+
+		// -----------------------------------------------------------------------------
+		// accessors
+		// -----------------------------------------------------------------------------
 
 		inline uint32 get_output_gpu_index(uint8 frame_index) const
 		{
@@ -92,13 +105,13 @@ namespace SFG
 		{
 			buffer buf_gui_vtx		   = {};
 			buffer buf_gui_idx		   = {};
-			buffer buf_pass_data   = {};
+			buffer buf_pass_data	   = {};
 			uint32 rt_console_index	   = 0;
 			uint32 rt_fullscreen_index = 0;
 			uint32 counter_vtx		   = 0;
 			uint32 counter_idx		   = 0;
 			gfx_id rt_console		   = 0;
-			gfx_id rt_post	   = 0;
+			gfx_id rt_post			   = 0;
 			uint16 draw_call_count	   = 0;
 
 			inline void reset()
