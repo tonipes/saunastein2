@@ -131,7 +131,7 @@ namespace SFG
 		{
 			static_vector<atlas_ref, 4> atlases;
 			texture_queue*				texture_queue = nullptr;
-			vector2ui16					window_size	  = vector2ui16::zero;
+			vector2ui16					screen_size	  = vector2ui16::zero;
 			uint64						frame_counter = 0;
 			uint8						frame_index	  = 0;
 		};

@@ -1119,6 +1119,11 @@ namespace vekt
 		V_ERR("vekt::remove_input_layer -> No input layer with the given priority exists! priority: %d", priority);
 	}
 
+	void builder::add_line(const line_props& p)
+	{
+
+	}
+
 	void builder::add_filled_rect(const rect_props& props)
 	{
 		draw_buffer* db = get_draw_buffer(props.gfx.draw_order, props.gfx.user_data);

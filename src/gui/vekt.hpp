@@ -994,6 +994,9 @@ namespace vekt
 	{
 
 	public:
+		struct line_props
+		{
+		};
 		struct rect_props
 		{
 			const widget_gfx& gfx;
@@ -1074,6 +1077,7 @@ namespace vekt
 		input_event_result on_key_event(const key_event& ev);
 		void			   add_input_layer(unsigned int priority, id root);
 		void			   remove_input_layer(unsigned int priority);
+		void			   add_line(const line_props& p);
 		void			   add_filled_rect(const rect_props& props);
 		void			   add_filled_rect_aa(const rect_props& props);
 		void			   add_filled_rect_outline(const rect_props& props);

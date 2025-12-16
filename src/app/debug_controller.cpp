@@ -347,7 +347,7 @@ namespace SFG
 		_text_allocator.init(100000);
 		_gfx_data.texture_queue = texture_queue;
 		_gfx_data.rt_size		= vector2ui16(screen_size.x, screen_size.y / 2);
-		_gfx_data.window_size	= vector2ui16(screen_size.x, screen_size.y);
+		_gfx_data.screen_size	= vector2ui16(screen_size.x, screen_size.y);
 
 		gfx_backend* backend = gfx_backend::get();
 
@@ -1222,7 +1222,7 @@ namespace SFG
 	{
 		gfx_backend* backend  = gfx_backend::get();
 		_gfx_data.rt_size	  = vector2ui16(size.x, size.y / 2);
-		_gfx_data.window_size = vector2ui16(size.x, size.y);
+		_gfx_data.screen_size = vector2ui16(size.x, size.y);
 
 		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{

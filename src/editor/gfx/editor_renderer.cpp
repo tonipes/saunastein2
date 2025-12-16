@@ -25,7 +25,7 @@ namespace SFG
 	void editor_renderer::init(texture_queue* texture_queue, const vector2ui16& screen_size)
 	{
 		_gfx_data.texture_queue = texture_queue;
-		_gfx_data.window_size	= screen_size;
+		_gfx_data.screen_size	= screen_size;
 
 		create_textures(screen_size);
 
@@ -139,7 +139,7 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 
 		const gui_pass_view view = {
-			.proj		   = matrix4x4::ortho_reverse_z(0, static_cast<float>(_gfx_data.window_size.x), 0, static_cast<float>(_gfx_data.window_size.y), 0.0f, 1.0f),
+			.proj		   = matrix4x4::ortho_reverse_z(0, static_cast<float>(_gfx_data.screen_size.x), 0, static_cast<float>(_gfx_data.screen_size.y), 0.0f, 1.0f),
 			.sdf_thickness = 0.5f,
 			.sdf_softness  = 0.02f,
 		};
@@ -149,9 +149,9 @@ namespace SFG
 		// flush commands and draw gui here.
 		// -----------------------------------------------------------------------------
 
-		_builder->build_begin(vector2(_gfx_data.window_size.x, _gfx_data.window_size.y));
+		_builder->build_begin(vector2(_gfx_data.screen_size.x, _gfx_data.screen_size.y));
 
-		_gui_world_overlays.draw(_builder);
+		_gui_world_overlays.draw(_builder, _gfx_data.screen_size);
 
 		_builder->build_end();
 		_builder->flush();
@@ -324,10 +324,10 @@ namespace SFG
 
 	void editor_renderer::resize(const vector2ui16& size)
 	{
-		if (_gfx_data.window_size == size)
+		if (_gfx_data.screen_size == size)
 			return;
 
-		_gfx_data.window_size = size;
+		_gfx_data.screen_size = size;
 
 		destroy_textures();
 		create_textures(size);
