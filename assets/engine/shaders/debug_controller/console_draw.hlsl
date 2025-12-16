@@ -42,8 +42,8 @@ float4 PSMain(VSOutput IN) : SV_TARGET
 	float2 screen_size = float2(float(sfg_object_constant1), float(sfg_object_constant2));
 
     // --- Barrel distortion ---
-	const float distortionAmount = 0.0045f;
-	const float baseAberration = 0.003; 
+	const float distortionAmount = 0.0065f;
+	const float baseAberration = 0.006; 
 	
 	float2 centeredUV = uv * 2.0f - 1.0f;
 	float r2 = dot(centeredUV, centeredUV);
@@ -61,7 +61,7 @@ float4 PSMain(VSOutput IN) : SV_TARGET
 	float red = sample_red.r;
 	float green = txt_render_target.SampleLevel(sampler_base, uvG, 0).g;
 	float blue = txt_render_target.SampleLevel(sampler_base, uvB, 0).b;
-	float4 color = float4(red, green, blue, sample_red.a);
+	float3 color = float3(red, green, blue);
 	
 	float falloff = dot(centeredUV, centeredUV); // r^2 falloff
 	float shading = saturate(1.0 - falloff * 0.15); // tweak 0.75 for how fast it darkens
@@ -69,10 +69,10 @@ float4 PSMain(VSOutput IN) : SV_TARGET
 	
     // --- Scanlines ---
 	float pixel_y = IN.uv.y * screen_size.y;
-	if ((int) pixel_y % 2 == 0)
+	if ((int) pixel_y % 3 == 0)
 	{
 		color.rgb *= 0.5;
 	}
 
-	return color;
+	return float4(color.rgb, sample_red.a);
 }

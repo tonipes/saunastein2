@@ -428,19 +428,6 @@ namespace SFG
 
 			rm->_world.get_render_stream().add_event({.event_type = render_event_type::reload_shader}, ev);
 		}
-		else if (w.type_id == type_id<texture>::value)
-		{
-			const render_event_resource_reloaded ev = {
-				.prev_id = prev_handle.index,
-				.new_id	 = new_handle.index,
-			};
-
-			rm->_world.get_render_stream().add_event({.event_type = render_event_type::reload_texture}, ev);
-		}
-		else if (w.type_id == type_id<texture_sampler>::value)
-		{
-			SFG_ASSERT(false);
-		}
 		else if (w.type_id == type_id<model>::value)
 		{
 			vector<resource_handle> new_sub_handles;
@@ -470,6 +457,11 @@ namespace SFG
 					continue;
 				mi.instantiate_model_to_world(rm->_world, w.base_handle);
 			}
+		}
+		else
+		{
+			SFG_WARN("Reloading of this resource type is not supported yet: {0}", path);
+			return;
 		}
 
 		SFG_INFO("Reloaded resource: {0}", path);

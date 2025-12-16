@@ -98,7 +98,7 @@ namespace SFG
 			uint32 counter_vtx		   = 0;
 			uint32 counter_idx		   = 0;
 			gfx_id rt_console		   = 0;
-			gfx_id rt_fullscreen	   = 0;
+			gfx_id rt_post	   = 0;
 			uint16 draw_call_count	   = 0;
 
 			inline void reset()

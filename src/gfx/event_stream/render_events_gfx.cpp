@@ -85,9 +85,7 @@ namespace SFG
 	void render_event_material::serialize(ostream& stream) const
 	{
 		const uint32 txt_sz = static_cast<uint32>(textures.size());
-		const uint32 smp_sz = static_cast<uint32>(samplers.size());
 		stream << txt_sz;
-		stream << smp_sz;
 		stream << flags;
 		stream << shader_index;
 		stream << priority;
@@ -98,11 +96,8 @@ namespace SFG
 			stream << h.generation;
 		}
 
-		for (resource_handle h : samplers)
-		{
-			stream << h.index;
-			stream << h.generation;
-		}
+		stream << sampler.index;
+		stream << sampler.generation;
 
 #ifndef SFG_STRIP_DEBUG_NAMES
 		stream << name;
@@ -116,14 +111,11 @@ namespace SFG
 	void render_event_material::deserialize(istream& stream)
 	{
 		uint32 txt_sz = 0;
-		uint32 smp_sz = 0;
 		stream >> txt_sz;
-		stream >> smp_sz;
 		stream >> flags;
 		stream >> shader_index;
 		stream >> priority;
 		textures.resize(txt_sz);
-		samplers.resize(smp_sz);
 
 		for (uint32 i = 0; i < txt_sz; i++)
 		{
@@ -132,12 +124,8 @@ namespace SFG
 			stream >> h.generation;
 		}
 
-		for (uint32 i = 0; i < smp_sz; i++)
-		{
-			resource_handle& h = samplers[i];
-			stream >> h.index;
-			stream >> h.generation;
-		}
+		stream >> sampler.index;
+		stream >> sampler.generation;
 
 #ifndef SFG_STRIP_DEBUG_NAMES
 		stream >> name;
@@ -264,6 +252,16 @@ namespace SFG
 		stream >> root_index;
 		stream >> nodes;
 		stream >> matrices;
+	}
+
+	void render_event_update_material_sampler::serialize(ostream& stream) const
+	{
+		stream << sampler;
+	}
+
+	void render_event_update_material_sampler::deserialize(istream& stream)
+	{
+		stream >> sampler;
 	}
 
 }

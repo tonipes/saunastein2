@@ -67,6 +67,11 @@ namespace SFG
 			return _materials->get(idx);
 		}
 
+		inline render_proxy_material_runtime& get_material_runtime(resource_id idx)
+		{
+			return _material_runtimes->get(idx);
+		}
+
 		inline render_proxy_entity& get_entity(world_id idx)
 		{
 			return _entities->get(idx);
@@ -135,6 +140,11 @@ namespace SFG
 		inline auto get_materials()
 		{
 			return _materials;
+		}
+
+		inline auto get_material_runtimes()
+		{
+			return _material_runtimes;
 		}
 
 		inline auto get_canvases()
@@ -236,40 +246,42 @@ namespace SFG
 		buffer_queue&  _buffer_queue;
 		texture_queue& _texture_queue;
 
-		using textures_type		  = pool_allocator_simple<render_proxy_texture, MAX_WORLD_TEXTURES>;
-		using samplers_type		  = pool_allocator_simple<render_proxy_sampler, MAX_WORLD_SAMPLERS>;
-		using materials_type	  = pool_allocator_simple<render_proxy_material, MAX_WORLD_MATERIALS>;
-		using shaders_type		  = pool_allocator_simple<render_proxy_shader, MAX_WORLD_SHADERS>;
-		using meshes_type		  = pool_allocator_simple<render_proxy_mesh, MAX_WORLD_MESHES>;
-		using skins_type		  = pool_allocator_simple<render_proxy_skin, MAX_WORLD_SKINS>;
-		using models_type		  = pool_allocator_simple<render_proxy_model, MAX_WORLD_MODELS>;
-		using entity_type		  = pool_allocator_simple<render_proxy_entity, MAX_ENTITIES>;
-		using mesh_instances_type = pool_allocator_simple<render_proxy_mesh_instance, MAX_WORLD_COMP_MESH_INSTANCES>;
-		using cameras_type		  = pool_allocator_simple<render_proxy_camera, MAX_WORLD_COMP_CAMERAS>;
-		using ambients_type		  = pool_allocator_simple<render_proxy_ambient, MAX_WORLD_COMP_AMBIENT>;
-		using point_lights_type	  = pool_allocator_simple<render_proxy_point_light, MAX_WORLD_COMP_POINT_LIGHTS>;
-		using spot_lights_type	  = pool_allocator_simple<render_proxy_spot_light, MAX_WORLD_COMP_SPOT_LIGHTS>;
-		using dir_lights_type	  = pool_allocator_simple<render_proxy_dir_light, MAX_WORLD_COMP_DIR_LIGHTS>;
-		using canvas_type		  = pool_allocator_simple<render_proxy_canvas, MAX_WORLD_COMP_CANVAS>;
+		using textures_type			 = pool_allocator_simple<render_proxy_texture, MAX_WORLD_TEXTURES>;
+		using samplers_type			 = pool_allocator_simple<render_proxy_sampler, MAX_WORLD_SAMPLERS>;
+		using materials_type		 = pool_allocator_simple<render_proxy_material, MAX_WORLD_MATERIALS>;
+		using material_runtimes_type = pool_allocator_simple<render_proxy_material_runtime, MAX_WORLD_MATERIALS>;
+		using shaders_type			 = pool_allocator_simple<render_proxy_shader, MAX_WORLD_SHADERS>;
+		using meshes_type			 = pool_allocator_simple<render_proxy_mesh, MAX_WORLD_MESHES>;
+		using skins_type			 = pool_allocator_simple<render_proxy_skin, MAX_WORLD_SKINS>;
+		using models_type			 = pool_allocator_simple<render_proxy_model, MAX_WORLD_MODELS>;
+		using entity_type			 = pool_allocator_simple<render_proxy_entity, MAX_ENTITIES>;
+		using mesh_instances_type	 = pool_allocator_simple<render_proxy_mesh_instance, MAX_WORLD_COMP_MESH_INSTANCES>;
+		using cameras_type			 = pool_allocator_simple<render_proxy_camera, MAX_WORLD_COMP_CAMERAS>;
+		using ambients_type			 = pool_allocator_simple<render_proxy_ambient, MAX_WORLD_COMP_AMBIENT>;
+		using point_lights_type		 = pool_allocator_simple<render_proxy_point_light, MAX_WORLD_COMP_POINT_LIGHTS>;
+		using spot_lights_type		 = pool_allocator_simple<render_proxy_spot_light, MAX_WORLD_COMP_SPOT_LIGHTS>;
+		using dir_lights_type		 = pool_allocator_simple<render_proxy_dir_light, MAX_WORLD_COMP_DIR_LIGHTS>;
+		using canvas_type			 = pool_allocator_simple<render_proxy_canvas, MAX_WORLD_COMP_CANVAS>;
 
 		destroy_bucket _destroy_bucket[BACK_BUFFER_COUNT + 1];
 
-		chunk_allocator32	 _aux_memory;
-		textures_type*		 _textures		 = nullptr;
-		samplers_type*		 _samplers		 = nullptr;
-		materials_type*		 _materials		 = nullptr;
-		shaders_type*		 _shaders		 = nullptr;
-		meshes_type*		 _meshes		 = nullptr;
-		skins_type*			 _skins			 = nullptr;
-		models_type*		 _models		 = nullptr;
-		entity_type*		 _entities		 = nullptr;
-		mesh_instances_type* _mesh_instances = nullptr;
-		cameras_type*		 _cameras		 = nullptr;
-		ambients_type*		 _ambients		 = nullptr;
-		point_lights_type*	 _point_lights	 = nullptr;
-		spot_lights_type*	 _spot_lights	 = nullptr;
-		dir_lights_type*	 _dir_lights	 = nullptr;
-		canvas_type*		 _canvases		 = nullptr;
+		chunk_allocator32		_aux_memory;
+		textures_type*			_textures		   = nullptr;
+		samplers_type*			_samplers		   = nullptr;
+		materials_type*			_materials		   = nullptr;
+		material_runtimes_type* _material_runtimes = nullptr;
+		shaders_type*			_shaders		   = nullptr;
+		meshes_type*			_meshes			   = nullptr;
+		skins_type*				_skins			   = nullptr;
+		models_type*			_models			   = nullptr;
+		entity_type*			_entities		   = nullptr;
+		mesh_instances_type*	_mesh_instances	   = nullptr;
+		cameras_type*			_cameras		   = nullptr;
+		ambients_type*			_ambients		   = nullptr;
+		point_lights_type*		_point_lights	   = nullptr;
+		spot_lights_type*		_spot_lights	   = nullptr;
+		dir_lights_type*		_dir_lights		   = nullptr;
+		canvas_type*			_canvases		   = nullptr;
 
 		world_id _main_camera_trait	  = NULL_WORLD_ID;
 		uint32	 _peak_mesh_instances = 0;

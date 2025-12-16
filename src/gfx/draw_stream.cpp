@@ -58,8 +58,8 @@ namespace SFG
 			backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)&draw.entity_world_id, .offset = constant_index_object_constant2, .count = 1, .param_index = rpi_constants});
 #endif
 
-			const uint32 mat_constants[2] = {draw.material_constant_index, draw.texture_constant_index};
-			backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)mat_constants, .offset = constant_index_mat_constant0, .count = 2, .param_index = rpi_constants});
+			const uint32 mat_constants[3] = {draw.material_constant_index, draw.texture_constant_index, draw.sampler_constant_index};
+			backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)mat_constants, .offset = constant_index_mat_constant0, .count = 3, .param_index = rpi_constants});
 			backend->cmd_draw_indexed_instanced(cmd_buffer,
 												{
 													.index_count_per_instance = draw.index_count,
@@ -133,8 +133,8 @@ namespace SFG
 			backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)&draw.entity_world_id, .offset = constant_index_object_constant2, .count = 1, .param_index = rpi_constants});
 #endif
 
-			const uint32 mat_constants[2] = {draw.material_constant_index, draw.texture_constant_index};
-			backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)mat_constants, .offset = constant_index_mat_constant0, .count = 2, .param_index = rpi_constants});
+			const uint32 mat_constants[3] = {draw.material_constant_index, draw.texture_constant_index, draw.sampler_constant_index};
+			backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)mat_constants, .offset = constant_index_mat_constant0, .count = 3, .param_index = rpi_constants});
 			backend->cmd_draw_indexed_instanced(cmd_buffer,
 												{
 													.index_count_per_instance = draw.index_count,

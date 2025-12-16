@@ -39,7 +39,13 @@ float4 PSMain(VSOutput IN) : SV_TARGET
 	Texture2D txt_debug_controller = sfg_get_texture<Texture2D>(sfg_rp_constant0);
 	Texture2D txt_world = sfg_get_texture<Texture2D>(sfg_rp_constant1);
 
-	float4 color_debug_controller = txt_debug_controller.SampleLevel(sampler_base, IN.uv, 0);
+	float2 debug_controller_uv = float2(IN.uv.x, IN.uv.y * 2);
+	float4 color_debug_controller = txt_debug_controller.SampleLevel(sampler_base, debug_controller_uv, 0);
 	float4 color_world = txt_world.SampleLevel(sampler_base, IN.uv, 0);
-	return color_debug_controller + color_world;
+
+	if(IN.uv.y < 0.5)
+	return color_debug_controller + color_world * (1.0f - color_debug_controller.w);
+
+	return color_world;
+
 }

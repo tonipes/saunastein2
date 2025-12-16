@@ -41,17 +41,12 @@ namespace SFG
 		// accessors
 		// -----------------------------------------------------------------------------
 
-		void set_values(world& w, const color& c, float range, float intensity);
+		void set_values(world& w, const color& c, float intensity);
 		void set_shadow_values(world& w, uint8 cast_shadows, const vector2ui16& resolution);
 
 		inline const color& get_color() const
 		{
 			return _base_color;
-		}
-
-		inline float get_range() const
-		{
-			return _range;
 		}
 
 		inline float get_intensity() const
@@ -68,7 +63,6 @@ namespace SFG
 		component_header _header			= {};
 		color			 _base_color		= color::white;
 		vector2ui16		 _shadow_resolution = vector2ui16(256, 256);
-		float			 _range				= 0.0f;
 		float			 _intensity			= 0.0f;
 		uint8			 _cast_shadows		= 0;
 	};

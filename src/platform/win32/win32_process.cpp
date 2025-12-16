@@ -121,26 +121,44 @@ namespace SFG
 		EnumDisplayMonitors(NULL, NULL, enumerate_monitors, (LPARAM)&out);
 	}
 
-	char process::get_character_from_key(uint32 key)
+	char process::get_character_from_key(uint32 vk)
 	{
-		BYTE keyboard_states[256];
-		if (!GetKeyboardState(keyboard_states))
+		BYTE ks[256];
+		if (!GetKeyboardState(ks))
 			return 0;
 
-		SHORT shiftState = GetAsyncKeyState(VK_SHIFT);
-		if ((shiftState & 0x8000) != 0) // High bit set = key is down
+		// Don’t mix with GetAsyncKeyState; instead ensure ks contains what you want.
+		// If you really want live state, patch ALL modifiers consistently:
+		auto patch = [&](int vkey) {
+			if (GetAsyncKeyState(vkey) & 0x8000)
+				ks[vkey] |= 0x80;
+			else
+				ks[vkey] &= ~0x80;
+		};
+
+		patch(VK_SHIFT);
+		patch(VK_CONTROL);
+		patch(VK_MENU); // Alt
+
+		HKL layout = GetKeyboardLayout(0);
+
+		UINT sc = MapVirtualKeyExW(vk, MAPVK_VK_TO_VSC, layout);
+
+		wchar_t buf[8] = {};
+		int		rc	   = ToUnicodeEx(vk, sc, ks, buf, (int)std::size(buf), 0, layout);
+
+		if (rc == -1)
 		{
-			keyboard_states[VK_SHIFT] |= 0x80;
+			// Dead key: flush state so next call isn't affected
+			wchar_t dummy[8];
+			ToUnicodeEx(vk, sc, ks, dummy, (int)std::size(dummy), 0, layout);
+			return 0;
 		}
 
-		UINT  scan_code = MapVirtualKeyEx(key, MAPVK_VK_TO_VSC, GetKeyboardLayout(0));
-		WCHAR buffer[4] = {};
-		int	  result	= ToUnicodeEx(key, scan_code, keyboard_states, buffer, ARRAYSIZE(buffer), 0, GetKeyboardLayout(0));
+		if (rc > 0)
+			return buf[0];
 
-		if (result == 1)
-			return static_cast<char>(buffer[0]); // Return ASCII character
-		else
-			return '\0'; // Non-printable or failed
+		return 0;
 	}
 
 	uint16 SFG::process::get_character_mask_from_key(uint32 keycode, char ch)

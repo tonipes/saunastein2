@@ -140,12 +140,8 @@ namespace SFG
 				ev.materials.push_back(sub_handle.index);
 				material& created = rm.get_resource<material>(sub_handle);
 
-				resource_handle			sampler_handle	= {};
-				vector<resource_handle> sampler_handles = {};
-				for (const sampler_desc& desc : loaded.sampler_definitions)
-					sampler_handles.push_back(rm.get_or_add_sampler(desc));
-
-				created.create_from_loader(loaded, w, sub_handle, sampler_handles);
+				const resource_handle sampler_handle = rm.get_or_add_sampler(loaded.sampler_definition);
+				created.create_from_loader(loaded, w, sub_handle, sampler_handle);
 			}
 		}
 
@@ -186,7 +182,6 @@ namespace SFG
 		if (!_flags.is_set(model::flags::created))
 			return;
 		_flags.remove(model::flags::created);
-
 
 		render_event_stream& stream = w.get_render_stream();
 		resource_manager&	 rm		= w.get_resource_manager();

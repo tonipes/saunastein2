@@ -22,7 +22,7 @@ namespace SFG
 		SFG_ASSERT(!_flags.is_set(material_flags::material_flags_created));
 	}
 
-	void material::create_from_loader(const material_raw& raw, world& w, resource_handle handle, const vector<resource_handle>& samplers)
+	void material::create_from_loader(const material_raw& raw, world& w, resource_handle handle, resource_handle sampler)
 	{
 		SFG_ASSERT(!_flags.is_set(material_flags::material_flags_created));
 		_flags.set(material_flags::material_flags_created);
@@ -54,9 +54,7 @@ namespace SFG
 		stg.data.size = _material_data.get_size();
 		stg.flags	  = _flags.value();
 		stg.priority  = raw.draw_priority;
-
-		for (const resource_handle& h : samplers)
-			stg.samplers.push_back(h);
+		stg.sampler	  = sampler;
 
 		for (string_id sid : raw.textures)
 		{
@@ -76,7 +74,6 @@ namespace SFG
 				.event_type = render_event_type::create_material,
 			},
 			stg);
-
 	}
 
 	void material::destroy(world& w, resource_handle handle)
@@ -109,5 +106,17 @@ namespace SFG
 			.index		= static_cast<uint32>(handle.index),
 			.event_type = render_event_type::update_material,
 		});
+	}
+	void material::update_sampler(world& w, resource_handle material_own_handle, resource_handle sampler)
+	{
+		render_event_update_material_sampler ev = {};
+		ev.sampler								= sampler.index;
+
+		w.get_render_stream().add_event(
+			{
+				.index		= static_cast<uint32>(material_own_handle.index),
+				.event_type = render_event_type::update_material_sampler,
+			},
+			ev);
 	}
 }

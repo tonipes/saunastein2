@@ -85,11 +85,19 @@ namespace SFG
 		string name = "";
 #endif
 		static_vector<resource_handle, MAX_MATERIAL_TEXTURES> textures;
-		static_vector<resource_handle, MAX_MATERIAL_TEXTURES> samplers;
-		span<uint8>											  data = {};
+		resource_handle										  sampler = {};
+		span<uint8>											  data	  = {};
 		uint32												  flags;
 		resource_id											  shader_index;
 		uint16												  priority = 0;
+
+		void serialize(ostream& stream) const;
+		void deserialize(istream& stream);
+	};
+
+	struct render_event_update_material_sampler
+	{
+		resource_id sampler = {};
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);

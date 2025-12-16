@@ -10,7 +10,7 @@
             {
                 "format":"r8g8b8a8_srgb",
                 "blend_attachment":{
-                    "blend_enabled": true,
+                    "blend_enabled": false,
                     "src_color_blend_factor": "src_alpha",
                     "dst_color_blend_factor": "one_minus_src_alpha",
                     "color_blend_op": "add",

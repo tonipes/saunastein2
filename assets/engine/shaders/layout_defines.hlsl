@@ -2,15 +2,16 @@
 #define constants_cbv register(b1, space0)
 
 #define static_sampler_anisotropic register(s0, space0)
-#define static_sampler_linear register(s1, space0)
-#define static_sampler_linear_repeat register(s2, space0)
-#define static_sampler_nearest register(s3, space0)
-#define static_sampler_nearest_repeat register(s4, space0)
+#define static_sampler_anisotropic_repeat register(s1, space0)
+#define static_sampler_linear register(s2, space0)
+#define static_sampler_linear_repeat register(s3, space0)
+#define static_sampler_nearest register(s4, space0)
+#define static_sampler_nearest_repeat register(s5, space0)
 
-#define static_sampler_gui_default register(s5, space0)
-#define static_sampler_gui_text register(s6, space0)
-#define static_sampler_shadow_2d register(s7, space0)
-#define static_sampler_shadow_cube register(s8, space0)
+#define static_sampler_gui_default register(s6, space0)
+#define static_sampler_gui_text register(s7, space0)
+#define static_sampler_shadow_2d register(s8, space0)
+#define static_sampler_shadow_cube register(s9, space0)
 
 cbuffer sfg_globals : register(b0, space0)
 {

@@ -129,7 +129,7 @@ namespace SFG
 
 		const chunk_handle32   skins	   = mdl.get_created_skins();
 		const uint16		   skins_count = mdl.get_skin_count();
-		const resource_handle* skins_ptr   = res_aux.get<resource_handle>(skins);
+		const resource_handle* skins_ptr   = skins_count == 0 ? nullptr : res_aux.get<resource_handle>(skins);
 		vector<world_handle>   skin_entities;
 		for (uint16 i = 0; i < skins_count; i++)
 		{
@@ -149,12 +149,15 @@ namespace SFG
 		// store the skin entities
 		// -----------------------------------------------------------------------------
 
-		_skin_entities_count			= static_cast<uint16>(skin_entities.size());
-		_skin_entities					= cm_aux.allocate<world_handle>(_skin_entities_count);
-		world_handle* skin_entities_ptr = cm_aux.get<world_handle>(_skin_entities);
-		for (uint32 i = 0; i < _skin_entities_count; i++)
+		_skin_entities_count = static_cast<uint16>(skin_entities.size());
+		if (_skin_entities_count > 0)
 		{
-			skin_entities_ptr[i] = skin_entities[i];
+			_skin_entities					= cm_aux.allocate<world_handle>(_skin_entities_count);
+			world_handle* skin_entities_ptr = cm_aux.get<world_handle>(_skin_entities);
+			for (uint32 i = 0; i < _skin_entities_count; i++)
+			{
+				skin_entities_ptr[i] = skin_entities[i];
+			}
 		}
 
 		// -----------------------------------------------------------------------------
@@ -231,7 +234,7 @@ namespace SFG
 				{
 					const world_handle light_handle = cm.add_component<comp_dir_light>(entity);
 					comp_dir_light&	   comp_light	= cm.get_component<comp_dir_light>(light_handle);
-					comp_light.set_values(w, lr.base_color, lr.range, lr.intensity);
+					comp_light.set_values(w, lr.base_color, lr.intensity);
 				}
 			}
 

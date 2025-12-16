@@ -58,10 +58,9 @@ namespace SFG
 		stream >> _base_color;
 	}
 
-	void comp_dir_light::set_values(world& w, const color& c, float range, float intensity)
+	void comp_dir_light::set_values(world& w, const color& c, float intensity)
 	{
 		_base_color = c;
-		_range		= range;
 		_intensity	= intensity;
 		send_event(w);
 	}

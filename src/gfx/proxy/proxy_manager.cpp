@@ -24,21 +24,22 @@ namespace SFG
 
 	proxy_manager::proxy_manager(buffer_queue& b, texture_queue& t) : _buffer_queue(b), _texture_queue(t)
 	{
-		_textures		= new textures_type();
-		_samplers		= new samplers_type();
-		_materials		= new materials_type();
-		_shaders		= new shaders_type();
-		_meshes			= new meshes_type();
-		_skins			= new skins_type();
-		_models			= new models_type();
-		_entities		= new entity_type();
-		_mesh_instances = new mesh_instances_type();
-		_cameras		= new cameras_type();
-		_ambients		= new ambients_type();
-		_point_lights	= new point_lights_type();
-		_spot_lights	= new spot_lights_type();
-		_dir_lights		= new dir_lights_type();
-		_canvases		= new canvas_type();
+		_textures		   = new textures_type();
+		_samplers		   = new samplers_type();
+		_materials		   = new materials_type();
+		_material_runtimes = new material_runtimes_type();
+		_shaders		   = new shaders_type();
+		_meshes			   = new meshes_type();
+		_skins			   = new skins_type();
+		_models			   = new models_type();
+		_entities		   = new entity_type();
+		_mesh_instances	   = new mesh_instances_type();
+		_cameras		   = new cameras_type();
+		_ambients		   = new ambients_type();
+		_point_lights	   = new point_lights_type();
+		_spot_lights	   = new spot_lights_type();
+		_dir_lights		   = new dir_lights_type();
+		_canvases		   = new canvas_type();
 	}
 
 	proxy_manager::~proxy_manager()
@@ -46,6 +47,7 @@ namespace SFG
 		delete _textures;
 		delete _samplers;
 		delete _materials;
+		delete _material_runtimes;
 		delete _shaders;
 		delete _meshes;
 		delete _skins;
@@ -65,6 +67,7 @@ namespace SFG
 		_textures->reset();
 		_samplers->reset();
 		_materials->reset();
+		_material_runtimes->reset();
 		_shaders->reset();
 		_meshes->reset();
 		_skins->reset();
@@ -758,6 +761,13 @@ namespace SFG
 				.texture_format = static_cast<format>(ev.format),
 				.size			= ev.size,
 				.flags			= texture_flags::tf_is_2d | texture_flags::tf_sampled,
+				.views			= {{
+							 .type			 = view_type::sampled,
+							 .base_arr_level = 0,
+							 .level_count	 = 1,
+							 .base_mip_level = 0,
+							 .mip_count		 = static_cast<uint8>(ev.buffers.size()),
+				 }},
 				.mip_levels		= static_cast<uint8>(ev.buffers.size()),
 				.array_length	= 1,
 				.samples		= 1,
@@ -780,110 +790,6 @@ namespace SFG
 		{
 			render_proxy_texture& proxy = get_texture(index);
 			destroy_texture(proxy);
-		}
-		else if (type == render_event_type::reload_texture)
-		{
-			render_event_resource_reloaded ev = {};
-			ev.deserialize(stream);
-			for (uint32 i = 0; i < MAX_WORLD_MATERIALS; i++)
-			{
-				render_proxy_material& mat = _materials->get(i);
-				if (mat.status != render_proxy_status::rps_active)
-					continue;
-
-				bool changed = false;
-				for (resource_id& txt : mat.texture_handles)
-				{
-					if (txt == ev.prev_id)
-					{
-						changed = true;
-						txt		= ev.new_id;
-					}
-				}
-
-				if (!changed)
-					continue;
-
-				ostream stream;
-
-				for (resource_id id : mat.texture_handles)
-				{
-					const render_proxy_texture& res = _textures->get(id);
-					SFG_ASSERT(res.status == render_proxy_status::rps_active);
-					stream << res.heap_index;
-				}
-
-				for (resource_id id : mat.sampler_handles)
-				{
-					const render_proxy_sampler& res = _samplers->get(id);
-					SFG_ASSERT(res.status == render_proxy_status::rps_active);
-					stream << res.heap_index;
-				}
-
-				for (uint8 j = 0; j < BACK_BUFFER_COUNT; j++)
-				{
-					_buffer_queue.add_request(
-						{
-							.buffer	   = &mat.buffers[j],
-							.data	   = stream.get_raw(),
-							.data_size = stream.get_size(),
-							.to_state  = resource_state::resource_state_vertex_cbv,
-						},
-						j);
-				}
-			}
-		}
-		else if (type == render_event_type::reload_sampler)
-		{
-			render_event_resource_reloaded ev = {};
-			ev.deserialize(stream);
-			for (uint32 i = 0; i < MAX_WORLD_MATERIALS; i++)
-			{
-				render_proxy_material& mat = _materials->get(i);
-				if (mat.status != render_proxy_status::rps_active)
-					continue;
-
-				bool changed = false;
-				for (resource_id& smp : mat.sampler_handles)
-				{
-					if (smp == ev.prev_id)
-					{
-						changed = true;
-						smp		= ev.new_id;
-					}
-				}
-
-				if (!changed)
-					continue;
-
-				ostream stream;
-
-				for (resource_id id : mat.texture_handles)
-				{
-					const render_proxy_texture& res = _textures->get(id);
-					SFG_ASSERT(res.status == render_proxy_status::rps_active);
-					stream << res.heap_index;
-				}
-
-				for (resource_id id : mat.sampler_handles)
-				{
-					const render_proxy_sampler& res = _samplers->get(id);
-					SFG_ASSERT(res.status == render_proxy_status::rps_active);
-					stream << res.heap_index;
-				}
-
-				for (uint8 j = 0; j < BACK_BUFFER_COUNT; j++)
-				{
-					_buffer_queue.add_request(
-						{
-							.buffer	   = &mat.buffers[j],
-							.data	   = stream.get_raw(),
-							.data_size = stream.get_size(),
-							.to_state  = resource_state::resource_state_vertex_cbv,
-						},
-						j);
-				}
-			}
 		}
 		else if (type == render_event_type::create_sampler)
 		{
@@ -940,33 +846,43 @@ namespace SFG
 			ev.deserialize(stream);
 			for (uint32 i = 0; i < MAX_WORLD_MATERIALS; i++)
 			{
-				render_proxy_material& mat = _materials->get(i);
+				render_proxy_material&		   mat = _materials->get(i);
+				render_proxy_material_runtime& rt  = get_material_runtime(i);
 				if (mat.status != render_proxy_status::rps_active)
 					continue;
 
-				if (mat.shader_handle == ev.prev_id)
-					mat.shader_handle = ev.new_id;
+				if (rt.shader_handle == ev.prev_id)
+					rt.shader_handle = ev.new_id;
 			}
+		}
+		else if (type == render_event_type::update_material_sampler)
+		{
+			render_event_update_material_sampler ev = {};
+			ev.deserialize(stream);
+
+			render_proxy_sampler& smp = get_sampler(ev.sampler);
+			SFG_ASSERT(smp.status == render_proxy_status::rps_active);
+
+			render_proxy_material& proxy = get_material(index);
+			SFG_ASSERT(proxy.status == render_proxy_status::rps_active);
+
+			render_proxy_material_runtime& runtime = get_material_runtime(index);
+			runtime.gpu_index_sampler			   = backend->get_sampler_gpu_index(smp.hw);
 		}
 		else if (type == render_event_type::create_material)
 		{
 			render_event_material ev = {};
 			ev.deserialize(stream);
 
-			render_proxy_material& proxy = get_material(index);
-			proxy.status				 = render_proxy_status::rps_active;
-			proxy.handle				 = index;
-			proxy.flags					 = ev.flags;
-			proxy.shader_handle			 = ev.shader_index;
-			proxy.draw_priority			 = ev.priority;
+			render_proxy_material&		   proxy   = get_material(index);
+			render_proxy_material_runtime& runtime = get_material_runtime(index);
+			proxy.status						   = render_proxy_status::rps_active;
+			proxy.handle						   = index;
+			runtime.flags						   = ev.flags;
+			runtime.shader_handle				   = ev.shader_index;
+			runtime.draw_priority				   = ev.priority;
 
-			for (resource_handle h : ev.textures)
-				proxy.texture_handles.push_back(h.index);
-
-			for (resource_handle h : ev.samplers)
-				proxy.sampler_handles.push_back(h.index);
-
-			if ((ev.samplers.empty() && !ev.textures.empty()) || (!ev.samplers.empty() && ev.textures.empty()))
+			if ((ev.sampler.is_null() && !ev.textures.empty()) || (!ev.sampler.is_null() && ev.textures.empty()))
 			{
 				SFG_ASSERT(false);
 			}
@@ -992,7 +908,7 @@ namespace SFG
 						});
 
 					proxy.buffers[i].buffer_data(0, ev.data.data, ev.data.size);
-					proxy.gpu_index_buffers[i] = backend->get_resource_gpu_index(proxy.buffers[i].get_hw_gpu());
+					runtime.gpu_index_buffers[i] = backend->get_resource_gpu_index(proxy.buffers[i].get_hw_gpu());
 
 					_buffer_queue.add_request({
 						.buffer	  = &proxy.buffers[i],
@@ -1000,7 +916,12 @@ namespace SFG
 					});
 				}
 
-				const uint32 texture_buffer_size = static_cast<uint32>(sizeof(gpu_index) * ev.textures.size() + sizeof(gpu_index) * ev.samplers.size());
+				const uint32 texture_buffer_size = static_cast<uint32>(sizeof(gpu_index) * ev.textures.size());
+
+				if (!ev.sampler.is_null())
+				{
+					runtime.gpu_index_sampler = backend->get_sampler_gpu_index(get_sampler(ev.sampler.index).hw);
+				}
 
 				if (texture_buffer_size != 0)
 				{
@@ -1020,7 +941,7 @@ namespace SFG
 #endif
 						});
 
-					proxy.gpu_index_texture_buffers[i] = backend->get_resource_gpu_index(proxy.texture_buffers[i].get_hw_gpu());
+					runtime.gpu_index_texture_buffers[i] = backend->get_resource_gpu_index(proxy.texture_buffers[i].get_hw_gpu());
 
 					size_t offset = 0;
 
@@ -1029,14 +950,6 @@ namespace SFG
 						const render_proxy_texture& txt = get_texture(txt_handle.index);
 						SFG_ASSERT(txt.status == render_proxy_status::rps_active);
 						proxy.texture_buffers[i].buffer_data(offset, &txt.heap_index, sizeof(gpu_index));
-						offset += sizeof(gpu_index);
-					}
-
-					for (resource_handle smp_handle : ev.samplers)
-					{
-						const render_proxy_sampler& smp = get_sampler(smp_handle.index);
-						SFG_ASSERT(smp.status == render_proxy_status::rps_active);
-						proxy.texture_buffers[i].buffer_data(offset, &smp.heap_index, sizeof(gpu_index));
 						offset += sizeof(gpu_index);
 					}
 
@@ -1344,7 +1257,7 @@ namespace SFG
 		for (uint8 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
 			const uint8 safe_bucket = (frame_info::get_render_frame() + i) % (BACK_BUFFER_COUNT + 1);
-			if (!proxy.texture_handles.empty())
+			if (proxy.texture_buffers[i].get_hw_gpu() != NULL_GFX_ID)
 			{
 				add_to_destroy_bucket({.id = proxy.texture_buffers[i].get_hw_staging(), .type = destroy_data_type::resource}, safe_bucket);
 				add_to_destroy_bucket({.id = proxy.texture_buffers[i].get_hw_gpu(), .type = destroy_data_type::resource}, safe_bucket);

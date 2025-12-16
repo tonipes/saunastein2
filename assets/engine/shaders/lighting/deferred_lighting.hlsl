@@ -269,7 +269,7 @@ float4 PSMain(vs_output IN) : SV_TARGET
         gpu_entity e = entity_buffer[uint(light.color_entity_index.w)];
         float3 light_col = light.color_entity_index.xyz;
 
-        float3 L = normalize(-e.forward.xyz);       
+        float3 L = normalize(e.forward.xyz);       
 
         float intensity = light.intensity.x; 
 
@@ -296,8 +296,7 @@ float4 PSMain(vs_output IN) : SV_TARGET
                     sd_curr.texel_world
                 );
         }
-
-         lighting += calculate_pbr(V, N, L, albedo, ao, roughness, metallic, radiance * shadow_vis);
+       lighting += calculate_pbr(V, N, L, albedo, ao, roughness, metallic, radiance * shadow_vis);
     }
 
     lighting += emissive;

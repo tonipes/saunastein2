@@ -33,18 +33,20 @@ namespace SFG
 
 	struct render_proxy_material
 	{
-		buffer											  buffers[BACK_BUFFER_COUNT];
-		buffer											  texture_buffers[BACK_BUFFER_COUNT]		   = {};
-		gpu_index										  gpu_index_buffers[BACK_BUFFER_COUNT]		   = {NULL_GPU_INDEX};
-		gpu_index										  gpu_index_texture_buffers[BACK_BUFFER_COUNT] = {NULL_GPU_INDEX};
-		static_vector<resource_id, MAX_MATERIAL_TEXTURES> texture_handles							   = NULL_RESOURCE_ID;
-		static_vector<resource_id, MAX_MATERIAL_TEXTURES> sampler_handles							   = NULL_RESOURCE_ID;
-		bitmask<uint32>									  flags										   = 0;
-		resource_id										  shader_handle								   = NULL_RESOURCE_ID;
-		uint16											  draw_priority								   = 0;
+		buffer		buffers[BACK_BUFFER_COUNT];
+		buffer		texture_buffers[BACK_BUFFER_COUNT] = {};
+		resource_id handle							   = {};
+		uint8		status							   = render_proxy_status::rps_inactive;
+	};
 
-		resource_id handle = {};
-		uint8		status = render_proxy_status::rps_inactive;
+	struct render_proxy_material_runtime
+	{
+		gpu_index		gpu_index_buffers[BACK_BUFFER_COUNT]		 = {NULL_GPU_INDEX};
+		gpu_index		gpu_index_texture_buffers[BACK_BUFFER_COUNT] = {NULL_GPU_INDEX};
+		gpu_index		gpu_index_sampler							 = NULL_GPU_INDEX;
+		bitmask<uint32> flags										 = 0;
+		resource_id		shader_handle								 = NULL_RESOURCE_ID;
+		uint16			draw_priority								 = 0;
 	};
 
 	struct render_proxy_shader_variant

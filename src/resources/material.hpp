@@ -24,7 +24,7 @@ namespace SFG
 		// resource
 		// -----------------------------------------------------------------------------
 
-		void create_from_loader(const material_raw& raw, world& w, resource_handle handle, const vector<resource_handle>& samplers = {});
+		void create_from_loader(const material_raw& raw, world& w, resource_handle handle, resource_handle sampler = {});
 		void destroy(world& w, resource_handle handle);
 
 		// -----------------------------------------------------------------------------
@@ -32,6 +32,7 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 
 		void update_data(world& w, resource_handle handle);
+		void update_sampler(world& w, resource_handle material_own_handle, resource_handle sampler);
 
 		// -----------------------------------------------------------------------------
 		// accessors

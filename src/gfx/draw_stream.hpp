@@ -18,6 +18,7 @@ namespace SFG
 		// state bindings
 		gpu_index material_constant_index = NULL_GPU_INDEX;
 		gpu_index texture_constant_index  = NULL_GPU_INDEX;
+		gpu_index sampler_constant_index  = NULL_GPU_INDEX;
 		gpu_index entity_constant_index	  = NULL_GPU_INDEX;
 		gpu_index bone_constant_index	  = NULL_GPU_INDEX;
 
@@ -44,6 +45,7 @@ namespace SFG
 		// state bindings
 		gpu_index material_constant_index = NULL_GPU_INDEX;
 		gpu_index texture_constant_index  = NULL_GPU_INDEX;
+		gpu_index sampler_constant_index  = NULL_GPU_INDEX;
 		gpu_index entity_constant_index	  = NULL_GPU_INDEX;
 		gpu_index bone_constant_index	  = NULL_GPU_INDEX;
 

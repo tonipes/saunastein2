@@ -515,6 +515,9 @@ namespace SFG
 				samplers.push_back({});
 				sampler_desc& raw = samplers.back();
 
+				raw.min_lod = 0.0f;
+				raw.max_lod = 10.0f;
+
 				bitmask<uint16> flags = 0;
 				if (min_filter == TINYGLTF_TEXTURE_FILTER_NEAREST)
 					flags.set(sampler_flags::saf_min_nearest);
@@ -608,12 +611,12 @@ namespace SFG
 				samplers.push_back({
 					.anisotropy = 0,
 					.min_lod	= 0.0f,
-					.max_lod	= 1.0f,
+					.max_lod	= 10.0f,
 					.lod_bias	= 0.0f,
 					.flags		= sampler_flags::saf_min_anisotropic | sampler_flags::saf_mag_anisotropic | sampler_flags::saf_mip_linear,
-					.address_u	= address_mode::clamp,
-					.address_v	= address_mode::clamp,
-					.address_w	= address_mode::clamp,
+					.address_u	= address_mode::repeat,
+					.address_v	= address_mode::repeat,
+					.address_w	= address_mode::repeat,
 				});
 			}
 
@@ -733,6 +736,8 @@ namespace SFG
 				raw.double_sided			  = tmat.doubleSided;
 				const float pad				  = 0.0f;
 
+				bool sampler_set = false;
+
 				if (raw.pass_mode == material_pass_mode::forward)
 				{
 					raw.material_data << base_color;
@@ -740,7 +745,7 @@ namespace SFG
 					raw.textures.resize(1);
 
 					if (base_index != -1)
-						raw.sampler_definitions.push_back(samplers.at(find_sampler(base_index)));
+						raw.sampler_definition = samplers.at(find_sampler(base_index));
 
 					raw.textures[0] = base_index == -1 ? DUMMY_COLOR_TEXTURE_SID : loaded_textures[loaded_indices.at(base_index)].sid;
 				}
@@ -759,16 +764,28 @@ namespace SFG
 					raw.material_data << emissive_tiling << emissive_offset;
 
 					if (base_index != -1)
-						raw.sampler_definitions.push_back(samplers.at(find_sampler(base_index)));
+					{
+						raw.sampler_definition = samplers.at(find_sampler(base_index));
+						sampler_set			   = true;
+					}
 
-					if (normal_index != -1)
-						raw.sampler_definitions.push_back(samplers.at(find_sampler(normal_index)));
+					if (normal_index != -1 && !sampler_set)
+					{
+						raw.sampler_definition = samplers.at(find_sampler(normal_index));
+						sampler_set			   = true;
+					}
 
-					if (orm_index != -1)
-						raw.sampler_definitions.push_back(samplers.at(find_sampler(orm_index)));
+					if (orm_index != -1 && !sampler_set)
+					{
+						raw.sampler_definition = samplers.at(find_sampler(orm_index));
+						sampler_set			   = true;
+					}
 
-					if (emissive_index != -1)
-						raw.sampler_definitions.push_back(samplers.at(find_sampler(emissive_index)));
+					if (emissive_index != -1 && !sampler_set)
+					{
+						raw.sampler_definition = samplers.at(find_sampler(emissive_index));
+						sampler_set			   = true;
+					}
 
 					raw.textures.resize(4);
 					raw.textures[0] = base_index == -1 ? DUMMY_COLOR_TEXTURE_SID : loaded_textures[loaded_indices.at(base_index)].sid;
@@ -777,9 +794,9 @@ namespace SFG
 					raw.textures[3] = emissive_index == -1 ? DUMMY_COLOR_TEXTURE_SID : loaded_textures[loaded_indices.at(emissive_index)].sid;
 				}
 
-				if (raw.sampler_definitions.empty())
+				if (!sampler_set)
 				{
-					raw.sampler_definitions.push_back(samplers.at(0));
+					raw.sampler_definition = samplers.at(0);
 				}
 
 				raw.shader = raw.pass_mode == material_pass_mode::gbuffer ? DEFAULT_OPAQUE_SHADER_SID : DEFAULT_FORWARD_SHADER_SID;

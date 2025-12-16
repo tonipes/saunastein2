@@ -81,12 +81,13 @@ namespace SFG
 	{
 		for (const renderable_object& obj : renderables)
 		{
-			const render_proxy_material& proxy_material = pm.get_material(obj.material);
+			const render_proxy_material_runtime& proxy_material = pm.get_material_runtime(obj.material);
 			if (!proxy_material.flags.is_all_set(required_material_flags))
 				continue;
 
 			const gpu_index gpu_index_mat		   = proxy_material.gpu_index_buffers[frame_index];
 			const gpu_index gpu_index_mat_textures = proxy_material.gpu_index_texture_buffers[frame_index];
+			const gpu_index gpu_index_mat_sampler  = proxy_material.gpu_index_sampler;
 			const gfx_id	base_shader			   = override_shader != NULL_GFX_ID ? override_shader : proxy_material.shader_handle;
 			const bitmask32 mat_flags			   = proxy_material.flags;
 			const bool		is_alpha_cutoff		   = mat_flags.is_set(material_flags::material_flags_is_alpha_cutoff);
@@ -106,6 +107,7 @@ namespace SFG
 				.base_vertex			 = obj.vertex_start,
 				.material_constant_index = gpu_index_mat,
 				.texture_constant_index	 = gpu_index_mat_textures,
+				.sampler_constant_index	 = gpu_index_mat_sampler,
 				.entity_constant_index	 = obj.gpu_entity,
 				.bone_constant_index	 = obj.bones_start_index,
 				.entity_world_id		 = obj.world_entity,
@@ -122,12 +124,13 @@ namespace SFG
 	{
 		for (const renderable_object& obj : renderables)
 		{
-			const render_proxy_material& proxy_material = pm.get_material(obj.material);
+			const render_proxy_material_runtime& proxy_material = pm.get_material_runtime(obj.material);
 			if (!proxy_material.flags.is_all_set(required_material_flags))
 				continue;
 
 			const gpu_index gpu_index_mat		   = proxy_material.gpu_index_buffers[frame_index];
 			const gpu_index gpu_index_mat_textures = proxy_material.gpu_index_texture_buffers[frame_index];
+			const gpu_index gpu_index_mat_sampler  = proxy_material.gpu_index_sampler;
 			const gfx_id	base_shader			   = override_shader != NULL_GFX_ID ? override_shader : proxy_material.shader_handle;
 			const bitmask32 mat_flags			   = proxy_material.flags;
 			const bool		is_alpha_cutoff		   = mat_flags.is_set(material_flags::material_flags_is_alpha_cutoff);
@@ -147,6 +150,7 @@ namespace SFG
 				.base_vertex			 = obj.vertex_start,
 				.material_constant_index = gpu_index_mat,
 				.texture_constant_index	 = gpu_index_mat_textures,
+				.sampler_constant_index	 = gpu_index_mat_sampler,
 				.entity_constant_index	 = obj.gpu_entity,
 				.bone_constant_index	 = obj.bones_start_index,
 				.entity_world_id		 = obj.world_entity,
@@ -167,9 +171,10 @@ namespace SFG
 			if (obj.world_entity != target_world_id)
 				continue;
 
-			const render_proxy_material& proxy_material			= pm.get_material(obj.material);
-			const gpu_index				 gpu_index_mat			= proxy_material.gpu_index_buffers[frame_index];
-			const gpu_index				 gpu_index_mat_textures = proxy_material.gpu_index_texture_buffers[frame_index];
+			const render_proxy_material_runtime& proxy_material			= pm.get_material_runtime(obj.material);
+			const gpu_index						 gpu_index_mat			= proxy_material.gpu_index_buffers[frame_index];
+			const gpu_index						 gpu_index_mat_textures = proxy_material.gpu_index_texture_buffers[frame_index];
+			const gpu_index						 gpu_index_mat_sampler	= proxy_material.gpu_index_sampler;
 
 			bitmask<uint32> variant_flags = base_variant_flags;
 			variant_flags.set(shader_variant_flags::variant_flag_skinned, obj.is_skinned);
@@ -184,6 +189,7 @@ namespace SFG
 				.base_vertex			 = obj.vertex_start,
 				.material_constant_index = gpu_index_mat,
 				.texture_constant_index	 = gpu_index_mat_textures,
+				.sampler_constant_index	 = gpu_index_mat_sampler,
 				.entity_constant_index	 = obj.gpu_entity,
 				.entity_world_id		 = obj.world_entity,
 				.vb_hw					 = obj.vertex_buffer->get_hw_gpu(),

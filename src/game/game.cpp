@@ -7,11 +7,15 @@
 #include "resources/world_raw.hpp"
 #include "resources/model.hpp"
 #include "resources/animation.hpp"
+#include "resources/material.hpp"
+#include "resources/texture_sampler.hpp"
+#include "resources/texture_sampler_raw.hpp"
 
 #include "world/components/comp_model_instance.hpp"
 #include "world/components/comp_mesh_instance.hpp"
 #include "world/components/comp_animation_controller.hpp"
 #include "world/components/comp_light.hpp"
+#include "world/components/comp_ambient.hpp"
 #include "math/math.hpp"
 #include "math/random.hpp"
 
@@ -49,6 +53,57 @@ namespace SFG
 		if (!rm.is_valid<model>(mdl))
 			return;
 
+		// anisotropic sampler
+		{
+			const resource_handle smp_handle = rm.add_resource<texture_sampler>(TO_SIDC("game:sampler_anisotropic"));
+			texture_sampler&	  smp		 = rm.get_resource<texture_sampler>(smp_handle);
+
+			texture_sampler_raw raw = {};
+			raw.desc.min_lod		= 0.0f;
+			raw.desc.max_lod		= 10.0f;
+			raw.desc.anisotropy		= 8;
+			raw.desc.address_u		= address_mode::repeat;
+			raw.desc.address_v		= address_mode::repeat;
+			raw.desc.address_w		= address_mode::repeat;
+			raw.desc.flags			= sampler_flags::saf_min_anisotropic | sampler_flags::saf_mag_anisotropic | sampler_flags::saf_mip_linear;
+			smp.create_from_loader(raw, w, smp_handle);
+
+			const resource_handle mat_handle = rm.get_resource_handle_by_hash<material>(TO_SIDC("assets/ground/ground.stkmodel/GroundPlane"));
+			material&			  mat		 = rm.get_resource<material>(mat_handle);
+			mat.update_sampler(w, mat_handle, smp_handle);
+		}
+
+		// ground
+		{
+			const resource_handle ground_handle = rm.get_resource_handle_by_hash<model>(TO_SIDC("assets/ground/ground.stkmodel"));
+			const world_handle	  entity		= em.create_entity("ground_plane");
+			const world_handle	  inst			= cm.add_component<comp_model_instance>(entity);
+			comp_model_instance&  mi			= cm.get_component<comp_model_instance>(inst);
+			mi.instantiate_model_to_world(w, ground_handle);
+
+			const resource_handle mat_handle = rm.get_resource_handle_by_hash<material>(TO_SIDC("assets/ground/ground.stkmodel/GroundPlane"));
+			material&			  mat		 = rm.get_resource<material>(mat_handle);
+		}
+
+		// sun
+		{
+			const world_handle s_h = em.create_entity("sun");
+			const world_handle lh  = cm.add_component<comp_dir_light>(s_h);
+			comp_dir_light&	   dl  = cm.get_component<comp_dir_light>(lh);
+
+			em.set_entity_rotation(s_h, quat::from_euler(30, 145, 0));
+			dl.set_values(w, color(1, 1, 1, 1), 8);
+			dl.set_shadow_values(w, 1, vector2ui16(1024, 1024));
+		}
+
+		// ambient
+		{
+			const world_handle entity = em.create_entity("ambient");
+			const world_handle inst	  = cm.add_component<comp_ambient>(entity);
+			comp_ambient&	   amb	  = cm.get_component<comp_ambient>(inst);
+			amb.set_values(w, {0.6f, 0.6f, 0.5f, 0.0f});
+		}
+
 		constexpr float START = -20.0f;
 		float			x_pos = START;
 		float			z_pos = START;
@@ -64,14 +119,8 @@ namespace SFG
 			"assets/character/character.stkmodel/Idle_Talking_Loop"_hs,
 		};
 
-		const world_handle s_h = em.create_entity("sun");
-		const world_handle lh  = cm.add_component<comp_dir_light>(s_h);
-		comp_dir_light&	   dl  = cm.get_component<comp_dir_light>(lh);
-
-		em.set_entity_rotation(s_h, quat::from_euler(45, 145, 0));
-		dl.set_values(w, color(1, 1, 1, 1), 1000, 10);
-
-		for (uint32 i = 0; i < 12; i++)
+		return;
+		for (uint32 i = 0; i < 32; i++)
 		{
 			const world_handle root = em.create_entity("root");
 			em.set_entity_position(root, vector3::zero);

@@ -63,7 +63,7 @@ namespace SFG
 		backend->reset_command_buffer(cmd_buffer);
 
 		auto*		 canvases	   = pm.get_canvases();
-		auto*		 materials	   = pm.get_materials();
+		auto*		 materials	   = pm.get_material_runtimes();
 		auto*		 entities	   = pm.get_entities();
 		const uint32 peak_canvases = pm.get_peak_canvases();
 
@@ -122,8 +122,7 @@ namespace SFG
 
 			for (const render_proxy_canvas_dc& dc : proxy._draw_calls)
 			{
-				render_proxy_material& mat = materials->get(dc.mat_id);
-				SFG_ASSERT(mat.status == render_proxy_status::rps_active);
+				render_proxy_material_runtime& mat = materials->get(dc.mat_id);
 
 				const gfx_id	pipeline   = pm.get_shader_variant(mat.shader_handle, 0);
 				const gpu_index mat_const  = mat.gpu_index_buffers[frame_index];

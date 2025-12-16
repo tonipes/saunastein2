@@ -39,18 +39,18 @@ namespace SFG
 
 	struct material_raw
 	{
-		ostream				 material_data = {};
-		string_id			 shader;
-		vector<string_id>	 textures;
-		string				 shader_path;
-		vector<string>		 textures_path;
-		material_pass_mode	 pass_mode;
-		uint8				 double_sided		 = 0;
-		uint8				 use_alpha_cutoff	 = 0;
-		string				 name				 = "";
-		string_id			 sid				 = 0;
-		vector<sampler_desc> sampler_definitions = {};
-		uint16				 draw_priority		 = 0;
+		ostream			   material_data = {};
+		string_id		   shader;
+		vector<string_id>  textures;
+		string			   shader_path;
+		vector<string>	   textures_path;
+		material_pass_mode pass_mode;
+		uint8			   double_sided		  = 0;
+		uint8			   use_alpha_cutoff	  = 0;
+		string			   name				  = "";
+		string_id		   sid				  = 0;
+		sampler_desc	   sampler_definition = {};
+		uint16			   draw_priority	  = 0;
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);

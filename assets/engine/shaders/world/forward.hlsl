@@ -95,7 +95,6 @@ struct material_data
 struct texture_data
 {
     uint gpu_index_albedo;
-    uint gpu_index_sampler;
 };
 
 #ifdef WRITE_ID
@@ -114,7 +113,7 @@ float4 PSMain(vs_output IN) : SV_TARGET
     material_data mat_data = sfg_get_cbv<material_data>(sfg_mat_constant0);
     texture_data txt_data = sfg_get_cbv<texture_data>(sfg_mat_constant1);
     Texture2D tex_albedo = sfg_get_texture<Texture2D>(txt_data.gpu_index_albedo);
-    SamplerState sampler_default = sfg_get_sampler_state(txt_data.gpu_index_sampler);
+    SamplerState sampler_default = sfg_get_sampler_state(sfg_mat_constant2);
 
     float2 albedo_tiling = unpack_half2x16(mat_data.albedo_tiling_offset.x);
     float2 albedo_offset = unpack_half2x16(mat_data.albedo_tiling_offset.y);

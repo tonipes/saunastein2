@@ -40,7 +40,7 @@ namespace SFG
 #define COLOR_TEXT_PROGRESS		color::srgb_to_linear(color(148.0f / 255.0f, 170.0f / 255.0f, 240.0f / 255.0f, 1.0f)).to_vector()
 #define COLOR_TEXT_ERR			color::srgb_to_linear(color(250.0f / 255.0f, 120.0f / 255.0f, 88.0f / 255.0f, 1.0f)).to_vector()
 #define COLOR_TEXT_DARK			color::srgb_to_linear(color(119.0f / 255.0f, 210.0f / 255.0f, 138.0f / 255.0f, 1.0f)).to_vector()
-#define COLOR_CONSOLE_BG		color::srgb_to_linear(color(12.0f / 255.0f, 16.0f / 255.0f, 12.0f / 255.0f, 1.0f)).to_vector()
+#define COLOR_CONSOLE_BG		color::srgb_to_linear(color(12.0f / 255.0f, 16.0f / 255.0f, 12.0f / 255.0f, 0.95f)).to_vector()
 #define COLOR_CONSOLE_BG_OPAQUE color::srgb_to_linear(color(12.0f / 255.0f, 16.0f / 255.0f, 12.0f / 255.0f, 1.0f)).to_vector()
 #define COLOR_BORDER			color::srgb_to_linear(color(89.0f / 255.0f, 180.0f / 255.0f, 108.0f / 255.0f, 1.0f)).to_vector()
 #define DEBUG_FONT_SIZE			20
@@ -397,9 +397,9 @@ namespace SFG
 				.debug_name		= "console_rt",
 			});
 
-			pfd.rt_fullscreen = backend->create_texture({
+			pfd.rt_post = backend->create_texture({
 				.texture_format = RT_FORMAT,
-				.size			= vector2ui16(screen_size.x, screen_size.y),
+				.size			= vector2ui16(screen_size.x, screen_size.y / 2),
 				.flags			= texture_flags::tf_sampled | texture_flags::tf_is_2d | texture_flags::tf_render_target,
 				.views			= {{.type = view_type::render_target}, {.type = view_type::sampled}},
 				.clear_values	= {0.0f, 0.0f, 0.0f, 1.0f},
@@ -407,7 +407,7 @@ namespace SFG
 			});
 
 			pfd.rt_console_index	= backend->get_texture_gpu_index(pfd.rt_console, 1);
-			pfd.rt_fullscreen_index = backend->get_texture_gpu_index(pfd.rt_fullscreen, 1);
+			pfd.rt_fullscreen_index = backend->get_texture_gpu_index(pfd.rt_post, 1);
 
 			pfd.buf_gui_pass_view.create_hw({
 				.size		= sizeof(gui_pass_view),
@@ -536,7 +536,7 @@ namespace SFG
 		{
 			per_frame_data& pfd = _pfd[i];
 			backend->destroy_texture(pfd.rt_console);
-			backend->destroy_texture(pfd.rt_fullscreen);
+			backend->destroy_texture(pfd.rt_post);
 			backend->unmap_resource(pfd.buf_gui_pass_view.get_hw_gpu());
 			backend->unmap_resource(pfd.buf_gui_vtx.get_hw_staging());
 			backend->unmap_resource(pfd.buf_gui_idx.get_hw_staging());
@@ -594,7 +594,7 @@ namespace SFG
 		per_frame_data&	  pfd				   = _pfd[frame_index];
 		const vector2ui16 rt_size			   = _gfx_data.rt_size;
 		const gfx_id	  rt_console		   = pfd.rt_console;
-		const gfx_id	  rt_fullscreen		   = pfd.rt_fullscreen;
+		const gfx_id	  rt_post			   = pfd.rt_post;
 		const gfx_id	  gui_vertex		   = pfd.buf_gui_vtx.get_hw_gpu();
 		const gfx_id	  gui_index			   = pfd.buf_gui_idx.get_hw_gpu();
 		const gfx_id	  shader_fullscreen	   = _shaders.debug_controller_console_draw;
@@ -613,7 +613,7 @@ namespace SFG
 		});
 
 		barriers.push_back({
-			.resource	 = pfd.rt_fullscreen,
+			.resource	 = pfd.rt_post,
 			.flags		 = barrier_flags::baf_is_texture,
 			.from_states = resource_state::resource_state_ps_resource,
 			.to_states	 = resource_state::resource_state_render_target,
@@ -659,17 +659,17 @@ namespace SFG
 		barriers.resize(0);
 
 		render_pass_color_attachment* attachment_console_rt = alloc.allocate<render_pass_color_attachment>(1);
-		attachment_console_rt->clear_color					= vector4(0.0f, 0.0f, 0.0f, 1.0f);
+		attachment_console_rt->clear_color					= vector4(0.0f, 0.0f, 0.0f, 0.0f);
 		attachment_console_rt->load_op						= load_op::clear;
 		attachment_console_rt->store_op						= store_op::store;
 		attachment_console_rt->texture						= rt_console;
 		attachment_console_rt->view_index					= 0;
 
 		render_pass_color_attachment* attachment_fullscreen_rt = alloc.allocate<render_pass_color_attachment>(1);
-		attachment_fullscreen_rt->clear_color				   = vector4(0.0f, 0.0f, 0.0f, 1.0f);
+		attachment_fullscreen_rt->clear_color				   = vector4(0.0f, 0.0f, 0.0f, 0.0f);
 		attachment_fullscreen_rt->load_op					   = load_op::clear;
 		attachment_fullscreen_rt->store_op					   = store_op::store;
-		attachment_fullscreen_rt->texture					   = rt_fullscreen;
+		attachment_fullscreen_rt->texture					   = rt_post;
 		attachment_fullscreen_rt->view_index				   = 0;
 
 		// gui pass bind group
@@ -758,7 +758,7 @@ namespace SFG
 		END_DEBUG_EVENT(backend, cmd_buffer);
 
 		barriers.push_back({
-			.resource	 = rt_fullscreen,
+			.resource	 = rt_post,
 			.flags		 = barrier_flags::baf_is_texture,
 			.from_states = resource_state::resource_state_render_target,
 			.to_states	 = resource_state::resource_state_ps_resource,
@@ -1228,7 +1228,7 @@ namespace SFG
 		{
 			per_frame_data& pfd = _pfd[i];
 			backend->destroy_texture(pfd.rt_console);
-			backend->destroy_texture(pfd.rt_fullscreen);
+			backend->destroy_texture(pfd.rt_post);
 
 			pfd.rt_console = backend->create_texture({
 				.texture_format = RT_FORMAT,
@@ -1239,9 +1239,9 @@ namespace SFG
 				.debug_name		= "console_rt",
 			});
 
-			pfd.rt_fullscreen = backend->create_texture({
+			pfd.rt_post = backend->create_texture({
 				.texture_format = RT_FORMAT,
-				.size			= vector2ui16(size.x, size.y),
+				.size			= vector2ui16(size.x, size.y / 2),
 				.flags			= texture_flags::tf_sampled | texture_flags::tf_is_2d | texture_flags::tf_render_target,
 				.views			= {{.type = view_type::render_target}, {.type = view_type::sampled}},
 				.clear_values	= {0.0f, 0.0f, 0.0f, 1.0f},
@@ -1249,7 +1249,7 @@ namespace SFG
 			});
 
 			pfd.rt_console_index	= backend->get_texture_gpu_index(pfd.rt_console, 1);
-			pfd.rt_fullscreen_index = backend->get_texture_gpu_index(pfd.rt_fullscreen, 1);
+			pfd.rt_fullscreen_index = backend->get_texture_gpu_index(pfd.rt_post, 1);
 		}
 	}
 }

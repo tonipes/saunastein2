@@ -30,7 +30,7 @@ namespace SFG
 		stream << sid;
 		stream << double_sided;
 		stream << use_alpha_cutoff;
-		stream << sampler_definitions;
+		stream << sampler_definition;
 	}
 
 	void material_raw::deserialize(istream& stream)
@@ -51,7 +51,7 @@ namespace SFG
 		stream >> sid;
 		stream >> double_sided;
 		stream >> use_alpha_cutoff;
-		stream >> sampler_definitions;
+		stream >> sampler_definition;
 
 		SFG_INFO("Created material from buffer: {0}", name);
 	}
@@ -95,13 +95,13 @@ namespace SFG
 			else
 				pass_mode = material_pass_mode::gbuffer;
 
-			sid					= TO_SID(relative_file);
-			shader_path			= json_data.value<string>("shader", "");
-			textures_path		= json_data.value<vector<string>>("textures", {});
-			double_sided		= json_data.value<uint8>("double_sided", 0);
-			use_alpha_cutoff	= json_data.value<uint8>("use_alpha_cutoff", 0);
-			sampler_definitions = json_data.value<vector<sampler_desc>>("sampler_definitions", {});
-			draw_priority		= json_data.value<uint16>("priority", 0);
+			sid				   = TO_SID(relative_file);
+			shader_path		   = json_data.value<string>("shader", "");
+			textures_path	   = json_data.value<vector<string>>("textures", {});
+			double_sided	   = json_data.value<uint8>("double_sided", 0);
+			use_alpha_cutoff   = json_data.value<uint8>("use_alpha_cutoff", 0);
+			sampler_definition = json_data.value<sampler_desc>("sampler_definition", {});
+			draw_priority	   = json_data.value<uint16>("priority", 0);
 
 			vector<parameter_entry> parameters;
 			if (json_data.contains("parameters"))
