@@ -32,6 +32,7 @@ namespace vekt
 namespace SFG
 {
 	class texture_queue;
+	class proxy_manager;
 
 	class editor_renderer
 	{
@@ -57,7 +58,7 @@ namespace SFG
 		// rendering
 		// -----------------------------------------------------------------------------
 
-		void prepare(gfx_id cmd_buffer, uint8 frame_index);
+		void prepare(proxy_manager& pm, gfx_id cmd_buffer, uint8 frame_index);
 		void render(const render_params& p);
 		void resize(const vector2ui16& size);
 

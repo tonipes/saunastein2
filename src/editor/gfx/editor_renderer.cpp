@@ -126,7 +126,7 @@ namespace SFG
 		destroy_textures();
 	}
 
-	void editor_renderer::prepare(gfx_id cmd_buffer, uint8 frame_index)
+	void editor_renderer::prepare(proxy_manager& pm, gfx_id cmd_buffer, uint8 frame_index)
 	{
 		gfx_backend* backend  = gfx_backend::get();
 		_gfx_data.frame_index = frame_index;
@@ -151,7 +151,7 @@ namespace SFG
 
 		_builder->build_begin(vector2(_gfx_data.screen_size.x, _gfx_data.screen_size.y));
 
-		_gui_world_overlays.draw(_builder, _gfx_data.screen_size);
+		_gui_world_overlays.draw(pm, _builder, _gfx_data.screen_size);
 
 		_builder->build_end();
 		_builder->flush();

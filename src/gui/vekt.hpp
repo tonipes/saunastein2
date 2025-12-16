@@ -996,6 +996,45 @@ namespace vekt
 	public:
 		struct line_props
 		{
+			VEKT_VEC2	 p0			= VEKT_VEC2();
+			VEKT_VEC2	 p1			= VEKT_VEC2();
+			VEKT_VEC4	 color		= VEKT_VEC4(1, 1, 1, 1);
+			float		 thickness	= 1.0f;
+			unsigned int draw_order = 0;
+			void*		 user_data	= nullptr;
+		};
+
+		struct line_aa_props
+		{
+			VEKT_VEC2	 p0			  = VEKT_VEC2();
+			VEKT_VEC2	 p1			  = VEKT_VEC2();
+			VEKT_VEC4	 color		  = VEKT_VEC4(1, 1, 1, 1);
+			float		 thickness	  = 1.0f;
+			unsigned int aa_thickness = 1;
+			unsigned int draw_order	  = 0;
+			void*		 user_data	  = nullptr;
+		};
+
+		struct circle_props
+		{
+			VEKT_VEC2	 center		= VEKT_VEC2();
+			float		 radius		= 0.0f;
+			VEKT_VEC4	 color		= VEKT_VEC4(1, 1, 1, 1);
+			unsigned int segments	= 32;
+			bool		 filled		= true;
+			float		 thickness	= 1.0f; // used when filled == false
+			unsigned int draw_order = 0;
+			void*		 user_data	= nullptr;
+		};
+
+		struct sphere_props
+		{
+			VEKT_VEC2	 center		= VEKT_VEC2();
+			float		 radius		= 0.0f;
+			VEKT_VEC4	 color		= VEKT_VEC4(1, 1, 1, 1);
+			unsigned int segments	= 32;
+			unsigned int draw_order = 0;
+			void*		 user_data	= nullptr;
 		};
 		struct rect_props
 		{
@@ -1070,34 +1109,36 @@ namespace vekt
 		void				widget_update_text(id widget);
 		void				widget_set_visible(id widget, bool is_visible);
 		bool				widget_get_visible(id widget) const;
-
-		void			   on_mouse_move(const VEKT_VEC2& mouse);
-		input_event_result on_mouse_event(const mouse_event& ev);
-		input_event_result on_mouse_wheel_event(const mouse_wheel_event& ev);
-		input_event_result on_key_event(const key_event& ev);
-		void			   add_input_layer(unsigned int priority, id root);
-		void			   remove_input_layer(unsigned int priority);
-		void			   add_line(const line_props& p);
-		void			   add_filled_rect(const rect_props& props);
-		void			   add_filled_rect_aa(const rect_props& props);
-		void			   add_filled_rect_outline(const rect_props& props);
-		void			   add_filled_rect_rounding(const rect_props& props);
-		void			   add_filled_rect_aa_outline(const rect_props& props);
-		void			   add_filled_rect_aa_rounding(const rect_props& props);
-		void			   add_filled_rect_rounding_outline(const rect_props& props);
-		void			   add_filled_rect_aa_outline_rounding(const rect_props& props);
-		void			   add_stroke_rect(const rect_props& props);
-		void			   add_stroke_rect_aa(const rect_props& props);
-		void			   add_stroke_rect_rounding(const rect_props& props);
-		void			   add_stroke_rect_aa_rounding(const rect_props& props);
-		void			   add_text(const text_props& text, const VEKT_VEC4& color, const VEKT_VEC2& position, const VEKT_VEC2& size, unsigned int draw_order, void* user_data);
-		void			   add_text_cached(const text_props& text, const VEKT_VEC4& color, const VEKT_VEC2& position, const VEKT_VEC2& size, unsigned int draw_order, void* user_data);
-		static VEKT_VEC2   get_text_size(const text_props& text, const VEKT_VEC2& parent_size = VEKT_VEC2());
-		draw_buffer*	   get_draw_buffer(unsigned int draw_order, void* user_data, font* fnt = nullptr);
-		VEKT_VEC4		   calculate_intersection(const VEKT_VEC4& clip0, const VEKT_VEC4& clip1) const;
-		id				   allocate();
-		void			   deallocate(id w);
-		void			   clear_text_cache();
+		void				on_mouse_move(const VEKT_VEC2& mouse);
+		input_event_result	on_mouse_event(const mouse_event& ev);
+		input_event_result	on_mouse_wheel_event(const mouse_wheel_event& ev);
+		input_event_result	on_key_event(const key_event& ev);
+		void				add_input_layer(unsigned int priority, id root);
+		void				remove_input_layer(unsigned int priority);
+		void				add_line(const line_props& props);
+		void				add_line_aa(const line_aa_props& props);
+		void				add_circle(const circle_props& props);
+		void				add_sphere(const sphere_props& props);
+		void				add_filled_rect(const rect_props& props);
+		void				add_filled_rect_aa(const rect_props& props);
+		void				add_filled_rect_outline(const rect_props& props);
+		void				add_filled_rect_rounding(const rect_props& props);
+		void				add_filled_rect_aa_outline(const rect_props& props);
+		void				add_filled_rect_aa_rounding(const rect_props& props);
+		void				add_filled_rect_rounding_outline(const rect_props& props);
+		void				add_filled_rect_aa_outline_rounding(const rect_props& props);
+		void				add_stroke_rect(const rect_props& props);
+		void				add_stroke_rect_aa(const rect_props& props);
+		void				add_stroke_rect_rounding(const rect_props& props);
+		void				add_stroke_rect_aa_rounding(const rect_props& props);
+		void				add_text(const text_props& text, const VEKT_VEC4& color, const VEKT_VEC2& position, const VEKT_VEC2& size, unsigned int draw_order, void* user_data);
+		void				add_text_cached(const text_props& text, const VEKT_VEC4& color, const VEKT_VEC2& position, const VEKT_VEC2& size, unsigned int draw_order, void* user_data);
+		static VEKT_VEC2	get_text_size(const text_props& text, const VEKT_VEC2& parent_size = VEKT_VEC2());
+		draw_buffer*		get_draw_buffer(unsigned int draw_order, void* user_data, font* fnt = nullptr);
+		VEKT_VEC4			calculate_intersection(const VEKT_VEC4& clip0, const VEKT_VEC4& clip1) const;
+		id					allocate();
+		void				deallocate(id w);
+		void				clear_text_cache();
 
 		// Widgets
 		void widget_add_debug_wrap(id widget);
@@ -1138,6 +1179,9 @@ namespace vekt
 		void		 add_central_vertex_multicolor(draw_buffer* db, const VEKT_VEC4& color_start, const VEKT_VEC4& color_end, const VEKT_VEC2& min, const VEKT_VEC2& max);
 		void		 add_vertices_aa(draw_buffer* db, const vector<VEKT_VEC2>& path, unsigned int original_vertices_idx, float alpha, const VEKT_VEC2& min, const VEKT_VEC2& max);
 		void		 deallocate_impl(id widget);
+
+		// Immediate helpers
+		void generate_circle_path(vector<VEKT_VEC2>& out_path, const VEKT_VEC2& center, float radius, unsigned int segments);
 
 	private:
 		struct clip_info

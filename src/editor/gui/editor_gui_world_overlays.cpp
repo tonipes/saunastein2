@@ -5,6 +5,9 @@
 #include "math/vector2ui16.hpp"
 #include "math/vector2.hpp"
 
+// gfx
+#include "gfx/proxy/proxy_manager.hpp"
+
 // vekt
 #include "gui/vekt.hpp"
 
@@ -14,13 +17,59 @@ namespace SFG
 	{
 	}
 
-	void editor_gui_world_overlays::draw(vekt::builder* builder, const vector2ui16& size)
+	void editor_gui_world_overlays::draw(proxy_manager& pm, vekt::builder* builder, const vector2ui16& size)
 	{
-		const vector2 box_size = vector2(static_cast<float>(size.x) * 0.01f, static_cast<float>(size.x) * 0.01f);
-		const vector2 min	   = vector2(editor_gui_theme::default_margin, size.y - editor_gui_theme::default_margin - box_size.y);
+
+		const world_id cam_id = pm.get_main_camera();
+		if (cam_id == NULL_WORLD_ID)
+			return;
+
+		const render_proxy_camera& cam		  = pm.get_camera(cam_id);
+		const render_proxy_entity& cam_entity = pm.get_entity(cam.entity);
+		if (cam_entity.status != render_proxy_status::rps_active)
+			return;
+
+		const vector3 cam_forward = cam_entity.rotation.get_forward();
+
+		const vector3 x_cam = (cam_entity.rotation.inverse() * vector3::right).normalized();
+		const vector2 x_dir = vector2(x_cam.x, -x_cam.y);
+
+		const vector3 y_cam = (cam_entity.rotation.inverse() * vector3::up).normalized();
+		const vector2 y_dir = vector2(y_cam.x, -y_cam.y);
+
+		const vector3 z_cam = (cam_entity.rotation.inverse() * vector3::forward).normalized();
+		const vector2 z_dir = vector2(z_cam.x, -z_cam.y);
+
+		constexpr float box_size_multiplier = 0.03f;
+		constexpr float thickness			= 2.0f;
+
+		const vector2 box_size = vector2(static_cast<float>(size.x) * box_size_multiplier, static_cast<float>(size.x) * box_size_multiplier);
+		const vector2 min	   = vector2(editor_gui_theme::default_margin + box_size.x * 0.5f, size.y - editor_gui_theme::default_margin - box_size.y);
 		const vector2 max	   = min + box_size;
 		const vector2 center   = (min + max) * 0.5f;
 
+		builder->add_line_aa({
+			.p0			  = vector2(center),
+			.p1			  = center + x_dir * box_size.x,
+			.color		  = editor_gui_theme::color_axis_x,
+			.thickness	  = thickness,
+			.aa_thickness = 2,
+		});
 
+		builder->add_line_aa({
+			.p0			  = vector2(center),
+			.p1			  = center + y_dir * box_size.x,
+			.color		  = editor_gui_theme::color_axis_y,
+			.thickness	  = thickness,
+			.aa_thickness = 2,
+		});
+
+		builder->add_line_aa({
+			.p0			  = vector2(center),
+			.p1			  = center + z_dir * box_size.x,
+			.color		  = editor_gui_theme::color_axis_z,
+			.thickness	  = thickness,
+			.aa_thickness = 2,
+		});
 	}
 }

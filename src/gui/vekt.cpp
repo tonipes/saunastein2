@@ -1119,9 +1119,142 @@ namespace vekt
 		V_ERR("vekt::remove_input_layer -> No input layer with the given priority exists! priority: %d", priority);
 	}
 
-	void builder::add_line(const line_props& p)
+	void builder::add_line(const line_props& props)
 	{
+		// Build a quad around the segment using thickness
+		const VEKT_VEC2 dir = (props.p1 - props.p0).normalized();
+		const VEKT_VEC2 nrm(-dir.y, dir.x);
+		const float		half_t = props.thickness * 0.5f;
+		const VEKT_VEC2 off	   = nrm * half_t;
 
+		VEKT_VEC2 q0 = props.p0 - off;
+		VEKT_VEC2 q1 = props.p0 + off;
+		VEKT_VEC2 q2 = props.p1 + off;
+		VEKT_VEC2 q3 = props.p1 - off;
+
+		// Simple fix: swap q0 and q2
+		_reuse_outer_path.resize_explicit(0);
+		_reuse_outer_path.push_back(q2);
+		_reuse_outer_path.push_back(q1);
+		_reuse_outer_path.push_back(q0);
+		_reuse_outer_path.push_back(q3);
+
+		VEKT_VEC2 bb_min = _reuse_outer_path[0];
+		VEKT_VEC2 bb_max = _reuse_outer_path[0];
+		for (unsigned int i = 1; i < _reuse_outer_path.size(); ++i)
+		{
+			const VEKT_VEC2& p = _reuse_outer_path[i];
+			bb_min.x		   = math::min(bb_min.x, p.x);
+			bb_min.y		   = math::min(bb_min.y, p.y);
+			bb_max.x		   = math::max(bb_max.x, p.x);
+			bb_max.y		   = math::max(bb_max.y, p.y);
+		}
+
+		draw_buffer*	   db	 = get_draw_buffer(props.draw_order, props.user_data);
+		const unsigned int start = db->vertex_count;
+		add_vertices(db, _reuse_outer_path, props.color, bb_min, bb_max);
+		add_filled_rect(db, start);
+	}
+
+	void builder::add_line_aa(const line_aa_props& props)
+	{
+		const VEKT_VEC2 dir = (props.p1 - props.p0).normalized();
+		const VEKT_VEC2 nrm(-dir.y, dir.x);
+		const float		half_t = props.thickness * 0.5f;
+		const VEKT_VEC2 off	   = nrm * half_t;
+
+		VEKT_VEC2 q0 = props.p0 - off;
+		VEKT_VEC2 q1 = props.p0 + off;
+		VEKT_VEC2 q2 = props.p1 + off;
+		VEKT_VEC2 q3 = props.p1 - off;
+
+		_reuse_outer_path.resize_explicit(0);
+		_reuse_aa_outer_path.resize_explicit(0);
+		_reuse_outer_path.push_back(q2);
+		_reuse_outer_path.push_back(q1);
+		_reuse_outer_path.push_back(q0);
+		_reuse_outer_path.push_back(q3);
+
+		VEKT_VEC2 bb_min = _reuse_outer_path[0];
+		VEKT_VEC2 bb_max = _reuse_outer_path[0];
+		for (unsigned int i = 1; i < _reuse_outer_path.size(); ++i)
+		{
+			const VEKT_VEC2& p = _reuse_outer_path[i];
+			bb_min.x		   = math::min(bb_min.x, p.x);
+			bb_min.y		   = math::min(bb_min.y, p.y);
+			bb_max.x		   = math::max(bb_max.x, p.x);
+			bb_max.y		   = math::max(bb_max.y, p.y);
+		}
+
+		// Expand outward for AA ring
+		generate_offset_rect(_reuse_aa_outer_path, _reuse_outer_path, -static_cast<float>(props.aa_thickness));
+
+		draw_buffer*	   db		 = get_draw_buffer(props.draw_order, props.user_data);
+		const unsigned int out_start = db->vertex_count;
+		add_vertices(db, _reuse_outer_path, props.color, bb_min, bb_max);
+		add_filled_rect(db, out_start);
+
+		const unsigned int out_aa_start = db->vertex_count;
+		add_vertices_aa(db, _reuse_aa_outer_path, out_start, 0.0f, bb_min, bb_max);
+		add_strip(db, out_aa_start, out_start, _reuse_aa_outer_path.size(), false);
+	}
+
+	void builder::generate_circle_path(vector<VEKT_VEC2>& out_path, const VEKT_VEC2& center, float radius, unsigned int segments)
+	{
+		if (segments < 3)
+			segments = 3;
+		out_path.resize_explicit(0);
+		for (unsigned int i = 0; i < segments; ++i)
+		{
+			const float		ang	  = DEG_2_RAD * (360.0f * (static_cast<float>(i) / static_cast<float>(segments)));
+			const VEKT_VEC2 point = center + VEKT_VEC2(math::sin(ang), -math::cos(ang)) * radius;
+			out_path.push_back(point);
+		}
+	}
+
+	void builder::add_circle(const circle_props& props)
+	{
+		_reuse_outer_path.resize_explicit(0);
+		_reuse_inner_path.resize_explicit(0);
+
+		generate_circle_path(_reuse_outer_path, props.center, props.radius, props.segments);
+
+		const VEKT_VEC2 bb_min = props.center - VEKT_VEC2(props.radius, props.radius);
+		const VEKT_VEC2 bb_max = props.center + VEKT_VEC2(props.radius, props.radius);
+
+		draw_buffer* db = get_draw_buffer(props.draw_order, props.user_data);
+
+		if (props.filled)
+		{
+			const unsigned int out_start = db->vertex_count;
+			add_vertices(db, _reuse_outer_path, props.color, bb_min, bb_max);
+			const unsigned int central_start = db->vertex_count;
+			add_central_vertex(db, props.color, bb_min, bb_max);
+			add_filled_rect_central(db, out_start, central_start, _reuse_outer_path.size());
+		}
+		else
+		{
+			const float t = math::min(props.thickness, props.radius);
+			generate_offset_rect(_reuse_inner_path, _reuse_outer_path, t);
+			const unsigned int out_start = db->vertex_count;
+			add_vertices(db, _reuse_outer_path, props.color, bb_min, bb_max);
+			const unsigned int in_start = db->vertex_count;
+			add_vertices(db, _reuse_inner_path, props.color, bb_min, bb_max);
+			add_strip(db, out_start, in_start, _reuse_outer_path.size(), false);
+		}
+	}
+
+	void builder::add_sphere(const sphere_props& props)
+	{
+		circle_props cp;
+		cp.center	  = props.center;
+		cp.radius	  = props.radius;
+		cp.color	  = props.color;
+		cp.segments	  = props.segments;
+		cp.filled	  = true;
+		cp.draw_order = props.draw_order;
+		cp.user_data  = props.user_data;
+		add_circle(cp);
 	}
 
 	void builder::add_filled_rect(const rect_props& props)

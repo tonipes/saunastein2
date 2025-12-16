@@ -60,7 +60,6 @@ namespace SFG
 		debug_console::get()->register_console_function<const char*>("load_level", [this](const char* lvl) {
 
 		});
-
 #endif
 
 		// world_raw raw = {};

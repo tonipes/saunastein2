@@ -92,7 +92,6 @@ namespace SFG
 		_world_renderer = new game_world_renderer(_proxy_manager, _world);
 		_world_renderer->init(_base_size, &_texture_queue, &_buffer_queue);
 
-
 		// pfd
 		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
@@ -339,7 +338,7 @@ namespace SFG
 #endif
 
 #ifdef SFG_TOOLMODE
-		_editor->get_renderer().prepare(cmd_list, frame_index);
+		_editor->get_renderer().prepare(_proxy_manager, cmd_list, frame_index);
 		_editor->get_renderer().render({
 			.cmd_buffer	   = cmd_list,
 			.frame_index   = frame_index,
