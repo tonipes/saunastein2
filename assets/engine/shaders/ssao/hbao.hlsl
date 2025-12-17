@@ -3,8 +3,7 @@
 #include "depth.hlsl"
 
 // =====================================================================================
-// HBAO Half-Resolution Compute (Option A: sample full-res depth/normals)
-// File: AO_Half.hlsl
+// HBAO Half-Resolution Compute
 // =====================================================================================
 
 #ifndef PI
@@ -147,11 +146,14 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
     //if (p.x >= params.full_size.x || p.y >= params.full_size.y) return;
     // Center
     //float2 uv_full = (float2(p) + 0.5) * params.inv_full;         // direct full-res uv
-
+    RWTexture2D<unorm float> ao_half_out = sfg_get_texture<RWTexture2D<float> >(sfg_rp_constant4);
     Texture2D<float> depth_full = sfg_get_texture<Texture2D<float> >(sfg_rp_constant1);
     float z01 = depth_full.SampleLevel(smp_nearest, uv_full, 0);
-    if(is_background(z01))
+    if (is_background(z01))
+    {
+        ao_half_out[pH] = 1.0;
         return;
+    }
 
     // View-space center position & normal<
     float3 pC = fetch_view_pos(uv_full, params.inv_proj);          // view-space position
@@ -163,17 +165,19 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
     // Per-pixel random rotation (prevents banding)
     // Tile the small noise over full-res UV
     Texture2D noise_tex = sfg_get_texture<Texture2D>(sfg_rp_constant3);
-    float2 noise = noise_tex.SampleLevel(smp_nearest_repeat, uv_full / 8.0, 0).xy;
+    float2 noiseUV = uv_full * (params.full_size / 8.0); // tile 8x8 across full-res
+    float2 noise = noise_tex.SampleLevel(smp_nearest_repeat, noiseUV, 0).xy;
+
     float rot = atan2(noise.y, noise.x) * params.random_rot_strength ;
 
     // Accumulate occlusion over directions and steps
     float ao_accum = 0.0f;
 
-    uint dirs = params.num_dirs;
-    uint steps = params.num_steps;
-    float rad = params.radius_world;
-    float intensity = params.intensity;
-    float power = params.power;
+    uint dirs = params.num_dirs ;
+    uint steps = params.num_steps ;
+    float rad = params.radius_world ;
+    float intensity = params.intensity  ;
+    float power = params.power ;
     
     // March
     for (uint d = 0; d < dirs; ++d)
@@ -192,9 +196,8 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
             float stepLen = 1.0f / steps;
             // center-of-bin (0.5) + jitter shift
             float t = (s + 0.5 + jitter01) * stepLen;   // nominally (0,1+j/steps]
-            //if (t >= 1.0f) break;                       // optional clamp/early-exit
+            if (t >= 1.0f) break;                       // optional clamp/early-exit
 
-            t = (float)s / (float)steps;
             float dist = t * rad;
             float3 qVS  = pC + omega * dist;
 
@@ -242,6 +245,5 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
     ao = pow(1.0 - ao, power);
 
     // Write half-res AO
-    RWTexture2D<unorm float> ao_half_out = sfg_get_texture<RWTexture2D<float> >(sfg_rp_constant4);
     ao_half_out[pH] = ao;
 }

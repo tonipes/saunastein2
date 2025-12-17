@@ -369,6 +369,7 @@ namespace SFG
 			proxy.entity			  = ev.entity_index;
 			proxy.base_color		  = ev.base_color;
 			proxy.intensity			  = ev.intensity;
+			proxy.near_plane		  = ev.near_plane;
 			proxy.inner_cone		  = ev.inner_cone;
 			proxy.outer_cone		  = ev.outer_cone;
 			proxy.cast_shadows		  = ev.cast_shadows;
@@ -451,6 +452,7 @@ namespace SFG
 			proxy.base_color		  = ev.base_color;
 			proxy.range				  = ev.range;
 			proxy.intensity			  = ev.intensity;
+			proxy.near_plane		  = ev.near_plane;
 			proxy.cast_shadows		  = ev.cast_shadows;
 			proxy.shadow_res		  = ev.shadow_resolution;
 

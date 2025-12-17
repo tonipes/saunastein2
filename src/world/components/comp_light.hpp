@@ -89,7 +89,7 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 
 		void set_values(world& w, const color& c, float range, float intensity, float inner_cone, float outer_cone);
-		void set_shadow_values(world& w, uint8 cast_shadows, const vector2ui16& resolution);
+		void set_shadow_values(world& w, uint8 cast_shadows, float near_plane, const vector2ui16& resolution);
 
 		inline const color& get_color() const
 		{
@@ -116,6 +116,11 @@ namespace SFG
 			return _outer_cone;
 		}
 
+		inline float get_near_plane() const
+		{
+			return _near_plane;
+		}
+
 	private:
 		template <typename T, int> friend class comp_cache;
 
@@ -129,6 +134,7 @@ namespace SFG
 		float			 _intensity			= 0.0f;
 		float			 _inner_cone		= 0.0f;
 		float			 _outer_cone		= 0.0f;
+		float			 _near_plane		= 0.0f;
 		uint8			 _cast_shadows		= 0;
 	};
 
@@ -154,7 +160,7 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 
 		void set_values(world& w, const color& c, float range, float intensity);
-		void set_shadow_values(world& w, uint8 cast_shadows, const vector2ui16& resolution);
+		void set_shadow_values(world& w, uint8 cast_shadows, float near_plane, const vector2ui16& resolution);
 
 		inline const color& get_color() const
 		{
@@ -171,6 +177,11 @@ namespace SFG
 			return _intensity;
 		}
 
+		inline float get_near_plane() const
+		{
+			return _near_plane;
+		}
+
 	private:
 		template <typename T, int> friend class comp_cache;
 
@@ -182,6 +193,7 @@ namespace SFG
 		vector2ui16		 _shadow_resolution = vector2ui16(256, 256);
 		float			 _range				= 0.0f;
 		float			 _intensity			= 0.0f;
+		float			 _near_plane		= 0.0f;
 		uint8			 _cast_shadows		= 0;
 	};
 

@@ -182,7 +182,7 @@ namespace SFG
 			.to_states	 = resource_state::resource_state_non_ps_resource,
 		});
 		backend->cmd_barrier(cmd_buffer, {.barriers = barriers.data(), .barrier_count = static_cast<uint16>(barriers.size())});
-		barriers.resize(0);
+
 		backend->cmd_bind_layout_compute(cmd_buffer, {.layout = p.global_layout_compute});
 		backend->cmd_bind_group_compute(cmd_buffer, {.group = p.global_group});
 
@@ -202,6 +202,13 @@ namespace SFG
 			END_DEBUG_EVENT(backend, cmd_buffer);
 		}
 
+		barriers.resize(0);
+		barriers.push_back({
+			.resource	 = ao_output,
+			.flags		 = barrier_flags::baf_is_texture,
+		});
+		backend->cmd_barrier_uav(cmd_buffer, {.barriers = barriers.data(), .barrier_count = static_cast<uint16>(barriers.size())});
+
 		{
 
 			const uint32 rp_constants[2] = {gpu_index_output_srv, gpu_index_output_upsample_uav};
@@ -219,6 +226,7 @@ namespace SFG
 			END_DEBUG_EVENT(backend, cmd_buffer);
 		}
 
+		barriers.resize(0);
 		barriers.push_back({
 			.resource	 = ao_output,
 			.flags		 = barrier_flags::baf_is_texture,
@@ -226,7 +234,6 @@ namespace SFG
 			.to_states	 = resource_state::resource_state_common,
 		});
 		backend->cmd_barrier(cmd_buffer, {.barriers = barriers.data(), .barrier_count = static_cast<uint16>(barriers.size())});
-		barriers.resize(0);
 
 		backend->close_command_buffer(cmd_buffer);
 	}

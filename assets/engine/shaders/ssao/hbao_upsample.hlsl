@@ -99,8 +99,14 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
     float2 uvF = (pF + 0.5) * params.inv_full;
 
     // Guides at full-res
+    RWTexture2D<unorm float> AO_full = sfg_get_texture<RWTexture2D<float> >(sfg_rp_constant4); 
     Texture2D<float> depth_full = sfg_get_texture<Texture2D<float> >(sfg_rp_constant1);
     float zF   = depth_full.SampleLevel(smp_nearest, uvF, 0);
+    if (is_background(zF))
+    {
+        AO_full[pF] = 1.0;
+        return;
+    }
     float3 pVF = view_pos_from_uv_depth(uvF, zF, params.inv_proj);
     float3 nVF = fetch_view_normal(uvF, (float3x3)params.view_matrix);
 
@@ -108,7 +114,6 @@ void CSMain(uint3 DTid : SV_DispatchThreadID)
     uint2 pH_base = pF >> 1;
 
     Texture2D<float> AO_half = sfg_get_texture<Texture2D<float> >(sfg_rp_constant3);
-    RWTexture2D<unorm float> AO_full = sfg_get_texture<RWTexture2D<float> >(sfg_rp_constant4); 
 
     float ao_num = 0.0, ao_den = 0.0;
 

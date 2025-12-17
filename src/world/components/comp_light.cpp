@@ -105,10 +105,11 @@ namespace SFG
 		send_event(w);
 	}
 
-	void comp_spot_light::set_shadow_values(world& w, uint8 cast_shadows, const vector2ui16& resolution)
+	void comp_spot_light::set_shadow_values(world& w, uint8 cast_shadows, float near_plane, const vector2ui16& resolution)
 	{
 		_cast_shadows	   = cast_shadows;
 		_shadow_resolution = resolution;
+		_near_plane		   = near_plane;
 		send_event(w);
 	}
 
@@ -123,6 +124,7 @@ namespace SFG
 		ev.outer_cone			   = _outer_cone;
 		ev.cast_shadows			   = _cast_shadows;
 		ev.shadow_resolution	   = _shadow_resolution;
+		ev.near_plane			   = _near_plane;
 
 		w.get_render_stream().add_event(
 			{
@@ -163,10 +165,11 @@ namespace SFG
 		send_event(w);
 	}
 
-	void comp_point_light::set_shadow_values(world& w, uint8 cast_shadows, const vector2ui16& resolution)
+	void comp_point_light::set_shadow_values(world& w, uint8 cast_shadows, float near_plane, const vector2ui16& resolution)
 	{
 		_cast_shadows	   = cast_shadows;
 		_shadow_resolution = resolution;
+		_near_plane		   = near_plane;
 		send_event(w);
 	}
 
@@ -179,6 +182,7 @@ namespace SFG
 		ev.intensity				= _intensity;
 		ev.cast_shadows				= _cast_shadows;
 		ev.shadow_resolution		= _shadow_resolution;
+		ev.near_plane				= _near_plane;
 
 		w.get_render_stream().add_event(
 			{

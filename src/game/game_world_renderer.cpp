@@ -982,6 +982,7 @@ namespace SFG
 
 			int32		first_shadow_index = -1;
 			const float far_plane		   = math::almost_equal(light.range, 0.0f) ? main_cam_far : light.range;
+			const float near_plane		   = light.near_plane;
 
 			if (light.cast_shadows)
 			{
@@ -1008,7 +1009,7 @@ namespace SFG
 				for (uint8 j = 0; j < 6; j++)
 				{
 					const matrix4x4 light_view		 = matrix4x4::look_at(proxy_entity.position, proxy_entity.position + dirs[j], fws[j]);
-					const matrix4x4 light_projection = matrix4x4::perspective(90.5f, light_aspect, 0.01f, far_plane);
+					const matrix4x4 light_projection = matrix4x4::perspective(90.5f, light_aspect, near_plane, far_plane);
 
 					const gpu_shadow_data sh = {
 						.light_space_matrix = light_projection * light_view,
@@ -1063,7 +1064,8 @@ namespace SFG
 			if (res == frustum_result::outside)
 				continue;
 
-			const float cos_outer = math::cos(light.outer_cone);
+			const float cos_outer  = math::cos(light.outer_cone);
+			const float near_plane = light.near_plane;
 
 			int32 shadow_data_index = -1;
 			if (light.cast_shadows)
@@ -1072,8 +1074,10 @@ namespace SFG
 				const float fov_deg		 = RAD_2_DEG * 2.0f * math::acos(cos_outer);
 				const float light_aspect = static_cast<float>(light.shadow_res.x) / static_cast<float>(light.shadow_res.y);
 
-				const matrix4x4 light_view		 = matrix4x4::look_at(proxy_entity.position, proxy_entity.position + proxy_entity.rotation.get_forward() * 0.1, vector3::up);
-				const matrix4x4 light_projection = matrix4x4::perspective(fov_deg, light_aspect, 0.01f, far_plane);
+				const vector3	entity_fw		 = proxy_entity.rotation.get_forward();
+				const vector3	up				 = math::abs(vector3::dot(entity_fw, vector3::up)) > 0.98f ? vector3::forward : vector3::up;
+				const matrix4x4 light_view		 = matrix4x4::look_at(proxy_entity.position, proxy_entity.position + proxy_entity.rotation.get_forward() * 0.1, up);
+				const matrix4x4 light_projection = matrix4x4::perspective(fov_deg, light_aspect, near_plane, far_plane);
 
 				const gpu_shadow_data sh = {
 					.light_space_matrix = light_projection * light_view,

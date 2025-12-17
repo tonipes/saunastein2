@@ -58,6 +58,7 @@ namespace SFG
 		world_id	entity_index	  = 0;
 		float		range			  = 0.0f;
 		float		intensity		  = 0.0f;
+		float		near_plane		  = 0.1f;
 		uint8		cast_shadows	  = 0;
 
 		void serialize(ostream& stream) const;
@@ -85,6 +86,7 @@ namespace SFG
 		float		intensity		  = 0.0f;
 		float		inner_cone		  = 0.0f;
 		float		outer_cone		  = 0.0f;
+		float		near_plane		  = 0.1f;
 		uint8		cast_shadows	  = 0;
 
 		void serialize(ostream& stream) const;

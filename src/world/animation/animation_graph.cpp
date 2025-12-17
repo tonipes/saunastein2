@@ -85,12 +85,11 @@ namespace SFG
 				continue;
 
 			const vector3 machine_position = em.get_entity_position_abs(m.entity);
-
-			const float dot			  = vector3::dot((machine_position - camera_position).normalized(), camera_rotation.get_forward());
-			const float dist_from_cam = vector3::distance_sqr(machine_position, camera_position);
-			const bool	dist_fails	  = dist_from_cam > _throttle_distance_sqr && m._throttle_count < _throttle_max_frames;
-			const bool	skip_pose	  = dot < dot_limit || dist_fails;
-			m._throttle_count		  = dist_fails ? (m._throttle_count + 1) : 0;
+			const float	  dot			   = vector3::dot((machine_position - camera_position).normalized(), camera_rotation.get_forward());
+			const float	  dist_from_cam	   = vector3::distance_sqr(machine_position, camera_position);
+			const bool	  dist_fails	   = dist_from_cam > _throttle_distance_sqr && m._throttle_count < _throttle_max_frames;
+			const bool	  skip_pose		   = dot < dot_limit || dist_fails;
+			m._throttle_count			   = dist_fails ? (m._throttle_count + 1) : 0;
 
 			animation_state& state = states.get(m.active_state);
 
@@ -99,6 +98,7 @@ namespace SFG
 
 			if (!skip_pose)
 				calculate_pose_for_state(w, samples, final_pose, state);
+
 			progress_state(state, dt * state.speed);
 
 			pool_handle16 existing_transition_handle = m._active_transition;

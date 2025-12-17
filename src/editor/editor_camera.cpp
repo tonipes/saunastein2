@@ -45,13 +45,14 @@ namespace SFG
 		cam_trait.set_values(w, 0.01f, 250.0f, 60.0f, {0.01f, 0.04f, 0.125f, 0.25f, 0.5f});
 		cam_trait.set_main(w);
 
-		em.set_entity_position(_entity, vector3(0.0f, 0, 0));
-		em.set_entity_rotation(_entity, quat::identity);
+		em.set_entity_position(_entity, vector3(0.0f, 2, -5));
+		em.set_entity_rotation(_entity, quat::from_euler(0, 0, 0));
 
-		const quat&	  rot	= em.get_entity_rotation(_entity);
+		const quat& rot = em.get_entity_rotation(_entity);
+
 		const vector3 euler = quat::to_euler(rot);
-		_yaw_degrees		= euler.x;
-		_pitch_degrees		= euler.y;
+		_yaw_degrees		= euler.y;
+		_pitch_degrees		= euler.x;
 		_is_active			= 1;
 	}
 
@@ -206,8 +207,8 @@ namespace SFG
 			return;
 		move_dir.normalize();
 
-		const vector3 position = manager.get_entity_position(_entity) + (move_dir * (_current_move_speed * dt_seconds));
+		const vector3& pos		= manager.get_entity_position(_entity);
+		const vector3  position = pos + (move_dir * (_current_move_speed * dt_seconds));
 		manager.set_entity_position(_entity, position);
-
 	}
 }

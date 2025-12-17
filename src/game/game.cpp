@@ -81,19 +81,40 @@ namespace SFG
 			comp_model_instance&  mi			= cm.get_component<comp_model_instance>(inst);
 			mi.instantiate_model_to_world(w, ground_handle);
 
-			const resource_handle mat_handle = rm.get_resource_handle_by_hash<material>(TO_SIDC("assets/ground/ground.stkmodel/GroundPlane"));
-			material&			  mat		 = rm.get_resource<material>(mat_handle);
-		}
+			// monkey
+			{
+				const world_handle monkey = em.find_entity("Cube");
+				const quat&		   rot	  = em.get_entity_rotation(monkey);
+				const vector3	   dir	  = rot.get_forward();
+				int				   a	  = 5;
 
-		// sun
-		{
-			const world_handle s_h = em.create_entity("sun");
-			const world_handle lh  = cm.add_component<comp_dir_light>(s_h);
-			comp_dir_light&	   dl  = cm.get_component<comp_dir_light>(lh);
+				// em.set_entity_rotation(monkey, quat::look_at(em.get_entity_position(monkey), vector3(0, 0, 5), vector3::up));
+				const vector3 dir2 = rot.get_forward();
+				int			  b	   = 5;
+			}
 
-			em.set_entity_rotation(s_h, quat::from_euler(30, 145, 0));
-			dl.set_values(w, color(1, 1, 1, 1), 8);
-			dl.set_shadow_values(w, 1, vector2ui16(1024, 1024));
+			// sun
+			{
+				const world_handle s_h = em.find_entity("Sun");
+				const world_handle lh  = em.get_entity_component<comp_dir_light>(s_h);
+				comp_dir_light&	   dl  = cm.get_component<comp_dir_light>(lh);
+				// dl.set_values(w, {}, 0);
+
+				em.set_entity_rotation(s_h, quat::from_euler(-30, 0, 0));
+				dl.set_values(w, color(1, 1, 1, 1), 8);
+				dl.set_shadow_values(w, 1, vector2ui16(2048, 2048));
+			}
+
+			{
+				// const world_handle p	 = em.find_entity("Spot");
+				// const world_handle pl	 = em.get_entity_component<comp_spot_light>(p);
+				// comp_spot_light&   light = cm.get_component<comp_spot_light>(pl);
+				//// em.set_entity_position(p, vector3(0, 8, 0));
+				// em.set_entity_rotation(p, quat::from_euler(-40, 0, 0));
+				//
+				//// light.set_values(w, color::white, 40, 60, DEG_2_RAD * 10.0f, DEG_2_RAD * 20.0f);
+				// light.set_shadow_values(w, 1, 0.1f, vector2ui16(1024, 1024));
+			}
 		}
 
 		// ambient
@@ -101,7 +122,7 @@ namespace SFG
 			const world_handle entity = em.create_entity("ambient");
 			const world_handle inst	  = cm.add_component<comp_ambient>(entity);
 			comp_ambient&	   amb	  = cm.get_component<comp_ambient>(inst);
-			amb.set_values(w, {0.6f, 0.6f, 0.5f, 0.0f});
+			amb.set_values(w, {0.05f, 0.05f, 0.05f, 0.0f});
 		}
 
 		constexpr float START = -20.0f;
@@ -119,8 +140,7 @@ namespace SFG
 			"assets/character/character.stkmodel/Idle_Talking_Loop"_hs,
 		};
 
-		return;
-		for (uint32 i = 0; i < 32; i++)
+		for (uint32 i = 0; i < 1024; i++)
 		{
 			const world_handle root = em.create_entity("root");
 			em.set_entity_position(root, vector3::zero);

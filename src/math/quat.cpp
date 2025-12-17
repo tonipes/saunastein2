@@ -89,26 +89,24 @@ namespace SFG
 
 	vector3 quat::to_euler(const quat& q)
 	{
-		vector3 euler_angles;
+		vector3 e;
 
-		float sin_p			= 2.0f * (q.w * q.y - q.z * q.x); // Pitch formula
-		float clamped_sin_p = math::clamp(sin_p, -1.0f, 1.0f);
+		// X (pitch)
+		float sinp = 2.0f * (q.w * q.x + q.y * q.z);
+		float cosp = 1.0f - 2.0f * (q.x * q.x + q.y * q.y);
+		e.x		   = math::radians_to_degrees(std::atan2(sinp, cosp));
 
-		// Check for Gimbal Lock (singularity) near +/- 90 degrees
-		if (math::abs(clamped_sin_p) >= 0.999f)
-		{
-			euler_angles.y = math::radians_to_degrees(math::copysign(MATH_PI * 0.5f, clamped_sin_p));
-			euler_angles.z = math::radians_to_degrees(std::atan2(2.0f * q.w * q.z + 2.0f * q.x * q.y, 1.0f - 2.0f * q.y * q.y - 2.0f * q.z * q.z));
-			euler_angles.x = 0.0f;
-		}
-		else
-		{
-			euler_angles.y = math::radians_to_degrees(std::asin(clamped_sin_p));
-			euler_angles.z = math::radians_to_degrees(std::atan2(2.0f * (q.w * q.z + q.x * q.y), 1.0f - 2.0f * (q.y * q.y + q.z * q.z)));
-			euler_angles.x = math::radians_to_degrees(std::atan2(2.0f * (q.w * q.x + q.y * q.z), 1.0f - 2.0f * (q.x * q.x + q.y * q.y)));
-		}
+		// Y (yaw)
+		float siny = 2.0f * (q.w * q.y - q.z * q.x);
+		siny	   = math::clamp(siny, -1.0f, 1.0f);
+		e.y		   = math::radians_to_degrees(std::asin(siny));
 
-		return euler_angles;
+		// Z (roll)
+		float sinr = 2.0f * (q.w * q.z + q.x * q.y);
+		float cosr = 1.0f - 2.0f * (q.y * q.y + q.z * q.z);
+		e.z		   = math::radians_to_degrees(std::atan2(sinr, cosr));
+
+		return e;
 	}
 
 	quat quat::angle_axis(float angle_degrees, const vector3& axis)

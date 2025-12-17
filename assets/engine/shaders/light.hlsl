@@ -39,14 +39,6 @@ float attenuation(float r, float d)
     return get_range_attenuation(r, d) / max(d*d, 1e-4); // inverse-square * clamp
 }
 
-float spot_smooth(float cosTheta, float cosInner, float cosOuter)
-{
-    // Avoid div by 0 if inner==outer
-    float denom = max(cosInner - cosOuter, 1e-4);
-    float x = saturate((cosTheta - cosOuter) / denom);
-    return x * x;
-}
-
 static const float g_default_spot_blend = 0.2; 
 static const float g_softness_exp       = 1.0;    // >1 = sharper, <1 = softer
 
@@ -72,8 +64,8 @@ float spot_blend_hermite(float cosTheta, float cosOuter, float cosInner, float s
 
 float2 ndc_to_uv(float2 ndc_xy) { return ndc_xy * 0.5f + 0.5f; }
 
-static const float g_depth_bias_base   = 0.0008f;   // base receiver bias (world->light clip->depth)
-static const float g_normal_bias_scale = 0.1f;      // scales with slope (bigger -> fewer acne, more peter-panning)
+static const float g_depth_bias_base   = 0.0001f;   // base receiver bias (world->light clip->depth)
+static const float g_normal_bias_scale = 0.01f;     // scales with slope (bigger -> fewer acne, more peter-panning)
 static const int   g_pcf_radius        = 1;         // 0: 1 tap, 1: 3x3, 2: 5x5
 static const float g_cascade_blend     = 0.5f;      // optional cross-fade width in normalized depth (0 = off)
 
@@ -138,10 +130,12 @@ float sample_cascade_shadow(
     int            slice,
     float2         shadow_resolution, float texel_world)
 {
+
     // Transform world position into light clip space
     float4 clip = mul(light_space_matrix, float4(world_pos, 1.0f));
     if (clip.w <= 0.0f) return 1.0f;
-    float2 uv = ndc_to_uv(clip.xy);
+    float3 ndc = clip.xyz / clip.w;
+    float2 uv = ndc_to_uv(ndc.xy);
     if (outside(uv)) return 1.0f;
     uv.y = 1.0 - uv.y;
 
@@ -150,6 +144,7 @@ float sample_cascade_shadow(
     // we try to trust rasterizer bias, if not below
     // float NoL = saturate(dot(N, normalize(L)));
     // float receiver_bias = g_depth_bias_base + slope_bias(NoL) * max(texel.x, texel.y); // or texel_world * 0.00001
+    // float compare_depth = ndc.z - receiver_bias * 0.1;
 
     float compare_depth = clip.z; 
 

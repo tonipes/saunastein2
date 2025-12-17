@@ -71,6 +71,7 @@ namespace SFG
 		stream << base_color;
 		stream << range;
 		stream << intensity;
+		stream << near_plane;
 	}
 
 	void render_event_point_light::deserialize(istream& stream)
@@ -81,6 +82,7 @@ namespace SFG
 		stream >> base_color;
 		stream >> range;
 		stream >> intensity;
+		stream >> near_plane;
 	}
 
 	void render_event_dir_light::serialize(ostream& stream) const
@@ -111,6 +113,7 @@ namespace SFG
 		stream << intensity;
 		stream << inner_cone;
 		stream << outer_cone;
+		stream << near_plane;
 	}
 
 	void render_event_spot_light::deserialize(istream& stream)
@@ -123,6 +126,7 @@ namespace SFG
 		stream >> intensity;
 		stream >> inner_cone;
 		stream >> outer_cone;
+		stream >> near_plane;
 	}
 
 	void render_event_canvas::serialize(ostream& stream) const

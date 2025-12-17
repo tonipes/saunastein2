@@ -131,8 +131,8 @@ vs_output VSMain(vs_input IN)
         float4x4 bone_mat = bone_buffer[bone_index].bone;
 
         skinned_pos    += mul(bone_mat, float4(IN.pos, 1.0f)) * weight;
-        skinned_normal += mul(IN.normal, (float3x3)bone_mat) * weight;
-        skinned_tan    += mul(IN.tangent.xyz, (float3x3)bone_mat) * weight;
+        skinned_normal += mul((float3x3)bone_mat, IN.normal) * weight;
+        skinned_tan    += mul((float3x3)bone_mat, IN.tangent.xyz) * weight;
     }
 
     obj_pos  = skinned_pos;

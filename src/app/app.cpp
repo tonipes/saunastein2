@@ -266,7 +266,7 @@ namespace SFG
 			// interpolation
 #if FIXED_FRAMERATE_USE_INTERPOLATION
 			const double interpolation = static_cast<double>(accumulator_ns) / FIXED_FRAMERATE_NS_D;
-			_world->interpolate(interpolation * time_speed);
+			_world->interpolate(interpolation);
 #endif
 
 #else
