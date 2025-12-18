@@ -118,7 +118,7 @@ namespace SFG
 		state_machines_type* _machines	  = nullptr;
 		state_samples_type*	 _samples	  = nullptr;
 
-		float _throttle_distance_sqr = 500.0f;
+		float _throttle_distance_sqr = 3000.0f;
 		uint8 _throttle_max_frames	 = 4;
 	};
 }

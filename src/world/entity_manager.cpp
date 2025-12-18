@@ -24,6 +24,7 @@ namespace SFG
 		_prev_abs_matrices = new pool_allocator_simple<matrix4x3, MAX_ENTITIES>();
 		_abs_rots		   = new pool_allocator_simple<quat, MAX_ENTITIES>();
 		_prev_abs_rots	   = new pool_allocator_simple<quat, MAX_ENTITIES>();
+		_proxy_entities	   = new static_vector<world_handle, MAX_ENTITIES>();
 	}
 
 	entity_manager::~entity_manager()
@@ -39,6 +40,7 @@ namespace SFG
 		delete _prev_abs_matrices;
 		delete _abs_rots;
 		delete _prev_abs_rots;
+		delete _proxy_entities;
 	}
 
 	void entity_manager::init()
@@ -52,58 +54,62 @@ namespace SFG
 		if (!f.is_set(entity_flags::entity_flags_transient_abs_transform_mark))
 			return;
 
-		const world_handle parent  = _families->get(e).parent;
-		quat&			   abs_rot = _abs_rots->get(e);
-		entity_transform&  local   = _local_transforms->get(e);
+		const world_handle parent = _families->get(e).parent;
+		entity_transform&  local  = _local_transforms->get(e);
 
 		if (parent.is_null())
 		{
-			matrix4x3&		abs		= _abs_matrices->get(e);
-			const matrix4x3 new_abs = matrix4x3::transform(local.position, local.rotation, local.scale);
 
 #if FIXED_FRAMERATE_ENABLED
 			if (!f.is_set(entity_flags::entity_flags_prev_transform_init))
 			{
-				_prev_abs_matrices->get(e) = new_abs;
+				_prev_abs_matrices->get(e) = matrix4x3::transform(local.position, local.rotation, local.scale);
 				_prev_abs_rots->get(e)	   = local.rotation;
 				f.set(entity_flags::entity_flags_prev_transform_init);
 			}
 			else
 			{
-				_prev_abs_matrices->get(e) = abs;
-				_prev_abs_rots->get(e)	   = local.rotation;
-			}
+				matrix4x3& abs	   = _abs_matrices->get(e);
+				quat&	   abs_rot = _abs_rots->get(e);
 
+				_prev_abs_matrices->get(e) = abs;
+				_prev_abs_rots->get(e)	   = abs_rot;
+
+				abs		= matrix4x3::transform(local.position, local.rotation, local.scale);
+				abs_rot = local.rotation;
+			}
+#else
+			_abs_matrices->get(e) = matrix4x3::transform(local.position, local.rotation, local.scale);
+			_abs_rots->get(e)	  = local.rotation;
 #endif
-			abs		= new_abs;
-			abs_rot = local.rotation;
 		}
 		else
 		{
 			calculate_abs_transform(parent.index);
 
-			const matrix4x3& parent_abs_mat = _abs_matrices->get(parent.index);
-			matrix4x3&		 abs			= _abs_matrices->get(e);
-			const matrix4x3	 new_abs		= parent_abs_mat * matrix4x3::transform(local.position, local.rotation, local.scale);
-			const quat		 new_rot		= _abs_rots->get(parent.index) * local.rotation;
-
 #if FIXED_FRAMERATE_ENABLED
 			if (!f.is_set(entity_flags::entity_flags_prev_transform_init))
 			{
-				_prev_abs_matrices->get(e) = new_abs;
-				_prev_abs_rots->get(e)	   = new_rot;
+				_prev_abs_matrices->get(e) = _abs_matrices->get(parent.index) * matrix4x3::transform(local.position, local.rotation, local.scale);
+				_prev_abs_rots->get(e)	   = _abs_rots->get(parent.index) * local.rotation;
 				f.set(entity_flags::entity_flags_prev_transform_init);
 			}
 			else
 			{
+				matrix4x3& abs	   = _abs_matrices->get(e);
+				quat&	   abs_rot = _abs_rots->get(e);
+
 				_prev_abs_matrices->get(e) = abs;
-				_prev_abs_rots->get(e)	   = _abs_rots->get(e);
+				_prev_abs_rots->get(e)	   = abs_rot;
+
+				abs		= _abs_matrices->get(parent.index) * matrix4x3::transform(local.position, local.rotation, local.scale);
+				abs_rot = _abs_rots->get(parent.index) * local.rotation;
 			}
-
+#else
+			const matrix4x3& parent_abs_mat = _abs_matrices->get(parent.index);
+			_abs_matrices->get(e)			= parent_abs_mat * matrix4x3::transform(local.position, local.rotation, local.scale);
+			_abs_rots->get(e)				= _abs_rots->get(parent.index) * local.rotation;
 #endif
-
-			abs		= new_abs;
-			abs_rot = _abs_rots->get(parent.index) * local.rotation;
 		}
 
 		f.remove(entity_flags::entity_flags_transient_abs_transform_mark);
@@ -177,27 +183,25 @@ namespace SFG
 		auto& abs_mats = *_abs_matrices;
 		auto& rots	   = *_abs_rots;
 		auto& flags	   = *_flags;
+		auto& proxies  = *_proxy_entities;
 
-		for (auto it = _entities->handles_begin(); it != _entities->handles_end(); ++it)
+		for (const world_handle& p : proxies)
 		{
-			const world_handle h = *it;
-			flags.get(h.index).set(entity_flags::entity_flags_transient_abs_transform_mark);
+			flags.get(p.index).set(entity_flags::entity_flags_transient_abs_transform_mark);
 		}
 
 		render_event_entity_transform update = {};
 
-		for (auto it = _entities->handles_begin(); it != _entities->handles_end(); ++it)
+		for (const world_handle& p : proxies)
 		{
-			const world_id index = (*it).index;
+			const world_id index = p.index;
 
 			bitmask<uint16>& ff = flags.get(index);
-			if (!ff.is_set(entity_flags::entity_flags_is_render_proxy) || ff.is_set(entity_flags::entity_flags_invisible))
+			if (ff.is_set(entity_flags::entity_flags_invisible))
 				continue;
 
 			if (ff.is_set(entity_flags::entity_flags_transient_abs_transform_mark))
-			{
 				calculate_abs_transform(index);
-			}
 
 			matrix4x3& abs_mat = abs_mats.get(index);
 			quat&	   abs_rot = rots.get(index);
@@ -223,12 +227,14 @@ namespace SFG
 
 		auto& flags = *_flags;
 
-		for (auto it = _entities->handles_begin(); it != _entities->handles_end(); ++it)
+		auto& proxies = *_proxy_entities;
+
+		for (const world_handle& p : proxies)
 		{
-			const world_id handle_index = (*it).index;
+			const world_id handle_index = p.index;
 
 			const bitmask<uint16>& ff = flags.get(handle_index);
-			if (!ff.is_set(entity_flags::entity_flags_is_render_proxy) || ff.is_set(entity_flags::entity_flags_invisible))
+			if (ff.is_set(entity_flags::entity_flags_invisible))
 				continue;
 
 			const matrix4x3& prev_abs	  = _prev_abs_matrices->get(handle_index);
@@ -290,6 +296,7 @@ namespace SFG
 		_prev_abs_matrices->reset();
 		_abs_rots->reset();
 		_prev_abs_rots->reset();
+		_proxy_entities->resize(0);
 	}
 
 	void entity_manager::reset_entity_data(world_handle handle)
@@ -315,6 +322,9 @@ namespace SFG
 		_prev_abs_matrices->reset(id);
 		_abs_rots->reset(id);
 		_prev_abs_rots->reset(id);
+
+		// whatever makes entity proxy is assumed to clean already.
+		// _proxy_entities->remove(handle);
 	}
 
 	world_handle entity_manager::create_entity(const char* name)
@@ -566,6 +576,10 @@ namespace SFG
 	{
 		SFG_ASSERT(_entities->is_valid(entity));
 		entity_meta& meta = _metas->get(entity.index);
+
+		if (meta.render_proxy_count == 0)
+			_proxy_entities->push_back(entity);
+
 		meta.render_proxy_count++;
 		_flags->get(entity.index).set(entity_flags::entity_flags_is_render_proxy);
 	}
@@ -576,9 +590,13 @@ namespace SFG
 
 		entity_meta& meta = _metas->get(entity.index);
 		SFG_ASSERT(meta.render_proxy_count > 0);
+
 		meta.render_proxy_count--;
 		if (meta.render_proxy_count == 0)
+		{
+			_proxy_entities->remove(entity);
 			_flags->get(entity.index).remove(entity_flags::entity_flags_is_render_proxy);
+		}
 	}
 
 	void entity_manager::set_entity_visible(world_handle entity, bool is_visible)
