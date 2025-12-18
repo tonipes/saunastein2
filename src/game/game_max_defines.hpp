@@ -52,12 +52,18 @@ namespace SFG
 	// -----------------------------------------------------------------------------
 	// animations
 	// -----------------------------------------------------------------------------
-#define MAX_WORLD_BLEND_STATE_ANIMS			   5
-#define MAX_WORLD_ANIM_GRAPH_STATES			   MAX_WORLD_COMP_ANIMS * 10
-#define MAX_WORLD_ANIM_GRAPH_STATE_SAMPLES	   MAX_WORLD_COMP_ANIMS * 10
-#define MAX_WORLD_ANIM_GRAPH_TRANSITION		   MAX_WORLD_COMP_ANIMS * 20
-#define MAX_WORLD_ANIM_GRAPH_PARAMETER		   MAX_WORLD_COMP_ANIMS * 10
-#define MAX_WORLD_ANIM_GRAPH_MASK			   32
+#define MAX_WORLD_BLEND_STATE_ANIMS		   5
+#define MAX_WORLD_ANIM_GRAPH_STATES		   MAX_WORLD_COMP_ANIMS * 10
+#define MAX_WORLD_ANIM_GRAPH_STATE_SAMPLES MAX_WORLD_COMP_ANIMS * 10
+#define MAX_WORLD_ANIM_GRAPH_TRANSITION	   MAX_WORLD_COMP_ANIMS * 20
+#define MAX_WORLD_ANIM_GRAPH_PARAMETER	   MAX_WORLD_COMP_ANIMS * 10
+#define MAX_WORLD_ANIM_GRAPH_MASK		   32
+
+	// -----------------------------------------------------------------------------
+	// particles
+	// -----------------------------------------------------------------------------
+
+#define MAX_WORLD_PARTICLE_EMITTERS 1024
 
 	// -----------------------------------------------------------------------------
 	// gfx

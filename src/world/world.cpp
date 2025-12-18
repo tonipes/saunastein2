@@ -32,7 +32,7 @@
 #include "resources/primitive.hpp"
 #include "resources/world_raw.hpp"
 
-// traits
+// components
 #include "components/comp_camera.hpp"
 #include "components/comp_light.hpp"
 #include "components/comp_mesh_instance.hpp"
@@ -42,6 +42,7 @@
 #include "components/comp_audio.hpp"
 #include "components/comp_canvas.hpp"
 #include "components/comp_animation_controller.hpp"
+#include "components/comp_particle_emitter.hpp"
 
 #include <tracy/Tracy.hpp>
 
@@ -77,6 +78,7 @@ namespace SFG
 		_comp_manager.register_cache<comp_audio, MAX_WORLD_COMP_AUDIO>();
 		_comp_manager.register_cache<comp_canvas, MAX_WORLD_COMP_CANVAS>();
 		_comp_manager.register_cache<comp_animation_controller, MAX_WORLD_COMP_ANIMS>();
+		_comp_manager.register_cache<comp_particle_emitter, MAX_WORLD_PARTICLE_EMITTERS>();
 
 		_phy_world.init();
 		_audio_manager.init();

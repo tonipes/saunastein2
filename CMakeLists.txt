@@ -137,6 +137,7 @@ src/game/*.cpp
 src/world/*.cpp
 src/world/components/*.cpp
 src/world/animation/*.cpp
+src/world/particles/*.cpp
 src/app/*.cpp
 src/sfg_api.cpp
 src/sfg_api.cpp
@@ -171,6 +172,7 @@ src/serialization/*.hpp
 src/physics/*.hpp
 src/world/*.hpp
 src/world/animation/*.hpp
+src/world/particles/*.hpp
 src/world/components/*.hpp
 src/vendor/stb/*.h
 src/vendor/moodycamel/*.h
