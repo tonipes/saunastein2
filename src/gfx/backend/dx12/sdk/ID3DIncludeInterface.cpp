@@ -5,7 +5,7 @@
 
 using Microsoft::WRL::ComPtr;
 
-namespace Lina
+namespace SFG
 {
 	HRESULT __stdcall ID3DIncludeInterface::LoadSource(LPCWSTR pFilename, IDxcBlob** ppIncludeSource)
 	{
@@ -25,4 +25,4 @@ namespace Lina
 	{
 		return 0;
 	}
-} // namespace Lina
+}

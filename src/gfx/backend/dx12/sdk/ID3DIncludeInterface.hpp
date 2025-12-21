@@ -9,7 +9,7 @@
 #include <dxcapi.h>
 #include <wrl/client.h>
 
-namespace Lina
+namespace SFG
 {
 	class ID3DIncludeInterface : public IDxcIncludeHandler
 	{
@@ -35,6 +35,6 @@ namespace Lina
 		Microsoft::WRL::ComPtr<IDxcIncludeHandler> m_defaultIncludeHandler;
 	};
 
-} // namespace Lina
+}
 
 #endif
