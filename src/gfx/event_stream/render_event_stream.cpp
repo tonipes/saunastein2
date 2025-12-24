@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -32,11 +32,11 @@ namespace SFG
 {
 	void render_event_stream::init()
 	{
-		_main_thread_data.create(BATCH_SIZE);
+		_main_thread_data.create(RENDER_STREAM_BATCH_SIZE);
 
-		for (uint32 i = 0; i < MAX_BATCHES; i++)
+		for (uint32 i = 0; i < RENDER_STREAM_MAX_BATCHES; i++)
 		{
-			_stream_data[i].data = new uint8[BATCH_SIZE];
+			_stream_data[i].data = new uint8[RENDER_STREAM_BATCH_SIZE];
 		}
 	}
 
@@ -44,7 +44,7 @@ namespace SFG
 	{
 		_main_thread_data.destroy();
 
-		for (uint32 i = 0; i < MAX_BATCHES; i++)
+		for (uint32 i = 0; i < RENDER_STREAM_MAX_BATCHES; i++)
 		{
 			delete _stream_data[i].data;
 			_stream_data[i].data = nullptr;
@@ -78,25 +78,6 @@ namespace SFG
 
 		_main_thread_data.shrink(0);
 		_latest.store(write_index, std::memory_order_release);
-
-		return;
-
-		// const size_t sz = _main_thread_data.get_size();
-		// if (sz == 0)
-		// 	return;
-		// SFG_ASSERT(sz < BATCH_SIZE);
-		//
-		// event_batch& b = _batches[_write_index];
-		// b.size		   = sz;
-		// b.ready.store(true, std::memory_order_release);
-		// SFG_MEMCPY(b.data, _main_thread_data.get_raw(), sz);
-		//
-		// SFG_TRACE("{0}", ++ctr);
-		// return;
-		// const bool res = _event_queue.try_enqueue(_write_index);
-		// _write_index   = (_write_index + 1) % MAX_BATCHES;
-		//
-		// _main_thread_data.shrink(0);
 	}
 
 	void render_event_stream::open_into(istream& stream)

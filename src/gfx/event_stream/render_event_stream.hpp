@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -32,7 +32,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "game/game_max_defines.hpp"
 #include "io/log.hpp"
 #include "data/atomic.hpp"
-#include <vendor/moodycamel/readerwriterqueue.h>
 
 namespace SFG
 {
@@ -41,16 +40,6 @@ namespace SFG
 	class render_event_stream
 	{
 	public:
-		static constexpr size_t BATCH_SIZE	= RENDER_STREAM_BATCH_SIZE;
-		static constexpr size_t MAX_BATCHES = RENDER_STREAM_MAX_BATCHES;
-
-		struct event_batch
-		{
-			atomic<bool> ready;
-			uint8*		 data = nullptr;
-			size_t		 size = 0;
-		};
-
 		struct buffered_data
 		{
 			uint8* data = nullptr;
@@ -82,27 +71,10 @@ namespace SFG
 			header.serialize(_main_thread_data);
 		}
 
-		// -----------------------------------------------------------------------------
-		// accessors
-		// -----------------------------------------------------------------------------
-
-		// inline moodycamel::ReaderWriterQueue<uint32, MAX_BATCHES>& get_events()
-		//{
-		//	return _event_queue;
-		// }
-		//
-		// inline event_batch& get_batch(uint32 idx)
-		//{
-		//	return _batches[idx];
-		// }
-
 	private:
 		buffered_data _stream_data[RENDER_STREAM_MAX_BATCHES];
 		atomic<int8>  _latest			= {-1};
 		atomic<int8>  _rendered			= {-1};
 		ostream		  _main_thread_data = {};
-		// moodycamel::ReaderWriterQueue<uint32, MAX_BATCHES> _event_queue;
-		// event_batch										   _batches[MAX_BATCHES];
-		// uint32											   _write_index = 0;
 	};
 }
