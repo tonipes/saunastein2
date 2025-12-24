@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -606,6 +606,12 @@ namespace SFG
 
 		meta.render_proxy_count++;
 		_flags->get(entity.index).set(entity_flags::entity_flags_is_render_proxy);
+
+		render_event_entity_transform update = {};
+		update.position						 = get_entity_position_abs(entity);
+		update.rotation						 = get_entity_rotation_abs(entity);
+		update.abs_model					 = get_entity_matrix_abs(entity);
+		_world.get_render_stream().add_event({.index = entity.index, .event_type = render_event_type::update_entity_transform}, update);
 	}
 
 	void entity_manager::remove_render_proxy(world_handle entity)
@@ -621,6 +627,8 @@ namespace SFG
 			_proxy_entities->remove(entity);
 			_flags->get(entity.index).remove(entity_flags::entity_flags_is_render_proxy);
 		}
+
+		_world.get_render_stream().add_event({.index = entity.index, .event_type = render_event_type::remove_entity});
 	}
 
 	void entity_manager::set_entity_visible(world_handle entity, bool is_visible)
