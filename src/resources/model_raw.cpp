@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -480,10 +480,21 @@ namespace SFG
 
 				skin_joint& sj		= skin.joints[j];
 				sj.model_node_index = static_cast<int16>(joint_index);
+				sj.local_matrix		= loaded_nodes[joint_index].local_matrix;
 				sj.name_hash		= TO_SID(loaded_nodes[joint_index].name);
 
-				for (size_t k = 0; k < 16; k++)
-					sj.inverse_bind_matrix.m[k] = raw[k];
+				sj.inverse_bind_matrix[0]  = raw[0];
+				sj.inverse_bind_matrix[1]  = raw[1];
+				sj.inverse_bind_matrix[2]  = raw[2];
+				sj.inverse_bind_matrix[3]  = raw[4];
+				sj.inverse_bind_matrix[4]  = raw[5];
+				sj.inverse_bind_matrix[5]  = raw[6];
+				sj.inverse_bind_matrix[6]  = raw[8];
+				sj.inverse_bind_matrix[7]  = raw[9];
+				sj.inverse_bind_matrix[8]  = raw[10];
+				sj.inverse_bind_matrix[9]  = raw[12];
+				sj.inverse_bind_matrix[10] = raw[13];
+				sj.inverse_bind_matrix[11] = raw[14];
 			}
 		}
 

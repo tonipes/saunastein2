@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -29,6 +29,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "common/size_definitions.hpp"
 #include "common/string_id.hpp"
 #include "math/matrix4x4.hpp"
+#include "math/matrix4x3.hpp"
 
 namespace SFG
 {
@@ -38,7 +39,8 @@ namespace SFG
 	struct skin_joint
 	{
 		uint16	  model_node_index	  = 0;
-		matrix4x4 inverse_bind_matrix = {};
+		matrix4x3 inverse_bind_matrix = {};
+		matrix4x3 local_matrix		  = {};
 		string_id name_hash			  = 0;
 
 		void serialize(ostream& stream) const;

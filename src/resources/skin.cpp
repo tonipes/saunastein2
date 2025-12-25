@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -58,11 +58,11 @@ namespace SFG
 		for (uint32 i = 0; i < count; i++)
 		{
 			const skin_joint& joint		   = raw.joints[i];
-			const matrix4x4	  inverse_bind = joint.inverse_bind_matrix;
+			const matrix4x3	  inverse_bind = joint.inverse_bind_matrix;
 			ptr[i]						   = joint;
 
 			ev.nodes.push_back(joint.model_node_index);
-			ev.matrices.push_back(matrix4x3(inverse_bind[0], inverse_bind[1], inverse_bind[2], inverse_bind[4], inverse_bind[5], inverse_bind[6], inverse_bind[8], inverse_bind[9], inverse_bind[10], inverse_bind[12], inverse_bind[13], inverse_bind[14]));
+			ev.matrices.push_back(joint.inverse_bind_matrix);
 		}
 
 		w.get_render_stream().add_event(
