@@ -369,129 +369,6 @@ namespace SFG
 		const gpu_index gpu_index_float_buffer		 = pfd.float_buffer.get_gpu_index();
 
 		const static_vector<gpu_index, GBUFFER_COLOR_TEXTURES>& gpu_index_gbuffer_textures = _pass_opaque.get_output_gpu_index(frame_index);
-		/*
-	_pass_pre_depth.render({
-		.frame_index		= frame_index,
-		.size				= resolution,
-		.gpu_index_entities = gpu_index_entities,
-		.gpu_index_bones	= gpu_index_bones,
-		.global_layout		= layout_global,
-		.global_group		= bind_group_global,
-	});
-
-	_pass_shadows.render({
-		.frame_index		= frame_index,
-		.size				= resolution,
-		.gpu_index_entities = gpu_index_entities,
-		.gpu_index_bones	= gpu_index_bones,
-		.global_layout		= layout_global,
-		.global_group		= bind_group_global,
-	});
-
-	_pass_ssao.render({
-		.frame_index		   = frame_index,
-		.size				   = resolution,
-		.gpu_index_depth	   = gpu_index_depth_texture,
-		.gpu_index_normals	   = gpu_index_gbuffer_textures[1],
-		.global_layout_compute = layout_global_compute,
-		.global_group		   = bind_group_global,
-	});
-
-	_pass_post.render({
-		.frame_index				 = frame_index,
-		.size						 = resolution,
-		.gpu_index_lighting			 = gpu_index_lighting,
-		.gpu_index_bloom			 = gpu_index_bloom,
-		.gpu_index_selection_outline = gpu_index_selection_outline,
-		.global_layout				 = layout_global,
-		.global_group				 = bind_group_global,
-	});
-
-	_pass_bloom.render({
-		.frame_index		   = frame_index,
-		.size				   = resolution,
-		.lighting			   = lighting_texture,
-		.gpu_index_lighting	   = gpu_index_lighting,
-		.global_layout_compute = layout_global_compute,
-		.global_group		   = bind_group_global,
-	});
-
-	_pass_opaque.render({
-		.frame_index		= frame_index,
-		.size				= resolution,
-		.gpu_index_entities = gpu_index_entities,
-		.gpu_index_bones	= gpu_index_bones,
-		.depth_texture		= depth_texture,
-		.global_layout		= layout_global,
-		.global_group		= bind_group_global,
-	});
-
-#ifdef SFG_TOOLMODE
-	_pass_object_id.render({
-		.frame_index		= frame_index,
-		.size				= resolution,
-		.gpu_index_entities = gpu_index_entities,
-		.gpu_index_bones	= gpu_index_bones,
-		.depth_texture		= depth_texture,
-		.global_layout		= layout_global,
-		.global_group		= bind_group_global,
-	});
-
-	_pass_selection_outline.render({
-		.frame_index		= frame_index,
-		.size				= resolution,
-		.gpu_index_entities = gpu_index_entities,
-		.gpu_index_bones	= gpu_index_bones,
-		.global_layout		= layout_global,
-		.global_group		= bind_group_global,
-	});
-#endif
-
-#ifdef JPH_DEBUG_RENDERER
-
-	_pass_physics_debug.render({
-		.frame_index   = frame_index,
-		.size		   = resolution,
-		.depth_texture = depth_texture,
-		.input_texture = lighting_texture,
-		.global_layout = layout_global,
-		.global_group  = bind_group_global,
-	});
-
-#endif
-	_pass_forward.render({
-		.frame_index		= frame_index,
-		.size				= resolution,
-		.gpu_index_entities = gpu_index_entities,
-		.gpu_index_bones	= gpu_index_bones,
-		.depth_texture		= depth_texture,
-		.input_texture		= lighting_texture,
-		.global_layout		= layout_global,
-		.global_group		= bind_group_global,
-	});
-	_pass_canvas_2d.render({
-		.frame_index   = frame_index,
-		.size		   = resolution,
-		.input_texture = post_combiner_texture,
-		.global_layout = layout_global,
-		.global_group  = bind_group_global,
-	});
-	_pass_lighting.render({
-		.frame_index				  = frame_index,
-		.size						  = resolution,
-		.gpu_index_gbuffer_textures	  = gpu_index_gbuffer_textures,
-		.gpu_index_depth_texture	  = gpu_index_depth_texture,
-		.gpu_index_point_lights		  = gpu_index_point_lights,
-		.gpu_index_spot_lights		  = gpu_index_spot_lights,
-		.gpu_index_dir_lights		  = gpu_index_dir_lights,
-		.gpu_index_entities			  = gpu_index_entities,
-		.gpu_index_shadow_data_buffer = gpu_index_shadow_data_buffer,
-		.gpu_index_float_buffer		  = gpu_index_float_buffer,
-		.gpu_index_ao_out			  = gpu_index_ao_out,
-		.global_layout				  = layout_global,
-		.global_group				  = bind_group_global,
-	});
-	*/
 
 		static_vector<std::function<void()>, 12> tasks;
 
@@ -518,40 +395,6 @@ namespace SFG
 		});
 
 		tasks.push_back([&] {
-			_pass_ssao.render({
-				.frame_index		   = frame_index,
-				.size				   = resolution,
-				.gpu_index_depth	   = gpu_index_depth_texture,
-				.gpu_index_normals	   = gpu_index_gbuffer_textures[1],
-				.global_layout_compute = layout_global_compute,
-				.global_group		   = bind_group_global,
-			});
-		});
-
-		tasks.push_back([&] {
-			_pass_post.render({
-				.frame_index				 = frame_index,
-				.size						 = resolution,
-				.gpu_index_lighting			 = gpu_index_lighting,
-				.gpu_index_bloom			 = gpu_index_bloom,
-				.gpu_index_selection_outline = gpu_index_selection_outline,
-				.global_layout				 = layout_global,
-				.global_group				 = bind_group_global,
-			});
-		});
-
-		tasks.push_back([&] {
-			_pass_bloom.render({
-				.frame_index		   = frame_index,
-				.size				   = resolution,
-				.lighting			   = lighting_texture,
-				.gpu_index_lighting	   = gpu_index_lighting,
-				.global_layout_compute = layout_global_compute,
-				.global_group		   = bind_group_global,
-			});
-		});
-
-		tasks.push_back([&] {
 			_pass_opaque.render({
 				.frame_index		= frame_index,
 				.size				= resolution,
@@ -560,6 +403,17 @@ namespace SFG
 				.depth_texture		= depth_texture,
 				.global_layout		= layout_global,
 				.global_group		= bind_group_global,
+			});
+		});
+
+		tasks.push_back([&] {
+			_pass_ssao.render({
+				.frame_index		   = frame_index,
+				.size				   = resolution,
+				.gpu_index_depth	   = gpu_index_depth_texture,
+				.gpu_index_normals	   = gpu_index_gbuffer_textures[1],
+				.global_layout_compute = layout_global_compute,
+				.global_group		   = bind_group_global,
 			});
 		});
 
@@ -588,8 +442,24 @@ namespace SFG
 		});
 #endif
 
-#ifdef JPH_DEBUG_RENDERER
+		std::for_each(std::execution::par, tasks.begin(), tasks.end(), [](auto&& task) { task(); });
 
+		if (prev_copy != next_copy)
+			backend->queue_wait(queue_gfx, &sem_copy, &next_copy, 1);
+
+		gfx_id first_batch[3] = {cmd_depth, cmd_shadows, cmd_opaque};
+		backend->submit_commands(queue_gfx, first_batch, 3);
+		backend->queue_signal(queue_gfx, &sem_ssao, &sem_ssao_val0, 1);
+
+#ifdef OBJECT_ID_PASS
+		// object-id pass & outline (no dependencies besides depth)
+		backend->submit_commands(queue_gfx, &cmd_object_id, 1);
+		backend->submit_commands(queue_gfx, &cmd_outline, 1);
+#endif
+
+		tasks.resize(0);
+
+#ifdef JPH_DEBUG_RENDERER
 		tasks.push_back([&] {
 			_pass_physics_debug.render({
 				.frame_index   = frame_index,
@@ -602,29 +472,6 @@ namespace SFG
 		});
 
 #endif
-
-		tasks.push_back([&] {
-			_pass_forward.render({
-				.frame_index		= frame_index,
-				.size				= resolution,
-				.gpu_index_entities = gpu_index_entities,
-				.gpu_index_bones	= gpu_index_bones,
-				.depth_texture		= depth_texture,
-				.input_texture		= lighting_texture,
-				.global_layout		= layout_global,
-				.global_group		= bind_group_global,
-			});
-		});
-
-		tasks.push_back([&] {
-			_pass_canvas_2d.render({
-				.frame_index   = frame_index,
-				.size		   = resolution,
-				.input_texture = post_combiner_texture,
-				.global_layout = layout_global,
-				.global_group  = bind_group_global,
-			});
-		});
 
 		tasks.push_back([&] {
 			_pass_lighting.render({
@@ -644,45 +491,73 @@ namespace SFG
 			});
 		});
 
+		tasks.push_back([&] {
+			_pass_forward.render({
+				.frame_index		= frame_index,
+				.size				= resolution,
+				.gpu_index_entities = gpu_index_entities,
+				.gpu_index_bones	= gpu_index_bones,
+				.depth_texture		= depth_texture,
+				.input_texture		= lighting_texture,
+				.global_layout		= layout_global,
+				.global_group		= bind_group_global,
+			});
+		});
+
 		std::for_each(std::execution::par, tasks.begin(), tasks.end(), [](auto&& task) { task(); });
-
-		if (prev_copy != next_copy)
-			backend->queue_wait(queue_gfx, &sem_copy, &next_copy, 1);
-
-		// submit depth
-		backend->submit_commands(queue_gfx, &cmd_depth, 1);
-
-		// shadows
-		if (shadow_pass_count != 0)
-			backend->submit_commands(queue_gfx, &cmd_shadows, 1);
-
-		// submit opaque, signal for ssao
-		backend->submit_commands(queue_gfx, &cmd_opaque, 1);
-		backend->queue_signal(queue_gfx, &sem_ssao, &sem_ssao_val0, 1);
-
-#ifdef OBJECT_ID_PASS
-		// object-id pass & outline (no dependencies besides depth)
-		backend->submit_commands(queue_gfx, &cmd_object_id, 1);
-		backend->submit_commands(queue_gfx, &cmd_outline, 1);
-#endif
 
 		// SSAO waits for opaque, signals after done
 		backend->queue_wait(queue_compute, &sem_ssao, &sem_ssao_val0, 1);
 		backend->submit_commands(queue_compute, &cmd_ssao, 1);
 		backend->queue_signal(queue_compute, &sem_ssao, &sem_ssao_val1, 1);
 
-		// submit lighting, waits for ssao
+		// submit lighting + forward + debugs, waits for ssao
 		backend->queue_wait(queue_gfx, &sem_ssao, &sem_ssao_val1, 1);
 		backend->submit_commands(queue_gfx, &cmd_lighting, 1);
 		backend->submit_commands(queue_gfx, &cmd_forward, 1);
-
 #ifdef JPH_DEBUG_RENDERER
 		backend->submit_commands(queue_gfx, &cmd_physics_debug, 1);
 #endif
-
 		backend->queue_signal(queue_gfx, &sem_lighting, &sem_lighting_val0, 1);
 
-		// bloom waits for forward
+		tasks.resize(0);
+
+		tasks.push_back([&] {
+			_pass_post.render({
+				.frame_index				 = frame_index,
+				.size						 = resolution,
+				.gpu_index_lighting			 = gpu_index_lighting,
+				.gpu_index_bloom			 = gpu_index_bloom,
+				.gpu_index_selection_outline = gpu_index_selection_outline,
+				.global_layout				 = layout_global,
+				.global_group				 = bind_group_global,
+			});
+		});
+
+		tasks.push_back([&] {
+			_pass_bloom.render({
+				.frame_index		   = frame_index,
+				.size				   = resolution,
+				.lighting			   = lighting_texture,
+				.gpu_index_lighting	   = gpu_index_lighting,
+				.global_layout_compute = layout_global_compute,
+				.global_group		   = bind_group_global,
+			});
+		});
+
+		tasks.push_back([&] {
+			_pass_canvas_2d.render({
+				.frame_index   = frame_index,
+				.size		   = resolution,
+				.input_texture = post_combiner_texture,
+				.global_layout = layout_global,
+				.global_group  = bind_group_global,
+			});
+		});
+
+		std::for_each(std::execution::par, tasks.begin(), tasks.end(), [](auto&& task) { task(); });
+
+		// bloom waits for all lighting results.
 		backend->queue_wait(queue_compute, &sem_lighting, &sem_lighting_val0, 1);
 		backend->submit_commands(queue_compute, &cmd_bloom, 1);
 		backend->queue_signal(queue_compute, &sem_lighting, &sem_lighting_val1, 1);
