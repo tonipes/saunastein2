@@ -171,9 +171,14 @@ namespace SFG
 		_aux_memory.uninit();
 	}
 
+	uint32 ct0 = 0;
+
 	void proxy_manager::fetch_render_events(render_event_stream& stream, uint8 frame_index)
 	{
 		ZoneScoped;
+
+		_peak_entities = 0;
+		stream.read_transform_events(&_entities->get(0), _peak_entities);
 
 		istream in;
 		stream.open_into(in);
@@ -182,12 +187,15 @@ namespace SFG
 			return;
 
 		render_event_header header = {};
+		ct0						   = 0;
 
 		while (!in.is_eof())
 		{
+			ct0++;
 			header.deserialize(in);
 			process_event(header, in, frame_index);
 		}
+		//	SFG_TRACE("Processed {0}", ct0);
 	}
 
 	void proxy_manager::flush_destroys(bool force)
@@ -321,27 +329,12 @@ namespace SFG
 			render_proxy_entity& proxy = get_entity(index);
 			proxy.status			   = render_proxy_status::rps_inactive;
 		}
-		else if (type == render_event_type::update_entity_transform)
-		{
-			render_event_entity_transform ev = {};
-			ev.deserialize(stream);
-			render_proxy_entity& proxy = get_entity(index);
-			proxy.status			   = render_proxy_status::rps_active;
-			proxy.handle			   = index;
-			proxy.model				   = ev.abs_model;
-			proxy.normal			   = ev.abs_model.to_linear3x3().inversed().transposed();
-			proxy.position			   = ev.position;
-			proxy.rotation			   = ev.rotation;
-
-			_peak_entities = math::max(_peak_entities, index);
-		}
 		else if (type == render_event_type::update_entity_visibility)
 		{
 			render_event_entity_visibility ev = {};
 			ev.deserialize(stream);
 			render_proxy_entity& proxy = get_entity(index);
 			proxy.status			   = render_proxy_status::rps_active;
-			proxy.handle			   = index;
 			proxy.flags.set(render_proxy_entity_flags::render_proxy_entity_invisible, !ev.visible);
 		}
 		else if (type == render_event_type::update_ambient)

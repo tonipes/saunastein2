@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -51,11 +51,6 @@ namespace SFG
 	}
 
 	const matrix4x3 matrix4x3::identity(1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f);
-
-	vector3 matrix4x3::get_translation() const
-	{
-		return vector3(m[9], m[10], m[11]);
-	}
 
 	vector3 matrix4x3::get_scale() const
 	{
@@ -125,7 +120,6 @@ namespace SFG
 		result.m[7] *= inv_s_sq.z;
 		result.m[8] *= inv_s_sq.z;
 
-	
 		vector3 t(m[9], m[10], m[11]);
 
 		vector3 inv_t;

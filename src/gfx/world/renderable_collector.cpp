@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -62,7 +62,8 @@ namespace SFG
 			if (proxy_mesh.primitives.size == 0)
 				continue;
 
-			const frustum_result res = frustum::test(target_view.view_frustum, proxy_mesh.local_aabb, proxy_entity.model.to_linear3x3(), proxy_entity.position);
+			const vector3		 pos = proxy_entity.model.get_translation();
+			const frustum_result res = frustum::test(target_view.view_frustum, proxy_mesh.local_aabb, proxy_entity.model.to_linear3x3(), pos);
 			if (res == frustum_result::outside)
 				continue;
 
@@ -92,8 +93,8 @@ namespace SFG
 					.index_count	   = prim.index_count,
 					.gpu_entity		   = buffer_index,
 					.bones_start_index = mesh_instance._assigned_bone_index,
-					.world_entity	   = proxy_entity.handle,
-					.distance		   = vector3::distance_sqr(proxy_entity.position, target_view.position),
+					.world_entity	   = mesh_instance.entity,
+					.distance		   = vector3::distance_sqr(pos, target_view.position),
 					.material		   = mat,
 					.is_skinned		   = proxy_mesh.is_skinned,
 				});

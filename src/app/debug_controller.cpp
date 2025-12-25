@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -176,34 +176,6 @@ namespace SFG
 				_vekt_data.builder->widget_update_text(w);
 
 				_vekt_data.widget_render_thread = w;
-			}
-
-			// border
-			{
-				vekt::id w = _vekt_data.builder->allocate();
-				_vekt_data.builder->widget_add_child(header, w);
-				_vekt_data.builder->widget_set_pos(w, vector2(0.0f, 0.5f), vekt::helper_pos_type::relative, vekt::helper_pos_type::relative, vekt::helper_anchor_type::start, vekt::helper_anchor_type::center);
-				_vekt_data.builder->widget_set_size(w, vector2(DEBUG_FONT_SIZE * 0.2f, 1.0f), vekt::helper_size_type::absolute, vekt::helper_size_type::relative);
-				vekt::widget_gfx& gfx = _vekt_data.builder->widget_get_gfx(w);
-				gfx.flags			  = vekt::gfx_flags::gfx_is_rect;
-				gfx.color			  = COLOR_CONSOLE_BG;
-			}
-
-			{
-				vekt::id w = _vekt_data.builder->allocate();
-				_vekt_data.builder->widget_add_child(header, w);
-				_vekt_data.builder->widget_set_pos(w, vector2(0.0f, 0.5f), vekt::helper_pos_type::relative, vekt::helper_pos_type::relative, vekt::helper_anchor_type::start, vekt::helper_anchor_type::center);
-
-				vekt::widget_gfx& gfx = _vekt_data.builder->widget_get_gfx(w);
-				gfx.flags			  = vekt::gfx_flags::gfx_is_text;
-				gfx.color			  = COLOR_CONSOLE_BG_OPAQUE;
-
-				vekt::text_props& tp = _vekt_data.builder->widget_get_text(w);
-				tp.font				 = _vekt_data.font_debug;
-				tp.text				 = _text_allocator.allocate("Present: 0.000000 ");
-				_vekt_data.builder->widget_update_text(w);
-
-				_vekt_data.widget_present_time = w;
 			}
 
 			// border
@@ -943,14 +915,12 @@ namespace SFG
 		_gfx_data.frame_counter++;
 		if (_gfx_data.frame_counter % 120 == 0)
 		{
-			const vekt::text_props& fps_props	  = _vekt_data.builder->widget_get_text(_vekt_data.widget_fps);
-			const vekt::text_props& update_props  = _vekt_data.builder->widget_get_text(_vekt_data.widget_main_thread);
-			const vekt::text_props& render_props  = _vekt_data.builder->widget_get_text(_vekt_data.widget_render_thread);
-			const vekt::text_props& present_props = _vekt_data.builder->widget_get_text(_vekt_data.widget_present_time);
+			const vekt::text_props& fps_props	 = _vekt_data.builder->widget_get_text(_vekt_data.widget_fps);
+			const vekt::text_props& update_props = _vekt_data.builder->widget_get_text(_vekt_data.widget_main_thread);
+			const vekt::text_props& render_props = _vekt_data.builder->widget_get_text(_vekt_data.widget_render_thread);
 			string_util::append_float(static_cast<float>(frame_info::get_fps()), (char*)fps_props.text + 5, 4, 1, true);
 			string_util::append_float(static_cast<float>(frame_info::get_main_thread_time_milli()), (char*)update_props.text + 6, 7, 4, true);
 			string_util::append_float(static_cast<float>(frame_info::get_render_thread_time_milli()), (char*)render_props.text + 8, 7, 4, true);
-			string_util::append_float(static_cast<float>(frame_info::get_present_time_milli()), (char*)present_props.text + 9, 7, 4, true);
 
 #ifdef SFG_ENABLE_MEMORY_TRACER
 			memory_tracer& tracer = memory_tracer::get();

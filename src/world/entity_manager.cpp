@@ -214,8 +214,6 @@ namespace SFG
 			flags.get(p.index).set(entity_flags::entity_flags_transient_abs_transform_mark);
 		}
 
-		render_event_entity_transform update = {};
-
 		for (const world_handle& p : proxies)
 		{
 			const world_id index = p.index;
@@ -230,12 +228,8 @@ namespace SFG
 			matrix4x3& abs_mat = abs_mats.get(index);
 			quat&	   abs_rot = rots.get(index);
 
-			update.position	 = abs_mat.get_translation();
-			update.rotation	 = abs_rot;
-			update.abs_model = abs_mat;
-
 #if !(FIXED_FRAMERATE_ENABLED && FIXED_FRAMERATE_USE_INTERPOLATION)
-			stream.add_event({.index = index, .event_type = render_event_type::update_entity_transform}, update);
+			stream.add_entity_transform_event(handle_index, abs_mat, abs_rot);
 #endif
 		}
 	}
@@ -246,8 +240,7 @@ namespace SFG
 
 		render_event_stream& stream = _world.get_render_stream();
 
-		render_event_entity_transform update = {};
-		const float					  interp = math::clamp((float)interpolation, 0.0f, 1.0f);
+		const float interp = math::clamp((float)interpolation, 0.0f, 1.0f);
 
 		auto& flags = *_flags;
 
@@ -269,11 +262,8 @@ namespace SFG
 			const vector3 pos	= vector3::lerp(prev_abs.get_translation(), abs.get_translation(), interp);
 			const quat	  rot	= quat::slerp(prev_abs_rot, abs_rot, interp);
 			const vector3 scale = vector3::lerp(prev_abs.get_scale(), abs.get_scale(), interp);
-			update.position		= pos;
-			update.rotation		= rot;
 
-			update.abs_model = matrix4x3::transform(pos, rot, scale);
-			stream.add_event({.index = handle_index, .event_type = render_event_type::update_entity_transform}, update);
+			stream.add_entity_transform_event(handle_index, matrix4x3::transform(pos, rot, scale), rot);
 		}
 	}
 
@@ -607,11 +597,7 @@ namespace SFG
 		meta.render_proxy_count++;
 		_flags->get(entity.index).set(entity_flags::entity_flags_is_render_proxy);
 
-		render_event_entity_transform update = {};
-		update.position						 = get_entity_position_abs(entity);
-		update.rotation						 = get_entity_rotation_abs(entity);
-		update.abs_model					 = get_entity_matrix_abs(entity);
-		_world.get_render_stream().add_event({.index = entity.index, .event_type = render_event_type::update_entity_transform}, update);
+		_world.get_render_stream().add_entity_transform_event(entity.index, get_entity_matrix_abs(entity), get_entity_rotation_abs(entity));
 	}
 
 	void entity_manager::remove_render_proxy(world_handle entity)

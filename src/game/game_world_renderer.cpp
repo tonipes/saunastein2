@@ -254,7 +254,9 @@ namespace SFG
 			const render_proxy_camera& cam_proxy  = _proxy_manager.get_camera(main_cam_trait);
 			const render_proxy_entity& cam_entity = _proxy_manager.get_entity(cam_proxy.entity);
 
-			const matrix4x4 view	  = matrix4x4::view(cam_entity.rotation, cam_entity.position);
+			const vector3 pos = cam_entity.model.get_translation();
+
+			const matrix4x4 view	  = matrix4x4::view(cam_entity.rotation, pos);
 			const matrix4x4 proj	  = matrix4x4::perspective_reverse_z(cam_proxy.fov_degrees, static_cast<float>(_base_size.x) / static_cast<float>(_base_size.y), cam_proxy.near_plane, cam_proxy.far_plane);
 			const matrix4x4 view_proj = proj * view;
 			_main_camera_view		  = {
@@ -264,7 +266,7 @@ namespace SFG
 						.inv_proj_matrix	  = proj.inverse(),
 						.view_proj_matrix	  = view_proj,
 						.inv_view_proj_matrix = view_proj.inverse(),
-						.position			  = cam_entity.position,
+						.position			  = pos,
 						.near_plane			  = cam_proxy.near_plane,
 						.far_plane			  = cam_proxy.far_plane,
 						.fov_degrees		  = cam_proxy.fov_degrees,
@@ -881,11 +883,13 @@ namespace SFG
 
 			e._assigned_index = assigned_index;
 
-			const vector3 forward		 = e.rotation.get_forward();
+			const vector3 forward = e.rotation.get_forward();
+			const vector3 pos	  = e.model.get_translation();
+
 			gpu_entities[assigned_index] = {
 				.model	  = e.model.to_matrix4x4(),
 				.normal	  = e.normal.to_matrix4x4(),
-				.position = vector4(e.position.x, e.position.y, e.position.z, 0),
+				.position = vector4(pos.x, pos.y, pos.z, 0),
 				.forward  = vector4(forward.x, forward.y, forward.z, 0.0f),
 			};
 
@@ -1008,10 +1012,12 @@ namespace SFG
 			if (proxy_entity.flags.is_set(render_proxy_entity_flags::render_proxy_entity_invisible))
 				continue;
 
+			const vector3 pos = proxy_entity.model.get_translation();
+
 			constexpr float energy_thresh = LIGHT_CULLING_ENERGY_THRESHOLD;
 			const float		radius		  = math::sqrt(light.intensity / (4.0f * MATH_PI * energy_thresh));
 
-			const frustum_result res = frustum::test(_main_camera_view.view_frustum, proxy_entity.position, radius);
+			const frustum_result res = frustum::test(_main_camera_view.view_frustum, pos, radius);
 			if (res == frustum_result::outside)
 				continue;
 
@@ -1043,7 +1049,7 @@ namespace SFG
 
 				for (uint8 j = 0; j < 6; j++)
 				{
-					const matrix4x4 light_view		 = matrix4x4::look_at(proxy_entity.position, proxy_entity.position + dirs[j], fws[j]);
+					const matrix4x4 light_view		 = matrix4x4::look_at(pos, pos + dirs[j], fws[j]);
 					const matrix4x4 light_projection = matrix4x4::perspective(90.5f, light_aspect, near_plane, far_plane);
 
 					const gpu_shadow_data sh = {
@@ -1062,7 +1068,7 @@ namespace SFG
 						.view_index		  = j,
 						.proj			  = light_projection,
 						.view			  = light_view,
-						.position		  = proxy_entity.position,
+						.position		  = pos,
 						.cascade_near	  = main_cam_near,
 						.cascade_far	  = far_plane,
 						.fov			  = main_cam_fov,
@@ -1093,10 +1099,11 @@ namespace SFG
 			if (proxy_entity.flags.is_set(render_proxy_entity_flags::render_proxy_entity_invisible))
 				continue;
 
+			const vector3	pos			  = proxy_entity.model.get_translation();
 			constexpr float energy_thresh = LIGHT_CULLING_ENERGY_THRESHOLD;
 			const float		radius		  = math::sqrt(light.intensity / (4.0f * MATH_PI * energy_thresh));
 
-			const frustum_result res = frustum::test(_main_camera_view.view_frustum, proxy_entity.position, radius);
+			const frustum_result res = frustum::test(_main_camera_view.view_frustum, pos, radius);
 			if (res == frustum_result::outside)
 				continue;
 
@@ -1112,7 +1119,8 @@ namespace SFG
 
 				const vector3	entity_fw		 = proxy_entity.rotation.get_forward();
 				const vector3	up				 = math::abs(vector3::dot(entity_fw, vector3::up)) > 0.98f ? vector3::forward : vector3::up;
-				const matrix4x4 light_view		 = matrix4x4::look_at(proxy_entity.position, proxy_entity.position + proxy_entity.rotation.get_forward() * 0.1, up);
+				const vector3	pos				 = proxy_entity.model.get_translation();
+				const matrix4x4 light_view		 = matrix4x4::look_at(pos, pos + proxy_entity.rotation.get_forward() * 0.1, up);
 				const matrix4x4 light_projection = matrix4x4::perspective(fov_deg, light_aspect, near_plane, far_plane);
 
 				sdata[shadow_data_count].light_space_matrix = light_projection * light_view;
@@ -1126,7 +1134,7 @@ namespace SFG
 					.view_index		  = 0,
 					.proj			  = light_projection,
 					.view			  = light_view,
-					.position		  = proxy_entity.position,
+					.position		  = pos,
 					.cascade_near	  = main_cam_near,
 					.cascade_far	  = far_plane,
 					.fov			  = main_cam_fov,

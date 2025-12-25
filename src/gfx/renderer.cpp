@@ -247,10 +247,6 @@ namespace SFG
 		const gfx_id	  queue_transfer = backend->get_queue_transfer();
 		const vector2ui16 size			 = _base_size;
 
-#ifdef SFG_USE_DEBUG_CONTROLLER
-		const int64 time_begin = time::get_cpu_microseconds();
-#endif
-
 		{
 			ZoneScopedN("wait latency");
 			// Gate frame start to DXGI frame latency waitable for stable pacing
@@ -454,20 +450,9 @@ namespace SFG
 			backend->present(&swapchain_rt, 1);
 		}
 
-#ifdef SFG_USE_DEBUG_CONTROLLER
-		const int64 time_after_wait = time::get_cpu_microseconds();
-		frame_info::s_render_present_microseconds.store(time_after_wait - time_before_wait);
-#endif
-
 		_gfx_data.frame_index = backend->get_back_buffer_index(_gfx_data.swapchain);
 
 		backend->queue_signal(queue_gfx, &sem_frame, &next_frame_value, 1);
-
-		// SFG_TRACE("frame index {0}", (uint32)_gfx_data.frame_index);
-#ifdef SFG_USE_DEBUG_CONTROLLER
-		const int64 time_end = time::get_cpu_microseconds();
-		frame_info::s_render_work_microseconds.store(static_cast<double>(time_end - time_begin - (time_after_wait - time_before_wait)));
-#endif
 	}
 
 	bool renderer::on_window_event(const window_event& ev)

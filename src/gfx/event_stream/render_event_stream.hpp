@@ -32,10 +32,12 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "game/game_max_defines.hpp"
 #include "io/log.hpp"
 #include "data/atomic.hpp"
+#include "gfx/proxy/render_proxy_entity.hpp"
 
 namespace SFG
 {
 	class istream;
+	struct render_proxy_entity;
 
 	class render_event_stream
 	{
@@ -46,6 +48,19 @@ namespace SFG
 			size_t size = 0;
 		};
 
+		struct proxy_entity_transform_data
+		{
+			matrix4x3 model;
+			quat	  rot;
+		};
+		struct proxy_entity_data
+		{
+			proxy_entity_transform_data* entities	   = nullptr;
+			vector<world_id>			 dirty_indices = {};
+			uint8*						 dirty_flags   = nullptr;
+			uint32						 peak_size	   = 0;
+		};
+
 		// -----------------------------------------------------------------------------
 		// lifecycle
 		// -----------------------------------------------------------------------------
@@ -54,6 +69,8 @@ namespace SFG
 		void uninit();
 		void publish();
 		void open_into(istream& stream);
+		void add_entity_transform_event(world_id index, const matrix4x3& model, const quat& rot);
+		void read_transform_events(render_proxy_entity* out_entities, uint32& out_size);
 
 		// -----------------------------------------------------------------------------
 		// event api
@@ -72,9 +89,11 @@ namespace SFG
 		}
 
 	private:
-		buffered_data _stream_data[RENDER_STREAM_MAX_BATCHES];
-		atomic<int8>  _latest			= {-1};
-		atomic<int8>  _rendered			= {-1};
-		ostream		  _main_thread_data = {};
+		buffered_data	  _stream_data[RENDER_STREAM_MAX_BATCHES];
+		proxy_entity_data _proxy_entity_data[RENDER_STREAM_MAX_BATCHES];
+		atomic<int8>	  _latest			= {-1};
+		atomic<int8>	  _rendered			= {-1};
+		ostream			  _main_thread_data = {};
+		uint8			  _write_index		= 0;
 	};
 }

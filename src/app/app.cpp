@@ -366,20 +366,25 @@ namespace SFG
 		tracy::SetThreadName("render_thread");
 #endif
 
+		int64 time_prev = time::get_cpu_microseconds();
+
 		while (_render_joined.load(std::memory_order_acquire) == 0)
 		{
 #ifdef TRACY_ENABLE
 			TracyCFrameMarkNamed("render_frame");
 #endif
 
+			const int64 time_now = time::get_cpu_microseconds();
+			const int64 delta	 = time_now - time_prev;
+			time_prev			 = time_now;
+			frame_info::s_render_thread_time_milli.store(delta * 0.001);
+
 			_renderer->render();
 			_game->post_render();
 			frame_info::s_render_frame.fetch_add(1);
 
 #ifndef SFG_PRODUCTION
-			frame_info::s_present_time_milli.store(frame_info::s_render_present_microseconds * 0.001);
-			frame_info::s_render_thread_time_milli.store(static_cast<double>(frame_info::s_render_work_microseconds) * 0.001);
-			frame_info::s_fps.store(1.0f / static_cast<float>((frame_info::s_present_time_milli + frame_info::s_render_thread_time_milli) * 0.001f));
+			frame_info::s_fps.store(1.0f / static_cast<float>(frame_info::s_render_thread_time_milli * 0.001));
 #endif
 		}
 	}

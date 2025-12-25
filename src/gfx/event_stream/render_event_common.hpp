@@ -51,7 +51,6 @@ namespace SFG
 		update_material,
 		update_mesh_instance,
 		remove_mesh_instance,
-		update_entity_transform,
 		remove_entity,
 		update_entity_visibility,
 		set_main_camera,

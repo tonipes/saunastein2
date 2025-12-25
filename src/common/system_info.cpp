@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -34,13 +34,10 @@ namespace SFG
 	bool			thread_info::s_is_init;
 #endif
 
-	atomic<double> frame_info::s_main_thread_time_milli		 = 0;
-	atomic<double> frame_info::s_render_thread_time_milli	 = 0;
-	atomic<double> frame_info::s_present_time_milli			 = 0;
-	atomic<uint32> frame_info::s_fps						 = 0;
-	atomic<uint64> frame_info::s_frame						 = 0;
-	atomic<uint64> frame_info::s_render_frame				 = 0;
-	atomic<int64>  frame_info::s_render_work_microseconds	 = 0;
-	atomic<int64>  frame_info::s_render_present_microseconds = 0;
-	bool		   frame_info::s_is_render_active			 = 0;
+	atomic<double> frame_info::s_main_thread_time_milli	  = 0;
+	atomic<double> frame_info::s_render_thread_time_milli = 0;
+	atomic<uint32> frame_info::s_fps					  = 0;
+	atomic<uint64> frame_info::s_frame					  = 0;
+	atomic<uint64> frame_info::s_render_frame			  = 0;
+	bool		   frame_info::s_is_render_active		  = 0;
 }
