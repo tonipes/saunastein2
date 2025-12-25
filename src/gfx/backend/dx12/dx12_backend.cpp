@@ -50,9 +50,13 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "math/math_common.hpp"
 #include "game/game_max_defines.hpp"
 
-#include <tracy/Tracy.hpp>
+// game
+#include "game/app_defines.hpp"
 
-#ifdef SFG_DEBUG
+#include <tracy/Tracy.hpp>
+#include <tracy/TracyD3D12.hpp>
+
+#ifndef SFG_PRODUCTION
 #include <WinPixEventRuntime/pix3.h>
 #endif
 
@@ -767,6 +771,7 @@ namespace SFG
 
 	void dx12_backend::uninit()
 	{
+
 		destroy_queue(_queue_graphics);
 		destroy_queue(_queue_transfer);
 		destroy_queue(_queue_compute);
@@ -877,11 +882,13 @@ namespace SFG
 
 	void dx12_backend::wait_for_swapchain_latency(gfx_id swapchain_id)
 	{
+#if USE_WAITABLE_SWAPCHAIN
 		swapchain& swp = _swapchains.get(swapchain_id);
 		if (swp.frame_latency_waitable != NULL)
 		{
 			WaitForSingleObject(swp.frame_latency_waitable, INFINITE);
 		}
+#endif
 	}
 
 	uint8 dx12_backend::get_back_buffer_index(gfx_id s)
@@ -1479,7 +1486,11 @@ namespace SFG
 			.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
 			.BufferCount = BACK_BUFFER_COUNT,
 			.SwapEffect	 = DXGI_SWAP_EFFECT_FLIP_DISCARD,
-			.Flags		 = (tearing ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : (UINT)0) | DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT,
+#if USE_WAITABLE_SWAPCHAIN
+			.Flags = (tearing ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : (UINT)0) | DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT,
+#else
+			.Flags = (tearing ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : (UINT)0),
+#endif
 		};
 
 		ComPtr<IDXGISwapChain1> swapchain;
@@ -1497,12 +1508,14 @@ namespace SFG
 		TracyAllocN(swp.ptr.Get(), swapchain_desc.Width * swapchain_desc.Height * 4, "GPU: Resource");
 		TracyAllocN(swp.ptr.Get(), swapchain_desc.Width * swapchain_desc.Height * 4, "GPU: Total");
 
+#if USE_WAITABLE_SWAPCHAIN
 		Microsoft::WRL::ComPtr<IDXGISwapChain2> sc2;
 		if (SUCCEEDED(swp.ptr.As(&sc2)))
 		{
 			sc2->SetMaximumFrameLatency(FRAME_LATENCY);
 			swp.frame_latency_waitable = sc2->GetFrameLatencyWaitableObject();
 		}
+#endif
 
 		{
 			for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
@@ -1562,8 +1575,13 @@ namespace SFG
 		TracyFreeN(swp.ptr.Get(), "GPU: Total");
 		TracyFreeN(swp.ptr.Get(), "GPU: Texture");
 
-		throw_if_failed(
-			swp.ptr->ResizeBuffers(BACK_BUFFER_COUNT, static_cast<UINT>(desc.size.x), static_cast<UINT>(desc.size.y), swp_desc.BufferDesc.Format, (tearing ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : (UINT)0) | DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT));
+#if USE_WAITABLE_SWAPCHAIN
+		UINT flags = (tearing ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : (UINT)0) | DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+#else
+		UINT flags = (tearing ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : (UINT)0);
+#endif
+
+		throw_if_failed(swp.ptr->ResizeBuffers(BACK_BUFFER_COUNT, static_cast<UINT>(desc.size.x), static_cast<UINT>(desc.size.y), swp_desc.BufferDesc.Format, flags));
 		swp.image_index = swp.ptr->GetCurrentBackBufferIndex();
 
 		TracyAllocN(swp.ptr.Get(), desc.size.x * desc.size.y * 4, "GPU: Total");
@@ -1571,12 +1589,14 @@ namespace SFG
 
 		// Re-apply frame latency settings and refresh waitable object after resize
 		{
+#if USE_WAITABLE_SWAPCHAIN
 			Microsoft::WRL::ComPtr<IDXGISwapChain2> sc2;
 			if (SUCCEEDED(swp.ptr.As(&sc2)))
 			{
 				sc2->SetMaximumFrameLatency(FRAME_LATENCY);
 				swp.frame_latency_waitable = sc2->GetFrameLatencyWaitableObject();
 			}
+#endif
 		}
 
 		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
@@ -2898,8 +2918,8 @@ namespace SFG
 	{
 		command_buffer&				buffer	 = _command_buffers.get(cmd_id);
 		ID3D12GraphicsCommandList4* cmd_list = buffer.ptr.Get();
-#ifdef SFG_DEBUG
-		PIXBeginEvent(cmd_list, PIX_COLOR(120, 255, 100), label);
+#ifndef SFG_PRODUCTION
+		PIXBeginEvent(cmd_list, PIX_COLOR(120, 255, 100), "%s", label);
 #endif
 	}
 
@@ -2907,7 +2927,7 @@ namespace SFG
 	{
 		command_buffer&				buffer	 = _command_buffers.get(cmd_id);
 		ID3D12GraphicsCommandList4* cmd_list = buffer.ptr.Get();
-#ifdef SFG_DEBUG
+#ifndef SFG_PRODUCTION
 		PIXEndEvent(cmd_list);
 #endif
 	}

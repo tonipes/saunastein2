@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -97,7 +97,7 @@ namespace SFG
 
 	struct command_bind_group;
 
-#ifdef SFG_DEBUG
+#ifndef SFG_PRODUCTION
 #define BEGIN_DEBUG_EVENT(backend, CMD_BUF, LABEL) backend->cmd_begin_event(CMD_BUF, LABEL)
 #define END_DEBUG_EVENT(backend, CMD_BUF)		   backend->cmd_end_event(CMD_BUF)
 #else
@@ -337,6 +337,16 @@ namespace SFG
 		inline gfx_id get_queue_compute() const
 		{
 			return _queue_compute;
+		}
+
+		inline ID3D12Device* get_device() const
+		{
+			return _device.Get();
+		}
+
+		inline ID3D12GraphicsCommandList4* get_gfx_cmd_list(uint32 list)
+		{
+			return _command_buffers.get(list).ptr.Get();
 		}
 
 	private:

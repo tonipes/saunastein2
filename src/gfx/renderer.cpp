@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -90,7 +90,7 @@ namespace SFG
 		gfx_backend* backend = gfx_backend::get();
 
 		// swapchain
-		_swapchain_flags = swapchain_flags::sf_vsync_every_v_blank;
+		_swapchain_flags = swapchain_flags::sf_allow_tearing;
 		_base_size		 = _main_window.get_size();
 
 		_gfx_data.swapchain = backend->create_swapchain({
@@ -248,16 +248,14 @@ namespace SFG
 		const vector2ui16 size			 = _base_size;
 
 #ifdef SFG_USE_DEBUG_CONTROLLER
-		const int64 time_before_wait = time::get_cpu_microseconds();
+		const int64 time_begin = time::get_cpu_microseconds();
 #endif
 
-		// Gate frame start to DXGI frame latency waitable for stable pacing
-		backend->wait_for_swapchain_latency(_gfx_data.swapchain);
-
-#ifdef SFG_USE_DEBUG_CONTROLLER
-		const int64 time_after_wait = time::get_cpu_microseconds();
-		frame_info::s_render_present_microseconds.store(time_after_wait - time_before_wait);
-#endif
+		{
+			ZoneScopedN("wait latency");
+			// Gate frame start to DXGI frame latency waitable for stable pacing
+			backend->wait_for_swapchain_latency(_gfx_data.swapchain);
+		}
 
 		/* access frame data */
 		const uint8	 frame_index		   = _gfx_data.frame_index;
@@ -279,8 +277,12 @@ namespace SFG
 		bump_allocator& alloc = _frame_allocator[frame_index];
 		alloc.reset();
 
-		// Wait for frame's fence, then send any uploads needed.
-		backend->wait_semaphore(pfd.sem_frame.semaphore, pfd.sem_frame.value);
+		{
+			ZoneScopedN("wait semaphore");
+
+			// Wait for frame's fence, then send any uploads needed.
+			backend->wait_semaphore(pfd.sem_frame.semaphore, pfd.sem_frame.value);
+		}
 
 		_proxy_manager.fetch_render_events(_event_stream, frame_index);
 		_proxy_manager.flush_destroys(false);
@@ -443,7 +445,20 @@ namespace SFG
 
 		backend->submit_commands(queue_gfx, &cmd_list, 1);
 
-		backend->present(&swapchain_rt, 1);
+#ifdef SFG_USE_DEBUG_CONTROLLER
+		const int64 time_before_wait = time::get_cpu_microseconds();
+#endif
+
+		{
+			ZoneScopedN("present");
+			backend->present(&swapchain_rt, 1);
+		}
+
+#ifdef SFG_USE_DEBUG_CONTROLLER
+		const int64 time_after_wait = time::get_cpu_microseconds();
+		frame_info::s_render_present_microseconds.store(time_after_wait - time_before_wait);
+#endif
+
 		_gfx_data.frame_index = backend->get_back_buffer_index(_gfx_data.swapchain);
 
 		backend->queue_signal(queue_gfx, &sem_frame, &next_frame_value, 1);
@@ -451,7 +466,7 @@ namespace SFG
 		// SFG_TRACE("frame index {0}", (uint32)_gfx_data.frame_index);
 #ifdef SFG_USE_DEBUG_CONTROLLER
 		const int64 time_end = time::get_cpu_microseconds();
-		frame_info::s_render_work_microseconds.store(static_cast<double>(time_end - time_after_wait));
+		frame_info::s_render_work_microseconds.store(static_cast<double>(time_end - time_begin - (time_after_wait - time_before_wait)));
 #endif
 	}
 

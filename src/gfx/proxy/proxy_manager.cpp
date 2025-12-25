@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -177,6 +177,10 @@ namespace SFG
 
 		istream in;
 		stream.open_into(in);
+
+		if (in.get_size() == 0)
+			return;
+
 		render_event_header header = {};
 
 		while (!in.is_eof())
@@ -184,37 +188,6 @@ namespace SFG
 			header.deserialize(in);
 			process_event(header, in, frame_index);
 		}
-
-		//
-		//	uint32 idx = 0;
-		//	while (events.try_dequeue(idx))
-		//	{
-		//		render_event_stream::event_batch& b = stream.get_batch(idx);
-		//
-		//		while (!b.ready.load(std::memory_order_release))
-		//			time::yield_thread();
-		//
-		//		const size_t total = b.size;
-		//		in.open(b.data, total);
-		//		header.deserialize(in);
-		//		process_event(header, in, frame_index);
-		//
-		//		b.ready.store(false, std::memory_order_release);
-		//	}
-
-		// while (read)
-		//{
-		//	size_t		 offset = 0;
-		//	const size_t total	= batch.size;
-		//	in.open(batch.data, total);
-		//
-		//	while (!in.is_eof())
-		//	{
-		//		header.deserialize(in);
-		//		process_event(header, in, frame_index);
-		//	}
-		//	read = events.try_dequeue(batch);
-		// }
 	}
 
 	void proxy_manager::flush_destroys(bool force)
@@ -342,6 +315,11 @@ namespace SFG
 			proxy._max_index_offset += ev.index_data_size;
 
 			_peak_canvases = math::max(_peak_canvases, index);
+		}
+		else if (type == render_event_type::remove_entity)
+		{
+			render_proxy_entity& proxy = get_entity(index);
+			proxy.status			   = render_proxy_status::rps_inactive;
 		}
 		else if (type == render_event_type::update_entity_transform)
 		{
@@ -556,18 +534,19 @@ namespace SFG
 
 			const vector2ui16 pre_res = proxy.shadow_res;
 
-			proxy.status	   = render_proxy_status::rps_active;
-			proxy.entity	   = ev.entity_index;
-			proxy.base_color   = ev.base_color;
-			proxy.intensity	   = ev.intensity;
-			proxy.cast_shadows = ev.cast_shadows;
-			proxy.shadow_res   = ev.shadow_resolution;
+			proxy.status		 = render_proxy_status::rps_active;
+			proxy.entity		 = ev.entity_index;
+			proxy.base_color	 = ev.base_color;
+			proxy.intensity		 = ev.intensity;
+			proxy.cast_shadows	 = ev.cast_shadows;
+			proxy.shadow_res	 = ev.shadow_resolution;
+			proxy.cascade_levels = ev.max_cascades;
 
 			auto create_shadow_texture = [&]() {
 				// create textures
 				vector<view_desc> views;
 
-				const uint8 cascade_size = static_cast<uint8>(MAX_SHADOW_CASCADES) + 1;
+				const uint8 cascade_size = ev.max_cascades;
 				for (uint8 i = 0; i < cascade_size; i++)
 				{
 					views.push_back({

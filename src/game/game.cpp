@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -127,7 +127,7 @@ namespace SFG
 
 				em.set_entity_rotation(s_h, quat::from_euler(-30, 0, 0));
 				dl.set_values(w, color(1, 1, 1, 1), 8);
-				dl.set_shadow_values(w, 1, vector2ui16(2048, 2048));
+				dl.set_shadow_values(w, 1, 3, vector2ui16(2048, 2048));
 			}
 
 			{
@@ -165,7 +165,8 @@ namespace SFG
 			"assets/character/character.stkmodel/Idle_Talking_Loop"_hs,
 		};
 
-		for (uint32 i = 0; i < 1024; i++)
+		return;
+		for (uint32 i = 0; i < 256; i++)
 		{
 			const world_handle root = em.create_entity("root");
 			em.set_entity_position(root, vector3::zero);

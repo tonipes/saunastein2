@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -63,6 +63,7 @@ namespace SFG
 		ev.intensity			  = _intensity;
 		ev.cast_shadows			  = _cast_shadows;
 		ev.shadow_resolution	  = _shadow_resolution;
+		ev.max_cascades			  = _max_cascades;
 
 		w.get_render_stream().add_event(
 			{
@@ -89,9 +90,10 @@ namespace SFG
 		send_event(w);
 	}
 
-	void comp_dir_light::set_shadow_values(world& w, uint8 cast_shadows, const vector2ui16& resolution)
+	void comp_dir_light::set_shadow_values(world& w, uint8 cast_shadows, uint8 max_cascades, const vector2ui16& resolution)
 	{
 		_cast_shadows	   = cast_shadows;
+		_max_cascades	   = max_cascades;
 		_shadow_resolution = resolution;
 		send_event(w);
 	}

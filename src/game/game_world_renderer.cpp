@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -45,6 +45,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <functional>
 #include <algorithm>
 #include <execution>
+
+// #define OBJECT_ID_PASS
 
 namespace SFG
 {
@@ -178,7 +180,7 @@ namespace SFG
 		_pass_forward.init(size);
 		_pass_canvas_2d.init(size);
 
-#ifdef SFG_TOOLMODE
+#ifdef OBJECT_ID_PASS
 		_pass_object_id.init(size);
 		_pass_selection_outline.init(size);
 #endif
@@ -200,7 +202,7 @@ namespace SFG
 		_pass_forward.uninit();
 		_pass_canvas_2d.uninit();
 
-#ifdef SFG_TOOLMODE
+#ifdef OBJECT_ID_PASS
 		_pass_object_id.uninit();
 		_pass_selection_outline.uninit();
 #endif
@@ -288,7 +290,7 @@ namespace SFG
 		_pass_forward.prepare(_proxy_manager, _renderables, _main_camera_view, _base_size, frame_index);
 		_pass_canvas_2d.prepare(_proxy_manager, _renderables, _main_camera_view, _base_size, frame_index);
 
-#ifdef SFG_TOOLMODE
+#ifdef OBJECT_ID_PASS
 		_pass_object_id.prepare(_proxy_manager, _renderables, _main_camera_view, frame_index);
 		_pass_selection_outline.prepare(_proxy_manager, _renderables, _main_camera_view, frame_index);
 #endif
@@ -327,7 +329,7 @@ namespace SFG
 		const gfx_id cmd_physics_debug = _pass_physics_debug.get_cmd_buffer(frame_index);
 #endif
 
-#ifdef SFG_TOOLMODE
+#ifdef OBJECT_ID_PASS
 		const gfx_id cmd_object_id = _pass_object_id.get_cmd_buffer(frame_index);
 		const gfx_id cmd_outline   = _pass_selection_outline.get_cmd_buffer(frame_index);
 #endif
@@ -559,7 +561,7 @@ namespace SFG
 			});
 		});
 
-#ifdef SFG_TOOLMODE
+#ifdef OBJECT_ID_PASS
 		tasks.push_back([&] {
 			_pass_object_id.render({
 				.frame_index		= frame_index,
@@ -656,7 +658,7 @@ namespace SFG
 		backend->submit_commands(queue_gfx, &cmd_opaque, 1);
 		backend->queue_signal(queue_gfx, &sem_ssao, &sem_ssao_val0, 1);
 
-#ifdef SFG_TOOLMODE
+#ifdef OBJECT_ID_PASS
 		// object-id pass & outline (no dependencies besides depth)
 		backend->submit_commands(queue_gfx, &cmd_object_id, 1);
 		backend->submit_commands(queue_gfx, &cmd_outline, 1);
@@ -705,7 +707,7 @@ namespace SFG
 		_pass_ssao.resize(size);
 		_pass_bloom.resize(size);
 		_pass_post.resize(size);
-#ifdef SFG_TOOLMODE
+#ifdef OBJECT_ID_PASS
 		_pass_object_id.resize(size);
 		_pass_selection_outline.resize(size);
 #endif
@@ -863,6 +865,8 @@ namespace SFG
 		size_t offset		  = 0;
 		uint32 assigned_index = 0;
 
+		gpu_entity* gpu_entities = reinterpret_cast<gpu_entity*>(pfd.entity_buffer.get_mapped());
+
 		for (uint32 i = 0; i < entities_peak; i++)
 		{
 			render_proxy_entity& e = entities.get(i);
@@ -877,21 +881,22 @@ namespace SFG
 
 			e._assigned_index = assigned_index;
 
-			const vector3	 forward = e.rotation.get_forward();
-			const gpu_entity gpu_e	 = {
-				  .model	= e.model.to_matrix4x4(),
-				  .normal	= e.normal.to_matrix4x4(),
-				  .position = vector4(e.position.x, e.position.y, e.position.z, 0),
-				  .rotation = vector4(e.rotation.x, e.rotation.y, e.rotation.z, e.rotation.w),
-				  .forward	= vector4(forward.x, forward.y, forward.z, 0.0f),
-			  };
+			const vector3 forward		 = e.rotation.get_forward();
+			gpu_entities[assigned_index] = {
+				.model	  = e.model.to_matrix4x4(),
+				.normal	  = e.normal.to_matrix4x4(),
+				.position = vector4(e.position.x, e.position.y, e.position.z, 0),
+				.forward  = vector4(forward.x, forward.y, forward.z, 0.0f),
+			};
 
-			pfd.entity_buffer.buffer_data(assigned_index * sizeof(gpu_entity), &gpu_e, sizeof(gpu_entity));
 			assigned_index++;
 		}
 
 		if (assigned_index != 0)
+		{
+			pfd.entity_buffer.set_dirty(true);
 			pfd.entity_buffer.copy_region(cmd_buffer, 0, assigned_index * sizeof(gpu_entity));
+		}
 	}
 
 	void game_world_renderer::collect_and_upload_bones(gfx_id cmd_buffer, uint8 frame_index)
@@ -908,6 +913,8 @@ namespace SFG
 
 		uint32 assigned_index = 0;
 
+		gpu_bone* bones = reinterpret_cast<gpu_bone*>(pfd.bones_buffer.get_mapped());
+
 		for (uint32 i = 0; i < meshes_peak; i++)
 		{
 			render_proxy_mesh_instance& mi = meshes.get(i);
@@ -921,6 +928,7 @@ namespace SFG
 				mi._assigned_bone_index = UINT32_MAX;
 				return;
 			}
+
 			if (mi.skin == NULL_RESOURCE_ID)
 				continue;
 
@@ -950,17 +958,17 @@ namespace SFG
 				const render_proxy_entity& skin_entity	  = entities.get(skin_entity_id);
 				SFG_ASSERT(skin_entity.status == render_proxy_status::rps_active);
 
-				const gpu_bone bone = {
-					.mat = (root_global * skin_entity.model * matrices_ptr[j]).to_matrix4x4(),
-				};
+				bones[assigned_index].mat = (root_global * skin_entity.model * matrices_ptr[j]).to_matrix4x4();
 
-				pfd.bones_buffer.buffer_data(assigned_index * sizeof(gpu_bone), &bone, sizeof(gpu_bone));
 				assigned_index++;
 			}
 		}
 
 		if (assigned_index != 0)
+		{
+			pfd.bones_buffer.set_dirty(true);
 			pfd.bones_buffer.copy_region(cmd_buffer, 0, assigned_index * sizeof(gpu_bone));
+		}
 	}
 
 	void game_world_renderer::collect_and_upload_lights(gfx_id cmd_buffer, uint8 frame_index)
@@ -984,6 +992,9 @@ namespace SFG
 		const float		main_cam_far	 = _main_camera_view.far_plane;
 		const float		main_cam_fov	 = _main_camera_view.fov_degrees;
 		const float		aspect_ratio	 = static_cast<float>(_base_size.x) / static_cast<float>(_base_size.y);
+
+		gpu_point_light* plights = reinterpret_cast<gpu_point_light*>(pfd.point_lights_buffer.get_mapped());
+		gpu_shadow_data* sdata	 = reinterpret_cast<gpu_shadow_data*>(pfd.shadow_data_buffer.get_mapped());
 
 		for (uint32 i = 0; i < points_peak; i++)
 		{
@@ -1039,7 +1050,7 @@ namespace SFG
 						.light_space_matrix = light_projection * light_view,
 					};
 
-					pfd.shadow_data_buffer.buffer_data(shadow_data_count * sizeof(gpu_shadow_data), &sh, sizeof(gpu_shadow_data));
+					sdata[shadow_data_count].light_space_matrix = light_projection * light_view;
 					shadow_data_count++;
 
 					_pass_shadows.add_pass({
@@ -1059,16 +1070,17 @@ namespace SFG
 				}
 			}
 
-			const gpu_point_light data = {
+			plights[points_count] = {
 				.color_entity_index			   = vector4(light.base_color.x, light.base_color.y, light.base_color.z, proxy_entity._assigned_index),
 				.intensity_range			   = vector4(light.intensity, light.range, 0.0f, 0.0f),
 				.shadow_res_map_and_data_index = vector4(light.shadow_res.x, light.shadow_res.y, static_cast<float>(light.shadow_texture_gpu_index[frame_index]), static_cast<float>(first_shadow_index)),
 				.far_plane					   = far_plane,
 			};
 
-			pfd.point_lights_buffer.buffer_data(points_count * sizeof(gpu_point_light), &data, sizeof(gpu_point_light));
 			points_count++;
 		}
+
+		gpu_spot_light* slights = reinterpret_cast<gpu_spot_light*>(pfd.spot_lights_buffer.get_mapped());
 
 		for (uint32 i = 0; i < spots_peak; i++)
 		{
@@ -1103,11 +1115,7 @@ namespace SFG
 				const matrix4x4 light_view		 = matrix4x4::look_at(proxy_entity.position, proxy_entity.position + proxy_entity.rotation.get_forward() * 0.1, up);
 				const matrix4x4 light_projection = matrix4x4::perspective(fov_deg, light_aspect, near_plane, far_plane);
 
-				const gpu_shadow_data sh = {
-					.light_space_matrix = light_projection * light_view,
-				};
-
-				pfd.shadow_data_buffer.buffer_data(shadow_data_count * sizeof(gpu_shadow_data), &sh, sizeof(gpu_shadow_data));
+				sdata[shadow_data_count].light_space_matrix = light_projection * light_view;
 
 				_pass_shadows.add_pass({
 					.pm				  = _proxy_manager,
@@ -1128,15 +1136,15 @@ namespace SFG
 				shadow_data_count++;
 			}
 
-			const gpu_spot_light data = {
+			slights[spots_count] = {
 				.color_entity_index			   = vector4(light.base_color.x, light.base_color.y, light.base_color.z, proxy_entity._assigned_index),
 				.intensity_range_inner_outer   = vector4(light.intensity, light.range, math::cos(light.inner_cone), cos_outer),
 				.shadow_res_map_and_data_index = vector4(light.shadow_res.x, light.shadow_res.y, static_cast<float>(light.shadow_texture_gpu_index[frame_index]), static_cast<float>(shadow_data_index)),
 			};
-
-			pfd.spot_lights_buffer.buffer_data(sizeof(gpu_spot_light) * spots_count, &data, sizeof(gpu_spot_light));
 			spots_count++;
 		}
+
+		gpu_dir_light* dlights = reinterpret_cast<gpu_dir_light*>(pfd.dir_lights_buffer.get_mapped());
 
 		const static_vector<float, MAX_SHADOW_CASCADES>& cascade_levels = _main_camera_view.cascades;
 
@@ -1158,11 +1166,10 @@ namespace SFG
 			{
 				first_shadow_index = static_cast<int32>(shadow_data_count);
 
-				const uint8 cascades = static_cast<uint8>(cascade_levels.size()) + 1;
+				const uint8 cascades = math::min(static_cast<uint8>(cascade_levels.size()), light.cascade_levels);
 				for (uint8 j = 0; j < cascades; j++)
 				{
-					const bool	last		   = j == cascades - 1;
-					const float far_multiplier = !last ? cascade_levels[j] : 1.0f;
+					const float far_multiplier = cascade_levels[j];
 					const float cascade_far	   = main_cam_far * far_multiplier;
 					const float cascade_near   = j == 0 ? main_cam_near : cascade_levels[static_cast<int32>(j) - 1] * main_cam_far;
 
@@ -1179,12 +1186,10 @@ namespace SFG
 					vector2	  texel_world	   = vector2::zero;
 					shadow_util::get_lightspace_projection(light_projection, light_view, frustum_world_space, light.shadow_res, texel_world);
 
-					const gpu_shadow_data sh = {
+					sdata[shadow_data_count] = {
 						.light_space_matrix = light_projection * light_view,
 						.texel_world		= math::max(texel_world.x, texel_world.y),
 					};
-
-					pfd.shadow_data_buffer.buffer_data(shadow_data_count * sizeof(gpu_shadow_data), &sh, sizeof(gpu_shadow_data));
 
 					_pass_shadows.add_pass({
 						.pm				  = _proxy_manager,
@@ -1204,25 +1209,35 @@ namespace SFG
 				}
 			}
 
-			const gpu_dir_light data = {
+			dlights[dirs_count] = {
 				.color_entity_index			   = vector4(light.base_color.x, light.base_color.y, light.base_color.z, proxy_entity._assigned_index),
 				.intensity					   = vector4(light.intensity, 0.0f, 0.0f, 0.0f),
 				.shadow_res_map_and_data_index = vector4(light.shadow_res.x, light.shadow_res.y, static_cast<float>(light.shadow_texture_gpu_index[frame_index]), static_cast<float>(first_shadow_index)),
 			};
-
-			pfd.dir_lights_buffer.buffer_data(sizeof(gpu_dir_light) * dirs_count, &data, sizeof(gpu_dir_light));
 			dirs_count++;
 		}
 
 		if (dirs_count != 0)
+		{
+			pfd.dir_lights_buffer.set_dirty(true);
 			pfd.dir_lights_buffer.copy_region(cmd_buffer, 0, dirs_count * sizeof(gpu_dir_light));
+		}
 		if (spots_count != 0)
+		{
+			pfd.spot_lights_buffer.set_dirty(true);
 			pfd.spot_lights_buffer.copy_region(cmd_buffer, 0, spots_count * sizeof(gpu_spot_light));
+		}
 		if (points_count != 0)
+		{
+			pfd.point_lights_buffer.set_dirty(true);
 			pfd.point_lights_buffer.copy_region(cmd_buffer, 0, points_count * sizeof(gpu_point_light));
+		}
 
 		if (shadow_data_count != 0)
+		{
+			pfd.shadow_data_buffer.set_dirty(true);
 			pfd.shadow_data_buffer.copy_region(cmd_buffer, 0, shadow_data_count * sizeof(gpu_shadow_data));
+		}
 
 		_pass_lighting.set_light_counts_for_frame(points_count, spots_count, dirs_count);
 	}
