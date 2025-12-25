@@ -127,7 +127,7 @@ namespace SFG
 
 				em.set_entity_rotation(s_h, quat::from_euler(-30, 0, 0));
 				dl.set_values(w, color(1, 1, 1, 1), 8);
-				dl.set_shadow_values(w, 1, 3, vector2ui16(2048, 2048));
+				dl.set_shadow_values(w, 1, 3, vector2ui16(1024, 1024));
 			}
 
 			{

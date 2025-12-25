@@ -286,7 +286,7 @@ namespace SFG
 		collect_and_upload(frame_index);
 
 		_renderables.resize(0);
-		renderable_collector::collect_model_instances(_proxy_manager, _main_camera_view, _renderables);
+		renderable_collector::collect_mesh_instances(_proxy_manager, _main_camera_view, _renderables);
 		_pass_pre_depth.prepare(_proxy_manager, _renderables, _main_camera_view, frame_index);
 		_pass_opaque.prepare(_proxy_manager, _renderables, _main_camera_view, frame_index);
 		_pass_forward.prepare(_proxy_manager, _renderables, _main_camera_view, _base_size, frame_index);
@@ -922,7 +922,7 @@ namespace SFG
 		for (uint32 i = 0; i < meshes_peak; i++)
 		{
 			render_proxy_mesh_instance& mi = meshes.get(i);
-			if (mi.status != render_proxy_status::rps_active)
+			if (mi.model == NULL_RESOURCE_ID)
 				continue;
 
 			// early out if entity or skin is invalid.

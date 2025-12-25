@@ -37,7 +37,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "io/log.hpp"
 namespace SFG
 {
-	void renderable_collector::collect_model_instances(proxy_manager& pm, const view& target_view, vector<renderable_object>& out_objects)
+	void renderable_collector::collect_mesh_instances(proxy_manager& pm, const view& target_view, vector<renderable_object>& out_objects)
 	{
 		const uint32	   mesh_instances_peak = pm.get_peak_mesh_instances();
 		auto&			   mesh_instances	   = *pm.get_mesh_instances();
@@ -49,7 +49,7 @@ namespace SFG
 		for (uint32 i = 0; i < mesh_instances_peak; i++)
 		{
 			const render_proxy_mesh_instance& mesh_instance = mesh_instances.get(i);
-			if (mesh_instance.status != render_proxy_status::rps_active)
+			if (mesh_instance.model == NULL_RESOURCE_ID)
 				continue;
 
 			const render_proxy_entity& proxy_entity = entities.get(mesh_instance.entity);

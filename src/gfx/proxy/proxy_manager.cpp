@@ -677,7 +677,6 @@ namespace SFG
 
 			render_proxy_mesh_instance& proxy = get_mesh_instance(index);
 
-			proxy.status = render_proxy_status::rps_active;
 			proxy.entity = ev.entity_index;
 			proxy.mesh	 = ev.mesh;
 			proxy.model	 = ev.model;

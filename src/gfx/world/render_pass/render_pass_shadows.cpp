@@ -145,7 +145,7 @@ namespace SFG
 		p.stream.prepare(_alloc, MAX_DRAW_CALLS_OPAQUE);
 		p.renderables.resize(0);
 
-		renderable_collector::collect_model_instances(props.pm, p.pass_view, p.renderables);
+		renderable_collector::collect_mesh_instances(props.pm, p.pass_view, p.renderables);
 		renderable_collector::populate_draw_stream(props.pm, p.renderables, p.stream, material_flags::material_flags_is_gbuffer, shader_variant_flags::variant_flag_z_prepass | shader_variant_flags::variant_flag_shadow_rendering, props.frame_index);
 	}
 
