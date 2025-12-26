@@ -39,6 +39,7 @@ namespace SFG
 	struct skin_joint
 	{
 		uint16	  model_node_index	  = 0;
+		int16	  parent_index		  = -1;
 		matrix4x3 inverse_bind_matrix = {};
 		matrix4x3 local_matrix		  = {};
 		string_id name_hash			  = 0;

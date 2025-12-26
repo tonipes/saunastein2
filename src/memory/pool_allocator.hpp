@@ -38,7 +38,7 @@ namespace SFG
 		{
 			if (_free_size != 0)
 			{
-				const U id = _free_list[_free_size];
+				const U id = _free_list[_free_size - 1];
 				_free_size--;
 				_data[id] = T();
 				return id;

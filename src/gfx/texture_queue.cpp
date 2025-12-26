@@ -30,6 +30,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gfx/common/commands.hpp"
 #include "gfx/common/texture_buffer.hpp"
 #include "common/system_info.hpp"
+#include "memory/memory.hpp"
 
 namespace SFG
 {

@@ -78,6 +78,10 @@ namespace SFG
 		if (!rm.is_valid<model>(mdl))
 			return;
 
+		const resource_handle mdl_cube = rm.get_resource_handle_by_hash<model>(TO_SIDC("assets/cube/cube.stkmodel"));
+		if (!rm.is_valid<model>(mdl_cube))
+			return;
+
 		// anisotropic sampler
 		{
 			const resource_handle smp_handle = rm.add_resource<texture_sampler>(TO_SIDC("game:sampler_anisotropic"));
@@ -164,6 +168,34 @@ namespace SFG
 			"assets/character/character.stkmodel/Fixing_Kneeling"_hs,
 			"assets/character/character.stkmodel/Idle_Talking_Loop"_hs,
 		};
+
+		for (uint32 i = 0; i < 1024; i++)
+		{
+			const world_handle root = em.create_entity("root");
+			em.set_entity_position(root, vector3::zero);
+			em.set_entity_rotation(root, quat::identity);
+			ents.push_back(root);
+
+			randoms.push_back(vector3((random::random_01() * 2.f) - 1.f, 0.0f, (random::random_01() * 2.0f) - 1.0f) * 0.01f);
+
+			const world_handle	 model_inst_handle = cm.add_component<comp_model_instance>(root);
+			comp_model_instance& mi				   = cm.get_component<comp_model_instance>(model_inst_handle);
+			mi.instantiate_model_to_world(w, mdl_cube);
+
+			const float x = x_pos;
+			const float z = z_pos;
+
+			x_pos += 2.0f;
+			if (x_pos > -START)
+			{
+				x_pos = START;
+				z_pos += 2.0f;
+			}
+
+			em.set_entity_position(root, vector3(x, 0.0f, z));
+		}
+
+		return;
 
 		for (uint32 i = 0; i < 1024; i++)
 		{

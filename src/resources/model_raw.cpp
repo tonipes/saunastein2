@@ -478,7 +478,10 @@ namespace SFG
 				const float* raw		 = reinterpret_cast<const float*>(inverse_bind_b.data.data() + inverse_bind_a.byteOffset + inverse_bind_bv.byteOffset + j * stride);
 				const int32	 joint_index = tskin.joints[j];
 
+				const model_node_raw& node = loaded_nodes[joint_index];
+
 				skin_joint& sj		= skin.joints[j];
+				sj.parent_index		= node.parent_index;
 				sj.model_node_index = static_cast<int16>(joint_index);
 				sj.local_matrix		= loaded_nodes[joint_index].local_matrix;
 				sj.name_hash		= TO_SID(loaded_nodes[joint_index].name);

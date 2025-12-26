@@ -28,6 +28,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gfx/buffer.hpp"
 #include "gfx/backend/backend.hpp"
 #include "gfx/common/commands.hpp"
+#include "memory/memory.hpp"
 
 namespace SFG
 {

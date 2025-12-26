@@ -41,7 +41,7 @@ namespace SFG
 	public:
 		struct bone_batch
 		{
-			matrix4x3 mat[MAX_WORLD_BONE_BATCH_SIZE];
+			matrix4x3 mats[MAX_WORLD_BONE_BATCH_SIZE];
 		};
 
 		// -----------------------------------------------------------------------------
@@ -58,7 +58,8 @@ namespace SFG
 		// impl
 		// -----------------------------------------------------------------------------
 
-		uint16 allocate_batch(resource_handle skin);
+		uint16 allocate_batch(world& w, resource_handle skin);
+		void   free_batch(uint16 b);
 
 	private:
 		pool_allocator<uint16, uint16, MAX_WORLD_BONE_BATCHES>* _bone_batches	   = nullptr;
