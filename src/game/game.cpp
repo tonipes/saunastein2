@@ -169,7 +169,7 @@ namespace SFG
 			"assets/character/character.stkmodel/Idle_Talking_Loop"_hs,
 		};
 
-		for (uint32 i = 0; i < 1024; i++)
+		for (uint32 i = 0; i < 10; i++)
 		{
 			const world_handle root = em.create_entity("root");
 			em.set_entity_position(root, vector3::zero);
@@ -195,9 +195,8 @@ namespace SFG
 			em.set_entity_position(root, vector3(x, 0.0f, z));
 		}
 
-		return;
 
-		for (uint32 i = 0; i < 1024; i++)
+		for (uint32 i = 0; i < 10; i++)
 		{
 			const world_handle root = em.create_entity("root");
 			em.set_entity_position(root, vector3::zero);

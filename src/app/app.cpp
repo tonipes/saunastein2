@@ -374,18 +374,19 @@ namespace SFG
 			TracyCFrameMarkNamed("render_frame");
 #endif
 
+#ifndef SFG_PRODUCTION
+
 			const int64 time_now = time::get_cpu_microseconds();
 			const int64 delta	 = time_now - time_prev;
 			time_prev			 = time_now;
+
 			frame_info::s_render_thread_time_milli.store(delta * 0.001);
+			frame_info::s_fps.store(1.0f / static_cast<float>(delta * 0.001 * 0.001));
+#endif
 
 			_renderer->render();
 			_game->post_render();
 			frame_info::s_render_frame.fetch_add(1);
-
-#ifndef SFG_PRODUCTION
-			frame_info::s_fps.store(1.0f / static_cast<float>(frame_info::s_render_thread_time_milli * 0.001));
-#endif
 		}
 	}
 }

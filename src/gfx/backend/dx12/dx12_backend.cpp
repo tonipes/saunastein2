@@ -1572,8 +1572,8 @@ namespace SFG
 		POP_MEMORY_CATEGORY();
 #endif
 
-		TracyFreeN(swp.ptr.Get(), "GPU: Total");
-		TracyFreeN(swp.ptr.Get(), "GPU: Texture");
+		//TracyFreeN(swp.ptr.Get(), "GPU: Total");
+		//TracyFreeN(swp.ptr.Get(), "GPU: Texture");
 
 #if USE_WAITABLE_SWAPCHAIN
 		UINT flags = (tearing ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : (UINT)0) | DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
@@ -1584,8 +1584,8 @@ namespace SFG
 		throw_if_failed(swp.ptr->ResizeBuffers(BACK_BUFFER_COUNT, static_cast<UINT>(desc.size.x), static_cast<UINT>(desc.size.y), swp_desc.BufferDesc.Format, flags));
 		swp.image_index = swp.ptr->GetCurrentBackBufferIndex();
 
-		TracyAllocN(swp.ptr.Get(), desc.size.x * desc.size.y * 4, "GPU: Total");
-		TracyAllocN(swp.ptr.Get(), desc.size.x * desc.size.y * 4, "GPU: Texture");
+		//TracyAllocN(swp.ptr.Get(), desc.size.x * desc.size.y * 4, "GPU: Total");
+		//TracyAllocN(swp.ptr.Get(), desc.size.x * desc.size.y * 4, "GPU: Texture");
 
 		// Re-apply frame latency settings and refresh waitable object after resize
 		{

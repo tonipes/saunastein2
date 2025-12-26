@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -57,6 +57,7 @@ namespace SFG
 		paths.push_back("assets/engine/shaders/selection/selection_outline_write.stkshader");
 		paths.push_back("assets/engine/shaders/debug/debug_default.stkshader");
 		paths.push_back("assets/engine/shaders/debug/debug_line.stkshader");
+		paths.push_back("assets/engine/shaders/particle/particle_emit.stkshader");
 
 		shader_raw raw = {};
 
@@ -81,7 +82,7 @@ namespace SFG
 			const string src_stk_shader = root + p;
 			const string src_source		= root + raw.source;
 
-			const bool is_compute = (i == engine_shader_type_hbao || i == engine_shader_type_hbao_upsample || i == engine_shader_type_bloom_downsample || i == engine_shader_type_bloom_upsample);
+			const bool is_compute = (i == engine_shader_type_hbao || i == engine_shader_type_hbao_upsample || i == engine_shader_type_bloom_downsample || i == engine_shader_type_bloom_upsample || i == engine_shader_particle_emit);
 
 			e.layout = is_compute ? bind_layout_compute : bind_layout;
 			e.direct.create_from_loader(raw, e.layout);

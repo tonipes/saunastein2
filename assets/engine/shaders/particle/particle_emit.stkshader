@@ -1,0 +1,7 @@
+{
+    "source": "assets/engine/shaders/particle/particle_emit.hlsl",
+    "desc":
+    {
+        "compute_entry": "CSMain"
+    }
+}
