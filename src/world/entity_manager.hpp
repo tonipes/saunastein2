@@ -27,7 +27,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 #include "common_world.hpp"
 #include "common_entity.hpp"
-#include "memory/pool_allocator_simple.hpp"
+#include "memory/static_array.hpp"
 #include "memory/pool_allocator_gen.hpp"
 #include "memory/chunk_allocator.hpp"
 #include "math/aabb.hpp"
@@ -204,16 +204,16 @@ namespace SFG
 		world& _world;
 
 		pool_allocator_gen<world_id, world_id, MAX_ENTITIES>*	   _entities		  = {};
-		pool_allocator_simple<entity_meta, MAX_ENTITIES>*		   _metas			  = {};
-		pool_allocator_simple<entity_family, MAX_ENTITIES>*		   _families		  = {};
-		pool_allocator_simple<aabb, MAX_ENTITIES>*				   _aabbs			  = {};
-		pool_allocator_simple<entity_comp_register, MAX_ENTITIES>* _comp_registers	  = {};
-		pool_allocator_simple<entity_transform, MAX_ENTITIES>*	   _local_transforms  = {};
-		pool_allocator_simple<bitmask<uint16>, MAX_ENTITIES>*	   _flags			  = {};
-		pool_allocator_simple<matrix4x3, MAX_ENTITIES>*			   _abs_matrices	  = {};
-		pool_allocator_simple<matrix4x3, MAX_ENTITIES>*			   _prev_abs_matrices = {};
-		pool_allocator_simple<quat, MAX_ENTITIES>*				   _abs_rots		  = {};
-		pool_allocator_simple<quat, MAX_ENTITIES>*				   _prev_abs_rots	  = {};
+		static_array<entity_meta, MAX_ENTITIES>*		   _metas			  = {};
+		static_array<entity_family, MAX_ENTITIES>*		   _families		  = {};
+		static_array<aabb, MAX_ENTITIES>*				   _aabbs			  = {};
+		static_array<entity_comp_register, MAX_ENTITIES>* _comp_registers	  = {};
+		static_array<entity_transform, MAX_ENTITIES>*	   _local_transforms  = {};
+		static_array<bitmask<uint16>, MAX_ENTITIES>*	   _flags			  = {};
+		static_array<matrix4x3, MAX_ENTITIES>*			   _abs_matrices	  = {};
+		static_array<matrix4x3, MAX_ENTITIES>*			   _prev_abs_matrices = {};
+		static_array<quat, MAX_ENTITIES>*				   _abs_rots		  = {};
+		static_array<quat, MAX_ENTITIES>*				   _prev_abs_rots	  = {};
 
 		static_vector<world_handle, MAX_ENTITIES>* _proxy_entities = {};
 

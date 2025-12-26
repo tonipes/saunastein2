@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -33,13 +33,13 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace SFG
 {
-	template <typename T, int N, typename SIZE_TYPE = uint32> struct pool_allocator_simple
+	template <typename T, int N> struct static_array
 	{
-		~pool_allocator_simple()
+		~static_array()
 		{
 		}
 
-		pool_allocator_simple()
+		static_array()
 		{
 		}
 
@@ -48,11 +48,11 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 		inline void reset()
 		{
-			for (SIZE_TYPE i = 0; i < N; i++)
+			for (uint32 i = 0; i < N; i++)
 				_items[i] = T();
 		}
 
-		inline void reset(SIZE_TYPE idx)
+		inline void reset(uint32 idx)
 		{
 			SFG_ASSERT(idx < N);
 			_items[idx] = T();
@@ -62,13 +62,13 @@ namespace SFG
 		// accessors
 		// -----------------------------------------------------------------------------
 
-		T& get(SIZE_TYPE idx)
+		T& get(uint32 idx)
 		{
 			SFG_ASSERT(idx < N);
 			return _items[idx];
 		}
 
-		const T& get(SIZE_TYPE idx) const
+		const T& get(uint32 idx) const
 		{
 			SFG_ASSERT(idx < N);
 			return _items[idx];
@@ -83,7 +83,7 @@ namespace SFG
 			using reference = TYPE&;
 			using pointer	= TYPE*;
 
-			iterator(pointer ptr, SIZE_TYPE begin, SIZE_TYPE end) : _ptr(ptr), _current(begin), _end(end)
+			iterator(pointer ptr, uint32 begin, uint32 end) : _ptr(ptr), _current(begin), _end(end)
 			{
 			}
 
@@ -119,9 +119,9 @@ namespace SFG
 				return a._current != b._current;
 			}
 
-			pointer	  _ptr	   = nullptr;
-			SIZE_TYPE _current = 0;
-			SIZE_TYPE _end	   = 0;
+			pointer _ptr	 = nullptr;
+			uint32	_current = 0;
+			uint32	_end	 = 0;
 		};
 
 		iterator<const T> begin() const

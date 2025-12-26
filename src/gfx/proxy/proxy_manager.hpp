@@ -30,7 +30,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "render_proxy_resources.hpp"
 #include "render_proxy_entity.hpp"
 #include "render_proxy_components.hpp"
-#include "memory/pool_allocator_simple.hpp"
+#include "memory/static_array.hpp"
 #include "memory/chunk_allocator.hpp"
 #include "data/vector.hpp"
 #include "gfx/common/gfx_constants.hpp"
@@ -271,22 +271,22 @@ namespace SFG
 		buffer_queue&  _buffer_queue;
 		texture_queue& _texture_queue;
 
-		using textures_type			 = pool_allocator_simple<render_proxy_texture, MAX_WORLD_TEXTURES>;
-		using samplers_type			 = pool_allocator_simple<render_proxy_sampler, MAX_WORLD_SAMPLERS>;
-		using materials_type		 = pool_allocator_simple<render_proxy_material, MAX_WORLD_MATERIALS>;
-		using material_runtimes_type = pool_allocator_simple<render_proxy_material_runtime, MAX_WORLD_MATERIALS>;
-		using shaders_type			 = pool_allocator_simple<render_proxy_shader, MAX_WORLD_SHADERS>;
-		using meshes_type			 = pool_allocator_simple<render_proxy_mesh, MAX_WORLD_MESHES>;
-		using skins_type			 = pool_allocator_simple<render_proxy_skin, MAX_WORLD_SKINS>;
-		using models_type			 = pool_allocator_simple<render_proxy_model, MAX_WORLD_MODELS>;
-		using entity_type			 = pool_allocator_simple<render_proxy_entity, MAX_ENTITIES>;
-		using mesh_instances_type	 = pool_allocator_simple<render_proxy_mesh_instance, MAX_WORLD_COMP_MESH_INSTANCES>;
-		using cameras_type			 = pool_allocator_simple<render_proxy_camera, MAX_WORLD_COMP_CAMERAS>;
-		using ambients_type			 = pool_allocator_simple<render_proxy_ambient, MAX_WORLD_COMP_AMBIENT>;
-		using point_lights_type		 = pool_allocator_simple<render_proxy_point_light, MAX_WORLD_COMP_POINT_LIGHTS>;
-		using spot_lights_type		 = pool_allocator_simple<render_proxy_spot_light, MAX_WORLD_COMP_SPOT_LIGHTS>;
-		using dir_lights_type		 = pool_allocator_simple<render_proxy_dir_light, MAX_WORLD_COMP_DIR_LIGHTS>;
-		using canvas_type			 = pool_allocator_simple<render_proxy_canvas, MAX_WORLD_COMP_CANVAS>;
+		using textures_type			 = static_array<render_proxy_texture, MAX_WORLD_TEXTURES>;
+		using samplers_type			 = static_array<render_proxy_sampler, MAX_WORLD_SAMPLERS>;
+		using materials_type		 = static_array<render_proxy_material, MAX_WORLD_MATERIALS>;
+		using material_runtimes_type = static_array<render_proxy_material_runtime, MAX_WORLD_MATERIALS>;
+		using shaders_type			 = static_array<render_proxy_shader, MAX_WORLD_SHADERS>;
+		using meshes_type			 = static_array<render_proxy_mesh, MAX_WORLD_MESHES>;
+		using skins_type			 = static_array<render_proxy_skin, MAX_WORLD_SKINS>;
+		using models_type			 = static_array<render_proxy_model, MAX_WORLD_MODELS>;
+		using entity_type			 = static_array<render_proxy_entity, MAX_ENTITIES>;
+		using mesh_instances_type	 = static_array<render_proxy_mesh_instance, MAX_WORLD_COMP_MESH_INSTANCES>;
+		using cameras_type			 = static_array<render_proxy_camera, MAX_WORLD_COMP_CAMERAS>;
+		using ambients_type			 = static_array<render_proxy_ambient, MAX_WORLD_COMP_AMBIENT>;
+		using point_lights_type		 = static_array<render_proxy_point_light, MAX_WORLD_COMP_POINT_LIGHTS>;
+		using spot_lights_type		 = static_array<render_proxy_spot_light, MAX_WORLD_COMP_SPOT_LIGHTS>;
+		using dir_lights_type		 = static_array<render_proxy_dir_light, MAX_WORLD_COMP_DIR_LIGHTS>;
+		using canvas_type			 = static_array<render_proxy_canvas, MAX_WORLD_COMP_CANVAS>;
 
 		destroy_bucket _destroy_bucket[BACK_BUFFER_COUNT + 1];
 

@@ -38,16 +38,16 @@ namespace SFG
 	entity_manager::entity_manager(world& w) : _world(w)
 	{
 		_entities		   = new pool_allocator_gen<world_id, world_id, MAX_ENTITIES>();
-		_metas			   = new pool_allocator_simple<entity_meta, MAX_ENTITIES>();
-		_families		   = new pool_allocator_simple<entity_family, MAX_ENTITIES>();
-		_aabbs			   = new pool_allocator_simple<aabb, MAX_ENTITIES>();
-		_comp_registers	   = new pool_allocator_simple<entity_comp_register, MAX_ENTITIES>();
-		_local_transforms  = new pool_allocator_simple<entity_transform, MAX_ENTITIES>();
-		_flags			   = new pool_allocator_simple<bitmask<uint16>, MAX_ENTITIES>();
-		_abs_matrices	   = new pool_allocator_simple<matrix4x3, MAX_ENTITIES>();
-		_prev_abs_matrices = new pool_allocator_simple<matrix4x3, MAX_ENTITIES>();
-		_abs_rots		   = new pool_allocator_simple<quat, MAX_ENTITIES>();
-		_prev_abs_rots	   = new pool_allocator_simple<quat, MAX_ENTITIES>();
+		_metas			   = new static_array<entity_meta, MAX_ENTITIES>();
+		_families		   = new static_array<entity_family, MAX_ENTITIES>();
+		_aabbs			   = new static_array<aabb, MAX_ENTITIES>();
+		_comp_registers	   = new static_array<entity_comp_register, MAX_ENTITIES>();
+		_local_transforms  = new static_array<entity_transform, MAX_ENTITIES>();
+		_flags			   = new static_array<bitmask<uint16>, MAX_ENTITIES>();
+		_abs_matrices	   = new static_array<matrix4x3, MAX_ENTITIES>();
+		_prev_abs_matrices = new static_array<matrix4x3, MAX_ENTITIES>();
+		_abs_rots		   = new static_array<quat, MAX_ENTITIES>();
+		_prev_abs_rots	   = new static_array<quat, MAX_ENTITIES>();
 		_proxy_entities	   = new static_vector<world_handle, MAX_ENTITIES>();
 	}
 

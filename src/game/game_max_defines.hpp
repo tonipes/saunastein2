@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -82,6 +82,10 @@ namespace SFG
 #define MAX_WORLD_ANIM_GRAPH_TRANSITION	   MAX_WORLD_COMP_ANIMS * 20
 #define MAX_WORLD_ANIM_GRAPH_PARAMETER	   MAX_WORLD_COMP_ANIMS * 10
 #define MAX_WORLD_ANIM_GRAPH_MASK		   32
+
+	// 128K bones in total, 64 max limit per skeleton.
+#define MAX_WORLD_BONE_BATCH_SIZE 64
+#define MAX_WORLD_BONE_BATCHES	  2000
 
 	// -----------------------------------------------------------------------------
 	// particles
