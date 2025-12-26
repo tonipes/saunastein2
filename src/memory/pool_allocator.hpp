@@ -27,8 +27,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include "io/assert.hpp"
-#include "memory.hpp"
-#include "data/vector.hpp"
 
 namespace SFG
 {

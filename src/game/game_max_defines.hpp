@@ -85,7 +85,7 @@ namespace SFG
 
 	// 128K bones in total, 64 max limit per skeleton.
 #define MAX_WORLD_BONE_BATCH_SIZE 64
-#define MAX_WORLD_BONE_BATCHES	  2000
+#define MAX_WORLD_BONE_BATCHES	  10000
 
 	// -----------------------------------------------------------------------------
 	// particles
