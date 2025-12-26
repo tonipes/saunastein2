@@ -63,9 +63,5 @@ namespace SFG
 		static_array<bone_batch, MAX_WORLD_BONE_BATCHES>* _local_matrices	 = nullptr;
 		static_array<bone_batch, MAX_WORLD_BONE_BATCHES>* _inv_bind_matrices = nullptr;
 		static_array<bone_batch, MAX_WORLD_BONE_BATCHES>* _abs_matrices		 = nullptr;
-
-		matrix4x3* _skel_space_abs	= nullptr;
-		matrix4x3* _inv_bind		= nullptr;
-		matrix4x3* _local_transform = nullptr;
 	};
 }

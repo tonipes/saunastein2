@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -24,9 +24,73 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISE
 OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "static_pool_allocator.hpp"
+#pragma once
+
+#include "io/assert.hpp"
+#include "memory.hpp"
+#include "data/vector.hpp"
 
 namespace SFG
 {
+
+	template <typename T, typename U, int N> struct pool_allocator
+	{
+
+		inline U add()
+		{
+			if (_free_size != 0)
+			{
+				const U id = _free_list[_free_size];
+				_free_size--;
+				_data[id] = T();
+				return id;
+			}
+
+			const U id = _head;
+			_head++;
+			SFG_ASSERT(_head < N);
+			_data[id] = T();
+			return id;
+		}
+
+		void remove(U id)
+		{
+			_free_list[_free_size] = id;
+			_free_size++;
+			_data[id].~T();
+		}
+
+		T& get(U id)
+		{
+			SFG_ASSERT(id < N);
+			return _data[id];
+		}
+
+		const T& get(U id) const
+		{
+			SFG_ASSERT(id < N);
+			return _data[id];
+		}
+
+		inline void verify_uninit()
+		{
+			SFG_ASSERT(_free_size == _head);
+		}
+
+		void reset()
+		{
+			for (int i = 0; i < N; i++)
+				_data[i] = T();
+
+			_free_size = 0;
+			_head	   = 0;
+		}
+
+	private:
+		T _data[N];
+		U _free_list[N];
+		U _head		 = 0;
+		U _free_size = 0;
+	};
 
 }
