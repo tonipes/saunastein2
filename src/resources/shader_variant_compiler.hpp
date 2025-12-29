@@ -1,4 +1,5 @@
 /*
+/*
 This file is a part of stakeforge_engine: https://github.com/inanevin/stakeforge
 Copyright [2025-] Inan Evin
 
@@ -6,11 +7,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -78,5 +79,8 @@ namespace SFG
 
 		/* compiles variants for 2d & 3d gui */
 		static bool compile_style_gui(shader_raw& raw, const string& shader_text, const vector<string>& folder_path);
+
+		/* compiles variants for particles */
+		static bool compile_style_particle_additive(shader_raw& raw, const string& shader_text, const vector<string>& folder_path);
 	};
 }

@@ -57,7 +57,11 @@ namespace SFG
 		paths.push_back("assets/engine/shaders/selection/selection_outline_write.stkshader");
 		paths.push_back("assets/engine/shaders/debug/debug_default.stkshader");
 		paths.push_back("assets/engine/shaders/debug/debug_line.stkshader");
+		paths.push_back("assets/engine/shaders/particle/particle_clear.stkshader");
+		paths.push_back("assets/engine/shaders/particle/particle_simulate.stkshader");
 		paths.push_back("assets/engine/shaders/particle/particle_emit.stkshader");
+		paths.push_back("assets/engine/shaders/particle/particle_write_count.stkshader");
+		paths.push_back("assets/engine/shaders/particle/particle_count.stkshader");
 
 		shader_raw raw = {};
 
@@ -82,9 +86,8 @@ namespace SFG
 			const string src_stk_shader = root + p;
 			const string src_source		= root + raw.source;
 
-			const bool is_compute = (i == engine_shader_type_hbao || i == engine_shader_type_hbao_upsample || i == engine_shader_type_bloom_downsample || i == engine_shader_type_bloom_upsample || i == engine_shader_particle_emit);
-
-			e.layout = is_compute ? bind_layout_compute : bind_layout;
+			const bool is_compute = raw.is_compute;
+			e.layout			  = is_compute ? bind_layout_compute : bind_layout;
 			e.direct.create_from_loader(raw, e.layout);
 			_file_watcher.add_path(src_source.c_str(), static_cast<uint16>(i));
 			_file_watcher.add_path(src_stk_shader.c_str(), static_cast<uint16>(i));

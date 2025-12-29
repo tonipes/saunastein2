@@ -102,6 +102,19 @@ StructuredBuffer<T> sfg_get_ssbo(uint index)
 }
 
 template<typename T>
+RWStructuredBuffer<T> sfg_get_rws_buffer(uint index)
+{
+    RWStructuredBuffer<T> b = ResourceDescriptorHeap[index];
+    return b;
+}
+
+RWByteAddressBuffer sfg_get_rwb_buffer(uint index)
+{
+    RWByteAddressBuffer b = ResourceDescriptorHeap[index];
+    return b;
+}
+
+template<typename T>
 T sfg_get_texture(uint index)
 {
     T txt = ResourceDescriptorHeap[index];

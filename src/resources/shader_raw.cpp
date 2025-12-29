@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -63,6 +63,8 @@ namespace SFG
 			return shader_variant_compiler::compile_style_debug_line(*this, shader_text, folder_paths);
 		else if (variant_style.compare("gui") == 0)
 			return shader_variant_compiler::compile_style_gui(*this, shader_text, folder_paths);
+		else if (variant_style.compare("particle_additive") == 0)
+			return shader_variant_compiler::compile_style_particle_additive(*this, shader_text, folder_paths);
 
 		SFG_ERR("Unrecognize shader variant style: {0} {1}", variant_style, name);
 		return false;
@@ -84,6 +86,7 @@ namespace SFG
 
 			// Receive & verify source.
 			source			 = json_data.value<string>("source", "");
+			is_compute		 = json_data.value<uint8>("is_compute", 0);
 			const string& wd = engine_data::get().get_working_dir();
 			const string  p	 = file_path;
 			name			 = p.substr(wd.size(), p.size() - wd.size());
@@ -213,6 +216,7 @@ namespace SFG
 		stream << source;
 		stream << compile_variants;
 		stream << pso_variants;
+		stream << is_compute;
 	}
 
 	void shader_raw::deserialize(istream& stream)
@@ -221,6 +225,7 @@ namespace SFG
 		stream >> source;
 		stream >> compile_variants;
 		stream >> pso_variants;
+		stream >> is_compute;
 
 		SFG_INFO("Created shader from buffer: {0}", name);
 	}

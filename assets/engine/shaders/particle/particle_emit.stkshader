@@ -1,5 +1,6 @@
 {
     "source": "assets/engine/shaders/particle/particle_emit.hlsl",
+    "is_compute": 1,
     "desc":
     {
         "compute_entry": "CSMain"

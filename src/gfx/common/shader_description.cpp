@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -57,28 +57,40 @@ namespace SFG
 
 	void to_json(nlohmann::json& j, const shader_desc& s)
 	{
-		j["pixel_entry"]	   = s.pixel_entry;
-		j["vertex_entry"]	   = s.vertex_entry;
-		j["compute_entry"]	   = s.compute_entry;
-		j["cull"]			   = s.cull;
-		j["front"]			   = s.front;
-		j["vertex_inputs"]	   = s.inputs;
-		j["color_attachments"] = s.attachments;
-		j["samples"]		   = s.samples;
-		j["depth_stencil"]	   = s.depth_stencil_desc;
+		j["pixel_entry"]		 = s.pixel_entry;
+		j["vertex_entry"]		 = s.vertex_entry;
+		j["compute_entry"]		 = s.compute_entry;
+		j["cull"]				 = s.cull;
+		j["front"]				 = s.front;
+		j["vertex_inputs"]		 = s.inputs;
+		j["color_attachments"]	 = s.attachments;
+		j["samples"]			 = s.samples;
+		j["depth_stencil"]		 = s.depth_stencil_desc;
+		j["fill"]				 = s.fill;
+		j["topology"]			 = s.topo;
+		j["poly_mode"]			 = s.poly_mode;
+		j["depth_bias_constant"] = s.depth_bias_constant;
+		j["depth_bias_clamp"]	 = s.depth_bias_clamp;
+		j["depth_bias_slope"]	 = s.depth_bias_slope;
 	}
 
 	void from_json(const nlohmann::json& j, shader_desc& s)
 	{
-		s.pixel_entry		 = j.value<string>("pixel_entry", "");
-		s.vertex_entry		 = j.value<string>("vertex_entry", "");
-		s.compute_entry		 = j.value<string>("compute_entry", "");
-		s.cull				 = j.value<cull_mode>("cull", cull_mode::back);
-		s.front				 = j.value<front_face>("front", front_face::ccw);
-		s.inputs			 = j.value<vector<vertex_input>>("vertex_inputs", {});
-		s.attachments		 = j.value<vector<shader_color_attachment>>("color_attachments", {});
-		s.samples			 = j.value<uint32>("samples", 1);
-		s.depth_stencil_desc = j.value<shader_depth_stencil_desc>("depth_stencil", {});
+		s.pixel_entry		  = j.value<string>("pixel_entry", "");
+		s.vertex_entry		  = j.value<string>("vertex_entry", "");
+		s.compute_entry		  = j.value<string>("compute_entry", "");
+		s.cull				  = j.value<cull_mode>("cull", cull_mode::back);
+		s.front				  = j.value<front_face>("front", front_face::ccw);
+		s.fill				  = j.value<fill_mode>("fill", fill_mode::solid);
+		s.poly_mode			  = j.value<polygon_mode>("poly_mode", polygon_mode::fill);
+		s.topo				  = j.value<topology>("topology", topology::triangle_list);
+		s.inputs			  = j.value<vector<vertex_input>>("vertex_inputs", {});
+		s.attachments		  = j.value<vector<shader_color_attachment>>("color_attachments", {});
+		s.samples			  = j.value<uint32>("samples", 1);
+		s.depth_stencil_desc  = j.value<shader_depth_stencil_desc>("depth_stencil", {});
+		s.depth_bias_constant = j.value<float>("depth_bias_constant", 0.0f);
+		s.depth_bias_slope	  = j.value<float>("depth_bias_slope", 0.0f);
+		s.depth_bias_clamp	  = j.value<float>("depth_bias_clamp", 0.0f);
 	}
 
 	void to_json(nlohmann::json& j, const cull_mode& c)

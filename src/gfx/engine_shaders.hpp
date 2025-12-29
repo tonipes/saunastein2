@@ -51,7 +51,11 @@ namespace SFG
 		engine_shader_type_object_outline_write,
 		engine_shader_debug_default,
 		engine_shader_debug_line,
+		engine_shader_particle_clear,
+		engine_shader_particle_sim,
 		engine_shader_particle_emit,
+		engine_shader_particle_write_count,
+		engine_shader_particle_count,
 		engine_shader_type_max,
 	};
 

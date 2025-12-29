@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -49,6 +49,9 @@ namespace SFG
 
 #define DEFAULT_GUI_SHADER_PATH "assets/engine/shaders/world/gui_default.stkshader"
 #define DEFAULT_GUI_SHADER_SID	"assets/engine/shaders/world/gui_default.stkshader"_hs
+
+#define DEFAULT_PARTICLE_ADDITIVE_SHADER_PATH "assets/engine/shaders/particle/particle_additive.stkshader"
+#define DEFAULT_PARTICLE_ADDITIVE_SHADER_SID  "assets/engine/shaders/particle/particle_additive.stkshader"_hs
 
 #define DEFAULT_GUI_TEXT_SHADER_PATH "assets/engine/shaders/world/gui_text.stkshader"
 #define DEFAULT_GUI_TEXT_SHADER_SID	 "assets/engine/shaders/world/gui_text.stkshader"_hs

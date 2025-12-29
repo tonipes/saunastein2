@@ -1,5 +1,5 @@
 {
-    "source": "assets/engine/shaders/bloom/bloom_downsample.hlsl",
+    "source": "assets/engine/shaders/particle/particle_simulate.hlsl",
     "is_compute": 1,
     "desc":
     {

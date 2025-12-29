@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -568,18 +568,19 @@ namespace SFG
 		chunk_allocator32	  _aux_memory = {};
 		vector<cache_storage> _storages	  = {};
 		world&				  _world;
-		resource_handle		  _dummy_color_texture	   = {};
-		resource_handle		  _dummy_orm_texture	   = {};
-		resource_handle		  _dummy_normal_texture	   = {};
-		resource_handle		  _default_gbuffer_shader  = {};
-		resource_handle		  _default_forward_shader  = {};
-		resource_handle		  _default_gui_shader	   = {};
-		resource_handle		  _default_gui_text_shader = {};
-		resource_handle		  _default_gui_sdf_shader  = {};
-		resource_handle		  _default_gui_mat		   = {};
-		resource_handle		  _default_gui_text_mat	   = {};
-		resource_handle		  _default_gui_sdf_mat	   = {};
-		uint32				  _max_load_priority	   = 0;
-		uint32				  _dynamic_sampler_count   = 0;
+		resource_handle		  _dummy_color_texture				= {};
+		resource_handle		  _dummy_orm_texture				= {};
+		resource_handle		  _dummy_normal_texture				= {};
+		resource_handle		  _default_gbuffer_shader			= {};
+		resource_handle		  _default_forward_shader			= {};
+		resource_handle		  _default_gui_shader				= {};
+		resource_handle		  _default_gui_text_shader			= {};
+		resource_handle		  _default_gui_sdf_shader			= {};
+		resource_handle		  _default_particle_additive_shader = {};
+		resource_handle		  _default_gui_mat					= {};
+		resource_handle		  _default_gui_text_mat				= {};
+		resource_handle		  _default_gui_sdf_mat				= {};
+		uint32				  _max_load_priority				= 0;
+		uint32				  _dynamic_sampler_count			= 0;
 	};
 }
