@@ -33,9 +33,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace SFG
 {
-
-	class buffer;
-
 	struct gpu_entity
 	{
 		matrix4x4 model	   = matrix4x4::identity;

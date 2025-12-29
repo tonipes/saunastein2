@@ -35,9 +35,10 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace SFG
 {
 
-	void buffer::create_staging_hw(const resource_desc& staging, const resource_desc& hw)
+	void buffer::create(const resource_desc& staging, const resource_desc& hw)
 	{
 		gfx_backend* backend = gfx_backend::get();
+		SFG_ASSERT(staging.size == hw.size);
 
 #ifdef SFG_DEBUG
 		_total_size = staging.size;
@@ -46,36 +47,24 @@ namespace SFG
 		_hw_staging = backend->create_resource(staging);
 		_hw_gpu		= backend->create_resource(hw);
 		backend->map_resource(_hw_staging, _mapped);
-		_flags.set(buf_has_staging | buf_alive);
 
-		_gpu_heap_index = backend->get_resource_gpu_index(_hw_gpu);
-	}
+		_index = backend->get_resource_gpu_index(_hw_gpu);
 
-	void buffer::create_hw(const resource_desc& desc)
-	{
-		gfx_backend* backend = gfx_backend::get();
-#ifdef SFG_DEBUG
-		_total_size = desc.size;
-#endif
-		_hw_gpu = backend->create_resource(desc);
-		backend->map_resource(_hw_gpu, _mapped);
-		_flags.set(buf_alive);
-
-		_gpu_heap_index = backend->get_resource_gpu_index(_hw_gpu);
+		if (hw.flags.is_all_set(resource_flags::rf_storage_buffer | resource_flags::rf_gpu_write))
+			_index_secondary = backend->get_resource_gpu_index(_hw_gpu, true);
 	}
 
 	void buffer::destroy()
 	{
+		SFG_ASSERT(_hw_gpu != NULL_GFX_ID && _hw_staging != NULL_GFX_ID);
 		gfx_backend* backend = gfx_backend::get();
-		if (_flags.is_set(buffer_flags::buf_has_staging))
-			backend->destroy_resource(_hw_staging);
-
+		backend->destroy_resource(_hw_staging);
 		backend->destroy_resource(_hw_gpu);
-		_mapped = nullptr;
-		_flags.remove(buffer_flags::buf_alive);
-		_flags.remove(buffer_flags::buf_has_staging);
-		_gpu_heap_index = UINT32_MAX;
-		_hw_gpu			= NULL_GFX_ID;
+		_mapped			 = nullptr;
+		_index			 = UINT32_MAX;
+		_index_secondary = UINT32_MAX;
+		_hw_staging		 = NULL_GFX_ID;
+		_hw_gpu			 = NULL_GFX_ID;
 	}
 
 	void buffer::buffer_data(size_t padding, const void* data, size_t size)
@@ -83,29 +72,21 @@ namespace SFG
 #ifdef SFG_DEBUG
 		SFG_ASSERT(padding + size <= _total_size);
 #endif
-		SFG_ASSERT(size != 0);
 		SFG_MEMCPY(_mapped + padding, data, size);
-		_flags.set(buf_dirty);
 	}
 
 	void buffer::copy(gfx_id cmd_buffer)
 	{
-		SFG_ASSERT(_flags.is_set(buffer_flags::buf_has_staging));
-		SFG_ASSERT(_flags.is_set(buffer_flags::buf_dirty));
-
 		gfx_backend* backend = gfx_backend::get();
 		backend->cmd_copy_resource(cmd_buffer,
 								   {
 									   .source		= _hw_staging,
 									   .destination = _hw_gpu,
 								   });
-		_flags.remove(buf_dirty);
 	}
 
 	void buffer::copy_region(gfx_id cmd_buffer, size_t padding, size_t size)
 	{
-		SFG_ASSERT(_flags.is_set(buffer_flags::buf_has_staging));
-		SFG_ASSERT(_flags.is_set(buffer_flags::buf_dirty));
 		SFG_ASSERT(size != 0);
 
 		gfx_backend* backend = gfx_backend::get();
@@ -117,7 +98,6 @@ namespace SFG
 											  .src_offset  = padding,
 											  .size		   = size,
 										  });
-		_flags.remove(buf_dirty);
 	}
 
 	void buffer_gpu::create(const resource_desc& desc)
@@ -125,6 +105,7 @@ namespace SFG
 		gfx_backend* backend = gfx_backend::get();
 		_hw					 = backend->create_resource(desc);
 		_index				 = backend->get_resource_gpu_index(_hw);
+
 		backend->map_resource(_hw, _mapped);
 
 		SFG_ASSERT(desc.flags.is_set(resource_flags::rf_cpu_visible));

@@ -71,7 +71,7 @@ namespace SFG
 			pfd.semp_ssao.semaphore		= backend->create_semaphore();
 			pfd.semp_lighting.semaphore = backend->create_semaphore();
 
-			pfd.shadow_data_buffer.create_staging_hw(
+			pfd.shadow_data_buffer.create(
 				{
 					.size		= sizeof(gpu_shadow_data) * MAX_GPU_SHADOW_DATA,
 					.flags		= resource_flags::rf_cpu_visible,
@@ -85,7 +85,7 @@ namespace SFG
 					.debug_name		 = "shadow_data_gpu",
 				});
 
-			pfd.bones_buffer.create_staging_hw(
+			pfd.bones_buffer.create(
 				{
 					.size		= sizeof(gpu_bone) * MAX_GPU_BONES,
 					.flags		= resource_flags::rf_cpu_visible,
@@ -99,7 +99,7 @@ namespace SFG
 					.debug_name		 = "opaque_bones_gpu",
 				});
 
-			pfd.entity_buffer.create_staging_hw(
+			pfd.entity_buffer.create(
 				{
 					.size		= sizeof(gpu_entity) * MAX_GPU_ENTITIES,
 					.flags		= resource_flags::rf_cpu_visible,
@@ -113,7 +113,7 @@ namespace SFG
 					.debug_name		 = "opaque_entities_gpu",
 				});
 
-			pfd.dir_lights_buffer.create_staging_hw(
+			pfd.dir_lights_buffer.create(
 				{
 					.size		= sizeof(gpu_dir_light) * MAX_WORLD_COMP_DIR_LIGHTS,
 					.flags		= resource_flags::rf_cpu_visible,
@@ -127,7 +127,7 @@ namespace SFG
 					.debug_name		 = "lighting_dir_lights_gpu",
 				});
 
-			pfd.point_lights_buffer.create_staging_hw(
+			pfd.point_lights_buffer.create(
 				{
 					.size		= sizeof(gpu_point_light) * MAX_WORLD_COMP_POINT_LIGHTS,
 					.flags		= resource_flags::rf_cpu_visible,
@@ -141,7 +141,7 @@ namespace SFG
 					.debug_name		 = "lighting_point_lights_gpu",
 				});
 
-			pfd.spot_lights_buffer.create_staging_hw(
+			pfd.spot_lights_buffer.create(
 				{
 					.size		= sizeof(gpu_spot_light) * MAX_WORLD_COMP_SPOT_LIGHTS,
 					.flags		= resource_flags::rf_cpu_visible,
@@ -155,7 +155,7 @@ namespace SFG
 					.debug_name		 = "lighting_spot_lights_gpu",
 				});
 
-			pfd.float_buffer.create_staging_hw(
+			pfd.float_buffer.create(
 				{
 					.size		= sizeof(float) * 128,
 					.flags		= resource_flags::rf_cpu_visible,
@@ -795,10 +795,7 @@ namespace SFG
 		}
 
 		if (assigned_index != 0)
-		{
-			pfd.entity_buffer.set_dirty(true);
 			pfd.entity_buffer.copy_region(cmd_buffer, 0, assigned_index * sizeof(gpu_entity));
-		}
 	}
 
 	void game_world_renderer::collect_and_upload_bones(gfx_id cmd_buffer, uint8 frame_index)
@@ -867,10 +864,7 @@ namespace SFG
 		}
 
 		if (assigned_index != 0)
-		{
-			pfd.bones_buffer.set_dirty(true);
 			pfd.bones_buffer.copy_region(cmd_buffer, 0, assigned_index * sizeof(gpu_bone));
-		}
 	}
 
 	void game_world_renderer::collect_and_upload_lights(gfx_id cmd_buffer, uint8 frame_index)
@@ -1124,26 +1118,13 @@ namespace SFG
 		}
 
 		if (dirs_count != 0)
-		{
-			pfd.dir_lights_buffer.set_dirty(true);
 			pfd.dir_lights_buffer.copy_region(cmd_buffer, 0, dirs_count * sizeof(gpu_dir_light));
-		}
 		if (spots_count != 0)
-		{
-			pfd.spot_lights_buffer.set_dirty(true);
 			pfd.spot_lights_buffer.copy_region(cmd_buffer, 0, spots_count * sizeof(gpu_spot_light));
-		}
 		if (points_count != 0)
-		{
-			pfd.point_lights_buffer.set_dirty(true);
 			pfd.point_lights_buffer.copy_region(cmd_buffer, 0, points_count * sizeof(gpu_point_light));
-		}
-
 		if (shadow_data_count != 0)
-		{
-			pfd.shadow_data_buffer.set_dirty(true);
 			pfd.shadow_data_buffer.copy_region(cmd_buffer, 0, shadow_data_count * sizeof(gpu_shadow_data));
-		}
 
 		_pass_lighting.set_light_counts_for_frame(points_count, spots_count, dirs_count);
 	}
