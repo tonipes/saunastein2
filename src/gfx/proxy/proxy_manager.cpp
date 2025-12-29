@@ -64,6 +64,7 @@ namespace SFG
 		_spot_lights	   = new spot_lights_type();
 		_dir_lights		   = new dir_lights_type();
 		_canvases		   = new canvas_type();
+		_emitters		   = new emitters_type();
 	}
 
 	proxy_manager::~proxy_manager()
@@ -84,6 +85,7 @@ namespace SFG
 		delete _spot_lights;
 		delete _dir_lights;
 		delete _canvases;
+		delete _emitters;
 	}
 
 	void proxy_manager::reset()
@@ -104,6 +106,7 @@ namespace SFG
 		_spot_lights->reset();
 		_dir_lights->reset();
 		_canvases->reset();
+		_emitters->reset();
 	}
 
 	void proxy_manager::init()
@@ -171,8 +174,6 @@ namespace SFG
 		_aux_memory.uninit();
 	}
 
-	uint32 ct0 = 0;
-
 	void proxy_manager::fetch_render_events(render_event_stream& stream, uint8 frame_index)
 	{
 		ZoneScoped;
@@ -187,15 +188,12 @@ namespace SFG
 			return;
 
 		render_event_header header = {};
-		ct0						   = 0;
 
 		while (!in.is_eof())
 		{
-			ct0++;
 			header.deserialize(in);
 			process_event(header, in, frame_index);
 		}
-		//	SFG_TRACE("Processed {0}", ct0);
 	}
 
 	void proxy_manager::flush_destroys(bool force)
@@ -1177,6 +1175,28 @@ namespace SFG
 		{
 			render_proxy_mesh& proxy = get_mesh(index);
 			destroy_mesh(proxy);
+		}
+		else if (type == render_event_type::create_particle_emitter)
+		{
+			render_proxy_particle_emitter& proxy = _emitters->get(index);
+			proxy.status						 = render_proxy_status::rps_active;
+		}
+		else if (type == render_event_type::remove_particle_emitter)
+		{
+			render_proxy_particle_emitter& proxy = _emitters->get(index);
+			proxy								 = {};
+		}
+		else if (type == render_event_type::reset_particle_emitter)
+		{
+			render_proxy_particle_emitter& proxy = _emitters->get(index);
+			proxy.last_emitted					 = 0.0f;
+		}
+		else if (type == render_event_type::update_particle_emitter)
+		{
+			render_proxy_particle_emitter&		 proxy = _emitters->get(index);
+			render_event_update_particle_emitter ev	   = {};
+			ev.deserialize(stream);
+			proxy.emit_props   = ev.props;
 		}
 	}
 

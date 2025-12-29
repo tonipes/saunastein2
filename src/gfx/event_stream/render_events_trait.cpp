@@ -205,4 +205,14 @@ namespace SFG
 		stream.skip_by(index_data_size);
 	}
 
+	void render_event_update_particle_emitter::serialize(ostream& stream) const
+	{
+		stream << props;
+	}
+
+	void render_event_update_particle_emitter::deserialize(istream& stream)
+	{
+		stream >> props;
+	}
+
 }

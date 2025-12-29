@@ -87,11 +87,12 @@ namespace SFG
 #define MAX_WORLD_BONE_BATCH_SIZE 64
 #define MAX_WORLD_BONE_BATCHES	  10000
 
+
 	// -----------------------------------------------------------------------------
 	// particles
 	// -----------------------------------------------------------------------------
 
-#define MAX_WORLD_PARTICLE_EMITTERS 1024
+#define MAX_WORLD_COMP_PARTICLE_EMITTERS 1024
 
 	// -----------------------------------------------------------------------------
 	// gfx

@@ -102,7 +102,7 @@ namespace SFG
 		_comp_manager.register_cache<comp_audio, MAX_WORLD_COMP_AUDIO>();
 		_comp_manager.register_cache<comp_canvas, MAX_WORLD_COMP_CANVAS>();
 		_comp_manager.register_cache<comp_animation_controller, MAX_WORLD_COMP_ANIMS>();
-		_comp_manager.register_cache<comp_particle_emitter, MAX_WORLD_PARTICLE_EMITTERS>();
+		_comp_manager.register_cache<comp_particle_emitter, MAX_WORLD_COMP_PARTICLE_EMITTERS>();
 
 		_phy_world.init();
 		_audio_manager.init();

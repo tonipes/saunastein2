@@ -35,6 +35,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "game/game_max_defines.hpp"
 #include "world/world_constants.hpp"
 #include "resources/common_resources.hpp"
+#include "world/particles/common_particles.hpp"
 
 namespace SFG
 {
@@ -143,6 +144,14 @@ namespace SFG
 		resource_id material_handle = 0;
 		resource_id atlas_handle	= 0;
 		uint8		atlas_exists	= 0;
+
+		void serialize(ostream& stream) const;
+		void deserialize(istream& stream);
+	};
+
+	struct render_event_update_particle_emitter
+	{
+		particle_emit_properties props = {};
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);

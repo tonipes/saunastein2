@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -287,6 +287,7 @@ namespace SFG
 		using spot_lights_type		 = static_array<render_proxy_spot_light, MAX_WORLD_COMP_SPOT_LIGHTS>;
 		using dir_lights_type		 = static_array<render_proxy_dir_light, MAX_WORLD_COMP_DIR_LIGHTS>;
 		using canvas_type			 = static_array<render_proxy_canvas, MAX_WORLD_COMP_CANVAS>;
+		using emitters_type			 = static_array<render_proxy_particle_emitter, MAX_WORLD_COMP_PARTICLE_EMITTERS>;
 
 		destroy_bucket _destroy_bucket[BACK_BUFFER_COUNT + 1];
 
@@ -307,6 +308,7 @@ namespace SFG
 		spot_lights_type*		_spot_lights	   = nullptr;
 		dir_lights_type*		_dir_lights		   = nullptr;
 		canvas_type*			_canvases		   = nullptr;
+		emitters_type*			_emitters		   = nullptr;
 
 		world_id _main_camera_trait	  = NULL_WORLD_ID;
 		uint32	 _peak_mesh_instances = 0;

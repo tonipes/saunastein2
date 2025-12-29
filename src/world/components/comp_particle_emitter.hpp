@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -30,6 +30,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "reflection/component_reflection.hpp"
 #include "resources/common_resources.hpp"
 #include "memory/pool_handle.hpp"
+#include "world/particles/common_particles.hpp"
 
 namespace SFG
 {
@@ -41,13 +42,20 @@ namespace SFG
 	{
 	public:
 		// -----------------------------------------------------------------------------
-		// trait
+		// comp
 		// -----------------------------------------------------------------------------
 
 		void on_add(world& w);
 		void on_remove(world& w);
 		void serialize(ostream& stream, world& w) const;
 		void deserialize(istream& stream, world& w);
+
+		// -----------------------------------------------------------------------------
+		// comp
+		// -----------------------------------------------------------------------------
+
+		void set_emit_properties(world& w, const particle_emit_properties& p);
+		void restart(world& w);
 
 		// -----------------------------------------------------------------------------
 		// accessors
@@ -63,12 +71,18 @@ namespace SFG
 			return _state_machine;
 		}
 
+		inline const particle_emit_properties& get_emit_properties() const
+		{
+			return _emit_props;
+		}
+
 	private:
 		template <typename T, int> friend class comp_cache;
 
 	private:
-		component_header _header		= {};
-		pool_handle16	 _state_machine = {};
+		component_header		 _header		= {};
+		pool_handle16			 _state_machine = {};
+		particle_emit_properties _emit_props	= {};
 	};
 
 	REGISTER_TRAIT(comp_particle_emitter);

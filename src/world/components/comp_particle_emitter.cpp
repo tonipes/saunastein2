@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -28,20 +28,19 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "data/ostream.hpp"
 #include "data/istream.hpp"
 #include "world/world.hpp"
+#include "gfx/event_stream/render_event_stream.hpp"
+#include "gfx/event_stream/render_events_trait.hpp"
 
 namespace SFG
 {
 	void comp_particle_emitter::on_add(world& w)
 	{
-		animation_graph& anim_graph							= w.get_animation_graph();
-		_state_machine										= anim_graph.add_state_machine();
-		anim_graph.get_state_machine(_state_machine).entity = _header.entity;
+		w.get_render_stream().add_event({.index = _header.own_handle.index, .event_type = render_event_type::create_particle_emitter});
 	}
 
 	void comp_particle_emitter::on_remove(world& w)
 	{
-		animation_graph& anim_graph = w.get_animation_graph();
-		anim_graph.remove_state_machine(_state_machine);
+		w.get_render_stream().add_event({.index = _header.own_handle.index, .event_type = render_event_type::remove_particle_emitter});
 	}
 
 	void comp_particle_emitter::serialize(ostream& stream, world& w) const
@@ -50,6 +49,18 @@ namespace SFG
 
 	void comp_particle_emitter::deserialize(istream& stream, world& w)
 	{
+	}
+
+	void comp_particle_emitter::set_emit_properties(world& w, const particle_emit_properties& p)
+	{
+		_emit_props							 = p;
+		render_event_update_particle_emitter ev = {.props = p};
+		w.get_render_stream().add_event({.index = _header.own_handle.index, .event_type = render_event_type::update_particle_emitter}, ev);
+	}
+
+	void comp_particle_emitter::restart(world& w)
+	{
+		w.get_render_stream().add_event({.index = _header.own_handle.index, .event_type = render_event_type::reset_particle_emitter});
 	}
 
 }
