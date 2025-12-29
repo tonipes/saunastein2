@@ -110,9 +110,10 @@ namespace SFG
 	private:
 		struct resource
 		{
-			D3D12MA::Allocation* ptr			  = nullptr;
-			int16				 descriptor_index = -1;
-			uint32				 size			  = 0;
+			D3D12MA::Allocation* ptr						= nullptr;
+			int16				 descriptor_index			= -1;
+			int16				 descriptor_index_secondary = -1;
+			uint32				 size						= 0;
 		};
 
 		struct texture_view
@@ -234,7 +235,7 @@ namespace SFG
 		bool compile_shader_vertex_pixel(uint8 stage, const string& source, const vector<string>& defines, const vector<string>& source_paths, const char* entry, span<uint8>& out, bool compile_layout, span<uint8>& out_layout) const;
 		bool compile_shader_compute(const string& source, const vector<string>& source_paths, const char* entry, span<uint8>& out, bool compile_layout, span<uint8>& out_layout) const;
 
-		uint32 get_resource_gpu_index(gfx_id resource);
+		uint32 get_resource_gpu_index(gfx_id resource, bool use_secondary = false);
 		uint32 get_texture_gpu_index(gfx_id texture, uint8 view_index);
 		uint32 get_sampler_gpu_index(gfx_id sampler);
 		gfx_id create_resource(const resource_desc& desc);

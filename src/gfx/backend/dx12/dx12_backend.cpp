@@ -970,44 +970,58 @@ namespace SFG
 			dh					  = _heap_gpu_buffer.get_heap_handle_block(1);
 			_device->CreateConstantBufferView(&desc, {dh.cpu});
 		}
-		else if (desc.flags.is_set(resource_flags::rf_storage_buffer))
+		else
 		{
-			const D3D12_SHADER_RESOURCE_VIEW_DESC srv = {
-				.Format					 = desc.structure_size == 0 ? DXGI_FORMAT_R32_TYPELESS : DXGI_FORMAT_UNKNOWN,
-				.ViewDimension			 = D3D12_SRV_DIMENSION_BUFFER,
-				.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
-				.Buffer =
-					{
-						.FirstElement		 = 0,
-						.NumElements		 = desc.structure_count == 0 ? desc.size / 4 : desc.structure_count,
-						.StructureByteStride = desc.structure_size,
-						.Flags				 = desc.structure_size == 0 ? D3D12_BUFFER_SRV_FLAG_RAW : D3D12_BUFFER_SRV_FLAG_NONE,
-					},
+			if (desc.flags.is_set(resource_flags::rf_storage_buffer))
+			{
+				const D3D12_SHADER_RESOURCE_VIEW_DESC srv = {
+					.Format					 = desc.structure_size == 0 ? DXGI_FORMAT_R32_TYPELESS : DXGI_FORMAT_UNKNOWN,
+					.ViewDimension			 = D3D12_SRV_DIMENSION_BUFFER,
+					.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
+					.Buffer =
+						{
+							.FirstElement		 = 0,
+							.NumElements		 = desc.structure_count == 0 ? desc.size / 4 : desc.structure_count,
+							.StructureByteStride = desc.structure_size,
+							.Flags				 = desc.structure_size == 0 ? D3D12_BUFFER_SRV_FLAG_RAW : D3D12_BUFFER_SRV_FLAG_NONE,
+						},
 
-			};
-			res.descriptor_index  = static_cast<int16>(_descriptors.add());
-			descriptor_handle& dh = _descriptors.get(res.descriptor_index);
-			dh					  = _heap_gpu_buffer.get_heap_handle_block(1);
-			_device->CreateShaderResourceView(res.ptr->GetResource(), &srv, {dh.cpu});
-		}
-		else if (desc.flags.is_set(resource_flags::rf_gpu_write))
-		{
-			const D3D12_UNORDERED_ACCESS_VIEW_DESC desc = {
-				.Format		   = DXGI_FORMAT_R32_TYPELESS,
-				.ViewDimension = D3D12_UAV_DIMENSION_BUFFER,
-				.Buffer =
-					{
-						.FirstElement		  = 0,
-						.NumElements		  = static_cast<UINT>(final_size / 4),
-						.StructureByteStride  = 0,
-						.CounterOffsetInBytes = 0,
-						.Flags				  = D3D12_BUFFER_UAV_FLAG_RAW,
-					},
-			};
-			res.descriptor_index  = static_cast<int16>(_descriptors.add());
-			descriptor_handle& dh = _descriptors.get(res.descriptor_index);
-			dh					  = _heap_gpu_buffer.get_heap_handle_block(1);
-			_device->CreateUnorderedAccessView(res.ptr->GetResource(), NULL, &desc, {dh.cpu});
+				};
+				res.descriptor_index  = static_cast<int16>(_descriptors.add());
+				descriptor_handle& dh = _descriptors.get(res.descriptor_index);
+				dh					  = _heap_gpu_buffer.get_heap_handle_block(1);
+				_device->CreateShaderResourceView(res.ptr->GetResource(), &srv, {dh.cpu});
+			}
+
+			if (desc.flags.is_set(resource_flags::rf_gpu_write))
+			{
+				const D3D12_UNORDERED_ACCESS_VIEW_DESC uav = {
+					.Format		   = DXGI_FORMAT_R32_TYPELESS,
+					.ViewDimension = D3D12_UAV_DIMENSION_BUFFER,
+					.Buffer =
+						{
+							.FirstElement		 = 0,
+							.NumElements		 = desc.structure_count == 0 ? desc.size / 4 : desc.structure_count,
+							.StructureByteStride = desc.structure_size,
+							.Flags				 = desc.structure_size == 0 ? D3D12_BUFFER_UAV_FLAG_RAW : D3D12_BUFFER_UAV_FLAG_NONE,
+						},
+				};
+
+				if (res.descriptor_index == -1)
+				{
+					res.descriptor_index  = static_cast<int16>(_descriptors.add());
+					descriptor_handle& dh = _descriptors.get(res.descriptor_index);
+					dh					  = _heap_gpu_buffer.get_heap_handle_block(1);
+					_device->CreateUnorderedAccessView(res.ptr->GetResource(), NULL, &uav, {dh.cpu});
+				}
+				else
+				{
+					res.descriptor_index_secondary = static_cast<int16>(_descriptors.add());
+					descriptor_handle& dh		   = _descriptors.get(res.descriptor_index_secondary);
+					dh							   = _heap_gpu_buffer.get_heap_handle_block(1);
+					_device->CreateUnorderedAccessView(res.ptr->GetResource(), NULL, &uav, {dh.cpu});
+				}
+			}
 		}
 
 		NAME_DX12_OBJECT_CSTR(res.ptr->GetResource(), desc.debug_name);
@@ -1052,6 +1066,13 @@ namespace SFG
 			descriptor_handle& dh = _descriptors.get(static_cast<gfx_id>(res.descriptor_index));
 			_heap_gpu_buffer.remove_handle(dh);
 			_descriptors.remove(res.descriptor_index);
+		}
+
+		if (res.descriptor_index_secondary != -1)
+		{
+			descriptor_handle& dh = _descriptors.get(static_cast<gfx_id>(res.descriptor_index_secondary));
+			_heap_gpu_buffer.remove_handle(dh);
+			_descriptors.remove(res.descriptor_index_secondary);
 		}
 
 		res.descriptor_index = -1;
@@ -1962,11 +1983,14 @@ namespace SFG
 		return true;
 	}
 
-	uint32 dx12_backend::get_resource_gpu_index(gfx_id id)
+	uint32 dx12_backend::get_resource_gpu_index(gfx_id id, bool use_secondary)
 	{
 		const resource& r = _resources.get(id);
 		if (r.descriptor_index == -1)
 			return UINT32_MAX;
+
+		if (use_secondary)
+			return _descriptors.get(r.descriptor_index_secondary).index;
 
 		return _descriptors.get(r.descriptor_index).index;
 	}

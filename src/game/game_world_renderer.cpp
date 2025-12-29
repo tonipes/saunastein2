@@ -179,6 +179,7 @@ namespace SFG
 		_pass_post.init(size);
 		_pass_forward.init(size);
 		_pass_canvas_2d.init(size);
+		_pass_particles.init();
 
 #ifdef OBJECT_ID_PASS
 		_pass_object_id.init(size);
@@ -201,6 +202,7 @@ namespace SFG
 		_pass_post.uninit();
 		_pass_forward.uninit();
 		_pass_canvas_2d.uninit();
+		_pass_particles.uninit();
 
 #ifdef OBJECT_ID_PASS
 		_pass_object_id.uninit();
@@ -300,6 +302,7 @@ namespace SFG
 		_pass_ssao.prepare(_main_camera_view, _base_size, frame_index);
 		_pass_bloom.prepare(frame_index);
 		_pass_post.prepare(frame_index, _base_size);
+		_pass_particles.prepare(frame_index, _proxy_manager, _main_camera_view);
 
 #ifdef JPH_DEBUG_RENDERER
 		_pass_physics_debug.prepare(_main_camera_view, _base_size, frame_index);
@@ -317,15 +320,17 @@ namespace SFG
 		per_frame_data&	  pfd		 = _pfd[frame_index];
 		const vector2ui16 resolution = _base_size;
 
-		const gfx_id cmd_canvas_2d = _pass_canvas_2d.get_cmd_buffer(frame_index);
-		const gfx_id cmd_ssao	   = _pass_ssao.get_cmd_buffer(frame_index);
-		const gfx_id cmd_depth	   = _pass_pre_depth.get_cmd_buffer(frame_index);
-		const gfx_id cmd_opaque	   = _pass_opaque.get_cmd_buffer(frame_index);
-		const gfx_id cmd_lighting  = _pass_lighting.get_cmd_buffer(frame_index);
-		const gfx_id cmd_post	   = _pass_post.get_cmd_buffer(frame_index);
-		const gfx_id cmd_shadows   = _pass_shadows.get_cmd_buffer(frame_index);
-		const gfx_id cmd_bloom	   = _pass_bloom.get_cmd_buffer(frame_index);
-		const gfx_id cmd_forward   = _pass_forward.get_cmd_buffer(frame_index);
+		const gfx_id cmd_canvas_2d		   = _pass_canvas_2d.get_cmd_buffer(frame_index);
+		const gfx_id cmd_ssao			   = _pass_ssao.get_cmd_buffer(frame_index);
+		const gfx_id cmd_depth			   = _pass_pre_depth.get_cmd_buffer(frame_index);
+		const gfx_id cmd_opaque			   = _pass_opaque.get_cmd_buffer(frame_index);
+		const gfx_id cmd_lighting		   = _pass_lighting.get_cmd_buffer(frame_index);
+		const gfx_id cmd_post			   = _pass_post.get_cmd_buffer(frame_index);
+		const gfx_id cmd_shadows		   = _pass_shadows.get_cmd_buffer(frame_index);
+		const gfx_id cmd_bloom			   = _pass_bloom.get_cmd_buffer(frame_index);
+		const gfx_id cmd_forward		   = _pass_forward.get_cmd_buffer(frame_index);
+		const gfx_id cmd_particles		   = _pass_particles.get_cmd_buffer(frame_index);
+		const gfx_id cmd_particles_compute = _pass_particles.get_cmd_buffer_compute(frame_index);
 
 #ifdef JPH_DEBUG_RENDERER
 		const gfx_id cmd_physics_debug = _pass_physics_debug.get_cmd_buffer(frame_index);
@@ -417,6 +422,8 @@ namespace SFG
 			});
 		});
 
+		tasks.push_back([&] { _pass_particles.compute(frame_index); });
+
 #ifdef OBJECT_ID_PASS
 		tasks.push_back([&] {
 			_pass_object_id.render({
@@ -450,6 +457,9 @@ namespace SFG
 		gfx_id first_batch[3] = {cmd_depth, cmd_shadows, cmd_opaque};
 		backend->submit_commands(queue_gfx, first_batch, 3);
 		backend->queue_signal(queue_gfx, &sem_ssao, &sem_ssao_val0, 1);
+
+		// kick off particle compute immediately.
+		backend->submit_commands(queue_compute, &cmd_particles_compute, 1);
 
 #ifdef OBJECT_ID_PASS
 		// object-id pass & outline (no dependencies besides depth)
@@ -504,6 +514,17 @@ namespace SFG
 			});
 		});
 
+		tasks.push_back([&] {
+			_pass_particles.render({
+				.frame_index		   = frame_index,
+				.global_layout_compute = layout_global_compute,
+				.global_layout		   = layout_global,
+				.global_group		   = bind_group_global,
+				.gpu_index_lighting	   = gpu_index_lighting,
+
+			});
+		});
+
 		std::for_each(std::execution::par, tasks.begin(), tasks.end(), [](auto&& task) { task(); });
 
 		// SSAO waits for opaque, signals after done
@@ -515,6 +536,7 @@ namespace SFG
 		backend->queue_wait(queue_gfx, &sem_ssao, &sem_ssao_val1, 1);
 		backend->submit_commands(queue_gfx, &cmd_lighting, 1);
 		backend->submit_commands(queue_gfx, &cmd_forward, 1);
+		backend->submit_commands(queue_gfx, &cmd_particles, 1);
 #ifdef JPH_DEBUG_RENDERER
 		backend->submit_commands(queue_gfx, &cmd_physics_debug, 1);
 #endif

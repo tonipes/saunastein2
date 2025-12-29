@@ -47,10 +47,10 @@ void CSMain(uint3 dtid : SV_DispatchThreadID)
 
     if (alive_index >= aliveCount) return;
 
-    RWStructuredBuffer<uint> alive_list_b = sfg_get_rws_buffer<uint>(sfg_rp_constant10);
+    StructuredBuffer<uint> alive_list_b = sfg_get_ssbo<uint>(sfg_rp_constant8);
     uint particle_index = alive_list_b[alive_index];
 
-    RWStructuredBuffer<particle_state> states  = sfg_get_rws_buffer<particle_state>(sfg_rp_constant4);
+    StructuredBuffer<particle_state> states  = sfg_get_ssbo<particle_state>(sfg_rp_constant4);
     ConstantBuffer<particle_pass_data> pass_params = sfg_get_cbv<particle_pass_data>(sfg_rp_constant0);
     
     // simple cull, no render if behind camera.
@@ -71,7 +71,7 @@ void CSMain(uint3 dtid : SV_DispatchThreadID)
     uint idx;
     InterlockedAdd(indirect_args[system_id].instance_count, 1, idx);
 
-    RWStructuredBuffer<particle_instance_data> instance_data    = sfg_get_rws_buffer<particle_instance_data>(sfg_rp_constant12);
+    RWStructuredBuffer<particle_instance_data> instance_data    = sfg_get_rws_buffer<particle_instance_data>(sfg_rp_constant10);
     particle_instance_data pid = (particle_instance_data)0;
     pid.pos_and_rot = float4(states[particle_index].position_and_age.xyz, states[particle_index].rotation);
     pid.size = float4(1,0,0,0);

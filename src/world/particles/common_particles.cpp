@@ -30,7 +30,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace SFG
 {
-	void emit_properties::serialize(ostream& stream) const
+	void particle_emit_properties::serialize(ostream& stream) const
 	{
 		stream << emitter_lifetime;
 		stream << wait_between_emits;
@@ -48,7 +48,7 @@ namespace SFG
 		stream << max_lifetime;
 	}
 
-	void emit_properties::deserialize(istream& stream)
+	void particle_emit_properties::deserialize(istream& stream)
 	{
 		stream >> emitter_lifetime;
 		stream >> wait_between_emits;

@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -28,61 +28,135 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "gfx/buffer.hpp"
 #include "gfx/common/gfx_constants.hpp"
+#include "math/matrix4x4.hpp"
+#include "math/vector4.hpp"
 
 namespace SFG
 {
 	struct view;
-	struct vector2ui16;
 	class proxy_manager;
 
 	class render_pass_particles
 	{
 	private:
-		static constexpr uint32 MIPS_DS = 5;
-
-		struct ubo
+		struct indirect_render
 		{
-			float filter_radius = 0.2f;
-			float pad[3];
+			uint32 vertex_count;
+			uint32 vertex_start;
+			uint32 instance_count;
+			uint32 instance_start;
+		};
+
+		struct indirect_dispatch
+		{
+			uint32 group_sim_x;
+			uint32 group_sim_y;
+			uint32 group_sim_z;
+			uint32 group_count_x;
+			uint32 group_count_y;
+			uint32 group_count_z;
+		};
+
+		struct pass_params
+		{
+			matrix4x4 view_proj;
+			vector4	  cam_pos_and_delta;
+			vector4	  cam_dir;
+			uint32	  max_particles_per_system;
+			uint32	  frame_index;
+			uint32	  max_systems;
+			uint32	  num_systems;
+		};
+
+		struct particle_system_data
+		{
+			uint32 alive_count;
+			uint32 dead_count;
+		};
+
+		struct particle_emit_args
+		{
+			vector4 min_color;
+			vector4 max_color;
+			vector4 min_pos; // w is min lifetime
+			vector4 max_pos; // w is max lifetime
+			vector4 min_vel; // w is min rotation
+			vector4 max_vel; // w is max rotation
+		};
+
+		struct particle_state
+		{
+			vector4 position_and_age;
+			vector4 color;
+			vector4 velocity_and_lifetime;
+			float	rotation;
+			uint32	system_id;
+			float	padding[2];
+		};
+
+		struct particle_instance_data
+		{
+			vector4 pos_and_rot;
+			vector4 size;
+		};
+
+		struct particle_counters
+		{
+			uint32 alive_count_a;
+			uint32 alive_count_b;
+		};
+
+		struct particle_indirect_args
+		{
+			uint32 vertex_count;
+			uint32 instance_count;
+			uint32 start_vertex;
+			uint32 start_instance;
+		};
+
+		struct particle_sim_count_args
+		{
+			uint32 group_sim_x;
+			uint32 group_sim_y;
+			uint32 group_sim_z;
+			uint32 group_count_x;
+			uint32 group_count_y;
+			uint32 group_count_z;
 		};
 
 		struct per_frame_data
 		{
-			buffer	  ubo			 = {};
-			gfx_id	  cmd_buffer	 = 0;
-			gfx_id	  downsample_out = 0;
-			gfx_id	  upsample_out	 = 0;
-			gpu_index gpu_index_downsample_uav[MIPS_DS];
-			gpu_index gpu_index_downsample_srv[MIPS_DS];
-			gpu_index gpu_index_upsample_uav[MIPS_DS];
-			gpu_index gpu_index_upsample_srv[MIPS_DS];
+			buffer ubo				  = {};
+			gfx_id buffer_emit_counts = NULL_GFX_ID;
+
+			gfx_id cmd_buffer		  = NULL_GFX_ID;
+			gfx_id cmd_buffer_compute = NULL_GFX_ID;
 		};
 
 	public:
 		struct render_params
 		{
-			uint8			   frame_index;
-			const vector2ui16& size;
-			gfx_id			   lighting;
-			gpu_index		   gpu_index_lighting;
-			gfx_id			   global_layout_compute;
-			gfx_id			   global_group;
+			uint8	  frame_index;
+			gfx_id	  global_layout_compute;
+			gfx_id	  global_layout;
+			gfx_id	  global_group;
+			gpu_index gpu_index_lighting;
 		};
 
 		// -----------------------------------------------------------------------------
 		// lifecycle
 		// -----------------------------------------------------------------------------
 
-		void init(const vector2ui16& size);
+		void init();
 		void uninit();
 
 		// -----------------------------------------------------------------------------
 		// rendering
 		// -----------------------------------------------------------------------------
 
-		void prepare(uint8 frame_index);
+		void prepare(uint8 frame_index, proxy_manager& pm, const view& main_camera_view);
+		void compute(uint8 frame_index);
 		void render(const render_params& params);
-		void resize(const vector2ui16& size);
 
 		// -----------------------------------------------------------------------------
 		// accessors
@@ -93,18 +167,20 @@ namespace SFG
 			return _pfd[frame_index].cmd_buffer;
 		}
 
-		inline gpu_index get_output_gpu_index(uint8 frame_index) const
+		inline gfx_id get_cmd_buffer_compute(uint8 frame_index) const
 		{
-			return _pfd[frame_index].gpu_index_upsample_srv[0];
+			return _pfd[frame_index].cmd_buffer_compute;
 		}
 
 	private:
-		void destroy_textures();
-		void create_textures(const vector2ui16& sz);
-
-	private:
 		per_frame_data _pfd[BACK_BUFFER_COUNT];
-		gfx_id		   _shader_bloom_downsample = 0;
-		gfx_id		   _shader_bloom_upsample	= 0;
+		gfx_id		   _indirect_render_sig	  = 0;
+		gfx_id		   _indirect_dispatch_sig = 0;
+		gfx_id		   _shader_clear		  = NULL_GFX_ID;
+		gfx_id		   _shader_simulate		  = NULL_GFX_ID;
+		gfx_id		   _shader_emit			  = NULL_GFX_ID;
+		gfx_id		   _shader_write_count	  = NULL_GFX_ID;
+		gfx_id		   _shader_count		  = NULL_GFX_ID;
+		gfx_id		   _shader_swap			  = NULL_GFX_ID;
 	};
 }

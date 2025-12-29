@@ -42,6 +42,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gfx/world/render_pass/render_pass_post_combiner.hpp"
 #include "gfx/world/render_pass/render_pass_forward.hpp"
 #include "gfx/world/render_pass/render_pass_canvas_2d.hpp"
+#include "gfx/world/render_pass/render_pass_particles.hpp"
 
 #ifdef SFG_TOOLMODE
 #include "gfx/world/render_pass/render_pass_object_id.hpp"
@@ -161,6 +162,7 @@ namespace SFG
 		render_pass_post_combiner _pass_post	  = {};
 		render_pass_forward		  _pass_forward	  = {};
 		render_pass_canvas_2d	  _pass_canvas_2d = {};
+		render_pass_particles	  _pass_particles = {};
 
 #ifdef JPH_DEBUG_RENDERER
 		render_pass_physics_debug _pass_physics_debug = {};

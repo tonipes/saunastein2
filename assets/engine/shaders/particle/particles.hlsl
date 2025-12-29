@@ -113,6 +113,5 @@ RWStructuredBuffer<uint> alive_list_b = sfg_get_rws_buffer<uint>(sfg_rp_constant
 RWStructuredBuffer<uint> dead_indices = sfg_get_rws_buffer<uint>(sfg_rp_constant11);
 
 RWStructuredBuffer<particle_instance_data> instance_data    = sfg_get_rws_buffer<particle_instance_data>(sfg_rp_constant12);
-RWByteAddressBuffer count_indirect_args     = sfg_get_rwb_buffer(sfg_object_constant0);
 
 */
