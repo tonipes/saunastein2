@@ -1572,8 +1572,8 @@ namespace SFG
 		POP_MEMORY_CATEGORY();
 #endif
 
-		//TracyFreeN(swp.ptr.Get(), "GPU: Total");
-		//TracyFreeN(swp.ptr.Get(), "GPU: Texture");
+		// TracyFreeN(swp.ptr.Get(), "GPU: Total");
+		// TracyFreeN(swp.ptr.Get(), "GPU: Texture");
 
 #if USE_WAITABLE_SWAPCHAIN
 		UINT flags = (tearing ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : (UINT)0) | DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
@@ -1584,8 +1584,8 @@ namespace SFG
 		throw_if_failed(swp.ptr->ResizeBuffers(BACK_BUFFER_COUNT, static_cast<UINT>(desc.size.x), static_cast<UINT>(desc.size.y), swp_desc.BufferDesc.Format, flags));
 		swp.image_index = swp.ptr->GetCurrentBackBufferIndex();
 
-		//TracyAllocN(swp.ptr.Get(), desc.size.x * desc.size.y * 4, "GPU: Total");
-		//TracyAllocN(swp.ptr.Get(), desc.size.x * desc.size.y * 4, "GPU: Texture");
+		// TracyAllocN(swp.ptr.Get(), desc.size.x * desc.size.y * 4, "GPU: Total");
+		// TracyAllocN(swp.ptr.Get(), desc.size.x * desc.size.y * 4, "GPU: Texture");
 
 		// Re-apply frame latency settings and refresh waitable object after resize
 		{
@@ -2370,6 +2370,65 @@ namespace SFG
 		_reuse_static_samplers.resize(0);
 		_reuse_root_ranges.resize(0);
 		return id;
+	}
+
+	gfx_id dx12_backend::create_draw_indirect_signature(gfx_id bind_layout_id, size_t struct_size)
+	{
+		const gfx_id		id = _indirect_signatures.add();
+		indirect_signature& s  = _indirect_signatures.get(id);
+
+		D3D12_INDIRECT_ARGUMENT_DESC argumentDesc = {};
+		argumentDesc.Type						  = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW;
+
+		D3D12_COMMAND_SIGNATURE_DESC commandSignatureDesc = {};
+		commandSignatureDesc.pArgumentDescs				  = &argumentDesc;
+		commandSignatureDesc.NumArgumentDescs			  = 1;
+		commandSignatureDesc.ByteStride					  = struct_size;
+
+		bind_layout& bl = _bind_layouts.get(bind_layout_id);
+
+		try
+		{
+			_device->CreateCommandSignature(&commandSignatureDesc, bl.root_signature.Get(), IID_PPV_ARGS(&s.signature));
+		}
+		catch (HrException e)
+		{
+			SFG_ERR("Error while creating indirect signature {0}", e.what());
+		}
+		return id;
+	}
+
+	gfx_id dx12_backend::create_dispatch_indirect_signature(gfx_id bind_layout_id, size_t struct_size)
+	{
+		const gfx_id		id = _indirect_signatures.add();
+		indirect_signature& s  = _indirect_signatures.get(id);
+
+		D3D12_INDIRECT_ARGUMENT_DESC argumentDesc = {};
+		argumentDesc.Type						  = D3D12_INDIRECT_ARGUMENT_TYPE_DISPATCH;
+
+		D3D12_COMMAND_SIGNATURE_DESC commandSignatureDesc = {};
+		commandSignatureDesc.pArgumentDescs				  = &argumentDesc;
+		commandSignatureDesc.NumArgumentDescs			  = 1;
+		commandSignatureDesc.ByteStride					  = struct_size;
+
+		bind_layout& bl = _bind_layouts.get(bind_layout_id);
+
+		try
+		{
+			_device->CreateCommandSignature(&commandSignatureDesc, bl.root_signature.Get(), IID_PPV_ARGS(&s.signature));
+		}
+		catch (HrException e)
+		{
+			SFG_ERR("Error while creating indirect signature {0}", e.what());
+		}
+		return id;
+	}
+
+	void dx12_backend::destroy_indirect_signature(gfx_id sig)
+	{
+		indirect_signature& s = _indirect_signatures.get(sig);
+		s.signature->Release();
+		_indirect_signatures.remove(sig);
 	}
 
 	void dx12_backend::bind_layout_add_constant(gfx_id layout, uint32 count, uint32 set, uint32 binding, uint8 vis)

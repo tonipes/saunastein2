@@ -56,6 +56,7 @@ namespace SFG
 		engine_shader_particle_emit,
 		engine_shader_particle_write_count,
 		engine_shader_particle_count,
+		engine_shader_particle_swap,
 		engine_shader_type_max,
 	};
 

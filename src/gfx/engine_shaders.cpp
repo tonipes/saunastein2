@@ -62,6 +62,7 @@ namespace SFG
 		paths.push_back("assets/engine/shaders/particle/particle_emit.stkshader");
 		paths.push_back("assets/engine/shaders/particle/particle_write_count.stkshader");
 		paths.push_back("assets/engine/shaders/particle/particle_count.stkshader");
+		paths.push_back("assets/engine/shaders/particle/particle_swap.stkshader");
 
 		shader_raw raw = {};
 

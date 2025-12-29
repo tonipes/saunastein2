@@ -249,6 +249,9 @@ namespace SFG
 		gfx_id create_command_allocator(uint8 ctype);
 		gfx_id create_queue(const queue_desc& desc);
 		gfx_id create_empty_bind_layout();
+		gfx_id create_draw_indirect_signature(gfx_id bind_layout, size_t sz);
+		gfx_id create_dispatch_indirect_signature(gfx_id bind_layout, size_t sz);
+		void   destroy_indirect_signature(gfx_id sig);
 		void   bind_group_add_descriptor(gfx_id group, uint8 root_param_index, uint8 binding_type);
 		void   bind_group_add_constant(gfx_id group, uint8 root_param_index, uint8* data, uint8 count);
 		void   bind_group_add_pointer(gfx_id group, uint8 root_param_index, uint8 count, bool is_sampler);
@@ -353,20 +356,20 @@ namespace SFG
 		void wait_for_fence(ID3D12Fence* fence, uint64 value) const;
 
 	private:
-		pool_allocator<resource, gfx_id, MAX_RESOURCES>					 _resources;
-		pool_allocator<texture, gfx_id, MAX_TEXTURES>					 _textures;
-		pool_allocator<texture_shared_handle, gfx_id, MAX_TEXTURES>		 _texture_shared_handles;
-		pool_allocator<sampler, gfx_id, MAX_SAMPLERS>					 _samplers;
-		pool_allocator<swapchain, gfx_id, MAX_SWAPCHAINS>				 _swapchains;
-		pool_allocator<semaphore, gfx_id, MAX_SEMAPHORES>				 _semaphores;
-		pool_allocator<shader, gfx_id, MAX_SHADERS>						 _shaders;
-		pool_allocator<bind_group, gfx_id, MAX_BIND_GROUPS>				 _bind_groups;
-		pool_allocator<command_buffer, gfx_id, MAX_COMMAND_BUFFERS>		 _command_buffers;
-		pool_allocator<command_allocator, gfx_id, MAX_COMMAND_BUFFERS>	 _command_allocators;
-		pool_allocator<queue, gfx_id, MAX_QUEUES>						 _queues;
-		pool_allocator<indirect_signature, gfx_id, 255>					 _indirect_signatures;
+		pool_allocator<resource, gfx_id, MAX_RESOURCES>					  _resources;
+		pool_allocator<texture, gfx_id, MAX_TEXTURES>					  _textures;
+		pool_allocator<texture_shared_handle, gfx_id, MAX_TEXTURES>		  _texture_shared_handles;
+		pool_allocator<sampler, gfx_id, MAX_SAMPLERS>					  _samplers;
+		pool_allocator<swapchain, gfx_id, MAX_SWAPCHAINS>				  _swapchains;
+		pool_allocator<semaphore, gfx_id, MAX_SEMAPHORES>				  _semaphores;
+		pool_allocator<shader, gfx_id, MAX_SHADERS>						  _shaders;
+		pool_allocator<bind_group, gfx_id, MAX_BIND_GROUPS>				  _bind_groups;
+		pool_allocator<command_buffer, gfx_id, MAX_COMMAND_BUFFERS>		  _command_buffers;
+		pool_allocator<command_allocator, gfx_id, MAX_COMMAND_BUFFERS>	  _command_allocators;
+		pool_allocator<queue, gfx_id, MAX_QUEUES>						  _queues;
+		pool_allocator<indirect_signature, gfx_id, 255>					  _indirect_signatures;
 		pool_allocator<descriptor_handle, gfx_id, MAX_DESCRIPTOR_HANDLES> _descriptors;
-		pool_allocator<bind_layout, gfx_id, MAX_BIND_LAYOUTS>			 _bind_layouts;
+		pool_allocator<bind_layout, gfx_id, MAX_BIND_LAYOUTS>			  _bind_layouts;
 
 		dx12_heap _heap_rtv			= {};
 		dx12_heap _heap_dsv			= {};

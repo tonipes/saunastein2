@@ -87,18 +87,14 @@ struct particle_indirect_args
     uint start_instance;
 };
 
-struct particle_sim_args
+struct particle_sim_count_args
 {
-    uint dispatch_x;
-    uint dispatch_y;
-    uint dispatch_z;
-};
-
-struct particle_count_args
-{
-    uint dispatch_x;
-    uint dispatch_y;
-    uint dispatch_z;
+    uint group_sim_x;
+    uint group_sim_y;
+    uint group_sim_z;
+    uint group_count_x;
+    uint group_count_y;
+    uint group_count_z;
 };
 
 /*
@@ -110,8 +106,7 @@ RWStructuredBuffer<particle_emit_args> emit_args     = sfg_get_rws_buffer<partic
 RWStructuredBuffer<particle_state> states  = sfg_get_rws_buffer<particle_state>(sfg_rp_constant4);
 
 RWStructuredBuffer<particle_indirect_args> indirect_args     = sfg_get_rws_buffer<particle_indirect_args>(sfg_rp_constant5);
-RWByteAddressBuffer sim_indirect_args     = sfg_get_rwb_buffer(sfg_rp_constant6);
-RWByteAddressBuffer counters = sfg_get_rwb_buffer(sfg_rp_constant7);
+RWByteAddressBuffer sim_count_indirect_args = sfg_get_rwb_buffer(sfg_rp_constant6);
 
 RWStructuredBuffer<uint> alive_list_a = sfg_get_rws_buffer<uint>(sfg_rp_constant9);
 RWStructuredBuffer<uint> alive_list_b = sfg_get_rws_buffer<uint>(sfg_rp_constant10);

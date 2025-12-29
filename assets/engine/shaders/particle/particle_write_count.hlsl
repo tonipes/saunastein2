@@ -44,8 +44,9 @@ void CSMain(uint3 dtid : SV_DispatchThreadID)
     uint alive = counters.Load(4);
     uint count = (alive + 255u) / 256u;
 
-    RWByteAddressBuffer count_indirect_args     = sfg_get_rwb_buffer(sfg_object_constant0);
-    count_indirect_args.Store(0, count);
-    count_indirect_args.Store(4, 1);
-    count_indirect_args.Store(8, 1);
+    RWByteAddressBuffer sim_count_indirect_args = sfg_get_rwb_buffer(sfg_rp_constant6);
+    sim_count_indirect_args.Store(12, count);
+    sim_count_indirect_args.Store(16, 1);
+    sim_count_indirect_args.Store(20, 1);
+
 }

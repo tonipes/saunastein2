@@ -43,9 +43,9 @@ void CSMain(uint3 dtid  : SV_DispatchThreadID)
     counters.Store(4, 0);
 
     uint groups_x = (aliveb + 255u) / 256u;
-
-    RWByteAddressBuffer sim_indirect_args     = sfg_get_rwb_buffer(sfg_rp_constant6);
-    sim_indirect_args.Store(0, groups_x);
-    sim_indirect_args.Store(4, 1);
-    sim_indirect_args.Store(8, 1);
+    
+    RWByteAddressBuffer sim_count_indirect_args = sfg_get_rwb_buffer(sfg_rp_constant6);
+    sim_count_indirect_args.Store(0, groups_x);
+    sim_count_indirect_args.Store(4, 1);
+    sim_count_indirect_args.Store(8, 1);
 }
