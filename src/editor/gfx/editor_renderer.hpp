@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -109,14 +109,14 @@ namespace SFG
 
 		struct per_frame_data
 		{
-			buffer	  buf_gui_vtx	  = {};
-			buffer	  buf_gui_idx	  = {};
-			buffer	  buf_pass_data	  = {};
-			uint32	  counter_vtx	  = 0;
-			uint32	  counter_idx	  = 0;
-			gpu_index gpu_index_rt	  = NULL_GPU_INDEX;
-			gfx_id	  hw_rt			  = NULL_GFX_ID;
-			uint16	  draw_call_count = 0;
+			buffer_cpu_gpu buf_gui_vtx	   = {};
+			buffer_cpu_gpu buf_gui_idx	   = {};
+			buffer		   buf_pass_data   = {};
+			uint32		   counter_vtx	   = 0;
+			uint32		   counter_idx	   = 0;
+			gpu_index	   gpu_index_rt	   = NULL_GPU_INDEX;
+			gfx_id		   hw_rt		   = NULL_GFX_ID;
+			uint16		   draw_call_count = 0;
 
 			inline void reset()
 			{

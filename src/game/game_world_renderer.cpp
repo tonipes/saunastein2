@@ -535,8 +535,9 @@ namespace SFG
 		// submit lighting + forward + debugs, waits for ssao
 		backend->queue_wait(queue_gfx, &sem_ssao, &sem_ssao_val1, 1);
 		backend->submit_commands(queue_gfx, &cmd_lighting, 1);
-		backend->submit_commands(queue_gfx, &cmd_forward, 1);
 		backend->submit_commands(queue_gfx, &cmd_particles, 1);
+		backend->submit_commands(queue_gfx, &cmd_forward, 1);
+
 #ifdef JPH_DEBUG_RENDERER
 		backend->submit_commands(queue_gfx, &cmd_physics_debug, 1);
 #endif

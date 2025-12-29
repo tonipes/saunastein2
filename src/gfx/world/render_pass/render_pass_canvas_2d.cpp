@@ -113,8 +113,8 @@ namespace SFG
 			if (entity.flags.is_set(render_proxy_entity_flags::render_proxy_entity_invisible))
 				continue;
 
-			const gfx_id vb = proxy.vertex_buffers[frame_index].get_hw_gpu();
-			const gfx_id ib = proxy.index_buffers[frame_index].get_hw_gpu();
+			const gfx_id vb = proxy.vertex_buffers[frame_index].get_gpu();
+			const gfx_id ib = proxy.index_buffers[frame_index].get_gpu();
 
 			barriers.push_back({
 				.resource	 = vb,

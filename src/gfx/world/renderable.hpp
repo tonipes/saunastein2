@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -30,20 +30,20 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace SFG
 {
-	class buffer;
+	class buffer_cpu_gpu;
 
 	struct renderable_object
 	{
-		buffer*		vertex_buffer	  = nullptr;
-		buffer*		index_buffer	  = nullptr;
-		uint32		vertex_start	  = 0;
-		uint32		index_start		  = 0;
-		uint32		index_count		  = 0;
-		uint32		gpu_entity		  = 0;
-		uint32		bones_start_index = 0;
-		uint32		world_entity	  = 0;
-		float		distance		  = 0.0f;
-		resource_id material		  = {};
-		uint8		is_skinned		  = 0;
+		buffer_cpu_gpu* vertex_buffer	  = nullptr;
+		buffer_cpu_gpu* index_buffer	  = nullptr;
+		uint32			vertex_start	  = 0;
+		uint32			index_start		  = 0;
+		uint32			index_count		  = 0;
+		uint32			gpu_entity		  = 0;
+		uint32			bones_start_index = 0;
+		uint32			world_entity	  = 0;
+		float			distance		  = 0.0f;
+		resource_id		material		  = {};
+		uint8			is_skinned		  = 0;
 	};
 }

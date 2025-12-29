@@ -132,8 +132,8 @@ namespace SFG
 
 	struct render_proxy_canvas
 	{
-		simple_buffer_cpu_gpu		   vertex_buffers[BACK_BUFFER_COUNT] = {};
-		simple_buffer_cpu_gpu		   index_buffers[BACK_BUFFER_COUNT]	 = {};
+		buffer_cpu_gpu				   vertex_buffers[BACK_BUFFER_COUNT] = {};
+		buffer_cpu_gpu				   index_buffers[BACK_BUFFER_COUNT]	 = {};
 		vector<render_proxy_canvas_dc> _draw_calls;
 		uint32						   _max_vertex_offset = 0;
 		uint32						   _max_index_offset  = 0;

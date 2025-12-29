@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -40,10 +40,10 @@ namespace SFG
 {
 	struct render_proxy_custom_buffer
 	{
-		simple_buffer_cpu_gpu buffers[BACK_BUFFER_COUNT] = {};
-		uint32				  size						 = 0;
-		resource_id			  handle					 = {};
-		uint8				  status					 = render_proxy_status::rps_inactive;
+		buffer_cpu_gpu buffers[BACK_BUFFER_COUNT] = {};
+		uint32		   size						  = 0;
+		resource_id	   handle					  = {};
+		uint8		   status					  = render_proxy_status::rps_inactive;
 	};
 
 	struct render_proxy_texture
@@ -57,8 +57,8 @@ namespace SFG
 
 	struct render_proxy_material
 	{
-		buffer		buffers[BACK_BUFFER_COUNT];
-		buffer		texture_buffers[BACK_BUFFER_COUNT] = {};
+		buffer_gpu	buffers[BACK_BUFFER_COUNT];
+		buffer_gpu	texture_buffers[BACK_BUFFER_COUNT] = {};
 		resource_id handle							   = {};
 		uint8		status							   = render_proxy_status::rps_inactive;
 	};
@@ -114,8 +114,8 @@ namespace SFG
 
 	struct render_proxy_mesh
 	{
-		buffer		   vertex_buffer = {};
-		buffer		   index_buffer	 = {};
+		buffer_cpu_gpu vertex_buffer = {};
+		buffer_cpu_gpu index_buffer	 = {};
 		aabb		   local_aabb	 = {};
 		chunk_handle32 primitives;
 		uint32		   primitive_count = 0;

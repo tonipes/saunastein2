@@ -411,7 +411,7 @@ namespace SFG
 				.debug_name = "cbv_gui_pass",
 			});
 
-			pfd.buf_gui_vtx.create_staging_hw(
+			pfd.buf_gui_vtx.create(
 				{
 					.size		= sizeof(vekt::vertex) * 240000,
 					.flags		= resource_flags::rf_vertex_buffer | resource_flags::rf_cpu_visible,
@@ -423,7 +423,7 @@ namespace SFG
 					.debug_name = "gui_vertex_gpu",
 				});
 
-			pfd.buf_gui_idx.create_staging_hw(
+			pfd.buf_gui_idx.create(
 				{
 					.size		= sizeof(vekt::index) * 320000,
 					.flags		= resource_flags::rf_index_buffer | resource_flags::rf_cpu_visible,
@@ -534,8 +534,6 @@ namespace SFG
 			backend->destroy_texture(pfd.rt_console);
 			backend->destroy_texture(pfd.rt_post);
 			backend->unmap_resource(pfd.buf_pass_data.get_hw_gpu());
-			backend->unmap_resource(pfd.buf_gui_vtx.get_hw_staging());
-			backend->unmap_resource(pfd.buf_gui_idx.get_hw_staging());
 			pfd.buf_pass_data.destroy();
 			pfd.buf_gui_vtx.destroy();
 			pfd.buf_gui_idx.destroy();
@@ -591,8 +589,8 @@ namespace SFG
 		const vector2ui16 rt_size			   = _gfx_data.rt_size;
 		const gfx_id	  rt_console		   = pfd.rt_console;
 		const gfx_id	  rt_post			   = pfd.rt_post;
-		const gfx_id	  gui_vertex		   = pfd.buf_gui_vtx.get_hw_gpu();
-		const gfx_id	  gui_index			   = pfd.buf_gui_idx.get_hw_gpu();
+		const gfx_id	  gui_vertex		   = pfd.buf_gui_vtx.get_gpu();
+		const gfx_id	  gui_index			   = pfd.buf_gui_idx.get_gpu();
 		const gfx_id	  shader_fullscreen	   = _shaders.debug_controller_console_draw;
 		const uint16	  dc_count			   = pfd.draw_call_count;
 		const uint32	  rt_console_gpu_index = pfd.rt_console_index;
@@ -616,14 +614,14 @@ namespace SFG
 		});
 
 		barriers.push_back({
-			.resource	 = pfd.buf_gui_idx.get_hw_gpu(),
+			.resource	 = pfd.buf_gui_idx.get_gpu(),
 			.flags		 = barrier_flags::baf_is_resource,
 			.from_states = resource_state::resource_state_index_buffer,
 			.to_states	 = resource_state::resource_state_copy_dest,
 		});
 
 		barriers.push_back({
-			.resource	 = pfd.buf_gui_vtx.get_hw_gpu(),
+			.resource	 = pfd.buf_gui_vtx.get_gpu(),
 			.flags		 = barrier_flags::baf_is_resource,
 			.from_states = resource_state::resource_state_vertex_cbv,
 			.to_states	 = resource_state::resource_state_copy_dest,
@@ -639,14 +637,14 @@ namespace SFG
 			pfd.buf_gui_idx.copy_region(cmd_buffer, 0, pfd.counter_idx * sizeof(vekt::index));
 
 		barriers.push_back({
-			.resource	 = pfd.buf_gui_idx.get_hw_gpu(),
+			.resource	 = pfd.buf_gui_idx.get_gpu(),
 			.flags		 = barrier_flags::baf_is_resource,
 			.from_states = resource_state::resource_state_copy_dest,
 			.to_states	 = resource_state::resource_state_index_buffer,
 		});
 
 		barriers.push_back({
-			.resource	 = pfd.buf_gui_vtx.get_hw_gpu(),
+			.resource	 = pfd.buf_gui_vtx.get_gpu(),
 			.flags		 = barrier_flags::baf_is_resource,
 			.from_states = resource_state::resource_state_copy_dest,
 			.to_states	 = resource_state::resource_state_vertex_cbv,

@@ -38,9 +38,13 @@ namespace SFG
 	void buffer::create_staging_hw(const resource_desc& staging, const resource_desc& hw)
 	{
 		gfx_backend* backend = gfx_backend::get();
-		_total_size			 = staging.size;
-		_hw_staging			 = backend->create_resource(staging);
-		_hw_gpu				 = backend->create_resource(hw);
+
+#ifdef SFG_DEBUG
+		_total_size = staging.size;
+#endif
+
+		_hw_staging = backend->create_resource(staging);
+		_hw_gpu		= backend->create_resource(hw);
 		backend->map_resource(_hw_staging, _mapped);
 		_flags.set(buf_has_staging | buf_alive);
 
@@ -50,8 +54,10 @@ namespace SFG
 	void buffer::create_hw(const resource_desc& desc)
 	{
 		gfx_backend* backend = gfx_backend::get();
-		_total_size			 = desc.size;
-		_hw_gpu				 = backend->create_resource(desc);
+#ifdef SFG_DEBUG
+		_total_size = desc.size;
+#endif
+		_hw_gpu = backend->create_resource(desc);
 		backend->map_resource(_hw_gpu, _mapped);
 		_flags.set(buf_alive);
 
@@ -74,7 +80,9 @@ namespace SFG
 
 	void buffer::buffer_data(size_t padding, const void* data, size_t size)
 	{
+#ifdef SFG_DEBUG
 		SFG_ASSERT(padding + size <= _total_size);
+#endif
 		SFG_ASSERT(size != 0);
 		SFG_MEMCPY(_mapped + padding, data, size);
 		_flags.set(buf_dirty);
@@ -112,30 +120,73 @@ namespace SFG
 		_flags.remove(buf_dirty);
 	}
 
-	void simple_buffer_cpu_gpu::create(const resource_desc& staging, const resource_desc& hw)
+	void buffer_gpu::create(const resource_desc& desc)
 	{
 		gfx_backend* backend = gfx_backend::get();
-		_hw_staging			 = backend->create_resource(staging);
-		_hw_gpu				 = backend->create_resource(hw);
-		backend->map_resource(_hw_staging, _mapped);
+		_hw					 = backend->create_resource(desc);
+		_index				 = backend->get_resource_gpu_index(_hw);
+		backend->map_resource(_hw, _mapped);
+
+		SFG_ASSERT(desc.flags.is_set(resource_flags::rf_cpu_visible));
+
+#ifdef SFG_DEBUG
+		_total_size = desc.size;
+#endif
 	}
 
-	void simple_buffer_cpu_gpu::destroy()
+	void buffer_gpu::destroy()
 	{
+		SFG_ASSERT(_hw != NULL_GFX_ID);
 		gfx_backend* backend = gfx_backend::get();
-		backend->destroy_resource(_hw_staging);
-		backend->destroy_resource(_hw_gpu);
-		_mapped		= nullptr;
-		_hw_staging = NULL_GFX_ID;
-		_hw_gpu		= NULL_GFX_ID;
+		backend->destroy_resource(_hw);
+		_hw		= NULL_GFX_ID;
+		_index	= NULL_GPU_INDEX;
+		_mapped = nullptr;
 	}
 
-	void simple_buffer_cpu_gpu::buffer_data(size_t padding, const void* data, size_t size)
+	void buffer_gpu::buffer_data(size_t padding, const void* data, size_t size)
 	{
+#ifdef SFG_DEBUG
+		SFG_ASSERT(padding + size <= _total_size);
+#endif
 		SFG_MEMCPY(_mapped + padding, data, size);
 	}
 
-	void simple_buffer_cpu_gpu::copy(gfx_id cmd_buffer)
+	void buffer_cpu_gpu::create(const resource_desc& desc_cpu, const resource_desc& desc_gpu)
+	{
+		gfx_backend* backend = gfx_backend::get();
+		SFG_ASSERT(desc_cpu.size == desc_gpu.size);
+
+		_hw_staging = backend->create_resource(desc_cpu);
+		_hw_gpu		= backend->create_resource(desc_gpu);
+
+		backend->map_resource(_hw_staging, _mapped);
+
+#ifdef SFG_DEBUG
+		_total_size = desc_cpu.size;
+#endif
+	}
+
+	void buffer_cpu_gpu::destroy()
+	{
+		SFG_ASSERT(_hw_staging != NULL_GFX_ID);
+		SFG_ASSERT(_hw_gpu != NULL_GFX_ID);
+		gfx_backend* backend = gfx_backend::get();
+		backend->destroy_resource(_hw_staging);
+		backend->destroy_resource(_hw_gpu);
+		_hw_staging = _hw_gpu = NULL_GFX_ID;
+		_mapped				  = nullptr;
+	}
+
+	void buffer_cpu_gpu::buffer_data(size_t padding, const void* data, size_t size)
+	{
+#ifdef SFG_DEBUG
+		SFG_ASSERT(padding + size <= _total_size);
+#endif
+		SFG_MEMCPY(_mapped + padding, data, size);
+	}
+
+	void buffer_cpu_gpu::copy(gfx_id cmd_buffer)
 	{
 		gfx_backend* backend = gfx_backend::get();
 		backend->cmd_copy_resource(cmd_buffer,
@@ -145,9 +196,14 @@ namespace SFG
 								   });
 	}
 
-	void simple_buffer_cpu_gpu::copy_region(gfx_id cmd_buffer, size_t padding, size_t size)
+	void buffer_cpu_gpu::copy_region(gfx_id cmd_buffer, size_t padding, size_t size)
 	{
 		gfx_backend* backend = gfx_backend::get();
+
+#ifdef SFG_DEBUG
+		SFG_ASSERT(padding + size <= _total_size);
+#endif
+
 		backend->cmd_copy_resource_region(cmd_buffer,
 										  {
 											  .source	   = _hw_staging,

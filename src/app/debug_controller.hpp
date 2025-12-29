@@ -128,16 +128,16 @@ namespace SFG
 
 		struct per_frame_data
 		{
-			buffer buf_gui_vtx		   = {};
-			buffer buf_gui_idx		   = {};
-			buffer buf_pass_data	   = {};
-			uint32 rt_console_index	   = 0;
-			uint32 rt_fullscreen_index = 0;
-			uint32 counter_vtx		   = 0;
-			uint32 counter_idx		   = 0;
-			gfx_id rt_console		   = 0;
-			gfx_id rt_post			   = 0;
-			uint16 draw_call_count	   = 0;
+			buffer_cpu_gpu buf_gui_vtx		   = {};
+			buffer_cpu_gpu buf_gui_idx		   = {};
+			buffer		   buf_pass_data	   = {};
+			uint32		   rt_console_index	   = 0;
+			uint32		   rt_fullscreen_index = 0;
+			uint32		   counter_vtx		   = 0;
+			uint32		   counter_idx		   = 0;
+			gfx_id		   rt_console		   = 0;
+			gfx_id		   rt_post			   = 0;
+			uint16		   draw_call_count	   = 0;
 
 			inline void reset()
 			{

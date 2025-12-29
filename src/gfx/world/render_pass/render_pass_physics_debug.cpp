@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -204,28 +204,28 @@ namespace SFG
 			triangle_indices.read((void*)pfd.triangle_indices.get_mapped(), idx_count_triangle * sizeof(uint32));
 
 			barriers.push_back({
-				.resource	 = pfd.triangle_vertices.get_hw_gpu(),
+				.resource	 = pfd.triangle_vertices.get_gpu(),
 				.flags		 = barrier_flags::baf_is_resource,
 				.from_states = resource_state::resource_state_vertex_cbv,
 				.to_states	 = resource_state::resource_state_copy_dest,
 			});
 
 			barriers.push_back({
-				.resource	 = pfd.triangle_indices.get_hw_gpu(),
+				.resource	 = pfd.triangle_indices.get_gpu(),
 				.flags		 = barrier_flags::baf_is_resource,
 				.from_states = resource_state::resource_state_index_buffer,
 				.to_states	 = resource_state::resource_state_copy_dest,
 			});
 
 			barriers_after.push_back({
-				.resource	 = pfd.triangle_vertices.get_hw_gpu(),
+				.resource	 = pfd.triangle_vertices.get_gpu(),
 				.flags		 = barrier_flags::baf_is_resource,
 				.from_states = resource_state::resource_state_copy_dest,
 				.to_states	 = resource_state::resource_state_vertex_cbv,
 			});
 
 			barriers_after.push_back({
-				.resource	 = pfd.triangle_indices.get_hw_gpu(),
+				.resource	 = pfd.triangle_indices.get_gpu(),
 				.flags		 = barrier_flags::baf_is_resource,
 				.from_states = resource_state::resource_state_copy_dest,
 				.to_states	 = resource_state::resource_state_index_buffer,
@@ -238,28 +238,28 @@ namespace SFG
 			line_indices.read((void*)pfd.line_indices.get_mapped(), idx_count_line * sizeof(uint32));
 
 			barriers.push_back({
-				.resource	 = pfd.line_vertices.get_hw_gpu(),
+				.resource	 = pfd.line_vertices.get_gpu(),
 				.flags		 = barrier_flags::baf_is_resource,
 				.from_states = resource_state::resource_state_vertex_cbv,
 				.to_states	 = resource_state::resource_state_copy_dest,
 			});
 
 			barriers.push_back({
-				.resource	 = pfd.line_indices.get_hw_gpu(),
+				.resource	 = pfd.line_indices.get_gpu(),
 				.flags		 = barrier_flags::baf_is_resource,
 				.from_states = resource_state::resource_state_index_buffer,
 				.to_states	 = resource_state::resource_state_copy_dest,
 			});
 
 			barriers_after.push_back({
-				.resource	 = pfd.line_vertices.get_hw_gpu(),
+				.resource	 = pfd.line_vertices.get_gpu(),
 				.flags		 = barrier_flags::baf_is_resource,
 				.from_states = resource_state::resource_state_copy_dest,
 				.to_states	 = resource_state::resource_state_vertex_cbv,
 			});
 
 			barriers_after.push_back({
-				.resource	 = pfd.line_indices.get_hw_gpu(),
+				.resource	 = pfd.line_indices.get_gpu(),
 				.flags		 = barrier_flags::baf_is_resource,
 				.from_states = resource_state::resource_state_copy_dest,
 				.to_states	 = resource_state::resource_state_index_buffer,
@@ -302,10 +302,10 @@ namespace SFG
 		const gfx_id	texture			 = p.input_texture;
 		const gfx_id	depth			 = p.depth_texture;
 		const gfx_id	cmd_buffer		 = pfd.cmd_buffer;
-		const gfx_id	vtx_buffer_tri	 = pfd.triangle_vertices.get_hw_gpu();
-		const gfx_id	idx_buffer_tri	 = pfd.triangle_indices.get_hw_gpu();
-		const gfx_id	vtx_buffer_line	 = pfd.line_vertices.get_hw_gpu();
-		const gfx_id	idx_buffer_line	 = pfd.line_indices.get_hw_gpu();
+		const gfx_id	vtx_buffer_tri	 = pfd.triangle_vertices.get_gpu();
+		const gfx_id	idx_buffer_tri	 = pfd.triangle_indices.get_gpu();
+		const gfx_id	vtx_buffer_line	 = pfd.line_vertices.get_gpu();
+		const gfx_id	idx_buffer_line	 = pfd.line_indices.get_gpu();
 		const gpu_index gpu_index_rp_ubo = pfd.ubo.get_gpu_index();
 		const uint32	tri_idx_count	 = pfd._triangle_idx_count;
 		const uint32	line_idx_count	 = pfd._line_idx_count;
