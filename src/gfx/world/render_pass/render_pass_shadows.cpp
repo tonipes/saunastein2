@@ -72,7 +72,7 @@ namespace SFG
 
 			for (uint8 j = 0; j < BACK_BUFFER_COUNT; j++)
 			{
-				p.ubos[j].create_hw({
+				p.ubos[j].create({
 					.size		= sizeof(ubo),
 					.flags		= resource_flags::rf_constant_buffer | resource_flags::rf_cpu_visible,
 					.debug_name = "shadows_ubo",
@@ -204,7 +204,7 @@ namespace SFG
 		{
 			pass&			  pass_data		   = _passes[base + i];
 			const gfx_id	  target_texture   = pass_data.texture;
-			const gpu_index	  gpu_index_rp_ubo = pass_data.ubos[p.frame_index].get_gpu_index();
+			const gpu_index	  gpu_index_rp_ubo = pass_data.ubos[p.frame_index].get_index();
 			const vector2ui16 resolution	   = pass_data.resolution;
 			const uint8		  view_index	   = pass_data.view_index;
 

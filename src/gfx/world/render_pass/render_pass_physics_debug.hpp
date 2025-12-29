@@ -56,7 +56,7 @@ namespace SFG
 
 		struct per_frame_data
 		{
-			buffer		   ubo;
+			buffer_gpu	   ubo;
 			buffer_cpu_gpu triangle_vertices;
 			buffer_cpu_gpu line_vertices;
 			buffer_cpu_gpu triangle_indices;

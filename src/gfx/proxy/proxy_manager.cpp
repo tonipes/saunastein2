@@ -895,7 +895,7 @@ namespace SFG
 					});
 
 					proxy.buffers[i].buffer_data(0, ev.data.data, ev.data.size);
-					runtime.gpu_index_buffers[i] = proxy.buffers[i].get_index();
+					runtime.gpu_index_buffers[i] = backend->get_resource_gpu_index(proxy.buffers[i].get_gpu());
 				}
 
 				const uint32 texture_buffer_size = static_cast<uint32>(sizeof(gpu_index) * ev.textures.size());
@@ -915,7 +915,7 @@ namespace SFG
 #endif
 					});
 
-					runtime.gpu_index_texture_buffers[i] = proxy.texture_buffers[i].get_index();
+					runtime.gpu_index_texture_buffers[i] = backend->get_resource_gpu_index(proxy.texture_buffers[i].get_gpu());
 
 					size_t offset = 0;
 

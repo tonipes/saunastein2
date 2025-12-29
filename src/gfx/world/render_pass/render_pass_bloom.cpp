@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -54,7 +54,7 @@ namespace SFG
 			per_frame_data& pfd = _pfd[i];
 
 			pfd.cmd_buffer = backend->create_command_buffer({.type = command_type::compute, .debug_name = "bloom_cmd"});
-			pfd.ubo.create_hw({.size = sizeof(ubo), .flags = resource_flags::rf_constant_buffer | resource_flags::rf_cpu_visible, .debug_name = "bloom_ubo"});
+			pfd.ubo.create({.size = sizeof(ubo), .flags = resource_flags::rf_constant_buffer | resource_flags::rf_cpu_visible, .debug_name = "bloom_ubo"});
 		}
 
 		create_textures(size);
@@ -116,7 +116,7 @@ namespace SFG
 		const gfx_id	  output				  = pfd.downsample_out;
 		const vector2ui16 res					  = p.size;
 
-		const gpu_index gpu_index_ubo = pfd.ubo.get_gpu_index();
+		const gpu_index gpu_index_ubo = pfd.ubo.get_index();
 
 		backend->reset_command_buffer(cmd_buffer);
 

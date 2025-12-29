@@ -50,7 +50,7 @@ namespace SFG
 			per_frame_data& pfd = _pfd[i];
 
 			pfd.cmd_buffer = backend->create_command_buffer({.type = command_type::graphics, .debug_name = "lighting_cmd"});
-			pfd.ubo.create_hw({.size = sizeof(ubo), .flags = resource_flags::rf_constant_buffer | resource_flags::rf_cpu_visible, .debug_name = "lighting_ubo"});
+			pfd.ubo.create({.size = sizeof(ubo), .flags = resource_flags::rf_constant_buffer | resource_flags::rf_cpu_visible, .debug_name = "lighting_ubo"});
 		}
 
 		create_textures(size);
@@ -116,7 +116,7 @@ namespace SFG
 		const gfx_id	queue_gfx		 = backend->get_queue_gfx();
 		const gfx_id	cmd_buffer		 = pfd.cmd_buffer;
 		const gfx_id	render_target	 = pfd.render_target;
-		const gpu_index gpu_index_rp_ubo = pfd.ubo.get_gpu_index();
+		const gpu_index gpu_index_rp_ubo = pfd.ubo.get_index();
 		const gfx_id	sh				 = _shader_lighting;
 
 		// RP constants.

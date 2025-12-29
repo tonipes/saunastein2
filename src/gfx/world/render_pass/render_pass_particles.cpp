@@ -55,7 +55,7 @@ namespace SFG
 
 			pfd.cmd_buffer		   = backend->create_command_buffer({.type = command_type::graphics, .debug_name = "particles_gfx"});
 			pfd.cmd_buffer_compute = backend->create_command_buffer({.type = command_type::compute, .debug_name = "particles_cmp"});
-			pfd.ubo.create_hw({.size = sizeof(pass_params), .flags = resource_flags::rf_constant_buffer | resource_flags::rf_cpu_visible, .debug_name = "particles_ubo"});
+			pfd.ubo.create({.size = sizeof(pass_params), .flags = resource_flags::rf_constant_buffer | resource_flags::rf_cpu_visible, .debug_name = "particles_ubo"});
 		}
 
 		_shader_clear		= engine_shaders::get().get_shader(engine_shader_type::engine_shader_particle_clear).get_hw();
@@ -150,7 +150,7 @@ namespace SFG
 		per_frame_data& pfd		   = _pfd[p.frame_index];
 		const gfx_id	cmd_buffer = pfd.cmd_buffer;
 
-		const gpu_index gpu_index_ubo = pfd.ubo.get_gpu_index();
+		const gpu_index gpu_index_ubo = pfd.ubo.get_index();
 
 		backend->reset_command_buffer(cmd_buffer);
 

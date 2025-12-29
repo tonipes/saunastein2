@@ -55,7 +55,7 @@ namespace SFG
 			per_frame_data& pfd = _pfd[i];
 
 			pfd.cmd_buffer = backend->create_command_buffer({.type = command_type::graphics, .debug_name = "forward_cmd"});
-			pfd.ubo.create_hw({.size = sizeof(ubo), .flags = resource_flags::rf_constant_buffer | resource_flags::rf_cpu_visible, .debug_name = "forward_ubo"});
+			pfd.ubo.create({.size = sizeof(ubo), .flags = resource_flags::rf_constant_buffer | resource_flags::rf_cpu_visible, .debug_name = "forward_ubo"});
 		}
 	}
 
@@ -104,7 +104,7 @@ namespace SFG
 		gfx_backend*	backend			 = gfx_backend::get();
 		per_frame_data& pfd				 = _pfd[p.frame_index];
 		const gfx_id	cmd_buffer		 = pfd.cmd_buffer;
-		const gpu_index gpu_index_rp_ubo = pfd.ubo.get_gpu_index();
+		const gpu_index gpu_index_rp_ubo = pfd.ubo.get_index();
 
 		render_pass_color_attachment* attachments = _alloc.allocate<render_pass_color_attachment>(1);
 		render_pass_color_attachment& att		  = attachments[0];

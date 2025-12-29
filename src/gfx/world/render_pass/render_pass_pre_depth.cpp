@@ -55,7 +55,7 @@ namespace SFG
 			per_frame_data& pfd = _pfd[i];
 
 			pfd.cmd_buffer = backend->create_command_buffer({.type = command_type::graphics, .debug_name = "depth_cmd"});
-			pfd.ubo.create_hw({.size = sizeof(ubo), .flags = resource_flags::rf_constant_buffer | resource_flags::rf_cpu_visible, .debug_name = "depth_ubo"});
+			pfd.ubo.create({.size = sizeof(ubo), .flags = resource_flags::rf_constant_buffer | resource_flags::rf_cpu_visible, .debug_name = "depth_ubo"});
 		}
 	}
 
@@ -100,7 +100,7 @@ namespace SFG
 		per_frame_data& pfd				 = _pfd[p.frame_index];
 		const gfx_id	cmd_buffer		 = pfd.cmd_buffer;
 		const gfx_id	depth_texture	 = pfd.depth_texture;
-		const gpu_index gpu_index_rp_ubo = pfd.ubo.get_gpu_index();
+		const gpu_index gpu_index_rp_ubo = pfd.ubo.get_index();
 
 		static_vector<barrier, 1> barriers;
 		static_vector<barrier, 1> barriers_after;

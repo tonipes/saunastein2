@@ -131,7 +131,7 @@ namespace SFG
 				.debug_name = "renderer_copy",
 			});
 
-			pfd.buf_engine_global.create_hw({.size = sizeof(buf_engine_global), .flags = resource_flags::rf_constant_buffer | resource_flags::rf_cpu_visible, .debug_name = "engine_globals"});
+			pfd.buf_engine_global.create({.size = sizeof(buf_engine_global), .flags = resource_flags::rf_constant_buffer | resource_flags::rf_cpu_visible, .debug_name = "engine_globals"});
 			pfd.bind_group_global  = backend->create_empty_bind_group();
 			pfd.gpu_index_world_rt = _world_renderer->get_output_gpu_index(i);
 
@@ -144,7 +144,7 @@ namespace SFG
 #endif
 
 			backend->bind_group_add_descriptor(pfd.bind_group_global, 0, binding_type::ubo);
-			backend->bind_group_update_descriptor(pfd.bind_group_global, 0, pfd.buf_engine_global.get_hw_gpu());
+			backend->bind_group_update_descriptor(pfd.bind_group_global, 0, pfd.buf_engine_global.get_gpu());
 
 			_frame_allocator[i].init(1024 * 1024, 4);
 			s_bind_group_global[i] = pfd.bind_group_global;

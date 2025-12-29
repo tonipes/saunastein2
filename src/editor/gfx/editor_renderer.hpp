@@ -111,7 +111,7 @@ namespace SFG
 		{
 			buffer_cpu_gpu buf_gui_vtx	   = {};
 			buffer_cpu_gpu buf_gui_idx	   = {};
-			buffer		   buf_pass_data   = {};
+			buffer_gpu	   buf_pass_data   = {};
 			uint32		   counter_vtx	   = 0;
 			uint32		   counter_idx	   = 0;
 			gpu_index	   gpu_index_rt	   = NULL_GPU_INDEX;

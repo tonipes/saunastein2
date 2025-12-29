@@ -48,14 +48,14 @@ namespace SFG
 
 		struct per_frame_data
 		{
-			buffer	  ubo								= {};
-			gfx_id	  cmd_buffer						= 0;
-			gfx_id	  downsample_out					= 0;
-			gfx_id	  upsample_out						= 0;
-			gpu_index gpu_index_downsample_uav[MIPS_DS] = {NULL_GPU_INDEX};
-			gpu_index gpu_index_downsample_srv[MIPS_DS] = {NULL_GPU_INDEX};
-			gpu_index gpu_index_upsample_uav[MIPS_DS]	= {NULL_GPU_INDEX};
-			gpu_index gpu_index_upsample_srv[MIPS_DS]	= {NULL_GPU_INDEX};
+			buffer_gpu ubo								 = {};
+			gfx_id	   cmd_buffer						 = 0;
+			gfx_id	   downsample_out					 = 0;
+			gfx_id	   upsample_out						 = 0;
+			gpu_index  gpu_index_downsample_uav[MIPS_DS] = {NULL_GPU_INDEX};
+			gpu_index  gpu_index_downsample_srv[MIPS_DS] = {NULL_GPU_INDEX};
+			gpu_index  gpu_index_upsample_uav[MIPS_DS]	 = {NULL_GPU_INDEX};
+			gpu_index  gpu_index_upsample_srv[MIPS_DS]	 = {NULL_GPU_INDEX};
 		};
 
 	public:

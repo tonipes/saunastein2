@@ -126,7 +126,7 @@ namespace SFG
 
 		struct per_frame_data
 		{
-			buffer ubo				  = {};
+			buffer_gpu ubo = {};
 
 			gfx_id cmd_buffer		  = NULL_GFX_ID;
 			gfx_id cmd_buffer_compute = NULL_GFX_ID;

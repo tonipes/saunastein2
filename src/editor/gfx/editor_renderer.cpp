@@ -83,7 +83,7 @@ namespace SFG
 		{
 			per_frame_data& pfd = _pfd[i];
 
-			pfd.buf_pass_data.create_hw({.size = sizeof(gui_pass_view), .flags = resource_flags::rf_cpu_visible | resource_flags::rf_constant_buffer, .debug_name = "cbv_editor_gui_pass"});
+			pfd.buf_pass_data.create({.size = sizeof(gui_pass_view), .flags = resource_flags::rf_cpu_visible | resource_flags::rf_constant_buffer, .debug_name = "cbv_editor_gui_pass"});
 			pfd.buf_gui_vtx.create({.size = sizeof(vekt::vertex) * 240000, .flags = resource_flags::rf_vertex_buffer | resource_flags::rf_cpu_visible, .debug_name = "editor_gui_vertex_stg"},
 											  {.size = sizeof(vekt::vertex) * 240000, .flags = resource_flags::rf_vertex_buffer | resource_flags::rf_gpu_only, .debug_name = "editor_gui_vertex_gpu"});
 			pfd.buf_gui_idx.create({.size = sizeof(vekt::index) * 320000, .flags = resource_flags::rf_index_buffer | resource_flags::rf_cpu_visible, .debug_name = "editor_gui_index_stg"},
@@ -235,7 +235,7 @@ namespace SFG
 		const gfx_id gui_vertex			 = pfd.buf_gui_vtx.get_gpu();
 		const gfx_id gui_index			 = pfd.buf_gui_idx.get_gpu();
 		const uint16 dc_count			 = pfd.draw_call_count;
-		const uint32 gpu_index_pass_data = pfd.buf_pass_data.get_gpu_index();
+		const uint32 gpu_index_pass_data = pfd.buf_pass_data.get_index();
 
 		static_vector<barrier, 1> barriers;
 

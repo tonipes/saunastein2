@@ -59,7 +59,7 @@ namespace SFG
 			per_frame_data& pfd = _pfd[i];
 
 			pfd.cmd_buffer = backend->create_command_buffer({.type = command_type::graphics, .debug_name = "phy_debug_cmd"});
-			pfd.ubo.create_hw({.size = sizeof(ubo), .flags = resource_flags::rf_constant_buffer | resource_flags::rf_cpu_visible, .debug_name = "phy_debug_ubo"});
+			pfd.ubo.create({.size = sizeof(ubo), .flags = resource_flags::rf_constant_buffer | resource_flags::rf_cpu_visible, .debug_name = "phy_debug_ubo"});
 
 			pfd.triangle_vertices.create(
 				{
@@ -306,7 +306,7 @@ namespace SFG
 		const gfx_id	idx_buffer_tri	 = pfd.triangle_indices.get_gpu();
 		const gfx_id	vtx_buffer_line	 = pfd.line_vertices.get_gpu();
 		const gfx_id	idx_buffer_line	 = pfd.line_indices.get_gpu();
-		const gpu_index gpu_index_rp_ubo = pfd.ubo.get_gpu_index();
+		const gpu_index gpu_index_rp_ubo = pfd.ubo.get_index();
 		const uint32	tri_idx_count	 = pfd._triangle_idx_count;
 		const uint32	line_idx_count	 = pfd._line_idx_count;
 

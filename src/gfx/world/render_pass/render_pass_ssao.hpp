@@ -74,14 +74,14 @@ namespace SFG
 
 		struct per_frame_data
 		{
-			buffer	  ubo						= {};
-			gfx_id	  cmd_buffer				= 0;
-			gfx_id	  ao_out					= 0;
-			gfx_id	  ao_upsample_out			= 0;
-			gpu_index gpu_index_ao_uav			= 0;
-			gpu_index gpu_index_ao_srv			= 0;
-			gpu_index gpu_index_ao_upsample_uav = 0;
-			gpu_index gpu_index_ao_upsample_srv = 0;
+			buffer_gpu ubo						 = {};
+			gfx_id	   cmd_buffer				 = 0;
+			gfx_id	   ao_out					 = 0;
+			gfx_id	   ao_upsample_out			 = 0;
+			gpu_index  gpu_index_ao_uav			 = 0;
+			gpu_index  gpu_index_ao_srv			 = 0;
+			gpu_index  gpu_index_ao_upsample_uav = 0;
+			gpu_index  gpu_index_ao_upsample_srv = 0;
 		};
 
 	public:
