@@ -53,7 +53,7 @@
 
     // per particle
     RWStructuredBuffer<particle_state> states  = sfg_get_rws_buffer<particle_state>(sfg_rp_constant2);
-    StructuredBuffer<uint> dead_indices = sfg_get_ssbo<uint>(sfg_rp_constant3);
+    RWStructuredBuffer<uint> dead_indices = sfg_get_rws_buffer<uint>(sfg_rp_constant3);
 
     // per system
     StructuredBuffer<particle_emit_args> emit_args     = sfg_get_ssbo<particle_emit_args>(sfg_rp_constant4);

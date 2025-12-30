@@ -78,7 +78,7 @@ namespace SFG
 					.size			 = sizeof(uint32) * MAX_WORLD_PARTICLES,
 					.structure_size	 = sizeof(uint32),
 					.structure_count = MAX_WORLD_PARTICLES,
-					.flags			 = resource_flags::rf_storage_buffer | resource_flags::rf_gpu_write | resource_flags::rf_gpu_only,
+					.flags			 = resource_flags::rf_storage_buffer | resource_flags::rf_gpu_only,
 					.debug_name		 = name.c_str(),
 				});
 
@@ -94,7 +94,7 @@ namespace SFG
 					.size			 = sizeof(particle_emit_args) * MAX_WORLD_COMP_PARTICLE_EMITTERS,
 					.structure_size	 = sizeof(particle_emit_args),
 					.structure_count = MAX_WORLD_COMP_PARTICLE_EMITTERS,
-					.flags			 = resource_flags::rf_storage_buffer | resource_flags::rf_gpu_write | resource_flags::rf_gpu_only,
+					.flags			 = resource_flags::rf_storage_buffer | resource_flags::rf_gpu_only,
 					.debug_name		 = name.c_str(),
 				});
 
@@ -109,7 +109,7 @@ namespace SFG
 					.size			 = sizeof(particle_system_data) * MAX_WORLD_COMP_PARTICLE_EMITTERS,
 					.structure_size	 = sizeof(particle_system_data),
 					.structure_count = MAX_WORLD_COMP_PARTICLE_EMITTERS,
-					.flags			 = resource_flags::rf_storage_buffer | resource_flags::rf_gpu_write | resource_flags::rf_gpu_only,
+					.flags			 = resource_flags::rf_gpu_write | resource_flags::rf_gpu_only,
 					.debug_name		 = name.c_str(),
 				});
 
@@ -169,7 +169,7 @@ namespace SFG
 					.size			 = sizeof(uint32) * MAX_WORLD_PARTICLES,
 					.structure_size	 = sizeof(uint32),
 					.structure_count = MAX_WORLD_PARTICLES,
-					.flags			 = resource_flags::rf_storage_buffer | resource_flags::rf_gpu_write | resource_flags::rf_gpu_only,
+					.flags			 = resource_flags::rf_gpu_write | resource_flags::rf_gpu_only,
 					.debug_name		 = name.c_str(),
 				});
 
@@ -185,7 +185,7 @@ namespace SFG
 					.size			 = sizeof(uint32) * MAX_WORLD_PARTICLES,
 					.structure_size	 = sizeof(uint32),
 					.structure_count = MAX_WORLD_PARTICLES,
-					.flags			 = resource_flags::rf_storage_buffer | resource_flags::rf_gpu_write | resource_flags::rf_gpu_only,
+					.flags			 = resource_flags::rf_gpu_write | resource_flags::rf_gpu_only,
 					.debug_name		 = name.c_str(),
 				});
 
@@ -200,7 +200,7 @@ namespace SFG
 					.size			 = sizeof(uint32) * MAX_WORLD_PARTICLES,
 					.structure_size	 = sizeof(uint32),
 					.structure_count = MAX_WORLD_PARTICLES,
-					.flags			 = resource_flags::rf_storage_buffer | resource_flags::rf_gpu_write | resource_flags::rf_gpu_only,
+					.flags			 = resource_flags::rf_gpu_write | resource_flags::rf_gpu_only,
 					.debug_name		 = name.c_str(),
 				});
 
@@ -230,7 +230,7 @@ namespace SFG
 					.size			 = sizeof(particle_counters),
 					.structure_size	 = sizeof(particle_counters),
 					.structure_count = 1,
-					.flags			 = resource_flags::rf_storage_buffer | resource_flags::rf_gpu_write | resource_flags::rf_gpu_only,
+					.flags			 = resource_flags::rf_gpu_write | resource_flags::rf_gpu_only,
 					.debug_name		 = name.c_str(),
 				});
 		}
@@ -324,7 +324,7 @@ namespace SFG
 		const uint32 peak_particles = pm.get_peak_particle_emitters();
 
 		uint32		num_emitters	= 0;
-		const float particles_delta = static_cast<float>(frame_info::get_render_thread_time_milli());
+		const float particles_delta = static_cast<float>(frame_info::get_render_thread_time_milli()) * 0.001f;
 
 		uint32			   emit_count = 0;
 		bool			   emit_dead  = false;
@@ -362,27 +362,33 @@ namespace SFG
 					emit_dead = true;
 			}
 
-			if (math::almost_equal(p.emit_props.wait_between_emits, 0.0f))
-			{
-				// emits constantly.
-				emit_count = static_cast<uint32>(random::random_int(static_cast<int>(p.emit_props.min_particle_count), static_cast<int>(p.emit_props.max_particle_count)));
-			}
-			else
-			{
-				// emit at start.
-				if (math::almost_equal(p.last_emitted, 0.0f))
-					emit_count = static_cast<uint32>(random::random_int(static_cast<int>(p.emit_props.min_particle_count), static_cast<int>(p.emit_props.max_particle_count)));
-				else if (p.current_life - p.last_emitted > p.emit_props.wait_between_emits)
-				{
-					// emit in bursts
-					p.last_emitted = p.current_life;
-					emit_count	   = static_cast<uint32>(random::random_int(static_cast<int>(p.emit_props.min_particle_count), static_cast<int>(p.emit_props.max_particle_count)));
-				}
-			}
-
 			if (!emit_dead)
+			{
+				if (math::almost_equal(p.emit_props.wait_between_emits, 0.0f))
+				{
+					// emits constantly.
+					emit_count = static_cast<uint32>(random::random_int(static_cast<int>(p.emit_props.min_particle_count), static_cast<int>(p.emit_props.max_particle_count)));
+				}
+				else
+				{
+					// emit at start.
+					if (math::almost_equal(p.last_emitted, 0.0f))
+					{
+						emit_count = static_cast<uint32>(random::random_int(static_cast<int>(p.emit_props.min_particle_count), static_cast<int>(p.emit_props.max_particle_count)));
+						p.last_emitted += particles_delta;
+					}
+					else if (p.current_life - p.last_emitted > p.emit_props.wait_between_emits)
+					{
+						// emit in bursts
+						p.last_emitted = p.current_life;
+						emit_count	   = static_cast<uint32>(random::random_int(static_cast<int>(p.emit_props.min_particle_count), static_cast<int>(p.emit_props.max_particle_count)));
+					}
+				}
 				p.current_life += particles_delta;
+			}
 
+			if (emit_count != 0)
+				SFG_TRACE("emit {0}", emit_count);
 			pfd.emit_counts.buffer_data(sizeof(uint32) * num_emitters, &emit_count, sizeof(uint32));
 
 			const render_proxy_entity& e = pm.get_entity(p.entity);
@@ -559,21 +565,17 @@ namespace SFG
 
 		const gpu_index gpu_index_ubo					  = pfd.ubo.get_index();
 		const gpu_index gpu_index_indirect_args			  = pfd.indirect_arguments.get_index();
-		const gpu_index gpu_index_alive_list_a_srv		  = frame_switch == 0 ? pfd.alive_list_a.get_index() : pfd.alive_list_b.get_index();
-		const gpu_index gpu_index_alive_list_a_uav		  = frame_switch == 0 ? pfd.alive_list_a.get_index_secondary() : pfd.alive_list_b.get_index_secondary();
-		const gpu_index gpu_index_alive_list_b_srv		  = frame_switch == 0 ? pfd.alive_list_b.get_index() : pfd.alive_list_a.get_index();
-		const gpu_index gpu_index_alive_list_b_uav		  = frame_switch == 0 ? pfd.alive_list_b.get_index_secondary() : pfd.alive_list_a.get_index_secondary();
-		const gpu_index gpu_index_counters_srv			  = pfd.counters.get_index();
-		const gpu_index gpu_index_counters_uav			  = pfd.counters.get_index_secondary();
+		const gpu_index gpu_index_alive_list_a_uav		  = frame_switch == 0 ? pfd.alive_list_a.get_index() : pfd.alive_list_b.get_index();
+		const gpu_index gpu_index_alive_list_b_uav		  = frame_switch == 0 ? pfd.alive_list_b.get_index() : pfd.alive_list_a.get_index();
+		const gpu_index gpu_index_counters_uav			  = pfd.counters.get_index();
 		const gpu_index gpu_index_states				  = pfd.states.get_index();
-		const gpu_index gpu_index_system_data_srv		  = pfd.system_data.get_index();
-		const gpu_index gpu_index_system_data_uav		  = pfd.system_data.get_index_secondary();
-		const gpu_index gpu_index_dead_list_srv			  = pfd.dead_indices.get_index();
-		const gpu_index gpu_index_dead_list_uav			  = pfd.dead_indices.get_index_secondary();
+		const gpu_index gpu_index_system_data_uav		  = pfd.system_data.get_index();
+		const gpu_index gpu_index_dead_list_uav			  = pfd.dead_indices.get_index();
 		const gpu_index gpu_index_emit_counts			  = pfd.emit_counts.get_index();
 		const gpu_index gpu_index_emit_args				  = pfd.emit_arguments.get_index();
 		const gpu_index gpu_index_sim_count_indirect_args = pfd.sim_count_indirect_arguments.get_index();
-		const gpu_index gpu_index_instances				  = pfd.instance_data.get_index();
+		const gpu_index gpu_index_instances_srv			  = pfd.instance_data.get_index();
+		const gpu_index gpu_index_instances_uav			  = pfd.instance_data.get_index_secondary();
 		const gfx_id	hw_sim_count_indirect			  = pfd.sim_count_indirect_arguments.get_gpu();
 		const gfx_id	hw_render_indirect				  = pfd.indirect_arguments.get_gpu();
 		const gfx_id	hw_counters						  = pfd.counters.get_gpu();
@@ -658,7 +660,7 @@ namespace SFG
 		{
 			const gpu_index constants[7] = {
 				gpu_index_ubo,
-				gpu_index_alive_list_a_srv,
+				gpu_index_alive_list_a_uav,
 				gpu_index_alive_list_b_uav,
 				gpu_index_counters_uav,
 				gpu_index_states,
@@ -694,14 +696,18 @@ namespace SFG
 			.flags	  = barrier_flags::baf_is_resource | barrier_flags::baf_is_uav,
 		});
 		barriers.push_back({
-			.from_states = resource_state::resource_state_uav,
-			.to_states	 = resource_state::resource_state_non_ps_resource,
-			.resource	 = hw_dead_indices,
-			.flags		 = barrier_flags::baf_is_resource,
+			.resource = hw_dead_indices,
+			.flags	  = barrier_flags::baf_is_resource | barrier_flags::baf_is_uav,
 		});
 		barriers.push_back({
 			.resource = hw_alive_list_b,
 			.flags	  = barrier_flags::baf_is_resource | barrier_flags::baf_is_uav,
+		});
+		barriers.push_back({
+			.from_states = resource_state::resource_state_indirect_arg,
+			.to_states	 = resource_state::resource_state_uav,
+			.resource	 = hw_sim_count_indirect,
+			.flags		 = barrier_flags::baf_is_resource,
 		});
 
 		backend->cmd_barrier(cmd_buffer, {.barriers = barriers.data(), .barrier_count = static_cast<uint16>(barriers.size())});
@@ -714,7 +720,7 @@ namespace SFG
 				gpu_index_ubo,
 				gpu_index_emit_counts,
 				gpu_index_states,
-				gpu_index_dead_list_srv,
+				gpu_index_dead_list_uav,
 				gpu_index_emit_args,
 				gpu_index_system_data_uav,
 				gpu_index_alive_list_b_uav,
@@ -736,29 +742,23 @@ namespace SFG
 		// we are done writing to counters for now, will be read as srv in in count passes.
 		barriers.resize(0);
 		barriers.push_back({
-			.from_states = resource_state::resource_state_uav,
-			.to_states	 = resource_state::resource_state_non_ps_resource,
-			.resource	 = hw_counters,
-			.flags		 = barrier_flags::baf_is_resource,
+			.resource = hw_counters,
+			.flags	  = barrier_flags::baf_is_resource | barrier_flags::baf_is_uav,
+		});
+
+		barriers.push_back({
+			.resource = hw_alive_list_b,
+			.flags	  = barrier_flags::baf_is_resource | barrier_flags::baf_is_uav,
 		});
 		barriers.push_back({
-			.from_states = resource_state::resource_state_indirect_arg,
-			.to_states	 = resource_state::resource_state_uav,
-			.resource	 = hw_sim_count_indirect,
-			.flags		 = barrier_flags::baf_is_resource,
+			.resource = hw_states,
+			.flags	  = barrier_flags::baf_is_resource | barrier_flags::baf_is_uav,
 		});
 		barriers.push_back({
-			.from_states = resource_state::resource_state_uav,
-			.to_states	 = resource_state::resource_state_non_ps_resource,
-			.resource	 = hw_alive_list_b,
-			.flags		 = barrier_flags::baf_is_resource,
+			.resource = hw_system_data,
+			.flags	  = barrier_flags::baf_is_resource | barrier_flags::baf_is_uav,
 		});
-		barriers.push_back({
-			.from_states = resource_state::resource_state_uav,
-			.to_states	 = resource_state::resource_state_non_ps_resource,
-			.resource	 = hw_states,
-			.flags		 = barrier_flags::baf_is_resource,
-		});
+
 		backend->cmd_barrier(cmd_buffer, {.barriers = barriers.data(), .barrier_count = static_cast<uint16>(barriers.size())});
 
 		BEGIN_DEBUG_EVENT(backend, cmd_buffer, "particle_write_count");
@@ -766,7 +766,7 @@ namespace SFG
 		// pass 3 - write counts
 		{
 			const gpu_index constants[2] = {
-				gpu_index_counters_srv,
+				gpu_index_counters_uav,
 				gpu_index_sim_count_indirect_args,
 			};
 			backend->cmd_bind_constants_compute(cmd_buffer, {.data = (uint8*)&constants, .offset = constant_index_rp_constant0, .count = 2, .param_index = rpi_constants});
@@ -784,6 +784,10 @@ namespace SFG
 
 		// wrote to sim and counts indirect arguments.
 		barriers.resize(0);
+		barriers.push_back({
+			.resource = hw_counters,
+			.flags	  = barrier_flags::baf_is_resource | barrier_flags::baf_is_uav,
+		});
 		barriers.push_back({
 			.from_states = resource_state::resource_state_uav,
 			.to_states	 = resource_state::resource_state_indirect_arg,
@@ -805,11 +809,11 @@ namespace SFG
 		{
 			const gpu_index constants[6] = {
 				gpu_index_ubo,
-				gpu_index_counters_srv,
-				gpu_index_alive_list_b_srv,
+				gpu_index_counters_uav,
+				gpu_index_alive_list_b_uav,
 				gpu_index_states,
 				gpu_index_indirect_args,
-				gpu_index_instances,
+				gpu_index_instances_uav,
 			};
 			backend->cmd_bind_constants_compute(cmd_buffer, {.data = (uint8*)&constants, .offset = constant_index_rp_constant0, .count = 6, .param_index = rpi_constants});
 		}
@@ -840,10 +844,8 @@ namespace SFG
 		});
 
 		barriers.push_back({
-			.from_states = resource_state::resource_state_non_ps_resource,
-			.to_states	 = resource_state::resource_state_uav,
-			.resource	 = hw_counters,
-			.flags		 = barrier_flags::baf_is_resource,
+			.resource = hw_counters,
+			.flags	  = barrier_flags::baf_is_resource | barrier_flags::baf_is_uav,
 		});
 
 		// for graphics queue.
@@ -943,6 +945,16 @@ namespace SFG
 															   },
 														   .color_attachment_count = 1,
 													   });
+
+		backend->cmd_set_scissors(cmd_buffer, {.width = static_cast<uint16>(p.size.x), .height = static_cast<uint16>(p.size.y)});
+		backend->cmd_set_viewport(cmd_buffer,
+								  {
+									  .min_depth = 0.0f,
+									  .max_depth = 1.0f,
+									  .width	 = static_cast<uint16>(p.size.x),
+									  .height	 = static_cast<uint16>(p.size.y),
+
+								  });
 
 		backend->cmd_bind_layout(cmd_buffer, {.layout = p.global_layout});
 		backend->cmd_bind_group(cmd_buffer, {.group = p.global_group});

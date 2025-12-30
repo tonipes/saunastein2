@@ -112,7 +112,7 @@ vs_output VSMain(uint vid : SV_VertexID, uint iid : SV_InstanceID)
     float3 up2    = up    * c - right * s;
 
     float2 corner = k_corners[vid];
-    float  half_size = 0.5 * p.size.x;
+    float  half_size = 0.5 * p.size.x * 0.2;
 
     float3 world_pos =
         center +

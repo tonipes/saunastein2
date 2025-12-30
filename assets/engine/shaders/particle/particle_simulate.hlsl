@@ -47,7 +47,7 @@ void CSMain(uint3 dtid : SV_DispatchThreadID, uint3 gtid : SV_GroupThreadID)
     if(thread_index >= counters.Load(0))
         return;
     
-    StructuredBuffer<uint> alive_list_a = sfg_get_ssbo<uint>(sfg_rp_constant1);
+    RWStructuredBuffer<uint> alive_list_a = sfg_get_rws_buffer<uint>(sfg_rp_constant1);
     uint particle_index = alive_list_a[thread_index];
 
     RWStructuredBuffer<particle_state> states  = sfg_get_rws_buffer<particle_state>(sfg_rp_constant4);

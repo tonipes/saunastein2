@@ -99,20 +99,20 @@ namespace SFG
 		comp_particle_emitter& emitter				= cm.get_component<comp_particle_emitter>(comp_particle_handle);
 		emitter.set_emit_properties(w,
 									{
-										.emitter_lifetime	= 0.0f,
-										.wait_between_emits = 1.0f,
-										.min_particle_count = 10,
-										.max_particle_count = 20,
-										.min_pos_offset		= vector3::zero,
-										.max_pos_offset		= vector3::zero,
+										.emitter_lifetime	= 0,
+										.wait_between_emits = 5.0f,
+										.min_particle_count = 1,
+										.max_particle_count = 1,
+										.min_pos_offset		= vector3(-4, 4, 0),
+										.max_pos_offset		= vector3(4, 4, 0),
 										.min_vel_offset		= vector3::up,
 										.max_vel_offset		= vector3::up,
 										.min_color			= color::red,
 										.max_color			= color::red,
 										.min_rotation_deg	= 0.0f,
 										.max_rotation_deg	= 0.0f,
-										.min_lifetime		= 1.0f,
-										.max_lifetime		= 2.0f,
+										.min_lifetime		= 3.0f,
+										.max_lifetime		= 3.0f,
 									},
 									particle_material);
 

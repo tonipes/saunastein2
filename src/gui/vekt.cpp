@@ -605,10 +605,11 @@ namespace vekt
 
 	void builder::calculate_positions()
 	{
+		uint32 i = 0;
 		for (id widget : _depth_first_widgets)
 		{
 			pos_props& pp = _pos_properties[widget];
-
+			i++;
 			if (pp.flags & pos_flags::pf_custom_pass)
 			{
 				custom_passes& passes = _custom_passes[widget];

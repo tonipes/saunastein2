@@ -40,7 +40,7 @@ void CSMain(uint3 dtid : SV_DispatchThreadID)
     // dispatch 1,1,1
     uint system_id = dtid.x;
 
-    ByteAddressBuffer counters = sfg_get_b_buffer(sfg_rp_constant0);
+    RWByteAddressBuffer counters = sfg_get_rwb_buffer(sfg_rp_constant0);
     uint alive = counters.Load(4);
     uint count = (alive + 255u) / 256u;
 
