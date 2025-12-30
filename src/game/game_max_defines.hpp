@@ -87,7 +87,6 @@ namespace SFG
 #define MAX_WORLD_BONE_BATCH_SIZE 64
 #define MAX_WORLD_BONE_BATCHES	  10000
 
-
 	// -----------------------------------------------------------------------------
 	// particles
 	// -----------------------------------------------------------------------------
@@ -97,6 +96,8 @@ namespace SFG
 	// -----------------------------------------------------------------------------
 	// gfx
 	// -----------------------------------------------------------------------------
+
+#define MAX_GLOBAL_UBO_SIZE 256 * 100 // all passes use this.
 
 #define MAX_RENDERABLES_ALL			   1024 * 20
 #define MAX_DRAW_CALLS_CANVAS_2D	   1024

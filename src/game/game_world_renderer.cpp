@@ -634,49 +634,49 @@ namespace SFG
 		static_vector<barrier, 7> barriers;
 
 		barriers.push_back({
-			.resource	 = pfd.bones_buffer.get_hw_gpu(),
+			.resource	 = pfd.bones_buffer.get_gpu(),
 			.flags		 = barrier_flags::baf_is_resource,
 			.from_states = resource_state::resource_state_non_ps_resource,
 			.to_states	 = resource_state::resource_state_copy_dest,
 		});
 
 		barriers.push_back({
-			.resource	 = pfd.entity_buffer.get_hw_gpu(),
+			.resource	 = pfd.entity_buffer.get_gpu(),
 			.flags		 = barrier_flags::baf_is_resource,
 			.from_states = resource_state::resource_state_non_ps_resource,
 			.to_states	 = resource_state::resource_state_copy_dest,
 		});
 
 		barriers.push_back({
-			.resource	 = pfd.dir_lights_buffer.get_hw_gpu(),
+			.resource	 = pfd.dir_lights_buffer.get_gpu(),
 			.flags		 = barrier_flags::baf_is_resource,
 			.from_states = resource_state::resource_state_ps_resource,
 			.to_states	 = resource_state::resource_state_copy_dest,
 		});
 
 		barriers.push_back({
-			.resource	 = pfd.spot_lights_buffer.get_hw_gpu(),
+			.resource	 = pfd.spot_lights_buffer.get_gpu(),
 			.flags		 = barrier_flags::baf_is_resource,
 			.from_states = resource_state::resource_state_ps_resource,
 			.to_states	 = resource_state::resource_state_copy_dest,
 		});
 
 		barriers.push_back({
-			.resource	 = pfd.point_lights_buffer.get_hw_gpu(),
+			.resource	 = pfd.point_lights_buffer.get_gpu(),
 			.flags		 = barrier_flags::baf_is_resource,
 			.from_states = resource_state::resource_state_ps_resource,
 			.to_states	 = resource_state::resource_state_copy_dest,
 		});
 
 		barriers.push_back({
-			.resource	 = pfd.shadow_data_buffer.get_hw_gpu(),
+			.resource	 = pfd.shadow_data_buffer.get_gpu(),
 			.flags		 = barrier_flags::baf_is_resource,
 			.from_states = resource_state::resource_state_ps_resource,
 			.to_states	 = resource_state::resource_state_copy_dest,
 		});
 
 		barriers.push_back({
-			.resource	 = pfd.float_buffer.get_hw_gpu(),
+			.resource	 = pfd.float_buffer.get_gpu(),
 			.flags		 = barrier_flags::baf_is_resource,
 			.from_states = resource_state::resource_state_ps_resource,
 			.to_states	 = resource_state::resource_state_copy_dest,
@@ -701,49 +701,49 @@ namespace SFG
 
 		barriers.resize(0);
 		barriers.push_back({
-			.resource	 = pfd.bones_buffer.get_hw_gpu(),
+			.resource	 = pfd.bones_buffer.get_gpu(),
 			.flags		 = barrier_flags::baf_is_resource,
 			.from_states = resource_state::resource_state_copy_dest,
 			.to_states	 = resource_state::resource_state_non_ps_resource,
 		});
 
 		barriers.push_back({
-			.resource	 = pfd.entity_buffer.get_hw_gpu(),
+			.resource	 = pfd.entity_buffer.get_gpu(),
 			.flags		 = barrier_flags::baf_is_resource,
 			.from_states = resource_state::resource_state_copy_dest,
 			.to_states	 = resource_state::resource_state_non_ps_resource,
 		});
 
 		barriers.push_back({
-			.resource	 = pfd.dir_lights_buffer.get_hw_gpu(),
+			.resource	 = pfd.dir_lights_buffer.get_gpu(),
 			.flags		 = barrier_flags::baf_is_resource,
 			.from_states = resource_state::resource_state_copy_dest,
 			.to_states	 = resource_state::resource_state_ps_resource,
 		});
 
 		barriers.push_back({
-			.resource	 = pfd.spot_lights_buffer.get_hw_gpu(),
+			.resource	 = pfd.spot_lights_buffer.get_gpu(),
 			.flags		 = barrier_flags::baf_is_resource,
 			.from_states = resource_state::resource_state_copy_dest,
 			.to_states	 = resource_state::resource_state_ps_resource,
 		});
 
 		barriers.push_back({
-			.resource	 = pfd.point_lights_buffer.get_hw_gpu(),
+			.resource	 = pfd.point_lights_buffer.get_gpu(),
 			.flags		 = barrier_flags::baf_is_resource,
 			.from_states = resource_state::resource_state_copy_dest,
 			.to_states	 = resource_state::resource_state_ps_resource,
 		});
 
 		barriers.push_back({
-			.resource	 = pfd.shadow_data_buffer.get_hw_gpu(),
+			.resource	 = pfd.shadow_data_buffer.get_gpu(),
 			.flags		 = barrier_flags::baf_is_resource,
 			.from_states = resource_state::resource_state_copy_dest,
 			.to_states	 = resource_state::resource_state_ps_resource,
 		});
 
 		barriers.push_back({
-			.resource	 = pfd.float_buffer.get_hw_gpu(),
+			.resource	 = pfd.float_buffer.get_gpu(),
 			.flags		 = barrier_flags::baf_is_resource,
 			.from_states = resource_state::resource_state_copy_dest,
 			.to_states	 = resource_state::resource_state_ps_resource,

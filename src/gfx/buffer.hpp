@@ -109,7 +109,7 @@ namespace SFG
 		{
 			return _hw_staging;
 		}
-		inline gfx_id get_hw_gpu() const
+		inline gfx_id get_gpu() const
 		{
 			return _hw_gpu;
 		}

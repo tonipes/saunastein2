@@ -115,6 +115,8 @@ namespace SFG
 		_world_renderer = new game_world_renderer(_proxy_manager, _world);
 		_world_renderer->init(_base_size, &_texture_queue, &_buffer_queue);
 
+		_shared_cbv.init(MAX_GLOBAL_UBO_SIZE);
+
 		// pfd
 		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
@@ -131,7 +133,7 @@ namespace SFG
 				.debug_name = "renderer_copy",
 			});
 
-			pfd.buf_engine_global.create({.size = sizeof(buf_engine_global), .flags = resource_flags::rf_constant_buffer | resource_flags::rf_cpu_visible, .debug_name = "engine_globals"});
+			pfd.buf_engine_global.create({.size = MAX_GLOBAL_UBO_SIZE, .flags = resource_flags::rf_constant_buffer | resource_flags::rf_cpu_visible, .debug_name = "engine_cbv"});
 			pfd.bind_group_global  = backend->create_empty_bind_group();
 			pfd.gpu_index_world_rt = _world_renderer->get_output_gpu_index(i);
 
@@ -144,7 +146,9 @@ namespace SFG
 #endif
 
 			backend->bind_group_add_descriptor(pfd.bind_group_global, 0, binding_type::ubo);
+			backend->bind_group_add_descriptor(pfd.bind_group_global, 1, binding_type::ubo);
 			backend->bind_group_update_descriptor(pfd.bind_group_global, 0, pfd.buf_engine_global.get_gpu());
+			backend->bind_group_update_descriptor(pfd.bind_group_global, 1, _shared_cbv.get_buffer(i).get_gpu());
 
 			_frame_allocator[i].init(1024 * 1024, 4);
 			s_bind_group_global[i] = pfd.bind_group_global;
@@ -189,6 +193,7 @@ namespace SFG
 		// utils
 		_texture_queue.uninit();
 		_buffer_queue.uninit();
+		_shared_cbv.uninit();
 
 		// pfd
 		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)

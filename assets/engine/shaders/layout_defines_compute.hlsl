@@ -30,7 +30,8 @@
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 #define global_cbv register(b0, space0)
-#define constants_cbv register(b1, space0)
+#define shared_cbv register(b1, space0)
+#define constants_cbv register(b2, space0)
 
 #define static_sampler_anisotropic register(s0, space0)
 #define static_sampler_anisotropic_repeat register(s1, space0)
@@ -45,7 +46,7 @@ cbuffer sfg_globals : register(b0, space0)
     float f2;
 }
 
-cbuffer sfg_constants : register(b1, space0)
+cbuffer sfg_constants : register(b2, space0)
 {
     uint sfg_rp_constant0;
     uint sfg_rp_constant1;

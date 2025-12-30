@@ -38,7 +38,8 @@ namespace SFG
 		gfx_id layout = backend->create_empty_bind_layout();
 
 		backend->bind_layout_add_descriptor(layout, binding_type::ubo, 0, 0, shader_stage::all);
-		backend->bind_layout_add_constant(layout, constant_index_max, 0, 1, shader_stage::all);
+		backend->bind_layout_add_descriptor(layout, binding_type::ubo, 0, 1, shader_stage::all);
+		backend->bind_layout_add_constant(layout, constant_index_max, 0, 2, shader_stage::all);
 
 		const shader_stage stg = is_compute ? shader_stage::compute : shader_stage::fragment;
 

@@ -126,10 +126,19 @@ namespace SFG
 
 		struct per_frame_data
 		{
-			buffer_gpu ubo = {};
-
-			gfx_id cmd_buffer		  = NULL_GFX_ID;
-			gfx_id cmd_buffer_compute = NULL_GFX_ID;
+			buffer_gpu ubo							= {};
+			buffer	   emit_counts					= {};
+			buffer	   system_data					= {};
+			buffer	   emit_arguments				= {};
+			buffer	   states						= {};
+			buffer	   indirect_arguments			= {};
+			buffer	   sim_count_indirect_arguments = {};
+			buffer	   alive_list_a					= {};
+			buffer	   alive_list_b					= {};
+			buffer	   dead_indices					= {};
+			buffer	   instance_data				= {};
+			gfx_id	   cmd_buffer					= NULL_GFX_ID;
+			gfx_id	   cmd_buffer_compute			= NULL_GFX_ID;
 		};
 
 	public:
