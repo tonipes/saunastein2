@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -105,11 +105,39 @@ namespace SFG
 		gfx_id pipeline_hw = NULL_GFX_ID;
 	};
 
+	struct draw_command_particle
+	{
+		uint32	  system_index		   = 0;
+		gpu_index material_index	   = NULL_GPU_INDEX;
+		gpu_index texture_buffer_index = NULL_GPU_INDEX;
+		gfx_id	  pipeline_hw		   = 0;
+	};
+
 	static_assert(sizeof(draw_command) <= 64, "cache line pls");
 	static_assert(sizeof(draw_command_distance) <= 64, "cache line pls");
 	static_assert(sizeof(draw_command_gui) <= 64, "cache line pls");
+	static_assert(sizeof(draw_command_particle) <= 64, "cache line pls");
 
 	class bump_allocator;
+
+	struct draw_stream_bound_state_pipeline
+	{
+		gfx_id pipeline = NULL_GFX_ID;
+
+		inline uint8 diff_mask(gfx_id cur_pipe)
+		{
+			if (cur_pipe == pipeline)
+				return 0;
+
+			cur_pipe = pipeline;
+			return 1;
+		}
+
+		inline static uint32 make_sort_key(gfx_id pipeline)
+		{
+			return pipeline;
+		}
+	};
 
 	struct draw_stream_bound_state
 	{
@@ -186,5 +214,19 @@ namespace SFG
 		draw_command_gui* _commands		  = nullptr;
 		uint32			  _max_commands	  = 0;
 		uint32			  _commands_count = 0;
+	};
+
+	class draw_stream_particle
+	{
+	public:
+		void prepare(bump_allocator& alloc, size_t max_commands);
+		void build();
+		void draw(gfx_id command_buffer, gfx_id indirect_buffer, gfx_id indirect_signature, uint32 indirect_buffer_size);
+		void add_command(const draw_command_particle& cmd);
+
+	private:
+		draw_command_particle* _commands	   = nullptr;
+		uint32				   _max_commands   = 0;
+		uint32				   _commands_count = 0;
 	};
 }

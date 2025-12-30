@@ -106,12 +106,12 @@ namespace SFG
 		const gfx_id	cmd_buffer		 = pfd.cmd_buffer;
 		const gpu_index gpu_index_rp_ubo = pfd.ubo.get_index();
 
-		render_pass_color_attachment* attachments = _alloc.allocate<render_pass_color_attachment>(1);
-		render_pass_color_attachment& att		  = attachments[0];
-		att.clear_color							  = vector4(0, 0, 0, 1.0f);
-		att.load_op								  = load_op::load;
-		att.store_op							  = store_op::store;
-		att.texture								  = p.input_texture;
+		const render_pass_color_attachment att = {
+			.clear_color = vector4(0, 0, 0, 1.0f),
+			.texture	 = p.input_texture,
+			.load_op	 = load_op::load,
+			.store_op	 = store_op::store,
+		};
 
 		backend->reset_command_buffer(cmd_buffer);
 
@@ -119,7 +119,7 @@ namespace SFG
 
 		backend->cmd_begin_render_pass_depth_read_only(cmd_buffer,
 													   {
-														   .color_attachments = attachments,
+														   .color_attachments = &att,
 														   .depth_stencil_attachment =
 															   {
 																   .texture		   = p.depth_texture,

@@ -40,7 +40,7 @@
                                    uint3 gid : SV_GroupID)
 {
     // we dispatch 1, N, 1
-    uint system_id = gid.x;
+    uint system_id = gid.y;
 
     // early out if system is not emitting.
     StructuredBuffer<uint> emit_counts = sfg_get_ssbo<uint>(sfg_rp_constant1);
@@ -63,6 +63,7 @@
     uint frame_index = pass_params.frame_index;
     particle_emit_args emit = emit_args[system_id];
     uint offset = max_particles * system_id;
+    uint total_capacity = pass_params.max_particles_per_system * pass_params.num_systems;
 
     RWStructuredBuffer<uint> alive_list_b = sfg_get_rws_buffer<uint>(sfg_rp_constant6);
     RWByteAddressBuffer counters = sfg_get_rwb_buffer(sfg_rp_constant7);
@@ -114,6 +115,6 @@
         // write into alive_list_b.
         uint idx;
         counters.InterlockedAdd(4, 1, idx);
-        if (idx < max_particles) alive_list_b[offset + idx] = emitted_index;
+        if (idx < total_capacity) alive_list_b[idx] = emitted_index;
     }
 }

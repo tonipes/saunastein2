@@ -96,22 +96,3 @@ struct particle_sim_count_args
     uint group_count_y;
     uint group_count_z;
 };
-
-/*
-ConstantBuffer<particle_pass_data> pass_params = sfg_get_cbv<particle_pass_data>(sfg_rp_constant0);
-StructuredBuffer<uint> emit_counts = sfg_get_ssbo<uint>(sfg_rp_constant2);
-
-RWStructuredBuffer<particle_system_data> system_data = sfg_get_rws_buffer<particle_system_data>(sfg_rp_constant2);
-RWStructuredBuffer<particle_emit_args> emit_args     = sfg_get_rws_buffer<particle_emit_args>(sfg_rp_constant3);
-RWStructuredBuffer<particle_state> states  = sfg_get_rws_buffer<particle_state>(sfg_rp_constant4);
-
-RWStructuredBuffer<particle_indirect_args> indirect_args     = sfg_get_rws_buffer<particle_indirect_args>(sfg_rp_constant5);
-RWByteAddressBuffer sim_count_indirect_args = sfg_get_rwb_buffer(sfg_rp_constant6);
-
-RWStructuredBuffer<uint> alive_list_a = sfg_get_rws_buffer<uint>(sfg_rp_constant9);
-RWStructuredBuffer<uint> alive_list_b = sfg_get_rws_buffer<uint>(sfg_rp_constant10);
-RWStructuredBuffer<uint> dead_indices = sfg_get_rws_buffer<uint>(sfg_rp_constant11);
-
-RWStructuredBuffer<particle_instance_data> instance_data    = sfg_get_rws_buffer<particle_instance_data>(sfg_rp_constant12);
-
-*/

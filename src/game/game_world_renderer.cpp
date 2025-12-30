@@ -522,10 +522,11 @@ namespace SFG
 
 		tasks.push_back([&] {
 			_pass_particles.render({
-				.frame_index		= frame_index,
-				.global_layout		= layout_global,
-				.global_group		= bind_group_global,
-				.gpu_index_lighting = gpu_index_lighting,
+				.frame_index   = frame_index,
+				.global_layout = layout_global,
+				.global_group  = bind_group_global,
+				.hw_lighting   = lighting_texture,
+				.hw_depth	   = depth_texture,
 
 			});
 		});

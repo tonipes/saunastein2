@@ -27,7 +27,9 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include "gfx/buffer.hpp"
+#include "gfx/draw_stream.hpp"
 #include "gfx/common/gfx_constants.hpp"
+#include "memory/bump_allocator.hpp"
 #include "math/matrix4x4.hpp"
 #include "math/vector4.hpp"
 
@@ -130,6 +132,8 @@ namespace SFG
 			buffer	   counters						= {};
 			gfx_id	   cmd_buffer					= NULL_GFX_ID;
 			gfx_id	   cmd_buffer_compute			= NULL_GFX_ID;
+			uint8	   buffers_init					= 0;
+			uint8	   frame_switch					= 0;
 		};
 
 	public:
@@ -142,10 +146,11 @@ namespace SFG
 
 		struct render_params
 		{
-			uint8	  frame_index;
-			gfx_id	  global_layout;
-			gfx_id	  global_group;
-			gpu_index gpu_index_lighting;
+			uint8  frame_index;
+			gfx_id global_layout;
+			gfx_id global_group;
+			gfx_id hw_lighting;
+			gfx_id hw_depth;
 		};
 
 		// -----------------------------------------------------------------------------
@@ -178,16 +183,17 @@ namespace SFG
 		}
 
 	private:
-		per_frame_data _pfd[BACK_BUFFER_COUNT];
-		gfx_id		   _shader_clear		  = NULL_GFX_ID;
-		gfx_id		   _shader_simulate		  = NULL_GFX_ID;
-		gfx_id		   _shader_emit			  = NULL_GFX_ID;
-		gfx_id		   _shader_write_count	  = NULL_GFX_ID;
-		gfx_id		   _shader_count		  = NULL_GFX_ID;
-		gfx_id		   _shader_swap			  = NULL_GFX_ID;
-		gfx_id		   _indirect_sig_dispatch = NULL_GFX_ID;
-		gfx_id		   _indirect_sig_draw	  = NULL_GFX_ID;
-		uint32		   _num_systems			  = 0;
-		uint8		   _buffers_init		  = 0;
+		per_frame_data		 _pfd[BACK_BUFFER_COUNT];
+		draw_stream_particle _draw_stream;
+		bump_allocator		 _alloc					= {};
+		uint32				 _num_systems			= 0;
+		gfx_id				 _shader_clear			= NULL_GFX_ID;
+		gfx_id				 _shader_simulate		= NULL_GFX_ID;
+		gfx_id				 _shader_emit			= NULL_GFX_ID;
+		gfx_id				 _shader_write_count	= NULL_GFX_ID;
+		gfx_id				 _shader_count			= NULL_GFX_ID;
+		gfx_id				 _shader_swap			= NULL_GFX_ID;
+		gfx_id				 _indirect_sig_dispatch = NULL_GFX_ID;
+		gfx_id				 _indirect_sig_draw		= NULL_GFX_ID;
 	};
 }

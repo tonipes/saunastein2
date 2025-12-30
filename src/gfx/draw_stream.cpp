@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -227,6 +227,53 @@ namespace SFG
 	}
 
 	void draw_stream_gui::add_command(const draw_command_gui& cmd)
+	{
+		SFG_ASSERT(_commands_count <= _max_commands);
+		_commands[_commands_count++] = cmd;
+	}
+
+	void draw_stream_particle::prepare(bump_allocator& alloc, size_t max_commands)
+	{
+		_commands		= alloc.allocate<draw_command_particle>(max_commands);
+		_commands_count = 0;
+		_max_commands	= max_commands;
+	}
+	void draw_stream_particle::build()
+	{
+		ZoneScoped;
+		std::stable_sort(_commands, _commands + _commands_count, [&](const draw_command_particle& a, const draw_command_particle& b) {
+			return draw_stream_bound_state_pipeline::make_sort_key(a.pipeline_hw) < draw_stream_bound_state_pipeline::make_sort_key(b.pipeline_hw);
+		});
+	}
+	void draw_stream_particle::draw(gfx_id cmd_buffer, gfx_id indirect_buffer, gfx_id indirect_signature, uint32 indirect_buffer_size)
+	{
+		ZoneScoped;
+
+		gfx_backend* backend = gfx_backend::get();
+
+		draw_stream_bound_state_pipeline bound = {};
+
+		for (uint32 i = 0; i < _commands_count; i++)
+		{
+			draw_command_particle& draw = _commands[i];
+
+			const uint8 diff = bound.diff_mask(draw.pipeline_hw);
+			if (diff)
+				backend->cmd_bind_pipeline(cmd_buffer, {.pipeline = draw.pipeline_hw});
+
+			const uint32 mat_constants[2] = {draw.material_index, draw.texture_buffer_index};
+			backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)mat_constants, .offset = constant_index_mat_constant0, .count = 2, .param_index = rpi_constants});
+
+			backend->cmd_execute_indirect(cmd_buffer,
+										  {
+											  .indirect_buffer		  = indirect_buffer,
+											  .indirect_buffer_offset = indirect_buffer_size * draw.system_index,
+											  .count				  = 1,
+											  .indirect_signature	  = indirect_signature,
+										  });
+		}
+	}
+	void draw_stream_particle::add_command(const draw_command_particle& cmd)
 	{
 		SFG_ASSERT(_commands_count <= _max_commands);
 		_commands[_commands_count++] = cmd;

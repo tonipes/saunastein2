@@ -69,6 +69,7 @@ void CSMain(uint3 dtid : SV_DispatchThreadID)
     RWStructuredBuffer<particle_indirect_args> indirect_args     = sfg_get_rws_buffer<particle_indirect_args>(sfg_rp_constant4);
     uint idx;
     InterlockedAdd(indirect_args[system_id].instance_count, 1, idx);
+    if (idx >= pass_params.max_particles_per_system) return;
 
     RWStructuredBuffer<particle_instance_data> instance_data    = sfg_get_rws_buffer<particle_instance_data>(sfg_rp_constant5);
     particle_instance_data pid = (particle_instance_data)0;
