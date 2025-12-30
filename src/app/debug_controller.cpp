@@ -25,10 +25,23 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "debug_controller.hpp"
+
+// math
 #include "math/vector2ui.hpp"
+#include "math/math.hpp"
+#include "math/color.hpp"
+
+// data
 #include "data/vector_util.hpp"
+#include "data/ostream.hpp"
+#include "data/istream.hpp"
+
+// memory
 #include "memory/memory.hpp"
 #include "memory/bump_allocator.hpp"
+#include "memory/memory_tracer.hpp"
+
+// gfx
 #include "gfx/buffer_queue.hpp"
 #include "gfx/backend/backend.hpp"
 #include "gfx/common/descriptions.hpp"
@@ -36,21 +49,22 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gfx/util/gfx_util.hpp"
 #include "gfx/texture_queue.hpp"
 #include "gfx/engine_shaders.hpp"
+#include "gfx/shared_cbv.hpp"
+
+// misc
 #include "common/system_info.hpp"
-#include "platform/window_common.hpp"
-#include "io/log.hpp"
-#include "math/math.hpp"
-#include "math/color.hpp"
-#include "platform/process.hpp"
+#include "serialization/serialization.hpp"
 #include "input/input_mappings.hpp"
 #include "debug_console.hpp"
-#include "memory/memory_tracer.hpp"
-#include "data/ostream.hpp"
-#include "data/istream.hpp"
-#include "serialization/serialization.hpp"
-#include "io/file_system.hpp"
-
 #include "gui/vekt.hpp"
+
+// platform
+#include "platform/window_common.hpp"
+#include "platform/process.hpp"
+
+// io
+#include "io/log.hpp"
+#include "io/file_system.hpp"
 
 #include <tracy/Tracy.hpp>
 

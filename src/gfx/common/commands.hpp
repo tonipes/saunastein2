@@ -250,7 +250,6 @@ namespace SFG
 		static constexpr uint8 TID = 15;
 
 		gfx_id group			= 0;
-		uint32 ubo_offset_index = 0;
 	};
 
 	struct command_bind_constants

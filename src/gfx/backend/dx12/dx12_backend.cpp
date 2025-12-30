@@ -3142,7 +3142,7 @@ namespace SFG
 			if (type == binding_type::sampler || type == binding_type::pointer)
 				cmd_list->SetGraphicsRootDescriptorTable(binding.root_param_index, {dh.gpu});
 			else if (type == binding_type::ubo)
-				cmd_list->SetGraphicsRootConstantBufferView(binding.root_param_index, dh.gpu + cmd.ubo_offset_index * D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+				cmd_list->SetGraphicsRootConstantBufferView(binding.root_param_index, dh.gpu);
 			else if (type == binding_type::ssbo)
 				cmd_list->SetGraphicsRootShaderResourceView(binding.root_param_index, dh.gpu);
 			else if (type == binding_type::uav)

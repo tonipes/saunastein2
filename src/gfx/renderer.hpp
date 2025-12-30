@@ -37,7 +37,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gfx/buffer_queue.hpp"
 #include "gfx/texture_queue.hpp"
 #include "gfx/proxy/proxy_manager.hpp"
-#include "gfx/shared_cbv.hpp"
 
 // misc
 #include "memory/bump_allocator.hpp"
@@ -156,7 +155,6 @@ namespace SFG
 		editor* _editor = nullptr;
 #endif
 
-		shared_cbv		_shared_cbv			   = {};
 		vector<barrier> _reuse_upload_barriers = {};
 		gfx_data		_gfx_data			   = {};
 		shader_data		_shaders			   = {};
