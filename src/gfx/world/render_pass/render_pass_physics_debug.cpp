@@ -204,31 +204,31 @@ namespace SFG
 			triangle_indices.read((void*)pfd.triangle_indices.get_mapped(), idx_count_triangle * sizeof(uint32));
 
 			barriers.push_back({
-				.resource	 = pfd.triangle_vertices.get_gpu(),
-				.flags		 = barrier_flags::baf_is_resource,
 				.from_states = resource_state::resource_state_vertex_cbv,
 				.to_states	 = resource_state::resource_state_copy_dest,
+				.resource	 = pfd.triangle_vertices.get_gpu(),
+				.flags		 = barrier_flags::baf_is_resource,
 			});
 
 			barriers.push_back({
-				.resource	 = pfd.triangle_indices.get_gpu(),
-				.flags		 = barrier_flags::baf_is_resource,
 				.from_states = resource_state::resource_state_index_buffer,
 				.to_states	 = resource_state::resource_state_copy_dest,
-			});
-
-			barriers_after.push_back({
-				.resource	 = pfd.triangle_vertices.get_gpu(),
-				.flags		 = barrier_flags::baf_is_resource,
-				.from_states = resource_state::resource_state_copy_dest,
-				.to_states	 = resource_state::resource_state_vertex_cbv,
-			});
-
-			barriers_after.push_back({
 				.resource	 = pfd.triangle_indices.get_gpu(),
 				.flags		 = barrier_flags::baf_is_resource,
+			});
+
+			barriers_after.push_back({
+				.from_states = resource_state::resource_state_copy_dest,
+				.to_states	 = resource_state::resource_state_vertex_cbv,
+				.resource	 = pfd.triangle_vertices.get_gpu(),
+				.flags		 = barrier_flags::baf_is_resource,
+			});
+
+			barriers_after.push_back({
 				.from_states = resource_state::resource_state_copy_dest,
 				.to_states	 = resource_state::resource_state_index_buffer,
+				.resource	 = pfd.triangle_indices.get_gpu(),
+				.flags		 = barrier_flags::baf_is_resource,
 			});
 		}
 
@@ -238,31 +238,31 @@ namespace SFG
 			line_indices.read((void*)pfd.line_indices.get_mapped(), idx_count_line * sizeof(uint32));
 
 			barriers.push_back({
-				.resource	 = pfd.line_vertices.get_gpu(),
-				.flags		 = barrier_flags::baf_is_resource,
 				.from_states = resource_state::resource_state_vertex_cbv,
 				.to_states	 = resource_state::resource_state_copy_dest,
+				.resource	 = pfd.line_vertices.get_gpu(),
+				.flags		 = barrier_flags::baf_is_resource,
 			});
 
 			barriers.push_back({
-				.resource	 = pfd.line_indices.get_gpu(),
-				.flags		 = barrier_flags::baf_is_resource,
 				.from_states = resource_state::resource_state_index_buffer,
 				.to_states	 = resource_state::resource_state_copy_dest,
-			});
-
-			barriers_after.push_back({
-				.resource	 = pfd.line_vertices.get_gpu(),
-				.flags		 = barrier_flags::baf_is_resource,
-				.from_states = resource_state::resource_state_copy_dest,
-				.to_states	 = resource_state::resource_state_vertex_cbv,
-			});
-
-			barriers_after.push_back({
 				.resource	 = pfd.line_indices.get_gpu(),
 				.flags		 = barrier_flags::baf_is_resource,
+			});
+
+			barriers_after.push_back({
+				.from_states = resource_state::resource_state_copy_dest,
+				.to_states	 = resource_state::resource_state_vertex_cbv,
+				.resource	 = pfd.line_vertices.get_gpu(),
+				.flags		 = barrier_flags::baf_is_resource,
+			});
+
+			barriers_after.push_back({
 				.from_states = resource_state::resource_state_copy_dest,
 				.to_states	 = resource_state::resource_state_index_buffer,
+				.resource	 = pfd.line_indices.get_gpu(),
+				.flags		 = barrier_flags::baf_is_resource,
 			});
 		}
 
@@ -384,17 +384,17 @@ namespace SFG
 		static_vector<barrier, 2> barriers;
 
 		barriers.push_back({
-			.resource	 = p.depth_texture,
-			.flags		 = barrier_flags::baf_is_texture,
 			.from_states = resource_state::resource_state_depth_read | resource_state::resource_state_ps_resource | resource_state::resource_state_non_ps_resource,
 			.to_states	 = resource_state::resource_state_common,
+			.resource	 = p.depth_texture,
+			.flags		 = barrier_flags::baf_is_texture,
 		});
 
 		barriers.push_back({
-			.resource	 = p.input_texture,
-			.flags		 = barrier_flags::baf_is_texture,
 			.from_states = resource_state::resource_state_render_target,
 			.to_states	 = resource_state::resource_state_ps_resource | resource_state::resource_state_non_ps_resource,
+			.resource	 = p.input_texture,
+			.flags		 = barrier_flags::baf_is_texture,
 		});
 
 		backend->cmd_barrier(cmd_buffer,

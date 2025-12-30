@@ -95,7 +95,7 @@ namespace SFG
 		// lifecycle
 		// -----------------------------------------------------------------------------
 
-		void init(const vector2ui16& size, texture_queue* tq, buffer_queue* bq);
+		void init(const vector2ui16& size, texture_queue* tq, buffer_queue* bq, gfx_id bind_layout, gfx_id bind_layout_compute);
 		void uninit();
 		void tick();
 

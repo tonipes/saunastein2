@@ -43,7 +43,7 @@ void CSMain(uint3 dtid : SV_DispatchThreadID)
     ConstantBuffer<particle_pass_data> pass_params = sfg_get_cbv<particle_pass_data>(sfg_rp_constant0);
     if (system_id >= pass_params.num_systems) return;
 
-    RWStructuredBuffer<particle_indirect_args> indirect_args     = sfg_get_rws_buffer<particle_indirect_args>(sfg_rp_constant5);
+    RWStructuredBuffer<particle_indirect_args> indirect_args     = sfg_get_rws_buffer<particle_indirect_args>(sfg_rp_constant1);
     indirect_args[system_id].vertex_count = 4;
     indirect_args[system_id].start_vertex = 0;
     indirect_args[system_id].instance_count = 0;

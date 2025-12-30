@@ -40,14 +40,14 @@
 void CSMain(uint3 dtid : SV_DispatchThreadID, uint3 gtid : SV_GroupThreadID)
 {
     // will be dispatched total_alive_count / 256, 1, 1
-    RWByteAddressBuffer counters = sfg_get_rwb_buffer(sfg_rp_constant7);
+    RWByteAddressBuffer counters = sfg_get_rwb_buffer(sfg_rp_constant3);
     uint thread_index = dtid.x;
 
     // initial run, 1 thread 0 alive.
     if(thread_index >= counters.Load(0))
         return;
     
-    StructuredBuffer<uint> alive_list_a = sfg_get_ssbo<uint>(sfg_rp_constant7);
+    StructuredBuffer<uint> alive_list_a = sfg_get_ssbo<uint>(sfg_rp_constant1);
     uint particle_index = alive_list_a[thread_index];
 
     RWStructuredBuffer<particle_state> states  = sfg_get_rws_buffer<particle_state>(sfg_rp_constant4);
@@ -65,7 +65,7 @@ void CSMain(uint3 dtid : SV_DispatchThreadID, uint3 gtid : SV_GroupThreadID)
         uint old_dead_count;
 
         // increment system's dead count.
-        RWStructuredBuffer<particle_system_data> system_data = sfg_get_rws_buffer<particle_system_data>(sfg_rp_constant2);
+        RWStructuredBuffer<particle_system_data> system_data = sfg_get_rws_buffer<particle_system_data>(sfg_rp_constant5);
         InterlockedAdd(system_data[system_id].dead_count, 1, old_dead_count);
 
         // find global dead index from local old_dead_count
@@ -73,7 +73,7 @@ void CSMain(uint3 dtid : SV_DispatchThreadID, uint3 gtid : SV_GroupThreadID)
         uint global_dead_index = system_id * max_particles + old_dead_count;
 
         // mark it as dead.
-        RWStructuredBuffer<uint> dead_indices = sfg_get_rws_buffer<uint>(sfg_rp_constant9);
+        RWStructuredBuffer<uint> dead_indices = sfg_get_rws_buffer<uint>(sfg_rp_constant6);
 
         if (old_dead_count < max_particles)
             dead_indices[global_dead_index] = particle_index;
@@ -91,7 +91,7 @@ void CSMain(uint3 dtid : SV_DispatchThreadID, uint3 gtid : SV_GroupThreadID)
     // write into alive_count_b.
     uint idx;
     counters.InterlockedAdd(4, 1, idx);
-    RWStructuredBuffer<uint> alive_list_b = sfg_get_rws_buffer<uint>(sfg_rp_constant8);
+    RWStructuredBuffer<uint> alive_list_b = sfg_get_rws_buffer<uint>(sfg_rp_constant2);
     alive_list_b[idx] = particle_index;
 
 }

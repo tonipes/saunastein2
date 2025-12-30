@@ -47,16 +47,6 @@ namespace SFG
 			uint32 instance_start;
 		};
 
-		struct indirect_dispatch
-		{
-			uint32 group_sim_x;
-			uint32 group_sim_y;
-			uint32 group_sim_z;
-			uint32 group_count_x;
-			uint32 group_count_y;
-			uint32 group_count_z;
-		};
-
 		struct ubo
 		{
 			matrix4x4 view_proj;
@@ -124,12 +114,6 @@ namespace SFG
 			uint32 group_count_z;
 		};
 
-		struct particle_counter
-		{
-			uint32 alive_count_a;
-			uint32 alive_count_b;
-		};
-
 		struct per_frame_data
 		{
 			buffer_gpu ubo							= {};
@@ -149,10 +133,16 @@ namespace SFG
 		};
 
 	public:
+		struct compute_params
+		{
+			uint8  frame_index;
+			gfx_id global_layout_compute;
+			gfx_id global_group;
+		};
+
 		struct render_params
 		{
 			uint8	  frame_index;
-			gfx_id	  global_layout_compute;
 			gfx_id	  global_layout;
 			gfx_id	  global_group;
 			gpu_index gpu_index_lighting;
@@ -162,7 +152,7 @@ namespace SFG
 		// lifecycle
 		// -----------------------------------------------------------------------------
 
-		void init();
+		void init(gfx_id bind_layout, gfx_id bind_layout_compute);
 		void uninit();
 
 		// -----------------------------------------------------------------------------
@@ -170,7 +160,7 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 
 		void prepare(uint8 frame_index, proxy_manager& pm, const view& main_camera_view);
-		void compute(uint8 frame_index);
+		void compute(const compute_params& p);
 		void render(const render_params& params);
 
 		// -----------------------------------------------------------------------------
@@ -189,13 +179,15 @@ namespace SFG
 
 	private:
 		per_frame_data _pfd[BACK_BUFFER_COUNT];
-		gfx_id		   _indirect_render_sig	  = 0;
-		gfx_id		   _indirect_dispatch_sig = 0;
 		gfx_id		   _shader_clear		  = NULL_GFX_ID;
 		gfx_id		   _shader_simulate		  = NULL_GFX_ID;
 		gfx_id		   _shader_emit			  = NULL_GFX_ID;
 		gfx_id		   _shader_write_count	  = NULL_GFX_ID;
 		gfx_id		   _shader_count		  = NULL_GFX_ID;
 		gfx_id		   _shader_swap			  = NULL_GFX_ID;
+		gfx_id		   _indirect_sig_dispatch = NULL_GFX_ID;
+		gfx_id		   _indirect_sig_draw	  = NULL_GFX_ID;
+		uint32		   _num_systems			  = 0;
+		uint8		   _buffers_init		  = 0;
 	};
 }

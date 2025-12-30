@@ -184,10 +184,10 @@ namespace SFG
 			const gfx_id target_texture = pass_data.texture;
 
 			_barriers.push_back({
-				.resource	 = target_texture,
-				.flags		 = barrier_flags::baf_is_texture,
 				.from_states = resource_state::resource_state_common,
 				.to_states	 = resource_state::resource_state_depth_write,
+				.resource	 = target_texture,
+				.flags		 = barrier_flags::baf_is_texture,
 			});
 		}
 
@@ -266,10 +266,10 @@ namespace SFG
 				continue;
 
 			_barriers.push_back({
-				.resource	 = target_texture,
-				.flags		 = barrier_flags::baf_is_texture,
 				.from_states = resource_state::resource_state_depth_write,
 				.to_states	 = resource_state::resource_state_common,
+				.resource	 = target_texture,
+				.flags		 = barrier_flags::baf_is_texture,
 			});
 		}
 

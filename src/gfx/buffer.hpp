@@ -105,7 +105,7 @@ namespace SFG
 		void copy(gfx_id cmd_buffer);
 		void copy_region(gfx_id cmd_buffer, size_t padding, size_t size);
 
-		inline gfx_id get_hw_staging() const
+		inline gfx_id get_staging() const
 		{
 			return _hw_staging;
 		}
@@ -114,9 +114,14 @@ namespace SFG
 			return _hw_gpu;
 		}
 
-		inline uint32 get_gpu_index() const
+		inline uint32 get_index() const
 		{
 			return _index;
+		}
+
+		inline uint32 get_index_secondary() const
+		{
+			return _index_secondary;
 		}
 
 		inline uint8* get_mapped() const

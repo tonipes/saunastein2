@@ -614,31 +614,31 @@ namespace SFG
 		static_vector<barrier, 4> barriers;
 
 		barriers.push_back({
+			.from_states = resource_state::resource_state_ps_resource,
+			.to_states	 = resource_state::resource_state_render_target,
 			.resource	 = pfd.rt_console,
 			.flags		 = barrier_flags::baf_is_texture,
-			.from_states = resource_state::resource_state_ps_resource,
-			.to_states	 = resource_state::resource_state_render_target,
 		});
 
 		barriers.push_back({
+			.from_states = resource_state::resource_state_ps_resource,
+			.to_states	 = resource_state::resource_state_render_target,
 			.resource	 = pfd.rt_post,
 			.flags		 = barrier_flags::baf_is_texture,
-			.from_states = resource_state::resource_state_ps_resource,
-			.to_states	 = resource_state::resource_state_render_target,
 		});
 
 		barriers.push_back({
-			.resource	 = pfd.buf_gui_idx.get_gpu(),
-			.flags		 = barrier_flags::baf_is_resource,
 			.from_states = resource_state::resource_state_index_buffer,
 			.to_states	 = resource_state::resource_state_copy_dest,
+			.resource	 = pfd.buf_gui_idx.get_gpu(),
+			.flags		 = barrier_flags::baf_is_resource,
 		});
 
 		barriers.push_back({
-			.resource	 = pfd.buf_gui_vtx.get_gpu(),
-			.flags		 = barrier_flags::baf_is_resource,
 			.from_states = resource_state::resource_state_vertex_cbv,
 			.to_states	 = resource_state::resource_state_copy_dest,
+			.resource	 = pfd.buf_gui_vtx.get_gpu(),
+			.flags		 = barrier_flags::baf_is_resource,
 		});
 
 		backend->cmd_barrier(cmd_buffer, {.barriers = barriers.data(), .barrier_count = static_cast<uint16>(barriers.size())});
@@ -651,17 +651,17 @@ namespace SFG
 			pfd.buf_gui_idx.copy_region(cmd_buffer, 0, pfd.counter_idx * sizeof(vekt::index));
 
 		barriers.push_back({
-			.resource	 = pfd.buf_gui_idx.get_gpu(),
-			.flags		 = barrier_flags::baf_is_resource,
 			.from_states = resource_state::resource_state_copy_dest,
 			.to_states	 = resource_state::resource_state_index_buffer,
+			.resource	 = pfd.buf_gui_idx.get_gpu(),
+			.flags		 = barrier_flags::baf_is_resource,
 		});
 
 		barriers.push_back({
-			.resource	 = pfd.buf_gui_vtx.get_gpu(),
-			.flags		 = barrier_flags::baf_is_resource,
 			.from_states = resource_state::resource_state_copy_dest,
 			.to_states	 = resource_state::resource_state_vertex_cbv,
+			.resource	 = pfd.buf_gui_vtx.get_gpu(),
+			.flags		 = barrier_flags::baf_is_resource,
 		});
 		backend->cmd_barrier(cmd_buffer, {.barriers = barriers.data(), .barrier_count = static_cast<uint16>(barriers.size())});
 		barriers.resize(0);
@@ -732,10 +732,10 @@ namespace SFG
 		END_DEBUG_EVENT(backend, cmd_buffer);
 
 		barriers.push_back({
-			.resource	 = rt_console,
-			.flags		 = barrier_flags::baf_is_texture,
 			.from_states = resource_state::resource_state_render_target,
 			.to_states	 = resource_state::resource_state_ps_resource,
+			.resource	 = rt_console,
+			.flags		 = barrier_flags::baf_is_texture,
 		});
 
 		backend->cmd_barrier(cmd_buffer, {.barriers = barriers.data(), .barrier_count = static_cast<uint16>(barriers.size())});
@@ -766,10 +766,10 @@ namespace SFG
 		END_DEBUG_EVENT(backend, cmd_buffer);
 
 		barriers.push_back({
-			.resource	 = rt_post,
-			.flags		 = barrier_flags::baf_is_texture,
 			.from_states = resource_state::resource_state_render_target,
 			.to_states	 = resource_state::resource_state_ps_resource,
+			.resource	 = rt_post,
+			.flags		 = barrier_flags::baf_is_texture,
 		});
 
 		backend->cmd_barrier(cmd_buffer, {.barriers = barriers.data(), .barrier_count = static_cast<uint16>(barriers.size())});

@@ -122,17 +122,17 @@ namespace SFG
 			uint32 extra_state = i == 1 ? resource_state_non_ps_resource : 0;
 
 			barriers.push_back({
-				.resource	 = txt,
-				.flags		 = barrier_flags::baf_is_texture,
 				.from_states = resource_state::resource_state_ps_resource | extra_state,
 				.to_states	 = resource_state::resource_state_render_target,
+				.resource	 = txt,
+				.flags		 = barrier_flags::baf_is_texture,
 			});
 
 			barriers_after.push_back({
-				.resource	 = txt,
-				.flags		 = barrier_flags::baf_is_texture,
 				.from_states = resource_state::resource_state_render_target,
 				.to_states	 = resource_state::resource_state_ps_resource | extra_state,
+				.resource	 = txt,
+				.flags		 = barrier_flags::baf_is_texture,
 			});
 		}
 

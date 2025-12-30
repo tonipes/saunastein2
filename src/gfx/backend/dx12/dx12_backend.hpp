@@ -309,8 +309,7 @@ namespace SFG
 		void cmd_bind_pipeline_compute(gfx_id cmd_list, const command_bind_pipeline_compute& command) const;
 		void cmd_draw_instanced(gfx_id cmd_list, const command_draw_instanced& command) const;
 		void cmd_draw_indexed_instanced(gfx_id cmd_list, const command_draw_indexed_instanced& command) const;
-		void cmd_draw_indexed_indirect(gfx_id cmd_list, const command_draw_indexed_indirect& command) const;
-		void cmd_draw_indirect(gfx_id cmd_list, const command_draw_indirect& command) const;
+		void cmd_execute_indirect(gfx_id cmd_list, const command_draw_indirect& command) const;
 		void cmd_bind_vertex_buffers(gfx_id cmd_list, const command_bind_vertex_buffers& command) const;
 		void cmd_bind_index_buffers(gfx_id cmd_list, const command_bind_index_buffers& command) const;
 		void cmd_copy_resource(gfx_id cmd_list, const command_copy_resource& command) const;
@@ -326,7 +325,6 @@ namespace SFG
 		void cmd_bind_group_compute(gfx_id cmd_list, const command_bind_group& command) const;
 		void cmd_dispatch(gfx_id cmd_list, const command_dispatch& command) const;
 		void cmd_barrier(gfx_id cmd_list, const command_barrier& command);
-		void cmd_barrier_uav(gfx_id cmd_list, const command_barrier& command);
 
 		inline gfx_id get_queue_gfx() const
 		{

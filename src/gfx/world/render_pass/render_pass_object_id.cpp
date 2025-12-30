@@ -113,10 +113,10 @@ namespace SFG
 		static_vector<barrier, 2> barriers;
 
 		barriers.push_back({
-			.resource	 = render_target,
-			.flags		 = barrier_flags::baf_is_texture,
 			.from_states = resource_state::resource_state_copy_source,
 			.to_states	 = resource_state::resource_state_render_target,
+			.resource	 = render_target,
+			.flags		 = barrier_flags::baf_is_texture,
 		});
 
 		backend->reset_command_buffer(cmd_buffer);
@@ -165,10 +165,10 @@ namespace SFG
 		END_DEBUG_EVENT(backend, cmd_buffer);
 
 		barriers.push_back({
-			.resource	 = render_target,
-			.flags		 = barrier_flags::baf_is_texture,
 			.from_states = resource_state::resource_state_render_target,
 			.to_states	 = resource_state::resource_state_copy_source,
+			.resource	 = render_target,
+			.flags		 = barrier_flags::baf_is_texture,
 		});
 		backend->cmd_barrier(cmd_buffer,
 							 {

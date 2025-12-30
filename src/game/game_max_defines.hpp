@@ -91,8 +91,8 @@ namespace SFG
 	// particles
 	// -----------------------------------------------------------------------------
 
-#define MAX_WORLD_COMP_PARTICLE_EMITTERS 1024
-#define MAX_WORLD_PARTICLES_PER_EMITTER	 5120
+#define MAX_WORLD_COMP_PARTICLE_EMITTERS 512
+#define MAX_WORLD_PARTICLES_PER_EMITTER	 1024
 #define MAX_WORLD_PARTICLES				 MAX_WORLD_COMP_PARTICLE_EMITTERS* MAX_WORLD_PARTICLES_PER_EMITTER
 
 	// -----------------------------------------------------------------------------

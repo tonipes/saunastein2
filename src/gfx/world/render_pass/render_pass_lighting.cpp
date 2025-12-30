@@ -137,10 +137,10 @@ namespace SFG
 		static_vector<barrier, 2> barriers;
 
 		barriers.push_back({
-			.resource	 = render_target,
-			.flags		 = barrier_flags::baf_is_texture,
 			.from_states = resource_state::resource_state_ps_resource | resource_state::resource_state_non_ps_resource,
 			.to_states	 = resource_state::resource_state_render_target,
+			.resource	 = render_target,
+			.flags		 = barrier_flags::baf_is_texture,
 		});
 
 		backend->reset_command_buffer(cmd_buffer);

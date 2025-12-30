@@ -200,10 +200,10 @@ namespace SFG
 
 		static_vector<barrier, 2> barriers;
 		barriers.push_back({
+			.from_states = resource_state::resource_state_common,
+			.to_states	 = resource_state::resource_state_uav,
 			.resource	 = ao_output,
 			.flags		 = barrier_flags::baf_is_texture,
-			.from_states = resource_state::resource_state_common,
-			.to_states	 = resource_state::resource_state_non_ps_resource,
 		});
 		backend->cmd_barrier(cmd_buffer, {.barriers = barriers.data(), .barrier_count = static_cast<uint16>(barriers.size())});
 
@@ -229,9 +229,9 @@ namespace SFG
 		barriers.resize(0);
 		barriers.push_back({
 			.resource = ao_output,
-			.flags	  = barrier_flags::baf_is_texture,
+			.flags	  = barrier_flags::baf_is_texture | barrier_flags::baf_is_uav,
 		});
-		backend->cmd_barrier_uav(cmd_buffer, {.barriers = barriers.data(), .barrier_count = static_cast<uint16>(barriers.size())});
+		backend->cmd_barrier(cmd_buffer, {.barriers = barriers.data(), .barrier_count = static_cast<uint16>(barriers.size())});
 
 		{
 
@@ -252,10 +252,10 @@ namespace SFG
 
 		barriers.resize(0);
 		barriers.push_back({
+			.from_states = resource_state::resource_state_uav,
+			.to_states	 = resource_state::resource_state_common,
 			.resource	 = ao_output,
 			.flags		 = barrier_flags::baf_is_texture,
-			.from_states = resource_state::resource_state_non_ps_resource,
-			.to_states	 = resource_state::resource_state_common,
 		});
 		backend->cmd_barrier(cmd_buffer, {.barriers = barriers.data(), .barrier_count = static_cast<uint16>(barriers.size())});
 

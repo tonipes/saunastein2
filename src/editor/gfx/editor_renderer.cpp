@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -85,9 +85,9 @@ namespace SFG
 
 			pfd.buf_pass_data.create({.size = sizeof(gui_pass_view), .flags = resource_flags::rf_cpu_visible | resource_flags::rf_constant_buffer, .debug_name = "cbv_editor_gui_pass"});
 			pfd.buf_gui_vtx.create({.size = sizeof(vekt::vertex) * 240000, .flags = resource_flags::rf_vertex_buffer | resource_flags::rf_cpu_visible, .debug_name = "editor_gui_vertex_stg"},
-											  {.size = sizeof(vekt::vertex) * 240000, .flags = resource_flags::rf_vertex_buffer | resource_flags::rf_gpu_only, .debug_name = "editor_gui_vertex_gpu"});
+								   {.size = sizeof(vekt::vertex) * 240000, .flags = resource_flags::rf_vertex_buffer | resource_flags::rf_gpu_only, .debug_name = "editor_gui_vertex_gpu"});
 			pfd.buf_gui_idx.create({.size = sizeof(vekt::index) * 320000, .flags = resource_flags::rf_index_buffer | resource_flags::rf_cpu_visible, .debug_name = "editor_gui_index_stg"},
-											  {.size = sizeof(vekt::index) * 320000, .flags = resource_flags::rf_index_buffer | resource_flags::rf_gpu_only, .debug_name = "editor_gui_index_gpu"});
+								   {.size = sizeof(vekt::index) * 320000, .flags = resource_flags::rf_index_buffer | resource_flags::rf_gpu_only, .debug_name = "editor_gui_index_gpu"});
 		}
 
 		_builder	  = new vekt::builder();
@@ -186,17 +186,17 @@ namespace SFG
 		{
 			static_vector<barrier, 2> barriers;
 			barriers.push_back({
-				.resource	 = pfd.buf_gui_idx.get_gpu(),
-				.flags		 = barrier_flags::baf_is_resource,
 				.from_states = resource_state::resource_state_index_buffer,
 				.to_states	 = resource_state::resource_state_copy_dest,
+				.resource	 = pfd.buf_gui_idx.get_gpu(),
+				.flags		 = barrier_flags::baf_is_resource,
 			});
 
 			barriers.push_back({
-				.resource	 = pfd.buf_gui_vtx.get_gpu(),
-				.flags		 = barrier_flags::baf_is_resource,
 				.from_states = resource_state::resource_state_vertex_cbv,
 				.to_states	 = resource_state::resource_state_copy_dest,
+				.resource	 = pfd.buf_gui_vtx.get_gpu(),
+				.flags		 = barrier_flags::baf_is_resource,
 			});
 			backend->cmd_barrier(cmd_buffer, {.barriers = barriers.data(), .barrier_count = 2});
 			barriers.resize(0);
@@ -208,17 +208,17 @@ namespace SFG
 				pfd.buf_gui_idx.copy_region(cmd_buffer, 0, pfd.counter_idx * sizeof(vekt::index));
 
 			barriers.push_back({
-				.resource	 = pfd.buf_gui_idx.get_gpu(),
-				.flags		 = barrier_flags::baf_is_resource,
 				.from_states = resource_state::resource_state_copy_dest,
 				.to_states	 = resource_state::resource_state_index_buffer,
+				.resource	 = pfd.buf_gui_idx.get_gpu(),
+				.flags		 = barrier_flags::baf_is_resource,
 			});
 
 			barriers.push_back({
-				.resource	 = pfd.buf_gui_vtx.get_gpu(),
-				.flags		 = barrier_flags::baf_is_resource,
 				.from_states = resource_state::resource_state_copy_dest,
 				.to_states	 = resource_state::resource_state_vertex_cbv,
+				.resource	 = pfd.buf_gui_vtx.get_gpu(),
+				.flags		 = barrier_flags::baf_is_resource,
 			});
 
 			backend->cmd_barrier(cmd_buffer, {.barriers = barriers.data(), .barrier_count = 2});
@@ -242,10 +242,10 @@ namespace SFG
 		// in barrier
 		{
 			barriers.push_back({
-				.resource	 = render_target,
-				.flags		 = barrier_flags::baf_is_texture,
 				.from_states = resource_state::resource_state_ps_resource | resource_state::resource_state_non_ps_resource,
 				.to_states	 = resource_state::resource_state_render_target,
+				.resource	 = render_target,
+				.flags		 = barrier_flags::baf_is_texture,
 			});
 
 			backend->cmd_barrier(cmd_buffer,
@@ -332,10 +332,10 @@ namespace SFG
 		{
 			barriers.resize(0);
 			barriers.push_back({
-				.resource	 = render_target,
-				.flags		 = barrier_flags::baf_is_texture,
 				.from_states = resource_state::resource_state_render_target,
 				.to_states	 = resource_state::resource_state_ps_resource | resource_state::resource_state_non_ps_resource,
+				.resource	 = render_target,
+				.flags		 = barrier_flags::baf_is_texture,
 			});
 
 			backend->cmd_barrier(cmd_buffer,

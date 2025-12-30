@@ -106,10 +106,10 @@ namespace SFG
 		static_vector<barrier, 1> barriers_after;
 
 		barriers.push_back({
-			.resource	 = depth_texture,
-			.flags		 = barrier_flags::baf_is_texture,
 			.from_states = resource_state::resource_state_common,
 			.to_states	 = resource_state::resource_state_depth_write,
+			.resource	 = depth_texture,
+			.flags		 = barrier_flags::baf_is_texture,
 		});
 
 		backend->reset_command_buffer(cmd_buffer);
@@ -156,10 +156,10 @@ namespace SFG
 
 		barriers.resize(0);
 		barriers.push_back({
-			.resource	 = depth_texture,
-			.flags		 = barrier_flags::baf_is_texture,
 			.from_states = resource_state::resource_state_depth_write,
 			.to_states	 = resource_state::resource_state_depth_read | resource_state::resource_state_ps_resource | resource_state::resource_state_non_ps_resource,
+			.resource	 = depth_texture,
+			.flags		 = barrier_flags::baf_is_texture,
 		});
 
 		backend->cmd_barrier(cmd_buffer,

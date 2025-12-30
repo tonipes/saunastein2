@@ -52,7 +52,7 @@ namespace SFG
 {
 	game_world_renderer::game_world_renderer(proxy_manager& pm, world& w) : _proxy_manager(pm), _world(w) {};
 
-	void game_world_renderer::init(const vector2ui16& size, texture_queue* tq, buffer_queue* bq)
+	void game_world_renderer::init(const vector2ui16& size, texture_queue* tq, buffer_queue* bq, gfx_id bind_layout, gfx_id bind_layout_compute)
 	{
 		gfx_backend* backend = gfx_backend::get();
 
@@ -179,7 +179,7 @@ namespace SFG
 		_pass_post.init(size);
 		_pass_forward.init(size);
 		_pass_canvas_2d.init(size);
-		_pass_particles.init();
+		_pass_particles.init(bind_layout, bind_layout_compute);
 
 #ifdef OBJECT_ID_PASS
 		_pass_object_id.init(size);
@@ -365,13 +365,13 @@ namespace SFG
 		const gpu_index gpu_index_bloom				 = _pass_bloom.get_output_gpu_index(frame_index);
 		const gpu_index gpu_index_depth_texture		 = _pass_pre_depth.get_output_gpu_index(frame_index);
 		const gpu_index gpu_index_ao_out			 = _pass_ssao.get_output_gpu_index(frame_index);
-		const gpu_index gpu_index_entities			 = pfd.entity_buffer.get_gpu_index();
-		const gpu_index gpu_index_shadow_data_buffer = pfd.shadow_data_buffer.get_gpu_index();
-		const gpu_index gpu_index_bones				 = pfd.bones_buffer.get_gpu_index();
-		const gpu_index gpu_index_point_lights		 = pfd.point_lights_buffer.get_gpu_index();
-		const gpu_index gpu_index_spot_lights		 = pfd.spot_lights_buffer.get_gpu_index();
-		const gpu_index gpu_index_dir_lights		 = pfd.dir_lights_buffer.get_gpu_index();
-		const gpu_index gpu_index_float_buffer		 = pfd.float_buffer.get_gpu_index();
+		const gpu_index gpu_index_entities			 = pfd.entity_buffer.get_index();
+		const gpu_index gpu_index_shadow_data_buffer = pfd.shadow_data_buffer.get_index();
+		const gpu_index gpu_index_bones				 = pfd.bones_buffer.get_index();
+		const gpu_index gpu_index_point_lights		 = pfd.point_lights_buffer.get_index();
+		const gpu_index gpu_index_spot_lights		 = pfd.spot_lights_buffer.get_index();
+		const gpu_index gpu_index_dir_lights		 = pfd.dir_lights_buffer.get_index();
+		const gpu_index gpu_index_float_buffer		 = pfd.float_buffer.get_index();
 
 		const static_vector<gpu_index, GBUFFER_COLOR_TEXTURES>& gpu_index_gbuffer_textures = _pass_opaque.get_output_gpu_index(frame_index);
 
@@ -422,7 +422,13 @@ namespace SFG
 			});
 		});
 
-		tasks.push_back([&] { _pass_particles.compute(frame_index); });
+		tasks.push_back([&] {
+			_pass_particles.compute({
+				.frame_index		   = frame_index,
+				.global_layout_compute = layout_global_compute,
+				.global_group		   = bind_group_global,
+			});
+		});
 
 #ifdef OBJECT_ID_PASS
 		tasks.push_back([&] {
@@ -516,11 +522,10 @@ namespace SFG
 
 		tasks.push_back([&] {
 			_pass_particles.render({
-				.frame_index		   = frame_index,
-				.global_layout_compute = layout_global_compute,
-				.global_layout		   = layout_global,
-				.global_group		   = bind_group_global,
-				.gpu_index_lighting	   = gpu_index_lighting,
+				.frame_index		= frame_index,
+				.global_layout		= layout_global,
+				.global_group		= bind_group_global,
+				.gpu_index_lighting = gpu_index_lighting,
 
 			});
 		});
@@ -532,7 +537,7 @@ namespace SFG
 		backend->submit_commands(queue_compute, &cmd_ssao, 1);
 		backend->queue_signal(queue_compute, &sem_ssao, &sem_ssao_val1, 1);
 
-		// submit lighting + forward + debugs, waits for ssao
+		// submit lighting + forward + particles + debugs, waits for ssao (and particles compute)
 		backend->queue_wait(queue_gfx, &sem_ssao, &sem_ssao_val1, 1);
 		backend->submit_commands(queue_gfx, &cmd_lighting, 1);
 		backend->submit_commands(queue_gfx, &cmd_particles, 1);
@@ -634,52 +639,52 @@ namespace SFG
 		static_vector<barrier, 7> barriers;
 
 		barriers.push_back({
+			.from_states = resource_state::resource_state_non_ps_resource,
+			.to_states	 = resource_state::resource_state_copy_dest,
 			.resource	 = pfd.bones_buffer.get_gpu(),
 			.flags		 = barrier_flags::baf_is_resource,
-			.from_states = resource_state::resource_state_non_ps_resource,
-			.to_states	 = resource_state::resource_state_copy_dest,
 		});
 
 		barriers.push_back({
+			.from_states = resource_state::resource_state_non_ps_resource,
+			.to_states	 = resource_state::resource_state_copy_dest,
 			.resource	 = pfd.entity_buffer.get_gpu(),
 			.flags		 = barrier_flags::baf_is_resource,
-			.from_states = resource_state::resource_state_non_ps_resource,
-			.to_states	 = resource_state::resource_state_copy_dest,
 		});
 
 		barriers.push_back({
+			.from_states = resource_state::resource_state_ps_resource,
+			.to_states	 = resource_state::resource_state_copy_dest,
 			.resource	 = pfd.dir_lights_buffer.get_gpu(),
 			.flags		 = barrier_flags::baf_is_resource,
-			.from_states = resource_state::resource_state_ps_resource,
-			.to_states	 = resource_state::resource_state_copy_dest,
 		});
 
 		barriers.push_back({
+			.from_states = resource_state::resource_state_ps_resource,
+			.to_states	 = resource_state::resource_state_copy_dest,
 			.resource	 = pfd.spot_lights_buffer.get_gpu(),
 			.flags		 = barrier_flags::baf_is_resource,
-			.from_states = resource_state::resource_state_ps_resource,
-			.to_states	 = resource_state::resource_state_copy_dest,
 		});
 
 		barriers.push_back({
+			.from_states = resource_state::resource_state_ps_resource,
+			.to_states	 = resource_state::resource_state_copy_dest,
 			.resource	 = pfd.point_lights_buffer.get_gpu(),
 			.flags		 = barrier_flags::baf_is_resource,
-			.from_states = resource_state::resource_state_ps_resource,
-			.to_states	 = resource_state::resource_state_copy_dest,
 		});
 
 		barriers.push_back({
+			.from_states = resource_state::resource_state_ps_resource,
+			.to_states	 = resource_state::resource_state_copy_dest,
 			.resource	 = pfd.shadow_data_buffer.get_gpu(),
 			.flags		 = barrier_flags::baf_is_resource,
-			.from_states = resource_state::resource_state_ps_resource,
-			.to_states	 = resource_state::resource_state_copy_dest,
 		});
 
 		barriers.push_back({
-			.resource	 = pfd.float_buffer.get_gpu(),
-			.flags		 = barrier_flags::baf_is_resource,
 			.from_states = resource_state::resource_state_ps_resource,
 			.to_states	 = resource_state::resource_state_copy_dest,
+			.resource	 = pfd.float_buffer.get_gpu(),
+			.flags		 = barrier_flags::baf_is_resource,
 		});
 
 		backend->cmd_barrier(cmd, {.barriers = barriers.data(), .barrier_count = static_cast<uint16>(barriers.size())});
@@ -701,52 +706,52 @@ namespace SFG
 
 		barriers.resize(0);
 		barriers.push_back({
+			.from_states = resource_state::resource_state_copy_dest,
+			.to_states	 = resource_state::resource_state_non_ps_resource,
 			.resource	 = pfd.bones_buffer.get_gpu(),
 			.flags		 = barrier_flags::baf_is_resource,
-			.from_states = resource_state::resource_state_copy_dest,
-			.to_states	 = resource_state::resource_state_non_ps_resource,
 		});
 
 		barriers.push_back({
+			.from_states = resource_state::resource_state_copy_dest,
+			.to_states	 = resource_state::resource_state_non_ps_resource,
 			.resource	 = pfd.entity_buffer.get_gpu(),
 			.flags		 = barrier_flags::baf_is_resource,
-			.from_states = resource_state::resource_state_copy_dest,
-			.to_states	 = resource_state::resource_state_non_ps_resource,
 		});
 
 		barriers.push_back({
+			.from_states = resource_state::resource_state_copy_dest,
+			.to_states	 = resource_state::resource_state_ps_resource,
 			.resource	 = pfd.dir_lights_buffer.get_gpu(),
 			.flags		 = barrier_flags::baf_is_resource,
-			.from_states = resource_state::resource_state_copy_dest,
-			.to_states	 = resource_state::resource_state_ps_resource,
 		});
 
 		barriers.push_back({
+			.from_states = resource_state::resource_state_copy_dest,
+			.to_states	 = resource_state::resource_state_ps_resource,
 			.resource	 = pfd.spot_lights_buffer.get_gpu(),
 			.flags		 = barrier_flags::baf_is_resource,
-			.from_states = resource_state::resource_state_copy_dest,
-			.to_states	 = resource_state::resource_state_ps_resource,
 		});
 
 		barriers.push_back({
+			.from_states = resource_state::resource_state_copy_dest,
+			.to_states	 = resource_state::resource_state_ps_resource,
 			.resource	 = pfd.point_lights_buffer.get_gpu(),
 			.flags		 = barrier_flags::baf_is_resource,
-			.from_states = resource_state::resource_state_copy_dest,
-			.to_states	 = resource_state::resource_state_ps_resource,
 		});
 
 		barriers.push_back({
+			.from_states = resource_state::resource_state_copy_dest,
+			.to_states	 = resource_state::resource_state_ps_resource,
 			.resource	 = pfd.shadow_data_buffer.get_gpu(),
 			.flags		 = barrier_flags::baf_is_resource,
-			.from_states = resource_state::resource_state_copy_dest,
-			.to_states	 = resource_state::resource_state_ps_resource,
 		});
 
 		barriers.push_back({
-			.resource	 = pfd.float_buffer.get_gpu(),
-			.flags		 = barrier_flags::baf_is_resource,
 			.from_states = resource_state::resource_state_copy_dest,
 			.to_states	 = resource_state::resource_state_ps_resource,
+			.resource	 = pfd.float_buffer.get_gpu(),
+			.flags		 = barrier_flags::baf_is_resource,
 		});
 
 		backend->cmd_barrier(cmd, {.barriers = barriers.data(), .barrier_count = static_cast<uint16>(barriers.size())});

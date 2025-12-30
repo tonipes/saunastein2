@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -93,10 +93,10 @@ namespace SFG
 												});
 
 			out_barriers.push_back({
-				.resource	 = buf.texture,
-				.flags		 = barrier_flags::baf_is_texture,
 				.from_states = resource_state::resource_state_copy_dest,
 				.to_states	 = buf.to_state,
+				.resource	 = buf.texture,
+				.flags		 = barrier_flags::baf_is_texture,
 			});
 
 			for (const texture_buffer& b : buf.buffers)
@@ -116,4 +116,4 @@ namespace SFG
 		return _requests.empty();
 	}
 
-} 
+}

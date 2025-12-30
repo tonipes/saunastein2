@@ -2409,11 +2409,17 @@ namespace SFG
 		commandSignatureDesc.NumArgumentDescs			  = 1;
 		commandSignatureDesc.ByteStride					  = struct_size;
 
-		bind_layout& bl = _bind_layouts.get(bind_layout_id);
+		ID3D12RootSignature* root = NULL;
+
+		if (bind_layout_id != NULL_GFX_ID)
+		{
+			bind_layout& bl = _bind_layouts.get(bind_layout_id);
+			root			= bl.root_signature.Get();
+		}
 
 		try
 		{
-			_device->CreateCommandSignature(&commandSignatureDesc, bl.root_signature.Get(), IID_PPV_ARGS(&s.signature));
+			_device->CreateCommandSignature(&commandSignatureDesc, root, IID_PPV_ARGS(&s.signature));
 		}
 		catch (HrException e)
 		{
@@ -2435,11 +2441,17 @@ namespace SFG
 		commandSignatureDesc.NumArgumentDescs			  = 1;
 		commandSignatureDesc.ByteStride					  = struct_size;
 
-		bind_layout& bl = _bind_layouts.get(bind_layout_id);
+		ID3D12RootSignature* root = NULL;
+
+		if (bind_layout_id != NULL_GFX_ID)
+		{
+			bind_layout& bl = _bind_layouts.get(bind_layout_id);
+			root			= bl.root_signature.Get();
+		}
 
 		try
 		{
-			_device->CreateCommandSignature(&commandSignatureDesc, bl.root_signature.Get(), IID_PPV_ARGS(&s.signature));
+			_device->CreateCommandSignature(&commandSignatureDesc, root, IID_PPV_ARGS(&s.signature));
 		}
 		catch (HrException e)
 		{
@@ -2451,7 +2463,7 @@ namespace SFG
 	void dx12_backend::destroy_indirect_signature(gfx_id sig)
 	{
 		indirect_signature& s = _indirect_signatures.get(sig);
-		s.signature->Release();
+		s.signature.Reset();
 		_indirect_signatures.remove(sig);
 	}
 
@@ -2901,17 +2913,11 @@ namespace SFG
 		cmd_list->DrawIndexedInstanced(cmd.index_count_per_instance, cmd.instance_count, cmd.start_index_location, cmd.base_vertex_location, cmd.start_instance_location);
 	}
 
-	void dx12_backend::cmd_draw_indexed_indirect(gfx_id cmd_id, const command_draw_indexed_indirect& cmd) const
+	void dx12_backend::cmd_execute_indirect(gfx_id cmd_id, const command_draw_indirect& cmd) const
 	{
 		const command_buffer&		buffer	 = _command_buffers.get(cmd_id);
 		ID3D12GraphicsCommandList4* cmd_list = buffer.ptr.Get();
-		cmd_list->ExecuteIndirect(_indirect_signatures.get(cmd.indirect_signature).signature.Get(), cmd.count, _resources.get(cmd.indirect_buffer).ptr->GetResource(), cmd.indirect_buffer_offset, NULL, 0);
-	}
 
-	void dx12_backend::cmd_draw_indirect(gfx_id cmd_id, const command_draw_indirect& cmd) const
-	{
-		const command_buffer&		buffer	 = _command_buffers.get(cmd_id);
-		ID3D12GraphicsCommandList4* cmd_list = buffer.ptr.Get();
 		cmd_list->ExecuteIndirect(_indirect_signatures.get(cmd.indirect_signature).signature.Get(), cmd.count, _resources.get(cmd.indirect_buffer).ptr->GetResource(), cmd.indirect_buffer_offset, NULL, 0);
 	}
 
@@ -3211,39 +3217,10 @@ namespace SFG
 				res			 = txt.ptr->GetResource();
 			}
 
-			barriers.push_back(CD3DX12_RESOURCE_BARRIER::Transition(res, get_resource_state(barrier.from_states), get_resource_state(barrier.to_states)));
-		}
-
-		if (!barriers.empty())
-			cmd_list->ResourceBarrier(static_cast<UINT>(barriers.size()), barriers.data());
-	}
-
-	void dx12_backend::cmd_barrier_uav(gfx_id cmd_id, const command_barrier& cmd)
-	{
-		command_buffer&				buffer	 = _command_buffers.get(cmd_id);
-		ID3D12GraphicsCommandList4* cmd_list = buffer.ptr.Get();
-
-		static_vector<CD3DX12_RESOURCE_BARRIER, 128> barriers;
-
-		for (uint16 i = 0; i < cmd.barrier_count; i++)
-		{
-			const barrier& barrier = cmd.barriers[i];
-
-			ID3D12Resource* res = nullptr;
-
-			if (barrier.flags.is_set(barrier_flags::baf_is_resource))
-				res = _resources.get(barrier.resource).ptr->GetResource();
-			else if (barrier.flags.is_set(barrier_flags::baf_is_swapchain))
-			{
-				SFG_ASSERT(false);
-			}
+			if (barrier.flags.is_set(barrier_flags::baf_is_uav))
+				barriers.push_back(CD3DX12_RESOURCE_BARRIER::UAV(res));
 			else
-			{
-				texture& txt = _textures.get(barrier.resource);
-				res			 = txt.ptr->GetResource();
-			}
-
-			barriers.push_back(CD3DX12_RESOURCE_BARRIER::UAV(res));
+				barriers.push_back(CD3DX12_RESOURCE_BARRIER::Transition(res, get_resource_state(barrier.from_states), get_resource_state(barrier.to_states)));
 		}
 
 		if (!barriers.empty())

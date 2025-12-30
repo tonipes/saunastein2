@@ -120,22 +120,22 @@ namespace SFG
 
 		backend->reset_command_buffer(cmd_buffer);
 
-		static_vector<barrier, 2> barriers_uav;
-		barriers_uav.push_back({
-			.resource = output,
-			.flags	  = barrier_flags::baf_is_texture,
-		});
-
 		static_vector<barrier, 2> barriers;
 		barriers.push_back({
+			.from_states = resource_state::resource_state_common,
+			.to_states	 = resource_state::resource_state_uav,
 			.resource	 = output,
 			.flags		 = barrier_flags::baf_is_texture,
-			.from_states = resource_state::resource_state_common,
-			.to_states	 = resource_state::resource_state_non_ps_resource,
 		});
 
 		backend->cmd_barrier(cmd_buffer, {.barriers = barriers.data(), .barrier_count = static_cast<uint16>(barriers.size())});
+
 		barriers.resize(0);
+		barriers.push_back({
+			.resource = output,
+			.flags	  = barrier_flags::baf_is_texture | barrier_flags::baf_is_uav,
+		});
+
 		backend->cmd_bind_layout_compute(cmd_buffer, {.layout = p.global_layout_compute});
 		backend->cmd_bind_group_compute(cmd_buffer, {.group = p.global_group});
 		backend->cmd_bind_constants_compute(cmd_buffer, {.data = (uint8*)&gpu_index_ubo, .offset = constant_index_rp_constant0, .count = 1, .param_index = rpi_constants});
@@ -169,7 +169,7 @@ namespace SFG
 				downsample_output = pfd.gpu_index_downsample_uav[i + 1];
 			}
 
-			backend->cmd_barrier_uav(cmd_buffer, {.barriers = barriers_uav.data(), .barrier_count = static_cast<uint16>(barriers_uav.size())});
+			backend->cmd_barrier(cmd_buffer, {.barriers = barriers.data(), .barrier_count = static_cast<uint16>(barriers.size())});
 		}
 
 		backend->cmd_bind_pipeline_compute(cmd_buffer, {.pipeline = shader_bloom_upsample});
@@ -201,14 +201,14 @@ namespace SFG
 				upsample_output = pfd.gpu_index_upsample_uav[i - 1];
 			}
 
-			backend->cmd_barrier_uav(cmd_buffer, {.barriers = barriers_uav.data(), .barrier_count = static_cast<uint16>(barriers_uav.size())});
+			backend->cmd_barrier(cmd_buffer, {.barriers = barriers.data(), .barrier_count = static_cast<uint16>(barriers.size())});
 		}
 
 		barriers.push_back({
+			.from_states = resource_state::resource_state_uav,
+			.to_states	 = resource_state::resource_state_common,
 			.resource	 = output,
 			.flags		 = barrier_flags::baf_is_texture,
-			.from_states = resource_state::resource_state_non_ps_resource,
-			.to_states	 = resource_state::resource_state_common,
 		});
 		backend->cmd_barrier(cmd_buffer, {.barriers = barriers.data(), .barrier_count = static_cast<uint16>(barriers.size())});
 		barriers.resize(0);

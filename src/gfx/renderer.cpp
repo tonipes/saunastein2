@@ -113,7 +113,7 @@ namespace SFG
 #endif
 
 		_world_renderer = new game_world_renderer(_proxy_manager, _world);
-		_world_renderer->init(_base_size, &_texture_queue, &_buffer_queue);
+		_world_renderer->init(_base_size, &_texture_queue, &_buffer_queue, s_bind_layout_global, s_bind_layout_global_compute);
 
 		// pfd
 		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
@@ -337,10 +337,10 @@ namespace SFG
 
 		static_vector<barrier, 1> barriers;
 		barriers.push_back({
-			.resource	 = swapchain_rt,
-			.flags		 = barrier_flags::baf_is_swapchain,
 			.from_states = resource_state::resource_state_present,
 			.to_states	 = resource_state::resource_state_render_target,
+			.resource	 = swapchain_rt,
+			.flags		 = barrier_flags::baf_is_swapchain,
 		});
 
 		backend->cmd_barrier(cmd_list,
@@ -419,10 +419,10 @@ namespace SFG
 		}
 
 		barriers.push_back({
-			.resource	 = swapchain_rt,
-			.flags		 = barrier_flags::baf_is_swapchain,
 			.from_states = resource_state::resource_state_render_target,
 			.to_states	 = resource_state::resource_state_present,
+			.resource	 = swapchain_rt,
+			.flags		 = barrier_flags::baf_is_swapchain,
 		});
 
 		backend->cmd_barrier(cmd_list,
