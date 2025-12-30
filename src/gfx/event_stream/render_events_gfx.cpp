@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -114,14 +114,12 @@ namespace SFG
 		stream << shader_index;
 		stream << priority;
 
-		for (resource_handle h : textures)
+		for (resource_id h : textures)
 		{
-			stream << h.index;
-			stream << h.generation;
+			stream << h;
 		}
 
-		stream << sampler.index;
-		stream << sampler.generation;
+		stream << sampler;
 
 #ifndef SFG_STRIP_DEBUG_NAMES
 		stream << name;
@@ -143,13 +141,10 @@ namespace SFG
 
 		for (uint32 i = 0; i < txt_sz; i++)
 		{
-			resource_handle& h = textures[i];
-			stream >> h.index;
-			stream >> h.generation;
+			stream >> textures[i];
 		}
 
-		stream >> sampler.index;
-		stream >> sampler.generation;
+		stream >> sampler;
 
 #ifndef SFG_STRIP_DEBUG_NAMES
 		stream >> name;
@@ -286,6 +281,39 @@ namespace SFG
 	void render_event_update_material_sampler::deserialize(istream& stream)
 	{
 		stream >> sampler;
+	}
+
+	void render_event_update_material_data::serialize(ostream& stream) const
+	{
+		stream << padding;
+		stream << size;
+		stream.write_raw((uint8*)data, static_cast<size_t>(size));
+	}
+
+	void render_event_update_material_data::deserialize(istream& stream)
+	{
+		stream >> padding;
+		stream >> size;
+		data = stream.get_data_current();
+		stream.skip_by(size);
+	}
+
+	void render_event_update_material_textures::serialize(ostream& stream) const
+	{
+		stream << start;
+		stream << static_cast<uint32>(textures.size());
+		for (resource_id id : textures)
+			stream << id;
+	}
+
+	void render_event_update_material_textures::deserialize(istream& stream)
+	{
+		stream >> start;
+		uint32 sz = 0;
+		stream >> sz;
+		textures.resize(sz);
+		for (uint32 i = 0; i < sz; i++)
+			stream >> textures[i];
 	}
 
 }

@@ -281,6 +281,15 @@ namespace SFG
 		buffer_queue&  _buffer_queue;
 		texture_queue& _texture_queue;
 
+		struct material_update
+		{
+			chunk_handle32 data		   = {};
+			uint32		   padding	   = 0;
+			world_id	   material_id = 0;
+			uint8		   is_texture  = 0;
+			uint8		   count	   = 0;
+		};
+
 		using textures_type			 = static_array<render_proxy_texture, MAX_WORLD_TEXTURES>;
 		using samplers_type			 = static_array<render_proxy_sampler, MAX_WORLD_SAMPLERS>;
 		using materials_type		 = static_array<render_proxy_material, MAX_WORLD_MATERIALS>;
@@ -298,6 +307,7 @@ namespace SFG
 		using dir_lights_type		 = static_array<render_proxy_dir_light, MAX_WORLD_COMP_DIR_LIGHTS>;
 		using canvas_type			 = static_array<render_proxy_canvas, MAX_WORLD_COMP_CANVAS>;
 		using emitters_type			 = static_array<render_proxy_particle_emitter, MAX_WORLD_COMP_PARTICLE_EMITTERS>;
+		using material_updates_type	 = static_vector<material_update, 124>;
 
 		destroy_bucket _destroy_bucket[BACK_BUFFER_COUNT + 1];
 
@@ -319,6 +329,7 @@ namespace SFG
 		dir_lights_type*		_dir_lights		   = nullptr;
 		canvas_type*			_canvases		   = nullptr;
 		emitters_type*			_emitters		   = nullptr;
+		material_updates_type*	_material_updates  = nullptr;
 
 		world_id _main_camera_trait		 = NULL_WORLD_ID;
 		uint32	 _peak_particle_emitters = 0;

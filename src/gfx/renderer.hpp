@@ -31,7 +31,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 // gfx
 #include "gfx/common/gfx_constants.hpp"
 #include "gfx/common/semaphore_data.hpp"
-#include "gfx/common/render_data.hpp"
 #include "gfx/common/barrier_description.hpp"
 #include "gfx/buffer.hpp"
 #include "gfx/buffer_queue.hpp"

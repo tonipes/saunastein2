@@ -45,6 +45,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "math/math.hpp"
 #include "math/random.hpp"
 
+#include "gfx/common/common_material.hpp"
+
 #ifdef SFG_TOOLMODE
 #include "editor/editor.hpp"
 #endif
@@ -75,6 +77,23 @@ namespace SFG
 		component_manager& cm = w.get_comp_manager();
 		resource_manager&  rm = w.get_resource_manager();
 
+		const resource_handle particle_material = rm.add_resource<material>("game_particle_mat0"_hs);
+		material&			  particle_mat		= rm.get_resource<material>(particle_material);
+
+		const resource_handle additive_shader = rm.get_default_particle_additive_shader();
+		particle_mat.create_manual(w,
+								   {
+									   .name		   = "game_mat_0",
+									   .pass_mode	   = material_pass_mode::particle,
+									   .handle		   = particle_material,
+									   .shader		   = additive_shader,
+									   .sampler		   = {},
+									   .textures	   = nullptr,
+									   .textures_count = 0,
+									   .data		   = nullptr,
+									   .data_size	   = 0,
+								   });
+
 		const world_handle	   particle_handle		= em.create_entity("particle");
 		const world_handle	   comp_particle_handle = cm.add_component<comp_particle_emitter>(particle_handle);
 		comp_particle_emitter& emitter				= cm.get_component<comp_particle_emitter>(comp_particle_handle);
@@ -94,7 +113,8 @@ namespace SFG
 										.max_rotation_deg	= 0.0f,
 										.min_lifetime		= 1.0f,
 										.max_lifetime		= 2.0f,
-									});
+									},
+									particle_material);
 
 		const resource_handle mdl = rm.get_resource_handle_by_hash<model>(TO_SIDC("assets/character/character.stkmodel"));
 		if (!rm.is_valid<model>(mdl))

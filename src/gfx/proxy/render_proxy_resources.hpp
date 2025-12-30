@@ -57,10 +57,11 @@ namespace SFG
 
 	struct render_proxy_material
 	{
-		buffer_gpu	buffers[BACK_BUFFER_COUNT];
-		buffer_gpu	texture_buffers[BACK_BUFFER_COUNT] = {};
-		resource_id handle							   = {};
-		uint8		status							   = render_proxy_status::rps_inactive;
+		buffer_gpu buffers[BACK_BUFFER_COUNT];
+		buffer_gpu texture_buffers[BACK_BUFFER_COUNT] = {};
+		uint32	   buffer_size						  = 0;
+		uint8	   texture_count					  = 0;
+		uint8	   status							  = render_proxy_status::rps_inactive;
 	};
 
 	struct render_proxy_material_runtime

@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -108,12 +108,12 @@ namespace SFG
 #ifndef SFG_STRIP_DEBUG_NAMES
 		string name = "";
 #endif
-		static_vector<resource_handle, MAX_MATERIAL_TEXTURES> textures;
-		resource_handle										  sampler = {};
-		span<uint8>											  data	  = {};
-		uint32												  flags;
-		resource_id											  shader_index;
-		uint16												  priority = 0;
+		static_vector<resource_id, MAX_MATERIAL_TEXTURES> textures;
+		resource_id										  sampler	   = NULL_RESOURCE_ID;
+		resource_id										  shader_index = NULL_RESOURCE_ID;
+		span<uint8>										  data		   = {};
+		uint32											  flags;
+		uint16											  priority = 0;
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);
@@ -122,6 +122,25 @@ namespace SFG
 	struct render_event_update_material_sampler
 	{
 		resource_id sampler = {};
+
+		void serialize(ostream& stream) const;
+		void deserialize(istream& stream);
+	};
+
+	struct render_event_update_material_textures
+	{
+		uint8											  start = 0;
+		static_vector<resource_id, MAX_MATERIAL_TEXTURES> textures;
+
+		void serialize(ostream& stream) const;
+		void deserialize(istream& stream);
+	};
+
+	struct render_event_update_material_data
+	{
+		uint32		padding = 0;
+		const void* data	= nullptr;
+		uint32		size	= 0;
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);

@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -46,6 +46,49 @@ namespace SFG
 		SFG_ASSERT(!_flags.is_set(material_flags::material_flags_created));
 	}
 
+	void material::create_manual(world& w, const material_creation_params& p)
+	{
+		render_event_stream& stream = w.get_render_stream();
+
+		SFG_ASSERT(!p.handle.is_null() && !p.shader.is_null());
+
+		render_event_material ev = {};
+		ev.sampler				 = p.sampler.index;
+		ev.shader_index			 = p.shader.index;
+
+#ifndef SFG_STRIP_DEBUG_NAMES
+		ev.name = p.name;
+#endif
+		_flags = 0;
+		_flags.set(material_flags::material_flags_created);
+		_flags.set(material_flags::material_flags_is_gbuffer, p.pass_mode == material_pass_mode::gbuffer);
+		_flags.set(material_flags::material_flags_is_forward, p.pass_mode == material_pass_mode::forward);
+		_flags.set(material_flags::material_flags_is_gui, p.pass_mode == material_pass_mode::gui);
+		_flags.set(material_flags::material_flags_is_particle, p.pass_mode == material_pass_mode::particle);
+
+		for (uint8 i = 0; i < p.textures_count; i++)
+		{
+			ev.textures.push_back(p.textures[i].index);
+		}
+
+		if (p.data && p.data_size != 0)
+		{
+			ev.data.data = reinterpret_cast<uint8*>(SFG_MALLOC(p.data_size));
+			ev.data.size = p.data_size;
+			if (ev.data.data != nullptr)
+				SFG_MEMCPY(ev.data.data, p.data, p.data_size);
+		}
+
+		ev.flags = _flags.value();
+
+		stream.add_event(
+			{
+				.index		= static_cast<uint32>(p.handle.index),
+				.event_type = render_event_type::create_material,
+			},
+			ev);
+	}
+
 	void material::create_from_loader(const material_raw& raw, world& w, resource_handle handle, resource_handle sampler)
 	{
 		SFG_ASSERT(!_flags.is_set(material_flags::material_flags_created));
@@ -59,10 +102,8 @@ namespace SFG
 		if (!raw.name.empty())
 			_name = alloc.allocate_text(raw.name);
 #endif
-		gfx_backend* backend = gfx_backend::get();
 
 		const uint8 texture_count = static_cast<uint8>(raw.textures.size());
-		_material_data			  = raw.material_data;
 		_flags.set(material_flags::material_flags_is_gbuffer, raw.pass_mode == material_pass_mode::gbuffer);
 		_flags.set(material_flags::material_flags_is_forward, raw.pass_mode == material_pass_mode::forward);
 		_flags.set(material_flags::material_flags_is_alpha_cutoff, raw.use_alpha_cutoff);
@@ -71,19 +112,20 @@ namespace SFG
 		SFG_ASSERT(raw.shader != 0);
 
 		render_event_material stg = {};
-		stg.data.data			  = reinterpret_cast<uint8*>(SFG_MALLOC(_material_data.get_size()));
+		stg.data.data			  = reinterpret_cast<uint8*>(SFG_MALLOC(raw.material_data.get_size()));
 
 		if (stg.data.data)
-			SFG_MEMCPY(stg.data.data, _material_data.get_raw(), _material_data.get_size());
-		stg.data.size = _material_data.get_size();
+			SFG_MEMCPY(stg.data.data, raw.material_data.get_raw(), raw.material_data.get_size());
+
+		stg.data.size = raw.material_data.get_size();
 		stg.flags	  = _flags.value();
 		stg.priority  = raw.draw_priority;
-		stg.sampler	  = sampler;
+		stg.sampler	  = sampler.index;
 
 		for (string_id sid : raw.textures)
 		{
 			const resource_handle handle = rm.get_resource_handle_by_hash<texture>(sid);
-			stg.textures.push_back(handle);
+			stg.textures.push_back(handle.index);
 		}
 		const resource_handle shader_handle = rm.get_resource_handle_by_hash<shader>(raw.shader);
 		stg.shader_index					= shader_handle.index;
@@ -119,26 +161,47 @@ namespace SFG
 			.index		= static_cast<uint32>(handle.index),
 			.event_type = render_event_type::destroy_material,
 		});
-
-		_material_data.destroy();
 	}
 
-	void material::update_data(world& w, resource_handle handle)
+	void material::update_data(world& w, resource_handle handle, size_t padding, const void* data, size_t size)
 	{
-		w.get_render_stream().add_event({
-			.index		= static_cast<uint32>(handle.index),
-			.event_type = render_event_type::update_material,
-		});
+		const render_event_update_material_data ev = {
+			.padding = static_cast<uint32>(padding),
+			.data	 = data,
+			.size	 = static_cast<uint32>(size),
+		};
+
+		w.get_render_stream().add_event(
+			{
+				.index		= static_cast<uint32>(handle.index),
+				.event_type = render_event_type::update_material_data,
+			},
+			ev);
 	}
 	void material::update_sampler(world& w, resource_handle material_own_handle, resource_handle sampler)
 	{
-		render_event_update_material_sampler ev = {};
-		ev.sampler								= sampler.index;
-
+		const render_event_update_material_sampler ev = {
+			.sampler = sampler.index,
+		};
 		w.get_render_stream().add_event(
 			{
 				.index		= static_cast<uint32>(material_own_handle.index),
 				.event_type = render_event_type::update_material_sampler,
+			},
+			ev);
+	}
+	void material::update_textures(world& w, resource_handle material_own_handle, const resource_handle* textures, uint8 start, uint8 count)
+	{
+		render_event_update_material_textures ev = {};
+		ev.textures.resize(count);
+		ev.start = start;
+		for (uint8 i = 0; i < count; i++)
+			ev.textures[i] = textures[i].index;
+
+		w.get_render_stream().add_event(
+			{
+				.index		= static_cast<uint32>(material_own_handle.index),
+				.event_type = render_event_type::update_material_textures,
 			},
 			ev);
 	}

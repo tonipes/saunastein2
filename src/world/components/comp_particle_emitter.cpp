@@ -55,10 +55,13 @@ namespace SFG
 	{
 	}
 
-	void comp_particle_emitter::set_emit_properties(world& w, const particle_emit_properties& p)
+	void comp_particle_emitter::set_emit_properties(world& w, const particle_emit_properties& p, resource_handle material)
 	{
-		_emit_props								= p;
-		render_event_update_particle_emitter ev = {.props = p};
+		_emit_props									  = p;
+		const render_event_update_particle_emitter ev = {
+			.props	  = p,
+			.material = material.index,
+		};
 		w.get_render_stream().add_event({.index = _header.own_handle.index, .event_type = render_event_type::update_particle_emitter}, ev);
 	}
 

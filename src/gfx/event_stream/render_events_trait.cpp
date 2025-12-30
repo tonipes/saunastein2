@@ -207,11 +207,13 @@ namespace SFG
 
 	void render_event_update_particle_emitter::serialize(ostream& stream) const
 	{
+		stream << material;
 		stream << props;
 	}
 
 	void render_event_update_particle_emitter::deserialize(istream& stream)
 	{
+		stream >> material;
 		stream >> props;
 	}
 

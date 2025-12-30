@@ -151,7 +151,8 @@ namespace SFG
 
 	struct render_event_update_particle_emitter
 	{
-		particle_emit_properties props = {};
+		particle_emit_properties props	  = {};
+		resource_id				 material = NULL_RESOURCE_ID;
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);
@@ -159,7 +160,8 @@ namespace SFG
 
 	struct render_event_create_particle_emitter
 	{
-		world_id entity = 0;
+		world_id	entity	 = NULL_WORLD_ID;
+		resource_id material = NULL_RESOURCE_ID;
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);

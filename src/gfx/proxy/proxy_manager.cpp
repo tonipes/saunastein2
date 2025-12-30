@@ -65,6 +65,7 @@ namespace SFG
 		_dir_lights		   = new dir_lights_type();
 		_canvases		   = new canvas_type();
 		_emitters		   = new emitters_type();
+		_material_updates  = new material_updates_type();
 	}
 
 	proxy_manager::~proxy_manager()
@@ -86,6 +87,7 @@ namespace SFG
 		delete _dir_lights;
 		delete _canvases;
 		delete _emitters;
+		delete _material_updates;
 	}
 
 	void proxy_manager::reset()
@@ -107,6 +109,7 @@ namespace SFG
 		_dir_lights->reset();
 		_canvases->reset();
 		_emitters->reset();
+		_material_updates->resize(0);
 	}
 
 	void proxy_manager::init()
@@ -194,6 +197,34 @@ namespace SFG
 			header.deserialize(in);
 			process_event(header, in, frame_index);
 		}
+
+		uint8 all_clear = 1;
+		for (material_update& u : *_material_updates)
+		{
+			if (u.count >= BACK_BUFFER_COUNT)
+				continue;
+			all_clear = 0;
+
+			if (frame_index != u.count)
+				continue;
+
+			render_proxy_material& mat		 = get_material(u.material_id);
+			const size_t		   padding	 = static_cast<size_t>(u.padding);
+			const uint8*		   data		 = _aux_memory.get<uint8>(u.data);
+			const size_t		   data_size = static_cast<size_t>(u.data.size);
+
+			if (u.is_texture)
+				mat.texture_buffers[frame_index].buffer_data(padding, data, data_size);
+			else
+				mat.buffers[frame_index].buffer_data(padding, data, data_size);
+
+			u.count++;
+			if (u.count == BACK_BUFFER_COUNT)
+				_aux_memory.free(u.data);
+		}
+
+		if (all_clear)
+			_material_updates->resize(0);
 	}
 
 	void proxy_manager::flush_destroys(bool force)
@@ -850,20 +881,6 @@ namespace SFG
 					rt.shader_handle = ev.new_id;
 			}
 		}
-		else if (type == render_event_type::update_material_sampler)
-		{
-			render_event_update_material_sampler ev = {};
-			ev.deserialize(stream);
-
-			render_proxy_sampler& smp = get_sampler(ev.sampler);
-			SFG_ASSERT(smp.status == render_proxy_status::rps_active);
-
-			render_proxy_material& proxy = get_material(index);
-			SFG_ASSERT(proxy.status == render_proxy_status::rps_active);
-
-			render_proxy_material_runtime& runtime = get_material_runtime(index);
-			runtime.gpu_index_sampler			   = backend->get_sampler_gpu_index(smp.hw);
-		}
 		else if (type == render_event_type::create_material)
 		{
 			render_event_material ev = {};
@@ -872,18 +889,19 @@ namespace SFG
 			render_proxy_material&		   proxy   = get_material(index);
 			render_proxy_material_runtime& runtime = get_material_runtime(index);
 			proxy.status						   = render_proxy_status::rps_active;
-			proxy.handle						   = index;
 			runtime.flags						   = ev.flags;
 			runtime.shader_handle				   = ev.shader_index;
 			runtime.draw_priority				   = ev.priority;
 
-			if ((ev.sampler.is_null() && !ev.textures.empty()) || (!ev.sampler.is_null() && ev.textures.empty()))
+			if ((ev.sampler == NULL_RESOURCE_ID && !ev.textures.empty()) || (ev.sampler != NULL_RESOURCE_ID && ev.textures.empty()))
 			{
 				SFG_ASSERT(false);
 			}
 
 			for (uint8 i = 0; i < BACK_BUFFER_COUNT; i++)
 			{
+				proxy.buffer_size = static_cast<uint32>(ev.data.size);
+
 				if (ev.data.size != 0)
 				{
 					proxy.buffers[i].create({
@@ -900,10 +918,12 @@ namespace SFG
 
 				const uint32 texture_buffer_size = static_cast<uint32>(sizeof(gpu_index) * ev.textures.size());
 
-				if (!ev.sampler.is_null())
+				if (ev.sampler != NULL_RESOURCE_ID)
 				{
-					runtime.gpu_index_sampler = backend->get_sampler_gpu_index(get_sampler(ev.sampler.index).hw);
+					runtime.gpu_index_sampler = backend->get_sampler_gpu_index(get_sampler(ev.sampler).hw);
 				}
+
+				proxy.texture_count = static_cast<uint32>(ev.textures.size());
 
 				if (texture_buffer_size != 0)
 				{
@@ -919,9 +939,9 @@ namespace SFG
 
 					size_t offset = 0;
 
-					for (resource_handle txt_handle : ev.textures)
+					for (resource_id txt_id : ev.textures)
 					{
-						const render_proxy_texture& txt = get_texture(txt_handle.index);
+						const render_proxy_texture& txt = get_texture(txt_id);
 						SFG_ASSERT(txt.status == render_proxy_status::rps_active);
 						proxy.texture_buffers[i].buffer_data(offset, &txt.heap_index, sizeof(gpu_index));
 						offset += sizeof(gpu_index);
@@ -931,17 +951,70 @@ namespace SFG
 
 			SFG_FREE(ev.data.data);
 		}
-		else if (type == render_event_type::update_material)
+		else if (type == render_event_type::update_material_sampler)
 		{
-			render_event_material ev = {};
+			render_event_update_material_sampler ev = {};
+			ev.deserialize(stream);
+
+			render_proxy_sampler& smp = get_sampler(ev.sampler);
+			SFG_ASSERT(smp.status == render_proxy_status::rps_active);
+
+			render_proxy_material& proxy = get_material(index);
+			SFG_ASSERT(proxy.status == render_proxy_status::rps_active);
+
+			render_proxy_material_runtime& runtime = get_material_runtime(index);
+			runtime.gpu_index_sampler			   = backend->get_sampler_gpu_index(smp.hw);
+		}
+		else if (type == render_event_type::update_material_textures)
+		{
+			render_event_update_material_textures ev = {};
 			ev.deserialize(stream);
 
 			render_proxy_material& proxy = get_material(index);
 
-			for (uint8 i = 0; i < BACK_BUFFER_COUNT; i++)
+			SFG_ASSERT(proxy.texture_buffers[0].get_gpu() != NULL_GFX_ID);
+			SFG_ASSERT(proxy.texture_count != 0 && proxy.texture_count >= ev.start + static_cast<uint8>(ev.textures.size()));
+
+			const material_update update = {
+				.data		 = _aux_memory.allocate<uint8>(ev.textures.size() * sizeof(gpu_index)),
+				.padding	 = static_cast<uint32>(ev.start) * sizeof(gpu_index),
+				.material_id = index,
+				.is_texture	 = 0,
+				.count		 = 0,
+			};
+
+			uint8* ptr	  = _aux_memory.get<uint8>(update.data);
+			size_t offset = 0;
+			for (resource_id id : ev.textures)
 			{
-				// gotta queue them for update.
+				const render_proxy_texture& txt = get_texture(id);
+				SFG_ASSERT(txt.status == render_proxy_status::rps_active);
+				SFG_MEMCPY(ptr, &txt.heap_index, sizeof(gpu_index));
+				offset += sizeof(gpu_index);
 			}
+
+			_material_updates->push_back(update);
+		}
+		else if (type == render_event_type::update_material_data)
+		{
+			render_event_update_material_data ev = {};
+			ev.deserialize(stream);
+
+			render_proxy_material& proxy = get_material(index);
+			SFG_ASSERT(proxy.buffers[0].get_gpu() != NULL_GFX_ID);
+			SFG_ASSERT(proxy.buffer_size != 0 && proxy.buffer_size >= ev.padding + ev.size);
+
+			const material_update update = {
+				.data		 = _aux_memory.allocate<uint8>(ev.size),
+				.padding	 = ev.padding,
+				.material_id = index,
+				.is_texture	 = 0,
+				.count		 = 0,
+			};
+			uint8* ptr = _aux_memory.get<uint8>(update.data);
+			SFG_MEMCPY(ptr, ev.data, static_cast<size_t>(ev.size));
+
+			_material_updates->push_back(update);
 		}
 		else if (type == render_event_type::destroy_material)
 		{
@@ -1151,6 +1224,7 @@ namespace SFG
 			render_proxy_particle_emitter& proxy = _emitters->get(index);
 			proxy.status						 = render_proxy_status::rps_active;
 			proxy.entity						 = ev.entity;
+			proxy.material						 = ev.material;
 			_peak_particle_emitters				 = math::max(_peak_particle_emitters, index);
 		}
 		else if (type == render_event_type::remove_particle_emitter)
@@ -1170,6 +1244,7 @@ namespace SFG
 			render_event_update_particle_emitter ev	   = {};
 			ev.deserialize(stream);
 			proxy.emit_props = ev.props;
+			proxy.material	 = ev.material;
 		}
 	}
 

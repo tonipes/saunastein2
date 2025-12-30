@@ -54,7 +54,7 @@ namespace SFG
 		// comp
 		// -----------------------------------------------------------------------------
 
-		void set_emit_properties(world& w, const particle_emit_properties& p);
+		void set_emit_properties(world& w, const particle_emit_properties& p, resource_handle material);
 		void restart(world& w);
 
 		// -----------------------------------------------------------------------------

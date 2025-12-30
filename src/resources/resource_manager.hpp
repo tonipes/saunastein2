@@ -438,6 +438,11 @@ namespace SFG
 			return _default_gui_sdf_mat;
 		}
 
+		inline resource_handle get_default_particle_additive_shader() const
+		{
+			return _default_particle_additive_shader;
+		}
+
 		// -----------------------------------------------------------------------------
 		// iteration
 		// -----------------------------------------------------------------------------

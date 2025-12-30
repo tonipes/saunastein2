@@ -24,9 +24,16 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISE
 OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "render_data.hpp"
+#pragma once
 
 namespace SFG
 {
+	enum class material_pass_mode
+	{
+		gbuffer,
+		forward,
+		particle,
+		gui,
+	};
 
 }
