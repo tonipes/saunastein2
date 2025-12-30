@@ -996,7 +996,7 @@ namespace SFG
 			if (desc.flags.is_set(resource_flags::rf_gpu_write))
 			{
 				const D3D12_UNORDERED_ACCESS_VIEW_DESC uav = {
-					.Format		   = DXGI_FORMAT_R32_TYPELESS,
+					.Format		   = DXGI_FORMAT_UNKNOWN,
 					.ViewDimension = D3D12_UAV_DIMENSION_BUFFER,
 					.Buffer =
 						{

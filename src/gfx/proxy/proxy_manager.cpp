@@ -1145,8 +1145,13 @@ namespace SFG
 		}
 		else if (type == render_event_type::create_particle_emitter)
 		{
+			render_event_create_particle_emitter ev = {};
+			ev.deserialize(stream);
+
 			render_proxy_particle_emitter& proxy = _emitters->get(index);
 			proxy.status						 = render_proxy_status::rps_active;
+			proxy.entity						 = ev.entity;
+			_peak_particle_emitters				 = math::max(_peak_particle_emitters, index);
 		}
 		else if (type == render_event_type::remove_particle_emitter)
 		{
@@ -1157,6 +1162,7 @@ namespace SFG
 		{
 			render_proxy_particle_emitter& proxy = _emitters->get(index);
 			proxy.last_emitted					 = 0.0f;
+			proxy.current_life					 = 0.0f;
 		}
 		else if (type == render_event_type::update_particle_emitter)
 		{

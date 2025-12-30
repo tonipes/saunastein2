@@ -215,4 +215,14 @@ namespace SFG
 		stream >> props;
 	}
 
+	void render_event_create_particle_emitter::serialize(ostream& stream) const
+	{
+		stream << entity;
+	}
+
+	void render_event_create_particle_emitter::deserialize(istream& stream)
+	{
+		stream >> entity;
+	}
+
 }

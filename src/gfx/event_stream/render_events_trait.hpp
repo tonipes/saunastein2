@@ -156,4 +156,12 @@ namespace SFG
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);
 	};
+
+	struct render_event_create_particle_emitter
+	{
+		world_id entity = 0;
+
+		void serialize(ostream& stream) const;
+		void deserialize(istream& stream);
+	};
 }

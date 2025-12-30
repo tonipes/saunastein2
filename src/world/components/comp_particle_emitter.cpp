@@ -35,11 +35,15 @@ namespace SFG
 {
 	void comp_particle_emitter::on_add(world& w)
 	{
-		w.get_render_stream().add_event({.index = _header.own_handle.index, .event_type = render_event_type::create_particle_emitter});
+		w.get_entity_manager().add_render_proxy(_header.entity);
+		render_event_create_particle_emitter ev = {};
+		ev.entity								= _header.entity.index;
+		w.get_render_stream().add_event({.index = _header.own_handle.index, .event_type = render_event_type::create_particle_emitter}, ev);
 	}
 
 	void comp_particle_emitter::on_remove(world& w)
 	{
+		w.get_entity_manager().remove_render_proxy(_header.entity);
 		w.get_render_stream().add_event({.index = _header.own_handle.index, .event_type = render_event_type::remove_particle_emitter});
 	}
 
@@ -53,7 +57,7 @@ namespace SFG
 
 	void comp_particle_emitter::set_emit_properties(world& w, const particle_emit_properties& p)
 	{
-		_emit_props							 = p;
+		_emit_props								= p;
 		render_event_update_particle_emitter ev = {.props = p};
 		w.get_render_stream().add_event({.index = _header.own_handle.index, .event_type = render_event_type::update_particle_emitter}, ev);
 	}

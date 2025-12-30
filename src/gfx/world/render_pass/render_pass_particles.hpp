@@ -57,7 +57,7 @@ namespace SFG
 			uint32 group_count_z;
 		};
 
-		struct pass_params
+		struct ubo
 		{
 			matrix4x4 view_proj;
 			vector4	  cam_pos_and_delta;
@@ -124,6 +124,12 @@ namespace SFG
 			uint32 group_count_z;
 		};
 
+		struct particle_counter
+		{
+			uint32 alive_count_a;
+			uint32 alive_count_b;
+		};
+
 		struct per_frame_data
 		{
 			buffer_gpu ubo							= {};
@@ -137,6 +143,7 @@ namespace SFG
 			buffer	   alive_list_b					= {};
 			buffer	   dead_indices					= {};
 			buffer	   instance_data				= {};
+			buffer	   counters						= {};
 			gfx_id	   cmd_buffer					= NULL_GFX_ID;
 			gfx_id	   cmd_buffer_compute			= NULL_GFX_ID;
 		};

@@ -145,7 +145,9 @@ namespace SFG
 	struct render_proxy_particle_emitter
 	{
 		particle_emit_properties emit_props	  = {};
+		world_id				 entity		  = {};
 		float					 last_emitted = 0.0f;
+		float					 current_life = 0.0f;
 		render_proxy_status		 status		  = render_proxy_status::rps_inactive;
 	};
 }

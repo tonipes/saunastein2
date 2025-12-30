@@ -41,6 +41,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "world/components/comp_animation_controller.hpp"
 #include "world/components/comp_light.hpp"
 #include "world/components/comp_ambient.hpp"
+#include "world/components/comp_particle_emitter.hpp"
 #include "math/math.hpp"
 #include "math/random.hpp"
 
@@ -73,6 +74,27 @@ namespace SFG
 		entity_manager&	   em = w.get_entity_manager();
 		component_manager& cm = w.get_comp_manager();
 		resource_manager&  rm = w.get_resource_manager();
+
+		const world_handle	   particle_handle		= em.create_entity("particle");
+		const world_handle	   comp_particle_handle = cm.add_component<comp_particle_emitter>(particle_handle);
+		comp_particle_emitter& emitter				= cm.get_component<comp_particle_emitter>(comp_particle_handle);
+		emitter.set_emit_properties(w,
+									{
+										.emitter_lifetime	= 0.0f,
+										.wait_between_emits = 1.0f,
+										.min_particle_count = 10,
+										.max_particle_count = 20,
+										.min_pos_offset		= vector3::zero,
+										.max_pos_offset		= vector3::zero,
+										.min_vel_offset		= vector3::up,
+										.max_vel_offset		= vector3::up,
+										.min_color			= color::red,
+										.max_color			= color::red,
+										.min_rotation_deg	= 0.0f,
+										.max_rotation_deg	= 0.0f,
+										.min_lifetime		= 1.0f,
+										.max_lifetime		= 2.0f,
+									});
 
 		const resource_handle mdl = rm.get_resource_handle_by_hash<model>(TO_SIDC("assets/character/character.stkmodel"));
 		if (!rm.is_valid<model>(mdl))
@@ -194,7 +216,6 @@ namespace SFG
 
 			em.set_entity_position(root, vector3(x, 0.0f, z));
 		}
-
 
 		for (uint32 i = 0; i < 10; i++)
 		{

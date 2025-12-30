@@ -127,6 +127,11 @@ namespace SFG
 			return _aux_memory;
 		}
 
+		inline auto get_particle_emitters()
+		{
+			return _emitters;
+		}
+
 		inline auto get_mesh_instances()
 		{
 			return _mesh_instances;
@@ -180,6 +185,11 @@ namespace SFG
 		inline world_id get_main_camera() const
 		{
 			return _main_camera_trait;
+		}
+
+		inline uint32 get_peak_particle_emitters() const
+		{
+			return _peak_particle_emitters + 1;
 		}
 
 		inline uint32 get_peak_mesh_instances() const
@@ -310,16 +320,17 @@ namespace SFG
 		canvas_type*			_canvases		   = nullptr;
 		emitters_type*			_emitters		   = nullptr;
 
-		world_id _main_camera_trait	  = NULL_WORLD_ID;
-		uint32	 _peak_mesh_instances = 0;
-		uint32	 _peak_point_lights	  = 0;
-		uint32	 _peak_spot_lights	  = 0;
-		uint32	 _peak_dir_lights	  = 0;
-		uint32	 _count_dir_lights	  = 0;
-		uint32	 _count_spot_lights	  = 0;
-		uint32	 _count_point_lights  = 0;
-		uint32	 _peak_entities		  = 0;
-		uint32	 _peak_canvases		  = 0;
-		uint8	 _ambient_exists	  = 0;
+		world_id _main_camera_trait		 = NULL_WORLD_ID;
+		uint32	 _peak_particle_emitters = 0;
+		uint32	 _peak_mesh_instances	 = 0;
+		uint32	 _peak_point_lights		 = 0;
+		uint32	 _peak_spot_lights		 = 0;
+		uint32	 _peak_dir_lights		 = 0;
+		uint32	 _count_dir_lights		 = 0;
+		uint32	 _count_spot_lights		 = 0;
+		uint32	 _count_point_lights	 = 0;
+		uint32	 _peak_entities			 = 0;
+		uint32	 _peak_canvases			 = 0;
+		uint8	 _ambient_exists		 = 0;
 	};
 }
