@@ -63,6 +63,7 @@ struct vs_input
 struct vs_output
 {
     float4 pos : SV_POSITION;
+    float4 color : COLOR0;
     float2 uv : TEXCOORD4;
 };
 
@@ -124,6 +125,7 @@ vs_output VSMain(uint vid : SV_VertexID, uint iid : SV_InstanceID)
 
     o.pos =  mul(pass_params.view_proj, float4(world_pos, 1.0f));
     o.uv   = k_uvs[vid];
+    o.color = unpack_rgba8_unorm(p.color);
     return o;
 }
 

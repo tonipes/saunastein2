@@ -30,6 +30,7 @@
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #include "layout_defines_compute.hlsl"
 #include "particles.hlsl"
+#include "packing_utils.hlsl"
 
 // ----------------------------------------------
 // pass 2 - 1 thread per alive particle.abort
@@ -84,8 +85,19 @@ void CSMain(uint3 dtid : SV_DispatchThreadID, uint3 gtid : SV_GroupThreadID)
     // integrate & store
     float3 pos = state.position_and_age.xyz;
     float3 vel = state.velocity_and_lifetime.xyz;
+    float2 rotation_angular_velocity = unpack_half2x16(state.rotation_angular_velocity);
+    float2 size_and_size_velocity = unpack_half2x16(state.size_and_size_velocity);
+    rotation_angular_velocity.x += rotation_angular_velocity.y * delta;
+    size_and_size_velocity.x += size_and_size_velocity.y * delta;
     pos += vel * delta;
+    state.rotation_angular_velocity = pack_half2x16(rotation_angular_velocity);
+    state.size_and_size_velocity = pack_half2x16(size_and_size_velocity);
     state.position_and_age = float4(pos.x, pos.y, pos.z, age);
+   
+    float4 col = unpack_rgba8_unorm(state.color);
+    col.w += state.opacity_velocity * delta;
+    state.color = pack_rgba8_unorm(col);
+
     states[particle_index] = state;
 
     // write into alive_count_b.

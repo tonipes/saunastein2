@@ -27,6 +27,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 #include "common/size_definitions.hpp"
 #include "math/vector3.hpp"
+#include "math/vector2.hpp"
 #include "math/color.hpp"
 
 namespace SFG
@@ -36,20 +37,23 @@ namespace SFG
 
 	struct particle_emit_properties
 	{
-		float	emitter_lifetime   = 0.0f;
-		float	wait_between_emits = 0.0f;
-		uint32	min_particle_count = 0;
-		uint32	max_particle_count = 0;
-		vector3 min_pos_offset	   = vector3::zero;
-		vector3 max_pos_offset	   = vector3::zero;
-		vector3 min_vel_offset	   = vector3::zero;
-		vector3 max_vel_offset	   = vector3::zero;
-		color	min_color		   = color::white;
-		color	max_color		   = color::white;
-		float	min_rotation_deg   = 0.0f;
-		float	max_rotation_deg   = 0.0f;
-		float	min_lifetime	   = 0.0f;
-		float	max_lifetime	   = 0.0f;
+		float	emitter_lifetime		 = 0.0f;
+		float	wait_between_emits		 = 0.0f;
+		uint32	min_particle_count		 = 1;
+		uint32	max_particle_count		 = 1;
+		vector3 min_pos_offset			 = vector3::zero;
+		vector3 max_pos_offset			 = vector3::zero;
+		vector3 min_vel_offset			 = vector3::zero;
+		vector3 max_vel_offset			 = vector3::zero;
+		color	min_color				 = color::white;
+		color	max_color				 = color::white;
+		vector2 min_max_opacity_velocity = vector2::zero;
+		vector2 min_max_rotation_deg	 = vector2::zero;
+		vector2 min_max_angular_velocity = vector2::zero;
+		vector2 min_max_lifetime		 = vector2::one;
+		vector2 min_max_size			 = vector2::one;
+		vector2 min_max_size_velocity	 = vector2::zero;
+
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);

@@ -113,5 +113,14 @@ namespace SFG
 			uint32_t b3 = pack_unorm8(oy, offsetRange);
 			return (b0) | (b1 << 8) | (b2 << 16) | (b3 << 24);
 		}
+
+		static inline uint32_t pack4_unorm8(float tx, float ty, float ox, float oy)
+		{
+			uint32_t b0 = pack_unorm8(tx, 1.0f);
+			uint32_t b1 = pack_unorm8(ty, 1.0f);
+			uint32_t b2 = pack_unorm8(ox, 1.0f);
+			uint32_t b3 = pack_unorm8(oy, 1.0f);
+			return (b0) | (b1 << 8) | (b2 << 16) | (b3 << 24);
+		}
 	};
 }

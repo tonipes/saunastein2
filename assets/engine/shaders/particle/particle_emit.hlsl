@@ -31,6 +31,7 @@
 #include "layout_defines_compute.hlsl"
 #include "random.hlsl"
 #include "particles.hlsl"
+#include "packing_utils.hlsl"
 
 // ----------------------------------------------
 // pass 1 - runs 64 threads per system
@@ -93,22 +94,40 @@
         float random_vel_y = emit.min_vel.y + random01(seed * 1664595u) * (emit.max_vel.y - emit.min_vel.y);
         float random_vel_z = emit.min_vel.z + random01(seed * 1664125u) * (emit.max_vel.z - emit.min_vel.z);
 
-        float random_c_x = emit.min_color.x + random01(seed * 1661525u) * (emit.max_color.x - emit.min_color.x);
-        float random_c_y = emit.min_color.y + random01(seed * 1662525u) * (emit.max_color.y - emit.min_color.y);
-        float random_c_z = emit.min_color.z + random01(seed * 1666525u) * (emit.max_color.z - emit.min_color.z);
-        float random_c_w = emit.min_color.w + random01(seed * 1664585u) * (emit.max_color.w - emit.min_color.w);
+        float4 min_color = emit.min_color;
+        float4 max_color = emit.max_color;
+
+        float random_c_x = min_color.x + random01(seed * 1661525u) * (max_color.x - min_color.x);
+        float random_c_y = min_color.y + random01(seed * 1662525u) * (max_color.y - min_color.y);
+        float random_c_z = min_color.z + random01(seed * 1666525u) * (max_color.z - min_color.z);
+        float random_c_w = min_color.w + random01(seed * 1664585u) * (max_color.w - min_color.w);
 
         float random_lifetime = emit.min_pos.w +
                                 random01(seed * 1650212u) * (emit.max_pos.w - emit.min_pos.w);
 
+
+        float2 min_max_size = emit.min_max_size_and_size_velocity.xy;
+        float2 min_max_size_velocity = emit.min_max_size_and_size_velocity.zw;
+        
+        float random_size = min_max_size.x + random01(seed * 165243u) * (min_max_size.y - min_max_size.x);
+        float random_size_velocity = min_max_size_velocity.x + random01(seed * 168875u) * (min_max_size_velocity.y - min_max_size_velocity.x);
+
+        float2 min_max_angular_velocity = emit.min_max_angular_and_opacity_velocity.xy;
+        float random_angular_velocity = min_max_angular_velocity.x + random01(seed * 15768u) * (min_max_angular_velocity.y - min_max_angular_velocity.x);
         float random_rotation = emit.min_vel.w + random01(seed * 165242u) * (emit.max_vel.w - emit.min_vel.w);
+
+        float2 min_max_opacity_velocity = emit.min_max_angular_and_opacity_velocity.zw;
+        float random_opacity_velocity = min_max_opacity_velocity.x + random01(seed * 166752u) * (min_max_opacity_velocity.y - min_max_opacity_velocity.x);
+
 
         // write particle state and mark alive.
         particle_state state = (particle_state)0;
         state.position_and_age = float4(random_pos_x, random_pos_y, random_pos_z, 0.0f);
         state.velocity_and_lifetime = float4(random_vel_x, random_vel_y, random_vel_z, random_lifetime);
-        state.color = float4(random_c_x, random_c_y, random_c_z, random_c_w);
-        state.rotation = random_rotation;
+        state.size_and_size_velocity = pack_half2x16(float2(random_size, random_size_velocity));
+        state.color = pack_rgba8_unorm(float4(random_c_x, random_c_y, random_c_z, random_c_w));
+        state.rotation_angular_velocity = pack_half2x16(float2(random_rotation, random_angular_velocity));
+        state.opacity_velocity = random_opacity_velocity;
         state.system_id = system_id;
         states[emitted_index] = state;
 

@@ -27,6 +27,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "render_pass_particles.hpp"
 #include "math/math.hpp"
 #include "math/random.hpp"
+#include "common/packed_size.hpp"
 
 // gfx
 #include "gfx/backend/backend.hpp"
@@ -336,7 +337,6 @@ namespace SFG
 	{
 		ZoneScoped;
 		per_frame_data& pfd = _pfd[frame_index];
-
 		_alloc.reset();
 		_draw_stream.prepare(_alloc, MAX_WORLD_COMP_PARTICLE_EMITTERS);
 		_num_systems = 0;
@@ -418,14 +418,18 @@ namespace SFG
 			const vector3 base_pos = e.model.get_translation();
 			const vector3 min_pos  = base_pos + p.emit_props.min_pos_offset;
 			const vector3 max_pos  = base_pos + p.emit_props.max_pos_offset;
+			const vector4 min_col  = vector4(p.emit_props.min_color.x, p.emit_props.min_color.y, p.emit_props.min_color.z, p.emit_props.min_color.w);
+			const vector4 max_col  = vector4(p.emit_props.max_color.x, p.emit_props.max_color.y, p.emit_props.max_color.z, p.emit_props.max_color.w);
 
 			args = {
-				.min_color = vector4(p.emit_props.min_color.x, p.emit_props.min_color.y, p.emit_props.min_color.z, p.emit_props.min_color.w),
-				.max_color = vector4(p.emit_props.max_color.x, p.emit_props.max_color.y, p.emit_props.max_color.z, p.emit_props.max_color.w),
-				.min_pos   = vector4(min_pos.x, min_pos.y, min_pos.z, p.emit_props.min_lifetime),
-				.max_pos   = vector4(max_pos.x, max_pos.y, max_pos.z, p.emit_props.max_lifetime),
-				.min_vel   = vector4(p.emit_props.min_vel_offset.x, p.emit_props.min_vel_offset.y, p.emit_props.min_vel_offset.z, DEG_2_RAD * p.emit_props.min_rotation_deg),
-				.max_vel   = vector4(p.emit_props.max_vel_offset.x, p.emit_props.max_vel_offset.y, p.emit_props.max_vel_offset.z, DEG_2_RAD * p.emit_props.max_rotation_deg),
+				.min_color							  = min_col,
+				.max_color							  = max_col,
+				.min_max_size_and_size_velocity		  = vector4(p.emit_props.min_max_size.x, p.emit_props.min_max_size.y, p.emit_props.min_max_size_velocity.x, p.emit_props.min_max_size_velocity.y),
+				.min_max_angular_and_opacity_velocity = vector4(DEG_2_RAD * p.emit_props.min_max_angular_velocity.x, DEG_2_RAD * p.emit_props.min_max_angular_velocity.y, p.emit_props.min_max_opacity_velocity.x, p.emit_props.min_max_opacity_velocity.y),
+				.min_pos							  = vector4(min_pos.x, min_pos.y, min_pos.z, p.emit_props.min_max_lifetime.x),
+				.max_pos							  = vector4(max_pos.x, max_pos.y, max_pos.z, p.emit_props.min_max_lifetime.y),
+				.min_vel							  = vector4(p.emit_props.min_vel_offset.x, p.emit_props.min_vel_offset.y, p.emit_props.min_vel_offset.z, DEG_2_RAD * p.emit_props.min_max_rotation_deg.x),
+				.max_vel							  = vector4(p.emit_props.max_vel_offset.x, p.emit_props.max_vel_offset.y, p.emit_props.max_vel_offset.z, DEG_2_RAD * p.emit_props.min_max_rotation_deg.y),
 			};
 
 			_sim_state.emit_arguments.buffer_data(sizeof(particle_emit_args) * num_emitters, &args, sizeof(particle_emit_args));
@@ -541,7 +545,6 @@ namespace SFG
 		gfx_backend*	backend	   = gfx_backend::get();
 		per_frame_data& pfd		   = _pfd[p.frame_index];
 		const gfx_id	cmd_buffer = pfd.cmd_buffer_compute;
-
 		if (_num_systems == 0)
 		{
 			backend->close_command_buffer(cmd_buffer);
@@ -902,7 +905,6 @@ namespace SFG
 	void render_pass_particles::render(const render_params& p)
 	{
 		ZoneScoped;
-
 		gfx_backend*	backend	   = gfx_backend::get();
 		per_frame_data& pfd		   = _pfd[p.frame_index];
 		const gfx_id	cmd_buffer = pfd.cmd_buffer;

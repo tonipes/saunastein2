@@ -75,9 +75,9 @@ void CSMain(uint3 dtid : SV_DispatchThreadID)
     RWStructuredBuffer<particle_instance_data> instance_data    = sfg_get_rws_buffer<particle_instance_data>(sfg_rp_constant5);
     particle_instance_data pid = (particle_instance_data)0;
 
-    float rot = states[particle_index].rotation;
-    float size = 1.0f;
-    uint rot_and_size = pack_half2x16(float2(rot, size));
+    float2 rot_angular_velocity = unpack_half2x16(states[particle_index].rotation_angular_velocity);
+    float2 size_and_size_velocity = unpack_half2x16(states[particle_index].size_and_size_velocity);
+    uint rot_and_size = pack_half2x16(float2(rot_angular_velocity.x, size_and_size_velocity.x));
     pid.pos_rot_size = float4(states[particle_index].position_and_age.xyz, (float)rot_and_size);
     pid.color = pack_rgba8_unorm(states[particle_index].color);
 

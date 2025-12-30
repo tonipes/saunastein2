@@ -71,6 +71,8 @@ namespace SFG
 		{
 			vector4 min_color;
 			vector4 max_color;
+			vector4 min_max_size_and_size_velocity;
+			vector4 min_max_angular_and_opacity_velocity;
 			vector4 min_pos; // w is min lifetime
 			vector4 max_pos; // w is max lifetime
 			vector4 min_vel; // w is min rotation
@@ -80,11 +82,11 @@ namespace SFG
 		struct particle_state
 		{
 			vector4 position_and_age;
-			vector4 color;
 			vector4 velocity_and_lifetime;
-			float	rotation;
+			uint32	size_and_size_velocity;
+			uint32	rotation_angular_velocity;
+			uint32	color;
 			uint32	system_id;
-			float	padding[2];
 		};
 
 		struct particle_instance_data
