@@ -70,6 +70,12 @@ namespace SFG
 		sampler_desc	   sampler_definition = {};
 		uint16			   draw_priority	  = 0;
 
+		~material_raw()
+		{
+			if (material_data.get_size() != 0)
+				material_data.destroy();
+		}
+
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);
 

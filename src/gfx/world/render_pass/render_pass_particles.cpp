@@ -828,13 +828,13 @@ namespace SFG
 
 		if (_num_systems != 0)
 		{
-			backend->cmd_execute_indirect(cmd_buffer,
-										  {
-											  .indirect_buffer		  = hw_render_indirect,
-											  .indirect_buffer_offset = 0,
-											  .count				  = static_cast<uint8>(_num_systems),
-											  .indirect_signature	  = _indirect_sig_draw,
-										  });
+			//backend->cmd_execute_indirect(cmd_buffer,
+			//							  {
+			//								  .indirect_buffer		  = hw_render_indirect,
+			//								  .indirect_buffer_offset = 0,
+			//								  .count				  = static_cast<uint8>(_num_systems),
+			//								  .indirect_signature	  = _indirect_sig_draw,
+			//							  });
 		}
 
 		barriers.resize(0);

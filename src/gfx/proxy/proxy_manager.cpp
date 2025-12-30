@@ -893,7 +893,7 @@ namespace SFG
 			runtime.shader_handle				   = ev.shader_index;
 			runtime.draw_priority				   = ev.priority;
 
-			if ((ev.sampler == NULL_RESOURCE_ID && !ev.textures.empty()) || (ev.sampler != NULL_RESOURCE_ID && ev.textures.empty()))
+			if ((ev.sampler == NULL_RESOURCE_ID && !ev.textures.empty()))
 			{
 				SFG_ASSERT(false);
 			}
@@ -949,7 +949,6 @@ namespace SFG
 				}
 			}
 
-			SFG_FREE(ev.data.data);
 		}
 		else if (type == render_event_type::update_material_sampler)
 		{
