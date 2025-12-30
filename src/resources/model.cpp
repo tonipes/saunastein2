@@ -50,7 +50,7 @@ namespace SFG
 		SFG_ASSERT(!_flags.is_set(model::flags::created));
 	}
 
-	void model::create_from_loader(const model_raw& raw, world& w, resource_handle handle)
+	void model::create_from_loader(model_raw& raw, world& w, resource_handle handle)
 	{
 		SFG_ASSERT(!_flags.is_set(model::flags::created));
 		_flags.set(model::flags::created);
@@ -158,7 +158,7 @@ namespace SFG
 
 			for (uint16 i = 0; i < materials_count; i++)
 			{
-				const material_raw&	  loaded	 = raw.loaded_materials[i];
+				material_raw&	  loaded	 = raw.loaded_materials[i];
 				const resource_handle sub_handle = rm.add_resource<material>(loaded.sid);
 				ptr[i]							 = sub_handle;
 
@@ -167,6 +167,7 @@ namespace SFG
 
 				const resource_handle sampler_handle = rm.get_or_add_sampler(loaded.sampler_definition);
 				created.create_from_loader(loaded, w, sub_handle, sampler_handle);
+				loaded.destroy();
 			}
 		}
 

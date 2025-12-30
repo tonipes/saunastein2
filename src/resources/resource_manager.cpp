@@ -186,6 +186,9 @@ namespace SFG
 			default_gui_m.create_from_loader(default_gui_mat_raw, _world, _default_gui_mat);
 			default_gui_text_m.create_from_loader(default_gui_text_mat_raw, _world, _default_gui_text_mat);
 			default_gui_sdf_m.create_from_loader(default_gui_sdf_mat_raw, _world, _default_gui_sdf_mat);
+			default_gui_mat_raw.destroy();
+			default_gui_text_mat_raw.destroy();
+			default_gui_sdf_mat_raw.destroy();
 
 #ifdef SFG_TOOLMODE
 			add_resource_watch(_default_gbuffer_shader, DEFAULT_OPAQUE_SHADER_PATH, {default_gbuffer_raw.source}, type_id<shader>::value, SFG_ROOT_DIRECTORY);

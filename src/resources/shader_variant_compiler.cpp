@@ -926,7 +926,7 @@ namespace SFG
 	bool shader_variant_compiler::compile_style_particle_additive(shader_raw& raw, const string& shader_text, const vector<string>& folder_paths)
 	{
 		color_blend_attachment blend_attachment = {};
-		blend_definitions::get_blend_attachment(blend_definition_style::additive, blend_attachment);
+		blend_definitions::get_blend_attachment(blend_definition_style::none, blend_attachment);
 
 		const vector<shader_color_attachment> color_attachments = {{
 			{.format = render_target_definitions::get_format_lighting(), .blend_attachment = blend_attachment},
@@ -981,8 +981,8 @@ namespace SFG
 			pso.desc.debug_name	 = raw.name;
 			pso.desc.attachments = color_attachments;
 			pso.desc.inputs		 = {};
-			pso.desc.cull		 = cull_mode::back;
-			pso.desc.topo		 = topology::triangle_list;
+			pso.desc.cull		 = cull_mode::none;
+			pso.desc.topo		 = topology::triangle_strip;
 			pso.desc.front		 = front_face::ccw;
 			pso.desc.poly_mode	 = polygon_mode::fill;
 			pso.desc.fill		 = fill_mode::solid;

@@ -159,7 +159,7 @@ namespace SFG
 			resource_handle handle = add(hash);
 			T&				res	   = _resources.get(handle);
 			Loader*			lp	   = static_cast<Loader*>(loader);
-			const Loader&	lref   = *(lp);
+			Loader&	lref   = *(lp);
 			res.create_from_loader(lref, w, handle);
 			return handle;
 		}

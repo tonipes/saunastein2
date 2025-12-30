@@ -125,7 +125,6 @@ namespace SFG
 		stream << name;
 #endif
 
-		const uint64 addr = reinterpret_cast<uint64>(data.data);
 		stream << static_cast<uint32>(data.size);
 		stream.write_raw(data.data, data.size);
 	}

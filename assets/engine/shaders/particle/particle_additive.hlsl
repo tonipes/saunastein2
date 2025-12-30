@@ -119,7 +119,7 @@ vs_output VSMain(uint vid : SV_VertexID, uint iid : SV_InstanceID)
         right2 * (corner.x * half_size) +
         up2    * (corner.y * half_size);
 
-    o.pos =  mul(pass_params.view_proj, float4(world_pos, 1.0));
+    o.pos =  mul(pass_params.view_proj, float4(world_pos, 1.0f));
     o.uv   = k_uvs[vid];
     return o;
 }

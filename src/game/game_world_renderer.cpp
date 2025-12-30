@@ -523,6 +523,7 @@ namespace SFG
 		tasks.push_back([&] {
 			_pass_particles.render({
 				.frame_index   = frame_index,
+				.size		   = resolution,
 				.global_layout = layout_global,
 				.global_group  = bind_group_global,
 				.hw_lighting   = lighting_texture,

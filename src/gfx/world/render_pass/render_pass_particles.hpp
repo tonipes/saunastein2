@@ -36,6 +36,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace SFG
 {
 	struct view;
+	struct vector2ui16;
 	class proxy_manager;
 
 	class render_pass_particles
@@ -146,11 +147,12 @@ namespace SFG
 
 		struct render_params
 		{
-			uint8  frame_index;
-			gfx_id global_layout;
-			gfx_id global_group;
-			gfx_id hw_lighting;
-			gfx_id hw_depth;
+			uint8			   frame_index;
+			const vector2ui16& size;
+			gfx_id			   global_layout;
+			gfx_id			   global_group;
+			gfx_id			   hw_lighting;
+			gfx_id			   hw_depth;
 		};
 
 		// -----------------------------------------------------------------------------

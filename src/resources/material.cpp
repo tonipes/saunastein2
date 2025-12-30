@@ -111,34 +111,30 @@ namespace SFG
 		_flags.set(material_flags::material_flags_is_gui, raw.pass_mode == material_pass_mode::gui);
 		SFG_ASSERT(raw.shader != 0);
 
-		render_event_material stg = {};
-		stg.data.data			  = reinterpret_cast<uint8*>(SFG_MALLOC(raw.material_data.get_size()));
-
-		if (stg.data.data)
-			SFG_MEMCPY(stg.data.data, raw.material_data.get_raw(), raw.material_data.get_size());
-
-		stg.data.size = raw.material_data.get_size();
-		stg.flags	  = _flags.value();
-		stg.priority  = raw.draw_priority;
-		stg.sampler	  = sampler.index;
+		render_event_material ev = {};
+		ev.data.data			 = raw.material_data.get_raw();
+		ev.data.size			 = raw.material_data.get_size();
+		ev.flags				 = _flags.value();
+		ev.priority				 = raw.draw_priority;
+		ev.sampler				 = sampler.index;
 
 		for (string_id sid : raw.textures)
 		{
 			const resource_handle handle = rm.get_resource_handle_by_hash<texture>(sid);
-			stg.textures.push_back(handle.index);
+			ev.textures.push_back(handle.index);
 		}
 		const resource_handle shader_handle = rm.get_resource_handle_by_hash<shader>(raw.shader);
-		stg.shader_index					= shader_handle.index;
+		ev.shader_index						= shader_handle.index;
 
 #ifndef SFG_STRIP_DEBUG_NAMES
-		stg.name = raw.name;
+		ev.name = raw.name;
 #endif
 		stream.add_event(
 			{
 				.index		= static_cast<uint32>(handle.index),
 				.event_type = render_event_type::create_material,
 			},
-			stg);
+			ev);
 	}
 
 	void material::destroy(world& w, resource_handle handle)
