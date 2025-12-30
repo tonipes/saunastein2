@@ -87,7 +87,7 @@ vs_output VSMain(uint vid : SV_VertexID, uint iid : SV_InstanceID)
 {
     vs_output o;
 
-    StructuredBuffer<particle_instance_data> instance_data    = sfg_get_ssbo<particle_instance_data>(sfg_rp_constant10);
+    StructuredBuffer<particle_instance_data> instance_data    = sfg_get_ssbo<particle_instance_data>(sfg_rp_constant1);
     ConstantBuffer<particle_pass_data> pass_params = sfg_get_cbv<particle_pass_data>(sfg_rp_constant0);
 
     particle_instance_data p = instance_data[iid];

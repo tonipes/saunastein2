@@ -108,6 +108,12 @@ RWByteAddressBuffer sfg_get_rwb_buffer(uint index)
     return b;
 }
 
+ByteAddressBuffer sfg_get_b_buffer(uint index)
+{
+    ByteAddressBuffer b = ResourceDescriptorHeap[index];
+    return b;
+}
+
 template<typename T>
 T sfg_get_texture(uint index)
 {

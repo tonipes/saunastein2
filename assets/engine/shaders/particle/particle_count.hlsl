@@ -42,15 +42,15 @@ void CSMain(uint3 dtid : SV_DispatchThreadID)
     // we dispatch ceil(alive_count / 256)
     uint alive_index = dtid.x;
 
-    RWByteAddressBuffer counters = sfg_get_rwb_buffer(sfg_rp_constant7);
+    ByteAddressBuffer counters = sfg_get_b_buffer(sfg_rp_constant1);
     uint aliveCount = counters.Load(4); 
 
     if (alive_index >= aliveCount) return;
 
-    StructuredBuffer<uint> alive_list_b = sfg_get_ssbo<uint>(sfg_rp_constant8);
+    StructuredBuffer<uint> alive_list_b = sfg_get_ssbo<uint>(sfg_rp_constant2);
     uint particle_index = alive_list_b[alive_index];
 
-    StructuredBuffer<particle_state> states  = sfg_get_ssbo<particle_state>(sfg_rp_constant4);
+    StructuredBuffer<particle_state> states  = sfg_get_ssbo<particle_state>(sfg_rp_constant3);
     ConstantBuffer<particle_pass_data> pass_params = sfg_get_cbv<particle_pass_data>(sfg_rp_constant0);
     
     // simple cull, no render if behind camera.
@@ -66,12 +66,11 @@ void CSMain(uint3 dtid : SV_DispatchThreadID)
     uint system_id = states[particle_index].system_id;
     uint start = system_id * pass_params.max_particles_per_system;
 
-    RWStructuredBuffer<particle_indirect_args> indirect_args     = sfg_get_rws_buffer<particle_indirect_args>(sfg_rp_constant5);
-    
+    RWStructuredBuffer<particle_indirect_args> indirect_args     = sfg_get_rws_buffer<particle_indirect_args>(sfg_rp_constant4);
     uint idx;
     InterlockedAdd(indirect_args[system_id].instance_count, 1, idx);
 
-    RWStructuredBuffer<particle_instance_data> instance_data    = sfg_get_rws_buffer<particle_instance_data>(sfg_rp_constant10);
+    RWStructuredBuffer<particle_instance_data> instance_data    = sfg_get_rws_buffer<particle_instance_data>(sfg_rp_constant5);
     particle_instance_data pid = (particle_instance_data)0;
     pid.pos_and_rot = float4(states[particle_index].position_and_age.xyz, states[particle_index].rotation);
     pid.size = float4(1,0,0,0);

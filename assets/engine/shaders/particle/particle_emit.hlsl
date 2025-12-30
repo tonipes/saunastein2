@@ -56,16 +56,16 @@
     StructuredBuffer<uint> dead_indices = sfg_get_ssbo<uint>(sfg_rp_constant3);
 
     // per system
-    RWStructuredBuffer<particle_system_data> system_data = sfg_get_rws_buffer<particle_system_data>(sfg_rp_constant4);
-    StructuredBuffer<particle_emit_args> emit_args     = sfg_get_ssbo<particle_emit_args>(sfg_rp_constant3);
+    StructuredBuffer<particle_emit_args> emit_args     = sfg_get_ssbo<particle_emit_args>(sfg_rp_constant4);
+    RWStructuredBuffer<particle_system_data> system_data = sfg_get_rws_buffer<particle_system_data>(sfg_rp_constant5);
     
     uint max_particles = pass_params.max_particles_per_system;
     uint frame_index = pass_params.frame_index;
     particle_emit_args emit = emit_args[system_id];
     uint offset = max_particles * system_id;
 
-    RWStructuredBuffer<uint> alive_list_b = sfg_get_rws_buffer<uint>(sfg_rp_constant5);
-    RWByteAddressBuffer counters = sfg_get_rwb_buffer(sfg_rp_constant6);
+    RWStructuredBuffer<uint> alive_list_b = sfg_get_rws_buffer<uint>(sfg_rp_constant6);
+    RWByteAddressBuffer counters = sfg_get_rwb_buffer(sfg_rp_constant7);
 
     // thread 0 emits i=0,64,128,...
     // thread 1 emits i=1,65,129,...

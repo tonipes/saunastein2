@@ -37,14 +37,14 @@
 [numthreads(1, 1, 1)]
 void CSMain(uint3 dtid  : SV_DispatchThreadID)
 {
-    RWByteAddressBuffer counters = sfg_get_rwb_buffer(sfg_rp_constant7);
+    RWByteAddressBuffer counters = sfg_get_rwb_buffer(sfg_rp_constant0);
     uint aliveb = counters.Load(4);
     counters.Store(0, aliveb);
     counters.Store(4, 0);
 
     uint groups_x = (aliveb + 255u) / 256u;
     
-    RWByteAddressBuffer sim_count_indirect_args = sfg_get_rwb_buffer(sfg_rp_constant6);
+    RWByteAddressBuffer sim_count_indirect_args = sfg_get_rwb_buffer(sfg_rp_constant1);
     sim_count_indirect_args.Store(0, groups_x);
     sim_count_indirect_args.Store(4, 1);
     sim_count_indirect_args.Store(8, 1);

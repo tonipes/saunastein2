@@ -101,7 +101,7 @@ namespace SFG
 					.size			 = sizeof(particle_system_data) * MAX_WORLD_COMP_PARTICLE_EMITTERS,
 					.structure_size	 = sizeof(particle_system_data),
 					.structure_count = MAX_WORLD_COMP_PARTICLE_EMITTERS,
-					.flags			 = resource_flags::rf_gpu_write | resource_flags::rf_gpu_only,
+					.flags			 = resource_flags::rf_storage_buffer | resource_flags::rf_gpu_write | resource_flags::rf_gpu_only,
 					.debug_name		 = "particle_system_data",
 				});
 
@@ -171,7 +171,7 @@ namespace SFG
 					.size			 = sizeof(uint32) * MAX_WORLD_PARTICLES,
 					.structure_size	 = sizeof(uint32),
 					.structure_count = MAX_WORLD_PARTICLES,
-					.flags			 = resource_flags::rf_gpu_write | resource_flags::rf_gpu_only,
+					.flags			 = resource_flags::rf_storage_buffer | resource_flags::rf_gpu_write | resource_flags::rf_gpu_only,
 					.debug_name		 = "particle_alive_b",
 				});
 
@@ -460,39 +460,45 @@ namespace SFG
 		gfx_backend*	backend	   = gfx_backend::get();
 		per_frame_data& pfd		   = _pfd[p.frame_index];
 		const gfx_id	cmd_buffer = pfd.cmd_buffer_compute;
-		/*
+
 		backend->cmd_bind_layout_compute(cmd_buffer, {.layout = p.global_layout_compute});
 		backend->cmd_bind_group_compute(cmd_buffer, {.group = p.global_group});
 
-		const gpu_index gpu_index_ubo			   = pfd.ubo.get_index();
-		const gpu_index gpu_index_indirect_args	   = pfd.indirect_arguments.get_index();
-		const gpu_index gpu_index_alive_list_a_srv = pfd.alive_list_a.get_index();
-		const gpu_index gpu_index_alive_list_a_uav = pfd.alive_list_a.get_index_secondary();
-		const gpu_index gpu_index_alive_list_b_uav = pfd.alive_list_a.get_index();
-		const gpu_index gpu_index_counters		   = pfd.counters.get_index();
-		const gpu_index gpu_index_states		   = pfd.states.get_index();
-		const gpu_index gpu_index_system_data	   = pfd.system_data.get_index();
-		const gpu_index gpu_index_dead_list_srv	   = pfd.dead_indices.get_index();
-		const gpu_index gpu_index_dead_list_uav	   = pfd.dead_indices.get_index_secondary();
-		const gpu_index gpu_index_emit_counts	   = pfd.emit_counts.get_index();
-		const gfx_id	hw_sim_count_indirect	   = pfd.sim_count_indirect_arguments.get_gpu();
-		const gfx_id	hw_render_indirect		   = pfd.indirect_arguments.get_gpu();
-		const gfx_id	hw_counters				   = pfd.counters.get_gpu();
-		const gfx_id	hw_system_data			   = pfd.system_data.get_gpu();
-		const gfx_id	hw_states				   = pfd.states.get_gpu();
-		const gfx_id	hw_dead_indices			   = pfd.dead_indices.get_gpu();
-		const gfx_id	hw_alive_list_a			   = pfd.alive_list_a.get_gpu();
-		const gfx_id	hw_alive_list_b			   = pfd.alive_list_b.get_gpu();
+		const gpu_index gpu_index_ubo					  = pfd.ubo.get_index();
+		const gpu_index gpu_index_indirect_args			  = pfd.indirect_arguments.get_index();
+		const gpu_index gpu_index_alive_list_a_srv		  = pfd.alive_list_a.get_index();
+		const gpu_index gpu_index_alive_list_a_uav		  = pfd.alive_list_a.get_index_secondary();
+		const gpu_index gpu_index_alive_list_b_srv		  = pfd.alive_list_b.get_index();
+		const gpu_index gpu_index_alive_list_b_uav		  = pfd.alive_list_b.get_index_secondary();
+		const gpu_index gpu_index_counters				  = pfd.counters.get_index();
+		const gpu_index gpu_index_states				  = pfd.states.get_index();
+		const gpu_index gpu_index_system_data_srv		  = pfd.system_data.get_index();
+		const gpu_index gpu_index_system_data_uav		  = pfd.system_data.get_index_secondary();
+		const gpu_index gpu_index_dead_list_srv			  = pfd.dead_indices.get_index();
+		const gpu_index gpu_index_dead_list_uav			  = pfd.dead_indices.get_index_secondary();
+		const gpu_index gpu_index_emit_counts			  = pfd.emit_counts.get_index();
+		const gpu_index gpu_index_emit_args				  = pfd.emit_arguments.get_index();
+		const gpu_index gpu_index_sim_count_indirect_args = pfd.sim_count_indirect_arguments.get_index();
+		const gpu_index gpu_index_instances				  = pfd.instance_data.get_index();
+		const gfx_id	hw_sim_count_indirect			  = pfd.sim_count_indirect_arguments.get_gpu();
+		const gfx_id	hw_render_indirect				  = pfd.indirect_arguments.get_gpu();
+		const gfx_id	hw_counters						  = pfd.counters.get_gpu();
+		const gfx_id	hw_system_data					  = pfd.system_data.get_gpu();
+		const gfx_id	hw_states						  = pfd.states.get_gpu();
+		const gfx_id	hw_dead_indices					  = pfd.dead_indices.get_gpu();
+		const gfx_id	hw_alive_list_a					  = pfd.alive_list_a.get_gpu();
+		const gfx_id	hw_alive_list_b					  = pfd.alive_list_b.get_gpu();
+		const gfx_id	hw_instances					  = pfd.instance_data.get_gpu();
 
-		static_vector<barrier, 10> barriers;
+		static_vector<barrier, 16> barriers;
 		barriers.push_back({
-			.from_states = resource_state::resource_state_common,
+			.from_states = resource_state::resource_state_indirect_arg,
 			.to_states	 = resource_state::resource_state_uav,
-				.resource	 = hw_render_indirect,
+			.resource	 = hw_render_indirect,
 			.flags		 = barrier_flags::baf_is_resource,
 		});
 		barriers.push_back({
-			.from_states = resource_state::resource_state_common,
+			.from_states = resource_state::resource_state_non_ps_resource,
 			.to_states	 = resource_state::resource_state_uav,
 			.resource	 = hw_counters,
 			.flags		 = barrier_flags::baf_is_resource,
@@ -504,27 +510,33 @@ namespace SFG
 			.flags		 = barrier_flags::baf_is_resource,
 		});
 		barriers.push_back({
-			.from_states = resource_state::resource_state_common,
+			.from_states = resource_state::resource_state_non_ps_resource,
 			.to_states	 = resource_state::resource_state_uav,
 			.resource	 = hw_states,
 			.flags		 = barrier_flags::baf_is_resource,
 		});
 		barriers.push_back({
-			.from_states = resource_state::resource_state_common,
+			.from_states = resource_state::resource_state_non_ps_resource,
 			.to_states	 = resource_state::resource_state_uav,
 			.resource	 = hw_dead_indices,
 			.flags		 = barrier_flags::baf_is_resource,
 		});
 		barriers.push_back({
-			.from_states = resource_state::resource_state_common,
-			.to_states	 = resource_state::resource_state_non_ps_resource,
+			.from_states = resource_state::resource_state_non_ps_resource,
+			.to_states	 = resource_state::resource_state_uav,
 			.resource	 = hw_alive_list_a,
+			.flags		 = barrier_flags::baf_is_resource,
+		});
+		barriers.push_back({
+			.from_states = resource_state::resource_state_non_ps_resource,
+			.to_states	 = resource_state::resource_state_uav,
+			.resource	 = hw_alive_list_b,
 			.flags		 = barrier_flags::baf_is_resource,
 		});
 		barriers.push_back({
 			.from_states = resource_state::resource_state_common,
 			.to_states	 = resource_state::resource_state_uav,
-			.resource	 = hw_alive_list_b,
+			.resource	 = hw_instances,
 			.flags		 = barrier_flags::baf_is_resource,
 		});
 		backend->cmd_barrier(cmd_buffer, {.barriers = barriers.data(), .barrier_count = static_cast<uint16>(barriers.size())});
@@ -542,14 +554,6 @@ namespace SFG
 								  .group_size_z = 1,
 							  });
 
-		// pass 0 writes to indirect arguments, need uav-uav for later.
-		barriers.resize(0);
-		barriers.push_back({
-			.resource = hw_render_indirect,
-			.flags	  = barrier_flags::baf_is_resource | barrier_flags::baf_is_uav,
-		});
-		backend->cmd_barrier(cmd_buffer, {.barriers = barriers.data(), .barrier_count = static_cast<uint16>(barriers.size())});
-
 		// pass 1 - simulate
 		{
 			const gpu_index constants[7] = {
@@ -558,7 +562,7 @@ namespace SFG
 				gpu_index_alive_list_b_uav,
 				gpu_index_counters,
 				gpu_index_states,
-				gpu_index_system_data,
+				gpu_index_system_data_uav,
 				gpu_index_dead_list_uav,
 			};
 			backend->cmd_bind_constants_compute(cmd_buffer, {.data = (uint8*)&constants, .offset = constant_index_rp_constant0, .count = 7, .param_index = rpi_constants});
@@ -574,48 +578,45 @@ namespace SFG
 									  });
 
 		// pass 1 simulate might write to below, so uav-uav
+		barriers.resize(0);
 		barriers.push_back({
 			.resource = hw_counters,
-			.flags	  = barrier_flags::baf_is_resource,
+			.flags	  = barrier_flags::baf_is_resource | barrier_flags::baf_is_uav,
 		});
 		barriers.push_back({
 			.resource = hw_states,
-			.flags	  = barrier_flags::baf_is_resource,
-		});
-		barriers.push_back({
-			.resource = hw_dead_indices,
-			.flags	  = barrier_flags::baf_is_resource,
-		});
-		barriers.push_back({
-			.resource = hw_alive_list_b,
-			.flags	  = barrier_flags::baf_is_resource,
+			.flags	  = barrier_flags::baf_is_resource | barrier_flags::baf_is_uav,
 		});
 		barriers.push_back({
 			.resource = hw_system_data,
-			.flags	  = barrier_flags::baf_is_resource,
+			.flags	  = barrier_flags::baf_is_resource | barrier_flags::baf_is_uav,
 		});
-		backend->cmd_barrier(cmd_buffer, {.barriers = barriers.data(), .barrier_count = static_cast<uint16>(barriers.size())});
-
 		barriers.push_back({
-			.from_states = resource_state::resource_state_common,
-			.to_states	 = resource_state::resource_state_uav,
-			.resource	 = hw_alive_list_b,
+			.from_states = resource_state::resource_state_uav,
+			.to_states	 = resource_state::resource_state_non_ps_resource,
+			.resource	 = hw_dead_indices,
 			.flags		 = barrier_flags::baf_is_resource,
 		});
+		barriers.push_back({
+			.resource = hw_alive_list_b,
+			.flags	  = barrier_flags::baf_is_resource | barrier_flags::baf_is_uav,
+		});
+
 		backend->cmd_barrier(cmd_buffer, {.barriers = barriers.data(), .barrier_count = static_cast<uint16>(barriers.size())});
 
 		// pass 2 - emit
 		{
-			const gpu_index constants[7] = {
+			const gpu_index constants[8] = {
 				gpu_index_ubo,
 				gpu_index_emit_counts,
 				gpu_index_states,
 				gpu_index_dead_list_srv,
-				gpu_index_system_data,
+				gpu_index_emit_args,
+				gpu_index_system_data_uav,
 				gpu_index_alive_list_b_uav,
 				gpu_index_counters,
 			};
-			backend->cmd_bind_constants_compute(cmd_buffer, {.data = (uint8*)&constants, .offset = constant_index_rp_constant0, .count = 7, .param_index = rpi_constants});
+			backend->cmd_bind_constants_compute(cmd_buffer, {.data = (uint8*)&constants, .offset = constant_index_rp_constant0, .count = 8, .param_index = rpi_constants});
 		}
 
 		backend->cmd_bind_pipeline_compute(cmd_buffer, {.pipeline = _shader_emit});
@@ -625,7 +626,165 @@ namespace SFG
 								  .group_size_y = _num_systems == 0 ? 1 : _num_systems,
 								  .group_size_z = 1,
 							  });
-		*/
+
+		// we are done writing to counters for now, will be read as srv in in count passes.
+		barriers.resize(0);
+		barriers.push_back({
+			.from_states = resource_state::resource_state_uav,
+			.to_states	 = resource_state::resource_state_non_ps_resource,
+			.resource	 = hw_counters,
+			.flags		 = barrier_flags::baf_is_resource,
+		});
+		barriers.push_back({
+			.from_states = resource_state::resource_state_indirect_arg,
+			.to_states	 = resource_state::resource_state_uav,
+			.resource	 = hw_sim_count_indirect,
+			.flags		 = barrier_flags::baf_is_resource,
+		});
+		barriers.push_back({
+			.from_states = resource_state::resource_state_uav,
+			.to_states	 = resource_state::resource_state_non_ps_resource,
+			.resource	 = hw_alive_list_b,
+			.flags		 = barrier_flags::baf_is_resource,
+		});
+		barriers.push_back({
+			.from_states = resource_state::resource_state_uav,
+			.to_states	 = resource_state::resource_state_non_ps_resource,
+			.resource	 = hw_states,
+			.flags		 = barrier_flags::baf_is_resource,
+		});
+		backend->cmd_barrier(cmd_buffer, {.barriers = barriers.data(), .barrier_count = static_cast<uint16>(barriers.size())});
+
+		// pass 3 - write counts
+		{
+			const gpu_index constants[2] = {
+				gpu_index_counters,
+				gpu_index_sim_count_indirect_args,
+			};
+			backend->cmd_bind_constants_compute(cmd_buffer, {.data = (uint8*)&constants, .offset = constant_index_rp_constant0, .count = 2, .param_index = rpi_constants});
+		}
+
+		backend->cmd_bind_pipeline_compute(cmd_buffer, {.pipeline = _shader_write_count});
+		backend->cmd_dispatch(cmd_buffer,
+							  {
+								  .group_size_x = 1,
+								  .group_size_y = 1,
+								  .group_size_z = 1,
+							  });
+
+		// wrote to sim and counts indirect arguments.
+		barriers.resize(0);
+		barriers.push_back({
+			.from_states = resource_state::resource_state_uav,
+			.to_states	 = resource_state::resource_state_indirect_arg,
+			.resource	 = hw_sim_count_indirect,
+			.flags		 = barrier_flags::baf_is_resource,
+		});
+
+		// was written by pass 0.
+		barriers.push_back({
+			.resource = hw_render_indirect,
+			.flags	  = barrier_flags::baf_is_resource | barrier_flags::baf_is_uav,
+		});
+
+		backend->cmd_barrier(cmd_buffer, {.barriers = barriers.data(), .barrier_count = static_cast<uint16>(barriers.size())});
+
+		// pass 4 - counts
+		{
+			const gpu_index constants[6] = {
+				gpu_index_ubo,
+				gpu_index_counters,
+				gpu_index_alive_list_b_srv,
+				gpu_index_states,
+				gpu_index_indirect_args,
+				gpu_index_instances,
+			};
+			backend->cmd_bind_constants_compute(cmd_buffer, {.data = (uint8*)&constants, .offset = constant_index_rp_constant0, .count = 6, .param_index = rpi_constants});
+		}
+		backend->cmd_bind_pipeline_compute(cmd_buffer, {.pipeline = _shader_count});
+		backend->cmd_execute_indirect(cmd_buffer,
+									  {
+										  .indirect_buffer		  = hw_sim_count_indirect,
+										  .indirect_buffer_offset = sizeof(uint32) * 3,
+										  .count				  = 1,
+										  .indirect_signature	  = _indirect_sig_dispatch,
+									  });
+
+		barriers.resize(0);
+		barriers.push_back({
+			.from_states = resource_state::resource_state_uav,
+			.to_states	 = resource_state::resource_state_indirect_arg,
+			.resource	 = hw_render_indirect,
+			.flags		 = barrier_flags::baf_is_resource,
+		});
+
+		barriers.push_back({
+			.from_states = resource_state::resource_state_indirect_arg,
+			.to_states	 = resource_state::resource_state_uav,
+			.resource	 = hw_sim_count_indirect,
+			.flags		 = barrier_flags::baf_is_resource,
+		});
+
+		barriers.push_back({
+			.from_states = resource_state::resource_state_non_ps_resource,
+			.to_states	 = resource_state::resource_state_uav,
+			.resource	 = hw_counters,
+			.flags		 = barrier_flags::baf_is_resource,
+		});
+
+		// for graphics queue.
+		barriers.push_back({
+			.from_states = resource_state::resource_state_uav,
+			.to_states	 = resource_state::resource_state_common,
+			.resource	 = hw_instances,
+			.flags		 = barrier_flags::baf_is_resource,
+		});
+
+		backend->cmd_barrier(cmd_buffer, {.barriers = barriers.data(), .barrier_count = static_cast<uint16>(barriers.size())});
+
+		// pass 5 - swap
+		{
+			const gpu_index constants[2] = {
+				gpu_index_counters,
+				gpu_index_sim_count_indirect_args,
+			};
+			backend->cmd_bind_constants_compute(cmd_buffer, {.data = (uint8*)&constants, .offset = constant_index_rp_constant0, .count = 2, .param_index = rpi_constants});
+		}
+		backend->cmd_bind_pipeline_compute(cmd_buffer, {.pipeline = _shader_swap});
+		backend->cmd_dispatch(cmd_buffer,
+							  {
+								  .group_size_x = 1,
+								  .group_size_y = 1,
+								  .group_size_z = 1,
+							  });
+
+		barriers.resize(0);
+		barriers.push_back({
+			.from_states = resource_state::resource_state_uav,
+			.to_states	 = resource_state::resource_state_indirect_arg,
+			.resource	 = hw_sim_count_indirect,
+			.flags		 = barrier_flags::baf_is_resource,
+		});
+		barriers.push_back({
+			.from_states = resource_state::resource_state_uav,
+			.to_states	 = resource_state::resource_state_non_ps_resource,
+			.resource	 = hw_counters,
+			.flags		 = barrier_flags::baf_is_resource,
+		});
+		barriers.push_back({
+			.from_states = resource_state::resource_state_uav,
+			.to_states	 = resource_state::resource_state_common,
+			.resource	 = hw_instances,
+			.flags		 = barrier_flags::baf_is_resource,
+		});
+		barriers.push_back({
+			.from_states = resource_state::resource_state_uav,
+			.to_states	 = resource_state::resource_state_common,
+			.resource	 = hw_system_data,
+			.flags		 = barrier_flags::baf_is_resource,
+		});
+		backend->cmd_barrier(cmd_buffer, {.barriers = barriers.data(), .barrier_count = static_cast<uint16>(barriers.size())});
+
 		backend->close_command_buffer(cmd_buffer);
 	}
 
@@ -637,102 +796,61 @@ namespace SFG
 		per_frame_data& pfd		   = _pfd[p.frame_index];
 		const gfx_id	cmd_buffer = pfd.cmd_buffer;
 
-		const gpu_index gpu_index_ubo = pfd.ubo.get_index();
-
 		backend->reset_command_buffer(cmd_buffer);
 
-		// static_vector<barrier, 2> barriers_uav;
-		// barriers_uav.push_back({
-		// 	.resource = output,
-		// 	.flags	  = barrier_flags::baf_is_texture,
-		// });
-		//
-		// static_vector<barrier, 2> barriers;
-		// barriers.push_back({
-		// 	.resource	 = output,
-		// 	.flags		 = barrier_flags::baf_is_texture,
-		// 	.from_states = resource_state::resource_state_common,
-		// 	.to_states	 = resource_state::resource_state_non_ps_resource,
-		// });
-		//
-		// backend->cmd_barrier(cmd_buffer, {.barriers = barriers.data(), .barrier_count = static_cast<uint16>(barriers.size())});
-		// barriers.resize(0);
-		// backend->cmd_bind_layout_compute(cmd_buffer, {.layout = p.global_layout_compute});
-		// backend->cmd_bind_group_compute(cmd_buffer, {.group = p.global_group});
-		// backend->cmd_bind_constants_compute(cmd_buffer, {.data = (uint8*)&gpu_index_ubo, .offset = constant_index_rp_constant0, .count = 1, .param_index = rpi_constants});
-		//
-		// backend->cmd_bind_pipeline_compute(cmd_buffer, {.pipeline = shader_bloom_downsample});
-		//
-		// gpu_index downsample_input	= p.gpu_index_lighting;
-		// gpu_index downsample_output = pfd.gpu_index_downsample_uav[0];
-		//
-		// for (uint32 i = 0; i < MIPS_DS; i++)
-		// {
-		// 	BEGIN_DEBUG_EVENT(backend, cmd_buffer, "bloom_downsample");
-		// 	const uint32 group_size_x = 8;
-		// 	const uint32 group_size_y = 8;
-		// 	const uint32 half_w		  = res.x * math::pow(0.5f, static_cast<float>(i + 1));
-		// 	const uint32 half_h		  = res.y * math::pow(0.5f, static_cast<float>(i + 1));
-		// 	const uint32 gsx		  = (group_size_x + half_w - 1) / group_size_x;
-		// 	const uint32 gsy		  = (group_size_y + half_h - 1) / group_size_y;
-		//
-		// 	{
-		// 		const uint32 constants[5] = {half_w, half_h, downsample_input, downsample_output, i};
-		// 		backend->cmd_bind_constants_compute(cmd_buffer, {.data = (uint8*)&constants, .offset = constant_index_rp_constant1, .count = 5, .param_index = rpi_constants});
-		// 	}
-		//
-		// 	backend->cmd_dispatch(cmd_buffer, {.group_size_x = gsx, .group_size_y = gsy, .group_size_z = 1});
-		// 	END_DEBUG_EVENT(backend, cmd_buffer);
-		//
-		// 	if (i < MIPS_DS - 1)
-		// 	{
-		// 		downsample_input  = pfd.gpu_index_downsample_srv[i];
-		// 		downsample_output = pfd.gpu_index_downsample_uav[i + 1];
-		// 	}
-		//
-		// 	backend->cmd_barrier_uav(cmd_buffer, {.barriers = barriers_uav.data(), .barrier_count = static_cast<uint16>(barriers_uav.size())});
-		// }
-		//
-		// backend->cmd_bind_pipeline_compute(cmd_buffer, {.pipeline = shader_bloom_upsample});
-		//
-		// gpu_index upsample_input  = pfd.gpu_index_downsample_srv[MIPS_DS - 1];
-		// gpu_index upsample_output = pfd.gpu_index_upsample_uav[MIPS_DS - 1];
-		//
-		// for (int32 i = MIPS_DS - 1; i >= 0; --i)
-		// {
-		// 	BEGIN_DEBUG_EVENT(backend, cmd_buffer, "bloom_upsample");
-		// 	const uint32 group_size_x = 8;
-		// 	const uint32 group_size_y = 8;
-		// 	const uint32 half_w		  = res.x * math::pow(0.5f, static_cast<float>(i));
-		// 	const uint32 half_h		  = res.y * math::pow(0.5f, static_cast<float>(i));
-		// 	const uint32 gsx		  = (group_size_x + half_w - 1) / group_size_x;
-		// 	const uint32 gsy		  = (group_size_y + half_h - 1) / group_size_y;
-		//
-		// 	{
-		// 		const uint32 constants[4] = {half_w, half_h, upsample_input, upsample_output};
-		// 		backend->cmd_bind_constants_compute(cmd_buffer, {.data = (uint8*)&constants, .offset = constant_index_rp_constant1, .count = 4, .param_index = rpi_constants});
-		// 	}
-		//
-		// 	backend->cmd_dispatch(cmd_buffer, {.group_size_x = gsx, .group_size_y = gsy, .group_size_z = 1});
-		// 	END_DEBUG_EVENT(backend, cmd_buffer);
-		//
-		// 	if (i != 0)
-		// 	{
-		// 		upsample_input	= pfd.gpu_index_upsample_srv[i];
-		// 		upsample_output = pfd.gpu_index_upsample_uav[i - 1];
-		// 	}
-		//
-		// 	backend->cmd_barrier_uav(cmd_buffer, {.barriers = barriers_uav.data(), .barrier_count = static_cast<uint16>(barriers_uav.size())});
-		// }
-		//
-		// barriers.push_back({
-		// 	.resource	 = output,
-		// 	.flags		 = barrier_flags::baf_is_texture,
-		// 	.from_states = resource_state::resource_state_non_ps_resource,
-		// 	.to_states	 = resource_state::resource_state_common,
-		// });
-		// backend->cmd_barrier(cmd_buffer, {.barriers = barriers.data(), .barrier_count = static_cast<uint16>(barriers.size())});
-		// barriers.resize(0);
+		backend->cmd_bind_layout(cmd_buffer, {.layout = p.global_layout});
+		backend->cmd_bind_group(cmd_buffer, {.group = p.global_group});
+
+		const gpu_index gpu_index_ubo		  = pfd.ubo.get_index();
+		const gpu_index gpu_index_system_data = pfd.system_data.get_index();
+		const gpu_index gpu_index_instances	  = pfd.instance_data.get_index();
+		const gfx_id	hw_system_data		  = pfd.system_data.get_gpu();
+		const gfx_id	hw_instances		  = pfd.instance_data.get_gpu();
+		const gfx_id	hw_render_indirect	  = pfd.indirect_arguments.get_gpu();
+
+		static_vector<barrier, 4> barriers;
+		barriers.push_back({
+			.from_states = resource_state::resource_state_common,
+			.to_states	 = resource_state::resource_state_non_ps_resource,
+			.resource	 = hw_instances,
+			.flags		 = barrier_flags::baf_is_resource,
+		});
+		barriers.push_back({
+			.from_states = resource_state::resource_state_common,
+			.to_states	 = resource_state::resource_state_non_ps_resource,
+			.resource	 = hw_system_data,
+			.flags		 = barrier_flags::baf_is_resource,
+		});
+		backend->cmd_barrier(cmd_buffer, {.barriers = barriers.data(), .barrier_count = static_cast<uint16>(barriers.size())});
+
+		const uint32 constants[3] = {gpu_index_ubo, gpu_index_instances, gpu_index_system_data};
+		backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)&constants, .offset = constant_index_rp_constant0, .count = 3, .param_index = rpi_constants});
+
+		if (_num_systems != 0)
+		{
+			backend->cmd_execute_indirect(cmd_buffer,
+										  {
+											  .indirect_buffer		  = hw_render_indirect,
+											  .indirect_buffer_offset = 0,
+											  .count				  = static_cast<uint8>(_num_systems),
+											  .indirect_signature	  = _indirect_sig_draw,
+										  });
+		}
+
+		barriers.resize(0);
+		barriers.push_back({
+			.from_states = resource_state::resource_state_non_ps_resource,
+			.to_states	 = resource_state::resource_state_common,
+			.resource	 = hw_instances,
+			.flags		 = barrier_flags::baf_is_resource,
+		});
+		barriers.push_back({
+			.from_states = resource_state::resource_state_non_ps_resource,
+			.to_states	 = resource_state::resource_state_common,
+			.resource	 = hw_system_data,
+			.flags		 = barrier_flags::baf_is_resource,
+		});
+		backend->cmd_barrier(cmd_buffer, {.barriers = barriers.data(), .barrier_count = static_cast<uint16>(barriers.size())});
 
 		backend->close_command_buffer(cmd_buffer);
 	}

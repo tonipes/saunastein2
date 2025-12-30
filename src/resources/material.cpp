@@ -91,7 +91,6 @@ namespace SFG
 #ifndef SFG_STRIP_DEBUG_NAMES
 		stg.name = raw.name;
 #endif
-
 		stream.add_event(
 			{
 				.index		= static_cast<uint32>(handle.index),

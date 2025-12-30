@@ -40,11 +40,11 @@ void CSMain(uint3 dtid : SV_DispatchThreadID)
     // dispatch 1,1,1
     uint system_id = dtid.x;
 
-    RWByteAddressBuffer counters = sfg_get_rwb_buffer(sfg_rp_constant7);
+    ByteAddressBuffer counters = sfg_get_b_buffer(sfg_rp_constant0);
     uint alive = counters.Load(4);
     uint count = (alive + 255u) / 256u;
 
-    RWByteAddressBuffer sim_count_indirect_args = sfg_get_rwb_buffer(sfg_rp_constant6);
+    RWByteAddressBuffer sim_count_indirect_args = sfg_get_rwb_buffer(sfg_rp_constant1);
     sim_count_indirect_args.Store(12, count);
     sim_count_indirect_args.Store(16, 1);
     sim_count_indirect_args.Store(20, 1);
