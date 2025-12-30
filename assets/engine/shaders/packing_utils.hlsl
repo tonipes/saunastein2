@@ -35,3 +35,24 @@ float2 unpack_half2x16(uint packed)
     uint hi = packed >> 16;
     return float2(f16tof32(lo), f16tof32(hi));
 }
+
+uint pack_half2x16(float2 v)
+{
+    uint lo = f32tof16(v.x) & 0xFFFFu;
+    uint hi = f32tof16(v.y) & 0xFFFFu;
+    return lo | (hi << 16);
+}
+
+uint pack_rgba8_unorm(float4 c)
+{
+    int32_t4 v = (int32_t4)round(saturate(c) * 255.0);
+    uint8_t4_packed packed = pack_clamp_u8(v);   // clamps to [0..255]
+    return (uint)packed;                         // bitcast, no change
+}
+
+float4 unpack_rgba8_unorm(uint p)
+{
+    uint8_t4_packed packed = (uint8_t4_packed)p; // bitcast
+    uint32_t4 v = unpack_u8u32(packed);
+    return float4(v) * (1.0 / 255.0);
+}

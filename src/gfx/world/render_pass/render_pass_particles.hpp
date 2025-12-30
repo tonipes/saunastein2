@@ -89,8 +89,9 @@ namespace SFG
 
 		struct particle_instance_data
 		{
-			vector4 pos_and_rot;
-			vector4 size;
+			vector3 pos;
+			uint32	rot_size;
+			uint32	color;
 		};
 
 		struct particle_counters
@@ -119,22 +120,26 @@ namespace SFG
 
 		struct per_frame_data
 		{
-			buffer_gpu ubo							= {};
-			buffer	   emit_counts					= {};
-			buffer	   system_data					= {};
-			buffer	   emit_arguments				= {};
-			buffer	   states						= {};
-			buffer	   indirect_arguments			= {};
-			buffer	   sim_count_indirect_arguments = {};
-			buffer	   alive_list_a					= {};
-			buffer	   alive_list_b					= {};
-			buffer	   dead_indices					= {};
-			buffer	   instance_data				= {};
-			buffer	   counters						= {};
-			gfx_id	   cmd_buffer					= NULL_GFX_ID;
-			gfx_id	   cmd_buffer_compute			= NULL_GFX_ID;
-			uint8	   buffers_init					= 0;
-			uint8	   frame_switch					= 0;
+			buffer_gpu ubo				  = {};
+			buffer	   indirect_arguments = {};
+			buffer	   instance_data	  = {};
+			gfx_id	   cmd_buffer		  = NULL_GFX_ID;
+			gfx_id	   cmd_buffer_compute = NULL_GFX_ID;
+		};
+
+		struct sim_state
+		{
+			buffer emit_counts					= {};
+			buffer system_data					= {};
+			buffer emit_arguments				= {};
+			buffer states						= {};
+			buffer sim_count_indirect_arguments = {};
+			buffer alive_list_a					= {};
+			buffer alive_list_b					= {};
+			buffer dead_indices					= {};
+			buffer counters						= {};
+			uint8  frame_switch					= 0;
+			uint8  buffers_init					= 0;
 		};
 
 	public:
@@ -186,6 +191,7 @@ namespace SFG
 
 	private:
 		per_frame_data		 _pfd[BACK_BUFFER_COUNT];
+		sim_state			 _sim_state = {};
 		draw_stream_particle _draw_stream;
 		bump_allocator		 _alloc					= {};
 		uint32				 _num_systems			= 0;

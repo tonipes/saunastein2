@@ -69,8 +69,8 @@ struct particle_state
 
 struct particle_instance_data
 {
-    float4 pos_and_rot;
-    float4 size;
+    float4 pos_rot_size;
+    uint color;
 };
 
 struct particle_counters

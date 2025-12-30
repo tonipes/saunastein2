@@ -30,6 +30,7 @@
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #include "layout_defines.hlsl"
 #include "particles.hlsl"
+#include "packing_utils.hlsl"
 
 //------------------------------------------------------------------------------
 // In & Outs
@@ -92,7 +93,9 @@ vs_output VSMain(uint vid : SV_VertexID, uint iid : SV_InstanceID)
 
     particle_instance_data p = instance_data[iid];
 
-    float3 center = p.pos_and_rot.xyz;
+    float3 center = p.pos_rot_size.xyz;
+    float2 rot_size = unpack_half2x16((uint)p.pos_rot_size.w);
+    float4 color = unpack_rgba8_unorm(p.color);
 
     // Build billboard basis. Use camera dir (or compute to-camera if desired).
     float3 forward = normalize(pass_params.cam_dir.xyz);
@@ -106,13 +109,13 @@ vs_output VSMain(uint vid : SV_VertexID, uint iid : SV_InstanceID)
     float3 up    = cross(forward, right);
 
     // Optional spin around forward using p.pos_and_rot.w (radians)
-    float s = sin(p.pos_and_rot.w);
-    float c = cos(p.pos_and_rot.w);
+    float s = sin(rot_size.x);
+    float c = cos(rot_size.x);
     float3 right2 = right * c + up * s;
     float3 up2    = up    * c - right * s;
 
     float2 corner = k_corners[vid];
-    float  half_size = 0.5 * p.size.x * 0.2;
+    float  half_size = 0.5 * rot_size.y * 0.2;
 
     float3 world_pos =
         center +

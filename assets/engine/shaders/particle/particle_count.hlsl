@@ -30,6 +30,7 @@
 // -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #include "layout_defines_compute.hlsl"
 #include "particles.hlsl"
+#include "packing_utils.hlsl"
 
 // ----------------------------------------------
 // pass 4 - 1 thread per alive particle
@@ -73,7 +74,12 @@ void CSMain(uint3 dtid : SV_DispatchThreadID)
 
     RWStructuredBuffer<particle_instance_data> instance_data    = sfg_get_rws_buffer<particle_instance_data>(sfg_rp_constant5);
     particle_instance_data pid = (particle_instance_data)0;
-    pid.pos_and_rot = float4(states[particle_index].position_and_age.xyz, states[particle_index].rotation);
-    pid.size = float4(1,0,0,0);
+
+    float rot = states[particle_index].rotation;
+    float size = 1.0f;
+    uint rot_and_size = pack_half2x16(float2(rot, size));
+    pid.pos_rot_size = float4(states[particle_index].position_and_age.xyz, (float)rot_and_size);
+    pid.color = pack_rgba8_unorm(states[particle_index].color);
+
     instance_data[start + idx] = pid;
 }
