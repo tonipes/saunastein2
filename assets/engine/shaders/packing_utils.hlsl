@@ -43,6 +43,20 @@ uint pack_half2x16(float2 v)
     return lo | (hi << 16);
 }
 
+uint pack_01(float2 val)
+{
+    uint lo = (uint)round(saturate(val.x) * 65535.0f) & 0xFFFFu;
+    uint hi = (uint)round(saturate(val.y) * 65535.0f) & 0xFFFFu;
+    return lo | (hi << 16);
+}
+
+float2 unpack_01(uint val)
+{
+    uint lo = val & 0xFFFFu;
+    uint hi = val >> 16;
+    return float2(saturate((float)lo / 65535.0f), saturate((float)hi / 65535.0f));
+}
+
 uint pack_rgba8_unorm(float4 c)
 {
     int32_t4 v = (int32_t4)round(saturate(c) * 255.0);

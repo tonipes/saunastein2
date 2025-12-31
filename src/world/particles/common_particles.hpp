@@ -36,26 +36,91 @@ namespace SFG
 	class ostream;
 	class istream;
 
+	struct particle_spawn_settings
+	{
+		float  emitter_lifetime	  = 0.0f;
+		float  wait_between_emits = 0.0f;
+		float  min_lifetime		  = 1.0f;
+		float  max_lifetime		  = 1.0f;
+		uint32 min_particle_count = 1;
+		uint32 max_particle_count = 1;
+
+		void serialize(ostream& stream) const;
+		void deserialize(istream& stream);
+	};
+
+	struct particle_position_settings
+	{
+		vector3 min_start = vector3::zero;
+		vector3 max_start = vector3::zero;
+
+		void serialize(ostream& stream) const;
+		void deserialize(istream& stream);
+	};
+
+	struct particle_velocity_settings
+	{
+		vector3 min_start		= vector3::zero;
+		vector3 max_start		= vector3::zero;
+		vector3 min_mid			= vector3::zero;
+		vector3 max_mid			= vector3::zero;
+		vector3 min_end			= vector3::zero;
+		vector3 max_end			= vector3::zero;
+		float	integrate_point = -1;
+		uint8	is_local		= 0;
+
+		void serialize(ostream& stream) const;
+		void deserialize(istream& stream);
+	};
+
+	struct particle_color_settings
+	{
+		vector3 min_start				= vector3::one;
+		vector3 max_start				= vector3::one;
+		float	min_start_opacity		= 1.0f;
+		float	max_start_opacity		= 1.0f;
+		float	mid_opacity				= 1.0f;
+		float	end_opacity				= 1.0f;
+		float	integrate_point_opacity = -1;
+
+		void serialize(ostream& stream) const;
+		void deserialize(istream& stream);
+	};
+
+	struct particle_rotation_settings
+	{
+		float min_start_rotation			   = 0.0f;
+		float max_start_rotation			   = 0.0f;
+		float min_start_angular_velocity	   = 0.0f;
+		float max_start_angular_velocity	   = 0.0f;
+		float min_end_angular_velocity		   = 0.0f;
+		float max_end_angular_velocity		   = 0.0f;
+		float integrate_point_angular_velocity = -1;
+
+		void serialize(ostream& stream) const;
+		void deserialize(istream& stream);
+	};
+
+	struct particle_size_settings
+	{
+		float min_start		  = 1.0f;
+		float max_start		  = 1.0f;
+		float mid			  = 1.0f;
+		float end			  = 1.0f;
+		float integrate_point = -1.0f;
+
+		void serialize(ostream& stream) const;
+		void deserialize(istream& stream);
+	};
+
 	struct particle_emit_properties
 	{
-		float	emitter_lifetime		 = 0.0f;
-		float	wait_between_emits		 = 0.0f;
-		uint32	min_particle_count		 = 1;
-		uint32	max_particle_count		 = 1;
-		vector3 min_pos_offset			 = vector3::zero;
-		vector3 max_pos_offset			 = vector3::zero;
-		vector3 min_vel_offset			 = vector3::zero;
-		vector3 max_vel_offset			 = vector3::zero;
-		vector4 min_target_vel_offset	 = vector4::zero;
-		vector4 max_target_vel_offset	 = vector4::zero;
-		color	min_color				 = color::white;
-		color	max_color				 = color::white;
-		vector2 min_max_opacity_target	 = vector2::zero;
-		vector2 min_max_rotation_deg	 = vector2::zero;
-		vector2 min_max_angular_velocity = vector2::zero;
-		vector2 min_max_lifetime		 = vector2::one;
-		vector2 min_max_size			 = vector2::one;
-		vector2 min_max_target_size		 = vector2::zero;
+		particle_spawn_settings	   spawn	= {};
+		particle_position_settings pos		= {};
+		particle_velocity_settings velocity = {};
+		particle_rotation_settings rotation = {};
+		particle_size_settings	   size		= {};
+		particle_color_settings	   color	= {};
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);

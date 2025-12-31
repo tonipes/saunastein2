@@ -133,9 +133,26 @@ vs_output VSMain(uint vid : SV_VertexID, uint iid : SV_InstanceID)
 // Pixel Shader 
 //------------------------------------------------------------------------------
 
+struct material_data
+{
+    float4 base_color;
+};
+
+struct texture_data
+{
+    uint albedo_index;
+};
+
+SamplerState smp : static_sampler_linear;
+
 float4 PSMain(vs_output IN) : SV_TARGET
 {
+    ConstantBuffer<material_data> mat = sfg_get_cbv<material_data>(sfg_mat_constant0);
+    ConstantBuffer<texture_data> txt_data = sfg_get_cbv<texture_data>(sfg_mat_constant1);
+    Texture2D albedo_txt = sfg_get_texture<Texture2D>(txt_data.albedo_index);
+    float4 albedo = albedo_txt.SampleLevel(smp, IN.uv, 0);
     return IN.color;
+    return albedo * IN.color * mat.base_color;
 }
 
 

@@ -377,61 +377,103 @@ namespace SFG
 				.pipeline_hw		  = target_shader,
 			});
 
-			if (!math::almost_equal(p.emit_props.emitter_lifetime, 0.0f))
+			const particle_emit_properties& ep = p.emit_props;
+
+			if (!math::almost_equal(ep.spawn.emitter_lifetime, 0.0f))
 			{
-				if (p.current_life > p.emit_props.emitter_lifetime)
+				if (p.current_life > ep.spawn.emitter_lifetime)
 					emit_dead = true;
 			}
 
 			if (!emit_dead)
 			{
-				if (math::almost_equal(p.emit_props.wait_between_emits, 0.0f))
+				if (math::almost_equal(ep.spawn.wait_between_emits, 0.0f))
 				{
 					// emits constantly.
-					emit_count = static_cast<uint32>(random::random_int(static_cast<int>(p.emit_props.min_particle_count), static_cast<int>(p.emit_props.max_particle_count)));
+					emit_count = static_cast<uint32>(random::random_int(static_cast<int>(ep.spawn.min_particle_count), static_cast<int>(ep.spawn.max_particle_count)));
 				}
 				else
 				{
 					// emit at start.
 					if (math::almost_equal(p.last_emitted, 0.0f))
 					{
-						emit_count = static_cast<uint32>(random::random_int(static_cast<int>(p.emit_props.min_particle_count), static_cast<int>(p.emit_props.max_particle_count)));
+						emit_count = static_cast<uint32>(random::random_int(static_cast<int>(ep.spawn.min_particle_count), static_cast<int>(ep.spawn.max_particle_count)));
 						p.last_emitted += particles_delta;
 					}
-					else if (p.current_life - p.last_emitted > p.emit_props.wait_between_emits)
+					else if (p.current_life - p.last_emitted > ep.spawn.wait_between_emits)
 					{
 						// emit in bursts
 						p.last_emitted = p.current_life;
-						emit_count	   = static_cast<uint32>(random::random_int(static_cast<int>(p.emit_props.min_particle_count), static_cast<int>(p.emit_props.max_particle_count)));
+						emit_count	   = static_cast<uint32>(random::random_int(static_cast<int>(ep.spawn.min_particle_count), static_cast<int>(ep.spawn.max_particle_count)));
 					}
 				}
 				p.current_life += particles_delta;
 			}
-
-			if (emit_count != 0)
-				SFG_TRACE("emit {0}", emit_count);
 
 			_sim_state.emit_counts.buffer_data(sizeof(uint32) * num_emitters, &emit_count, sizeof(uint32));
 
 			const render_proxy_entity& e = pm.get_entity(p.entity);
 			SFG_ASSERT(e.status == render_proxy_status::rps_active);
 			const vector3 base_pos = e.model.get_translation();
-			const vector3 min_pos  = base_pos + p.emit_props.min_pos_offset;
-			const vector3 max_pos  = base_pos + p.emit_props.max_pos_offset;
-			const vector4 min_col  = vector4(p.emit_props.min_color.x, p.emit_props.min_color.y, p.emit_props.min_color.z, p.emit_props.min_color.w);
-			const vector4 max_col  = vector4(p.emit_props.max_color.x, p.emit_props.max_color.y, p.emit_props.max_color.z, p.emit_props.max_color.w);
+
+			const uint8 local_vel = ep.velocity.is_local;
+
+			const vector3 min_start_vel = local_vel ? e.rotation * ep.velocity.min_start : ep.velocity.min_start;
+			const vector3 max_start_vel = local_vel ? e.rotation * ep.velocity.max_start : ep.velocity.max_start;
+			const vector3 min_mid_vel	= local_vel ? e.rotation * ep.velocity.min_mid : ep.velocity.min_mid;
+			const vector3 max_mid_vel	= local_vel ? e.rotation * ep.velocity.max_mid : ep.velocity.max_mid;
+			const vector3 min_end_vel	= local_vel ? e.rotation * ep.velocity.min_end : ep.velocity.min_end;
+			const vector3 max_end_vel	= local_vel ? e.rotation * ep.velocity.max_end : ep.velocity.max_end;
 
 			args = {
-				.min_color							 = min_col,
-				.max_color							 = max_col,
-				.min_max_size_and_target_size		 = vector4(p.emit_props.min_max_size.x, p.emit_props.min_max_size.y, p.emit_props.min_max_target_size.x, p.emit_props.min_max_target_size.y),
-				.min_max_ang_velocity_opacity_target = vector4(DEG_2_RAD * p.emit_props.min_max_angular_velocity.x, DEG_2_RAD * p.emit_props.min_max_angular_velocity.y, p.emit_props.min_max_opacity_target.x, p.emit_props.min_max_opacity_target.y),
-				.min_target_vel						 = vector4(p.emit_props.min_target_vel_offset.x, p.emit_props.min_target_vel_offset.y, p.emit_props.min_target_vel_offset.z, 0.0f),
-				.max_target_vel						 = vector4(p.emit_props.max_target_vel_offset.x, p.emit_props.max_target_vel_offset.y, p.emit_props.max_target_vel_offset.z, 0.0f),
-				.min_pos							 = vector4(min_pos.x, min_pos.y, min_pos.z, p.emit_props.min_max_lifetime.x),
-				.max_pos							 = vector4(max_pos.x, max_pos.y, max_pos.z, p.emit_props.min_max_lifetime.y),
-				.min_vel							 = vector4(p.emit_props.min_vel_offset.x, p.emit_props.min_vel_offset.y, p.emit_props.min_vel_offset.z, DEG_2_RAD * p.emit_props.min_max_rotation_deg.x),
-				.max_vel							 = vector4(p.emit_props.max_vel_offset.x, p.emit_props.max_vel_offset.y, p.emit_props.max_vel_offset.z, DEG_2_RAD * p.emit_props.min_max_rotation_deg.y),
+				.integrate_points = vector4(ep.velocity.integrate_point, ep.color.integrate_point_opacity, ep.rotation.integrate_point_angular_velocity, ep.size.integrate_point),
+				.opacity_points	  = vector4(ep.color.min_start_opacity, ep.color.max_start_opacity, ep.color.mid_opacity, ep.color.end_opacity),
+				.size_points	  = vector4(ep.size.min_start, ep.size.max_start, ep.size.mid, ep.size.end),
+				.min_lifetime	  = ep.spawn.min_lifetime,
+				.max_lifetime	  = ep.spawn.max_lifetime,
+
+				.min_pos_x = base_pos.x + ep.pos.min_start.x,
+				.min_pos_y = base_pos.y + ep.pos.min_start.y,
+				.min_pos_z = base_pos.z + ep.pos.min_start.z,
+				.max_pos_x = base_pos.x + ep.pos.max_start.x,
+				.max_pos_y = base_pos.y + ep.pos.max_start.y,
+				.max_pos_z = base_pos.z + ep.pos.max_start.z,
+
+				.min_start_vel_x = min_start_vel.x,
+				.min_start_vel_y = min_start_vel.y,
+				.min_start_vel_z = min_start_vel.z,
+				.max_start_vel_x = max_start_vel.x,
+				.max_start_vel_y = max_start_vel.y,
+				.max_start_vel_z = max_start_vel.z,
+
+				.min_mid_vel_x = min_mid_vel.x,
+				.min_mid_vel_y = min_mid_vel.y,
+				.min_mid_vel_z = min_mid_vel.z,
+				.max_mid_vel_x = max_mid_vel.x,
+				.max_mid_vel_y = max_mid_vel.y,
+				.max_mid_vel_z = max_mid_vel.z,
+
+				.min_end_vel_x = min_end_vel.x,
+				.min_end_vel_y = min_end_vel.y,
+				.min_end_vel_z = min_end_vel.z,
+				.max_end_vel_x = max_end_vel.x,
+				.max_end_vel_y = max_end_vel.y,
+				.max_end_vel_z = max_end_vel.z,
+
+				.min_col_x = ep.color.min_start.x,
+				.min_col_y = ep.color.min_start.y,
+				.min_col_z = ep.color.min_start.z,
+
+				.max_col_x = ep.color.max_start.x,
+				.max_col_y = ep.color.max_start.y,
+				.max_col_z = ep.color.max_start.z,
+
+				.min_start_rotation			= ep.rotation.min_start_rotation,
+				.max_start_rotation			= ep.rotation.max_start_rotation,
+				.min_start_angular_velocity = ep.rotation.min_start_angular_velocity,
+				.max_start_angular_velocity = ep.rotation.max_start_angular_velocity,
+				.min_end_angular_velocity	= ep.rotation.min_end_angular_velocity,
+				.max_end_angular_velocity	= ep.rotation.max_end_angular_velocity,
 			};
 
 			_sim_state.emit_arguments.buffer_data(sizeof(particle_emit_args) * num_emitters, &args, sizeof(particle_emit_args));

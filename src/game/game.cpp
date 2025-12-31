@@ -84,24 +84,58 @@ namespace SFG
 		comp_particle_emitter& emitter				= cm.get_component<comp_particle_emitter>(comp_particle_handle);
 		emitter.set_emit_properties(w,
 									{
-										.emitter_lifetime		  = 0.0f,
-										.wait_between_emits		  = 0.01f,
-										.min_particle_count		  = 1,
-										.max_particle_count		  = 1,
-										.min_pos_offset			  = vector3(-0.15, 2, 0),
-										.max_pos_offset			  = vector3(0.15, 1.75f, 0),
-										.min_vel_offset			  = vector3(0, 2, 0),
-										.max_vel_offset			  = vector3(0, 2, 0),
-										.min_target_vel_offset	  = vector4(1, 2, 0, 1),
-										.max_target_vel_offset	  = vector4(1, 2, 0, 1),
-										.min_color				  = color(1, 0, 0, 0.25f),
-										.max_color				  = color(1, 0, 1, 0.25f),
-										.min_max_opacity_target	  = vector2(0, 0),
-										.min_max_rotation_deg	  = vector2(0, 90),
-										.min_max_angular_velocity = vector2(200, 200),
-										.min_max_lifetime		  = vector2(3.0f, 3.0f),
-										.min_max_size			  = vector2(0.5f, 0.5f),
-										.min_max_target_size	  = vector2(0.4f, 0.4f),
+										.spawn =
+											{
+												.emitter_lifetime	= 0.0f,
+												.wait_between_emits = 5.0f,
+												.min_lifetime		= 2.5f,
+												.max_lifetime		= 2.5f,
+												.min_particle_count = 5,
+												.max_particle_count = 15,
+											},
+										.pos =
+											{
+												.min_start = vector3(-2, 2, 0),
+												.max_start = vector3(4, 2, 0),
+											},
+										.velocity =
+											{
+												.min_start		 = vector3(0, 1, 0),
+												.max_start		 = vector3(0, 3, 0),
+												.min_mid		 = vector3(1, 2, 0),
+												.max_mid		 = vector3(1, 2, 0),
+												.min_end		 = vector3(-2, 2, 0),
+												.max_end		 = vector3(-2, 2, 0),
+												.integrate_point = 0.5f,
+											},
+										.rotation =
+											{
+												.min_start_rotation				  = DEG_2_RAD * 0.0f,
+												.max_start_rotation				  = DEG_2_RAD * 90.0f,
+												.min_start_angular_velocity		  = DEG_2_RAD * 1245,
+												.max_start_angular_velocity		  = DEG_2_RAD * 1245,
+												.min_end_angular_velocity		  = 0.0f,
+												.max_end_angular_velocity		  = 0.0f,
+												.integrate_point_angular_velocity = 0.5f,
+											},
+										.size =
+											{
+												.min_start		 = 0.25f,
+												.max_start		 = 0.75f,
+												.mid			 = 1.5f,
+												.end			 = 0.0f,
+												.integrate_point = 0.5f,
+											},
+										.color =
+											{
+												.min_start				 = vector3(1, 0, 0),
+												.max_start				 = vector3(0, 1, 0),
+												.min_start_opacity		 = 0.0f,
+												.max_start_opacity		 = 0.0f,
+												.mid_opacity			 = 1.0f,
+												.end_opacity			 = 0.0f,
+												.integrate_point_opacity = 0.5f,
+											},
 									},
 									particle_material);
 

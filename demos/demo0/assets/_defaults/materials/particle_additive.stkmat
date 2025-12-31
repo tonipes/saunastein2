@@ -2,7 +2,9 @@
    "pass": "particle",
    "shader": "assets/_defaults/shaders/particle_additive.stkshader",
    "textures": [
+      "assets/_defaults/textures/smoke_01.stktexture"
    ],
    "parameters": [
+      {"name": "base_color", "value": { "x": 1, "y": 1, "z": 1, "w": 1}}
    ]
 }

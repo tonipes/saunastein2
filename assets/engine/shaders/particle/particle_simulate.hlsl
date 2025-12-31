@@ -56,8 +56,8 @@ void CSMain(uint3 dtid : SV_DispatchThreadID, uint3 gtid : SV_GroupThreadID)
     
     ConstantBuffer<particle_pass_data> pass_params = sfg_get_cbv<particle_pass_data>(sfg_rp_constant0);
     float delta = pass_params.cam_pos_and_delta.w;
-    float age = state.position_and_age.w;
-    float lifetime = state.velocity_and_lifetime.w;
+    float age = state.age;
+    float lifetime = state.lifetime;
     age += delta;
 
     if(age > lifetime)
@@ -82,17 +82,50 @@ void CSMain(uint3 dtid : SV_DispatchThreadID, uint3 gtid : SV_GroupThreadID)
         return;
     }
 
-    // integrate & store
+    // integrate
     float life_ratio = age / lifetime;
-    float3 pos = state.position_and_age.xyz;
-    float3 vel = state.velocity_and_lifetime.xyz + (state.target_velocity_and_opacity.xyz - state.velocity_and_lifetime.xyz) * life_ratio;
-    float2 rotation_angular_velocity = state.rotation_angular_velocity;
-    rotation_angular_velocity.x += rotation_angular_velocity.y * delta;
+
+    // calculate current velocity.
+    float3 vel = float3(state.start_vel_x, state.start_vel_y, state.start_vel_z);
+    float2 vel_and_ang_vel_integs = unpack_01(state.vel_and_ang_vel_integrate_point);
+    float vel_integ = vel_and_ang_vel_integs.x;
+    if(vel_integ > 0.0f)
+    {
+        float3 mid_vel = float3(state.mid_vel_x, state.mid_vel_y, state.mid_vel_z);
+        float3 end_vel = float3(state.end_vel_x, state.end_vel_y, state.end_vel_z);
+        if(life_ratio < vel_integ)
+        {
+            vel = lerp(vel, mid_vel, life_ratio / vel_integ);
+        }
+        else
+        {
+            float t = (life_ratio - vel_integ) / (1.0f - vel_integ);
+            vel = lerp(mid_vel, end_vel, t);
+        }
+    }
+
+    // integrate current pos.
+    float3 pos = float3(state.pos_x, state.pos_y, state.pos_z);
     pos += vel * delta;
-    
-    state.rotation_angular_velocity = rotation_angular_velocity;
-    state.position_and_age = float4(pos.x, pos.y, pos.z, age);
-    states[particle_index] = state;
+
+    // calculate current angular velocity
+    float ang_vel_integ = vel_and_ang_vel_integs.y;
+    float ang_vel = state.start_ang_vel;
+    if(ang_vel_integ > 0.0)
+    {
+        ang_vel = lerp(ang_vel, state.end_ang_vel, saturate(life_ratio / ang_vel_integ));
+    }
+
+    // integrate current rot
+    float rot = state.rotation;
+    rot += ang_vel * delta;
+
+    // store.
+    states[particle_index].age = age;
+    states[particle_index].pos_x = pos.x;
+    states[particle_index].pos_y = pos.y;
+    states[particle_index].pos_z = pos.z;
+    states[particle_index].rotation = rot;
 
     // write into alive_count_b.
     uint idx;

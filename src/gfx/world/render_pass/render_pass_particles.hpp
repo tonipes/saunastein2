@@ -70,27 +70,87 @@ namespace SFG
 
 		struct particle_emit_args
 		{
-			vector4 min_color;
-			vector4 max_color;
-			vector4 min_max_size_and_target_size;
-			vector4 min_max_ang_velocity_opacity_target;
-			vector4 min_target_vel;
-			vector4 max_target_vel;
-			vector4 min_pos; // w is min lifetime
-			vector4 max_pos; // w is max lifetime
-			vector4 min_vel; // w is min rotation
-			vector4 max_vel; // w is max rotation
+			vector4 integrate_points; // vel, op, ang, sz
+			vector4 opacity_points;	  // min_start, max_start, mid, end
+			vector4 size_points;	  // min_start, max_start, mid, end
+
+			float min_lifetime;
+			float max_lifetime;
+
+			float min_pos_x;
+			float min_pos_y;
+			float min_pos_z;
+			float max_pos_x;
+			float max_pos_y;
+			float max_pos_z;
+
+			float min_start_vel_x;
+			float min_start_vel_y;
+			float min_start_vel_z;
+			float max_start_vel_x;
+			float max_start_vel_y;
+			float max_start_vel_z;
+
+			float min_mid_vel_x;
+			float min_mid_vel_y;
+			float min_mid_vel_z;
+			float max_mid_vel_x;
+			float max_mid_vel_y;
+			float max_mid_vel_z;
+
+			float min_end_vel_x;
+			float min_end_vel_y;
+			float min_end_vel_z;
+			float max_end_vel_x;
+			float max_end_vel_y;
+			float max_end_vel_z;
+
+			float min_col_x;
+			float min_col_y;
+			float min_col_z;
+			float max_col_x;
+			float max_col_y;
+			float max_col_z;
+
+			float min_start_rotation;
+			float max_start_rotation;
+			float min_start_angular_velocity;
+			float max_start_angular_velocity;
+			float min_end_angular_velocity;
+			float max_end_angular_velocity;
 		};
 
 		struct particle_state
 		{
-			vector4 position_and_age;
-			vector4 velocity_and_lifetime;
-			vector4 target_velocity_and_opacity;
-			vector2 rotation_angular_velocity;
-			uint32	start_end_size;
-			uint32	color;
-			uint32	system_id;
+			float pos_x;
+			float pos_y;
+			float pos_z;
+
+			float age;
+			float lifetime;
+
+			float start_vel_x;
+			float start_vel_y;
+			float start_vel_z;
+			float mid_vel_x;
+			float mid_vel_y;
+			float mid_vel_z;
+			float end_vel_x;
+			float end_vel_y;
+			float end_vel_z;
+
+			float rotation;
+			float start_ang_vel;
+			float end_ang_vel;
+
+			uint32 start_size_opacity;
+			uint32 mid_size_opacity;
+			uint32 end_size_opacity;
+			uint32 size_opacity_integrate_point;
+			uint32 vel_and_ang_vel_integrate_point;
+
+			uint32 color;
+			uint32 system_id;
 		};
 
 		struct particle_instance_data

@@ -32,45 +32,133 @@ namespace SFG
 {
 	void particle_emit_properties::serialize(ostream& stream) const
 	{
+		stream << spawn;
+		stream << pos;
+		stream << velocity;
+		stream << rotation;
+		stream << size;
+		stream << color;
+	}
+
+	void particle_emit_properties::deserialize(istream& stream)
+	{
+		stream >> spawn;
+		stream >> pos;
+		stream >> velocity;
+		stream >> rotation;
+		stream >> size;
+		stream >> color;
+	}
+
+	void particle_spawn_settings::serialize(ostream& stream) const
+	{
 		stream << emitter_lifetime;
 		stream << wait_between_emits;
 		stream << min_particle_count;
 		stream << max_particle_count;
-		stream << min_pos_offset;
-		stream << max_pos_offset;
-		stream << min_vel_offset;
-		stream << max_vel_offset;
-		stream << min_target_vel_offset;
-		stream << max_target_vel_offset;
-		stream << min_color;
-		stream << max_color;
-		stream << min_max_opacity_target;
-		stream << min_max_rotation_deg;
-		stream << min_max_angular_velocity;
-		stream << min_max_lifetime;
-		stream << min_max_size;
-		stream << min_max_target_size;
+		stream << min_lifetime;
+		stream << max_lifetime;
 	}
 
-	void particle_emit_properties::deserialize(istream& stream)
+	void particle_spawn_settings::deserialize(istream& stream)
 	{
 		stream >> emitter_lifetime;
 		stream >> wait_between_emits;
 		stream >> min_particle_count;
 		stream >> max_particle_count;
-		stream >> min_pos_offset;
-		stream >> max_pos_offset;
-		stream >> min_vel_offset;
-		stream >> max_vel_offset;
-		stream >> min_target_vel_offset;
-		stream >> max_target_vel_offset;
-		stream >> min_color;
-		stream >> max_color;
-		stream >> min_max_opacity_target;
-		stream >> min_max_rotation_deg;
-		stream >> min_max_angular_velocity;
-		stream >> min_max_lifetime;
-		stream >> min_max_size;
-		stream >> min_max_target_size;
+		stream >> min_lifetime;
+		stream >> max_lifetime;
+	}
+
+	void particle_position_settings::serialize(ostream& stream) const
+	{
+		stream << min_start;
+		stream << max_start;
+	}
+
+	void particle_position_settings::deserialize(istream& stream)
+	{
+		stream >> min_start;
+		stream >> max_start;
+	}
+
+	void particle_velocity_settings::serialize(ostream& stream) const
+	{
+		stream << min_start;
+		stream << max_start;
+		stream << min_mid;
+		stream << max_mid;
+		stream << min_end;
+		stream << max_end;
+		stream << integrate_point;
+		stream << is_local;
+	}
+
+	void particle_velocity_settings::deserialize(istream& stream)
+	{
+		stream >> min_start;
+		stream >> max_start;
+		stream >> min_mid;
+		stream >> max_mid;
+		stream >> min_end;
+		stream >> max_end;
+		stream >> integrate_point;
+		stream >> is_local;
+	}
+	void particle_color_settings::serialize(ostream& stream) const
+	{
+		stream << min_start;
+		stream << max_start;
+		stream << min_start_opacity;
+		stream << max_start_opacity;
+		stream << mid_opacity;
+		stream << end_opacity;
+		stream << integrate_point_opacity;
+	}
+	void particle_color_settings::deserialize(istream& stream)
+	{
+		stream >> min_start;
+		stream >> max_start;
+		stream >> min_start_opacity;
+		stream >> max_start_opacity;
+		stream >> mid_opacity;
+		stream >> end_opacity;
+		stream >> integrate_point_opacity;
+	}
+	void particle_rotation_settings::serialize(ostream& stream) const
+	{
+		stream << min_start_rotation;
+		stream << max_start_rotation;
+		stream << min_start_angular_velocity;
+		stream << max_start_angular_velocity;
+		stream << min_end_angular_velocity;
+		stream << max_end_angular_velocity;
+		stream << integrate_point_angular_velocity;
+	}
+	void particle_rotation_settings::deserialize(istream& stream)
+	{
+		stream >> min_start_rotation;
+		stream >> max_start_rotation;
+		stream >> min_start_angular_velocity;
+		stream >> max_start_angular_velocity;
+		stream >> min_end_angular_velocity;
+		stream >> max_end_angular_velocity;
+		stream >> integrate_point_angular_velocity;
+	}
+	void particle_size_settings::serialize(ostream& stream) const
+	{
+		stream << min_start;
+		stream << max_start;
+		stream << mid;
+		stream << end;
+		stream << integrate_point;
+	}
+	void particle_size_settings::deserialize(istream& stream)
+	{
+		stream >> min_start;
+		stream >> max_start;
+		stream >> mid;
+		stream >> end;
+		stream >> integrate_point;
 	}
 }

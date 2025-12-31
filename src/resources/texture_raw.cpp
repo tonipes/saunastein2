@@ -130,7 +130,7 @@ namespace SFG
 			json		  json_data = json::parse(f);
 			f.close();
 
-			texture_format = static_cast<uint8>(json_data.value<format>("format", format::undefined));
+			texture_format = static_cast<uint8>(json_data.value<format>("format", format::r8g8b8a8_srgb));
 			source		   = json_data.value<string>("source", "");
 			sid			   = TO_SID(relative_file);
 			name		   = relative_file;

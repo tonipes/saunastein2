@@ -33,6 +33,11 @@
 #include "particles.hlsl"
 #include "packing_utils.hlsl"
 
+float rand_mm(float val_min, float val_max, uint seed)
+{
+    return val_min + random01(seed) * (val_max - val_min);
+}
+
 // ----------------------------------------------
 // pass 1 - runs 64 threads per system
 // emits new particles and appends to alive list b
@@ -89,64 +94,67 @@
 
         // emit state
         uint seed = (system_id * 9781u) ^ (i * 6271u) ^ (frame_index * 15643u);
-        float random_pos_x = emit.min_pos.x + random01(seed * 1664325u) * (emit.max_pos.x - emit.min_pos.x);
-        float random_pos_y = emit.min_pos.y + random01(seed * 1664625u) * (emit.max_pos.y - emit.min_pos.y);
-        float random_pos_z = emit.min_pos.z + random01(seed * 1664125u) * (emit.max_pos.z - emit.min_pos.z);
-
-        float random_vel_x = emit.min_vel.x + random01(seed * 1664545u) * (emit.max_vel.x - emit.min_vel.x);
-        float random_vel_y = emit.min_vel.y + random01(seed * 1664595u) * (emit.max_vel.y - emit.min_vel.y);
-        float random_vel_z = emit.min_vel.z + random01(seed * 1664125u) * (emit.max_vel.z - emit.min_vel.z);
-
-        float4 min_color = emit.min_color;
-        float4 max_color = emit.max_color;
-
-        float random_c_x = min_color.x + random01(seed * 1661525u) * (max_color.x - min_color.x);
-        float random_c_y = min_color.y + random01(seed * 1662525u) * (max_color.y - min_color.y);
-        float random_c_z = min_color.z + random01(seed * 1666525u) * (max_color.z - min_color.z);
-        float random_c_w = min_color.w + random01(seed * 1664585u) * (max_color.w - min_color.w);
-
-        float random_lifetime = emit.min_pos.w +
-                                random01(seed * 1650212u) * (emit.max_pos.w - emit.min_pos.w);
-
-
-        float2 min_max_size = emit.min_max_size_and_size_target.xy;
-        float2 min_max_size_target = emit.min_max_size_and_size_target.zw;
-        
-        float random_size = min_max_size.x + random01(seed * 165243u) * (min_max_size.y - min_max_size.x);
-        float random_size_target = random_size;
-
-        if(min_max_size_target.x >= 0.0 && min_max_size_target.y >= 0.0)
-            random_size_target = min_max_size_target.x + random01(seed * 168875u) * (min_max_size_target.y - min_max_size_target.x);
-
-        float2 min_max_angular_velocity = emit.min_max_angular_and_opacity_velocity.xy;
-        float random_angular_velocity = min_max_angular_velocity.x + random01(seed * 15768u) * (min_max_angular_velocity.y - min_max_angular_velocity.x);
-        float random_rotation = emit.min_vel.w + random01(seed * 165242u) * (emit.max_vel.w - emit.min_vel.w);
-
-        float2 min_max_opacity_target = emit.min_max_angular_and_opacity_velocity.zw;
-
-        float random_opacity_target = random_c_w;
-
-        if(min_max_opacity_target.x >= 0.0 && min_max_opacity_target.y >= 0.0)
-            random_opacity_target = min_max_opacity_target.x + random01(seed * 166752u) * (min_max_opacity_target.y - min_max_opacity_target.x);
-
-        float3 target_vel = float3(random_vel_x, random_vel_y, random_vel_z);
-
-        if(emit.min_target_vel.w >= 0.0 && emit.max_target_vel.w >= 0.0f)
-        {
-            target_vel.x = emit.min_target_vel.x + random01(seed * 16687u) * (emit.max_target_vel.x - emit.min_target_vel.x);
-            target_vel.y = emit.min_target_vel.y + random01(seed * 16287u) * (emit.max_target_vel.y - emit.min_target_vel.y);
-            target_vel.z = emit.min_target_vel.z + random01(seed * 16647u) * (emit.max_target_vel.z - emit.min_target_vel.z);
-        }
-
+   
         // write particle state and mark alive.
         particle_state state = (particle_state)0;
-        state.position_and_age = float4(random_pos_x, random_pos_y, random_pos_z, 0.0f);
-        state.velocity_and_lifetime = float4(random_vel_x, random_vel_y, random_vel_z, random_lifetime);
-        state.target_velocity_and_opacity = (float4(target_vel.x, target_vel.y, target_vel.z, random_opacity_target));
-        state.start_end_size = pack_half2x16(float2(random_size, random_size_target));
-        state.color = pack_rgba8_unorm(float4(random_c_x, random_c_y, random_c_z, random_c_w));
-        state.rotation_angular_velocity = float2(random_rotation, random_angular_velocity);
+
+        // write position
+        state.pos_x = rand_mm(emit.min_pos_x, emit.max_pos_x, seed * 1664545u);
+        state.pos_y = rand_mm(emit.min_pos_y, emit.max_pos_y, seed * 1664542u);
+        state.pos_z = rand_mm(emit.min_pos_z, emit.max_pos_z, seed * 1664541u);
+
+        // write age - life
+        state.age = 0.0f;
+        state.lifetime = rand_mm(emit.min_lifetime, emit.max_lifetime, seed * 1261545u);
+
+        // velocity
+        state.start_vel_x = rand_mm(emit.min_start_vel_x, emit.max_start_vel_x, seed * 1634515u);
+        state.start_vel_y = rand_mm(emit.min_start_vel_y, emit.max_start_vel_y, seed * 16649542u);
+        state.start_vel_z = rand_mm(emit.min_start_vel_z, emit.max_start_vel_z, seed * 1668531u);
+        if(emit.integrate_points.x >= 0.0f)
+        {
+            state.mid_vel_x = rand_mm(emit.min_mid_vel_x, emit.max_mid_vel_x, seed * 1624645u);
+            state.mid_vel_y = rand_mm(emit.min_mid_vel_y, emit.max_mid_vel_y, seed * 1624742u);
+            state.mid_vel_z = rand_mm(emit.min_mid_vel_z, emit.max_mid_vel_z, seed * 1624231u);
+            state.end_vel_x = rand_mm(emit.min_end_vel_x, emit.max_end_vel_x, seed * 1684148u);
+            state.end_vel_y = rand_mm(emit.min_end_vel_y, emit.max_end_vel_y, seed * 1684412u);
+            state.end_vel_z = rand_mm(emit.min_end_vel_z, emit.max_end_vel_z, seed * 1684831u);
+        }
+
+        // rotation
+        state.rotation = rand_mm(emit.min_start_rotation, emit.max_start_rotation, seed * 1624745u);
+        state.start_ang_vel = rand_mm(emit.min_start_angular_velocity, emit.max_start_angular_velocity, seed * 1663585u);
+        if(emit.integrate_points.z >= 0.0f)
+        {
+            state.end_ang_vel = rand_mm(emit.min_end_angular_velocity, emit.max_end_angular_velocity, seed * 2664515u);
+        }
+
+        // size & opacity
+        float start_size = rand_mm(emit.size_points.x, emit.size_points.y, seed * 4264515u);
+        float mid_size = emit.size_points.z;
+        float end_size = emit.size_points.w;
+
+        float start_opacity = rand_mm(emit.opacity_points.x, emit.opacity_points.y, seed * 8264541u);
+        float mid_opacity = emit.opacity_points.z;
+        float end_opacity = emit.opacity_points.w;
+        
+        state.start_size_opacity = pack_01(float2(start_size, start_opacity));
+        state.mid_size_opacity = pack_01(float2(mid_size, mid_opacity));
+        state.end_size_opacity = pack_01(float2(end_size, end_opacity));
+
+        // integrate points
+        state.size_opacity_integrate_point = pack_01(float2(emit.integrate_points.w, emit.integrate_points.y));
+        state.vel_and_ang_vel_integrate_point = pack_01(float2(emit.integrate_points.x, emit.integrate_points.z));
+
+        // color
+        float cx = rand_mm(emit.min_col_x, emit.max_col_x, seed * 1684511u);
+        float cy = rand_mm(emit.min_col_y, emit.max_col_y, seed * 1682511u);
+        float cz = rand_mm(emit.min_col_z, emit.max_col_z, seed * 1484591u);
+        state.color = pack_rgba8_unorm(float4(cx, cy, cz, 0.0f));
+
+        // sys
         state.system_id = system_id;
+
         states[emitted_index] = state;
 
         // write into alive_list_b.

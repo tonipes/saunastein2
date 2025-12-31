@@ -3,6 +3,7 @@
   [
     "assets/_defaults/shaders/particle_additive.stkshader",
     "assets/_defaults/materials/particle_additive.stkmat",
+    "assets/_defaults/textures/smoke_01.stktexture",
     "assets/character/character.stkmodel",
     "assets/ground/ground.stkmodel",
     "assets/audio/metal.stkaud",

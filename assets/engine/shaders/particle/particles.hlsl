@@ -49,25 +49,85 @@ struct particle_system_data
 
 struct particle_emit_args
 {
-    float4 min_color;
-    float4 max_color;
-    float4 min_max_size_and_size_target;
-    float4 min_max_angular_and_opacity_velocity;
-    float4 min_target_vel;
-    float4 max_target_vel;
-    float4 min_pos; // w is min lifetime
-    float4 max_pos; // w is max lifetime
-    float4 min_vel; // w is min rotation
-    float4 max_vel; // w is max rotation
+    float4 integrate_points; // vel, op, ang, sz
+    float4 opacity_points;	  // min_start, max_start, mid, end
+    float4 size_points;	  // min_start, max_start, mid, end
+
+    float min_lifetime;
+    float max_lifetime;
+
+    float min_pos_x;
+    float min_pos_y;
+    float min_pos_z;
+    float max_pos_x;
+    float max_pos_y;
+    float max_pos_z;
+
+    float min_start_vel_x;
+    float min_start_vel_y;
+    float min_start_vel_z;
+    float max_start_vel_x;
+    float max_start_vel_y;
+    float max_start_vel_z;
+
+    float min_mid_vel_x;
+    float min_mid_vel_y;
+    float min_mid_vel_z;
+    float max_mid_vel_x;
+    float max_mid_vel_y;
+    float max_mid_vel_z;
+
+    float min_end_vel_x;
+    float min_end_vel_y;
+    float min_end_vel_z;
+    float max_end_vel_x;
+    float max_end_vel_y;
+    float max_end_vel_z;
+
+    float min_col_x;
+    float min_col_y;
+    float min_col_z;
+    float max_col_x;
+    float max_col_y;
+    float max_col_z;
+
+    float min_start_rotation;
+    float max_start_rotation;
+    float min_start_angular_velocity;
+    float max_start_angular_velocity;
+    float min_end_angular_velocity;
+    float max_end_angular_velocity;
 };
 
 struct particle_state
 {
-    float4 position_and_age;
-    float4 velocity_and_lifetime;
-    float4 target_velocity_and_opacity;
-    float2 rotation_angular_velocity;
-    uint start_end_size;
+    float pos_x;
+    float pos_y;
+    float pos_z;
+
+    float age;
+    float lifetime;
+
+    float start_vel_x;
+    float start_vel_y;
+    float start_vel_z;
+    float mid_vel_x;
+    float mid_vel_y;
+    float mid_vel_z;
+    float end_vel_x;
+    float end_vel_y;
+    float end_vel_z;
+
+    float rotation;
+    float start_ang_vel;
+    float end_ang_vel;
+
+    uint start_size_opacity;
+    uint mid_size_opacity;
+    uint end_size_opacity;
+    uint size_opacity_integrate_point;
+    uint vel_and_ang_vel_integrate_point;
+
     uint color;
     uint system_id;
 };

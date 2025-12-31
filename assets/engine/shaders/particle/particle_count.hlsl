@@ -55,7 +55,8 @@ void CSMain(uint3 dtid : SV_DispatchThreadID)
     ConstantBuffer<particle_pass_data> pass_params = sfg_get_cbv<particle_pass_data>(sfg_rp_constant0);
     
     // simple cull, no render if behind camera.
-    float3 cam_to_particle = states[particle_index].position_and_age.xyz - pass_params.cam_pos_and_delta.xyz;
+    float3 particle_pos = float3(states[particle_index].pos_x, states[particle_index].pos_y, states[particle_index].pos_z);
+    float3 cam_to_particle = particle_pos - pass_params.cam_pos_and_delta.xyz;
     float dp = dot(pass_params.cam_dir.xyz, cam_to_particle);
     uint visible = dp < 0.0 ? 0 : 1;
 
@@ -73,17 +74,53 @@ void CSMain(uint3 dtid : SV_DispatchThreadID)
     if (idx >= pass_params.max_particles_per_system) return;
 
     RWStructuredBuffer<particle_instance_data> instance_data    = sfg_get_rws_buffer<particle_instance_data>(sfg_rp_constant5);
-    particle_instance_data pid = (particle_instance_data)0;
 
-    float2 rot_angular_velocity = states[particle_index].rotation_angular_velocity;
-    float2 start_end_size = unpack_half2x16(states[particle_index].start_end_size);
-    float age_ratio = states[particle_index].position_and_age.w / states[particle_index].velocity_and_lifetime.w;
-    uint rot_and_size = pack_rot_size(rot_angular_velocity.x, start_end_size.x + (start_end_size.y - start_end_size.x) * age_ratio);
-    pid.pos_rot_size = float4(states[particle_index].position_and_age.xyz, (float)rot_and_size);
-    pid.color = states[particle_index].color;
+    float age_ratio = states[particle_index].age / states[particle_index].lifetime;
 
+    float3 position = float3(states[particle_index].pos_x, states[particle_index].pos_y, states[particle_index].pos_z);
+    float rotation = states[particle_index].rotation;
+
+    float2 start_size_opacity = unpack_01(states[particle_index].start_size_opacity);
+    float2 size_opacity_integrate_points = unpack_01(states[particle_index].size_opacity_integrate_point);
+    float2 mid_size_opacity = unpack_01(states[particle_index].mid_size_opacity);
+    float2 end_size_opacity = unpack_01(states[particle_index].end_size_opacity);
+
+    // find size
+    float size = start_size_opacity.x;
+    float size_integ = size_opacity_integrate_points.x;
+    if(size_integ > 0.0f)
+    {
+        if(age_ratio < size_integ)
+        {
+            size = lerp(size, mid_size_opacity.x, age_ratio / size_integ);
+        }
+        else
+        {
+            size = lerp(mid_size_opacity.x, end_size_opacity.x, (age_ratio - size_integ) / (1.0 - size_integ));
+        }
+    }
+
+    // find opacity
+    float opacity = start_size_opacity.y;
+    float opacity_integ = size_opacity_integrate_points.y;
+    if(opacity_integ > 0.0f)
+    {
+        if(age_ratio < opacity_integ)
+        {
+            opacity = lerp(opacity, mid_size_opacity.y, age_ratio / opacity_integ);
+        }
+        else
+        {
+            opacity = lerp(mid_size_opacity.y, end_size_opacity.y, (age_ratio - opacity_integ) / (1.0 - opacity_integ));
+        }
+    }
+    
+    // color
     float4 col = unpack_rgba8_unorm(states[particle_index].color);
-    col.w = col.w + (states[particle_index].target_velocity_and_opacity.w - col.w) * age_ratio;
+    col.w = opacity;
+
+    particle_instance_data pid = (particle_instance_data)0;
+    pid.pos_rot_size = float4(position.x, position.y, position.z, pack_rot_size(rotation, size));
     pid.color = pack_rgba8_unorm(col);
 
     instance_data[start + idx] = pid;
