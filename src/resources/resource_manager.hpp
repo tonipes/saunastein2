@@ -159,7 +159,7 @@ namespace SFG
 			resource_handle handle = add(hash);
 			T&				res	   = _resources.get(handle);
 			Loader*			lp	   = static_cast<Loader*>(loader);
-			Loader&	lref   = *(lp);
+			Loader&			lref   = *(lp);
 			res.create_from_loader(lref, w, handle);
 			return handle;
 		}
@@ -438,11 +438,6 @@ namespace SFG
 			return _default_gui_sdf_mat;
 		}
 
-		inline resource_handle get_default_particle_additive_shader() const
-		{
-			return _default_particle_additive_shader;
-		}
-
 		// -----------------------------------------------------------------------------
 		// iteration
 		// -----------------------------------------------------------------------------
@@ -573,19 +568,18 @@ namespace SFG
 		chunk_allocator32	  _aux_memory = {};
 		vector<cache_storage> _storages	  = {};
 		world&				  _world;
-		resource_handle		  _dummy_color_texture				= {};
-		resource_handle		  _dummy_orm_texture				= {};
-		resource_handle		  _dummy_normal_texture				= {};
-		resource_handle		  _default_gbuffer_shader			= {};
-		resource_handle		  _default_forward_shader			= {};
-		resource_handle		  _default_gui_shader				= {};
-		resource_handle		  _default_gui_text_shader			= {};
-		resource_handle		  _default_gui_sdf_shader			= {};
-		resource_handle		  _default_particle_additive_shader = {};
-		resource_handle		  _default_gui_mat					= {};
-		resource_handle		  _default_gui_text_mat				= {};
-		resource_handle		  _default_gui_sdf_mat				= {};
-		uint32				  _max_load_priority				= 0;
-		uint32				  _dynamic_sampler_count			= 0;
+		resource_handle		  _dummy_color_texture	   = {};
+		resource_handle		  _dummy_orm_texture	   = {};
+		resource_handle		  _dummy_normal_texture	   = {};
+		resource_handle		  _default_gbuffer_shader  = {};
+		resource_handle		  _default_forward_shader  = {};
+		resource_handle		  _default_gui_shader	   = {};
+		resource_handle		  _default_gui_text_shader = {};
+		resource_handle		  _default_gui_sdf_shader  = {};
+		resource_handle		  _default_gui_mat		   = {};
+		resource_handle		  _default_gui_text_mat	   = {};
+		resource_handle		  _default_gui_sdf_mat	   = {};
+		uint32				  _max_load_priority	   = 0;
+		uint32				  _dynamic_sampler_count   = 0;
 	};
 }

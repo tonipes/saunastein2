@@ -63,7 +63,7 @@ namespace SFG
 		};
 
 		void create_manual(world& w, const material_creation_params& p);
-		void create_from_loader(const material_raw& raw, world& w, resource_handle handle, resource_handle sampler = {});
+		void create_from_loader(const material_raw& raw, world& w, resource_handle handle);
 		void destroy(world& w, resource_handle handle);
 
 		// -----------------------------------------------------------------------------

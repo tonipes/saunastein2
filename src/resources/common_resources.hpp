@@ -50,9 +50,6 @@ namespace SFG
 #define DEFAULT_GUI_SHADER_PATH "assets/engine/shaders/world/gui_default.stkshader"
 #define DEFAULT_GUI_SHADER_SID	"assets/engine/shaders/world/gui_default.stkshader"_hs
 
-#define DEFAULT_PARTICLE_ADDITIVE_SHADER_PATH "assets/engine/shaders/particle/particle_additive.stkshader"
-#define DEFAULT_PARTICLE_ADDITIVE_SHADER_SID  "assets/engine/shaders/particle/particle_additive.stkshader"_hs
-
 #define DEFAULT_GUI_TEXT_SHADER_PATH "assets/engine/shaders/world/gui_text.stkshader"
 #define DEFAULT_GUI_TEXT_SHADER_SID	 "assets/engine/shaders/world/gui_text.stkshader"_hs
 

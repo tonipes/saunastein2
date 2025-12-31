@@ -981,7 +981,7 @@ namespace SFG
 			pso.desc.debug_name	 = raw.name;
 			pso.desc.attachments = color_attachments;
 			pso.desc.inputs		 = {};
-			pso.desc.cull		 = cull_mode::none;
+			pso.desc.cull		 = cull_mode::back;
 			pso.desc.topo		 = topology::triangle_strip;
 			pso.desc.front		 = front_face::ccw;
 			pso.desc.poly_mode	 = polygon_mode::fill;

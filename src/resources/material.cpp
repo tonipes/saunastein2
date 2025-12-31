@@ -89,7 +89,7 @@ namespace SFG
 			ev);
 	}
 
-	void material::create_from_loader(const material_raw& raw, world& w, resource_handle handle, resource_handle sampler)
+	void material::create_from_loader(const material_raw& raw, world& w, resource_handle handle)
 	{
 		SFG_ASSERT(!_flags.is_set(material_flags::material_flags_created));
 		_flags.set(material_flags::material_flags_created);
@@ -116,7 +116,12 @@ namespace SFG
 		ev.data.size			 = raw.material_data.get_size();
 		ev.flags				 = _flags.value();
 		ev.priority				 = raw.draw_priority;
-		ev.sampler				 = sampler.index;
+
+		if (raw.textures.empty())
+		{
+			const resource_handle sampler_handle = rm.get_or_add_sampler(raw.sampler_definition);
+			ev.sampler							 = sampler_handle.index;
+		}
 
 		for (string_id sid : raw.textures)
 		{

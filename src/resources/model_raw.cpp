@@ -1066,8 +1066,9 @@ namespace SFG
 	bool model_raw::load_from_cache(const char* cache_folder_path, const char* relative_path, const char* extension)
 	{
 		const string sid_str		 = std::to_string(TO_SID(relative_path));
-		const string meta_cache_path = cache_folder_path + sid_str + "_meta" + extension;
-		const string data_cache_path = cache_folder_path + sid_str + "_data" + extension;
+		const string relative		 = file_system::get_filename_from_path(relative_path);
+		const string meta_cache_path = cache_folder_path + relative + "-" + sid_str + "_meta" + extension;
+		const string data_cache_path = cache_folder_path + relative + "-" + sid_str + "_data" + extension;
 
 		if (!file_system::exists(meta_cache_path.c_str()))
 			return false;
@@ -1104,13 +1105,14 @@ namespace SFG
 	void model_raw::save_to_cache(const char* cache_folder_path, const char* resource_directory_path, const char* extension) const
 	{
 		const string sid_str			= std::to_string(TO_SID(name));
+		const string relative			= file_system::get_filename_from_path(name);
 		const string file_path			= resource_directory_path + name;
 		const string source_path		= resource_directory_path + source;
 		const uint64 file_last_modified = file_system::get_last_modified_ticks(file_path);
 		const uint64 src_last_modified	= file_system::get_last_modified_ticks(source_path);
 
-		const string meta_cache_path = cache_folder_path + sid_str + "_meta" + extension;
-		const string data_cache_path = cache_folder_path + sid_str + "_data" + extension;
+		const string meta_cache_path = cache_folder_path + relative + "-" + sid_str + "_meta" + extension;
+		const string data_cache_path = cache_folder_path + relative + "-" + sid_str + "_data" + extension;
 
 		ostream out_stream;
 		out_stream << file_path;

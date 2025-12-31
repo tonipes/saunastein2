@@ -122,12 +122,11 @@ namespace SFG
 			// default shaders
 			// -----------------------------------------------------------------------------
 
-			shader_raw default_gbuffer_raw			 = {};
-			shader_raw default_forward_raw			 = {};
-			shader_raw default_gui_raw				 = {};
-			shader_raw default_gui_text_raw			 = {};
-			shader_raw default_gui_sdf_raw			 = {};
-			shader_raw default_particle_additive_raw = {};
+			shader_raw default_gbuffer_raw	= {};
+			shader_raw default_forward_raw	= {};
+			shader_raw default_gui_raw		= {};
+			shader_raw default_gui_text_raw = {};
+			shader_raw default_gui_sdf_raw	= {};
 
 #ifdef SFG_TOOLMODE
 			default_gbuffer_raw.load_from_file(DEFAULT_OPAQUE_SHADER_PATH, SFG_ROOT_DIRECTORY);
@@ -135,30 +134,26 @@ namespace SFG
 			default_gui_raw.load_from_file(DEFAULT_GUI_SHADER_PATH, SFG_ROOT_DIRECTORY);
 			default_gui_text_raw.load_from_file(DEFAULT_GUI_TEXT_SHADER_PATH, SFG_ROOT_DIRECTORY);
 			default_gui_sdf_raw.load_from_file(DEFAULT_GUI_SDF_SHADER_PATH, SFG_ROOT_DIRECTORY);
-			default_particle_additive_raw.load_from_file(DEFAULT_PARTICLE_ADDITIVE_SHADER_PATH, SFG_ROOT_DIRECTORY);
 #else
 			SFG_NOTIMPLEMENTED();
 #endif
 
-			_default_gbuffer_shader			  = add_resource<shader>(DEFAULT_OPAQUE_SHADER_SID);
-			_default_forward_shader			  = add_resource<shader>(DEFAULT_FORWARD_SHADER_SID);
-			_default_gui_shader				  = add_resource<shader>(DEFAULT_GUI_SHADER_SID);
-			_default_gui_text_shader		  = add_resource<shader>(DEFAULT_GUI_TEXT_SHADER_SID);
-			_default_gui_sdf_shader			  = add_resource<shader>(DEFAULT_GUI_SDF_SHADER_SID);
-			_default_particle_additive_shader = add_resource<shader>(DEFAULT_PARTICLE_ADDITIVE_SHADER_SID);
-			shader& gbuffer_sh				  = get_resource<shader>(_default_gbuffer_shader);
-			shader& forward_sh				  = get_resource<shader>(_default_forward_shader);
-			shader& gui_sh					  = get_resource<shader>(_default_gui_shader);
-			shader& gui_text_sh				  = get_resource<shader>(_default_gui_text_shader);
-			shader& gui_sdf_sh				  = get_resource<shader>(_default_gui_sdf_shader);
-			shader& particle_additive_sh	  = get_resource<shader>(_default_particle_additive_shader);
+			_default_gbuffer_shader	 = add_resource<shader>(DEFAULT_OPAQUE_SHADER_SID);
+			_default_forward_shader	 = add_resource<shader>(DEFAULT_FORWARD_SHADER_SID);
+			_default_gui_shader		 = add_resource<shader>(DEFAULT_GUI_SHADER_SID);
+			_default_gui_text_shader = add_resource<shader>(DEFAULT_GUI_TEXT_SHADER_SID);
+			_default_gui_sdf_shader	 = add_resource<shader>(DEFAULT_GUI_SDF_SHADER_SID);
+			shader& gbuffer_sh		 = get_resource<shader>(_default_gbuffer_shader);
+			shader& forward_sh		 = get_resource<shader>(_default_forward_shader);
+			shader& gui_sh			 = get_resource<shader>(_default_gui_shader);
+			shader& gui_text_sh		 = get_resource<shader>(_default_gui_text_shader);
+			shader& gui_sdf_sh		 = get_resource<shader>(_default_gui_sdf_shader);
 
 			gbuffer_sh.create_from_loader(default_gbuffer_raw, _world, _default_gbuffer_shader);
 			forward_sh.create_from_loader(default_forward_raw, _world, _default_forward_shader);
 			gui_sh.create_from_loader(default_gui_raw, _world, _default_gui_shader);
 			gui_text_sh.create_from_loader(default_gui_text_raw, _world, _default_gui_text_shader);
 			gui_sdf_sh.create_from_loader(default_gui_sdf_raw, _world, _default_gui_sdf_shader);
-			particle_additive_sh.create_from_loader(default_particle_additive_raw, _world, _default_particle_additive_shader);
 
 			// -----------------------------------------------------------------------------
 			// default materials
@@ -196,7 +191,6 @@ namespace SFG
 			add_resource_watch(_default_gui_shader, DEFAULT_GUI_SHADER_PATH, {default_gui_raw.source}, type_id<shader>::value, SFG_ROOT_DIRECTORY);
 			add_resource_watch(_default_gui_text_shader, DEFAULT_GUI_TEXT_SHADER_PATH, {default_gui_text_raw.source}, type_id<shader>::value, SFG_ROOT_DIRECTORY);
 			add_resource_watch(_default_gui_sdf_shader, DEFAULT_GUI_SDF_SHADER_PATH, {default_gui_sdf_raw.source}, type_id<shader>::value, SFG_ROOT_DIRECTORY);
-			add_resource_watch(_default_particle_additive_shader, DEFAULT_PARTICLE_ADDITIVE_SHADER_PATH, {default_particle_additive_raw.source}, type_id<shader>::value, SFG_ROOT_DIRECTORY);
 			add_resource_watch(_default_gui_mat, DEFAULT_GUI_MAT_PATH, {default_gui_sdf_raw.source}, type_id<shader>::value, SFG_ROOT_DIRECTORY);
 			add_resource_watch(_default_gui_text_mat, DEFAULT_GUI_TEXT_MAT_PATH, {default_gui_sdf_raw.source}, type_id<shader>::value, SFG_ROOT_DIRECTORY);
 			add_resource_watch(_default_gui_sdf_mat, DEFAULT_GUI_SDF_MAT_PATH, {default_gui_sdf_raw.source}, type_id<shader>::value, SFG_ROOT_DIRECTORY);
