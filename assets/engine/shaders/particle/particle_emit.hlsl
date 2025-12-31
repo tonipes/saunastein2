@@ -38,6 +38,50 @@ float rand_mm(float val_min, float val_max, uint seed)
     return val_min + random01(seed) * (val_max - val_min);
 }
 
+float2 rand2(uint seed)
+{
+    return float2(random01(seed * 1597334677u), random01(seed * 3812015801u));
+}
+
+void make_basis(float3 dir, out float3 u, out float3 v)
+{
+    // pick a helper that's not parallel
+    float3 a = (abs(dir.z) < 0.999f) ? float3(0,0,1) : float3(0,1,0);
+    u = normalize(cross(a, dir));
+    v = cross(dir, u);
+}
+
+float3 sample_cone_volume(
+    float3 A, float3 B,
+    float r0, float r1,
+    uint seed)
+{
+    float3 axis = B - A;
+    float L = length(axis);
+    if (L <= 1e-6f) return A;
+
+    float3 dir = axis / L;
+
+    // --- choose t ---
+    float u_t = random01(seed * 747796405u);
+
+    float t = (r0 <= 1e-6f) ? pow(u_t, 1.0f / 3.0f) : u_t;
+
+    float r_at_t = lerp(r0, r1, t);
+
+    // --- sample disk ---
+    float2 u = rand2(seed * 2891336453u);
+    float rr = r_at_t * sqrt(u.x);
+    float theta = 6.28318530718f * u.y;
+
+    float3 U, V;
+    make_basis(dir, U, V);
+
+    float3 offset = rr * (cos(theta) * U + sin(theta) * V);
+
+    return A + dir * (t * L) + offset;
+}
+
 // ----------------------------------------------
 // pass 1 - runs 64 threads per system
 // emits new particles and appends to alive list b
@@ -99,9 +143,24 @@ float rand_mm(float val_min, float val_max, uint seed)
         particle_state state = (particle_state)0;
 
         // write position
-        state.pos_x = rand_mm(emit.min_pos_x, emit.max_pos_x, seed * 1664545u);
-        state.pos_y = rand_mm(emit.min_pos_y, emit.max_pos_y, seed * 1664542u);
-        state.pos_z = rand_mm(emit.min_pos_z, emit.max_pos_z, seed * 1664541u);
+        float r0 = 0.1f;
+        float r1 = emit.cone_radius;
+
+        if(r1 >= 0.1f)
+        {
+            float3 minp = float3(emit.min_pos_x, emit.min_pos_y, emit.min_pos_z);
+            float3 maxp = float3(emit.max_pos_x, emit.max_pos_y, emit.max_pos_z);
+            float3 p = sample_cone_volume(minp, maxp, r0, r1, seed * 69069u);
+            state.pos_x = p.x;
+            state.pos_y = p.y;
+            state.pos_z = p.z;
+        }
+        else{
+            state.pos_x = rand_mm(emit.min_pos_x, emit.max_pos_x, seed * 1664545u);
+            state.pos_y = rand_mm(emit.min_pos_y, emit.max_pos_y, seed * 1664542u);
+            state.pos_z = rand_mm(emit.min_pos_z, emit.max_pos_z, seed * 1664541u);
+        }
+
 
         // write age - life
         state.age = 0.0f;

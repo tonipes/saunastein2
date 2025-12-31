@@ -62,6 +62,7 @@ struct particle_emit_args
     float max_pos_x;
     float max_pos_y;
     float max_pos_z;
+    float cone_radius;
 
     float min_start_vel_x;
     float min_start_vel_y;

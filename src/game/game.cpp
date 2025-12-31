@@ -95,18 +95,19 @@ namespace SFG
 											},
 										.pos =
 											{
-												.min_start = vector3(-2, 2, 0),
-												.max_start = vector3(4, 2, 0),
+												.min_start = vector3(0, 4, 0),
+												.max_start = vector3(0, 8, 0),
+												.cone_radius = 0.1f,
 											},
 										.velocity =
 											{
-												.min_start		 = vector3(0, 1, 0),
-												.max_start		 = vector3(0, 3, 0),
+												.min_start		 = vector3(0, 0, 0),
+												.max_start		 = vector3(0, 0, 0),
 												.min_mid		 = vector3(1, 2, 0),
 												.max_mid		 = vector3(1, 2, 0),
 												.min_end		 = vector3(-2, 2, 0),
 												.max_end		 = vector3(-2, 2, 0),
-												.integrate_point = 0.5f,
+												.integrate_point = 0.0f,
 											},
 										.rotation =
 											{

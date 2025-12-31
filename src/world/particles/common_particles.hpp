@@ -51,8 +51,9 @@ namespace SFG
 
 	struct particle_position_settings
 	{
-		vector3 min_start = vector3::zero;
-		vector3 max_start = vector3::zero;
+		vector3 min_start	= vector3::zero;
+		vector3 max_start	= vector3::zero;
+		float	cone_radius = 0.0f;
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);

@@ -438,6 +438,7 @@ namespace SFG
 				.max_pos_x = base_pos.x + ep.pos.max_start.x,
 				.max_pos_y = base_pos.y + ep.pos.max_start.y,
 				.max_pos_z = base_pos.z + ep.pos.max_start.z,
+				.cone_radius = ep.pos.cone_radius,
 
 				.min_start_vel_x = min_start_vel.x,
 				.min_start_vel_y = min_start_vel.y,

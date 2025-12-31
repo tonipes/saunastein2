@@ -74,12 +74,14 @@ namespace SFG
 	{
 		stream << min_start;
 		stream << max_start;
+		stream << cone_radius;
 	}
 
 	void particle_position_settings::deserialize(istream& stream)
 	{
 		stream >> min_start;
 		stream >> max_start;
+		stream >> cone_radius;
 	}
 
 	void particle_velocity_settings::serialize(ostream& stream) const
