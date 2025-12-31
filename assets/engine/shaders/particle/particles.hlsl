@@ -53,6 +53,8 @@ struct particle_emit_args
     float4 max_color;
     float4 min_max_size_and_size_target;
     float4 min_max_angular_and_opacity_velocity;
+    float4 min_target_vel;
+    float4 max_target_vel;
     float4 min_pos; // w is min lifetime
     float4 max_pos; // w is max lifetime
     float4 min_vel; // w is min rotation
@@ -63,8 +65,8 @@ struct particle_state
 {
     float4 position_and_age;
     float4 velocity_and_lifetime;
+    float4 target_velocity_and_opacity;
     float2 rotation_angular_velocity;
-    float opacity_target;
     uint start_end_size;
     uint color;
     uint system_id;

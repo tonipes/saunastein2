@@ -40,6 +40,8 @@ namespace SFG
 		stream << max_pos_offset;
 		stream << min_vel_offset;
 		stream << max_vel_offset;
+		stream << min_target_vel_offset;
+		stream << max_target_vel_offset;
 		stream << min_color;
 		stream << max_color;
 		stream << min_max_opacity_target;
@@ -60,6 +62,8 @@ namespace SFG
 		stream >> max_pos_offset;
 		stream >> min_vel_offset;
 		stream >> max_vel_offset;
+		stream >> min_target_vel_offset;
+		stream >> max_target_vel_offset;
 		stream >> min_color;
 		stream >> max_color;
 		stream >> min_max_opacity_target;

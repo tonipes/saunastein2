@@ -26,6 +26,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 #include "common/size_definitions.hpp"
+#include "math/vector4.hpp"
 #include "math/vector3.hpp"
 #include "math/vector2.hpp"
 #include "math/color.hpp"
@@ -45,15 +46,16 @@ namespace SFG
 		vector3 max_pos_offset			 = vector3::zero;
 		vector3 min_vel_offset			 = vector3::zero;
 		vector3 max_vel_offset			 = vector3::zero;
+		vector4 min_target_vel_offset	 = vector4::zero;
+		vector4 max_target_vel_offset	 = vector4::zero;
 		color	min_color				 = color::white;
 		color	max_color				 = color::white;
-		vector2 min_max_opacity_target = vector2::zero;
+		vector2 min_max_opacity_target	 = vector2::zero;
 		vector2 min_max_rotation_deg	 = vector2::zero;
 		vector2 min_max_angular_velocity = vector2::zero;
 		vector2 min_max_lifetime		 = vector2::one;
 		vector2 min_max_size			 = vector2::one;
-		vector2 min_max_target_size	 = vector2::zero;
-
+		vector2 min_max_target_size		 = vector2::zero;
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);

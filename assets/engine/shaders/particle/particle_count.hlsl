@@ -83,7 +83,7 @@ void CSMain(uint3 dtid : SV_DispatchThreadID)
     pid.color = states[particle_index].color;
 
     float4 col = unpack_rgba8_unorm(states[particle_index].color);
-    col.w = col.w + (states[particle_index].opacity_target - col.w) * age_ratio;
+    col.w = col.w + (states[particle_index].target_velocity_and_opacity.w - col.w) * age_ratio;
     pid.color = pack_rgba8_unorm(col);
 
     instance_data[start + idx] = pid;

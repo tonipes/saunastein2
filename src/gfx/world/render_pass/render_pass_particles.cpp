@@ -422,14 +422,16 @@ namespace SFG
 			const vector4 max_col  = vector4(p.emit_props.max_color.x, p.emit_props.max_color.y, p.emit_props.max_color.z, p.emit_props.max_color.w);
 
 			args = {
-				.min_color							  = min_col,
-				.max_color							  = max_col,
-				.min_max_size_and_target_size		  = vector4(p.emit_props.min_max_size.x, p.emit_props.min_max_size.y, p.emit_props.min_max_target_size.x, p.emit_props.min_max_target_size.y),
+				.min_color							 = min_col,
+				.max_color							 = max_col,
+				.min_max_size_and_target_size		 = vector4(p.emit_props.min_max_size.x, p.emit_props.min_max_size.y, p.emit_props.min_max_target_size.x, p.emit_props.min_max_target_size.y),
 				.min_max_ang_velocity_opacity_target = vector4(DEG_2_RAD * p.emit_props.min_max_angular_velocity.x, DEG_2_RAD * p.emit_props.min_max_angular_velocity.y, p.emit_props.min_max_opacity_target.x, p.emit_props.min_max_opacity_target.y),
-				.min_pos							  = vector4(min_pos.x, min_pos.y, min_pos.z, p.emit_props.min_max_lifetime.x),
-				.max_pos							  = vector4(max_pos.x, max_pos.y, max_pos.z, p.emit_props.min_max_lifetime.y),
-				.min_vel							  = vector4(p.emit_props.min_vel_offset.x, p.emit_props.min_vel_offset.y, p.emit_props.min_vel_offset.z, DEG_2_RAD * p.emit_props.min_max_rotation_deg.x),
-				.max_vel							  = vector4(p.emit_props.max_vel_offset.x, p.emit_props.max_vel_offset.y, p.emit_props.max_vel_offset.z, DEG_2_RAD * p.emit_props.min_max_rotation_deg.y),
+				.min_target_vel						 = vector4(p.emit_props.min_target_vel_offset.x, p.emit_props.min_target_vel_offset.y, p.emit_props.min_target_vel_offset.z, 0.0f),
+				.max_target_vel						 = vector4(p.emit_props.max_target_vel_offset.x, p.emit_props.max_target_vel_offset.y, p.emit_props.max_target_vel_offset.z, 0.0f),
+				.min_pos							 = vector4(min_pos.x, min_pos.y, min_pos.z, p.emit_props.min_max_lifetime.x),
+				.max_pos							 = vector4(max_pos.x, max_pos.y, max_pos.z, p.emit_props.min_max_lifetime.y),
+				.min_vel							 = vector4(p.emit_props.min_vel_offset.x, p.emit_props.min_vel_offset.y, p.emit_props.min_vel_offset.z, DEG_2_RAD * p.emit_props.min_max_rotation_deg.x),
+				.max_vel							 = vector4(p.emit_props.max_vel_offset.x, p.emit_props.max_vel_offset.y, p.emit_props.max_vel_offset.z, DEG_2_RAD * p.emit_props.min_max_rotation_deg.y),
 			};
 
 			_sim_state.emit_arguments.buffer_data(sizeof(particle_emit_args) * num_emitters, &args, sizeof(particle_emit_args));

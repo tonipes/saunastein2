@@ -49,6 +49,10 @@
     if(emit_count == 0)
         return;
 
+    RWStructuredBuffer<particle_system_data> system_data = sfg_get_rws_buffer<particle_system_data>(sfg_rp_constant5);
+    uint dead = system_data[system_id].dead_count;
+    emit_count = min(emit_count, dead);
+
     // global
     ConstantBuffer<particle_pass_data> pass_params = sfg_get_cbv<particle_pass_data>(sfg_rp_constant0);
 
@@ -58,7 +62,6 @@
 
     // per system
     StructuredBuffer<particle_emit_args> emit_args     = sfg_get_ssbo<particle_emit_args>(sfg_rp_constant4);
-    RWStructuredBuffer<particle_system_data> system_data = sfg_get_rws_buffer<particle_system_data>(sfg_rp_constant5);
     
     uint max_particles = pass_params.max_particles_per_system;
     uint frame_index = pass_params.frame_index;
@@ -126,15 +129,23 @@
         if(min_max_opacity_target.x >= 0.0 && min_max_opacity_target.y >= 0.0)
             random_opacity_target = min_max_opacity_target.x + random01(seed * 166752u) * (min_max_opacity_target.y - min_max_opacity_target.x);
 
+        float3 target_vel = float3(random_vel_x, random_vel_y, random_vel_z);
+
+        if(emit.min_target_vel.w >= 0.0 && emit.max_target_vel.w >= 0.0f)
+        {
+            target_vel.x = emit.min_target_vel.x + random01(seed * 16687u) * (emit.max_target_vel.x - emit.min_target_vel.x);
+            target_vel.y = emit.min_target_vel.y + random01(seed * 16287u) * (emit.max_target_vel.y - emit.min_target_vel.y);
+            target_vel.z = emit.min_target_vel.z + random01(seed * 16647u) * (emit.max_target_vel.z - emit.min_target_vel.z);
+        }
 
         // write particle state and mark alive.
         particle_state state = (particle_state)0;
         state.position_and_age = float4(random_pos_x, random_pos_y, random_pos_z, 0.0f);
         state.velocity_and_lifetime = float4(random_vel_x, random_vel_y, random_vel_z, random_lifetime);
+        state.target_velocity_and_opacity = (float4(target_vel.x, target_vel.y, target_vel.z, random_opacity_target));
         state.start_end_size = pack_half2x16(float2(random_size, random_size_target));
         state.color = pack_rgba8_unorm(float4(random_c_x, random_c_y, random_c_z, random_c_w));
         state.rotation_angular_velocity = float2(random_rotation, random_angular_velocity);
-        state.opacity_target = random_opacity_target;
         state.system_id = system_id;
         states[emitted_index] = state;
 

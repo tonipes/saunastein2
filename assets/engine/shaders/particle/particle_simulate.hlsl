@@ -85,13 +85,13 @@ void CSMain(uint3 dtid : SV_DispatchThreadID, uint3 gtid : SV_GroupThreadID)
     // integrate & store
     float life_ratio = age / lifetime;
     float3 pos = state.position_and_age.xyz;
-    float3 vel = state.velocity_and_lifetime.xyz;
+    float3 vel = state.velocity_and_lifetime.xyz + (state.target_velocity_and_opacity.xyz - state.velocity_and_lifetime.xyz) * life_ratio;
     float2 rotation_angular_velocity = state.rotation_angular_velocity;
     rotation_angular_velocity.x += rotation_angular_velocity.y * delta;
     pos += vel * delta;
+    
     state.rotation_angular_velocity = rotation_angular_velocity;
     state.position_and_age = float4(pos.x, pos.y, pos.z, age);
-
     states[particle_index] = state;
 
     // write into alive_count_b.
