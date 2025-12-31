@@ -47,12 +47,12 @@ namespace SFG
 		vector3 max_vel_offset			 = vector3::zero;
 		color	min_color				 = color::white;
 		color	max_color				 = color::white;
-		vector2 min_max_opacity_velocity = vector2::zero;
+		vector2 min_max_opacity_target = vector2::zero;
 		vector2 min_max_rotation_deg	 = vector2::zero;
 		vector2 min_max_angular_velocity = vector2::zero;
 		vector2 min_max_lifetime		 = vector2::one;
 		vector2 min_max_size			 = vector2::one;
-		vector2 min_max_size_velocity	 = vector2::zero;
+		vector2 min_max_target_size	 = vector2::zero;
 
 
 		void serialize(ostream& stream) const;

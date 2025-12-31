@@ -32,6 +32,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "memory/bump_allocator.hpp"
 #include "math/matrix4x4.hpp"
 #include "math/vector4.hpp"
+#include "math/vector2.hpp"
 
 namespace SFG
 {
@@ -71,8 +72,8 @@ namespace SFG
 		{
 			vector4 min_color;
 			vector4 max_color;
-			vector4 min_max_size_and_size_velocity;
-			vector4 min_max_angular_and_opacity_velocity;
+			vector4 min_max_size_and_target_size;
+			vector4 min_max_ang_velocity_opacity_target;
 			vector4 min_pos; // w is min lifetime
 			vector4 max_pos; // w is max lifetime
 			vector4 min_vel; // w is min rotation
@@ -83,16 +84,16 @@ namespace SFG
 		{
 			vector4 position_and_age;
 			vector4 velocity_and_lifetime;
-			uint32	size_and_size_velocity;
-			uint32	rotation_angular_velocity;
+			vector2 rotation_angular_velocity;
+			float	opacity_target;
+			uint32	start_end_size;
 			uint32	color;
 			uint32	system_id;
 		};
 
 		struct particle_instance_data
 		{
-			vector3 pos;
-			uint32	rot_size;
+			vector4 pos_rot_size;
 			uint32	color;
 		};
 

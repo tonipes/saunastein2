@@ -95,9 +95,9 @@ vs_output VSMain(uint vid : SV_VertexID, uint iid : SV_InstanceID)
     particle_instance_data p = instance_data[iid];
 
     float3 center = p.pos_rot_size.xyz;
-    float2 rot_size = unpack_half2x16((uint)p.pos_rot_size.w);
+    float2 rot_size = unpack_rot_size((uint)p.pos_rot_size.w);
     float4 color = unpack_rgba8_unorm(p.color);
-
+   
     // Build billboard basis. Use camera dir (or compute to-camera if desired).
     float3 forward = normalize(pass_params.cam_dir.xyz);
 
@@ -116,7 +116,7 @@ vs_output VSMain(uint vid : SV_VertexID, uint iid : SV_InstanceID)
     float3 up2    = up    * c - right * s;
 
     float2 corner = k_corners[vid];
-    float  half_size = 0.5 * rot_size.y * 0.2;
+    float  half_size = 0.5 * rot_size.y;
 
     float3 world_pos =
         center +
@@ -125,7 +125,7 @@ vs_output VSMain(uint vid : SV_VertexID, uint iid : SV_InstanceID)
 
     o.pos =  mul(pass_params.view_proj, float4(world_pos, 1.0f));
     o.uv   = k_uvs[vid];
-    o.color = unpack_rgba8_unorm(p.color);
+    o.color = color;
     return o;
 }
 
@@ -135,7 +135,7 @@ vs_output VSMain(uint vid : SV_VertexID, uint iid : SV_InstanceID)
 
 float4 PSMain(vs_output IN) : SV_TARGET
 {
-    return float4(1,1,1,1);
+    return IN.color;
 }
 
 

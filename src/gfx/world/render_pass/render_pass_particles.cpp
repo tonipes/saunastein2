@@ -424,8 +424,8 @@ namespace SFG
 			args = {
 				.min_color							  = min_col,
 				.max_color							  = max_col,
-				.min_max_size_and_size_velocity		  = vector4(p.emit_props.min_max_size.x, p.emit_props.min_max_size.y, p.emit_props.min_max_size_velocity.x, p.emit_props.min_max_size_velocity.y),
-				.min_max_angular_and_opacity_velocity = vector4(DEG_2_RAD * p.emit_props.min_max_angular_velocity.x, DEG_2_RAD * p.emit_props.min_max_angular_velocity.y, p.emit_props.min_max_opacity_velocity.x, p.emit_props.min_max_opacity_velocity.y),
+				.min_max_size_and_target_size		  = vector4(p.emit_props.min_max_size.x, p.emit_props.min_max_size.y, p.emit_props.min_max_target_size.x, p.emit_props.min_max_target_size.y),
+				.min_max_ang_velocity_opacity_target = vector4(DEG_2_RAD * p.emit_props.min_max_angular_velocity.x, DEG_2_RAD * p.emit_props.min_max_angular_velocity.y, p.emit_props.min_max_opacity_target.x, p.emit_props.min_max_opacity_target.y),
 				.min_pos							  = vector4(min_pos.x, min_pos.y, min_pos.z, p.emit_props.min_max_lifetime.x),
 				.max_pos							  = vector4(max_pos.x, max_pos.y, max_pos.z, p.emit_props.min_max_lifetime.y),
 				.min_vel							  = vector4(p.emit_props.min_vel_offset.x, p.emit_props.min_vel_offset.y, p.emit_props.min_vel_offset.z, DEG_2_RAD * p.emit_props.min_max_rotation_deg.x),

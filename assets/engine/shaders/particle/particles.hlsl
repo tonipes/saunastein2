@@ -51,7 +51,7 @@ struct particle_emit_args
 {
     float4 min_color;
     float4 max_color;
-    float4 min_max_size_and_size_velocity;
+    float4 min_max_size_and_size_target;
     float4 min_max_angular_and_opacity_velocity;
     float4 min_pos; // w is min lifetime
     float4 max_pos; // w is max lifetime
@@ -63,9 +63,9 @@ struct particle_state
 {
     float4 position_and_age;
     float4 velocity_and_lifetime;
-    float opacity_velocity;
-    uint size_and_size_velocity;
-    uint rotation_angular_velocity;
+    float2 rotation_angular_velocity;
+    float opacity_target;
+    uint start_end_size;
     uint color;
     uint system_id;
 };
@@ -99,3 +99,22 @@ struct particle_sim_count_args
     uint group_count_y;
     uint group_count_z;
 };
+
+float2 unpack_rot_size(uint val)
+{
+    const float TWO_PI = 6.283185307179586f;
+    uint lo = val & 0xFFFFu;
+    uint hi = val >> 16;
+    float rad = ((float)lo / 65535.0f) * TWO_PI;
+    float size = saturate((float)hi / 65535.0f);
+    return float2(rad, size);
+}
+
+uint pack_rot_size(float rot, float size)
+{
+    const float TWO_PI = 6.283185307179586f;
+    float phase = frac(rot / TWO_PI);
+    uint lo = (uint)round(saturate(phase) * 65535.0f) & 0xFFFFu;
+    uint hi = (uint)round(saturate(size) * 65535.0f) & 0xFFFFu;
+    return lo | (hi << 16);
+}

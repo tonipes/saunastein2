@@ -42,12 +42,12 @@ namespace SFG
 		stream << max_vel_offset;
 		stream << min_color;
 		stream << max_color;
-		stream << min_max_opacity_velocity;
+		stream << min_max_opacity_target;
 		stream << min_max_rotation_deg;
 		stream << min_max_angular_velocity;
 		stream << min_max_lifetime;
 		stream << min_max_size;
-		stream << min_max_size_velocity;
+		stream << min_max_target_size;
 	}
 
 	void particle_emit_properties::deserialize(istream& stream)
@@ -62,11 +62,11 @@ namespace SFG
 		stream >> max_vel_offset;
 		stream >> min_color;
 		stream >> max_color;
-		stream >> min_max_opacity_velocity;
+		stream >> min_max_opacity_target;
 		stream >> min_max_rotation_deg;
 		stream >> min_max_angular_velocity;
 		stream >> min_max_lifetime;
 		stream >> min_max_size;
-		stream >> min_max_size_velocity;
+		stream >> min_max_target_size;
 	}
 }

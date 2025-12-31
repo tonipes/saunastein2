@@ -106,28 +106,35 @@
                                 random01(seed * 1650212u) * (emit.max_pos.w - emit.min_pos.w);
 
 
-        float2 min_max_size = emit.min_max_size_and_size_velocity.xy;
-        float2 min_max_size_velocity = emit.min_max_size_and_size_velocity.zw;
+        float2 min_max_size = emit.min_max_size_and_size_target.xy;
+        float2 min_max_size_target = emit.min_max_size_and_size_target.zw;
         
         float random_size = min_max_size.x + random01(seed * 165243u) * (min_max_size.y - min_max_size.x);
-        float random_size_velocity = min_max_size_velocity.x + random01(seed * 168875u) * (min_max_size_velocity.y - min_max_size_velocity.x);
+        float random_size_target = random_size;
+
+        if(min_max_size_target.x >= 0.0 && min_max_size_target.y >= 0.0)
+            random_size_target = min_max_size_target.x + random01(seed * 168875u) * (min_max_size_target.y - min_max_size_target.x);
 
         float2 min_max_angular_velocity = emit.min_max_angular_and_opacity_velocity.xy;
         float random_angular_velocity = min_max_angular_velocity.x + random01(seed * 15768u) * (min_max_angular_velocity.y - min_max_angular_velocity.x);
         float random_rotation = emit.min_vel.w + random01(seed * 165242u) * (emit.max_vel.w - emit.min_vel.w);
 
-        float2 min_max_opacity_velocity = emit.min_max_angular_and_opacity_velocity.zw;
-        float random_opacity_velocity = min_max_opacity_velocity.x + random01(seed * 166752u) * (min_max_opacity_velocity.y - min_max_opacity_velocity.x);
+        float2 min_max_opacity_target = emit.min_max_angular_and_opacity_velocity.zw;
+
+        float random_opacity_target = random_c_w;
+
+        if(min_max_opacity_target.x >= 0.0 && min_max_opacity_target.y >= 0.0)
+            random_opacity_target = min_max_opacity_target.x + random01(seed * 166752u) * (min_max_opacity_target.y - min_max_opacity_target.x);
 
 
         // write particle state and mark alive.
         particle_state state = (particle_state)0;
         state.position_and_age = float4(random_pos_x, random_pos_y, random_pos_z, 0.0f);
         state.velocity_and_lifetime = float4(random_vel_x, random_vel_y, random_vel_z, random_lifetime);
-        state.size_and_size_velocity = pack_half2x16(float2(random_size, random_size_velocity));
+        state.start_end_size = pack_half2x16(float2(random_size, random_size_target));
         state.color = pack_rgba8_unorm(float4(random_c_x, random_c_y, random_c_z, random_c_w));
-        state.rotation_angular_velocity = pack_half2x16(float2(random_rotation, random_angular_velocity));
-        state.opacity_velocity = random_opacity_velocity;
+        state.rotation_angular_velocity = float2(random_rotation, random_angular_velocity);
+        state.opacity_target = random_opacity_target;
         state.system_id = system_id;
         states[emitted_index] = state;
 
