@@ -1,0 +1,12 @@
+{
+  "resources":
+  [
+    "assets/_defaults/shaders/particle_additive.stkshader",
+    "assets/_defaults/materials/particle_additive.stkmat",
+    "assets/character/character.stkmodel",
+    "assets/ground/ground.stkmodel",
+    "assets/audio/metal.stkaud",
+    "assets/fonts/roboto.stkfont",
+    "assets/cube/cube.stkmodel"
+  ]
+}

@@ -69,7 +69,7 @@ namespace SFG
 			save();
 		}
 
-		_cache_dir = _working_dir + "_stakeforge/";
+		_cache_dir = _working_dir + "_stakeforge_cache/";
 
 		if (!file_system::exists(_cache_dir.c_str()))
 			file_system::create_directory(_cache_dir.c_str());

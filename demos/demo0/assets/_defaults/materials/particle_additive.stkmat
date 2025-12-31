@@ -1,0 +1,8 @@
+{
+   "pass": "particle",
+   "shader": "assets/_defaults/shaders/particle_additive.stkshader",
+   "textures": [
+   ],
+   "parameters": [
+   ]
+}

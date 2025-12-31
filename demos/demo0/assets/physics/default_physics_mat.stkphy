@@ -1,0 +1,6 @@
+{
+  "restitution": 0.0,
+  "friction": 0.2,
+  "angular_damp": 0.05,
+  "linear_damp": 0.05
+}

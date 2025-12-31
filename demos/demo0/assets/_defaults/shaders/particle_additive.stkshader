@@ -1,0 +1,4 @@
+{
+    "source": "assets/_defaults/shaders/particle_additive.hlsl",
+    "variant_style": "particle_additive"
+}

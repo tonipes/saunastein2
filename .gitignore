@@ -16,6 +16,7 @@
 _build
 [Oo]bj
 *.DS_Store
+_stakeforge_cache
 
 # Build results
 

@@ -1,0 +1,4 @@
+{
+  "source": "assets/character/character.gltf",
+  "import_pbr_materials": 1
+}
