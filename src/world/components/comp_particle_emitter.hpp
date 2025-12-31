@@ -30,7 +30,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "reflection/component_reflection.hpp"
 #include "resources/common_resources.hpp"
 #include "memory/pool_handle.hpp"
-#include "world/particles/common_particles.hpp"
 
 namespace SFG
 {
@@ -54,7 +53,7 @@ namespace SFG
 		// comp
 		// -----------------------------------------------------------------------------
 
-		void set_emit_properties(world& w, const particle_emit_properties& p, resource_handle material);
+		void set_values(world& w, resource_handle particle_resource, resource_handle material);
 		void restart(world& w);
 
 		// -----------------------------------------------------------------------------
@@ -66,23 +65,23 @@ namespace SFG
 			return _header;
 		}
 
-		inline pool_handle16 get_state_machine() const
+		inline resource_handle get_material() const
 		{
-			return _state_machine;
+			return _material;
 		}
 
-		inline const particle_emit_properties& get_emit_properties() const
+		inline resource_handle get_particle_resource() const
 		{
-			return _emit_props;
+			return _particle_resource;
 		}
 
 	private:
 		template <typename T, int> friend class comp_cache;
 
 	private:
-		component_header		 _header		= {};
-		pool_handle16			 _state_machine = {};
-		particle_emit_properties _emit_props	= {};
+		component_header _header			= {};
+		resource_handle	 _material			= {};
+		resource_handle	 _particle_resource = {};
 	};
 
 	REGISTER_TRAIT(comp_particle_emitter);

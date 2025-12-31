@@ -48,24 +48,25 @@ namespace SFG
 
 	proxy_manager::proxy_manager(buffer_queue& b, texture_queue& t) : _buffer_queue(b), _texture_queue(t)
 	{
-		_textures		   = new textures_type();
-		_samplers		   = new samplers_type();
-		_materials		   = new materials_type();
-		_material_runtimes = new material_runtimes_type();
-		_shaders		   = new shaders_type();
-		_meshes			   = new meshes_type();
-		_skins			   = new skins_type();
-		_models			   = new models_type();
-		_entities		   = new entity_type();
-		_mesh_instances	   = new mesh_instances_type();
-		_cameras		   = new cameras_type();
-		_ambients		   = new ambients_type();
-		_point_lights	   = new point_lights_type();
-		_spot_lights	   = new spot_lights_type();
-		_dir_lights		   = new dir_lights_type();
-		_canvases		   = new canvas_type();
-		_emitters		   = new emitters_type();
-		_material_updates  = new material_updates_type();
+		_textures			= new textures_type();
+		_samplers			= new samplers_type();
+		_materials			= new materials_type();
+		_material_runtimes	= new material_runtimes_type();
+		_shaders			= new shaders_type();
+		_meshes				= new meshes_type();
+		_skins				= new skins_type();
+		_models				= new models_type();
+		_entities			= new entity_type();
+		_mesh_instances		= new mesh_instances_type();
+		_cameras			= new cameras_type();
+		_ambients			= new ambients_type();
+		_point_lights		= new point_lights_type();
+		_spot_lights		= new spot_lights_type();
+		_dir_lights			= new dir_lights_type();
+		_canvases			= new canvas_type();
+		_emitters			= new emitters_type();
+		_material_updates	= new material_updates_type();
+		_particle_resources = new particle_res_type();
 	}
 
 	proxy_manager::~proxy_manager()
@@ -88,6 +89,7 @@ namespace SFG
 		delete _canvases;
 		delete _emitters;
 		delete _material_updates;
+		delete _particle_resources;
 	}
 
 	void proxy_manager::reset()
@@ -109,6 +111,7 @@ namespace SFG
 		_dir_lights->reset();
 		_canvases->reset();
 		_emitters->reset();
+		_particle_resources->reset();
 		_material_updates->resize(0);
 	}
 
@@ -948,7 +951,6 @@ namespace SFG
 					}
 				}
 			}
-
 		}
 		else if (type == render_event_type::update_material_sampler)
 		{
@@ -1215,35 +1217,40 @@ namespace SFG
 			render_proxy_mesh& proxy = get_mesh(index);
 			destroy_mesh(proxy);
 		}
-		else if (type == render_event_type::create_particle_emitter)
+		else if (type == render_event_type::particle_emitter)
 		{
-			render_event_create_particle_emitter ev = {};
-			ev.deserialize(stream);
-
 			render_proxy_particle_emitter& proxy = _emitters->get(index);
-			proxy.status						 = render_proxy_status::rps_active;
-			proxy.entity						 = ev.entity;
-			proxy.material						 = ev.material;
-			_peak_particle_emitters				 = math::max(_peak_particle_emitters, index);
+			render_event_particle_emitter  ev	 = {};
+			ev.deserialize(stream);
+			proxy.material		  = ev.material;
+			proxy.entity		  = ev.entity;
+			proxy.particle_res_id = ev.particle_res;
+			proxy.status		  = render_proxy_status::rps_active;
 		}
 		else if (type == render_event_type::remove_particle_emitter)
 		{
-			render_proxy_particle_emitter& proxy = _emitters->get(index);
+			render_proxy_particle_emitter& proxy = get_emitter(index);
 			proxy								 = {};
 		}
 		else if (type == render_event_type::reset_particle_emitter)
 		{
-			render_proxy_particle_emitter& proxy = _emitters->get(index);
+			render_proxy_particle_emitter& proxy = get_emitter(index);
 			proxy.last_emitted					 = 0.0f;
 			proxy.current_life					 = 0.0f;
 		}
-		else if (type == render_event_type::update_particle_emitter)
+		else if (type == render_event_type::particle_res)
 		{
-			render_proxy_particle_emitter&		 proxy = _emitters->get(index);
-			render_event_update_particle_emitter ev	   = {};
+			render_event_particle_res ev = {};
 			ev.deserialize(stream);
-			proxy.emit_props = ev.props;
-			proxy.material	 = ev.material;
+
+			render_proxy_particle_resource& proxy = get_particle(index);
+			proxy.emit_props					  = ev.props;
+			proxy.status						  = render_proxy_status::rps_active;
+		}
+		else if (type == render_event_type::destroy_particle_res)
+		{
+			render_proxy_particle_resource& proxy = get_particle(index);
+			proxy								  = {};
 		}
 	}
 

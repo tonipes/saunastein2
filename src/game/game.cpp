@@ -35,6 +35,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "resources/material.hpp"
 #include "resources/texture_sampler.hpp"
 #include "resources/texture_sampler_raw.hpp"
+#include "resources/particle_properties.hpp"
 
 #include "world/components/comp_model_instance.hpp"
 #include "world/components/comp_mesh_instance.hpp"
@@ -60,6 +61,36 @@ namespace SFG
 	vector<world_handle>  ents;
 	vector<vector3>		  randoms;
 
+	namespace
+	{
+		world_handle create_fire_particle_core(world& w)
+		{
+			resource_manager&  rm = w.get_resource_manager();
+			entity_manager&	   em = w.get_entity_manager();
+			component_manager& cm = w.get_comp_manager();
+
+			const resource_handle particle_material = rm.get_resource_handle_by_hash<material>("assets/_defaults/materials/particle_additive_uv_noise.stkmat"_hs);
+			const resource_handle particle_res		= rm.get_resource_handle_by_hash<particle_properties>("assets/_defaults/particles/fire_core.stkparticle"_hs);
+
+			const world_handle	   particle_handle		= em.create_entity("core");
+			const world_handle	   comp_particle_handle = cm.add_component<comp_particle_emitter>(particle_handle);
+			comp_particle_emitter& emitter				= cm.get_component<comp_particle_emitter>(comp_particle_handle);
+			emitter.set_values(w, particle_res, particle_material);
+			return particle_handle;
+		}
+
+		world_handle create_fire_particle(world& w)
+		{
+			entity_manager&	   em	= w.get_entity_manager();
+			const world_handle root = em.create_entity("fire_root");
+
+			const world_handle core = create_fire_particle_core(w);
+
+			em.add_child(root, core);
+			return root;
+		}
+	}
+
 	void game::init()
 	{
 		params.reserve(10000);
@@ -77,68 +108,8 @@ namespace SFG
 		component_manager& cm = w.get_comp_manager();
 		resource_manager&  rm = w.get_resource_manager();
 
-		const resource_handle particle_material = rm.get_resource_handle_by_hash<material>("assets/_defaults/materials/particle_additive.stkmat"_hs);
-
-		const world_handle	   particle_handle		= em.create_entity("particle");
-		const world_handle	   comp_particle_handle = cm.add_component<comp_particle_emitter>(particle_handle);
-		comp_particle_emitter& emitter				= cm.get_component<comp_particle_emitter>(comp_particle_handle);
-		emitter.set_emit_properties(w,
-									{
-										.spawn =
-											{
-												.emitter_lifetime	= 0.0f,
-												.wait_between_emits = 5.0f,
-												.min_lifetime		= 2.5f,
-												.max_lifetime		= 2.5f,
-												.min_particle_count = 5,
-												.max_particle_count = 15,
-											},
-										.pos =
-											{
-												.min_start = vector3(0, 4, 0),
-												.max_start = vector3(0, 8, 0),
-												.cone_radius = 0.1f,
-											},
-										.velocity =
-											{
-												.min_start		 = vector3(0, 0, 0),
-												.max_start		 = vector3(0, 0, 0),
-												.min_mid		 = vector3(1, 2, 0),
-												.max_mid		 = vector3(1, 2, 0),
-												.min_end		 = vector3(-2, 2, 0),
-												.max_end		 = vector3(-2, 2, 0),
-												.integrate_point = 0.0f,
-											},
-										.rotation =
-											{
-												.min_start_rotation				  = DEG_2_RAD * 0.0f,
-												.max_start_rotation				  = DEG_2_RAD * 90.0f,
-												.min_start_angular_velocity		  = DEG_2_RAD * 1245,
-												.max_start_angular_velocity		  = DEG_2_RAD * 1245,
-												.min_end_angular_velocity		  = 0.0f,
-												.max_end_angular_velocity		  = 0.0f,
-												.integrate_point_angular_velocity = 0.5f,
-											},
-										.size =
-											{
-												.min_start		 = 0.25f,
-												.max_start		 = 0.75f,
-												.mid			 = 1.5f,
-												.end			 = 0.0f,
-												.integrate_point = 0.5f,
-											},
-										.color =
-											{
-												.min_start				 = vector3(1, 0, 0),
-												.max_start				 = vector3(0, 1, 0),
-												.min_start_opacity		 = 0.0f,
-												.max_start_opacity		 = 0.0f,
-												.mid_opacity			 = 1.0f,
-												.end_opacity			 = 0.0f,
-												.integrate_point_opacity = 0.5f,
-											},
-									},
-									particle_material);
+		const world_handle fire = create_fire_particle(w);
+		em.set_entity_position(fire, vector3(2, 0.5f, 0.0f));
 
 		const resource_handle mdl = rm.get_resource_handle_by_hash<model>(TO_SIDC("assets/character/character.stkmodel"));
 		if (!rm.is_valid<model>(mdl))

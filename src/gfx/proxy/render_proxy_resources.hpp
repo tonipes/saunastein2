@@ -35,6 +35,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "render_proxy_common.hpp"
 #include "resources/common_resources.hpp"
 #include "game/game_max_defines.hpp"
+#include "world/particles/common_particles.hpp"
 
 namespace SFG
 {
@@ -132,6 +133,12 @@ namespace SFG
 		uint16		   node_count = 0;
 		int16		   root_node  = -1;
 		uint8		   status	  = render_proxy_status::rps_inactive;
+	};
+
+	struct render_proxy_particle_resource
+	{
+		particle_emit_properties emit_props = {};
+		uint8					 status		= render_proxy_status::rps_inactive;
 	};
 
 }

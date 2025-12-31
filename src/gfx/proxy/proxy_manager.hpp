@@ -122,6 +122,10 @@ namespace SFG
 			return _canvases->get(idx);
 		}
 
+		inline render_proxy_particle_resource& get_particle(resource_id idx)
+		{
+			return _particle_resources->get(idx);
+		}
 		inline chunk_allocator32& get_aux()
 		{
 			return _aux_memory;
@@ -180,6 +184,11 @@ namespace SFG
 		inline auto get_canvases()
 		{
 			return _canvases;
+		}
+
+		inline render_proxy_particle_emitter& get_emitter(world_id id)
+		{
+			return _emitters->get(id);
 		}
 
 		inline world_id get_main_camera() const
@@ -307,29 +316,31 @@ namespace SFG
 		using dir_lights_type		 = static_array<render_proxy_dir_light, MAX_WORLD_COMP_DIR_LIGHTS>;
 		using canvas_type			 = static_array<render_proxy_canvas, MAX_WORLD_COMP_CANVAS>;
 		using emitters_type			 = static_array<render_proxy_particle_emitter, MAX_WORLD_COMP_PARTICLE_EMITTERS>;
+		using particle_res_type		 = static_array<render_proxy_particle_resource, MAX_WORLD_PARTICLE_PROPERTIES>;
 		using material_updates_type	 = static_vector<material_update, 124>;
 
 		destroy_bucket _destroy_bucket[BACK_BUFFER_COUNT + 1];
 
 		chunk_allocator32		_aux_memory;
-		textures_type*			_textures		   = nullptr;
-		samplers_type*			_samplers		   = nullptr;
-		materials_type*			_materials		   = nullptr;
-		material_runtimes_type* _material_runtimes = nullptr;
-		shaders_type*			_shaders		   = nullptr;
-		meshes_type*			_meshes			   = nullptr;
-		skins_type*				_skins			   = nullptr;
-		models_type*			_models			   = nullptr;
-		entity_type*			_entities		   = nullptr;
-		mesh_instances_type*	_mesh_instances	   = nullptr;
-		cameras_type*			_cameras		   = nullptr;
-		ambients_type*			_ambients		   = nullptr;
-		point_lights_type*		_point_lights	   = nullptr;
-		spot_lights_type*		_spot_lights	   = nullptr;
-		dir_lights_type*		_dir_lights		   = nullptr;
-		canvas_type*			_canvases		   = nullptr;
-		emitters_type*			_emitters		   = nullptr;
-		material_updates_type*	_material_updates  = nullptr;
+		textures_type*			_textures			= nullptr;
+		samplers_type*			_samplers			= nullptr;
+		materials_type*			_materials			= nullptr;
+		material_runtimes_type* _material_runtimes	= nullptr;
+		shaders_type*			_shaders			= nullptr;
+		meshes_type*			_meshes				= nullptr;
+		skins_type*				_skins				= nullptr;
+		models_type*			_models				= nullptr;
+		entity_type*			_entities			= nullptr;
+		mesh_instances_type*	_mesh_instances		= nullptr;
+		cameras_type*			_cameras			= nullptr;
+		ambients_type*			_ambients			= nullptr;
+		point_lights_type*		_point_lights		= nullptr;
+		spot_lights_type*		_spot_lights		= nullptr;
+		dir_lights_type*		_dir_lights			= nullptr;
+		canvas_type*			_canvases			= nullptr;
+		emitters_type*			_emitters			= nullptr;
+		material_updates_type*	_material_updates	= nullptr;
+		particle_res_type*		_particle_resources = nullptr;
 
 		world_id _main_camera_trait		 = NULL_WORLD_ID;
 		uint32	 _peak_particle_emitters = 0;

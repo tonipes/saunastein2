@@ -1,0 +1,50 @@
+{
+  "spawn": {
+    "emitter_lifetime": 0.0,
+    "wait_between_emits": 2,
+    "min_particle_count": 25,
+    "max_particle_count": 25,
+    "min_lifetime": 0.75,
+    "max_lifetime": 1.5
+  },
+  "pos": {
+    "min_start": { "x": 0.0, "y": 4.0, "z": 0.0 },
+    "max_start": { "x": 0.0, "y": 4.0, "z": 0.0 },
+    "cone_radius": 0.0
+  },
+  "velocity": {
+    "min_start": { "x": -0.5, "y": 2.0, "z": -0.5 },
+    "max_start": { "x": 0.5, "y": 4.0, "z": 0.5 },
+    "min_mid": { "x": -0.25, "y": 1.0, "z": -0.25 },
+    "max_mid": { "x": 0.25, "y": 2.0, "z": 0.25 },
+    "min_end": { "x": -0.05, "y": -0.25, "z": -0.05 },
+    "max_end": { "x": 0.05, "y": 0.25, "z": 0.05 },
+    "integrate_point": 0.5,
+    "is_local": true
+  },
+  "rotation": {
+    "min_start_rotation": -10.0,
+    "max_start_rotation": 10.0,
+    "min_start_angular_velocity": -90.0,
+    "max_start_angular_velocity": 90.0,
+    "min_end_angular_velocity": -20.0,
+    "max_end_angular_velocity": 20.0,
+    "integrate_point_angular_velocity": 0.5
+  },
+  "size": {
+    "min_start": 14.5,
+    "max_start": 14.75,
+    "mid": 1.1,
+    "end": 0.0,
+    "integrate_point": 0.5
+  },
+  "color": {
+    "min_start": { "r": 1.0, "g": 0.9, "b": 0.7, "a": 1.0 },
+    "max_start": { "r": 1.0, "g": 1.0, "b": 0.85, "a": 1.0 },
+    "min_start_opacity": 0.8,
+    "max_start_opacity": 1.0,
+    "mid_opacity": 0.6,
+    "end_opacity": 0.0,
+    "integrate_point_opacity": 0.5
+  }
+}

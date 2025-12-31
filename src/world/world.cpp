@@ -55,6 +55,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "resources/model_node.hpp"
 #include "resources/primitive.hpp"
 #include "resources/world_raw.hpp"
+#include "resources/particle_properties.hpp"
+#include "resources/particle_properties_raw.hpp"
 
 // components
 #include "components/comp_camera.hpp"
@@ -89,6 +91,7 @@ namespace SFG
 		_resource_manager.register_cache<skin, skin_raw, MAX_WORLD_SKINS, 0>();
 		_resource_manager.register_cache<shader, shader_raw, MAX_WORLD_SHADERS, 0>();
 		_resource_manager.register_cache<physical_material, physical_material_raw, MAX_WORLD_PHYSICAL_MATERIALS, 0>();
+		_resource_manager.register_cache<particle_properties, particle_properties_raw, MAX_WORLD_PARTICLE_PROPERTIES, 0>();
 
 		// trait registry
 		_comp_manager.register_cache<comp_camera, MAX_WORLD_COMP_CAMERAS>();

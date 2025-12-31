@@ -36,9 +36,12 @@ namespace SFG
 	void comp_particle_emitter::on_add(world& w)
 	{
 		w.get_entity_manager().add_render_proxy(_header.entity);
-		render_event_create_particle_emitter ev = {};
-		ev.entity								= _header.entity.index;
-		w.get_render_stream().add_event({.index = _header.own_handle.index, .event_type = render_event_type::create_particle_emitter}, ev);
+		const render_event_particle_emitter ev = {
+			.entity		  = _header.entity.index,
+			.particle_res = NULL_RESOURCE_ID,
+			.material	  = NULL_RESOURCE_ID,
+		};
+		w.get_render_stream().add_event({.index = _header.own_handle.index, .event_type = render_event_type::particle_emitter}, ev);
 	}
 
 	void comp_particle_emitter::on_remove(world& w)
@@ -55,14 +58,16 @@ namespace SFG
 	{
 	}
 
-	void comp_particle_emitter::set_emit_properties(world& w, const particle_emit_properties& p, resource_handle material)
+	void comp_particle_emitter::set_values(world& w, resource_handle particle_res, resource_handle material)
 	{
-		_emit_props									  = p;
-		const render_event_update_particle_emitter ev = {
-			.props	  = p,
-			.material = material.index,
+		const render_event_particle_emitter ev = {
+			.entity		  = _header.entity.index,
+			.particle_res = particle_res.index,
+			.material	  = material.index,
 		};
-		w.get_render_stream().add_event({.index = _header.own_handle.index, .event_type = render_event_type::update_particle_emitter}, ev);
+		_material		   = material;
+		_particle_resource = particle_res;
+		w.get_render_stream().add_event({.index = _header.own_handle.index, .event_type = render_event_type::particle_emitter}, ev);
 	}
 
 	void comp_particle_emitter::restart(world& w)

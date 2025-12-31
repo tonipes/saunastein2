@@ -77,13 +77,14 @@ namespace SFG
 		virtual void			reset(world& w)											= 0;
 
 		// Accessors
-		virtual void*			get_ptr(resource_handle h)					= 0;
-		virtual const void*		get_const_ptr(resource_handle h) const		= 0;
-		virtual void*			get_by_hash_ptr(string_id hash)				= 0;
-		virtual const void*		get_by_hash_const_ptr(string_id hash) const = 0;
-		virtual resource_handle get_handle_by_hash(string_id hash) const	= 0;
-		virtual string_id		get_hash(resource_handle handle) const		= 0;
-		virtual bool			is_valid(resource_handle handle) const		= 0;
+		virtual void*			get_ptr(resource_handle h)						   = 0;
+		virtual const void*		get_const_ptr(resource_handle h) const			   = 0;
+		virtual void*			get_by_hash_ptr(string_id hash)					   = 0;
+		virtual const void*		get_by_hash_const_ptr(string_id hash) const		   = 0;
+		virtual resource_handle get_handle_by_hash(string_id hash) const		   = 0;
+		virtual resource_handle get_handle_by_hash_if_exists(string_id hash) const = 0;
+		virtual string_id		get_hash(resource_handle handle) const			   = 0;
+		virtual bool			is_valid(resource_handle handle) const			   = 0;
 
 		// Iteration
 		virtual void for_each(void* ctx, view_result (*fn)(void* ctx, void* elem)) noexcept							 = 0;
@@ -242,6 +243,16 @@ namespace SFG
 			return _by_hashes.at(hash);
 		}
 
+		resource_handle get_handle_by_hash_if_exists(string_id hash) const override
+		{
+			auto it = _by_hashes.find(hash);
+			if (it == _by_hashes.end())
+				return {};
+
+			const resource_handle h = it->second;
+			return h;
+		}
+
 		string_id get_hash(resource_handle handle) const override
 		{
 			for (const auto& [sid, hnd] : _by_hashes)
@@ -384,6 +395,7 @@ namespace SFG
 		void*			get_resource(string_id type, resource_handle handle) const;
 		void*			get_resource_by_hash(string_id type, string_id hash) const;
 		resource_handle get_resource_handle_by_hash(string_id type, string_id hash) const;
+		resource_handle get_resource_handle_by_hash_if_exists(string_id type, string_id hash) const;
 		string_id		get_resource_hash(string_id type, resource_handle handle) const;
 
 		template <typename T> inline T& get_resource(resource_handle handle) const
@@ -405,6 +417,12 @@ namespace SFG
 		{
 			const string_id type = type_id<T>::value;
 			return get_resource_handle_by_hash(type, hash);
+		}
+
+		template <typename T> inline resource_handle get_resource_handle_by_hash_if_exists(string_id hash) const
+		{
+			const string_id type = type_id<T>::value;
+			return get_resource_handle_by_hash_if_exists(type, hash);
 		}
 
 		template <typename T> inline string_id get_resource_hash(resource_handle handle) const

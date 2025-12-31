@@ -31,6 +31,10 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "math/vector2.hpp"
 #include "math/color.hpp"
 
+#ifdef SFG_TOOLMODE
+#include "vendor/nhlohmann/json_fwd.hpp"
+#endif
+
 namespace SFG
 {
 	class ostream;
@@ -116,14 +120,38 @@ namespace SFG
 
 	struct particle_emit_properties
 	{
-		particle_spawn_settings	   spawn	= {};
-		particle_position_settings pos		= {};
-		particle_velocity_settings velocity = {};
-		particle_rotation_settings rotation = {};
-		particle_size_settings	   size		= {};
-		particle_color_settings	   color	= {};
+		particle_spawn_settings	   spawn		  = {};
+		particle_position_settings pos			  = {};
+		particle_velocity_settings velocity		  = {};
+		particle_rotation_settings rotation		  = {};
+		particle_size_settings	   size			  = {};
+		particle_color_settings	   color_settings = {};
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);
 	};
+
+#ifdef SFG_TOOLMODE
+	void to_json(nlohmann::json& j, const particle_spawn_settings& s);
+	void from_json(const nlohmann::json& j, particle_spawn_settings& s);
+
+	void to_json(nlohmann::json& j, const particle_position_settings& s);
+	void from_json(const nlohmann::json& j, particle_position_settings& s);
+
+	void to_json(nlohmann::json& j, const particle_velocity_settings& s);
+	void from_json(const nlohmann::json& j, particle_velocity_settings& s);
+
+	void to_json(nlohmann::json& j, const particle_rotation_settings& s);
+	void from_json(const nlohmann::json& j, particle_rotation_settings& s);
+
+	void to_json(nlohmann::json& j, const particle_size_settings& s);
+	void from_json(const nlohmann::json& j, particle_size_settings& s);
+
+	void to_json(nlohmann::json& j, const particle_color_settings& s);
+	void from_json(const nlohmann::json& j, particle_color_settings& s);
+
+	void to_json(nlohmann::json& j, const particle_emit_properties& s);
+	void from_json(const nlohmann::json& j, particle_emit_properties& s);
+
+#endif
 }

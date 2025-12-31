@@ -26,57 +26,56 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include "common/size_definitions.hpp"
+#include "data/bitmask.hpp"
+#include "reflection/resource_reflection.hpp"
+#include "resources/common_resources.hpp"
+#include "world/particles/common_particles.hpp"
+
+#ifndef SFG_STRIP_DEBUG_NAMES
+#include "memory/chunk_handle.hpp"
+#endif
 
 namespace SFG
 {
-	enum class render_event_type : uint8
+	struct particle_properties_raw;
+	class world;
+
+	class particle_properties
 	{
-		create_texture = 0,
-		create_sampler,
-		create_material,
-		create_mesh,
-		create_shader,
-		create_skin,
-		particle_res,
-		destroy_texture,
-		destroy_sampler,
-		destroy_material,
-		destroy_mesh,
-		destroy_shader,
-		destroy_skin,
-		destroy_particle_res,
-		create_model,
-		update_model_materials,
-		update_material_sampler,
-		update_material_textures,
-		update_material_data,
-		destroy_model,
-		update_mesh_instance,
-		remove_mesh_instance,
-		remove_entity,
-		update_entity_visibility,
-		set_main_camera,
-		update_camera,
-		remove_camera,
-		reload_shader,
-		reload_material,
-		update_ambient,
-		update_dir_light,
-		update_point_light,
-		update_spot_light,
-		remove_ambient,
-		remove_dir_light,
-		remove_point_light,
-		remove_spot_light,
-		create_canvas,
-		destroy_canvas,
-		canvas_add_draw,
-		canvas_reset_draws,
-		canvas_update,
-		particle_emitter,
-		remove_particle_emitter,
-		reset_particle_emitter,
+	public:
+		enum flags : uint8
+		{
+			created = 1 << 0,
+		};
+
+		~particle_properties();
+
+		// -----------------------------------------------------------------------------
+		// resource
+		// -----------------------------------------------------------------------------
+
+		void create_from_loader(const particle_properties_raw& raw, world& w, resource_handle handle);
+		void destroy(world& w, resource_handle handle);
+		void update_data(world& w);
+
+		// -----------------------------------------------------------------------------
+		// accessors
+		// -----------------------------------------------------------------------------
+
+		inline particle_emit_properties& get_emit()
+		{
+			return _emit;
+		}
+
+	private:
+		particle_emit_properties _emit	= {};
+		bitmask<uint8>			 _flags = 0;
+
+#ifndef SFG_STRIP_DEBUG_NAMES
+		chunk_handle32 _name;
+#endif
 	};
+
+	REGISTER_RESOURCE(particle_properties, "stkparticle");
 
 }

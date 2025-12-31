@@ -357,8 +357,13 @@ namespace SFG
 			if (p.status != render_proxy_status::rps_active)
 				continue;
 
-			// if (f < 2001)
-			// 	continue;
+			const resource_id particle_res = p.particle_res_id;
+
+			if (particle_res == NULL_RESOURCE_ID)
+				continue;
+
+			const render_proxy_particle_resource& res = pm.get_particle(particle_res);
+			SFG_ASSERT(res.status == render_proxy_status::rps_active);
 
 			emit_count = 0;
 			emit_dead  = false;
@@ -377,7 +382,7 @@ namespace SFG
 				.pipeline_hw		  = target_shader,
 			});
 
-			const particle_emit_properties& ep = p.emit_props;
+			const particle_emit_properties& ep = res.emit_props;
 
 			if (!math::almost_equal(ep.spawn.emitter_lifetime, 0.0f))
 			{
@@ -426,18 +431,18 @@ namespace SFG
 			const vector3 max_end_vel	= local_vel ? e.rotation * ep.velocity.max_end : ep.velocity.max_end;
 
 			args = {
-				.integrate_points = vector4(ep.velocity.integrate_point, ep.color.integrate_point_opacity, ep.rotation.integrate_point_angular_velocity, ep.size.integrate_point),
-				.opacity_points	  = vector4(ep.color.min_start_opacity, ep.color.max_start_opacity, ep.color.mid_opacity, ep.color.end_opacity),
+				.integrate_points = vector4(ep.velocity.integrate_point, ep.color_settings.integrate_point_opacity, ep.rotation.integrate_point_angular_velocity, ep.size.integrate_point),
+				.opacity_points	  = vector4(ep.color_settings.min_start_opacity, ep.color_settings.max_start_opacity, ep.color_settings.mid_opacity, ep.color_settings.end_opacity),
 				.size_points	  = vector4(ep.size.min_start, ep.size.max_start, ep.size.mid, ep.size.end),
 				.min_lifetime	  = ep.spawn.min_lifetime,
 				.max_lifetime	  = ep.spawn.max_lifetime,
 
-				.min_pos_x = base_pos.x + ep.pos.min_start.x,
-				.min_pos_y = base_pos.y + ep.pos.min_start.y,
-				.min_pos_z = base_pos.z + ep.pos.min_start.z,
-				.max_pos_x = base_pos.x + ep.pos.max_start.x,
-				.max_pos_y = base_pos.y + ep.pos.max_start.y,
-				.max_pos_z = base_pos.z + ep.pos.max_start.z,
+				.min_pos_x	 = base_pos.x + ep.pos.min_start.x,
+				.min_pos_y	 = base_pos.y + ep.pos.min_start.y,
+				.min_pos_z	 = base_pos.z + ep.pos.min_start.z,
+				.max_pos_x	 = base_pos.x + ep.pos.max_start.x,
+				.max_pos_y	 = base_pos.y + ep.pos.max_start.y,
+				.max_pos_z	 = base_pos.z + ep.pos.max_start.z,
 				.cone_radius = ep.pos.cone_radius,
 
 				.min_start_vel_x = min_start_vel.x,
@@ -461,13 +466,13 @@ namespace SFG
 				.max_end_vel_y = max_end_vel.y,
 				.max_end_vel_z = max_end_vel.z,
 
-				.min_col_x = ep.color.min_start.x,
-				.min_col_y = ep.color.min_start.y,
-				.min_col_z = ep.color.min_start.z,
+				.min_col_x = ep.color_settings.min_start.x,
+				.min_col_y = ep.color_settings.min_start.y,
+				.min_col_z = ep.color_settings.min_start.z,
 
-				.max_col_x = ep.color.max_start.x,
-				.max_col_y = ep.color.max_start.y,
-				.max_col_z = ep.color.max_start.z,
+				.max_col_x = ep.color_settings.max_start.x,
+				.max_col_y = ep.color_settings.max_start.y,
+				.max_col_z = ep.color_settings.max_start.z,
 
 				.min_start_rotation			= ep.rotation.min_start_rotation,
 				.max_start_rotation			= ep.rotation.max_start_rotation,

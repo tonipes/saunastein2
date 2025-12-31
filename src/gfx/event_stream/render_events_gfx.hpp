@@ -37,6 +37,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "data/ostream.hpp"
 #include "data/span.hpp"
 #include "game/game_max_defines.hpp"
+#include "world/particles/common_particles.hpp"
 
 #ifndef SFG_STRIP_DEBUG_NAMES
 #include "data/string.hpp"
@@ -199,6 +200,14 @@ namespace SFG
 		vector<uint16>	  nodes;
 		vector<matrix4x3> matrices;
 		int16			  root_index = -1;
+
+		void serialize(ostream& stream) const;
+		void deserialize(istream& stream);
+	};
+
+	struct render_event_particle_res
+	{
+		particle_emit_properties props = {};
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);

@@ -43,7 +43,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "world/world_constants.hpp"
 #include "game/game_max_defines.hpp"
 #include "gfx/buffer.hpp"
-#include "world/particles/common_particles.hpp"
 
 namespace SFG
 {
@@ -144,11 +143,11 @@ namespace SFG
 
 	struct render_proxy_particle_emitter
 	{
-		particle_emit_properties emit_props	  = {};
-		world_id				 entity		  = {};
-		resource_id				 material	  = NULL_RESOURCE_ID;
-		float					 last_emitted = 0.0f;
-		float					 current_life = 0.0f;
-		render_proxy_status		 status		  = render_proxy_status::rps_inactive;
+		world_id			entity			= {};
+		resource_id			particle_res_id = NULL_RESOURCE_ID;
+		resource_id			material		= NULL_RESOURCE_ID;
+		float				last_emitted	= 0.0f;
+		float				current_life	= 0.0f;
+		render_proxy_status status			= render_proxy_status::rps_inactive;
 	};
 }

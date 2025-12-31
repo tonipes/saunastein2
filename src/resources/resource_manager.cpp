@@ -37,6 +37,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "resources/texture_sampler_raw.hpp"
 #include "resources/shader_raw.hpp"
 #include "resources/material_raw.hpp"
+#include "resources/particle_properties.hpp"
+#include "resources/particle_properties_raw.hpp"
 
 #ifdef SFG_TOOLMODE
 #include "serialization/serialization.hpp"
@@ -49,6 +51,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gfx/event_stream/render_events_gfx.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"
 #include "world/components/comp_model_instance.hpp"
+#include "world/components/comp_particle_emitter.hpp"
 #include "world/world.hpp"
 #include "platform/time.hpp"
 #endif
@@ -482,6 +485,18 @@ namespace SFG
 				mi.instantiate_model_to_world(rm->_world, w.base_handle);
 			}
 		}
+		else if (w.type_id == type_id<particle_properties>::value)
+		{
+			component_manager& cm				 = rm->_world.get_comp_manager();
+			auto&			   particle_emitters = cm.underlying_pool<comp_cache<comp_particle_emitter, MAX_WORLD_COMP_PARTICLE_EMITTERS>, comp_particle_emitter>();
+			for (comp_particle_emitter& pe : particle_emitters)
+			{
+				if (pe.get_particle_resource() == prev_handle)
+				{
+					pe.set_values(rm->_world, new_handle, pe.get_material());
+				}
+			}
+		}
 		else
 		{
 			SFG_WARN("Reloading of this resource type is not supported yet: {0}", path);
@@ -520,6 +535,12 @@ namespace SFG
 	{
 		const cache_storage& stg = get_storage(type);
 		return stg.cache_ptr->get_handle_by_hash(hash);
+	}
+
+	resource_handle resource_manager::get_resource_handle_by_hash_if_exists(string_id type, string_id hash) const
+	{
+		const cache_storage& stg = get_storage(type);
+		return stg.cache_ptr->get_handle_by_hash_if_exists(hash);
 	}
 
 	string_id resource_manager::get_resource_hash(string_id type, resource_handle handle) const

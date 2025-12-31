@@ -27,56 +27,29 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include "common/size_definitions.hpp"
+#include "gfx/common/descriptions.hpp"
+#include "data/string.hpp"
+#include "data/vector.hpp"
+#include "world/particles/common_particles.hpp"
 
 namespace SFG
 {
-	enum class render_event_type : uint8
-	{
-		create_texture = 0,
-		create_sampler,
-		create_material,
-		create_mesh,
-		create_shader,
-		create_skin,
-		particle_res,
-		destroy_texture,
-		destroy_sampler,
-		destroy_material,
-		destroy_mesh,
-		destroy_shader,
-		destroy_skin,
-		destroy_particle_res,
-		create_model,
-		update_model_materials,
-		update_material_sampler,
-		update_material_textures,
-		update_material_data,
-		destroy_model,
-		update_mesh_instance,
-		remove_mesh_instance,
-		remove_entity,
-		update_entity_visibility,
-		set_main_camera,
-		update_camera,
-		remove_camera,
-		reload_shader,
-		reload_material,
-		update_ambient,
-		update_dir_light,
-		update_point_light,
-		update_spot_light,
-		remove_ambient,
-		remove_dir_light,
-		remove_point_light,
-		remove_spot_light,
-		create_canvas,
-		destroy_canvas,
-		canvas_add_draw,
-		canvas_reset_draws,
-		canvas_update,
-		particle_emitter,
-		remove_particle_emitter,
-		reset_particle_emitter,
-	};
+	class ostream;
+	class istream;
 
+	struct particle_properties_raw
+	{
+		string					 name  = "";
+		particle_emit_properties props = {};
+
+		void serialize(ostream& stream) const;
+		void deserialize(istream& stream);
+
+#ifdef SFG_TOOLMODE
+		bool load_from_file(const char* relative_file, const char* base_path);
+		bool load_from_cache(const char* cache_folder_path, const char* relative_path, const char* extension);
+		void save_to_cache(const char* cache_folder_path, const char* resource_directory_path, const char* extension) const;
+		void get_dependencies(vector<string>& out_deps) const {};
+#endif
+	};
 }

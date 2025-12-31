@@ -54,24 +54,26 @@ namespace SFG
 #define MAX_WORLD_SAMPLERS			   16
 #define MAX_TEXTURE_MIPS			   10
 #define MAX_MATERIAL_TEXTURES		   8
+#define MAX_WORLD_PARTICLE_PROPERTIES  512
 
 	// -----------------------------------------------------------------------------
 	// traits
 	// -----------------------------------------------------------------------------
 
-#define MAX_WORLD_COMPONENTS_AUX_MEMORY 1024 * 1024 * 6
-#define MAX_WORLD_COMP_CAMERAS			32
-#define MAX_WORLD_COMP_DIR_LIGHTS		8
-#define MAX_WORLD_COMP_POINT_LIGHTS		128
-#define MAX_WORLD_COMP_SPOT_LIGHTS		128
-#define MAX_WORLD_COMP_MESH_INSTANCES	1024 * 10
-#define MAX_WORLD_COMP_MODEL_INSTANCES	1024 * 10
-#define MAX_WORLD_COMP_AMBIENT			1
-#define MAX_WORLD_COMP_PHYSICS			1000
-#define MAX_WORLD_COMP_AUDIO			256
-#define MAX_WORLD_COMP_CANVAS			32
-#define MAX_WORLD_COMP_ANIMS			1024 * 10
-#define MAX_WORLD_SKELETON_JOINTS		128
+#define MAX_WORLD_COMPONENTS_AUX_MEMORY	 1024 * 1024 * 6
+#define MAX_WORLD_COMP_CAMERAS			 32
+#define MAX_WORLD_COMP_DIR_LIGHTS		 8
+#define MAX_WORLD_COMP_POINT_LIGHTS		 128
+#define MAX_WORLD_COMP_SPOT_LIGHTS		 128
+#define MAX_WORLD_COMP_MESH_INSTANCES	 1024 * 10
+#define MAX_WORLD_COMP_MODEL_INSTANCES	 1024 * 10
+#define MAX_WORLD_COMP_AMBIENT			 1
+#define MAX_WORLD_COMP_PHYSICS			 1000
+#define MAX_WORLD_COMP_AUDIO			 256
+#define MAX_WORLD_COMP_CANVAS			 32
+#define MAX_WORLD_COMP_ANIMS			 1024 * 10
+#define MAX_WORLD_SKELETON_JOINTS		 128
+#define MAX_WORLD_COMP_PARTICLE_EMITTERS 384
 
 	// -----------------------------------------------------------------------------
 	// animations
@@ -91,9 +93,8 @@ namespace SFG
 	// particles
 	// -----------------------------------------------------------------------------
 
-#define MAX_WORLD_COMP_PARTICLE_EMITTERS 384
-#define MAX_WORLD_PARTICLES_PER_EMITTER	 10000
-#define MAX_WORLD_PARTICLES				 MAX_WORLD_COMP_PARTICLE_EMITTERS* MAX_WORLD_PARTICLES_PER_EMITTER
+#define MAX_WORLD_PARTICLES_PER_EMITTER 10000
+#define MAX_WORLD_PARTICLES				MAX_WORLD_COMP_PARTICLE_EMITTERS* MAX_WORLD_PARTICLES_PER_EMITTER
 
 	// -----------------------------------------------------------------------------
 	// gfx

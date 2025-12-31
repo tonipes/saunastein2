@@ -24,59 +24,46 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISE
 OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#pragma once
+#include "particle_properties.hpp"
+#include "particle_properties_raw.hpp"
+#include "gui/vekt.hpp"
+#include "world/world.hpp"
+#include "gfx/event_stream/render_event_stream.hpp"
+#include "gfx/event_stream/render_events_gfx.hpp"
 
-#include "common/size_definitions.hpp"
+#ifdef SFG_TOOLMODE
+#include "project/engine_data.hpp"
+#endif
 
 namespace SFG
 {
-	enum class render_event_type : uint8
+	particle_properties::~particle_properties()
 	{
-		create_texture = 0,
-		create_sampler,
-		create_material,
-		create_mesh,
-		create_shader,
-		create_skin,
-		particle_res,
-		destroy_texture,
-		destroy_sampler,
-		destroy_material,
-		destroy_mesh,
-		destroy_shader,
-		destroy_skin,
-		destroy_particle_res,
-		create_model,
-		update_model_materials,
-		update_material_sampler,
-		update_material_textures,
-		update_material_data,
-		destroy_model,
-		update_mesh_instance,
-		remove_mesh_instance,
-		remove_entity,
-		update_entity_visibility,
-		set_main_camera,
-		update_camera,
-		remove_camera,
-		reload_shader,
-		reload_material,
-		update_ambient,
-		update_dir_light,
-		update_point_light,
-		update_spot_light,
-		remove_ambient,
-		remove_dir_light,
-		remove_point_light,
-		remove_spot_light,
-		create_canvas,
-		destroy_canvas,
-		canvas_add_draw,
-		canvas_reset_draws,
-		canvas_update,
-		particle_emitter,
-		remove_particle_emitter,
-		reset_particle_emitter,
-	};
+		SFG_ASSERT(!_flags.is_set(particle_properties::flags::created));
+	}
 
+	void particle_properties::create_from_loader(const particle_properties_raw& raw, world& w, resource_handle handle)
+	{
+		SFG_ASSERT(!_flags.is_set(particle_properties::flags::created));
+		_flags.set(particle_properties::flags::created);
+
+		_emit = raw.props;
+		update_data(w);
+	}
+
+	void particle_properties::destroy(world& w, resource_handle handle)
+	{
+		if (!_flags.is_set(particle_properties::flags::created))
+			return;
+		_flags.remove(particle_properties::flags::created);
+
+		w.get_render_stream().add_event({.index = 0, .event_type = render_event_type::destroy_particle_res});
+	}
+	void particle_properties::update_data(world& w)
+	{
+		const render_event_particle_res ev = {
+			.props = _emit,
+		};
+		w.get_render_stream().add_event({.index = 0, .event_type = render_event_type::particle_res}, ev);
+	}
 }

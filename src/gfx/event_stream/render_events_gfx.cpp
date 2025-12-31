@@ -315,4 +315,14 @@ namespace SFG
 			stream >> textures[i];
 	}
 
+	void render_event_particle_res::serialize(ostream& stream) const
+	{
+		stream << props;
+	}
+
+	void render_event_particle_res::deserialize(istream& stream)
+	{
+		stream >> props;
+	}
+
 }
