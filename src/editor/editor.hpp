@@ -31,7 +31,17 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "editor_camera.hpp"
 #include "editor/gfx/editor_renderer.hpp"
+
+// gui
 #include "editor/gui/editor_panel_controls.hpp"
+#include "editor/gui/editor_gui_world_overlays.hpp"
+
+namespace vekt
+{
+	struct font;
+	class font_manager;
+	class builder;
+}
 
 namespace SFG
 {
@@ -83,12 +93,12 @@ namespace SFG
 
 		inline editor_renderer& get_renderer()
 		{
-			return _gui_renderer;
+			return _renderer;
 		}
 
 		inline gpu_index get_render_output(uint8 frame) const
 		{
-			return _gui_renderer.get_output_gpu_index(frame);
+			return _renderer.get_output_gpu_index(frame);
 		}
 
 	private:
@@ -102,9 +112,15 @@ namespace SFG
 		world_handle  _gizmo_entity = {};
 
 		// gfx
-		editor_renderer _gui_renderer = {};
+		editor_renderer _renderer = {};
 
 		// gui
-		editor_panel_controls _panel_controls = {};
+		editor_panel_controls	  _panel_controls	  = {};
+		editor_gui_world_overlays _gui_world_overlays = {};
+
+		// vekt
+		vekt::builder*		_builder	  = nullptr;
+		vekt::font_manager* _font_manager = nullptr;
+		vekt::font*			_font_main	  = nullptr;
 	};
 }

@@ -34,7 +34,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gfx/buffer.hpp"
 #include "gfx/common/texture_buffer.hpp"
 #include "gfx/common/barrier_description.hpp"
-#include "gfx/imgui_renderer.hpp"
 
 // math
 #include "math/vector2ui16.hpp"
@@ -44,9 +43,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 // misc
 #include "memory/bump_allocator.hpp"
 
-// gui
-#include "editor/gui/editor_gui_world_overlays.hpp"
-
 namespace vekt
 {
 	struct draw_buffer;
@@ -54,7 +50,6 @@ namespace vekt
 	struct snapshot;
 	class builder;
 	class atlas;
-	class font_manager;
 }
 
 namespace SFG
@@ -85,8 +80,7 @@ namespace SFG
 
 		void init(window& window, texture_queue* texture_queue);
 		void uninit();
-		void begin_draw();
-		void end_draw();
+		void draw_end(vekt::builder* builder);
 
 		// -----------------------------------------------------------------------------
 		// rendering
@@ -103,11 +97,6 @@ namespace SFG
 		inline gpu_index get_output_gpu_index(uint8 frame) const
 		{
 			return _pfd[frame].gpu_index_rt;
-		}
-
-		inline vekt::builder* get_builder() const
-		{
-			return _builder;
 		}
 
 	private:
@@ -176,6 +165,8 @@ namespace SFG
 		};
 
 	private:
+		friend class editor;
+
 		void create_textures(const vector2ui16& size);
 		void destroy_textures();
 
@@ -185,21 +176,14 @@ namespace SFG
 		static void on_atlas_destroyed(vekt::atlas* atlas, void* user_data);
 
 	private:
-		imgui_renderer		_imgui_renderer			= {};
-		shaders				_shaders				= {};
-		gfx_data			_gfx_data				= {};
-		per_frame_data		_pfd[BACK_BUFFER_COUNT] = {};
-		gui_draw_call		_gui_draw_calls[64]		= {};
-		vekt::builder*		_builder				= nullptr;
-		vekt::font_manager* _font_manager			= nullptr;
-		vekt::font*			_font_main				= nullptr;
+		shaders		   _shaders				   = {};
+		gfx_data	   _gfx_data			   = {};
+		per_frame_data _pfd[BACK_BUFFER_COUNT] = {};
+		gui_draw_call  _gui_draw_calls[64]	   = {};
 
 		atomic<int8>	_tb_latest{-1};
 		atomic<int8>	_tb_rendered{-1};
 		int8			_tb_write_index = -1;
 		vekt::snapshot* _snapshots		= nullptr;
-
-		// gui
-		editor_gui_world_overlays _gui_world_overlays = {};
 	};
 }

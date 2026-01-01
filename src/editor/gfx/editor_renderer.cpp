@@ -92,34 +92,6 @@ namespace SFG
 								   {.size = sizeof(vekt::index) * 320000, .flags = resource_flags::rf_index_buffer | resource_flags::rf_gpu_only, .debug_name = "editor_gui_index_gpu"});
 		}
 
-		_builder	  = new vekt::builder();
-		_font_manager = new vekt::font_manager();
-		_builder->init({
-			.vertex_buffer_sz			 = 1024 * 1024 * 4,
-			.index_buffer_sz			 = 1024 * 1024 * 8,
-			.text_cache_vertex_buffer_sz = 1024 * 1024 * 2,
-			.text_cache_index_buffer_sz	 = 1024 * 1024 * 4,
-			.buffer_count				 = 12,
-		});
-
-		_font_manager->init();
-		_font_manager->set_callback_user_data(this);
-		_font_manager->set_atlas_created_callback(on_atlas_created);
-		_font_manager->set_atlas_updated_callback(on_atlas_updated);
-		_font_manager->set_atlas_destroyed_callback(on_atlas_destroyed);
-
-#ifdef SFG_TOOLMODE
-		const string p = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/VT323-Regular.ttf");
-		_font_manager->set_callback_user_data(this);
-		_font_main = _font_manager->load_font_from_file(p.c_str(), 18);
-#else
-		SFG_NOTIMPLEMENTED();
-#endif
-
-		// gui
-		_gui_world_overlays.init(_builder);
-		_imgui_renderer.init(window);
-
 		_snapshots = new vekt::snapshot[THREAD_BUF_SIZE];
 		for (uint32 i = 0; i < THREAD_BUF_SIZE; i++)
 			_snapshots[i].init(1024 * 1024 * 4, 1024 * 1024 * 8);
@@ -134,17 +106,6 @@ namespace SFG
 		_snapshots = nullptr;
 
 		gfx_backend* backend = gfx_backend::get();
-
-		_imgui_renderer.uninit();
-
-		_font_manager->unload_font(_font_main);
-		_font_manager->uninit();
-		delete _font_manager;
-		_font_manager = nullptr;
-
-		_builder->uninit();
-		delete _builder;
-		_builder = nullptr;
 
 		for (auto& ref : _gfx_data.atlases)
 		{
@@ -164,26 +125,18 @@ namespace SFG
 		destroy_textures();
 	}
 
-	void editor_renderer::begin_draw()
+	void editor_renderer::draw_end(vekt::builder* builder)
 	{
-		_builder->build_begin(vector2(_gfx_data.screen_size.x, _gfx_data.screen_size.y));
-	}
-
-	void editor_renderer::end_draw()
-	{
-		// _gui_world_overlays.draw(pm, _builder, _gfx_data.screen_size);
-		_builder->build_end();
-
-		const vekt::vector<vekt::draw_buffer>& draw_buffers = _builder->get_draw_buffers();
+		const vekt::vector<vekt::draw_buffer>& draw_buffers = builder->get_draw_buffers();
 		if (draw_buffers.empty())
 			return;
 
 		const int8 last_rendered = _tb_rendered.load(std::memory_order_acquire);
 		_tb_write_index			 = (last_rendered + 1) % THREAD_BUF_SIZE;
-
 		_snapshots[_tb_write_index].copy(draw_buffers);
 		_tb_latest.store(_tb_write_index, std::memory_order_release);
 	}
+
 
 	void editor_renderer::prepare(proxy_manager& pm, gfx_id cmd_buffer, uint8 frame_index)
 	{

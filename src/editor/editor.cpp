@@ -131,16 +131,52 @@ namespace SFG
 
 		});
 #endif
+
+		_builder = new vekt::builder();
+		_builder->init({
+			.vertex_buffer_sz			 = 1024 * 1024 * 4,
+			.index_buffer_sz			 = 1024 * 1024 * 8,
+			.text_cache_vertex_buffer_sz = 1024 * 1024 * 2,
+			.text_cache_index_buffer_sz	 = 1024 * 1024 * 4,
+			.buffer_count				 = 12,
+		});
+
+		_font_manager = new vekt::font_manager();
+		_font_manager->init();
+		_font_manager->set_callback_user_data(&_renderer);
+		_font_manager->set_atlas_created_callback(editor_renderer::on_atlas_created);
+		_font_manager->set_atlas_updated_callback(editor_renderer::on_atlas_updated);
+		_font_manager->set_atlas_destroyed_callback(editor_renderer::on_atlas_destroyed);
+
+		_renderer.init(_app.get_main_window(), _app.get_renderer().get_texture_queue());
+
+#ifdef SFG_TOOLMODE
+		const string p = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/VT323-Regular.ttf");
+		_font_main = _font_manager->load_font_from_file(p.c_str(), 18);
+#else
+		SFG_NOTIMPLEMENTED();
+#endif
+
+		// gui
+		_gui_world_overlays.init(_builder);
+		_panel_controls.init(_builder);
+
 		_camera_controller.init(_app.get_world(), _app.get_main_window());
-
-		_gui_renderer.init(_app.get_main_window(), _app.get_renderer().get_texture_queue());
-
-		_panel_controls.init(_gui_renderer.get_builder());
 	}
 
 	void editor::uninit()
 	{
-		_gui_renderer.uninit();
+		_font_manager->unload_font(_font_main);
+		_font_manager->uninit();
+		delete _font_manager;
+		_font_manager = nullptr;
+
+		_builder->uninit();
+		delete _builder;
+		_builder = nullptr;
+
+		_renderer.uninit();
+
 		_camera_controller.uninit();
 	}
 
@@ -155,18 +191,21 @@ namespace SFG
 
 	void editor::tick()
 	{
-		world& w = _app.get_world();
-		// const vector2ui16& ws = _app.get_main_window()->get_size();
+		world&			   w  = _app.get_world();
+		const vector2ui16& ws = _app.get_main_window().get_size();
 
-		_gui_renderer.begin_draw();
+		_builder->build_begin(vector2(ws.x, ws.y));
 		_panel_controls.draw({});
-		_gui_renderer.end_draw();
+		_builder->build_end();
+
+		// notify buffer swap
+		_renderer.draw_end(_builder);
 	}
 
 	void editor::render(const render_params& p)
 	{
-		_gui_renderer.prepare(p.pm, p.cmd_buffer, p.frame_index);
-		_gui_renderer.render({
+		_renderer.prepare(p.pm, p.cmd_buffer, p.frame_index);
+		_renderer.render({
 			.cmd_buffer	   = p.cmd_buffer,
 			.frame_index   = p.frame_index,
 			.alloc		   = p.alloc,
@@ -199,7 +238,7 @@ namespace SFG
 
 	void editor::resize(const vector2ui16& size)
 	{
-		_gui_renderer.resize(size);
+		_renderer.resize(size);
 	}
 
 }
