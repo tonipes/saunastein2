@@ -926,7 +926,7 @@ namespace SFG
 	bool shader_variant_compiler::compile_style_particle_additive(shader_raw& raw, const string& shader_text, const vector<string>& folder_paths)
 	{
 		color_blend_attachment blend_attachment = {};
-		blend_definitions::get_blend_attachment(blend_definition_style::alpha_blend, blend_attachment);
+		blend_definitions::get_blend_attachment(blend_definition_style::additive, blend_attachment);
 
 		const vector<shader_color_attachment> color_attachments = {{
 			{.format = render_target_definitions::get_format_lighting(), .blend_attachment = blend_attachment},

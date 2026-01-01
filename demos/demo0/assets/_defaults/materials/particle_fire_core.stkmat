@@ -1,0 +1,14 @@
+{
+   "pass": "particle",
+   "shader": "assets/_defaults/shaders/particle_additive_uv_noise.stkshader",
+   "textures": [
+      "assets/_defaults/textures/fire_02.stktexture",
+      "assets/_defaults/textures/perlin_512.stktexture"
+   ],
+   "parameters": [
+      {"name": "base_color", "value": { "x": 35, "y": 25, "z": 25, "w": 1}},
+      {"name": "distort_scale",  "value" : {"x": 0.25, "y": 0.5}},
+      {"name": "distort_speed", "value" : {"x": 0.5, "y": 0.5}},
+      {"name": "distort_strength",  "value" : 0.14}
+   ]
+}

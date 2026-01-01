@@ -80,13 +80,17 @@ namespace SFG
 
 	struct particle_color_settings
 	{
-		vector3 min_start				= vector3::one;
-		vector3 max_start				= vector3::one;
-		float	min_start_opacity		= 1.0f;
-		float	max_start_opacity		= 1.0f;
-		float	mid_opacity				= 1.0f;
-		float	end_opacity				= 1.0f;
-		float	integrate_point_opacity = -1;
+		vector3 min_start			  = vector3::one;
+		vector3 max_start			  = vector3::one;
+		vector3 mid_color			  = vector3::one;
+		vector3 end_color			  = vector3::one;
+		float	integrate_point_color = 0.0f;
+
+		float min_start_opacity		  = 1.0f;
+		float max_start_opacity		  = 1.0f;
+		float mid_opacity			  = 1.0f;
+		float end_opacity			  = 1.0f;
+		float integrate_point_opacity = -1;
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);

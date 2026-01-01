@@ -92,6 +92,14 @@ struct particle_emit_args
     float max_col_y;
     float max_col_z;
 
+    float mid_col_x;
+	float mid_col_y;
+	float mid_col_z;
+	float end_col_x;
+	float end_col_y;
+	float end_col_z;
+	float col_integrate_point;
+
     float min_start_rotation;
     float max_start_rotation;
     float min_start_angular_velocity;
@@ -130,6 +138,10 @@ struct particle_state
     uint vel_and_ang_vel_integrate_point;
 
     uint color;
+    uint mid_color;
+    uint end_color;
+    float integrate_point_color;
+    
     uint system_id;
 };
 
@@ -167,17 +179,24 @@ float2 unpack_rot_size(uint val)
 {
     const float TWO_PI = 6.283185307179586f;
     uint lo = val & 0xFFFFu;
-    uint hi = val >> 16;
     float rad = ((float)lo / 65535.0f) * TWO_PI;
-    float size = saturate((float)hi / 65535.0f);
+
+    float max_size_range = 2.0f;
+    uint hi = val >> 16;
+    float size = (float)hi * (max_size_range / 65535.0f);
+
     return float2(rad, size);
 }
 
 uint pack_rot_size(float rot, float size)
 {
     const float TWO_PI = 6.283185307179586f;
+    float max_size_range = 2.0f;
+    float s = saturate(size / max_size_range);
+    uint q = (uint)round(s * 65535.0f);
+    q = min(q, 65535u);
+
     float phase = frac(rot / TWO_PI);
     uint lo = (uint)round(saturate(phase) * 65535.0f) & 0xFFFFu;
-    uint hi = (uint)round(saturate(size) * 65535.0f) & 0xFFFFu;
-    return lo | (hi << 16);
+    return lo | (q << 16);
 }

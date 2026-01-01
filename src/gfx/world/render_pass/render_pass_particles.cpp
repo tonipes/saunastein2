@@ -466,20 +466,26 @@ namespace SFG
 				.max_end_vel_y = max_end_vel.y,
 				.max_end_vel_z = max_end_vel.z,
 
-				.min_col_x = ep.color_settings.min_start.x,
-				.min_col_y = ep.color_settings.min_start.y,
-				.min_col_z = ep.color_settings.min_start.z,
+				.min_col_x			 = ep.color_settings.min_start.x,
+				.min_col_y			 = ep.color_settings.min_start.y,
+				.min_col_z			 = ep.color_settings.min_start.z,
+				.max_col_x			 = ep.color_settings.max_start.x,
+				.max_col_y			 = ep.color_settings.max_start.y,
+				.max_col_z			 = ep.color_settings.max_start.z,
+				.mid_col_x			 = ep.color_settings.mid_color.x,
+				.mid_col_y			 = ep.color_settings.mid_color.y,
+				.mid_col_z			 = ep.color_settings.mid_color.z,
+				.end_col_x			 = ep.color_settings.end_color.x,
+				.end_col_y			 = ep.color_settings.end_color.y,
+				.end_col_z			 = ep.color_settings.end_color.z,
+				.col_integrate_point = ep.color_settings.integrate_point_color,
 
-				.max_col_x = ep.color_settings.max_start.x,
-				.max_col_y = ep.color_settings.max_start.y,
-				.max_col_z = ep.color_settings.max_start.z,
-
-				.min_start_rotation			= ep.rotation.min_start_rotation,
-				.max_start_rotation			= ep.rotation.max_start_rotation,
-				.min_start_angular_velocity = ep.rotation.min_start_angular_velocity,
-				.max_start_angular_velocity = ep.rotation.max_start_angular_velocity,
-				.min_end_angular_velocity	= ep.rotation.min_end_angular_velocity,
-				.max_end_angular_velocity	= ep.rotation.max_end_angular_velocity,
+				.min_start_rotation			= ep.rotation.min_start_rotation * DEG_2_RAD,
+				.max_start_rotation			= ep.rotation.max_start_rotation * DEG_2_RAD,
+				.min_start_angular_velocity = ep.rotation.min_start_angular_velocity * DEG_2_RAD,
+				.max_start_angular_velocity = ep.rotation.max_start_angular_velocity * DEG_2_RAD,
+				.min_end_angular_velocity	= ep.rotation.min_end_angular_velocity * DEG_2_RAD,
+				.max_end_angular_velocity	= ep.rotation.max_end_angular_velocity * DEG_2_RAD,
 			};
 
 			_sim_state.emit_arguments.buffer_data(sizeof(particle_emit_args) * num_emitters, &args, sizeof(particle_emit_args));
@@ -580,7 +586,7 @@ namespace SFG
 			.cam_pos_and_delta		  = vector4(main_camera_view.position.x, main_camera_view.position.y, main_camera_view.position.z, particles_delta),
 			.cam_dir				  = vector4(cam_forward.x, cam_forward.y, cam_forward.z, 0.0f),
 			.max_particles_per_system = MAX_WORLD_PARTICLES_PER_EMITTER,
-			.frame_index			  = frame_index,
+			.frame_index			  = static_cast<uint32>(frame_info::get_frame() % UINT32_MAX),
 			.max_systems			  = MAX_WORLD_COMP_PARTICLE_EMITTERS,
 			.num_systems			  = num_emitters,
 		};

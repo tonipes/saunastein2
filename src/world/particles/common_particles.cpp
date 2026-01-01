@@ -115,6 +115,9 @@ namespace SFG
 	{
 		stream << min_start;
 		stream << max_start;
+		stream << mid_color;
+		stream << end_color;
+		stream << integrate_point_color;
 		stream << min_start_opacity;
 		stream << max_start_opacity;
 		stream << mid_opacity;
@@ -125,6 +128,9 @@ namespace SFG
 	{
 		stream >> min_start;
 		stream >> max_start;
+		stream >> mid_color;
+		stream >> end_color;
+		stream >> integrate_point_color;
 		stream >> min_start_opacity;
 		stream >> max_start_opacity;
 		stream >> mid_opacity;
@@ -288,6 +294,9 @@ namespace SFG
 		j = nlohmann::json{
 			{"min_start", s.min_start},
 			{"max_start", s.max_start},
+			{"mid_color", s.mid_color},
+			{"end_color", s.end_color},
+			{"integrate_point_color", s.integrate_point_color},
 			{"min_start_opacity", s.min_start_opacity},
 			{"max_start_opacity", s.max_start_opacity},
 			{"mid_opacity", s.mid_opacity},
@@ -298,13 +307,16 @@ namespace SFG
 
 	void from_json(const nlohmann::json& j, particle_color_settings& s)
 	{
-		s.min_start				  = j.value("min_start", decltype(s.min_start){});
-		s.max_start				  = j.value("max_start", decltype(s.max_start){});
-		s.min_start_opacity		  = j.value("min_start_opacity", decltype(s.min_start_opacity){});
-		s.max_start_opacity		  = j.value("max_start_opacity", decltype(s.max_start_opacity){});
-		s.mid_opacity			  = j.value("mid_opacity", decltype(s.mid_opacity){});
-		s.end_opacity			  = j.value("end_opacity", decltype(s.end_opacity){});
-		s.integrate_point_opacity = j.value("integrate_point_opacity", decltype(s.integrate_point_opacity){});
+		s.min_start				  = j.value<vector3>("min_start", vector3::one);
+		s.max_start				  = j.value<vector3>("max_start", vector3::one);
+		s.mid_color				  = j.value<vector3>("mid_color", vector3::one);
+		s.end_color				  = j.value<vector3>("end_color", vector3::one);
+		s.integrate_point_color	  = j.value<float>("integrate_point_color", 0.0f);
+		s.min_start_opacity		  = j.value<float>("min_start_opacity", 1.0f);
+		s.max_start_opacity		  = j.value<float>("max_start_opacity", 1.0f);
+		s.mid_opacity			  = j.value<float>("mid_opacity", 1.0f);
+		s.end_opacity			  = j.value<float>("end_opacity", 1.0f);
+		s.integrate_point_opacity = j.value<float>("integrate_point_opacity", 0.0f);
 	}
 
 	// --- particle_emit_properties ------------------------------------------------

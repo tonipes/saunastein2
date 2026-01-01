@@ -80,10 +80,10 @@ void CSMain(uint3 dtid : SV_DispatchThreadID)
     float3 position = float3(states[particle_index].pos_x, states[particle_index].pos_y, states[particle_index].pos_z);
     float rotation = states[particle_index].rotation;
 
-    float2 start_size_opacity = unpack_01(states[particle_index].start_size_opacity);
-    float2 size_opacity_integrate_points = unpack_01(states[particle_index].size_opacity_integrate_point);
-    float2 mid_size_opacity = unpack_01(states[particle_index].mid_size_opacity);
-    float2 end_size_opacity = unpack_01(states[particle_index].end_size_opacity);
+    float2 start_size_opacity = unpack_range(states[particle_index].start_size_opacity, 2.0f);
+    float2 size_opacity_integrate_points = unpack_range(states[particle_index].size_opacity_integrate_point, 2.0f);
+    float2 mid_size_opacity = unpack_range(states[particle_index].mid_size_opacity, 2.0f);
+    float2 end_size_opacity = unpack_range(states[particle_index].end_size_opacity, 2.0f);
 
     // find size
     float size = start_size_opacity.x;
@@ -117,6 +117,19 @@ void CSMain(uint3 dtid : SV_DispatchThreadID)
     
     // color
     float4 col = unpack_rgba8_unorm(states[particle_index].color);
+    float col_integ = states[particle_index].integrate_point_color;
+    if(col_integ > 0.0f)
+    {
+        float4 mid = unpack_rgba8_unorm(states[particle_index].mid_color);
+        float4 end = unpack_rgba8_unorm(states[particle_index].end_color);
+        if(age_ratio < col_integ)
+        {
+            col = lerp(col, mid, age_ratio / col_integ);
+        }
+        else{
+            col = lerp(mid, end, (age_ratio - col_integ) / (1.0f - col_integ));
+        }
+    }
     col.w = opacity;
 
     particle_instance_data pid = (particle_instance_data)0;

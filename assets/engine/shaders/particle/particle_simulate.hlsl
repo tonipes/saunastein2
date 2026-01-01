@@ -87,7 +87,7 @@ void CSMain(uint3 dtid : SV_DispatchThreadID, uint3 gtid : SV_GroupThreadID)
 
     // calculate current velocity.
     float3 vel = float3(state.start_vel_x, state.start_vel_y, state.start_vel_z);
-    float2 vel_and_ang_vel_integs = unpack_01(state.vel_and_ang_vel_integrate_point);
+    float2 vel_and_ang_vel_integs = unpack_range(state.vel_and_ang_vel_integrate_point, 2.0f);
     float vel_integ = vel_and_ang_vel_integs.x;
     if(vel_integ > 0.0f)
     {

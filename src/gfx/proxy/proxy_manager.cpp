@@ -1226,6 +1226,8 @@ namespace SFG
 			proxy.entity		  = ev.entity;
 			proxy.particle_res_id = ev.particle_res;
 			proxy.status		  = render_proxy_status::rps_active;
+			proxy.last_emitted	  = 0.0f;
+			proxy.current_life	  = 0.0f;
 		}
 		else if (type == render_event_type::remove_particle_emitter)
 		{

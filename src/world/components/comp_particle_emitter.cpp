@@ -36,6 +36,7 @@ namespace SFG
 	void comp_particle_emitter::on_add(world& w)
 	{
 		w.get_entity_manager().add_render_proxy(_header.entity);
+
 		const render_event_particle_emitter ev = {
 			.entity		  = _header.entity.index,
 			.particle_res = NULL_RESOURCE_ID,
@@ -47,6 +48,7 @@ namespace SFG
 	void comp_particle_emitter::on_remove(world& w)
 	{
 		w.get_entity_manager().remove_render_proxy(_header.entity);
+
 		w.get_render_stream().add_event({.index = _header.own_handle.index, .event_type = render_event_type::remove_particle_emitter});
 	}
 

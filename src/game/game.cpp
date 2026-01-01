@@ -46,6 +46,9 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "math/math.hpp"
 #include "math/random.hpp"
 
+#include "input/input_mappings.hpp"
+#include "platform/window_common.hpp"
+
 #include "gfx/common/common_material.hpp"
 
 #ifdef SFG_TOOLMODE
@@ -69,7 +72,7 @@ namespace SFG
 			entity_manager&	   em = w.get_entity_manager();
 			component_manager& cm = w.get_comp_manager();
 
-			const resource_handle particle_material = rm.get_resource_handle_by_hash<material>("assets/_defaults/materials/particle_additive_uv_noise.stkmat"_hs);
+			const resource_handle particle_material = rm.get_resource_handle_by_hash<material>("assets/_defaults/materials/particle_fire_core.stkmat"_hs);
 			const resource_handle particle_res		= rm.get_resource_handle_by_hash<particle_properties>("assets/_defaults/particles/fire_core.stkparticle"_hs);
 
 			const world_handle	   particle_handle		= em.create_entity("core");
@@ -90,6 +93,7 @@ namespace SFG
 			return root;
 		}
 	}
+	world_handle fire = {};
 
 	void game::init()
 	{
@@ -108,8 +112,8 @@ namespace SFG
 		component_manager& cm = w.get_comp_manager();
 		resource_manager&  rm = w.get_resource_manager();
 
-		const world_handle fire = create_fire_particle(w);
-		em.set_entity_position(fire, vector3(2, 0.5f, 0.0f));
+		fire = create_fire_particle(w);
+		em.set_entity_position(fire, vector3(4, 0.0f, 0.0f));
 
 		const resource_handle mdl = rm.get_resource_handle_by_hash<model>(TO_SIDC("assets/character/character.stkmodel"));
 		if (!rm.is_valid<model>(mdl))

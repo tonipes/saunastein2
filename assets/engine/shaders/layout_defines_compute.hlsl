@@ -41,8 +41,8 @@
 
 cbuffer sfg_globals : register(b0, space0)
 {
-    float f1;
-    float f2;
+    float sfg_global_delta;
+    float sfg_global_elapsed;
 }
 
 cbuffer sfg_constants : register(b1, space0)

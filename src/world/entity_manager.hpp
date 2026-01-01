@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -142,6 +142,7 @@ namespace SFG
 		// transform api
 		// -----------------------------------------------------------------------------
 
+		void			 teleport_entity(world_handle entity);
 		void			 set_entity_position(world_handle entity, const vector3& pos);
 		void			 set_entity_position_abs(world_handle entity, const vector3& pos);
 		void			 set_entity_rotation(world_handle entity, const quat& rot);
@@ -203,17 +204,17 @@ namespace SFG
 	private:
 		world& _world;
 
-		pool_allocator_gen<world_id, world_id, MAX_ENTITIES>*	   _entities		  = {};
-		static_array<entity_meta, MAX_ENTITIES>*		   _metas			  = {};
-		static_array<entity_family, MAX_ENTITIES>*		   _families		  = {};
-		static_array<aabb, MAX_ENTITIES>*				   _aabbs			  = {};
-		static_array<entity_comp_register, MAX_ENTITIES>* _comp_registers	  = {};
-		static_array<entity_transform, MAX_ENTITIES>*	   _local_transforms  = {};
-		static_array<bitmask<uint16>, MAX_ENTITIES>*	   _flags			  = {};
-		static_array<matrix4x3, MAX_ENTITIES>*			   _abs_matrices	  = {};
-		static_array<matrix4x3, MAX_ENTITIES>*			   _prev_abs_matrices = {};
-		static_array<quat, MAX_ENTITIES>*				   _abs_rots		  = {};
-		static_array<quat, MAX_ENTITIES>*				   _prev_abs_rots	  = {};
+		pool_allocator_gen<world_id, world_id, MAX_ENTITIES>* _entities			 = {};
+		static_array<entity_meta, MAX_ENTITIES>*			  _metas			 = {};
+		static_array<entity_family, MAX_ENTITIES>*			  _families			 = {};
+		static_array<aabb, MAX_ENTITIES>*					  _aabbs			 = {};
+		static_array<entity_comp_register, MAX_ENTITIES>*	  _comp_registers	 = {};
+		static_array<entity_transform, MAX_ENTITIES>*		  _local_transforms	 = {};
+		static_array<bitmask<uint16>, MAX_ENTITIES>*		  _flags			 = {};
+		static_array<matrix4x3, MAX_ENTITIES>*				  _abs_matrices		 = {};
+		static_array<matrix4x3, MAX_ENTITIES>*				  _prev_abs_matrices = {};
+		static_array<quat, MAX_ENTITIES>*					  _abs_rots			 = {};
+		static_array<quat, MAX_ENTITIES>*					  _prev_abs_rots	 = {};
 
 		static_vector<world_handle, MAX_ENTITIES>* _proxy_entities = {};
 

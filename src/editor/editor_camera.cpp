@@ -115,7 +115,7 @@ namespace SFG
 		{
 		case window_event_type::focus: {
 			reset_runtime();
-			break;
+			return false;
 		}
 		case window_event_type::key: {
 
@@ -151,6 +151,8 @@ namespace SFG
 			else if (button == input_code::key_lshift && ev.sub_type == window_event_sub_type::release)
 				_current_move_speed = _base_move_speed;
 
+			if (button == input_code::key_a || button == input_code::key_d || button == input_code::key_w || button == input_code::key_s || button == input_code::key_q || button == input_code::key_e || button == input_code::key_lshift)
+				return true;
 			break;
 		}
 		case window_event_type::mouse: {
@@ -172,7 +174,7 @@ namespace SFG
 					_mouse_delta = vector2::zero;
 				}
 			}
-			break;
+			return true;
 		}
 		case window_event_type::wheel:
 			break;
@@ -186,13 +188,13 @@ namespace SFG
 			{
 				_mouse_delta = vector2::zero;
 			}
-			break;
+			return true;
 		}
 		default:
 			break;
 		}
 
-		return true;
+		return false;
 	}
 
 	void editor_camera::tick(float dt_seconds)

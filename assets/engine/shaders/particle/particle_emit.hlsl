@@ -56,20 +56,33 @@ float3 sample_cone_volume(
     float r0, float r1,
     uint seed)
 {
-    float3 axis = B - A;
+   float3 axis = B - A;
     float L = length(axis);
     if (L <= 1e-6f) return A;
 
     float3 dir = axis / L;
 
-    // --- choose t ---
     float u_t = random01(seed * 747796405u);
 
-    float t = (r0 <= 1e-6f) ? pow(u_t, 1.0f / 3.0f) : u_t;
+    float k = (r1 - r0);
+    float t;
+
+    if (abs(k) <= 1e-6f)
+    {
+        // cylinder (constant radius)
+        t = u_t;
+    }
+    else
+    {
+        // frustum / cone: sample radius^3 linearly
+        float r0_3 = r0 * r0 * r0;
+        float r1_3 = r1 * r1 * r1;
+        float r_at_t = pow(r0_3 + u_t * (r1_3 - r0_3), 1.0f / 3.0f);
+        t = (r_at_t - r0) / k;
+    }
 
     float r_at_t = lerp(r0, r1, t);
 
-    // --- sample disk ---
     float2 u = rand2(seed * 2891336453u);
     float rr = r_at_t * sqrt(u.x);
     float theta = 6.28318530718f * u.y;
@@ -78,7 +91,6 @@ float3 sample_cone_volume(
     make_basis(dir, U, V);
 
     float3 offset = rr * (cos(theta) * U + sin(theta) * V);
-
     return A + dir * (t * L) + offset;
 }
 
@@ -197,19 +209,26 @@ float3 sample_cone_volume(
         float mid_opacity = emit.opacity_points.z;
         float end_opacity = emit.opacity_points.w;
         
-        state.start_size_opacity = pack_01(float2(start_size, start_opacity));
-        state.mid_size_opacity = pack_01(float2(mid_size, mid_opacity));
-        state.end_size_opacity = pack_01(float2(end_size, end_opacity));
+        state.start_size_opacity = pack_range(float2(start_size, start_opacity), 2.0f);
+        state.mid_size_opacity = pack_range(float2(mid_size, mid_opacity), 2.0f);
+        state.end_size_opacity = pack_range(float2(end_size, end_opacity), 2.0f);
 
         // integrate points
-        state.size_opacity_integrate_point = pack_01(float2(emit.integrate_points.w, emit.integrate_points.y));
-        state.vel_and_ang_vel_integrate_point = pack_01(float2(emit.integrate_points.x, emit.integrate_points.z));
+        state.size_opacity_integrate_point = pack_range(float2(emit.integrate_points.w, emit.integrate_points.y), 2.0f);
+        state.vel_and_ang_vel_integrate_point = pack_range(float2(emit.integrate_points.x, emit.integrate_points.z), 2.0f);
 
         // color
         float cx = rand_mm(emit.min_col_x, emit.max_col_x, seed * 1684511u);
         float cy = rand_mm(emit.min_col_y, emit.max_col_y, seed * 1682511u);
         float cz = rand_mm(emit.min_col_z, emit.max_col_z, seed * 1484591u);
         state.color = pack_rgba8_unorm(float4(cx, cy, cz, 0.0f));
+        state.integrate_point_color = emit.col_integrate_point;
+
+        if(state.integrate_point_color > 0.0f)
+        {
+            state.mid_color = pack_rgba8_unorm(float4(emit.mid_col_x, emit.mid_col_y, emit.mid_col_z, 0.0f));
+            state.end_color = pack_rgba8_unorm(float4(emit.end_col_x, emit.end_col_y, emit.end_col_z, 0.0f));
+        }
 
         // sys
         state.system_id = system_id;

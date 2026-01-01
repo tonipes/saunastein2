@@ -113,6 +113,14 @@ namespace SFG
 			float max_col_y;
 			float max_col_z;
 
+			float mid_col_x;
+			float mid_col_y;
+			float mid_col_z;
+			float end_col_x;
+			float end_col_y;
+			float end_col_z;
+			float col_integrate_point;
+
 			float min_start_rotation;
 			float max_start_rotation;
 			float min_start_angular_velocity;
@@ -151,6 +159,10 @@ namespace SFG
 			uint32 vel_and_ang_vel_integrate_point;
 
 			uint32 color;
+			uint32 mid_color;
+			uint32 end_color;
+			float  integrate_point_color;
+
 			uint32 system_id;
 		};
 

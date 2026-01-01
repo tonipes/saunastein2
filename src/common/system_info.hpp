@@ -108,6 +108,11 @@ namespace SFG
 			return s_render_thread_time_milli.load();
 		}
 
+		static double get_render_thread_elapsed_seconds()
+		{
+			return s_render_thread_elapsed_seconds.load();
+		}
+
 		static uint32 get_fps()
 		{
 			return s_fps.load();
@@ -140,6 +145,7 @@ namespace SFG
 
 		static atomic<double> s_main_thread_time_milli;
 		static atomic<double> s_render_thread_time_milli;
+		static atomic<double> s_render_thread_elapsed_seconds;
 		static atomic<uint32> s_fps;
 		static atomic<uint64> s_frame;
 		static atomic<uint64> s_render_frame;

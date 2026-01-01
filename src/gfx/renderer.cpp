@@ -332,7 +332,10 @@ namespace SFG
 
 		const uint64 next_copy_value = pfd.sem_copy.value;
 
-		const buf_engine_global globals = {};
+		const buf_engine_global globals = {
+			.delta	 = static_cast<float>(frame_info::get_render_thread_time_milli() * 0.001),
+			.elapsed = static_cast<float>(frame_info::get_render_thread_elapsed_seconds()),
+		};
 		pfd.buf_engine_global.buffer_data(0, (void*)&globals, sizeof(buf_engine_global));
 
 		static_vector<barrier, 1> barriers;

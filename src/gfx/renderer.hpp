@@ -107,8 +107,8 @@ namespace SFG
 	private:
 		struct buf_engine_global
 		{
-			float f1 = 0.0f;
-			float f2 = 0.0;
+			float delta	  = 0.0f;
+			float elapsed = 0.0;
 		};
 
 		struct per_frame_data

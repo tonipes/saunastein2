@@ -87,8 +87,12 @@ namespace SFG
 #if FIXED_FRAMERATE_ENABLED
 			if (!f.is_set(entity_flags::entity_flags_prev_transform_init))
 			{
-				_prev_abs_matrices->get(e) = matrix4x3::transform(local.position, local.rotation, local.scale);
-				_prev_abs_rots->get(e)	   = local.rotation;
+				const matrix4x3 abs		   = matrix4x3::transform(local.position, local.rotation, local.scale);
+				const quat		abs_rot	   = local.rotation;
+				_prev_abs_matrices->get(e) = abs;
+				_prev_abs_rots->get(e)	   = abs_rot;
+				_abs_matrices->get(e)	   = abs;
+				_abs_rots->get(e)		   = abs_rot;
 				f.set(entity_flags::entity_flags_prev_transform_init);
 			}
 			else
@@ -114,8 +118,12 @@ namespace SFG
 #if FIXED_FRAMERATE_ENABLED
 			if (!f.is_set(entity_flags::entity_flags_prev_transform_init))
 			{
-				_prev_abs_matrices->get(e) = _abs_matrices->get(parent.index) * matrix4x3::transform(local.position, local.rotation, local.scale);
-				_prev_abs_rots->get(e)	   = _abs_rots->get(parent.index) * local.rotation;
+				const matrix4x3 abs		   = _abs_matrices->get(parent.index) * matrix4x3::transform(local.position, local.rotation, local.scale);
+				const quat		abs_rot	   = _abs_rots->get(parent.index) * local.rotation;
+				_prev_abs_matrices->get(e) = abs;
+				_prev_abs_rots->get(e)	   = abs_rot;
+				_abs_matrices->get(e)	   = abs;
+				_abs_rots->get(e)		   = abs_rot;
 				f.set(entity_flags::entity_flags_prev_transform_init);
 			}
 			else
@@ -212,6 +220,14 @@ namespace SFG
 		for (const world_handle& p : proxies)
 		{
 			flags.get(p.index).set(entity_flags::entity_flags_transient_abs_transform_mark);
+		}
+
+		auto end = _entities->handles_end();
+
+		for (auto it = _entities->handles_begin(); it != end; ++it)
+		{
+			const auto h = (*it).index;
+			flags.get(h).set(entity_flags::entity_flags_transient_abs_transform_mark);
 		}
 
 		for (const world_handle& p : proxies)
@@ -661,6 +677,12 @@ namespace SFG
 	/* ----------------                   ---------------- */
 	/* ---------------- entity transforms ---------------- */
 	/* ----------------                   ---------------- */
+
+	void entity_manager::teleport_entity(world_handle entity)
+	{
+		SFG_ASSERT(_entities->is_valid(entity));
+		_flags->get(entity.index).remove(entity_flags::entity_flags_prev_transform_init);
+	}
 
 	void entity_manager::set_entity_position(world_handle entity, const vector3& pos)
 	{

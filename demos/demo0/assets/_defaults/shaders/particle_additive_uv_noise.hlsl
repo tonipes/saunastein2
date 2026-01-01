@@ -113,7 +113,7 @@ vs_output VSMain(uint vid : SV_VertexID, uint iid : SV_InstanceID)
     float3 up2    = up    * c - right * s;
 
     float2 corner = k_corners[vid];
-    float  half_size = 0.5 * rot_size.y;
+    float  half_size = rot_size.y;
 
     float3 world_pos =
         center +
@@ -133,21 +133,39 @@ vs_output VSMain(uint vid : SV_VertexID, uint iid : SV_InstanceID)
 struct material_data
 {
     float4 base_color;
+    float2 distort_scale;   
+    float2 distort_speed;  
+    float distort_strength;
 };
 
 struct texture_data
 {
     uint albedo_index;
+    uint perlin_index;
 };
 
 SamplerState smp : static_sampler_linear;
+
+float2 remap01_to_m11(float2 v) { return v * 2.0f - 1.0f; }
 
 float4 PSMain(vs_output IN) : SV_TARGET
 {
     ConstantBuffer<material_data> mat = sfg_get_cbv<material_data>(sfg_mat_constant0);
     ConstantBuffer<texture_data> txt_data = sfg_get_cbv<texture_data>(sfg_mat_constant1);
     Texture2D albedo_txt = sfg_get_texture<Texture2D>(txt_data.albedo_index);
-    float4 albedo = albedo_txt.SampleLevel(smp, IN.uv, 0);
+    Texture2D noise_txt = sfg_get_texture<Texture2D>(txt_data.perlin_index);
+
+    float t = sfg_global_elapsed;
+
+    // wrap ONLY the noise UV so it tiles nicely
+    float2 noiseUV = IN.uv * mat.distort_scale + t * mat.distort_speed;
+    float2 n = noise_txt.SampleLevel(smp, frac(noiseUV), 0).rg;
+
+    // remap 0..1 -> -1..1
+    float2 flow = n * 2.0f - 1.0f;
+    float2 uv = IN.uv + flow * mat.distort_strength;
+
+    float4 albedo = albedo_txt.SampleLevel(smp, uv, 0);
     return albedo * IN.color * mat.base_color;
 }
 

@@ -380,8 +380,12 @@ namespace SFG
 			const int64 delta	 = time_now - time_prev;
 			time_prev			 = time_now;
 
-			frame_info::s_render_thread_time_milli.store(delta * 0.001);
-			frame_info::s_fps.store(1.0f / static_cast<float>(delta * 0.001 * 0.001));
+			const double delta_milli   = delta * 0.001;
+			const double delta_seconds = delta_milli * 0.001;
+
+			frame_info::s_render_thread_time_milli.store(delta_milli);
+			frame_info::s_render_thread_elapsed_seconds.store(frame_info::s_render_thread_elapsed_seconds.load() + delta_seconds);
+			frame_info::s_fps.store(1.0f / static_cast<float>(delta_seconds));
 #endif
 
 			_renderer->render();
