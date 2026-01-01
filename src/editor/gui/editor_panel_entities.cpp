@@ -16,6 +16,7 @@ namespace SFG
 		bool			   open	 = ImGui::TreeNodeEx((void*)(uintptr_t)e.index, flags, "%s", meta.name);
 		if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
 		{
+			editor::get().set_selected_entity(e);
 		}
 		if (ImGui::BeginPopupContextItem())
 		{

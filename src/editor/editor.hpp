@@ -37,6 +37,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // gui
 #include "editor/gui/editor_panel_controls.hpp"
+#include "editor/gui/editor_panel_properties.hpp"
 #include "editor/gui/editor_panel_entities.hpp"
 #include "editor/gui/editor_gui_world_overlays.hpp"
 
@@ -112,6 +113,16 @@ namespace SFG
 			return _renderer;
 		}
 
+		inline void set_selected_entity(world_handle e)
+		{
+			_selected_entity = e;
+		}
+
+		inline world_handle get_selected_entity() const
+		{
+			return _selected_entity;
+		}
+
 		inline gpu_index get_render_output(uint8 frame) const
 		{
 			return _renderer.get_output_gpu_index(frame);
@@ -152,12 +163,14 @@ namespace SFG
 		// gui
 		editor_panel_controls	  _panel_controls	  = {};
 		editor_panel_entities	  _panel_entities	  = {};
+		editor_panel_properties	  _panel_properties	  = {};
 		editor_gui_world_overlays _gui_world_overlays = {};
 
 		// vekt
-		vekt::builder*		_builder	  = nullptr;
-		vekt::font_manager* _font_manager = nullptr;
-		vekt::font*			_font_main	  = nullptr;
+		vekt::builder*		_builder		 = nullptr;
+		vekt::font_manager* _font_manager	 = nullptr;
+		vekt::font*			_font_main		 = nullptr;
+		world_handle		_selected_entity = {};
 
 		static editor* s_instance;
 	};

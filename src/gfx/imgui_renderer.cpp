@@ -27,6 +27,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "imgui_renderer.hpp"
 #include "gfx/backend/backend.hpp"
 #include "platform/window.hpp"
+#include "project/engine_data.hpp"
 #include "io/log.hpp"
 
 #include "imgui.h"
@@ -50,6 +51,17 @@ namespace SFG
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;	  // IF using Docking Branch
+
+		// Fonts
+#ifdef SFG_TOOLMODE
+		{
+			// const std::string p = SFG_ROOT_DIRECTORY + std::string("assets/engine/fonts/VT323-Regular.ttf");
+			// ImFontConfig cfg;
+			// cfg.SizePixels = 18.0f * main_scale;
+			// ImFont* f = io.Fonts->AddFontFromFileTTF(p.c_str(), cfg.SizePixels, &cfg);
+			// io.FontDefault = f;
+		}
+#endif
 
 		// Setup Dear ImGui style
 		ImGui::StyleColorsDark();
@@ -186,7 +198,7 @@ namespace SFG
 		const int8 last_rendered = _rendered.load(std::memory_order_acquire);
 		_write_index			 = (last_rendered + 1) % BUFFER_SIZE;
 		_snapshots[_write_index].SnapUsingSwap(ImGui::GetDrawData(), ImGui::GetTime());
-
+		SFG_TRACE("wr {0}", (int32)_write_index);
 		_snapshots[_write_index].DrawData.Textures = nullptr;
 		_latest.store(_write_index, std::memory_order_release);
 	}
@@ -196,7 +208,7 @@ namespace SFG
 		const int8 last_written = _latest.load(std::memory_order_acquire);
 		if (last_written < 0)
 			return;
-
+		SFG_TRACE("read {0}", (int32)last_written);
 		_rendered.store(last_written, std::memory_order_release);
 
 		ImDrawDataSnapshot& ss = _snapshots[last_written];

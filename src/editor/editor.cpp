@@ -110,6 +110,7 @@ namespace SFG
 		_gui_world_overlays.init(_builder);
 		_panel_controls.init(_builder);
 		_panel_entities.init(_builder);
+		_panel_properties.init(_builder);
 
 		_camera_controller.init(_app.get_world(), _app.get_main_window());
 	}
@@ -146,6 +147,7 @@ namespace SFG
 
 		_renderer.draw_begin();
 		_panel_entities.draw(w, ws);
+		_panel_properties.draw(w, _selected_entity, ws);
 		_panel_controls.draw({});
 		_renderer.draw_end();
 
