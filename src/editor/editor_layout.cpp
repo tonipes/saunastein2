@@ -24,22 +24,80 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISE
 OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#pragma once
+#include "editor_layout.hpp"
+#include "io/file_system.hpp"
+#include "io/log.hpp"
+#include "data/string.hpp"
 
-#include "common/size_definitions.hpp"
-#include <vendor/nhlohmann/json_fwd.hpp>
+#include <fstream>
+#include <vendor/nhlohmann/json.hpp>
+using json = nlohmann::json;
 
 namespace SFG
 {
-	struct editor_settings
+
+	void to_json(nlohmann::json& j, const editor_layout& t)
 	{
-		uint32 dummy = 0;
+		j["dummy"] = t.dummy;
+	}
 
-		void init(const char* base_directory);
-		bool load(const char* path);
-		bool save(const char* path);
-	};
+	void from_json(const nlohmann::json& j, editor_layout& s)
+	{
+		s.dummy = j.value<uint32>("dummy", {});
+	}
 
-	void to_json(nlohmann::json& j, const editor_settings& t);
-	void from_json(const nlohmann::json& j, editor_settings& s);
+	void editor_layout::init(const char* base_directory)
+	{
+		const string path = string(base_directory) + "editor_layout.stksettings";
+
+		if (file_system::exists(path.c_str()))
+		{
+			load(path.c_str());
+		}
+		else
+		{
+			// init defaults
+			save(path.c_str());
+		}
+	}
+
+	bool editor_layout::load(const char* path)
+	{
+		if (!file_system::exists(path))
+		{
+			SFG_ERR("File don't exist! {0}", path);
+			return false;
+		}
+
+		try
+		{
+			std::ifstream f(path);
+			editor_layout st = json::parse(f);
+			*this			 = st;
+			f.close();
+		}
+		catch (std::exception e)
+		{
+			SFG_ERR("Failed loading editor_layout: {0}", e.what());
+			return false;
+		}
+
+		return true;
+	}
+
+	bool editor_layout::save(const char* path)
+	{
+		json j = *this;
+
+		std::ofstream file(path);
+		if (file.is_open())
+		{
+			file << j.dump(4);
+			file.close();
+			return true;
+		}
+
+		SFG_ERR("failed while writing json! {0}", path);
+		return false;
+	}
 }

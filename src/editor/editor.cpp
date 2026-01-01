@@ -87,20 +87,13 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 		// editor pipeline
 		// -----------------------------------------------------------------------------
-		const string editor_folder = file_system::get_user_directory() + "/stakeforge";
+		const string editor_folder = file_system::get_user_directory() + "/stakeforge/";
 		if (!file_system::exists(editor_folder.c_str()))
 			file_system::create_directory(editor_folder.c_str());
 
-		const string editor_settings_path = file_system::get_user_directory() + EDITOR_SETTINGS_FILE;
-		if (file_system::exists(editor_settings_path.c_str()))
-		{
-			_settings.load(editor_settings_path.c_str());
-		}
-		else
-		{
-			_settings.load_defaults();
-			_settings.save(editor_settings_path.c_str());
-		}
+		_theme.init(editor_folder.c_str());
+		_layout.init(editor_folder.c_str());
+		_settings.init(editor_folder.c_str());
 
 		// -----------------------------------------------------------------------------
 		// gui

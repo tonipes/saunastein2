@@ -24,28 +24,36 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISE
 OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "editor_settings.hpp"
+#include "editor_theme.hpp"
 #include "io/file_system.hpp"
 #include "io/log.hpp"
-
-#include <fstream>
 #include <vendor/nhlohmann/json.hpp>
+#include <fstream>
 using json = nlohmann::json;
 
 namespace SFG
 {
-
-	void to_json(nlohmann::json& j, const editor_settings& t)
+	void to_json(nlohmann::json& j, const editor_theme& t)
 	{
-		j["dummy"] = t.dummy;
+		j["default_indent"]	 = t.default_indent;
+		j["col_bg_frame"]	 = t.col_bg_frame;
+		j["col_bg_child"]	 = t.col_bg_child;
+		j["col_bg_window"]	 = t.col_bg_window;
+		j["col_accent_prim"] = t.col_accent_prim;
+		j["col_accent_sec"]	 = t.col_accent_sec;
 	}
 
-	void from_json(const nlohmann::json& j, editor_settings& s)
+	void from_json(const nlohmann::json& j, editor_theme& s)
 	{
-		s.dummy = j.value<uint32>("dummy", {});
+		s.default_indent  = j.value<float>("default_indent", 0.0f);
+		s.col_bg_frame	  = j.value<vector4>("col_bg_frame", vector4::zero);
+		s.col_bg_child	  = j.value<vector4>("col_bg_child", vector4::zero);
+		s.col_bg_window	  = j.value<vector4>("col_bg_window", vector4::zero);
+		s.col_accent_prim = j.value<vector4>("col_accent_prim", vector4::zero);
+		s.col_accent_sec  = j.value<vector4>("col_accent_sec", vector4::zero);
 	}
 
-	void editor_settings::init(const char* base_directory)
+	void editor_theme::init(const char* base_directory)
 	{
 		const string path = string(base_directory) + "editor_theme.stksettings";
 
@@ -60,7 +68,7 @@ namespace SFG
 		}
 	}
 
-	bool editor_settings::load(const char* path)
+	bool editor_theme::load(const char* path)
 	{
 		if (!file_system::exists(path))
 		{
@@ -70,21 +78,21 @@ namespace SFG
 
 		try
 		{
-			std::ifstream	f(path);
-			editor_settings st = json::parse(f);
-			*this			   = st;
+			std::ifstream f(path);
+			editor_theme  st = json::parse(f);
+			*this			 = st;
 			f.close();
 		}
 		catch (std::exception e)
 		{
-			SFG_ERR("Failed loading editor_settings: {0}", e.what());
+			SFG_ERR("Failed loading editor_theme: {0}", e.what());
 			return false;
 		}
 
 		return true;
 	}
 
-	bool editor_settings::save(const char* path)
+	bool editor_theme::save(const char* path)
 	{
 		json j = *this;
 

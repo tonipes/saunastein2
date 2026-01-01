@@ -24,29 +24,30 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISE
 OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "editor_gui_theme.hpp"
-#include <vendor/nhlohmann/json.hpp>
+#pragma once
+
+#include "math/vector4.hpp"
+#include <vendor/nhlohmann/json_fwd.hpp>
 
 namespace SFG
 {
-
-	void to_json(nlohmann::json& j, const editor_gui_theme& t)
+	struct editor_theme
 	{
-		j["default_indent"]	 = t.default_indent;
-		j["col_bg_frame"]	 = t.col_bg_frame;
-		j["col_bg_child"]	 = t.col_bg_child;
-		j["col_bg_window"]	 = t.col_bg_window;
-		j["col_accent_prim"] = t.col_accent_prim;
-		j["col_accent_sec"]	 = t.col_accent_sec;
-	}
+		float	default_indent	= 8.0f;
+		vector4 col_bg_frame	= vector4(3, 3, 3, 255) / 255.0f;
+		vector4 col_bg_child	= vector4(8, 8, 8, 255) / 255.0f;
+		vector4 col_bg_window	= vector4(16, 16, 16, 255) / 255.0f;
+		vector4 col_accent_prim = vector4(231, 63, 71, 255) / 255.0f;
+		vector4 col_accent_sec	= vector4(231, 63, 71, 255) / 255.0f;
+		vector4 color_axis_x	= vector4(204.0f, 51.0f, 51.0f, 255.0f) / 255.0f;
+		vector4 color_axis_y	= vector4(51.0f, 204.0f, 51.0f, 255.0f) / 255.0f;
+		vector4 color_axis_z	= vector4(51.0f, 51.0f, 204.0f, 255.0f) / 255.0f;
 
-	void from_json(const nlohmann::json& j, editor_gui_theme& s)
-	{
-		s.default_indent  = j.value<float>("default_indent", 0.0f);
-		s.col_bg_frame	  = j.value<vector4>("col_bg_frame", vector4::zero);
-		s.col_bg_child	  = j.value<vector4>("col_bg_child", vector4::zero);
-		s.col_bg_window	  = j.value<vector4>("col_bg_window", vector4::zero);
-		s.col_accent_prim = j.value<vector4>("col_accent_prim", vector4::zero);
-		s.col_accent_sec  = j.value<vector4>("col_accent_sec", vector4::zero);
-	}
+		void init(const char* base_directory);
+		bool load(const char* path);
+		bool save(const char* path);
+	};
+
+	void to_json(nlohmann::json& j, const editor_theme& t);
+	void from_json(const nlohmann::json& j, editor_theme& s);
 }

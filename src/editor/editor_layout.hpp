@@ -26,24 +26,20 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include "math/vector4.hpp"
+#include "common/size_definitions.hpp"
 #include <vendor/nhlohmann/json_fwd.hpp>
 
 namespace SFG
 {
-	struct editor_gui_theme
+	struct editor_layout
 	{
-		float	default_indent	= 0.0f;
-		vector4 col_bg_frame	= vector4(3, 3, 3, 255) / 255.0f;
-		vector4 col_bg_child	= vector4(8, 8, 8, 255) / 255.0f;
-		vector4 col_bg_window	= vector4(16, 16, 16, 255) / 255.0f;
-		vector4 col_accent_prim = vector4(231, 63, 71, 255) / 255.0f;
-		vector4 col_accent_sec	= vector4(231, 63, 71, 255) / 255.0f;
-		vector4 color_axis_x	= vector4(204.0f, 51.0f, 51.0f, 255.0f) / 255.0f;
-		vector4 color_axis_y	= vector4(51.0f, 204.0f, 51.0f, 255.0f) / 255.0f;
-		vector4 color_axis_z	= vector4(51.0f, 51.0f, 204.0f, 255.0f) / 255.0f;
+		uint32 dummy = 0;
+
+		void init(const char* base_directory);
+		bool load(const char* path);
+		bool save(const char* path);
 	};
 
-	void to_json(nlohmann::json& j, const editor_gui_theme& t);
-	void from_json(const nlohmann::json& j, editor_gui_theme& s);
+	void to_json(nlohmann::json& j, const editor_layout& t);
+	void from_json(const nlohmann::json& j, editor_layout& s);
 }

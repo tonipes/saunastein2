@@ -31,6 +31,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "editor_camera.hpp"
 #include "editor_settings.hpp"
+#include "editor_theme.hpp"
+#include "editor_layout.hpp"
 #include "editor/gfx/editor_renderer.hpp"
 
 // gui
@@ -106,14 +108,19 @@ namespace SFG
 			return _renderer.get_output_gpu_index(frame);
 		}
 
-		inline editor_settings& get_settings()
+		inline editor_settings& settings()
 		{
 			return _settings;
 		}
 
-		inline editor_gui_theme& theme()
+		inline editor_theme& theme()
 		{
-			return _settings.theme;
+			return _theme;
+		}
+
+		inline editor_layout& layout()
+		{
+			return _layout;
 		}
 
 	private:
@@ -126,6 +133,8 @@ namespace SFG
 		editor_camera	_camera_controller;
 		world_handle	_gizmo_entity = {};
 		editor_settings _settings	  = {};
+		editor_theme	_theme		  = {};
+		editor_layout	_layout		  = {};
 
 		// gfx
 		editor_renderer _renderer = {};
