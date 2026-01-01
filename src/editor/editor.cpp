@@ -28,109 +28,36 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // app
 #include "app/app.hpp"
-#include "app/debug_console.hpp"
-
-#include "platform/window.hpp"
-#include "math/vector3.hpp"
-#include "math/quat.hpp"
-#include "common/string_id.hpp"
-#include "project/engine_data.hpp"
-#include "input/input_mappings.hpp"
-
-// game
-#include "game/game_world_renderer.hpp"
 
 // gfx
 #include "gfx/renderer.hpp"
-#include "gfx/event_stream/render_events_gfx.hpp"
-#include "gfx/event_stream/render_event_stream.hpp"
 
-// world
-#include "world/world.hpp"
-#include "world/entity_manager.hpp"
-#include "world/components/comp_camera.hpp"
-#include "world/components/comp_model_instance.hpp"
-#include "world/components/comp_ambient.hpp"
-#include "world/components/comp_light.hpp"
-#include "world/components/comp_physics.hpp"
-#include "world/components/comp_audio.hpp"
-#include "world/components/comp_canvas.hpp"
-
-// resources
-#include "resources/model.hpp"
-#include "resources/model_raw.hpp"
-#include "resources/world_raw.hpp"
-#include "resources/material.hpp"
-#include "resources/audio.hpp"
-#include "resources/font.hpp"
+// misc
+#include "serialization/serialization.hpp"
+#include "io/file_system.hpp"
+#include "gui/vekt.hpp"
+#include "platform/window.hpp"
+#include "input/input_mappings.hpp"
 
 namespace SFG
 {
+
+#define EDITOR_SETTINGS_FILE "/stakeforge/editor.stksettings"
 	editor::editor(app& game) : _app(game)
 	{
 	}
 
 	editor::~editor() = default;
 
+	editor* editor::s_instance = nullptr;
+
 	void editor::init()
 	{
+		s_instance = this;
 
-		// world_raw raw = {};
-		// raw.load_from_file("assets/world/demo_world.stkworld", engine_data::get().get_working_dir().c_str());
-		// _game.get_world().create_from_loader(raw);
-
-		/*
-		{
-			world&			  w	 = _game.get_world();
-			entity_manager&	  em = w.get_entity_manager();
-			component_manager&	  tm = w.get_comp_manager();
-			resource_manager& rm = w.get_resource_manager();
-
-			rm.load_resources(
-				{
-					"assets/engine/shaders/gizmo/gizmo.stkshader",
-					"assets/engine/materials/gizmo_x.stkmat",
-					"assets/engine/materials/gizmo_y.stkmat",
-					"assets/engine/materials/gizmo_z.stkmat",
-					"assets/engine/models/gizmos/gizmos.stkmodel",
-				},
-				false,
-				SFG_ROOT_DIRECTORY);
-
-			// gizmo model (all).
-			resource_handle gizmos_handle = rm.get_resource_handle_by_hash<model>(TO_SIDC("assets/engine/models/gizmos/gizmos.stkmodel"));
-
-			// get gizmo materials.
-			const resource_handle gizmo_mat0 = rm.get_resource_handle_by_hash<material>(TO_SIDC("assets/engine/materials/gizmo_x.stkmat"));
-			const resource_handle gizmo_mat1 = rm.get_resource_handle_by_hash<material>(TO_SIDC("assets/engine/materials/gizmo_y.stkmat"));
-			const resource_handle gizmo_mat2 = rm.get_resource_handle_by_hash<material>(TO_SIDC("assets/engine/materials/gizmo_z.stkmat"));
-
-			// update model materials.
-			const render_event_model_update_materials ev = {
-				.materials =
-					{
-						gizmo_mat1.index,
-						gizmo_mat2.index,
-						gizmo_mat0.index,
-					},
-			};
-			w.get_render_stream().add_event({.index = gizmos_handle.index, .event_type = update_model_materials}, ev);
-
-			_gizmo_entity						   = em.create_entity("gizmos");
-			world_handle		  gizmos_mi_handle = tm.add_component<comp_model_instance>(_gizmo_entity);
-			comp_model_instance& gizmos_mi		   = tm.get_component<comp_model_instance>(gizmos_mi_handle);
-			gizmos_mi.instantiate_model_to_world(w, gizmos_handle);
-		}*/
-
-#ifdef SFG_TOOLMODE
-		debug_console::get()->register_console_function("start_playmode", [this]() { _app.get_world().set_playmode(play_mode::full); });
-		debug_console::get()->register_console_function("stop_playmode", [this]() { _app.get_world().set_playmode(play_mode::none); });
-		debug_console::get()->register_console_function("start_physics", [this]() { _app.get_world().set_playmode(play_mode::physics_only); });
-		debug_console::get()->register_console_function("stop_physics", [this]() { _app.get_world().set_playmode(play_mode::none); });
-		debug_console::get()->register_console_function<const char*>("load_level", [this](const char* lvl) {
-
-		});
-#endif
+		// -----------------------------------------------------------------------------
+		// vekt init
+		// -----------------------------------------------------------------------------
 
 		_builder = new vekt::builder();
 		_builder->init({
@@ -152,12 +79,33 @@ namespace SFG
 
 #ifdef SFG_TOOLMODE
 		const string p = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/VT323-Regular.ttf");
-		_font_main = _font_manager->load_font_from_file(p.c_str(), 18);
+		_font_main	   = _font_manager->load_font_from_file(p.c_str(), 18);
 #else
 		SFG_NOTIMPLEMENTED();
 #endif
 
+		// -----------------------------------------------------------------------------
+		// editor pipeline
+		// -----------------------------------------------------------------------------
+		const string editor_folder = file_system::get_user_directory() + "/stakeforge";
+		if (!file_system::exists(editor_folder.c_str()))
+			file_system::create_directory(editor_folder.c_str());
+
+		const string editor_settings_path = file_system::get_user_directory() + EDITOR_SETTINGS_FILE;
+		if (file_system::exists(editor_settings_path.c_str()))
+		{
+			_settings.load(editor_settings_path.c_str());
+		}
+		else
+		{
+			_settings.load_defaults();
+			_settings.save(editor_settings_path.c_str());
+		}
+
+		// -----------------------------------------------------------------------------
 		// gui
+		// -----------------------------------------------------------------------------
+
 		_gui_world_overlays.init(_builder);
 		_panel_controls.init(_builder);
 

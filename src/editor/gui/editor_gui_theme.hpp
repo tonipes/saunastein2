@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -27,16 +27,23 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include "math/vector4.hpp"
+#include <vendor/nhlohmann/json_fwd.hpp>
 
 namespace SFG
 {
-	class editor_gui_theme
+	struct editor_gui_theme
 	{
-	public:
-		static float default_margin;
-
-		static vector4 color_axis_x;
-		static vector4 color_axis_y;
-		static vector4 color_axis_z;
+		float	default_indent	= 0.0f;
+		vector4 col_bg_frame	= vector4(3, 3, 3, 255) / 255.0f;
+		vector4 col_bg_child	= vector4(8, 8, 8, 255) / 255.0f;
+		vector4 col_bg_window	= vector4(16, 16, 16, 255) / 255.0f;
+		vector4 col_accent_prim = vector4(231, 63, 71, 255) / 255.0f;
+		vector4 col_accent_sec	= vector4(231, 63, 71, 255) / 255.0f;
+		vector4 color_axis_x	= vector4(204.0f, 51.0f, 51.0f, 255.0f) / 255.0f;
+		vector4 color_axis_y	= vector4(51.0f, 204.0f, 51.0f, 255.0f) / 255.0f;
+		vector4 color_axis_z	= vector4(51.0f, 51.0f, 204.0f, 255.0f) / 255.0f;
 	};
+
+	void to_json(nlohmann::json& j, const editor_gui_theme& t);
+	void from_json(const nlohmann::json& j, editor_gui_theme& s);
 }

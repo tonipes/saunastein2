@@ -30,6 +30,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "resources/common_resources.hpp"
 
 #include "editor_camera.hpp"
+#include "editor_settings.hpp"
 #include "editor/gfx/editor_renderer.hpp"
 
 // gui
@@ -69,6 +70,10 @@ namespace SFG
 		explicit editor(app& game);
 		~editor();
 
+		static editor& get()
+		{
+			return *s_instance;
+		}
 		// -----------------------------------------------------------------------------
 		// lifecycle
 		// -----------------------------------------------------------------------------
@@ -101,15 +106,26 @@ namespace SFG
 			return _renderer.get_output_gpu_index(frame);
 		}
 
+		inline editor_settings& get_settings()
+		{
+			return _settings;
+		}
+
+		inline editor_gui_theme& theme()
+		{
+			return _settings.theme;
+		}
+
 	private:
-		app&		  _app;
-		world_handle  _camera_entity   = {};
-		world_handle  _camera_trait	   = {};
-		world_handle  _demo_model_root = {};
-		world_handle  _ambient_entity  = {};
-		world_handle  _ambient_trait   = {};
-		editor_camera _camera_controller;
-		world_handle  _gizmo_entity = {};
+		app&			_app;
+		world_handle	_camera_entity	 = {};
+		world_handle	_camera_trait	 = {};
+		world_handle	_demo_model_root = {};
+		world_handle	_ambient_entity	 = {};
+		world_handle	_ambient_trait	 = {};
+		editor_camera	_camera_controller;
+		world_handle	_gizmo_entity = {};
+		editor_settings _settings	  = {};
 
 		// gfx
 		editor_renderer _renderer = {};
@@ -122,5 +138,7 @@ namespace SFG
 		vekt::builder*		_builder	  = nullptr;
 		vekt::font_manager* _font_manager = nullptr;
 		vekt::font*			_font_main	  = nullptr;
+
+		static editor* s_instance;
 	};
 }

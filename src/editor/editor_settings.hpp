@@ -24,29 +24,22 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISE
 OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "editor_gui_theme.hpp"
-#include <vendor/nhlohmann/json.hpp>
+#pragma once
+
+#include "math/vector4.hpp"
+#include "gui/editor_gui_theme.hpp"
 
 namespace SFG
 {
-
-	void to_json(nlohmann::json& j, const editor_gui_theme& t)
+	struct editor_settings
 	{
-		j["default_indent"]	 = t.default_indent;
-		j["col_bg_frame"]	 = t.col_bg_frame;
-		j["col_bg_child"]	 = t.col_bg_child;
-		j["col_bg_window"]	 = t.col_bg_window;
-		j["col_accent_prim"] = t.col_accent_prim;
-		j["col_accent_sec"]	 = t.col_accent_sec;
-	}
+		editor_gui_theme theme = {};
 
-	void from_json(const nlohmann::json& j, editor_gui_theme& s)
-	{
-		s.default_indent  = j.value<float>("default_indent", 0.0f);
-		s.col_bg_frame	  = j.value<vector4>("col_bg_frame", vector4::zero);
-		s.col_bg_child	  = j.value<vector4>("col_bg_child", vector4::zero);
-		s.col_bg_window	  = j.value<vector4>("col_bg_window", vector4::zero);
-		s.col_accent_prim = j.value<vector4>("col_accent_prim", vector4::zero);
-		s.col_accent_sec  = j.value<vector4>("col_accent_sec", vector4::zero);
-	}
+		void load_defaults();
+		bool load(const char* path);
+		bool save(const char* path);
+	};
+
+	void to_json(nlohmann::json& j, const editor_settings& t);
+	void from_json(const nlohmann::json& j, editor_settings& s);
 }

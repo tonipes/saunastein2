@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -25,7 +25,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "editor_gui_world_overlays.hpp"
-#include "editor_gui_theme.hpp"
+#include "editor/editor.hpp"
 #include "math/vector2ui16.hpp"
 #include "math/vector2.hpp"
 
@@ -68,14 +68,14 @@ namespace SFG
 		constexpr float thickness			= 2.0f;
 
 		const vector2 box_size = vector2(static_cast<float>(size.x) * box_size_multiplier, static_cast<float>(size.x) * box_size_multiplier);
-		const vector2 min	   = vector2(editor_gui_theme::default_margin + box_size.x * 0.5f, size.y - editor_gui_theme::default_margin - box_size.y);
+		const vector2 min	   = vector2(editor::get().theme().default_indent + box_size.x * 0.5f, size.y - editor::get().theme().default_indent - box_size.y);
 		const vector2 max	   = min + box_size;
 		const vector2 center   = (min + max) * 0.5f;
 
 		builder->add_line_aa({
 			.p0			  = vector2(center),
 			.p1			  = center + x_dir * box_size.x,
-			.color		  = editor_gui_theme::color_axis_x,
+			.color		  = editor::get().theme().color_axis_x,
 			.thickness	  = thickness,
 			.aa_thickness = 2,
 		});
@@ -83,7 +83,7 @@ namespace SFG
 		builder->add_line_aa({
 			.p0			  = vector2(center),
 			.p1			  = center + y_dir * box_size.x,
-			.color		  = editor_gui_theme::color_axis_y,
+			.color		  = editor::get().theme().color_axis_y,
 			.thickness	  = thickness,
 			.aa_thickness = 2,
 		});
@@ -91,7 +91,7 @@ namespace SFG
 		builder->add_line_aa({
 			.p0			  = vector2(center),
 			.p1			  = center + z_dir * box_size.x,
-			.color		  = editor_gui_theme::color_axis_z,
+			.color		  = editor::get().theme().color_axis_z,
 			.thickness	  = thickness,
 			.aa_thickness = 2,
 		});
