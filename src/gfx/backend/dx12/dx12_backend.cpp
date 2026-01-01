@@ -3227,4 +3227,26 @@ namespace SFG
 			cmd_list->ResourceBarrier(static_cast<UINT>(barriers.size()), barriers.data());
 	}
 
+	ID3D12DescriptorHeap* dx12_backend::get_srv_heap()
+	{
+		return _heap_gpu_buffer.get_heap();
+	}
+
+	void dx12_backend::alloc_srv(D3D12_CPU_DESCRIPTOR_HANDLE* out_cpu_handle, D3D12_GPU_DESCRIPTOR_HANDLE* out_gpu_handle)
+	{
+		const descriptor_handle handle = _heap_gpu_buffer.get_heap_handle_block(1);
+		out_cpu_handle->ptr			   = handle.cpu;
+		out_gpu_handle->ptr			   = handle.gpu;
+		_external_descriptors.push_back(handle);
+	}
+
+	void dx12_backend::free_srv(D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle, D3D12_GPU_DESCRIPTOR_HANDLE gpu_handle)
+	{
+		descriptor_handle* h = _external_descriptors.find_if([&](const descriptor_handle& h) -> bool { return h.cpu == cpu_handle.ptr && h.gpu == gpu_handle.ptr; });
+		SFG_ASSERT(h != nullptr);
+
+		_heap_gpu_buffer.remove_handle(*h);
+		_external_descriptors.remove(*h);
+	}
+
 }

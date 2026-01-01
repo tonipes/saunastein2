@@ -30,6 +30,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gfx/common/gfx_constants.hpp"
 #include "gfx/common/descriptor_handle.hpp"
 #include "data/vector.hpp"
+#include "data/static_vector.hpp"
 #include "data/span.hpp"
 #include "data/string.hpp"
 #include "data/bitmask.hpp"
@@ -282,7 +283,6 @@ namespace SFG
 		void map_resource(gfx_id id, uint8*& ptr) const;
 		void unmap_resource(gfx_id id) const;
 
-		// Utility to fetch the frame latency waitable handle, if needed externally.
 		inline HANDLE get_swapchain_latency_handle(gfx_id id)
 		{
 			return _swapchains.get(id).frame_latency_waitable;
@@ -326,6 +326,10 @@ namespace SFG
 		void cmd_dispatch(gfx_id cmd_list, const command_dispatch& command) const;
 		void cmd_barrier(gfx_id cmd_list, const command_barrier& command);
 
+		ID3D12DescriptorHeap* get_srv_heap();
+		void				  alloc_srv(D3D12_CPU_DESCRIPTOR_HANDLE* out_cpu_handle, D3D12_GPU_DESCRIPTOR_HANDLE* out_gpu_handle);
+		void				  free_srv(D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle, D3D12_GPU_DESCRIPTOR_HANDLE gpu_handle);
+
 		inline gfx_id get_queue_gfx() const
 		{
 			return _queue_graphics;
@@ -349,6 +353,11 @@ namespace SFG
 		inline ID3D12GraphicsCommandList4* get_gfx_cmd_list(uint32 list)
 		{
 			return _command_buffers.get(list).ptr.Get();
+		}
+
+		inline ID3D12CommandQueue* get_queue_gfx_impl() const
+		{
+			return _queues.get(_queue_graphics).ptr.Get();
 		}
 
 	private:
@@ -393,6 +402,8 @@ namespace SFG
 		vector<CD3DX12_ROOT_PARAMETER1>		_reuse_root_params				= {};
 		vector<CD3DX12_DESCRIPTOR_RANGE1>	_reuse_root_ranges				= {};
 		vector<D3D12_STATIC_SAMPLER_DESC>	_reuse_static_samplers			= {};
+
+		static_vector<descriptor_handle, 24> _external_descriptors;
 
 		friend class app;
 

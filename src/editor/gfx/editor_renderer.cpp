@@ -46,7 +46,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace SFG
 {
-	void editor_renderer::init(texture_queue* texture_queue, const vector2ui16& screen_size)
+	void editor_renderer::init(window& window, texture_queue* texture_queue, const vector2ui16& screen_size)
 	{
 		_gfx_data.texture_queue = texture_queue;
 		_gfx_data.screen_size	= screen_size;
@@ -117,11 +117,14 @@ namespace SFG
 
 		// gui
 		_gui_world_overlays.init(_builder);
+		_imgui_renderer.init(window);
 	}
 
 	void editor_renderer::uninit()
 	{
 		gfx_backend* backend = gfx_backend::get();
+
+		_imgui_renderer.uninit();
 
 		_font_manager->unload_font(_font_main);
 		_font_manager->uninit();
@@ -270,6 +273,9 @@ namespace SFG
 										   .color_attachments	   = &att,
 										   .color_attachment_count = 1,
 									   });
+
+		_imgui_renderer.draw();
+		_imgui_renderer.render(cmd_buffer);
 
 		backend->cmd_bind_layout(cmd_buffer, {.layout = p.global_layout});
 		backend->cmd_bind_group(cmd_buffer, {.group = p.global_group});

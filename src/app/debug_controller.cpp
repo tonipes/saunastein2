@@ -61,6 +61,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 // platform
 #include "platform/window_common.hpp"
 #include "platform/process.hpp"
+#include "platform/window.hpp"
 
 // io
 #include "io/log.hpp"
@@ -82,13 +83,33 @@ namespace SFG
 #define COLOR_CONSOLE_BG_OPAQUE color::srgb_to_linear(color(12.0f / 255.0f, 16.0f / 255.0f, 12.0f / 255.0f, 1.0f)).to_vector()
 #define COLOR_BORDER			color::srgb_to_linear(color(89.0f / 255.0f, 180.0f / 255.0f, 108.0f / 255.0f, 1.0f)).to_vector()
 #define DEBUG_FONT_SIZE			20
-#define INPUT_FIELD_HEIGHT		static_cast<float>(DEBUG_FONT_SIZE) * 1.5f
-#define CONSOLE_SPACING			static_cast<float>(DEBUG_FONT_SIZE) * 0.5f
+#define INPUT_FIELD_HEIGHT		static_cast<float>(get_font_size()) * 1.5f
+#define CONSOLE_SPACING			static_cast<float>(get_font_size()) * 0.5f
 #define MAX_HISTORY				8
 #define RT_FORMAT				format::r8g8b8a8_srgb
 #define HISTORY_PATH			"console_history.stk"
 
 	static constexpr float B_TO_MB = 1024.0f * 1024.0f;
+
+	namespace
+	{
+		float _dpi_scale = 1.0f;
+
+		uint32 get_font_size()
+		{
+			return _dpi_scale * DEBUG_FONT_SIZE;
+		}
+
+		float get_field_height()
+		{
+			return INPUT_FIELD_HEIGHT;
+		}
+
+		float get_spacing()
+		{
+			return CONSOLE_SPACING;
+		}
+	}
 
 	void debug_controller::build_console()
 	{
@@ -106,14 +127,14 @@ namespace SFG
 			_vekt_data.builder->widget_add_child(_vekt_data.builder->get_root(), header);
 
 			_vekt_data.builder->widget_set_pos(header, vector2(0.0f, 0.0f));
-			_vekt_data.builder->widget_set_size(header, vector2(1.0f, INPUT_FIELD_HEIGHT), vekt::helper_size_type::relative, vekt::helper_size_type::absolute);
+			_vekt_data.builder->widget_set_size(header, vector2(1.0f, get_field_height()), vekt::helper_size_type::relative, vekt::helper_size_type::absolute);
 
 			vekt::pos_props& pos_props = _vekt_data.builder->widget_get_pos_props(header);
 			pos_props.flags			   = vekt::pos_flags::pf_child_pos_row;
 
 			vekt::size_props& props	 = _vekt_data.builder->widget_get_size_props(header);
-			props.child_margins.left = static_cast<float>(DEBUG_FONT_SIZE) * 0.5f;
-			props.spacing			 = CONSOLE_SPACING;
+			props.child_margins.left = static_cast<float>(get_font_size()) * 0.5f;
+			props.spacing			 = get_spacing();
 
 			vekt::widget_gfx& gfx = _vekt_data.builder->widget_get_gfx(header);
 			gfx.flags			  = vekt::gfx_flags::gfx_is_rect;
@@ -141,7 +162,7 @@ namespace SFG
 				vekt::id w = _vekt_data.builder->allocate();
 				_vekt_data.builder->widget_add_child(header, w);
 				_vekt_data.builder->widget_set_pos(w, vector2(0.0f, 0.5f), vekt::helper_pos_type::relative, vekt::helper_pos_type::relative, vekt::helper_anchor_type::start, vekt::helper_anchor_type::center);
-				_vekt_data.builder->widget_set_size(w, vector2(DEBUG_FONT_SIZE * 0.2f, 1.0f), vekt::helper_size_type::absolute, vekt::helper_size_type::relative);
+				_vekt_data.builder->widget_set_size(w, vector2(get_font_size() * 0.2f, 1.0f), vekt::helper_size_type::absolute, vekt::helper_size_type::relative);
 				vekt::widget_gfx& gfx = _vekt_data.builder->widget_get_gfx(w);
 				gfx.flags			  = vekt::gfx_flags::gfx_is_rect;
 				gfx.color			  = COLOR_CONSOLE_BG;
@@ -169,7 +190,7 @@ namespace SFG
 				vekt::id w = _vekt_data.builder->allocate();
 				_vekt_data.builder->widget_add_child(header, w);
 				_vekt_data.builder->widget_set_pos(w, vector2(0.0f, 0.5f), vekt::helper_pos_type::relative, vekt::helper_pos_type::relative, vekt::helper_anchor_type::start, vekt::helper_anchor_type::center);
-				_vekt_data.builder->widget_set_size(w, vector2(DEBUG_FONT_SIZE * 0.2f, 1.0f), vekt::helper_size_type::absolute, vekt::helper_size_type::relative);
+				_vekt_data.builder->widget_set_size(w, vector2(get_font_size() * 0.2f, 1.0f), vekt::helper_size_type::absolute, vekt::helper_size_type::relative);
 				vekt::widget_gfx& gfx = _vekt_data.builder->widget_get_gfx(w);
 				gfx.flags			  = vekt::gfx_flags::gfx_is_rect;
 				gfx.color			  = COLOR_CONSOLE_BG;
@@ -197,7 +218,7 @@ namespace SFG
 				vekt::id w = _vekt_data.builder->allocate();
 				_vekt_data.builder->widget_add_child(header, w);
 				_vekt_data.builder->widget_set_pos(w, vector2(0.0f, 0.5f), vekt::helper_pos_type::relative, vekt::helper_pos_type::relative, vekt::helper_anchor_type::start, vekt::helper_anchor_type::center);
-				_vekt_data.builder->widget_set_size(w, vector2(DEBUG_FONT_SIZE * 0.2f, 1.0f), vekt::helper_size_type::absolute, vekt::helper_size_type::relative);
+				_vekt_data.builder->widget_set_size(w, vector2(get_font_size() * 0.2f, 1.0f), vekt::helper_size_type::absolute, vekt::helper_size_type::relative);
 				vekt::widget_gfx& gfx = _vekt_data.builder->widget_get_gfx(w);
 				gfx.flags			  = vekt::gfx_flags::gfx_is_rect;
 				gfx.color			  = COLOR_CONSOLE_BG;
@@ -225,7 +246,7 @@ namespace SFG
 				vekt::id w = _vekt_data.builder->allocate();
 				_vekt_data.builder->widget_add_child(header, w);
 				_vekt_data.builder->widget_set_pos(w, vector2(0.0f, 0.5f), vekt::helper_pos_type::relative, vekt::helper_pos_type::relative, vekt::helper_anchor_type::start, vekt::helper_anchor_type::center);
-				_vekt_data.builder->widget_set_size(w, vector2(DEBUG_FONT_SIZE * 0.2f, 1.0f), vekt::helper_size_type::absolute, vekt::helper_size_type::relative);
+				_vekt_data.builder->widget_set_size(w, vector2(get_font_size() * 0.2f, 1.0f), vekt::helper_size_type::absolute, vekt::helper_size_type::relative);
 				vekt::widget_gfx& gfx = _vekt_data.builder->widget_get_gfx(w);
 				gfx.flags			  = vekt::gfx_flags::gfx_is_rect;
 				gfx.color			  = COLOR_CONSOLE_BG;
@@ -253,7 +274,7 @@ namespace SFG
 				vekt::id w = _vekt_data.builder->allocate();
 				_vekt_data.builder->widget_add_child(header, w);
 				_vekt_data.builder->widget_set_pos(w, vector2(0.0f, 0.5f), vekt::helper_pos_type::relative, vekt::helper_pos_type::relative, vekt::helper_anchor_type::start, vekt::helper_anchor_type::center);
-				_vekt_data.builder->widget_set_size(w, vector2(DEBUG_FONT_SIZE * 0.2f, 1.0f), vekt::helper_size_type::absolute, vekt::helper_size_type::relative);
+				_vekt_data.builder->widget_set_size(w, vector2(get_font_size() * 0.2f, 1.0f), vekt::helper_size_type::absolute, vekt::helper_size_type::relative);
 				vekt::widget_gfx& gfx = _vekt_data.builder->widget_get_gfx(w);
 				gfx.flags			  = vekt::gfx_flags::gfx_is_rect;
 				gfx.color			  = COLOR_CONSOLE_BG;
@@ -275,10 +296,10 @@ namespace SFG
 			pos_props.flags			   = vekt::pos_flags::pf_child_pos_column;
 
 			vekt::size_props& props	   = _vekt_data.builder->widget_get_size_props(w);
-			props.child_margins.left   = CONSOLE_SPACING;
-			props.child_margins.top	   = CONSOLE_SPACING;
-			props.child_margins.bottom = CONSOLE_SPACING;
-			props.spacing			   = CONSOLE_SPACING;
+			props.child_margins.left   = get_spacing();
+			props.child_margins.top	   = get_spacing();
+			props.child_margins.bottom = get_spacing();
+			props.spacing			   = get_spacing();
 
 			_vekt_data.widget_console_bg = w;
 		}
@@ -288,7 +309,7 @@ namespace SFG
 			vekt::id w = _vekt_data.builder->allocate();
 			_vekt_data.builder->widget_add_child(_vekt_data.builder->get_root(), w);
 			_vekt_data.builder->widget_set_pos(w, vector2(0.0f, 0.0f), vekt::helper_pos_type::relative, vekt::helper_pos_type::absolute);
-			_vekt_data.builder->widget_set_size(w, vector2(1.0f, DEBUG_FONT_SIZE * 0.05f), vekt::helper_size_type::relative, vekt::helper_size_type::absolute);
+			_vekt_data.builder->widget_set_size(w, vector2(1.0f, get_font_size() * 0.05f), vekt::helper_size_type::relative, vekt::helper_size_type::absolute);
 			vekt::widget_gfx& gfx	 = _vekt_data.builder->widget_get_gfx(w);
 			gfx.flags				 = vekt::gfx_flags::gfx_is_rect;
 			gfx.color				 = COLOR_BORDER;
@@ -301,7 +322,7 @@ namespace SFG
 			_vekt_data.builder->widget_add_child(_vekt_data.builder->get_root(), w);
 
 			_vekt_data.builder->widget_set_pos(w, vector2(0.0f, 0.0f));
-			_vekt_data.builder->widget_set_size(w, vector2(1.0f, INPUT_FIELD_HEIGHT), vekt::helper_size_type::relative, vekt::helper_size_type::absolute);
+			_vekt_data.builder->widget_set_size(w, vector2(1.0f, get_field_height()), vekt::helper_size_type::relative, vekt::helper_size_type::absolute);
 
 			vekt::widget_gfx& gfx = _vekt_data.builder->widget_get_gfx(w);
 			gfx.flags			  = vekt::gfx_flags::gfx_is_rect;
@@ -311,8 +332,8 @@ namespace SFG
 			pos_props.flags			   = vekt::pos_flags::pf_child_pos_row;
 
 			vekt::size_props& props		  = _vekt_data.builder->widget_get_size_props(w);
-			props.child_margins.left	  = static_cast<float>(DEBUG_FONT_SIZE) * 0.5f;
-			props.spacing				  = CONSOLE_SPACING;
+			props.child_margins.left	  = static_cast<float>(get_font_size()) * 0.5f;
+			props.spacing				  = get_spacing();
 			_vekt_data.widget_input_field = w;
 		}
 
@@ -352,8 +373,10 @@ namespace SFG
 		set_console_visible(false);
 	}
 
-	void debug_controller::init(texture_queue* texture_queue, gfx_id global_bind_layout, const vector2ui16& screen_size)
+	void debug_controller::init(window& w, texture_queue* texture_queue, gfx_id global_bind_layout, const vector2ui16& screen_size)
 	{
+		_dpi_scale = w.get_monitor_info().dpi_scale * 0.75f;
+
 		_text_allocator.init(100000);
 		_gfx_data.texture_queue = texture_queue;
 		_gfx_data.rt_size		= vector2ui16(screen_size.x, screen_size.y / 2);
@@ -471,7 +494,7 @@ namespace SFG
 #ifdef SFG_TOOLMODE
 		const string p		  = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/VT323-Regular.ttf");
 		const string p2		  = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/icons.ttf");
-		_vekt_data.font_debug = _vekt_data.font_manager->load_font_from_file(p.c_str(), DEBUG_FONT_SIZE);
+		_vekt_data.font_debug = _vekt_data.font_manager->load_font_from_file(p.c_str(), get_font_size());
 		_vekt_data.font_icon  = _vekt_data.font_manager->load_font_from_file(p2.c_str(), 12, 32, 128, vekt::font_type::sdf);
 #else
 		SFG_NOTIMPLEMENTED();
@@ -973,11 +996,11 @@ namespace SFG
 
 		const float size_per_char = _input_field.text_size == 0 ? 0 : (size_text.x / static_cast<float>(_input_field.text_size));
 
-		const vector2					pos	  = vector2(pos_text.x + (size_per_char * static_cast<float>(_input_field.caret_pos)), pos_field.y + INPUT_FIELD_HEIGHT * 0.25f);
+		const vector2					pos	  = vector2(pos_text.x + (size_per_char * static_cast<float>(_input_field.caret_pos)), pos_field.y + get_field_height() * 0.25f);
 		const vekt::builder::rect_props props = {
 			.gfx			 = gfx,
 			.min			 = pos,
-			.max			 = vector2(pos.x + INPUT_FIELD_HEIGHT * 0.25f, pos.y + INPUT_FIELD_HEIGHT * 0.5f),
+			.max			 = vector2(pos.x + get_field_height() * 0.25f, pos.y + get_field_height() * 0.5f),
 			.use_hovered	 = false,
 			.use_pressed	 = false,
 			.color_start	 = COLOR_TEXT,
@@ -1014,7 +1037,7 @@ namespace SFG
 		{
 			vekt::id		  t	 = _vekt_data.console_texts[0];
 			vekt::text_props& tp = _vekt_data.builder->widget_get_text(t);
-			_vekt_data.console_total_text_size_y -= _vekt_data.builder->widget_get_size_props(t).size.y + CONSOLE_SPACING;
+			_vekt_data.console_total_text_size_y -= _vekt_data.builder->widget_get_size_props(t).size.y + get_spacing();
 			_text_allocator.deallocate((char*)tp.text);
 			_vekt_data.builder->deallocate(t);
 			_vekt_data.console_texts.erase(_vekt_data.console_texts.begin());
@@ -1053,7 +1076,7 @@ namespace SFG
 		_vekt_data.builder->widget_add_child(_vekt_data.widget_console_bg, w);
 
 		_vekt_data.console_texts.push_back(w);
-		_vekt_data.console_total_text_size_y += _vekt_data.builder->widget_get_size_props(w).size.y + CONSOLE_SPACING;
+		_vekt_data.console_total_text_size_y += _vekt_data.builder->widget_get_size_props(w).size.y + get_spacing();
 	}
 
 	void debug_controller::flush_key_events()

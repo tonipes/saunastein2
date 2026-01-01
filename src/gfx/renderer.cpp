@@ -105,11 +105,11 @@ namespace SFG
 
 		// debug & world
 #ifdef SFG_USE_DEBUG_CONTROLLER
-		_debug_controller.init(&_texture_queue, s_bind_layout_global, _base_size);
+		_debug_controller.init(_main_window, &_texture_queue, s_bind_layout_global, _base_size);
 #endif
 
 #ifdef SFG_TOOLMODE
-		_editor->get_renderer().init(&_texture_queue, _base_size);
+		_editor->get_renderer().init(_main_window, &_texture_queue, _base_size);
 #endif
 
 		_world_renderer = new game_world_renderer(_proxy_manager, _world);
@@ -356,11 +356,6 @@ namespace SFG
 		_world_renderer->prepare(frame_index);
 		_world_renderer->render(frame_index, layout_global, layout_global_compute, bg_global, prev_copy_value, next_copy_value, sem_copy);
 
-#ifdef SFG_USE_DEBUG_CONTROLLER
-		_debug_controller.prepare(frame_index);
-		_debug_controller.render(cmd_list, frame_index, alloc);
-#endif
-
 #ifdef SFG_TOOLMODE
 		_editor->get_renderer().prepare(_proxy_manager, cmd_list, frame_index);
 		_editor->get_renderer().render({
@@ -373,9 +368,10 @@ namespace SFG
 		});
 #endif
 
-		const semaphore_data& sem_world_data  = _world_renderer->get_final_semaphore(frame_index);
-		const gfx_id		  sem_world		  = sem_world_data.semaphore;
-		const uint64		  sem_world_value = sem_world_data.value;
+#ifdef SFG_USE_DEBUG_CONTROLLER
+		_debug_controller.prepare(frame_index);
+		_debug_controller.render(cmd_list, frame_index, alloc);
+#endif
 
 		// swapchain pass
 		{

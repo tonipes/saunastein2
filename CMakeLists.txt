@@ -40,9 +40,6 @@ if(WIN32)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 endif()
 
-# --- Option ---
-# option(TOOLMODE "Enable tool mode (adds SFG_TOOLMODE)" ON)
-
 # ------------- COMPILE DEFINITIONS -------------
 
 add_compile_definitions($<$<CONFIG:Debug>:_ITERATOR_DEBUG_LEVEL=1>)
@@ -74,9 +71,6 @@ add_compile_definitions($<$<CONFIG:Release>:TRACY_ENABLE>)
 add_definitions(-DSFG_CONFIGURATION="$<CONFIGURATION>")
 add_definitions(-DSFG_ROOT_DIRECTORY="${CMAKE_SOURCE_DIR}/")
 
-if (TOOLMODE)
-    add_compile_definitions(SFG_TOOLMODE=1)
-endif()
 
 if (WIN32)
     add_compile_definitions(SFG_PLATFORM_WINDOWS=1)
@@ -146,6 +140,10 @@ src/sfg_api.cpp
 src/sfg_api.cpp
 src/vendor/util/*.cpp
 src/vendor/miniaudio/*.c
+src/vendor/imgui/*.cpp
+src/vendor/imgui/misc/cpp/*.cpp
+src/vendor/imgui/backends/imgui_impl_win32.cpp
+src/vendor/imgui/backends/imgui_impl_dx12.cpp
 )
 
 file(GLOB HEADERS 
@@ -185,6 +183,10 @@ src/vendor/syoyo/*.h
 src/vendor/miniaudio/*.h
 src/vendor/um/*.h
 src/vendor/um/*.inl
+src/vendor/imgui/*.hpp
+src/vendor/imgui/misc/cpp/*.hpp
+src/vendor/imgui/backends/imgui_impl_win32.h
+src/vendor/imgui/backends/imgui_impl_dx12.h
 src/sfg_api.hpp
 )
 
@@ -266,6 +268,7 @@ include(${CMAKE_SOURCE_DIR}/utils/cmake/executable_settings.cmake)
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/src/)
 target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/deps/phmap/include)
 target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/deps/tracy-0.13.0/public)
+target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/src/vendor/imgui/)
 
 
 # ------------- DEPS -------------

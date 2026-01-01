@@ -53,6 +53,7 @@ namespace SFG
 	class bump_allocator;
 	class buffer_queue;
 	class texture_queue;
+	class window;
 	struct window_event;
 	struct barrier;
 
@@ -66,7 +67,7 @@ namespace SFG
 		// lifecycle
 		// -----------------------------------------------------------------------------
 
-		void init(texture_queue* texture_queue, gfx_id global_bind_layout, const vector2ui16& screen_size);
+		void init(window& w, texture_queue* texture_queue, gfx_id global_bind_layout, const vector2ui16& screen_size);
 		void uninit();
 		void tick();
 

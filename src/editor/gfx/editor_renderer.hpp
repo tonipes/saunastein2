@@ -33,6 +33,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gfx/buffer.hpp"
 #include "gfx/common/texture_buffer.hpp"
 #include "gfx/common/barrier_description.hpp"
+#include "gfx/imgui_renderer.hpp"
 
 // math
 #include "math/vector2ui16.hpp"
@@ -58,6 +59,7 @@ namespace SFG
 {
 	class texture_queue;
 	class proxy_manager;
+	class window;
 
 	class editor_renderer
 	{
@@ -76,7 +78,7 @@ namespace SFG
 		// lifecycle
 		// -----------------------------------------------------------------------------
 
-		void init(texture_queue* texture_queue, const vector2ui16& screen_size);
+		void init(window& window, texture_queue* texture_queue, const vector2ui16& screen_size);
 		void uninit();
 
 		// -----------------------------------------------------------------------------
@@ -172,6 +174,7 @@ namespace SFG
 		static void on_atlas_destroyed(vekt::atlas* atlas, void* user_data);
 
 	private:
+		imgui_renderer		_imgui_renderer			= {};
 		shaders				_shaders				= {};
 		gfx_data			_gfx_data				= {};
 		per_frame_data		_pfd[BACK_BUFFER_COUNT] = {};
