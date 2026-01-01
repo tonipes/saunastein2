@@ -147,13 +147,17 @@ namespace SFG
 
 		for (uint32 i = 0; i < MIPS_DS; i++)
 		{
-			BEGIN_DEBUG_EVENT(backend, cmd_buffer, "bloom_downsample");
 			const uint32 group_size_x = 8;
 			const uint32 group_size_y = 8;
 			const uint32 half_w		  = res.x * math::pow(0.5f, static_cast<float>(i + 1));
 			const uint32 half_h		  = res.y * math::pow(0.5f, static_cast<float>(i + 1));
 			const uint32 gsx		  = (group_size_x + half_w - 1) / group_size_x;
 			const uint32 gsy		  = (group_size_y + half_h - 1) / group_size_y;
+
+			if (gsx == 0 || gsy == 0)
+				continue;
+
+			BEGIN_DEBUG_EVENT(backend, cmd_buffer, "bloom_downsample");
 
 			{
 				const uint32 constants[5] = {half_w, half_h, downsample_input, downsample_output, i};
@@ -179,13 +183,17 @@ namespace SFG
 
 		for (int32 i = MIPS_DS - 1; i >= 0; --i)
 		{
-			BEGIN_DEBUG_EVENT(backend, cmd_buffer, "bloom_upsample");
 			const uint32 group_size_x = 8;
 			const uint32 group_size_y = 8;
 			const uint32 half_w		  = res.x * math::pow(0.5f, static_cast<float>(i));
 			const uint32 half_h		  = res.y * math::pow(0.5f, static_cast<float>(i));
 			const uint32 gsx		  = (group_size_x + half_w - 1) / group_size_x;
 			const uint32 gsy		  = (group_size_y + half_h - 1) / group_size_y;
+
+			if (gsx == 0 || gsy == 0)
+				continue;
+
+			BEGIN_DEBUG_EVENT(backend, cmd_buffer, "bloom_upsample");
 
 			{
 				const uint32 constants[4] = {half_w, half_h, upsample_input, upsample_output};

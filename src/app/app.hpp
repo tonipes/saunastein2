@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -39,6 +39,7 @@ namespace SFG
 	class renderer;
 	class game;
 	class editor;
+	class gameplay;
 
 	class app
 	{
@@ -97,15 +98,20 @@ namespace SFG
 			return *_world;
 		}
 
-		inline game& get_game() const
+		inline gameplay& get_gameplay() const
 		{
-			return *_game;
+			return *_gameplay;
 		}
 
 #ifdef SFG_TOOLMODE
 		inline editor* get_editor() const
 		{
 			return _editor;
+		}
+#else
+		inline game& get_game() const
+		{
+			return *_game;
 		}
 #endif
 
@@ -117,10 +123,12 @@ namespace SFG
 		window*	  _main_window = nullptr;
 		renderer* _renderer	   = nullptr;
 		world*	  _world	   = nullptr;
-		game*	  _game		   = nullptr;
+		gameplay* _gameplay	   = nullptr;
 
 #ifdef SFG_TOOLMODE
 		editor* _editor = nullptr;
+#else
+		game* _game = nullptr;
 #endif
 
 		render_event_stream _render_stream;

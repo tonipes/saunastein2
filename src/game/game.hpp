@@ -26,7 +26,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include "world/world_listener.hpp"
 
 namespace SFG
 {
@@ -40,7 +39,7 @@ namespace SFG
 	class window;
 	class world;
 
-	class game : public world_listener
+	class game
 	{
 	public:
 #ifdef SFG_TOOLMODE
@@ -61,15 +60,6 @@ namespace SFG
 		void post_render();
 		void on_window_event(const window_event& ev, window* wnd);
 		void on_window_resize(const vector2ui16& size);
-
-		// -----------------------------------------------------------------------------
-		// world listener api
-		// -----------------------------------------------------------------------------
-
-		virtual void on_started_play() override {};
-		virtual void on_stopped_play() override {};
-		virtual void on_started_physics() override {};
-		virtual void on_stopped_physics() override {};
 
 	private:
 		app&	  _app;

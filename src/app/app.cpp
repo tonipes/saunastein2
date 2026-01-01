@@ -46,6 +46,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 // game
 #include "game/game.hpp"
 #include "game/app_defines.hpp"
+#include "game/gameplay.hpp"
 
 #include "debug_console.hpp"
 #include "world/world.hpp"
@@ -155,36 +156,25 @@ namespace SFG
 		}
 		_render_stream.init();
 
-		// editor
+		_gameplay = new gameplay();
+
 #ifdef SFG_TOOLMODE
 		_editor->init();
+#else
+		_game = new game(*this);
+		_game->init();
 #endif
 
 		// finalize
 		_render_joined.store(1);
 		kick_off_render();
 
-#ifdef SFG_TOOLMODE
-		_game = new game(*this, *_renderer, *_world, *_editor);
-#else
-		_game = new game(*this, *_renderer, *_world);
-#endif
-
-		_game->init();
 		SFG_SET_INIT(false);
 		return init_status::ok;
 	}
 
 	void app::uninit()
 	{
-		_game->uninit();
-		delete _game;
-		_game = nullptr;
-
-		// editor
-#ifdef SFG_TOOLMODE
-		_editor->uninit();
-#endif
 		// world
 		_world->uninit();
 		delete _world;
@@ -201,9 +191,17 @@ namespace SFG
 		_render_stream.uninit();
 
 #ifdef SFG_TOOLMODE
+		_editor->uninit();
 		delete _editor;
 		_editor = nullptr;
+#else
+		_game->uninit();
+		delete _game;
+		_game = nullptr;
 #endif
+
+		delete _gameplay;
+		_gameplay = nullptr;
 
 		// window
 		_main_window->destroy();
@@ -261,7 +259,6 @@ namespace SFG
 				_main_window->set_size_dirty(false);
 				join_render();
 				_renderer->on_window_resize(ws);
-				_game->on_window_resize(ws);
 				kick_off_render();
 			}
 
@@ -274,13 +271,19 @@ namespace SFG
 			{
 				accumulator_ns -= FIXED_FRAMERATE_NS;
 
-				_game->pre_tick(dt_seconds);
+#ifdef SFG_TOOLMODE
+				_editor->pre_world_tick(ws, dt_seconds);
+#else
+				_game->pre_world_tick(ws, dt_seconds);
+#endif
 				_world->tick(ws, dt_seconds);
-				_game->tick(dt_seconds);
 
 #ifdef SFG_TOOLMODE
-				_editor->tick(dt_seconds);
+				_editor->post_world_tick(ws, dt_seconds);
+#else
+				_game->post_world_tick(ws, dt_seconds);
 #endif
+
 				ticks++;
 			}
 
@@ -295,18 +298,31 @@ namespace SFG
 
 #else
 			const float dtt = static_cast<float>(static_cast<double>(delta_micro) * 1e-6);
-			_game->pre_tick(dtt);
-			_world->tick(ws, dtt);
-			_game->tick(dtt);
 
 #ifdef SFG_TOOLMODE
-			_editor->tick(dtt);
+			_editor->pre_world_tick(ws, dt_seconds);
+#else
+			_game->pre_world_tick(ws, dt_seconds);
+#endif
+
+			_world->tick(ws, dtt);
+
+#ifdef SFG_TOOLMODE
+			_editor->post_world_tick(ws, dt_seconds);
+#else
+			_game->post_world_tick(ws, dt_seconds);
 #endif
 			_world->calculate_abs_transforms();
 #endif
 
 #ifdef SFG_TOOLMODE
 			engine_shaders::get().tick();
+#endif
+
+#ifdef SFG_TOOLMODE
+			_editor->tick();
+#else
+			_game->tick();
 #endif
 
 			// pipeline render events.
@@ -326,15 +342,8 @@ namespace SFG
 		if (application->_renderer && application->_renderer->on_window_event(ev))
 			return;
 
-#ifdef SFG_TOOLMODE
-		if (application->_editor && application->_editor->on_window_event(ev))
-			return;
-#endif
-
 		if (application->_world && application->_world->on_window_event(ev, application->_main_window))
 			return;
-
-		application->_game->on_window_event(ev, application->_main_window);
 	}
 
 	void app::join_render()
@@ -389,7 +398,7 @@ namespace SFG
 #endif
 
 			_renderer->render();
-			_game->post_render();
+
 			frame_info::s_render_frame.fetch_add(1);
 		}
 	}

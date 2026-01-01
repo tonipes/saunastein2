@@ -469,23 +469,23 @@ namespace SFG
 	void renderer::on_window_resize(const vector2ui16& size)
 	{
 		SFG_VERIFY_THREAD_MAIN();
-		_base_size = size;
+		_base_size = (size.x == 0 || size.y == 0) ? vector2ui16(32, 32) : size;
 
 		gfx_backend* backend = gfx_backend::get();
 
 		backend->recreate_swapchain({
-			.size	   = size,
+			.size	   = _base_size,
 			.swapchain = _gfx_data.swapchain,
 			.flags	   = _swapchain_flags,
 		});
 
-		_world_renderer->resize(size);
+		_world_renderer->resize(_base_size);
 
 #ifdef SFG_USE_DEBUG_CONTROLLER
-		_debug_controller.on_window_resize(size);
+		_debug_controller.on_window_resize(_base_size);
 #endif
 #ifdef SFG_TOOLMODE
-		_editor->resize(size);
+		_editor->resize(_base_size);
 #endif
 
 		for (uint8 i = 0; i < BACK_BUFFER_COUNT; i++)

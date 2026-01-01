@@ -25,7 +25,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "world.hpp"
-#include "world/world_listener.hpp"
 #include "game/game_max_defines.hpp"
 #include "platform/window.hpp"
 
@@ -252,17 +251,10 @@ namespace SFG
 		if (mode == play_mode::none && _play_mode == play_mode::physics_only)
 		{
 			_phy_world.uninit_simulation();
-
-			if (_listener)
-				_listener->on_stopped_physics();
 		}
 		else if (mode == play_mode::none && _play_mode == play_mode::full)
 		{
 			_phy_world.uninit_simulation();
-			// stop playing
-
-			if (_listener)
-				_listener->on_stopped_play();
 		}
 		else if (mode == play_mode::physics_only && _play_mode == play_mode::full)
 		{
@@ -277,17 +269,10 @@ namespace SFG
 		else if (mode == play_mode::physics_only && _play_mode == play_mode::none)
 		{
 			_phy_world.init_simulation();
-
-			if (_listener)
-				_listener->on_started_physics();
 		}
 		else if (mode == play_mode::full && _play_mode == play_mode::none)
 		{
 			_phy_world.init_simulation();
-			// start playing
-
-			if (_listener)
-				_listener->on_started_play();
 		}
 
 		_play_mode = mode;

@@ -59,7 +59,6 @@ namespace SFG
 	struct world_raw;
 	class render_event_stream;
 	class window;
-	class world_listener;
 
 	class world
 	{
@@ -149,11 +148,6 @@ namespace SFG
 			return _anim_graph;
 		}
 
-		inline void set_listener(world_listener* list)
-		{
-			_listener = list;
-		}
-
 		inline time_manager& get_time_manager()
 		{
 			return _time_manager;
@@ -188,7 +182,6 @@ namespace SFG
 
 		vector<atlas_data>	 _vekt_atlases = {};
 		ma_engine*			 _sound_engine = nullptr;
-		world_listener*		 _listener	   = nullptr;
 		render_event_stream& _render_stream;
 
 		bitmask<uint8> _flags	  = 0;
