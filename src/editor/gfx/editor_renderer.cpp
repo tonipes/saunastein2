@@ -95,10 +95,14 @@ namespace SFG
 		_snapshots = new vekt::snapshot[THREAD_BUF_SIZE];
 		for (uint32 i = 0; i < THREAD_BUF_SIZE; i++)
 			_snapshots[i].init(1024 * 1024 * 4, 1024 * 1024 * 8);
+
+		_imgui.init(window);
 	}
 
 	void editor_renderer::uninit()
 	{
+		_imgui.uninit();
+
 		for (uint32 i = 0; i < THREAD_BUF_SIZE; i++)
 			_snapshots[i].uninit();
 
@@ -125,6 +129,16 @@ namespace SFG
 		destroy_textures();
 	}
 
+	void editor_renderer::draw_begin()
+	{
+		_imgui.new_frame();
+	}
+
+	void editor_renderer::draw_end()
+	{
+		_imgui.end_frame();
+	}
+
 	void editor_renderer::draw_end(vekt::builder* builder)
 	{
 		const vekt::vector<vekt::draw_buffer>& draw_buffers = builder->get_draw_buffers();
@@ -136,7 +150,6 @@ namespace SFG
 		_snapshots[_tb_write_index].copy(draw_buffers);
 		_tb_latest.store(_tb_write_index, std::memory_order_release);
 	}
-
 
 	void editor_renderer::prepare(proxy_manager& pm, gfx_id cmd_buffer, uint8 frame_index)
 	{
@@ -260,6 +273,7 @@ namespace SFG
 										   .color_attachment_count = 1,
 									   });
 
+		_imgui.render(cmd_buffer);
 		backend->cmd_bind_layout(cmd_buffer, {.layout = p.global_layout});
 		backend->cmd_bind_group(cmd_buffer, {.group = p.global_group});
 

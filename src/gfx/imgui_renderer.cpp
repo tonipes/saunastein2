@@ -27,6 +27,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "imgui_renderer.hpp"
 #include "gfx/backend/backend.hpp"
 #include "platform/window.hpp"
+#include "io/log.hpp"
 
 #include "imgui.h"
 #include <vendor/imgui/backends/imgui_impl_win32.h>
@@ -43,6 +44,7 @@ namespace SFG
 		// Setup Dear ImGui context
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
+
 		ImGuiIO& io = ImGui::GetIO();
 		(void)io;
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
@@ -171,12 +173,23 @@ namespace SFG
 	{
 		ImGui::Render();
 
+		// Process texture create/update/destroy on the main thread
+		ImDrawData* dd = ImGui::GetDrawData();
+		if (dd->Textures)
+		{
+			for (ImTextureData* tex : *dd->Textures)
+				if (tex->Status != ImTextureStatus_OK)
+					ImGui_ImplDX12_UpdateTexture(tex);
+		}
+
 		const int8 last_rendered = _rendered.load(std::memory_order_acquire);
 		_write_index			 = (last_rendered + 1) % BUFFER_SIZE;
 		static double time		 = 0.0f;
 		_snapshots[_write_index].SnapUsingSwap(ImGui::GetDrawData(), time);
+
+		_snapshots[_write_index].DrawData.Textures = nullptr;
 		_latest.store(_write_index, std::memory_order_release);
-		time += 0.01;
+		time += 0.016;
 	}
 
 	void imgui_renderer::render(gfx_id cmd_buffer)
@@ -185,12 +198,11 @@ namespace SFG
 		if (last_written < 0)
 			return;
 
+		_rendered.store(last_written, std::memory_order_release);
+
 		ImDrawDataSnapshot& ss = _snapshots[last_written];
-		if (!ss.DrawData.Valid)
-			return;
 
 		gfx_backend* backend = gfx_backend::get();
 		ImGui_ImplDX12_RenderDrawData(&ss.DrawData, backend->get_gfx_cmd_list(cmd_buffer));
-		_rendered.store(last_written, std::memory_order_release);
 	}
 }

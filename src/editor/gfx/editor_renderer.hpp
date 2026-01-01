@@ -42,6 +42,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // misc
 #include "memory/bump_allocator.hpp"
+#include "gfx/imgui_renderer.hpp"
 
 namespace vekt
 {
@@ -80,6 +81,8 @@ namespace SFG
 
 		void init(window& window, texture_queue* texture_queue);
 		void uninit();
+		void draw_begin();
+		void draw_end();
 		void draw_end(vekt::builder* builder);
 
 		// -----------------------------------------------------------------------------
@@ -185,5 +188,7 @@ namespace SFG
 		atomic<int8>	_tb_rendered{-1};
 		int8			_tb_write_index = -1;
 		vekt::snapshot* _snapshots		= nullptr;
+
+		imgui_renderer _imgui = {};
 	};
 }

@@ -135,12 +135,16 @@ namespace SFG
 		world&			   w  = _app.get_world();
 		const vector2ui16& ws = _app.get_main_window().get_size();
 
-		_builder->build_begin(vector2(ws.x, ws.y));
+		_renderer.draw_begin();
 		_panel_controls.draw({});
-		_builder->build_end();
+		_renderer.draw_end();
 
-		// notify buffer swap
-		_renderer.draw_end(_builder);
+		// _builder->build_begin(vector2(ws.x, ws.y));
+		// _panel_controls.draw({});
+		// _builder->build_end();
+		// 
+		// // notify buffer swap
+		// _renderer.draw_end(_builder);
 	}
 
 	void editor::render(const render_params& p)

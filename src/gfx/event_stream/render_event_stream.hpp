@@ -50,8 +50,8 @@ namespace SFG
 
 		struct proxy_entity_transform_data
 		{
-			matrix4x3 model;
-			quat	  rot;
+			matrix4x3 model = matrix4x3::identity;
+			quat	  rot	= quat::identity;
 		};
 		struct proxy_entity_data
 		{
