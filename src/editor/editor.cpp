@@ -155,18 +155,17 @@ namespace SFG
 
 	void editor::tick()
 	{
-		world&			   w  = _app.get_world();
-		vekt::builder*	   b  = _gui_renderer.get_builder();
-		//const vector2ui16& ws = _app.get_main_window()->get_size();
+		world& w = _app.get_world();
+		// const vector2ui16& ws = _app.get_main_window()->get_size();
 
-		// _panel_controls.draw(ws);
+		_gui_renderer.begin_draw();
+		_panel_controls.draw({});
+		_gui_renderer.end_draw();
 	}
 
 	void editor::render(const render_params& p)
 	{
-
 		_gui_renderer.prepare(p.pm, p.cmd_buffer, p.frame_index);
-
 		_gui_renderer.render({
 			.cmd_buffer	   = p.cmd_buffer,
 			.frame_index   = p.frame_index,

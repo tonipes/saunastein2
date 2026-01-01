@@ -31,6 +31,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "imgui.h"
 #include <vendor/imgui/backends/imgui_impl_win32.h>
 #include <vendor/imgui/backends/imgui_impl_dx12.h>
+#include <vendor/imgui/misc/imgui_threaded_rendering.h>
 
 namespace SFG
 {
@@ -142,16 +143,21 @@ namespace SFG
 		init_info.SrvDescriptorAllocFn = [](ImGui_ImplDX12_InitInfo*, D3D12_CPU_DESCRIPTOR_HANDLE* out_cpu_handle, D3D12_GPU_DESCRIPTOR_HANDLE* out_gpu_handle) { return gfx_backend::get()->alloc_srv(out_cpu_handle, out_gpu_handle); };
 		init_info.SrvDescriptorFreeFn  = [](ImGui_ImplDX12_InitInfo*, D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle, D3D12_GPU_DESCRIPTOR_HANDLE gpu_handle) { return gfx_backend::get()->free_srv(cpu_handle, gpu_handle); };
 		ImGui_ImplDX12_Init(&init_info);
+
+		_snapshots = new ImDrawDataSnapshot[BUFFER_SIZE];
 	}
 
 	void imgui_renderer::uninit()
 	{
+		delete[] _snapshots;
+		_snapshots = nullptr;
+
 		ImGui_ImplDX12_Shutdown();
 		ImGui_ImplWin32_Shutdown();
 		ImGui::DestroyContext();
 	}
 
-	void imgui_renderer::draw()
+	void imgui_renderer::new_frame()
 	{
 		ImGui_ImplDX12_NewFrame();
 		ImGui_ImplWin32_NewFrame();
@@ -161,10 +167,30 @@ namespace SFG
 		ImGui::ShowDemoWindow(&open);
 	}
 
+	void imgui_renderer::end_frame()
+	{
+		ImGui::Render();
+
+		const int8 last_rendered = _rendered.load(std::memory_order_acquire);
+		_write_index			 = (last_rendered + 1) % BUFFER_SIZE;
+		static double time		 = 0.0f;
+		_snapshots[_write_index].SnapUsingSwap(ImGui::GetDrawData(), time);
+		_latest.store(_write_index, std::memory_order_release);
+		time += 0.01;
+	}
+
 	void imgui_renderer::render(gfx_id cmd_buffer)
 	{
+		const int8 last_written = _latest.load(std::memory_order_acquire);
+		if (last_written < 0)
+			return;
+
+		ImDrawDataSnapshot& ss = _snapshots[last_written];
+		if (!ss.DrawData.Valid)
+			return;
+
 		gfx_backend* backend = gfx_backend::get();
-		ImGui::Render();
-		ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), backend->get_gfx_cmd_list(cmd_buffer));
+		ImGui_ImplDX12_RenderDrawData(&ss.DrawData, backend->get_gfx_cmd_list(cmd_buffer));
+		_rendered.store(last_written, std::memory_order_release);
 	}
 }

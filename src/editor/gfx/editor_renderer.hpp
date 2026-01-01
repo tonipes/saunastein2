@@ -27,6 +27,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include "data/static_vector.hpp"
+#include "data/atomic.hpp"
 
 // gfx
 #include "gfx/common/gfx_constants.hpp"
@@ -50,6 +51,7 @@ namespace vekt
 {
 	struct draw_buffer;
 	struct font;
+	struct snapshot;
 	class builder;
 	class atlas;
 	class font_manager;
@@ -63,6 +65,9 @@ namespace SFG
 
 	class editor_renderer
 	{
+	private:
+		static constexpr uint32 THREAD_BUF_SIZE = 6;
+
 	public:
 		struct render_params
 		{
@@ -80,6 +85,8 @@ namespace SFG
 
 		void init(window& window, texture_queue* texture_queue);
 		void uninit();
+		void begin_draw();
+		void end_draw();
 
 		// -----------------------------------------------------------------------------
 		// rendering
@@ -186,6 +193,11 @@ namespace SFG
 		vekt::builder*		_builder				= nullptr;
 		vekt::font_manager* _font_manager			= nullptr;
 		vekt::font*			_font_main				= nullptr;
+
+		atomic<int8>	_tb_latest{-1};
+		atomic<int8>	_tb_rendered{-1};
+		int8			_tb_write_index = -1;
+		vekt::snapshot* _snapshots		= nullptr;
 
 		// gui
 		editor_gui_world_overlays _gui_world_overlays = {};

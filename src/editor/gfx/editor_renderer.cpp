@@ -99,7 +99,7 @@ namespace SFG
 			.index_buffer_sz			 = 1024 * 1024 * 8,
 			.text_cache_vertex_buffer_sz = 1024 * 1024 * 2,
 			.text_cache_index_buffer_sz	 = 1024 * 1024 * 4,
-			.buffer_count				 = 3,
+			.buffer_count				 = 12,
 		});
 
 		_font_manager->init();
@@ -119,10 +119,20 @@ namespace SFG
 		// gui
 		_gui_world_overlays.init(_builder);
 		_imgui_renderer.init(window);
+
+		_snapshots = new vekt::snapshot[THREAD_BUF_SIZE];
+		for (uint32 i = 0; i < THREAD_BUF_SIZE; i++)
+			_snapshots[i].init(1024 * 1024 * 4, 1024 * 1024 * 8);
 	}
 
 	void editor_renderer::uninit()
 	{
+		for (uint32 i = 0; i < THREAD_BUF_SIZE; i++)
+			_snapshots[i].uninit();
+
+		delete[] _snapshots;
+		_snapshots = nullptr;
+
 		gfx_backend* backend = gfx_backend::get();
 
 		_imgui_renderer.uninit();
@@ -154,6 +164,27 @@ namespace SFG
 		destroy_textures();
 	}
 
+	void editor_renderer::begin_draw()
+	{
+		_builder->build_begin(vector2(_gfx_data.screen_size.x, _gfx_data.screen_size.y));
+	}
+
+	void editor_renderer::end_draw()
+	{
+		// _gui_world_overlays.draw(pm, _builder, _gfx_data.screen_size);
+		_builder->build_end();
+
+		const vekt::vector<vekt::draw_buffer>& draw_buffers = _builder->get_draw_buffers();
+		if (draw_buffers.empty())
+			return;
+
+		const int8 last_rendered = _tb_rendered.load(std::memory_order_acquire);
+		_tb_write_index			 = (last_rendered + 1) % THREAD_BUF_SIZE;
+
+		_snapshots[_tb_write_index].copy(draw_buffers);
+		_tb_latest.store(_tb_write_index, std::memory_order_release);
+	}
+
 	void editor_renderer::prepare(proxy_manager& pm, gfx_id cmd_buffer, uint8 frame_index)
 	{
 		gfx_backend* backend = gfx_backend::get();
@@ -176,11 +207,12 @@ namespace SFG
 		// flush commands and draw gui here.
 		// -----------------------------------------------------------------------------
 
-		_builder->build_begin(vector2(_gfx_data.screen_size.x, _gfx_data.screen_size.y));
-		_gui_world_overlays.draw(pm, _builder, _gfx_data.screen_size);
-		_builder->build_end();
+		const int8 last_written = _tb_latest.load(std::memory_order_acquire);
+		if (last_written < 0)
+			return;
 
-		const vekt::vector<vekt::draw_buffer>& draw_buffers = _builder->get_draw_buffers();
+		_tb_rendered.store(last_written, std::memory_order_release);
+		const vekt::vector<vekt::draw_buffer>& draw_buffers = _snapshots[last_written].draw_buffers;
 		for (const vekt::draw_buffer& db : draw_buffers)
 			draw_vekt(frame_index, db);
 
@@ -227,8 +259,6 @@ namespace SFG
 
 			backend->cmd_barrier(cmd_buffer, {.barriers = barriers.data(), .barrier_count = 2});
 		}
-
-		// _imgui_renderer.draw();
 	}
 
 	void editor_renderer::render(const render_params& p)
@@ -449,7 +479,7 @@ namespace SFG
 			dc.scissors.z = static_cast<uint16>(clip.z);
 		}
 
-		if (font)
+		if (font != NULL_WIDGET_ID)
 		{
 			dc.shader = font_type == vekt::font_type::sdf ? sdf_shader : text_shader;
 

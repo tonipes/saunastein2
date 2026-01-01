@@ -26,20 +26,31 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 #include "gfx/common/gfx_constants.hpp"
+#include "common/size_definitions.hpp"
+#include "data/atomic.hpp"
+
+struct ImDrawDataSnapshot;
 
 namespace SFG
 {
-
 	class window;
 
 	class imgui_renderer
 	{
+	private:
+		static constexpr uint32 BUFFER_SIZE = 6;
+
 	public:
 		void init(window& w);
 		void uninit();
-		void draw();
+		void new_frame();
+		void end_frame();
 		void render(gfx_id cmd_buffer);
 
 	private:
+		ImDrawDataSnapshot* _snapshots	 = nullptr;
+		atomic<int8>		_latest		 = {-1};
+		atomic<int8>		_rendered	 = {-1};
+		uint8				_write_index = 0;
 	};
 }

@@ -198,6 +198,7 @@ src/vendor/um/*.h
 src/vendor/um/*.inl
 src/vendor/imgui/*.hpp
 src/vendor/imgui/misc/cpp/*.hpp
+src/vendor/imgui/misc/imgui_threaded_rendering.h
 src/vendor/imgui/backends/imgui_impl_win32.h
 src/vendor/imgui/backends/imgui_impl_dx12.h
 src/sfg_api.hpp

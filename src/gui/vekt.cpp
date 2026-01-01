@@ -870,6 +870,15 @@ namespace vekt
 		}
 	}
 
+	void builder::widget_set_size_abs(id widget_id, const VEKT_VEC2& size)
+	{
+		size_props& props = _size_properties[widget_id];
+		props.size		  = size;
+		props.flags		  = 0;
+		props.flags |= size_flags::sf_x_abs;
+		props.flags |= size_flags::sf_y_abs;
+	}
+
 	void builder::widget_set_pos(id widget_id, const VEKT_VEC2& pos, helper_pos_type helper_x, helper_pos_type helper_y, helper_anchor_type anchor_x, helper_anchor_type anchor_y)
 	{
 		pos_props& props = _pos_properties[widget_id];
@@ -930,6 +939,15 @@ namespace vekt
 		default:
 			break;
 		}
+	}
+
+	void builder::widget_set_pos_abs(id widget_id, const VEKT_VEC2& pos)
+	{
+		pos_props& props = _pos_properties[widget_id];
+		props.pos		 = pos;
+		props.flags		 = 0;
+		props.flags |= pos_flags::pf_x_abs;
+		props.flags |= pos_flags::pf_y_abs;
 	}
 
 	const VEKT_VEC2& builder::widget_get_size(id widget_id) const
@@ -2618,16 +2636,18 @@ namespace vekt
 		}
 	}
 
-	void vekt_snapshot::init(size_t vertex_count, size_t index_count)
+	void snapshot::init(size_t vertex_size, size_t index_size)
 	{
-		vertices	  = new vekt::vertex[vertex_count];
-		indices		  = new vekt::index[index_count];
-		_max_vertices = vertex_count;
-		_max_indices  = index_count;
+		const size_t vertex_count = vertex_size / sizeof(vertex);
+		const size_t index_count  = index_size / sizeof(index);
+		vertices				  = new vekt::vertex[vertex_count];
+		indices					  = new vekt::index[index_count];
+		_max_vertices			  = vertex_count;
+		_max_indices			  = index_count;
 		draw_buffers.reserve(256);
 	}
 
-	void vekt_snapshot::uninit()
+	void snapshot::uninit()
 	{
 		_max_vertices = 0;
 		_max_indices  = 0;
@@ -2637,10 +2657,11 @@ namespace vekt
 		indices	 = nullptr;
 	}
 
-	void vekt_snapshot::copy(const vector<vekt::draw_buffer>& copy_source)
+	void snapshot::copy(const vector<vekt::draw_buffer>& copy_source)
 	{
 		uint32 vtx_offset = 0;
 		uint32 idx_offset = 0;
+		draw_buffers.resize(0);
 
 		for (const draw_buffer& db : copy_source)
 		{

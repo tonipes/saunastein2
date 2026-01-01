@@ -27,7 +27,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include "vekt_defines.hpp"
-
 #include "math/vector2.hpp"
 #include "math/vector4.hpp"
 
@@ -918,7 +917,7 @@ namespace vekt
 		}
 	};
 
-	struct vekt_snapshot
+	struct snapshot
 	{
 		vector<vekt::draw_buffer> draw_buffers;
 		vertex*					  vertices		= nullptr;
@@ -926,7 +925,7 @@ namespace vekt
 		unsigned int			  _max_vertices = 0;
 		unsigned int			  _max_indices	= 0;
 
-		void init(size_t vertex_count, size_t index_count);
+		void init(size_t vertex_size, size_t index_size);
 		void uninit();
 		void copy(const vector<vekt::draw_buffer>& draw_buffers);
 	};
@@ -1127,12 +1126,14 @@ namespace vekt
 		void				build_begin(const VEKT_VEC2& screen_size);
 		void				build_end();
 		void				widget_set_size(id widget_id, const VEKT_VEC2& size, helper_size_type helper_x = helper_size_type::relative, helper_size_type helper_y = helper_size_type::relative);
+		void				widget_set_size_abs(id widget_id, const VEKT_VEC2& size);
 		void				widget_set_pos(id				  widget_id,
 										   const VEKT_VEC2&	  pos,
 										   helper_pos_type	  helper_x = helper_pos_type::relative,
 										   helper_pos_type	  helper_y = helper_pos_type::relative,
 										   helper_anchor_type anchor_x = helper_anchor_type::start,
 										   helper_anchor_type anchor_y = helper_anchor_type::start);
+		void				widget_set_pos_abs(id widget_id, const VEKT_VEC2& pos);
 		const VEKT_VEC2&	widget_get_size(id widget_id) const;
 		const VEKT_VEC2&	widget_get_pos(id widget_id) const;
 		size_props&			widget_get_size_props(id widget_id);

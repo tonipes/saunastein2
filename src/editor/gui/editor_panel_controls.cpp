@@ -43,6 +43,11 @@ namespace SFG
 		vekt::widget_gfx& gfx = builder->widget_get_gfx(_w_window);
 		gfx.flags			  = vekt::gfx_flags::gfx_is_rect;
 		gfx.color			  = vector4(0.1f, 0.1f, 0.1f, 1.0f);
+
+		_builder->widget_add_child(_builder->get_root(), _w_window);
+
+		builder->widget_set_size_abs(_w_window, vector2(200, 300));
+		builder->widget_set_pos_abs(_w_window, vector2(200, 300));
 	}
 
 	void editor_panel_controls::uninit()
@@ -53,10 +58,13 @@ namespace SFG
 
 	void editor_panel_controls::draw(const vector2ui16& window_size)
 	{
-		_builder->widget_set_pos(_w_window, vector2(0.1f, 0.1f));
-		_builder->widget_set_size(_w_window, vector2(0.25f, 0.15f));
 
 		return;
+
+		// _builder->widget_set_pos(_w_window, vector2(0.1f, 0.1f));
+		// _builder->widget_set_size(_w_window, vector2(0.25f, 0.15f));
+		//
+		// return;
 
 		// Initial placement and sizing: top-left, roughly quarter of the app window
 		const ImVec2 initial_pos(0.0f, 0.0f);
