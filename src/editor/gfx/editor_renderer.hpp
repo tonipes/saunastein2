@@ -78,7 +78,7 @@ namespace SFG
 		// lifecycle
 		// -----------------------------------------------------------------------------
 
-		void init(window& window, texture_queue* texture_queue, const vector2ui16& screen_size);
+		void init(window& window, texture_queue* texture_queue);
 		void uninit();
 
 		// -----------------------------------------------------------------------------
@@ -93,9 +93,14 @@ namespace SFG
 		// accessors
 		// -----------------------------------------------------------------------------
 
-		inline gpu_index get_output_gpu_index(uint8 frame)
+		inline gpu_index get_output_gpu_index(uint8 frame) const
 		{
 			return _pfd[frame].gpu_index_rt;
+		}
+
+		inline vekt::builder* get_builder() const
+		{
+			return _builder;
 		}
 
 	private:
@@ -161,14 +166,13 @@ namespace SFG
 			texture_queue*				texture_queue = nullptr;
 			vector2ui16					screen_size	  = vector2ui16::zero;
 			uint64						frame_counter = 0;
-			uint8						frame_index	  = 0;
 		};
 
 	private:
 		void create_textures(const vector2ui16& size);
 		void destroy_textures();
 
-		static void on_draw(const vekt::draw_buffer& buffer, void* ud);
+		void		draw_vekt(uint8 frame_index, const vekt::draw_buffer& buffer);
 		static void on_atlas_created(vekt::atlas* atlas, void* user_data);
 		static void on_atlas_updated(vekt::atlas* atlas, void* user_data);
 		static void on_atlas_destroyed(vekt::atlas* atlas, void* user_data);

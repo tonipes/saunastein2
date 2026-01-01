@@ -39,9 +39,9 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace SFG
 {
-	void editor_camera::init(world& world, window* wnd)
+	void editor_camera::init(world& world, window& wnd)
 	{
-		_window = wnd;
+		_window = &wnd;
 		_world	= &world;
 	}
 

@@ -31,6 +31,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "editor_camera.hpp"
 #include "editor/gfx/editor_renderer.hpp"
+#include "editor/gui/editor_panel_controls.hpp"
 
 namespace SFG
 {
@@ -39,10 +40,22 @@ namespace SFG
 	class app;
 	class comp_model_instance;
 	class texture_queue;
+	class proxy_manager;
 
 	class editor
 	{
 	public:
+		struct render_params
+		{
+			proxy_manager&	pm;
+			gfx_id			cmd_buffer;
+			uint8			frame_index;
+			bump_allocator& alloc;
+			vector2ui16		size;
+			gfx_id			global_layout;
+			gfx_id			global_group;
+		};
+
 		explicit editor(app& game);
 		~editor();
 
@@ -53,8 +66,9 @@ namespace SFG
 		void init();
 		void uninit();
 		void tick();
-		void pre_world_tick(const vector2ui16& world_res, float delta);
-		void post_world_tick(const vector2ui16& world_res, float delta);
+		void render(const render_params& p);
+		void pre_world_tick(float delta);
+		void post_world_tick(float delta);
 		bool on_window_event(const window_event& ev);
 		void resize(const vector2ui16& size);
 
@@ -72,6 +86,11 @@ namespace SFG
 			return _gui_renderer;
 		}
 
+		inline gpu_index get_render_output(uint8 frame) const
+		{
+			return _gui_renderer.get_output_gpu_index(frame);
+		}
+
 	private:
 		app&		  _app;
 		world_handle  _camera_entity   = {};
@@ -84,5 +103,8 @@ namespace SFG
 
 		// gfx
 		editor_renderer _gui_renderer = {};
+
+		// gui
+		editor_panel_controls _panel_controls = {};
 	};
 }

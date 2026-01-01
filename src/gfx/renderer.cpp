@@ -108,10 +108,6 @@ namespace SFG
 		_debug_controller.init(_main_window, &_texture_queue, s_bind_layout_global, _base_size);
 #endif
 
-#ifdef SFG_TOOLMODE
-		_editor->get_renderer().init(_main_window, &_texture_queue, _base_size);
-#endif
-
 		_world_renderer = new game_world_renderer(_proxy_manager, _world);
 		_world_renderer->init(_base_size, &_texture_queue, &_buffer_queue, s_bind_layout_global, s_bind_layout_global_compute);
 
@@ -132,16 +128,7 @@ namespace SFG
 			});
 
 			pfd.buf_engine_global.create({.size = sizeof(buf_engine_global), .flags = resource_flags::rf_constant_buffer | resource_flags::rf_cpu_visible, .debug_name = "engine_cbv"});
-			pfd.bind_group_global  = backend->create_empty_bind_group();
-			pfd.gpu_index_world_rt = _world_renderer->get_output_gpu_index(i);
-
-#ifdef SFG_TOOLMODE
-			pfd.gpu_index_editor_rt = _editor->get_renderer().get_output_gpu_index(i);
-#endif
-
-#ifdef SFG_USE_DEBUG_CONTROLLER
-			pfd.gpu_index_debug_controller_rt = _debug_controller.get_output_gpu_index(i);
-#endif
+			pfd.bind_group_global = backend->create_empty_bind_group();
 
 			backend->bind_group_add_descriptor(pfd.bind_group_global, 0, binding_type::ubo);
 			backend->bind_group_update_descriptor(pfd.bind_group_global, 0, pfd.buf_engine_global.get_gpu());
@@ -181,10 +168,6 @@ namespace SFG
 		delete _world_renderer;
 #ifdef SFG_USE_DEBUG_CONTROLLER
 		_debug_controller.uninit();
-#endif
-
-#ifdef SFG_TOOLMODE
-		_editor->get_renderer().uninit();
 #endif
 		// utils
 		_texture_queue.uninit();
@@ -259,16 +242,7 @@ namespace SFG
 		const gfx_id layout_global_compute = s_bind_layout_global_compute;
 		const gfx_id swapchain_rt		   = _gfx_data.swapchain;
 
-		per_frame_data& pfd			   = _pfd[frame_index];
-		const gpu_index rt_world_index = pfd.gpu_index_world_rt;
-
-#ifdef SFG_USE_DEBUG_CONTROLLER
-		const gpu_index rt_console_index = pfd.gpu_index_debug_controller_rt;
-#endif
-
-#ifdef SFG_TOOLMODE
-		const gpu_index rt_editor_index = pfd.gpu_index_editor_rt;
-#endif
+		per_frame_data& pfd = _pfd[frame_index];
 
 		bump_allocator& alloc = _frame_allocator[frame_index];
 		alloc.reset();
@@ -352,13 +326,16 @@ namespace SFG
 								 .barrier_count = static_cast<uint16>(barriers.size()),
 							 });
 		barriers.resize(0);
-
+		const gpu_index rt_world_index = _world_renderer->get_output_gpu_index(frame_index);
 		_world_renderer->prepare(frame_index);
 		_world_renderer->render(frame_index, layout_global, layout_global_compute, bg_global, prev_copy_value, next_copy_value, sem_copy);
 
 #ifdef SFG_TOOLMODE
-		_editor->get_renderer().prepare(_proxy_manager, cmd_list, frame_index);
-		_editor->get_renderer().render({
+
+		const gpu_index rt_editor_index = _editor->get_render_output(frame_index);
+
+		_editor->render({
+			.pm			   = _proxy_manager,
 			.cmd_buffer	   = cmd_list,
 			.frame_index   = frame_index,
 			.alloc		   = alloc,
@@ -366,9 +343,11 @@ namespace SFG
 			.global_layout = layout_global,
 			.global_group  = bg_global,
 		});
+
 #endif
 
 #ifdef SFG_USE_DEBUG_CONTROLLER
+		const gpu_index rt_console_index = _debug_controller.get_output_gpu_index(frame_index);
 		_debug_controller.prepare(frame_index);
 		_debug_controller.render(cmd_list, frame_index, alloc);
 #endif
@@ -483,20 +462,6 @@ namespace SFG
 #ifdef SFG_TOOLMODE
 		_editor->resize(_base_size);
 #endif
-
-		for (uint8 i = 0; i < BACK_BUFFER_COUNT; i++)
-		{
-			per_frame_data& pfd = _pfd[i];
-
-			pfd.gpu_index_world_rt = _world_renderer->get_output_gpu_index(i);
-#ifdef SFG_USE_DEBUG_CONTROLLER
-			pfd.gpu_index_debug_controller_rt = _debug_controller.get_output_gpu_index(i);
-#endif
-
-#ifdef SFG_TOOLMODE
-			pfd.gpu_index_editor_rt = _editor->get_renderer().get_output_gpu_index(i);
-#endif
-		}
 	}
 
 	void renderer::on_swapchain_flags(uint8 flags)
@@ -510,5 +475,4 @@ namespace SFG
 			.flags	   = _swapchain_flags,
 		});
 	}
-
 }

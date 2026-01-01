@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -234,17 +234,7 @@ namespace vekt
 	void builder::build_end()
 	{
 		_clip_stack.pop_back();
-	}
-
-	void builder::flush()
-	{
-		if (!_on_draw)
-			return;
-
 		std::sort(_draw_buffers.begin(), _draw_buffers.end(), [](const draw_buffer& a, const draw_buffer& b) { return a.draw_order < b.draw_order; });
-
-		for (draw_buffer& db : _draw_buffers)
-			_on_draw(db, _on_draw_ud);
 	}
 
 	void builder::widget_add_child(id widget_id, id child_id)
@@ -2250,7 +2240,8 @@ namespace vekt
 
 		for (draw_buffer& db : _draw_buffers)
 		{
-			if (db.clip.equals(clip, 0.9f) && db.draw_order == draw_order && db.user_data == user_data && db.used_font == fnt)
+			const unsigned int fnt_id = fnt ? fnt->_font_id : NULL_WIDGET_ID;
+			if (db.clip.equals(clip, 0.9f) && db.draw_order == draw_order && db.user_data == user_data && db.font_id == fnt_id)
 			{
 				return &db;
 			}
@@ -2264,7 +2255,9 @@ namespace vekt
 		db.user_data	 = user_data;
 		db.vertex_start	 = _vertex_buffer + _buffer_counter * _vertex_count_per_buffer;
 		db.index_start	 = _index_buffer + _buffer_counter * _index_count_per_buffer;
-		db.used_font	 = fnt;
+		db.font_id		 = fnt ? fnt->_font_id : NULL_WIDGET_ID;
+		db.atlas_id		 = fnt ? fnt->_atlas->get_id() : NULL_WIDGET_ID;
+		db.font_type	 = fnt ? fnt->type : font_type::normal;
 		db._max_vertices = _vertex_count_per_buffer;
 		db._max_indices	 = _index_count_per_buffer;
 
@@ -2304,8 +2297,9 @@ namespace vekt
 	// :: ATLAS IMPL
 	////////////////////////////////////////////////////////////////////////////////
 
-	atlas::atlas(unsigned int width, unsigned int height, bool is_lcd)
+	atlas::atlas(unsigned int width, unsigned int height, bool is_lcd, unsigned int id)
 	{
+		_id		= id;
 		_width	= width;
 		_height = height;
 		_is_lcd = is_lcd;
@@ -2357,6 +2351,7 @@ namespace vekt
 
 		font->_atlas	 = this;
 		font->_atlas_pos = best_slice->pos;
+		font->_font_id	 = static_cast<unsigned int>(_fonts.size());
 		_fonts.push_back(font);
 
 		best_slice->pos += font->_atlas_required_height;
@@ -2390,7 +2385,7 @@ namespace vekt
 			}
 		}
 
-		atlas* atl = new atlas(config.atlas_width, config.atlas_height, fnt->type == font_type::lcd);
+		atlas* atl = new atlas(config.atlas_width, config.atlas_height, fnt->type == font_type::lcd, static_cast<unsigned int>(_atlases.size()));
 		_atlases.push_back(atl);
 		if (_atlas_created_cb)
 			_atlas_created_cb(atl, _callback_user_data);
@@ -2466,6 +2461,7 @@ namespace vekt
 			return nullptr;
 		}
 
+		fnt->_font_id = static_cast<unsigned int>(_fonts.size());
 		_fonts.push_back(fnt);
 
 		int current_atlas_pen_x = 0;
@@ -2573,6 +2569,10 @@ namespace vekt
 		{
 			_atlases.remove(fnt->_atlas);
 
+			const unsigned int sz = static_cast<unsigned int>(_atlases.size());
+			for (unsigned int i = 0; i < sz; i++)
+				_atlases[i]->set_id(i);
+
 			if (_atlas_destroyed_cb)
 				_atlas_destroyed_cb(fnt->_atlas, _callback_user_data);
 
@@ -2581,6 +2581,10 @@ namespace vekt
 
 		_fonts.remove(fnt);
 		delete fnt;
+
+		const unsigned int sz = static_cast<unsigned int>(_fonts.size());
+		for (unsigned int i = 0; i < sz; i++)
+			_fonts[i]->_font_id = i;
 	}
 
 	void font_manager::init()
@@ -2611,6 +2615,50 @@ namespace vekt
 
 			if (g.sdf_data)
 				stbtt_FreeSDF(g.sdf_data, nullptr);
+		}
+	}
+
+	void vekt_snapshot::init(size_t vertex_count, size_t index_count)
+	{
+		vertices	  = new vekt::vertex[vertex_count];
+		indices		  = new vekt::index[index_count];
+		_max_vertices = vertex_count;
+		_max_indices  = index_count;
+		draw_buffers.reserve(256);
+	}
+
+	void vekt_snapshot::uninit()
+	{
+		_max_vertices = 0;
+		_max_indices  = 0;
+		delete[] vertices;
+		delete[] indices;
+		vertices = nullptr;
+		indices	 = nullptr;
+	}
+
+	void vekt_snapshot::copy(const vector<vekt::draw_buffer>& copy_source)
+	{
+		uint32 vtx_offset = 0;
+		uint32 idx_offset = 0;
+
+		for (const draw_buffer& db : copy_source)
+		{
+			draw_buffers.push_back(db);
+			draw_buffer& last = draw_buffers.get_back();
+
+			ASSERT(vtx_offset + db.vertex_count <= _max_vertices);
+			ASSERT(idx_offset + db.index_count <= _max_indices);
+
+			vertex* dest_vtx  = vertices + vtx_offset;
+			index*	dest_idx  = indices + idx_offset;
+			last.vertex_start = dest_vtx;
+			last.index_start  = dest_idx;
+			vtx_offset += db.vertex_count;
+			idx_offset += db.index_count;
+
+			MEMCPY(dest_vtx, db.vertex_start, sizeof(vertex) * db.vertex_count);
+			MEMCPY(dest_idx, db.index_start, sizeof(index) * db.index_count);
 		}
 	}
 }

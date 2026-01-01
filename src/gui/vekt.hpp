@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -25,6 +25,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #pragma once
+
+#include "vekt_defines.hpp"
 
 #include "math/vector2.hpp"
 #include "math/vector4.hpp"
@@ -122,9 +124,6 @@ namespace vekt
 	////////////////////////////////////////////////////////////////////////////////
 	// :: COMMON CONTAINERS
 	////////////////////////////////////////////////////////////////////////////////
-
-	typedef unsigned int id;
-#define NULL_WIDGET_ID UINT32_MAX
 
 	template <typename T> class vector
 	{
@@ -854,24 +853,31 @@ namespace vekt
 		VEKT_VEC4 color;
 	};
 
-	typedef unsigned short index;
-
 	////////////////////////////////////////////////////////////////////////////////
 	// :: BUILDER
 	////////////////////////////////////////////////////////////////////////////////
 
+	enum class font_type
+	{
+		normal,
+		sdf,
+		lcd,
+	};
+
 	struct draw_buffer
 	{
-		void*		 user_data	   = nullptr;
-		font*		 used_font	   = nullptr;
-		VEKT_VEC4	 clip		   = VEKT_VEC4();
 		vertex*		 vertex_start  = nullptr;
 		index*		 index_start   = nullptr;
+		void*		 user_data	   = nullptr;
+		VEKT_VEC4	 clip		   = VEKT_VEC4();
+		unsigned int atlas_id	   = NULL_WIDGET_ID;
+		unsigned int font_id	   = NULL_WIDGET_ID;
 		unsigned int draw_order	   = 0;
 		unsigned int vertex_count  = 0;
 		unsigned int index_count   = 0;
 		unsigned int _max_vertices = 0;
 		unsigned int _max_indices  = 0;
+		font_type	 font_type	   = font_type::normal;
 
 		inline void add_vertex(const vertex& vtx)
 		{
@@ -910,6 +916,19 @@ namespace vekt
 			index_count += count;
 			return index_start + idx;
 		}
+	};
+
+	struct vekt_snapshot
+	{
+		vector<vekt::draw_buffer> draw_buffers;
+		vertex*					  vertices		= nullptr;
+		index*					  indices		= nullptr;
+		unsigned int			  _max_vertices = 0;
+		unsigned int			  _max_indices	= 0;
+
+		void init(size_t vertex_count, size_t index_count);
+		void uninit();
+		void copy(const vector<vekt::draw_buffer>& draw_buffers);
 	};
 
 	typedef void (*draw_callback)(const draw_buffer& db, void* user_data);
@@ -1061,6 +1080,7 @@ namespace vekt
 			unsigned int draw_order = 0;
 			void*		 user_data	= nullptr;
 		};
+
 		struct rect_props
 		{
 			const widget_gfx& gfx;
@@ -1075,7 +1095,6 @@ namespace vekt
 			bool			  multi_color;
 		};
 
-	private:
 	public:
 		struct input_layer
 		{
@@ -1107,7 +1126,6 @@ namespace vekt
 		void				uninit();
 		void				build_begin(const VEKT_VEC2& screen_size);
 		void				build_end();
-		void				flush();
 		void				widget_set_size(id widget_id, const VEKT_VEC2& size, helper_size_type helper_x = helper_size_type::relative, helper_size_type helper_y = helper_size_type::relative);
 		void				widget_set_pos(id				  widget_id,
 										   const VEKT_VEC2&	  pos,
@@ -1182,6 +1200,11 @@ namespace vekt
 		inline id get_root() const
 		{
 			return _root;
+		}
+
+		inline const vector<draw_buffer>& get_draw_buffers() const
+		{
+			return _draw_buffers;
 		}
 
 	private:
@@ -1308,17 +1331,11 @@ namespace vekt
 		float		   uv_h				 = 0.0f;
 	};
 
-	enum class font_type
-	{
-		normal,
-		sdf,
-		lcd,
-	};
-
 	struct font
 	{
 		glyph		 glyph_info[128];
 		atlas*		 _atlas					= nullptr;
+		unsigned int _font_id				= NULL_WIDGET_ID;
 		unsigned int _atlas_required_height = 0;
 		unsigned int _atlas_pos				= 0;
 		float		 _scale					= 0.0f;
@@ -1340,7 +1357,7 @@ namespace vekt
 			unsigned int height = 0;
 		};
 
-		atlas(unsigned int width, unsigned int height, bool is_lcd);
+		atlas(unsigned int width, unsigned int height, bool is_lcd, unsigned int id);
 		~atlas();
 
 		bool add_font(font* font);
@@ -1371,13 +1388,24 @@ namespace vekt
 			return _is_lcd;
 		}
 
+		inline void set_id(unsigned int i)
+		{
+			_id = i;
+		}
+
+		inline unsigned int get_id() const
+		{
+			return _id;
+		}
+
 	private:
-		unsigned int   _width			 = 0;
-		unsigned int   _height			 = 0;
 		vector<slice*> _available_slices = {};
 		vector<font*>  _fonts			 = {};
+		unsigned int   _width			 = 0;
+		unsigned int   _height			 = 0;
 		unsigned char* _data			 = nullptr;
 		unsigned int   _data_size		 = 0;
+		unsigned int   _id				 = 0;
 		bool		   _is_lcd			 = false;
 	};
 

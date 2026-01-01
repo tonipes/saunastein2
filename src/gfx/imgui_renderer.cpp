@@ -54,19 +54,22 @@ namespace SFG
 
 		// Setup scaling
 		ImGuiStyle& style = ImGui::GetStyle();
-		style.ScaleAllSizes(main_scale); // Bake a fixed style scale. (until we have a solution for dynamic style scaling, changing this requires resetting Style + calling this again)
-		style.FontScaleDpi = main_scale; // Set initial font scale. (using io.ConfigDpiScaleFonts=true makes this unnecessary. We leave both here for documentation purpose)
-		style.FontSizeBase = 12;
-		style.TabRounding  = 2;
-		style.GrabMinSize  = 12;
-		style.GrabRounding = 2;
+		style.ScaleAllSizes(main_scale);	// Bake a fixed style scale. (until we have a solution for dynamic style scaling, changing this requires resetting Style + calling this again)
+		style.FontScaleDpi	  = main_scale; // Set initial font scale. (using io.ConfigDpiScaleFonts=true makes this unnecessary. We leave both here for documentation purpose)
+		style.FontSizeBase	  = 12;
+		style.TabRounding	  = 2;
+		style.GrabMinSize	  = 12;
+		style.GrabRounding	  = 2;
+		style.IndentSpacing	  = 14;
+		style.ChildRounding	  = 4;
+		style.ChildBorderSize = 2;
 
 		ImVec4* colors							   = style.Colors;
 		colors[ImGuiCol_Text]					   = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
 		colors[ImGuiCol_TextDisabled]			   = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
 		colors[ImGuiCol_WindowBg]				   = ImVec4(0.04f, 0.04f, 0.04f, 1.00f);
 		colors[ImGuiCol_ChildBg]				   = ImVec4(0.02f, 0.02f, 0.02f, 1.00f);
-		colors[ImGuiCol_PopupBg]				   = ImVec4(0.00f, 0.00f, 0.00f, 0.94f);
+		colors[ImGuiCol_PopupBg]				   = ImVec4(0.00f, 0.00f, 0.00f, 0.98f);
 		colors[ImGuiCol_Border]					   = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
 		colors[ImGuiCol_BorderShadow]			   = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
 		colors[ImGuiCol_FrameBg]				   = ImVec4(0.01f, 0.01f, 0.01f, 1.00f);
@@ -75,7 +78,7 @@ namespace SFG
 		colors[ImGuiCol_TitleBg]				   = ImVec4(0.04f, 0.04f, 0.04f, 1.00f);
 		colors[ImGuiCol_TitleBgActive]			   = ImVec4(0.24f, 0.00f, 0.06f, 0.96f);
 		colors[ImGuiCol_TitleBgCollapsed]		   = ImVec4(0.00f, 0.00f, 0.00f, 0.51f);
-		colors[ImGuiCol_MenuBarBg]				   = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
+		colors[ImGuiCol_MenuBarBg]				   = ImVec4(0.01f, 0.01f, 0.01f, 1.00f);
 		colors[ImGuiCol_ScrollbarBg]			   = ImVec4(0.02f, 0.02f, 0.02f, 0.53f);
 		colors[ImGuiCol_ScrollbarGrab]			   = ImVec4(0.31f, 0.31f, 0.31f, 1.00f);
 		colors[ImGuiCol_ScrollbarGrabHovered]	   = ImVec4(0.41f, 0.41f, 0.41f, 1.00f);
@@ -156,13 +159,12 @@ namespace SFG
 
 		static bool open = true;
 		ImGui::ShowDemoWindow(&open);
-
-		ImGui::Render();
 	}
 
 	void imgui_renderer::render(gfx_id cmd_buffer)
 	{
 		gfx_backend* backend = gfx_backend::get();
+		ImGui::Render();
 		ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), backend->get_gfx_cmd_list(cmd_buffer));
 	}
 }

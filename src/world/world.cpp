@@ -278,9 +278,9 @@ namespace SFG
 		_play_mode = mode;
 	}
 
-	resource_handle world::find_atlas_texture(vekt::atlas* atlas)
+	resource_handle world::find_atlas_texture(vekt::id atlas)
 	{
-		auto it = std::find_if(_vekt_atlases.begin(), _vekt_atlases.end(), [atlas](const atlas_data& d) -> bool { return d.atlas == atlas; });
+		auto it = std::find_if(_vekt_atlases.begin(), _vekt_atlases.end(), [atlas](const atlas_data& d) -> bool { return d.atlas->get_id() == atlas; });
 		SFG_ASSERT(it != _vekt_atlases.end());
 		return it->handle;
 	}

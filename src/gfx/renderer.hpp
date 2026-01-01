@@ -119,14 +119,6 @@ namespace SFG
 			gfx_id		   cmd_gfx			  = 0;
 			gfx_id		   cmd_copy			  = 0;
 			gfx_id		   bind_group_global  = 0;
-			uint32		   gpu_index_world_rt = 0;
-#ifdef SFG_USE_DEBUG_CONTROLLER
-			gpu_index gpu_index_debug_controller_rt = 0;
-#endif
-
-#ifdef SFG_TOOLMODE
-			gpu_index gpu_index_editor_rt = 0;
-#endif
 		};
 
 		struct gfx_data

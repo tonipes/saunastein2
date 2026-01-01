@@ -152,8 +152,15 @@ namespace SFG
 
 			delete _world;
 			delete _renderer;
+
+#ifdef SFG_TOOLMODE
+			delete _editor;
+#else
+#endif
+
 			return init_status::renderer_failed;
 		}
+
 		_render_stream.init();
 
 		_gameplay = new gameplay();
@@ -183,13 +190,6 @@ namespace SFG
 		// renderer
 		join_render();
 
-		_render_stream.publish();
-		_renderer->uninit();
-		renderer::destroy_bind_layout_global();
-		delete _renderer;
-		_renderer = nullptr;
-		_render_stream.uninit();
-
 #ifdef SFG_TOOLMODE
 		_editor->uninit();
 		delete _editor;
@@ -199,6 +199,13 @@ namespace SFG
 		delete _game;
 		_game = nullptr;
 #endif
+
+		_render_stream.publish();
+		_renderer->uninit();
+		renderer::destroy_bind_layout_global();
+		delete _renderer;
+		_renderer = nullptr;
+		_render_stream.uninit();
 
 		delete _gameplay;
 		_gameplay = nullptr;
@@ -272,16 +279,16 @@ namespace SFG
 				accumulator_ns -= FIXED_FRAMERATE_NS;
 
 #ifdef SFG_TOOLMODE
-				_editor->pre_world_tick(ws, dt_seconds);
+				_editor->pre_world_tick(dt_seconds);
 #else
-				_game->pre_world_tick(ws, dt_seconds);
+				_game->pre_world_tick(dt_seconds);
 #endif
 				_world->tick(ws, dt_seconds);
 
 #ifdef SFG_TOOLMODE
-				_editor->post_world_tick(ws, dt_seconds);
+				_editor->post_world_tick(dt_seconds);
 #else
-				_game->post_world_tick(ws, dt_seconds);
+				_game->post_world_tick(dt_seconds);
 #endif
 
 				ticks++;

@@ -45,6 +45,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "animation/animation_graph.hpp"
 #include "animation/bone_manager.hpp"
 
+#include "gui/vekt_defines.hpp"
 struct ma_engine;
 
 namespace vekt
@@ -92,7 +93,7 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 		// atlas
 		// -----------------------------------------------------------------------------
-		resource_handle find_atlas_texture(vekt::atlas* atl);
+		resource_handle find_atlas_texture(vekt::id atl);
 
 		// -----------------------------------------------------------------------------
 		// accessors

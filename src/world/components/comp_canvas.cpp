@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -90,7 +90,10 @@ namespace SFG
 		const vector2 draw_size = vector2ui16(_size.x == 0 ? size.x : _size.x, _size.y == 0 ? size.y : _size.y);
 		_builder->build_begin(draw_size);
 		_builder->build_end();
-		_builder->flush();
+
+		const vekt::vector<vekt::draw_buffer>& draw_buffers = _builder->get_draw_buffers();
+		for (const vekt::draw_buffer& db : draw_buffers)
+			draw_vekt(db);
 	}
 
 	void comp_canvas::set_is_3d(world& w, uint8 is_3d)
@@ -125,7 +128,6 @@ namespace SFG
 		};
 
 		_builder->init(cnf);
-		_builder->set_on_draw(on_draw, this);
 		_flags.set(comp_canvas::flags::is_init);
 
 		const render_event_canvas ev = {
@@ -154,10 +156,8 @@ namespace SFG
 		});
 	}
 
-	void comp_canvas::on_draw(const vekt::draw_buffer& buffer, void* ud)
+	void comp_canvas::draw_vekt(const vekt::draw_buffer& buffer)
 	{
-		comp_canvas* cnv = static_cast<comp_canvas*>(ud);
-
 		render_event_canvas_add_draw ev = {};
 
 		const vector4 clip = buffer.clip;
@@ -183,16 +183,16 @@ namespace SFG
 			ev.clip.z = static_cast<uint16>(clip.z);
 		}
 
-		ev.start_index		= cnv->_idx_counter;
-		ev.start_vertex		= cnv->_vtx_counter;
+		ev.start_index		= _idx_counter;
+		ev.start_vertex		= _vtx_counter;
 		ev.index_count		= buffer.index_count;
 		ev.vertex_data		= reinterpret_cast<uint8*>(buffer.vertex_start);
 		ev.vertex_data_size = buffer.vertex_count * sizeof(vekt::vertex);
 		ev.index_data		= reinterpret_cast<uint8*>(buffer.index_start);
 		ev.index_data_size	= buffer.index_count * sizeof(vekt::index);
 
-		cnv->_idx_counter += buffer.index_count;
-		cnv->_vtx_counter += buffer.vertex_count;
+		_idx_counter += buffer.index_count;
+		_vtx_counter += buffer.vertex_count;
 
 		void* mat = buffer.user_data;
 
@@ -202,16 +202,16 @@ namespace SFG
 		if (mat != nullptr)
 		{
 			mat_handle = *reinterpret_cast<resource_handle*>(mat);
-			SFG_ASSERT(!mat || cnv->_world->get_resource_manager().is_valid<material>(mat_handle));
+			SFG_ASSERT(!mat || _world->get_resource_manager().is_valid<material>(mat_handle));
 		}
 		else
 		{
-			resource_manager& rm = cnv->_world->get_resource_manager();
+			resource_manager& rm = _world->get_resource_manager();
 
-			if (buffer.used_font)
+			if (buffer.font_id != NULL_WIDGET_ID)
 			{
-				mat_handle		= buffer.used_font->type == vekt::font_type::sdf ? rm.get_default_gui_sdf_mat() : rm.get_default_gui_text_mat();
-				atlas_handle	= cnv->_world->find_atlas_texture(buffer.used_font->_atlas);
+				mat_handle		= buffer.font_type == vekt::font_type::sdf ? rm.get_default_gui_sdf_mat() : rm.get_default_gui_text_mat();
+				atlas_handle	= _world->find_atlas_texture(buffer.font_id);
 				ev.atlas_exists = 1;
 			}
 			else
@@ -221,9 +221,9 @@ namespace SFG
 		ev.material_handle = mat_handle.index;
 		ev.atlas_handle	   = atlas_handle.index;
 
-		cnv->_world->get_render_stream().add_event(
+		_world->get_render_stream().add_event(
 			{
-				.index		= cnv->_header.own_handle.index,
+				.index		= _header.own_handle.index,
 				.event_type = render_event_type::canvas_add_draw,
 			},
 			ev);

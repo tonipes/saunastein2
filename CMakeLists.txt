@@ -40,6 +40,19 @@ if(WIN32)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 endif()
 
+find_package(Git QUIET)
+
+set(SFG_BUILD "unknown")
+if(GIT_FOUND)
+  execute_process(
+    COMMAND "${GIT_EXECUTABLE}" rev-parse --short=12 HEAD
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    OUTPUT_VARIABLE SFG_BUILD
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_QUIET
+  )
+endif()
+
 # ------------- COMPILE DEFINITIONS -------------
 
 add_compile_definitions($<$<CONFIG:Debug>:_ITERATOR_DEBUG_LEVEL=1>)
@@ -249,6 +262,15 @@ target_sources(${PROJECT_NAME} PRIVATE
     $<$<CONFIG:Debug>:${EDITOR_SOURCES} ${EDITOR_HEADERS}>
     $<$<CONFIG:Release>:${EDITOR_SOURCES} ${EDITOR_HEADERS}>
 )
+
+
+target_compile_definitions(Stakeforge PRIVATE
+  SFG_MAJOR=1
+  SFG_MINOR=0
+  SFG_BUILD="${SFG_BUILD}"   # string macro
+)
+
+
 # Shared library (DLL/.dylib/.so)
 # add_library(${PROJECT_NAME} SHARED
 #     ${SOURCES} ${HEADERS}

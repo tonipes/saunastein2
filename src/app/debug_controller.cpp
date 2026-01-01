@@ -483,8 +483,6 @@ namespace SFG
 			.buffer_count				 = 5,
 		});
 
-		_vekt_data.builder->set_on_draw(on_draw, this);
-
 		_vekt_data.font_manager->init();
 		_vekt_data.font_manager->set_callback_user_data(this);
 		_vekt_data.font_manager->set_atlas_created_callback(on_atlas_created);
@@ -584,8 +582,6 @@ namespace SFG
 	{
 		ZoneScoped;
 
-		_gfx_data.frame_index = frame_index;
-
 		per_frame_data& pfd = _pfd[frame_index];
 		pfd.reset();
 
@@ -601,7 +597,12 @@ namespace SFG
 		_vekt_data.builder->build_begin(vector2(_gfx_data.rt_size.x, _gfx_data.rt_size.y));
 		console_logic();
 		_vekt_data.builder->build_end();
-		_vekt_data.builder->flush();
+
+		const vekt::vector<vekt::draw_buffer>& draw_buffers = _vekt_data.builder->get_draw_buffers();
+		for (const vekt::draw_buffer& db : draw_buffers)
+		{
+			draw_vekt(frame_index, db);
+		}
 	}
 
 	void debug_controller::tick()
@@ -799,25 +800,23 @@ namespace SFG
 		barriers.resize(0);
 	}
 
-	void debug_controller::on_draw(const vekt::draw_buffer& buffer, void* ud)
+	void debug_controller::draw_vekt(uint8 frame_index, const vekt::draw_buffer& buffer)
 	{
-		debug_controller* cont = static_cast<debug_controller*>(ud);
-
 		gfx_backend* backend = gfx_backend::get();
 
-		const vekt::font*	  font			   = buffer.used_font;
-		const vekt::atlas*	  atlas			   = font ? font->_atlas : nullptr;
-		const vekt::font_type font_type		   = font ? font->type : vekt::font_type::normal;
+		const vekt::id		  font			   = buffer.font_id;
+		const vekt::id		  atlas			   = buffer.atlas_id;
+		const vekt::font_type font_type		   = buffer.font_type;
 		const vekt::vertex*	  buffer_vtx_start = buffer.vertex_start;
 		const vekt::index*	  buffer_idx_start = buffer.index_start;
 		const vector4		  clip			   = buffer.clip;
 		const uint32		  buffer_idx_count = buffer.index_count;
 		const uint32		  buffer_vtx_count = buffer.vertex_count;
-		const gfx_id		  sdf_shader	   = cont->_shaders.gui_sdf;
-		const gfx_id		  text_shader	   = cont->_shaders.gui_text;
-		const gfx_id		  default_shader   = cont->_shaders.gui_default;
+		const gfx_id		  sdf_shader	   = _shaders.gui_sdf;
+		const gfx_id		  text_shader	   = _shaders.gui_text;
+		const gfx_id		  default_shader   = _shaders.gui_default;
 
-		per_frame_data& pfd			= cont->_pfd[cont->_gfx_data.frame_index];
+		per_frame_data& pfd			= _pfd[frame_index];
 		const uint32	vtx_counter = pfd.counter_vtx;
 		const uint32	idx_counter = pfd.counter_idx;
 		const uint32	dc_count	= pfd.draw_call_count;
@@ -828,7 +827,7 @@ namespace SFG
 		pfd.buf_gui_idx.buffer_data(sizeof(vekt::index) * static_cast<size_t>(idx_counter), buffer_idx_start, static_cast<size_t>(buffer_idx_count) * sizeof(vekt::index));
 		SFG_ASSERT(pfd.draw_call_count < MAX_GUI_DRAW_CALLS);
 
-		gui_draw_call& dc = cont->_gui_draw_calls[dc_count];
+		gui_draw_call& dc = _gui_draw_calls[dc_count];
 		dc				  = {};
 		dc.start_idx	  = idx_counter;
 		dc.start_vtx	  = vtx_counter;
@@ -856,11 +855,11 @@ namespace SFG
 			dc.scissors.z = static_cast<uint16>(clip.z);
 		}
 
-		if (font)
+		if (font != NULL_WIDGET_ID)
 		{
 			dc.shader = font_type == vekt::font_type::sdf ? sdf_shader : text_shader;
-			auto it	  = vector_util::find_if(cont->_gfx_data.atlases, [&](const atlas_ref& ref) -> bool { return ref.atlas == atlas; });
-			SFG_ASSERT(it != cont->_gfx_data.atlases.end());
+			auto it	  = vector_util::find_if(_gfx_data.atlases, [&](const atlas_ref& ref) -> bool { return ref.atlas->get_id() == atlas; });
+			SFG_ASSERT(it != _gfx_data.atlases.end());
 			dc.atlas_gpu_index = it->texture_gpu_index;
 		}
 		else

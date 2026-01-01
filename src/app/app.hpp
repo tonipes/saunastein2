@@ -78,19 +78,14 @@ namespace SFG
 			return _flags.is_set(static_cast<uint8>(game_app_flags::should_exit));
 		}
 
-		inline window* get_main_window()
+		inline window& get_main_window()
 		{
-			return _main_window;
+			return *_main_window;
 		}
 
-		inline window* get_window() const
+		inline renderer& get_renderer() const
 		{
-			return _main_window;
-		}
-
-		inline renderer* get_renderer() const
-		{
-			return _renderer;
+			return *_renderer;
 		}
 
 		inline world& get_world() const

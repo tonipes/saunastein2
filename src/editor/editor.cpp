@@ -74,17 +74,6 @@ namespace SFG
 
 	void editor::init()
 	{
-		_camera_controller.init(_app.get_world(), _app.get_window());
-
-#ifdef SFG_TOOLMODE
-		debug_console::get()->register_console_function("start_playmode", [this]() { _app.get_world().set_playmode(play_mode::full); });
-		debug_console::get()->register_console_function("stop_playmode", [this]() { _app.get_world().set_playmode(play_mode::none); });
-		debug_console::get()->register_console_function("start_physics", [this]() { _app.get_world().set_playmode(play_mode::physics_only); });
-		debug_console::get()->register_console_function("stop_physics", [this]() { _app.get_world().set_playmode(play_mode::none); });
-		debug_console::get()->register_console_function<const char*>("load_level", [this](const char* lvl) {
-
-		});
-#endif
 
 		// world_raw raw = {};
 		// raw.load_from_file("assets/world/demo_world.stkworld", engine_data::get().get_working_dir().c_str());
@@ -132,24 +121,60 @@ namespace SFG
 			comp_model_instance& gizmos_mi		   = tm.get_component<comp_model_instance>(gizmos_mi_handle);
 			gizmos_mi.instantiate_model_to_world(w, gizmos_handle);
 		}*/
+
+#ifdef SFG_TOOLMODE
+		debug_console::get()->register_console_function("start_playmode", [this]() { _app.get_world().set_playmode(play_mode::full); });
+		debug_console::get()->register_console_function("stop_playmode", [this]() { _app.get_world().set_playmode(play_mode::none); });
+		debug_console::get()->register_console_function("start_physics", [this]() { _app.get_world().set_playmode(play_mode::physics_only); });
+		debug_console::get()->register_console_function("stop_physics", [this]() { _app.get_world().set_playmode(play_mode::none); });
+		debug_console::get()->register_console_function<const char*>("load_level", [this](const char* lvl) {
+
+		});
+#endif
+		_camera_controller.init(_app.get_world(), _app.get_main_window());
+
+		_gui_renderer.init(_app.get_main_window(), _app.get_renderer().get_texture_queue());
+
+		_panel_controls.init(_gui_renderer.get_builder());
 	}
 
 	void editor::uninit()
 	{
+		_gui_renderer.uninit();
 		_camera_controller.uninit();
 	}
 
-	void editor::pre_world_tick(const vector2ui16& world_res, float delta)
+	void editor::pre_world_tick(float delta)
 	{
 	}
 
-	void editor::post_world_tick(const vector2ui16& world_res, float delta)
+	void editor::post_world_tick(float delta)
 	{
 		_camera_controller.tick(delta);
 	}
 
 	void editor::tick()
 	{
+		world&			   w  = _app.get_world();
+		vekt::builder*	   b  = _gui_renderer.get_builder();
+		//const vector2ui16& ws = _app.get_main_window()->get_size();
+
+		// _panel_controls.draw(ws);
+	}
+
+	void editor::render(const render_params& p)
+	{
+
+		_gui_renderer.prepare(p.pm, p.cmd_buffer, p.frame_index);
+
+		_gui_renderer.render({
+			.cmd_buffer	   = p.cmd_buffer,
+			.frame_index   = p.frame_index,
+			.alloc		   = p.alloc,
+			.size		   = p.size,
+			.global_layout = p.global_layout,
+			.global_group  = p.global_group,
+		});
 	}
 
 	bool editor::on_window_event(const window_event& ev)

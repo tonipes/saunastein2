@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -26,41 +26,27 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include "data/vector.hpp"
-#include "data/string.hpp"
-#include "math/vector2ui16.hpp"
+#include "gui/vekt_defines.hpp"
 
 namespace vekt
 {
 	class builder;
-	struct font;
 }
 
 namespace SFG
 {
-	class world;
+	struct vector2ui16;
 
-	// Lightweight description of current editor panels/widgets.
-	// Holds content state (e.g., entity name list) and knows how to build
-	// vekt widgets onto a provided builder each frame.
-	class editor_panels
+	class editor_panel_controls
 	{
 	public:
-		void init();
+		void init(vekt::builder* builder);
 		void uninit();
 
-		// Refresh backing data from world (entity names etc.).
-		void update_from_world(world& w);
-
-		// Build widgets into the given vekt builder for the current screen size.
-		void build_ui(vekt::builder& b, const vector2ui16& screen_size, vekt::font* default_font);
-
-		inline const SFG::vector<SFG::string>& get_entity_names() const
-		{
-			return _entity_names;
-		}
+		void draw(const vector2ui16& window_size);
 
 	private:
-		SFG::vector<SFG::string> _entity_names;
+		vekt::builder* _builder	 = nullptr;
+		vekt::id	   _w_window = NULL_WIDGET_ID;
 	};
 }
