@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -97,6 +97,84 @@ namespace SFG
 			dialog->Release();
 		}
 
+		return result;
+	}
+
+	string process::select_file(const char* title, const char* extension)
+	{
+		string result;
+
+		IFileDialog* dialog = nullptr;
+		HRESULT		 hr		= CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&dialog));
+		if (FAILED(hr))
+			return result;
+
+		// Title
+		if (title && title[0] != '\0')
+			dialog->SetTitle(reinterpret_cast<LPCWSTR>(std::wstring(title, title + strlen(title)).c_str())); // see note below
+
+		// Options
+		DWORD options = 0;
+		if (SUCCEEDED(dialog->GetOptions(&options)))
+		{
+			// FOS_FORCEFILESYSTEM ensures we get a real filesystem path.
+			dialog->SetOptions(options | FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST);
+		}
+
+		// Extension filter (expects e.g. "png" or ".png")
+		COMDLG_FILTERSPEC filter[1] = {};
+		std::wstring	  extW;
+		std::wstring	  patternW;
+		std::wstring	  labelW;
+
+		if (extension && extension[0] != '\0')
+		{
+			// normalize to "png" (no dot)
+			const char* ext = extension;
+			if (ext[0] == '.')
+				++ext;
+
+			// UTF-8 -> UTF-16
+			int extLenW = MultiByteToWideChar(CP_UTF8, 0, ext, -1, nullptr, 0);
+			if (extLenW > 0)
+			{
+				extW.resize((size_t)extLenW - 1);
+				MultiByteToWideChar(CP_UTF8, 0, ext, -1, extW.data(), extLenW);
+
+				labelW	 = L"*." + extW;
+				patternW = L"*." + extW;
+
+				filter[0].pszName = labelW.c_str();	  // shown in UI
+				filter[0].pszSpec = patternW.c_str(); // actual filter
+				dialog->SetFileTypes(1, filter);
+				dialog->SetFileTypeIndex(1);
+				dialog->SetDefaultExtension(extW.c_str());
+			}
+		}
+
+		hr = dialog->Show(nullptr);
+		if (SUCCEEDED(hr))
+		{
+			IShellItem* item = nullptr;
+			if (SUCCEEDED(dialog->GetResult(&item)))
+			{
+				PWSTR path = nullptr;
+				if (SUCCEEDED(item->GetDisplayName(SIGDN_FILESYSPATH, &path)))
+				{
+					// UTF-16 -> UTF-8
+					int needed = WideCharToMultiByte(CP_UTF8, 0, path, -1, nullptr, 0, nullptr, nullptr);
+					if (needed > 0)
+					{
+						result.resize((size_t)needed - 1);
+						WideCharToMultiByte(CP_UTF8, 0, path, -1, result.data(), needed, nullptr, nullptr);
+					}
+					CoTaskMemFree(path);
+				}
+				item->Release();
+			}
+		}
+
+		dialog->Release();
 		return result;
 	}
 

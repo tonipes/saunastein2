@@ -75,7 +75,10 @@ namespace SFG
 				if (ImGui::BeginMenu("File"))
 				{
 					ImGui::MenuItem("New Level");
-					ImGui::MenuItem("Load Level");
+					if (ImGui::MenuItem("Load Level"))
+					{
+						editor::get().load_level_prompt();
+					}
 					ImGui::MenuItem("Save Level");
 					ImGui::EndMenu();
 				}

@@ -37,6 +37,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // gui
 #include "editor/gui/editor_panel_controls.hpp"
+#include "editor/gui/editor_panel_entities.hpp"
 #include "editor/gui/editor_gui_world_overlays.hpp"
 
 namespace vekt
@@ -90,6 +91,14 @@ namespace SFG
 		void resize(const vector2ui16& size);
 
 		// -----------------------------------------------------------------------------
+		// level
+		// -----------------------------------------------------------------------------
+
+		void load_level_prompt();
+		void load_level(const char* lvl);
+		void save_lavel();
+
+		// -----------------------------------------------------------------------------
 		// accessors
 		// -----------------------------------------------------------------------------
 
@@ -124,23 +133,25 @@ namespace SFG
 		}
 
 	private:
-		app&			_app;
-		world_handle	_camera_entity	 = {};
-		world_handle	_camera_trait	 = {};
-		world_handle	_demo_model_root = {};
-		world_handle	_ambient_entity	 = {};
-		world_handle	_ambient_trait	 = {};
+		app&		 _app;
+		world_handle _camera_entity	  = {};
+		world_handle _camera_trait	  = {};
+		world_handle _demo_model_root = {};
+		world_handle _ambient_entity  = {};
+		world_handle _ambient_trait	  = {};
+		world_handle _gizmo_entity	  = {};
+
+		editor_settings _settings = {};
+		editor_theme	_theme	  = {};
+		editor_layout	_layout	  = {};
 		editor_camera	_camera_controller;
-		world_handle	_gizmo_entity = {};
-		editor_settings _settings	  = {};
-		editor_theme	_theme		  = {};
-		editor_layout	_layout		  = {};
 
 		// gfx
 		editor_renderer _renderer = {};
 
 		// gui
 		editor_panel_controls	  _panel_controls	  = {};
+		editor_panel_entities	  _panel_entities	  = {};
 		editor_gui_world_overlays _gui_world_overlays = {};
 
 		// vekt

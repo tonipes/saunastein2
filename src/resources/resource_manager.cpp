@@ -72,6 +72,10 @@ namespace SFG
 			delete stg.cache_ptr;
 
 		_aux_memory.uninit();
+
+#ifdef SFG_TOOLMODE
+		_file_watch.clear();
+#endif
 	}
 
 	void resource_manager::init()

@@ -32,12 +32,20 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 // gfx
 #include "gfx/renderer.hpp"
 
+// platform
+#include "platform/window.hpp"
+#include "platform/process.hpp"
+
+// world
+#include "world/world.hpp"
+#include "resources/world_raw.hpp"
+
 // misc
 #include "serialization/serialization.hpp"
 #include "io/file_system.hpp"
 #include "gui/vekt.hpp"
-#include "platform/window.hpp"
 #include "input/input_mappings.hpp"
+#include "project/engine_data.hpp"
 
 namespace SFG
 {
@@ -101,6 +109,7 @@ namespace SFG
 
 		_gui_world_overlays.init(_builder);
 		_panel_controls.init(_builder);
+		_panel_entities.init(_builder);
 
 		_camera_controller.init(_app.get_world(), _app.get_main_window());
 	}
@@ -136,13 +145,14 @@ namespace SFG
 		const vector2ui16& ws = _app.get_main_window().get_size();
 
 		_renderer.draw_begin();
+		_panel_entities.draw(w, ws);
 		_panel_controls.draw({});
 		_renderer.draw_end();
 
 		// _builder->build_begin(vector2(ws.x, ws.y));
 		// _panel_controls.draw({});
 		// _builder->build_end();
-		// 
+		//
 		// // notify buffer swap
 		// _renderer.draw_end(_builder);
 	}
@@ -184,6 +194,27 @@ namespace SFG
 	void editor::resize(const vector2ui16& size)
 	{
 		_renderer.resize(size);
+	}
+
+	void editor::load_level_prompt()
+	{
+		const string  file	   = process::select_file("load level", ".stkworld");
+		const string& work_dir = engine_data::get().get_working_dir();
+		const string  relative = file.substr(work_dir.size(), file.length() - work_dir.size());
+
+		world_raw raw = {};
+		raw.load_from_file(relative.c_str(), work_dir.c_str());
+
+		world& w = _app.get_world();
+		w.create_from_loader(raw);
+	}
+
+	void editor::load_level(const char* lvl)
+	{
+	}
+
+	void editor::save_lavel()
+	{
 	}
 
 }

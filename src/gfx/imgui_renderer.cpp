@@ -66,16 +66,17 @@ namespace SFG
 		style.IndentSpacing	  = 14;
 		style.ChildRounding	  = 4;
 		style.ChildBorderSize = 2;
+		style.FrameBorderSize = 1.0f;
 
 		ImVec4* colors							   = style.Colors;
 		colors[ImGuiCol_Text]					   = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
 		colors[ImGuiCol_TextDisabled]			   = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
 		colors[ImGuiCol_WindowBg]				   = ImVec4(0.04f, 0.04f, 0.04f, 1.00f);
-		colors[ImGuiCol_ChildBg]				   = ImVec4(0.02f, 0.02f, 0.02f, 1.00f);
+		colors[ImGuiCol_ChildBg]				   = ImVec4(0.01f, 0.01f, 0.01f, 1.00f);
 		colors[ImGuiCol_PopupBg]				   = ImVec4(0.00f, 0.00f, 0.00f, 0.98f);
 		colors[ImGuiCol_Border]					   = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
 		colors[ImGuiCol_BorderShadow]			   = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
-		colors[ImGuiCol_FrameBg]				   = ImVec4(0.01f, 0.01f, 0.01f, 1.00f);
+		colors[ImGuiCol_FrameBg]				   = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
 		colors[ImGuiCol_FrameBgHovered]			   = ImVec4(0.51f, 0.03f, 0.15f, 0.67f);
 		colors[ImGuiCol_FrameBgActive]			   = ImVec4(0.93f, 0.05f, 0.26f, 0.67f);
 		colors[ImGuiCol_TitleBg]				   = ImVec4(0.04f, 0.04f, 0.04f, 1.00f);
@@ -184,12 +185,10 @@ namespace SFG
 
 		const int8 last_rendered = _rendered.load(std::memory_order_acquire);
 		_write_index			 = (last_rendered + 1) % BUFFER_SIZE;
-		static double time		 = 0.0f;
-		_snapshots[_write_index].SnapUsingSwap(ImGui::GetDrawData(), time);
+		_snapshots[_write_index].SnapUsingSwap(ImGui::GetDrawData(), ImGui::GetTime());
 
 		_snapshots[_write_index].DrawData.Textures = nullptr;
 		_latest.store(_write_index, std::memory_order_release);
-		time += 0.016;
 	}
 
 	void imgui_renderer::render(gfx_id cmd_buffer)

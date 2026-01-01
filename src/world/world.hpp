@@ -43,7 +43,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // animation
 #include "animation/animation_graph.hpp"
-#include "animation/bone_manager.hpp"
 
 #include "gui/vekt_defines.hpp"
 struct ma_engine;
@@ -79,6 +78,7 @@ namespace SFG
 
 		void init();
 		void uninit();
+		void unload();
 		void create_from_loader(world_raw& raw);
 		void tick(const vector2ui16& res, float dt);
 		void calculate_abs_transforms();
@@ -179,7 +179,6 @@ namespace SFG
 		animation_graph	   _anim_graph	  = {};
 		vekt::font_manager _vekt_fonts	  = {};
 		time_manager	   _time_manager  = {};
-		bone_manager	   _bone_manager  = {};
 
 		vector<atlas_data>	 _vekt_atlases = {};
 		ma_engine*			 _sound_engine = nullptr;

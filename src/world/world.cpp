@@ -131,12 +131,10 @@ namespace SFG
 		_comp_manager.init();
 		_anim_graph.init();
 		_time_manager.init();
-		_bone_manager.init();
 	}
 
 	void world::uninit()
 	{
-		_bone_manager.uninit();
 		_comp_manager.uninit();
 		_entity_manager.uninit();
 		_time_manager.uninit();
@@ -144,6 +142,11 @@ namespace SFG
 		_anim_graph.uninit();
 		_text_allocator.reset();
 		_flags.remove(world_flags_is_init);
+	}
+
+	void world::unload()
+	{
+
 	}
 
 	void world::create_from_loader(world_raw& raw)

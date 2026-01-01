@@ -287,10 +287,10 @@ void ImGui_ImplDX12_RenderDrawData(ImDrawData* draw_data, ID3D12GraphicsCommandL
 
     // Catch up with texture updates. Most of the times, the list will have 1 element with an OK status, aka nothing to do.
     // (This almost always points to ImGui::GetPlatformIO().Textures[] but is part of ImDrawData to allow overriding or disabling texture updates).
-    if (draw_data->Textures != nullptr)
-        for (ImTextureData* tex : *draw_data->Textures)
-            if (tex->Status != ImTextureStatus_OK)
-                ImGui_ImplDX12_UpdateTexture(tex);
+    // if (draw_data->Textures != nullptr)
+    //     for (ImTextureData* tex : *draw_data->Textures)
+    //         if (tex->Status != ImTextureStatus_OK)
+    //             ImGui_ImplDX12_UpdateTexture(tex);
 
     // FIXME: We are assuming that this only gets called once per frame!
     ImGui_ImplDX12_Data* bd = ImGui_ImplDX12_GetBackendData();

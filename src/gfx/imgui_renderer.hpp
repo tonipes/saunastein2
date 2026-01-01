@@ -38,7 +38,7 @@ namespace SFG
 	class imgui_renderer
 	{
 	private:
-		static constexpr uint32 BUFFER_SIZE = 8;
+		static constexpr uint32 BUFFER_SIZE = 2;
 
 	public:
 		void init(window& w);
