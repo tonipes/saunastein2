@@ -38,26 +38,46 @@ namespace SFG
 
 	void to_json(nlohmann::json& j, const editor_layout& t)
 	{
-		j["dummy"] = t.dummy;
+		j["controls"] = t.controls;
+		j["entities"] = t.entities;
 	}
 
 	void from_json(const nlohmann::json& j, editor_layout& s)
 	{
-		s.dummy = j.value<uint32>("dummy", {});
+		s.controls = j.value<window_layout>("controls", {});
+		s.entities = j.value<window_layout>("entities", {});
+	}
+
+	void to_json(nlohmann::json& j, const window_layout& w)
+	{
+		j["pos_x"]	= w.pos_x;
+		j["pos_y"]	= w.pos_y;
+		j["size_x"] = w.size_x;
+		j["size_y"] = w.size_y;
+		j["open"]	= w.open;
+	}
+
+	void from_json(const nlohmann::json& j, window_layout& w)
+	{
+		w.pos_x	 = j.value<float>("pos_x", 10.0f);
+		w.pos_y	 = j.value<float>("pos_y", 10.0f);
+		w.size_x = j.value<float>("size_x", 100.0f);
+		w.size_y = j.value<float>("size_y", 100.0f);
+		w.open	 = j.value<uint8>("open", 1);
 	}
 
 	void editor_layout::init(const char* base_directory)
 	{
-		const string path = string(base_directory) + "editor_layout.stksettings";
+		_last_path = string(base_directory) + "editor_layout.stksettings";
 
-		if (file_system::exists(path.c_str()))
+		if (file_system::exists(_last_path.c_str()))
 		{
-			load(path.c_str());
+			load(_last_path.c_str());
 		}
 		else
 		{
 			// init defaults
-			save(path.c_str());
+			save(_last_path.c_str());
 		}
 	}
 

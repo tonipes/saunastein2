@@ -47,16 +47,16 @@ namespace SFG
 
 	void editor_settings::init(const char* base_directory)
 	{
-		const string path = string(base_directory) + "editor_theme.stksettings";
+		_last_path = string(base_directory) + "editor_theme.stksettings";
 
-		if (file_system::exists(path.c_str()))
+		if (file_system::exists(_last_path.c_str()))
 		{
-			load(path.c_str());
+			load(_last_path.c_str());
 		}
 		else
 		{
 			// init defaults
-			save(path.c_str());
+			save(_last_path.c_str());
 		}
 	}
 
@@ -99,4 +99,5 @@ namespace SFG
 		SFG_ERR("failed while writing json! {0}", path);
 		return false;
 	}
+
 }

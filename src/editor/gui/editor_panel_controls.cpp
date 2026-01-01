@@ -30,9 +30,9 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "common/string_id.hpp"
 #include "memory/memory_tracer.hpp"
 
+#include "editor/editor.hpp"
 #include "gui/vekt.hpp"
 
-#include "imgui.h"
 namespace SFG
 {
 	void editor_panel_controls::init(vekt::builder* builder)
@@ -59,14 +59,7 @@ namespace SFG
 	void editor_panel_controls::draw(const vector2ui16& window_size)
 	{
 
-		return;
-
-		// _builder->widget_set_pos(_w_window, vector2(0.1f, 0.1f));
-		// _builder->widget_set_size(_w_window, vector2(0.25f, 0.15f));
-		//
-		// return;
-
-		// Initial placement and sizing: top-left, roughly quarter of the app window
+		/*
 		const ImVec2 initial_pos(0.0f, 0.0f);
 		const ImVec2 initial_size(static_cast<float>(window_size.x) * 0.25f, static_cast<float>(window_size.y) * 0.15f);
 
@@ -141,6 +134,6 @@ namespace SFG
 
 			ImGui::EndChild();
 		}
-		ImGui::End();
+		ImGui::End();*/
 	}
 }

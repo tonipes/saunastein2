@@ -27,19 +27,41 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include "common/size_definitions.hpp"
+#include "data/string.hpp"
 #include <vendor/nhlohmann/json_fwd.hpp>
 
 namespace SFG
 {
+
+	struct window_layout
+	{
+		float pos_x	 = 0.0f;
+		float pos_y	 = 0.0f;
+		float size_x = 0.0f;
+		float size_y = 0.0f;
+		uint8 open	 = 1;
+	};
+
 	struct editor_layout
 	{
-		uint32 dummy = 0;
+		window_layout controls = {};
+		window_layout entities = {};
 
 		void init(const char* base_directory);
 		bool load(const char* path);
 		bool save(const char* path);
+
+		inline bool save_last()
+		{
+			save(_last_path.c_str());
+		}
+
+		string _last_path = "";
 	};
 
 	void to_json(nlohmann::json& j, const editor_layout& t);
 	void from_json(const nlohmann::json& j, editor_layout& s);
+
+	void to_json(nlohmann::json& j, const window_layout& t);
+	void from_json(const nlohmann::json& j, window_layout& s);
 }

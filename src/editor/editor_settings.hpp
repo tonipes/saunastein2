@@ -27,6 +27,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include "common/size_definitions.hpp"
+#include "data/string.hpp"
 #include <vendor/nhlohmann/json_fwd.hpp>
 
 namespace SFG
@@ -38,6 +39,13 @@ namespace SFG
 		void init(const char* base_directory);
 		bool load(const char* path);
 		bool save(const char* path);
+
+		inline bool save_last()
+		{
+			save(_last_path.c_str());
+		}
+
+		string _last_path = "";
 	};
 
 	void to_json(nlohmann::json& j, const editor_settings& t);
