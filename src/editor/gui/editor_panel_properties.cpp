@@ -1,3 +1,29 @@
+/*
+This file is a part of stakeforge_engine: https://github.com/inanevin/stakeforge
+Copyright [2025-] Inan Evin
+
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+   1. Redistributions of source code must retain the above copyright notice, this
+	  list of conditions and the following disclaimer.
+
+   2. Redistributions in binary form must reproduce the above copyright notice,
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
 #include "editor_panel_properties.hpp"
 #include "world/world.hpp"
 #include "world/entity_manager.hpp"
@@ -6,6 +32,7 @@
 #include "math/quat.hpp"
 #include "gui/vekt.hpp"
 #include "imgui.h"
+#include "misc/cpp/imgui_stdlib.h"
 
 namespace SFG
 {
@@ -22,22 +49,13 @@ namespace SFG
 		return c;
 	}
 
-	void editor_panel_properties::init(vekt::builder* builder)
+	void editor_panel_properties::init()
 	{
-		_builder			  = builder;
-		_w_window			  = builder->allocate();
-		vekt::widget_gfx& gfx = builder->widget_get_gfx(_w_window);
-		gfx.flags			  = vekt::gfx_flags::gfx_is_rect;
-		gfx.color			  = vector4(0.1f, 0.1f, 0.1f, 1.0f);
-		_builder->widget_add_child(_builder->get_root(), _w_window);
-		builder->widget_set_size_abs(_w_window, vector2(200, 300));
-		builder->widget_set_pos_abs(_w_window, vector2(200, 300));
+		
 	}
 
 	void editor_panel_properties::uninit()
 	{
-		_builder->deallocate(_w_window);
-		_w_window = NULL_WIDGET_ID;
 	}
 
 	void editor_panel_properties::draw(world& w, world_handle selected, const vector2ui16& window_size)
@@ -59,7 +77,17 @@ namespace SFG
 				{
 					const entity_meta& meta = em.get_entity_meta(selected);
 					ImGui::SeparatorText("general");
-					ImGui::Text("name: %s", meta.name);
+					static world_handle prev_sel	  = {};
+					static char			name_buf[128] = {};
+					if (prev_sel.index != selected.index || prev_sel.generation != selected.generation)
+					{
+						std::strncpy(name_buf, meta.name ? meta.name : "", sizeof(name_buf) - 1);
+						name_buf[sizeof(name_buf) - 1] = '\0';
+						prev_sel					   = selected;
+					}
+
+					if (ImGui::InputText("name", name_buf, IM_ARRAYSIZE(name_buf)))
+						em.set_entity_name(selected, name_buf);
 					ImGui::Text("children: %u", get_direct_child_count(em, selected));
 					ImGui::Text("index: %u", selected.index);
 					ImGui::Text("generation: %u", selected.generation);

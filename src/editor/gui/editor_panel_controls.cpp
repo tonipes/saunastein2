@@ -31,31 +31,17 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "memory/memory_tracer.hpp"
 
 #include "editor/editor.hpp"
-#include "gui/vekt.hpp"
 
 #include "imgui.h"
 
 namespace SFG
 {
-	void editor_panel_controls::init(vekt::builder* builder)
+	void editor_panel_controls::init()
 	{
-		_builder  = builder;
-		_w_window = builder->allocate();
-
-		vekt::widget_gfx& gfx = builder->widget_get_gfx(_w_window);
-		gfx.flags			  = vekt::gfx_flags::gfx_is_rect;
-		gfx.color			  = vector4(0.1f, 0.1f, 0.1f, 1.0f);
-
-		_builder->widget_add_child(_builder->get_root(), _w_window);
-
-		builder->widget_set_size_abs(_w_window, vector2(200, 300));
-		builder->widget_set_pos_abs(_w_window, vector2(200, 300));
 	}
 
 	void editor_panel_controls::uninit()
 	{
-		_builder->deallocate(_w_window);
-		_w_window = NULL_WIDGET_ID;
 	}
 
 	void editor_panel_controls::draw(const vector2ui16& window_size)

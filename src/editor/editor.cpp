@@ -40,6 +40,13 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "world/world.hpp"
 #include "resources/world_raw.hpp"
 
+// resources
+#include "resources/resource_manager.hpp"
+#include "resources/model.hpp"
+
+// components
+#include "world/components/comp_model_instance.hpp"
+
 // misc
 #include "serialization/serialization.hpp"
 #include "io/file_system.hpp"
@@ -108,9 +115,9 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 
 		_gui_world_overlays.init(_builder);
-		_panel_controls.init(_builder);
-		_panel_entities.init(_builder);
-		_panel_properties.init(_builder);
+		_panel_controls.init();
+		_panel_entities.init();
+		_panel_properties.init();
 
 		_camera_controller.init(_app.get_world(), _app.get_main_window());
 	}
@@ -150,6 +157,14 @@ namespace SFG
 		_panel_properties.draw(w, _selected_entity, ws);
 		_panel_controls.draw({});
 		_renderer.draw_end();
+		window& wnd = _app.get_main_window();
+
+		const vector<string>& drops = wnd.get_dropped_files();
+		for (const string& str : drops)
+		{
+			on_file_dropped(str.c_str());
+		}
+		wnd.clear_dropped_files();
 
 		// _builder->build_begin(vector2(ws.x, ws.y));
 		// _panel_controls.draw({});
@@ -198,21 +213,80 @@ namespace SFG
 		_renderer.resize(size);
 	}
 
+	void editor::on_file_dropped(const char* path)
+	{
+		string wd = engine_data::get().get_working_dir();
+		file_system::fix_path(wd);
+
+		string file = path;
+		file_system::fix_path(file);
+
+		if (file.find(wd.c_str() != 0))
+		{
+			SFG_ERR("file should be in project directory.");
+			return;
+		}
+
+		const string relative = file.substr(wd.size(), file.length() - wd.size());
+		const string ext	  = file_system::get_file_extension(relative);
+
+		world&			   w  = _app.get_world();
+		resource_manager&  rm = w.get_resource_manager();
+		entity_manager&	   em = w.get_entity_manager();
+		component_manager& cm = w.get_comp_manager();
+
+		if (ext.compare(".stkmodel") == 0)
+		{
+			const string_id sid = TO_SID(relative);
+
+			resource_handle handle = rm.get_resource_handle_by_hash_if_exists<model>(sid);
+
+			if (handle.is_null())
+			{
+				rm.load_resources({relative}, false, wd.c_str());
+				handle = rm.get_resource_handle_by_hash<model>(sid);
+			}
+
+			if (handle.is_null())
+			{
+				SFG_ERR("something went wrong loading resource: {0}", relative.c_str());
+				return;
+			}
+
+			const string		 name	= file_system::get_filename_from_path(relative);
+			const world_handle	 entity = em.create_entity(name.c_str());
+			const world_handle	 inst	= cm.add_component<comp_model_instance>(entity);
+			comp_model_instance& mi		= cm.get_component<comp_model_instance>(inst);
+			mi.instantiate_model_to_world(w, handle);
+			return;
+		}
+
+		SFG_ERR("dropped file with unknown extension: {0}", ext.c_str());
+	}
+
 	void editor::load_level_prompt()
 	{
-		const string  file	   = process::select_file("load level", ".stkworld");
+		const string file = process::select_file("load level", ".stkworld");
+		load_level(file.c_str());
+	}
+
+	void editor::load_level(const char* lvl)
+	{
+		const string  file	   = lvl;
 		const string& work_dir = engine_data::get().get_working_dir();
-		const string  relative = file.substr(work_dir.size(), file.length() - work_dir.size());
+		if (file.find(work_dir.c_str() != 0))
+		{
+			SFG_ERR("level should be in project directory.");
+			return;
+		}
+
+		const string relative = file.substr(work_dir.size(), file.length() - work_dir.size());
 
 		world_raw raw = {};
 		raw.load_from_file(relative.c_str(), work_dir.c_str());
 
 		world& w = _app.get_world();
 		w.create_from_loader(raw);
-	}
-
-	void editor::load_level(const char* lvl)
-	{
 	}
 
 	void editor::save_lavel()

@@ -83,6 +83,7 @@ namespace SFG
 		const entity_meta&	  get_entity_meta(world_handle entity) const;
 		const entity_family&  get_entity_family(world_handle entity) const;
 		const bitmask<uint16> get_entity_flags(world_handle entity) const;
+		void				  set_entity_name(world_handle entity, const char* name);
 		void				  add_render_proxy(world_handle entity);
 		void				  remove_render_proxy(world_handle entity);
 		void				  set_entity_visible(world_handle entity, bool is_visible);

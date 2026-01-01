@@ -34,6 +34,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <hidusage.h>
 #include <shellscalingapi.h>
 #include <dwmapi.h>
+#include <shellapi.h>
+#include <string>
 #pragma comment(lib, "dwmapi.lib")
 #pragma comment(lib, "Shcore.lib")
 
@@ -100,6 +102,27 @@ namespace SFG
 
 		switch (msg)
 		{
+		case WM_DROPFILES: {
+			HDROP hDrop = (HDROP)wParam;
+			UINT  count = DragQueryFileW(hDrop, 0xFFFFFFFF, nullptr, 0);
+			for (UINT i = 0; i < count; ++i)
+			{
+				UINT		 len = DragQueryFileW(hDrop, i, nullptr, 0);
+				std::wstring wpath;
+				wpath.resize(len);
+				DragQueryFileW(hDrop, i, wpath.data(), len + 1);
+				int needed = WideCharToMultiByte(CP_UTF8, 0, wpath.c_str(), -1, nullptr, 0, nullptr, nullptr);
+				if (needed > 0)
+				{
+					std::string path;
+					path.resize((size_t)needed - 1);
+					WideCharToMultiByte(CP_UTF8, 0, wpath.c_str(), -1, path.data(), needed, nullptr, nullptr);
+					wnd->_dropped_files.push_back(path.c_str());
+				}
+			}
+			DragFinish(hDrop);
+			return 0;
+		}
 		case WM_DPICHANGED:
 		case WM_DISPLAYCHANGE: {
 			wnd->_monitor_info = fetch_monitor_info(MonitorFromWindow(hwnd, MONITOR_DEFAULTTOPRIMARY));
@@ -606,6 +629,8 @@ namespace SFG
 		bring_to_front();
 		ShowWindow(hwnd, SW_SHOW);
 		UpdateWindow(hwnd);
+
+		DragAcceptFiles(hwnd, TRUE);
 
 		if (flags & window_flags::wf_cursor_confined_window)
 			confine_cursor(cursor_confinement::window);

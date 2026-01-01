@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -27,6 +27,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include "window_common.hpp"
+#include "data/vector.hpp"
+#include "data/string.hpp"
 
 #ifdef SFG_PLATFORM_WINDOWS
 struct HWND__;
@@ -100,6 +102,16 @@ namespace SFG
 			_event_callback_user_data = user_data;
 		}
 
+		inline const vector<string>& get_dropped_files() const
+		{
+			return _dropped_files;
+		}
+
+		inline void clear_dropped_files()
+		{
+			_dropped_files.resize(0);
+		}
+
 		inline void set_size_dirty(bool dirty)
 		{
 			_flags.set(window_flags::wf_size_dirty, dirty);
@@ -130,6 +142,7 @@ namespace SFG
 		vector2ui16		_true_size			= vector2ui16::zero;
 		vector2ui16		_size				= vector2ui16::zero;
 		bitmask<uint16> _flags				= 0;
+		vector<string>	_dropped_files;
 		static uint8	s_key_down_map[512];
 	};
 

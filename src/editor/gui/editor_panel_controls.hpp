@@ -26,13 +26,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include "gui/vekt_defines.hpp"
-
-namespace vekt
-{
-	class builder;
-}
-
 namespace SFG
 {
 	struct vector2ui16;
@@ -40,13 +33,11 @@ namespace SFG
 	class editor_panel_controls
 	{
 	public:
-		void init(vekt::builder* builder);
+		void init();
 		void uninit();
 
 		void draw(const vector2ui16& window_size);
 
 	private:
-		vekt::builder* _builder	 = nullptr;
-		vekt::id	   _w_window = NULL_WIDGET_ID;
 	};
 }

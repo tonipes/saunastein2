@@ -462,6 +462,14 @@ namespace SFG
 		return _aabbs->get(entity.index);
 	}
 
+	void entity_manager::set_entity_name(world_handle entity, const char* name)
+	{
+		SFG_ASSERT(_entities->is_valid(entity));
+		entity_meta& meta = _metas->get(entity.index);
+		_world.get_text_allocator().deallocate(meta.name);
+		meta.name = _world.get_text_allocator().allocate(name);
+	}
+
 	void entity_manager::add_child(world_handle parent, world_handle child_to_add)
 	{
 		SFG_ASSERT(_entities->is_valid(parent));
