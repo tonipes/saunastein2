@@ -34,10 +34,10 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "io/log.hpp"
 #include "io/file_system.hpp"
 #include "serialization/serialization.hpp"
-#include "project/engine_data.hpp"
 #include <fstream>
 using json = nlohmann::json;
 #endif
+
 namespace SFG
 {
 	void material_raw::serialize(ostream& stream) const

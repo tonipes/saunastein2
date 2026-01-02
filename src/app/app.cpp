@@ -52,7 +52,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "world/world.hpp"
 
 #ifdef SFG_TOOLMODE
-#include "project/engine_data.hpp"
+#include "editor/editor_settings.hpp"
 #include "editor/editor.hpp"
 #include "gfx/common/descriptions.hpp"
 #endif
@@ -70,7 +70,7 @@ namespace SFG
 
 		// toolmode requires correct engine_data initialization
 #ifdef SFG_TOOLMODE
-		if (!engine_data::get().init())
+		if (!editor_settings::get().init())
 		{
 			time::uninit();
 			debug_console::uninit();
@@ -89,6 +89,7 @@ namespace SFG
 			return init_status::window_failed;
 		}
 		_main_window->set_event_callback(on_window_event, this);
+		editor_settings::get().init_window_layout(*_main_window);
 
 		// backend
 		gfx_backend::s_instance = new gfx_backend();
@@ -220,10 +221,10 @@ namespace SFG
 		delete gfx_backend::s_instance;
 		gfx_backend::s_instance = nullptr;
 
-		// globals
 #ifdef SFG_TOOLMODE
-		engine_data::get().uninit();
+		editor_settings::get().uninit();
 #endif
+
 		time::uninit();
 		debug_console::uninit();
 	}
@@ -265,9 +266,25 @@ namespace SFG
 			{
 				_main_window->set_size_dirty(false);
 				join_render();
+
+#ifdef SFG_TOOLMODE
+				if (ws.x > 64 && ws.y > 64)
+				{
+					editor_settings::get().window_size = ws;
+					editor_settings::get().save_last();
+				}
+#endif
 				_renderer->on_window_resize(ws);
 				kick_off_render();
 			}
+
+#ifdef SFG_TOOLMODE
+			if (window_flags.is_set(window_flags::wf_pos_dirty))
+			{
+				editor_settings::get().window_pos = vector2(_main_window->get_position().x, _main_window->get_position().y);
+				editor_settings::get().save_last();
+			}
+#endif
 
 #if FIXED_FRAMERATE_ENABLED
 
@@ -348,6 +365,11 @@ namespace SFG
 
 		if (application->_renderer && application->_renderer->on_window_event(ev))
 			return;
+
+#ifdef SFG_TOOLMODE
+		if (application->_editor && application->_editor->on_window_event(ev))
+			return;
+#endif
 
 		if (application->_world && application->_world->on_window_event(ev, application->_main_window))
 			return;

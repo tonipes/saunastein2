@@ -43,7 +43,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifdef SFG_TOOLMODE
 #include "serialization/serialization.hpp"
 #include "reflection/reflection.hpp"
-#include "project/engine_data.hpp"
+#include "editor/editor_settings.hpp"
 #include "resources/model.hpp"
 #include "resources/mesh.hpp"
 #include "resources/shader.hpp"
@@ -288,7 +288,7 @@ namespace SFG
 	void resource_manager::load_resources(const vector<string>& relative_paths, bool skip_cache, const char* root_directory)
 	{
 		const uint32	  size		  = static_cast<uint32>(relative_paths.size());
-		const string	  working_dir = root_directory == nullptr ? engine_data::get().get_working_dir() : (root_directory);
+		const string	  working_dir = root_directory == nullptr ? editor_settings::get().working_dir : (root_directory);
 		vector<void*>	  resolved_loaders(relative_paths.size());
 		vector<string_id> resolved_types(relative_paths.size());
 
@@ -318,7 +318,7 @@ namespace SFG
 
 			const string_id type	  = m->get_type_id();
 			void*			loader	  = nullptr;
-			const string&	cache_dir = engine_data::get().get_cache_dir();
+			const string&	cache_dir = editor_settings::get().cache_dir;
 
 			if (!skip_cache)
 			{
@@ -365,7 +365,7 @@ namespace SFG
 				delete_loader(type, loader);
 				resolved_loaders[i] = nullptr;
 
-				add_resource_watch(handle, p.c_str(), dependencies, type, root_directory == nullptr ? engine_data::get().get_working_dir().c_str() : root_directory);
+				add_resource_watch(handle, p.c_str(), dependencies, type, root_directory == nullptr ? editor_settings::get().working_dir.c_str() : root_directory);
 			}
 		}
 	}
@@ -430,7 +430,7 @@ namespace SFG
 		rm->destroy(w.type_id, w.base_handle);
 		rm->remove_resource(w.type_id, w.base_handle);
 
-		const string& cache_dir = engine_data::get().get_cache_dir();
+		const string& cache_dir = editor_settings::get().cache_dir;
 		rm->save_to_cache(w.type_id, loader, cache_dir.c_str(), w.root_dir.c_str(), ".stkcache");
 
 		const uint32 max_passes = rm->_max_load_priority + 1;

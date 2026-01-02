@@ -25,7 +25,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "editor_renderer.hpp"
-#include "project/engine_data.hpp"
 #include "data/vector_util.hpp"
 
 // math

@@ -110,8 +110,6 @@ namespace SFG
 
 		if (generate_mips)
 			image_util::generate_mips(buffers.data(), count, image_util::mip_gen_filter::box, channels, is_linear, false);
-
-		SFG_INFO("Created texture from data: {0}", name);
 	}
 
 #ifdef SFG_TOOLMODE

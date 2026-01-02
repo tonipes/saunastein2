@@ -44,6 +44,13 @@ namespace SFG
 		vector4 color_axis_y	= vector4(51.0f, 204.0f, 51.0f, 255.0f) / 255.0f;
 		vector4 color_axis_z	= vector4(51.0f, 51.0f, 204.0f, 255.0f) / 255.0f;
 
+		static editor_theme& get()
+		{
+			static editor_theme et;
+			return et;
+		}
+
+
 		void init(const char* base_directory);
 		bool load(const char* path);
 		bool save(const char* path);

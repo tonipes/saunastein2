@@ -47,6 +47,12 @@ namespace SFG
 		window_layout controls = {};
 		window_layout entities = {};
 
+		static editor_layout& get()
+		{
+			static editor_layout el;
+			return el;
+		}
+
 		void init(const char* base_directory);
 		bool load(const char* path);
 		bool save(const char* path);

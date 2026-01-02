@@ -53,12 +53,14 @@ namespace SFG
 		// window api
 		// -----------------------------------------------------------------------------
 
-		void set_position(const vector2i16& pos);
-		void set_size(const vector2ui16& size);
-		void set_style(window_flags flags);
-		void bring_to_front();
-		void confine_cursor(cursor_confinement conf);
-		void set_cursor_visible(bool vis);
+		void		set_position(const vector2i16& pos);
+		void		maximize();
+		void		set_size(const vector2ui16& size);
+		void		set_style(window_flags flags);
+		void		bring_to_front();
+		void		confine_cursor(cursor_confinement conf);
+		void		set_cursor_visible(bool vis);
+		static void query_all_monitors(vector<monitor_info>& out_info);
 
 		// -----------------------------------------------------------------------------
 		// accessors

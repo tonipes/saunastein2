@@ -86,43 +86,76 @@ namespace SFG
 			static float  main_ms	= frame_info::get_main_thread_time_milli();
 			static float  render_ms = frame_info::get_render_thread_time_milli();
 
-			ImGui::Text("fps: %d", fps);
-			ImGui::Text("main: %f ms", main_ms);
-			ImGui::Text("render: %f ms", render_ms);
-
-			static uint32 ctr = 0;
-			if (ctr > 60)
+			bool stats_open = ImGui::BeginTable("stats_table", 2, ImGuiTableFlags_BordersInnerV);
+			if (stats_open)
 			{
-				ctr		  = 0;
-				fps		  = frame_info::get_fps();
-				main_ms	  = frame_info::get_main_thread_time_milli();
-				render_ms = frame_info::get_render_thread_time_milli();
-			}
-			ctr++;
+				ImGui::TableNextRow();
+				ImGui::TableSetColumnIndex(0);
+				ImGui::Text("fps");
+                ImGui::TableSetColumnIndex(1);
+                ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 8.0f);
+                ImGui::Text("%d", fps);
+
+				ImGui::TableNextRow();
+				ImGui::TableSetColumnIndex(0);
+				ImGui::Text("main");
+                ImGui::TableSetColumnIndex(1);
+                ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 8.0f);
+                ImGui::Text("%f ms", main_ms);
+
+				ImGui::TableNextRow();
+				ImGui::TableSetColumnIndex(0);
+				ImGui::Text("render");
+                ImGui::TableSetColumnIndex(1);
+                ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 8.0f);
+                ImGui::Text("%f ms", render_ms);
+
+				static uint32 ctr = 0;
+				if (ctr > 60)
+				{
+					ctr		  = 0;
+					fps		  = frame_info::get_fps();
+					main_ms	  = frame_info::get_main_thread_time_milli();
+					render_ms = frame_info::get_render_thread_time_milli();
+				}
+				ctr++;
 
 #ifdef SFG_ENABLE_MEMORY_TRACER
-			memory_tracer& tracer = memory_tracer::get();
-			LOCK_GUARD(tracer.get_category_mtx());
+				memory_tracer& tracer = memory_tracer::get();
+				LOCK_GUARD(tracer.get_category_mtx());
 
-			for (const memory_category& cat : tracer.get_categories())
-			{
-				if (TO_SID(cat.name) == TO_SID("General"))
+				for (const memory_category& cat : tracer.get_categories())
 				{
-					const uint32 d = static_cast<uint32>(static_cast<double>(cat.total_size) / (1024.0 * 1024.0));
-					ImGui::Text("ram: %d mb", d);
+					if (TO_SID(cat.name) == TO_SID("General"))
+					{
+						const uint32 d = static_cast<uint32>(static_cast<double>(cat.total_size) / (1024.0 * 1024.0));
+						ImGui::TableNextRow();
+						ImGui::TableSetColumnIndex(0);
+						ImGui::Text("ram");
+                    ImGui::TableSetColumnIndex(1);
+                    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 8.0f);
+                    ImGui::Text("%d mb", d);
+					}
+					else if (TO_SID(cat.name) == TO_SID("Gfx"))
+					{
+						const uint32 d = static_cast<uint32>(static_cast<double>(cat.total_size) / (1024.0 * 1024.0));
+						ImGui::TableNextRow();
+						ImGui::TableSetColumnIndex(0);
+						ImGui::Text("vram");
+                    ImGui::TableSetColumnIndex(1);
+                    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 8.0f);
+                    ImGui::Text("%d mb", d);
+					}
 				}
-				else if (TO_SID(cat.name) == TO_SID("Gfx"))
-				{
-					const uint32 d = static_cast<uint32>(static_cast<double>(cat.total_size) / (1024.0 * 1024.0));
-					ImGui::Text("vram: %d mb", d);
-				}
-			}
 #endif
 
-			ImGui::Unindent();
+				ImGui::Unindent();
 
-			ImGui::EndChild();
+				if (stats_open)
+					ImGui::EndTable();
+				ImGui::EndChild();
+			}
+			ImGui::End();
 		}
-		ImGui::End();
 	}
 }

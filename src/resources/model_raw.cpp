@@ -39,7 +39,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gfx/common/format.hpp"
 #include "vendor/nhlohmann/json.hpp"
 #include "world/components/comp_light.hpp"
-#include "project/engine_data.hpp"
+
 #define TINYGLTF_NO_INCLUDE_STB_IMAGE
 #define TINYGLTF_NO_INCLUDE_STB_IMAGE_WRITE
 #define TINYGLTF_NO_INCLUDE_JSON

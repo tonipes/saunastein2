@@ -30,7 +30,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #ifdef SFG_TOOLMODE
 #include "io/file_system.hpp"
-#include "project/engine_data.hpp"
+#include "editor/editor_settings.hpp"
 #include "gfx/backend/backend.hpp"
 #include "serialization/serialization.hpp"
 #include "common/string_id.hpp"
@@ -72,7 +72,7 @@ namespace SFG
 
 	bool shader_raw::load_from_file(const char* relative_file, const char* base_directory)
 	{
-		const string file_path = (base_directory == nullptr ? engine_data::get().get_working_dir() : string(base_directory)) + string(relative_file);
+		const string file_path = (base_directory == nullptr ? editor_settings::get().working_dir : string(base_directory)) + string(relative_file);
 		if (!file_system::exists(file_path.c_str()))
 		{
 			SFG_ERR("File don't exist! {0}", file_path.c_str());
@@ -87,11 +87,11 @@ namespace SFG
 			// Receive & verify source.
 			source			 = json_data.value<string>("source", "");
 			is_compute		 = json_data.value<uint8>("is_compute", 0);
-			const string& wd = engine_data::get().get_working_dir();
+			const string& wd = editor_settings::get().working_dir;
 			const string  p	 = file_path;
 			name			 = p.substr(wd.size(), p.size() - wd.size());
 
-			const string full_source = base_directory == nullptr ? (engine_data::get().get_working_dir() + source) : (string(base_directory) + source);
+			const string full_source = base_directory == nullptr ? (editor_settings::get().working_dir + source) : (string(base_directory) + source);
 			if (!file_system::exists(full_source.c_str()))
 			{
 				SFG_ERR("File don't exist! {0}", full_source.c_str());

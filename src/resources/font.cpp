@@ -29,10 +29,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gui/vekt.hpp"
 #include "world/world.hpp"
 
-#ifdef SFG_TOOLMODE
-#include "project/engine_data.hpp"
-#endif
-
 namespace SFG
 {
 	font::~font()

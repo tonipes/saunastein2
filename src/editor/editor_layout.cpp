@@ -68,17 +68,18 @@ namespace SFG
 
 	void editor_layout::init(const char* base_directory)
 	{
-		_last_path = string(base_directory) + "editor_layout.stksettings";
+		const string last_path = string(base_directory) + "editor_layout.stksettings";
 
-		if (file_system::exists(_last_path.c_str()))
+		if (file_system::exists(last_path.c_str()))
 		{
-			load(_last_path.c_str());
+			load(last_path.c_str());
 		}
 		else
 		{
 			// init defaults
-			save(_last_path.c_str());
+			save(last_path.c_str());
 		}
+		_last_path = last_path;
 	}
 
 	bool editor_layout::load(const char* path)

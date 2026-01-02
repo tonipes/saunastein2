@@ -57,12 +57,12 @@ namespace SFG
 
 	struct material_raw
 	{
-		ostream			   material_data = {};
-		string_id		   shader;
-		vector<string_id>  textures;
-		string			   shader_path;
-		vector<string>	   textures_path;
-		material_pass_mode pass_mode;
+		ostream			   material_data	  = {};
+		string_id		   shader			  = 0;
+		vector<string_id>  textures			  = {};
+		string			   shader_path		  = "";
+		vector<string>	   textures_path	  = {};
+		material_pass_mode pass_mode		  = material_pass_mode::gbuffer;
 		uint8			   double_sided		  = 0;
 		uint8			   use_alpha_cutoff	  = 0;
 		string			   name				  = "";

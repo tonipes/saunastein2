@@ -55,8 +55,6 @@ namespace SFG
 		stream >> primitives_skinned;
 		stream >> skin_index;
 		stream >> local_aabb;
-
-		SFG_INFO("Created mesh from buffer: {0}", name);
 	}
 
 }

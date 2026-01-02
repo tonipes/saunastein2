@@ -70,6 +70,33 @@ namespace SFG
 			}
 		}
 
+		static BOOL CALLBACK EnumMonitorsProc(HMONITOR hMon, HDC, LPRECT, LPARAM lParam)
+		{
+			auto* out = reinterpret_cast<vector<monitor_info>*>(lParam);
+
+			MONITORINFO mi{};
+			mi.cbSize = sizeof(mi);
+
+			if (GetMonitorInfoW(hMon, &mi))
+			{
+				monitor_info info;
+
+				UINT	dpiX, dpiY;
+				HRESULT temp2	= GetDpiForMonitor(hMon, MDT_EFFECTIVE_DPI, &dpiX, &dpiY);
+				info.size		= {static_cast<uint16>(mi.rcMonitor.right - mi.rcMonitor.left), static_cast<uint16>(mi.rcMonitor.bottom - mi.rcMonitor.top)};
+				info.work_size	= {static_cast<uint16>(mi.rcWork.right - mi.rcWork.left), static_cast<uint16>(mi.rcWork.bottom - mi.rcWork.top)};
+				info.position	= {static_cast<int16>(mi.rcWork.left), static_cast<int16>(mi.rcWork.top)};
+				info.is_primary = (mi.dwFlags & MONITORINFOF_PRIMARY) != 0;
+				info.dpi		= dpiX;
+				info.dpi_scale	= static_cast<float>(dpiX) / 96.0f;
+
+				out->push_back(info);
+			}
+
+			// continue enumeration
+			return TRUE;
+		}
+
 		monitor_info fetch_monitor_info(HMONITOR monitor)
 		{
 			monitor_info info;
@@ -158,6 +185,7 @@ namespace SFG
 			const int32 x  = static_cast<int32>((short)LOWORD(lParam));
 			const int32 y  = static_cast<int32>((short)HIWORD(lParam));
 			wnd->_position = vector2i16(x, y);
+			wnd->_flags.set(window_flags::wf_pos_dirty);
 			return 0;
 		}
 		case WM_SIZE: {
@@ -653,6 +681,11 @@ namespace SFG
 		SetWindowPos(hwnd, NULL, pos.x, pos.y, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOREDRAW);
 	}
 
+	void window::maximize()
+	{
+		HWND hwnd = static_cast<HWND>(_window_handle);
+		ShowWindow(hwnd, SW_MAXIMIZE);
+	}
 	void window::set_size(const vector2ui16& size)
 	{
 		HWND hwnd = static_cast<HWND>(_window_handle);
@@ -692,7 +725,6 @@ namespace SFG
 
 	void window::add_event(const window_event& ev)
 	{
-
 		if (!_event_callback)
 			return;
 		_event_callback(ev, _event_callback_user_data);
@@ -762,5 +794,10 @@ namespace SFG
 
 		ShowCursor(vis);
 		_flags.set(window_flags::wf_cursor_hidden, !vis);
+	}
+
+	void window::query_all_monitors(vector<monitor_info>& out_info)
+	{
+		EnumDisplayMonitors(nullptr, nullptr, EnumMonitorsProc, reinterpret_cast<LPARAM>(&out_info));
 	}
 }

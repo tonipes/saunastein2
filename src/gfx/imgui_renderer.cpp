@@ -27,7 +27,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "imgui_renderer.hpp"
 #include "gfx/backend/backend.hpp"
 #include "platform/window.hpp"
-#include "project/engine_data.hpp"
 #include "io/log.hpp"
 
 #include "imgui.h"
@@ -195,25 +194,29 @@ namespace SFG
 					ImGui_ImplDX12_UpdateTexture(tex);
 		}
 
-		const int8 last_rendered = _rendered.load(std::memory_order_acquire);
-		_write_index			 = (last_rendered + 1) % BUFFER_SIZE;
-		_snapshots[_write_index].SnapUsingSwap(ImGui::GetDrawData(), ImGui::GetTime());
-		SFG_TRACE("wr {0}", (int32)_write_index);
-		_snapshots[_write_index].DrawData.Textures = nullptr;
-		_latest.store(_write_index, std::memory_order_release);
+		int r = _rendered.load(std::memory_order_acquire);
+		int l = _latest.load(std::memory_order_acquire);
+
+		int next = (l + 1) % BUFFER_SIZE;
+		if (next == r)
+		{
+			// ring full -> drop this snapshot (or spin/wait)
+			return;
+		}
+
+		_snapshots[next].SnapUsingSwap(ImGui::GetDrawData(), ImGui::GetTime());
+		_snapshots[next].DrawData.Textures = nullptr;
+		_latest.store(next, std::memory_order_release);
 	}
 
 	void imgui_renderer::render(gfx_id cmd_buffer)
 	{
-		const int8 last_written = _latest.load(std::memory_order_acquire);
-		if (last_written < 0)
+		int idx = _latest.load(std::memory_order_acquire);
+		if (idx < 0)
 			return;
-		SFG_TRACE("read {0}", (int32)last_written);
-		_rendered.store(last_written, std::memory_order_release);
-
-		ImDrawDataSnapshot& ss = _snapshots[last_written];
-
 		gfx_backend* backend = gfx_backend::get();
-		ImGui_ImplDX12_RenderDrawData(&ss.DrawData, backend->get_gfx_cmd_list(cmd_buffer));
+		_rendered.store(idx, std::memory_order_release);
+		ImGui_ImplDX12_RenderDrawData(&_snapshots[idx].DrawData, backend->get_gfx_cmd_list(cmd_buffer));
+		_rendered.store(-1, std::memory_order_release);
 	}
 }

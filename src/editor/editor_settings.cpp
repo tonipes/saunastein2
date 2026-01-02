@@ -27,6 +27,9 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "editor_settings.hpp"
 #include "io/file_system.hpp"
 #include "io/log.hpp"
+#include "platform/process.hpp"
+#include "platform/window.hpp"
+#include "math/math.hpp"
 
 #include <fstream>
 #include <vendor/nhlohmann/json.hpp>
@@ -37,27 +40,128 @@ namespace SFG
 
 	void to_json(nlohmann::json& j, const editor_settings& t)
 	{
-		j["dummy"] = t.dummy;
+		j["last_world"]	 = t.last_world_relative;
+		j["working_dir"] = t.working_dir;
+		j["cache_dir"]	 = t.cache_dir;
+		j["window_size"] = t.window_size;
+		j["window_pos"]	 = t.window_pos;
 	}
 
 	void from_json(const nlohmann::json& j, editor_settings& s)
 	{
-		s.dummy = j.value<uint32>("dummy", {});
+		s.last_world_relative = j.value<string>("last_world", "");
+		s.working_dir		  = j.value<string>("working_dir", "");
+		s.cache_dir			  = j.value<string>("cache_dir", "");
+		s.window_size		  = j.value<vector2>("window_size", vector2::zero);
+		s.window_pos		  = j.value<vector2>("window_pos", vector2(-1, -1));
 	}
 
-	void editor_settings::init(const char* base_directory)
+	bool editor_settings::init()
 	{
-		_last_path = string(base_directory) + "editor_theme.stksettings";
+		_editor_folder = file_system::get_user_directory() + "/stakeforge/";
+		file_system::fix_path(_editor_folder);
 
-		if (file_system::exists(_last_path.c_str()))
+		if (!file_system::exists(_editor_folder.c_str()))
+			file_system::create_directory(_editor_folder.c_str());
+
+		const string last_path = _editor_folder + "editor.stksettings";
+
+		if (file_system::exists(last_path.c_str()))
 		{
-			load(_last_path.c_str());
+			load(last_path.c_str());
 		}
 		else
 		{
 			// init defaults
-			save(_last_path.c_str());
+			save(last_path.c_str());
 		}
+		_last_path = last_path;
+
+		if (file_system::exists(working_dir.c_str()))
+		{
+			if (!file_system::exists(cache_dir.c_str()))
+			{
+				cache_dir = working_dir + "/_stakeforge_cache/";
+				file_system::create_directory(cache_dir.c_str());
+				save_last();
+			}
+		}
+		else
+		{
+			working_dir = process::select_folder("select project directory") + "/";
+			if (!file_system::exists(working_dir.c_str()))
+				return false;
+
+			file_system::fix_path(working_dir);
+			cache_dir = working_dir + "/_stakeforge_cache/";
+
+			if (!file_system::exists(cache_dir.c_str()))
+				file_system::create_directory(cache_dir.c_str());
+			save_last();
+		}
+
+		return true;
+	}
+
+	void editor_settings::init_window_layout(window& wnd)
+	{
+		vector2 ws = editor_settings::get().window_size;
+		vector2 wp = editor_settings::get().window_pos;
+
+		const monitor_info&	 window_monitor = wnd.get_monitor_info();
+		vector<monitor_info> all_monitors;
+		window::query_all_monitors(all_monitors);
+
+		// make sure there is a monitor that fits the position.
+		if (math::almost_equal(wp.x, -1.0f) && math::almost_equal(wp.y, -1.0f))
+		{
+			wp = vector2(0, 0);
+			wnd.set_position(vector2i16(wp.x, wp.y));
+			window_pos = wp;
+			save_last();
+		}
+		else
+		{
+			bool found = false;
+			for (const monitor_info& mi : all_monitors)
+			{
+				if (mi.position.x < wp.x && mi.position.y < wp.y && wp.x < mi.position.x + mi.work_size.x && wp.y < mi.position.y + mi.work_size.y)
+				{
+					found = true;
+					break;
+				}
+			}
+
+			if (found)
+			{
+				wnd.set_position(vector2i16(wp.x, wp.y));
+			}
+			else
+			{
+				wp = vector2(0, 0);
+				wnd.set_position(vector2i16(wp.x, wp.y));
+				window_pos = wp;
+				save_last();
+			}
+		}
+
+		if (ws.x < 1 || ws.y < 1)
+		{
+			const monitor_info& mi = wnd.get_monitor_info();
+			wnd.set_size(mi.work_size);
+			wnd.maximize();
+			editor_settings::get().window_size = mi.work_size;
+			editor_settings::get().save_last();
+		}
+		else
+		{
+			wnd.set_size(vector2ui16(ws.x, ws.y));
+		}
+	}
+
+	void editor_settings::uninit()
+	{
+		this->~editor_settings();
 	}
 
 	bool editor_settings::load(const char* path)

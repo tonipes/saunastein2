@@ -25,6 +25,9 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "editor.hpp"
+#include "editor_settings.hpp"
+#include "editor_theme.hpp"
+#include "editor_layout.hpp"
 
 // app
 #include "app/app.hpp"
@@ -52,7 +55,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "io/file_system.hpp"
 #include "gui/vekt.hpp"
 #include "input/input_mappings.hpp"
-#include "project/engine_data.hpp"
+#include "math/math.hpp"
 
 namespace SFG
 {
@@ -99,16 +102,37 @@ namespace SFG
 		SFG_NOTIMPLEMENTED();
 #endif
 
+		_camera_controller.init(_app.get_world(), _app.get_main_window());
+
 		// -----------------------------------------------------------------------------
 		// editor pipeline
 		// -----------------------------------------------------------------------------
-		const string editor_folder = file_system::get_user_directory() + "/stakeforge/";
-		if (!file_system::exists(editor_folder.c_str()))
-			file_system::create_directory(editor_folder.c_str());
 
-		_theme.init(editor_folder.c_str());
-		_layout.init(editor_folder.c_str());
-		_settings.init(editor_folder.c_str());
+		if (!file_system::exists(editor_settings::get().working_dir.c_str()))
+		{
+			editor_settings::get().working_dir = process::select_folder("select project directory");
+			file_system::fix_path(editor_settings::get().working_dir);
+			editor_settings::get().save_last();
+
+			if (!file_system::exists(editor_settings::get().working_dir.c_str()))
+			{
+				SFG_ASSERT(false);
+			}
+		}
+		editor_theme::get().init(editor_settings::get()._editor_folder.c_str());
+		editor_layout::get().init(editor_settings::get()._editor_folder.c_str());
+
+		if (!editor_settings::get().last_world_relative.empty())
+		{
+			const string last_world = editor_settings::get().working_dir + editor_settings::get().last_world_relative;
+
+			if (file_system::exists(last_world.c_str()))
+				load_level(editor_settings::get().last_world_relative.c_str());
+			else
+				_app.get_world().init();
+		}
+		else
+			_app.get_world().init();
 
 		// -----------------------------------------------------------------------------
 		// gui
@@ -118,8 +142,6 @@ namespace SFG
 		_panel_controls.init();
 		_panel_entities.init();
 		_panel_properties.init();
-
-		_camera_controller.init(_app.get_world(), _app.get_main_window());
 	}
 
 	void editor::uninit()
@@ -215,13 +237,12 @@ namespace SFG
 
 	void editor::on_file_dropped(const char* path)
 	{
-		string wd = engine_data::get().get_working_dir();
-		file_system::fix_path(wd);
+		const string& wd = editor_settings::get().working_dir;
 
 		string file = path;
 		file_system::fix_path(file);
 
-		if (file.find(wd.c_str() != 0))
+		if (file.find(wd.c_str()) != 0)
 		{
 			SFG_ERR("file should be in project directory.");
 			return;
@@ -235,7 +256,7 @@ namespace SFG
 		entity_manager&	   em = w.get_entity_manager();
 		component_manager& cm = w.get_comp_manager();
 
-		if (ext.compare(".stkmodel") == 0)
+		if (ext.compare("stkmodel") == 0)
 		{
 			const string_id sid = TO_SID(relative);
 
@@ -266,27 +287,34 @@ namespace SFG
 
 	void editor::load_level_prompt()
 	{
-		const string file = process::select_file("load level", ".stkworld");
-		load_level(file.c_str());
-	}
+		string file = process::select_file("load level", ".stkworld");
+		file_system::fix_path(file);
 
-	void editor::load_level(const char* lvl)
-	{
-		const string  file	   = lvl;
-		const string& work_dir = engine_data::get().get_working_dir();
-		if (file.find(work_dir.c_str() != 0))
+		const string& work_dir = editor_settings::get().working_dir;
+		if (file.find(work_dir.c_str()) != 0)
 		{
 			SFG_ERR("level should be in project directory.");
 			return;
 		}
+		const string relative					   = file.substr(work_dir.size(), file.length() - work_dir.size());
+		editor_settings::get().last_world_relative = relative;
+		editor_settings::get().save_last();
+		load_level(relative.c_str());
+	}
 
-		const string relative = file.substr(work_dir.size(), file.length() - work_dir.size());
+	void editor::load_level(const char* relative_path)
+	{
+		const string file = relative_path;
 
 		world_raw raw = {};
-		raw.load_from_file(relative.c_str(), work_dir.c_str());
+		raw.load_from_file(relative_path, editor_settings::get().working_dir.c_str());
+
+		_camera_controller.deactivate();
 
 		world& w = _app.get_world();
 		w.create_from_loader(raw);
+
+		_camera_controller.activate();
 	}
 
 	void editor::save_lavel()

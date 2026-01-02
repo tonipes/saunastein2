@@ -28,9 +28,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "physical_material_raw.hpp"
 #include "world/world.hpp"
 
-#ifdef SFG_TOOLMODE
-#include "project/engine_data.hpp"
-#endif
 namespace SFG
 {
 	physical_material::~physical_material()

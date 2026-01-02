@@ -28,21 +28,37 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "common/size_definitions.hpp"
 #include "data/string.hpp"
+#include "math/vector2.hpp"
 #include <vendor/nhlohmann/json_fwd.hpp>
 
 namespace SFG
 {
+	class window;
+
 	struct editor_settings
 	{
-		uint32 dummy = 0;
+		string	last_world_relative = "";
+		string	working_dir			= "";
+		string	cache_dir			= "";
+		string	_editor_folder		= "";
+		vector2 window_pos			= vector2::zero;
+		vector2 window_size			= vector2::zero;
 
-		void init(const char* base_directory);
+		static editor_settings& get()
+		{
+			static editor_settings e;
+			return e;
+		}
+
+		bool init();
+		void init_window_layout(window& wnd);
+		void uninit();
 		bool load(const char* path);
 		bool save(const char* path);
 
 		inline bool save_last()
 		{
-			save(_last_path.c_str());
+			return save(_last_path.c_str());
 		}
 
 		string _last_path = "";

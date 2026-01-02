@@ -30,9 +30,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "resources/common_resources.hpp"
 
 #include "editor_camera.hpp"
-#include "editor_settings.hpp"
-#include "editor_theme.hpp"
-#include "editor_layout.hpp"
 #include "editor/gfx/editor_renderer.hpp"
 
 // gui
@@ -97,7 +94,7 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 
 		void load_level_prompt();
-		void load_level(const char* lvl);
+		void load_level(const char* relative_path);
 		void save_lavel();
 
 		// -----------------------------------------------------------------------------
@@ -129,21 +126,6 @@ namespace SFG
 			return _renderer.get_output_gpu_index(frame);
 		}
 
-		inline editor_settings& settings()
-		{
-			return _settings;
-		}
-
-		inline editor_theme& theme()
-		{
-			return _theme;
-		}
-
-		inline editor_layout& layout()
-		{
-			return _layout;
-		}
-
 	private:
 		app&		 _app;
 		world_handle _camera_entity	  = {};
@@ -153,10 +135,7 @@ namespace SFG
 		world_handle _ambient_trait	  = {};
 		world_handle _gizmo_entity	  = {};
 
-		editor_settings _settings = {};
-		editor_theme	_theme	  = {};
-		editor_layout	_layout	  = {};
-		editor_camera	_camera_controller;
+		editor_camera _camera_controller;
 
 		// gfx
 		editor_renderer _renderer = {};

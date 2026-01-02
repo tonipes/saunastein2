@@ -31,10 +31,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "world/world.hpp"
 #include <vendor/miniaudio/miniaudio.h>
 
-#ifdef SFG_TOOLMODE
-#include "project/engine_data.hpp"
-#endif
-
 namespace SFG
 {
 	audio::~audio()

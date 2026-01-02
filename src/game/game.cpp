@@ -27,7 +27,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "game/game.hpp"
 #include "app/app.hpp"
 #include "world/world.hpp"
-#include "project/engine_data.hpp"
 
 #include "resources/world_raw.hpp"
 #include "resources/model.hpp"
@@ -102,7 +101,7 @@ namespace SFG
 		randoms.reserve(10000);
 
 		world_raw raw = {};
-		raw.load_from_file("assets/world/demo_world.stkworld", engine_data::get().get_working_dir().c_str());
+		// raw.load_from_file("assets/world/demo_world.stkworld", engine_data::get().get_working_dir().c_str());
 		_app.get_world().create_from_loader(raw);
 
 		_app.get_editor()->get_camera().activate();

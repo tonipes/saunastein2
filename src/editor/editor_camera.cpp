@@ -47,11 +47,7 @@ namespace SFG
 
 	void editor_camera::uninit()
 	{
-		if (_is_active)
-			deactivate();
-
-		_entity = {};
-		reset_runtime();
+		
 	}
 
 	void editor_camera::activate()
@@ -82,7 +78,8 @@ namespace SFG
 
 	void editor_camera::deactivate()
 	{
-		SFG_ASSERT(_is_active == 1);
+		if (!_is_active)
+			return;
 
 		world&			   w  = *_world;
 		entity_manager&	   em = w.get_entity_manager();
