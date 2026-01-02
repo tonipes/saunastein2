@@ -184,9 +184,10 @@ namespace SFG
 	{
 		ZoneScoped;
 
-		_peak_entities = 0;
+		uint32	peak = 0;
 		istream in;
-		stream.read(&_entities->get(0), _peak_entities, in);
+		stream.read(&_entities->get(0), peak, in);
+		_peak_entities = math::max(_peak_entities, peak);
 
 		if (in.get_size() == 0)
 			return;

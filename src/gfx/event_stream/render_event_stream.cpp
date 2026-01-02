@@ -70,8 +70,6 @@ namespace SFG
 		}
 	}
 
-	uint64 a = 0;
-
 	void render_event_stream::publish()
 	{
 		ZoneScoped;

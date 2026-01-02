@@ -41,8 +41,8 @@ namespace SFG
 	void editor_panels_docking::draw(const vector2ui16& window_size)
 	{
 		ImGuiViewport* vp = ImGui::GetMainViewport();
-		ImGui::SetNextWindowPos(ImVec2(vp->WorkPos.x, vp->WorkPos.y ));
-		ImGui::SetNextWindowSize(ImVec2(vp->WorkSize.x, vp->WorkSize.y ));
+		ImGui::SetNextWindowPos(ImVec2(vp->WorkPos.x, vp->WorkPos.y + 40 ));
+		ImGui::SetNextWindowSize(ImVec2(vp->WorkSize.x, vp->WorkSize.y - 40));
 		ImGui::SetNextWindowViewport(vp->ID);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);

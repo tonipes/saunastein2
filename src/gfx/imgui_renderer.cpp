@@ -230,7 +230,6 @@ namespace SFG
 
 	void imgui_renderer::render(gfx_id cmd_buffer)
 	{
-		return;
 
 		EnterCriticalSection(&g_imgui_rend_crit);
 		if (ImGui::GetDrawData())

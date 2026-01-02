@@ -37,7 +37,7 @@ namespace SFG
 	static void draw_entity_node(entity_manager& em, world_handle e)
 	{
 		const entity_meta& meta	 = em.get_entity_meta(e);
-		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_FramePadding ;
 		bool			   open	 = ImGui::TreeNodeEx((void*)(uintptr_t)e.index, flags, "%s", meta.name);
 		if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
 		{
