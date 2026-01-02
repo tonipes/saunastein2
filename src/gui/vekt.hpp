@@ -650,48 +650,6 @@ namespace vekt
 #endif
 
 	////////////////////////////////////////////////////////////////////////////////
-	// :: INPUT
-	////////////////////////////////////////////////////////////////////////////////
-
-	enum class input_event_type
-	{
-		pressed,
-		released,
-		repeated,
-	};
-
-	enum class input_event_result
-	{
-		handled,
-		not_handled,
-	};
-
-	enum class input_event_phase
-	{
-		tunneling,
-		bubbling,
-	};
-
-	struct mouse_event
-	{
-		input_event_type type	  = input_event_type::pressed;
-		int				 button	  = 0;
-		VEKT_VEC2		 position = VEKT_VEC2();
-	};
-
-	struct mouse_wheel_event
-	{
-		float amount = 0.0f;
-	};
-
-	struct key_event
-	{
-		input_event_type type	   = input_event_type::pressed;
-		int				 key	   = 0;
-		int				 scan_code = 0;
-	};
-
-	////////////////////////////////////////////////////////////////////////////////
 	// :: WIDGET UTILS
 	////////////////////////////////////////////////////////////////////////////////
 
@@ -762,6 +720,48 @@ namespace vekt
 		float bottom = 0.0f;
 		float left	 = 0.0f;
 		float right	 = 0.0f;
+	};
+
+	////////////////////////////////////////////////////////////////////////////////
+	// :: INPUT
+	////////////////////////////////////////////////////////////////////////////////
+
+	enum class input_event_type
+	{
+		pressed,
+		released,
+		repeated,
+	};
+
+	enum class input_event_result
+	{
+		handled,
+		not_handled,
+	};
+
+	enum class input_event_phase
+	{
+		tunneling,
+		bubbling,
+	};
+
+	struct mouse_event
+	{
+		input_event_type type	  = input_event_type::pressed;
+		int				 button	  = 0;
+		VEKT_VEC2		 position = VEKT_VEC2();
+	};
+
+	struct mouse_wheel_event
+	{
+		float amount = 0.0f;
+	};
+
+	struct key_event
+	{
+		input_event_type type	   = input_event_type::pressed;
+		int				 key	   = 0;
+		int				 scan_code = 0;
 	};
 
 	////////////////////////////////////////////////////////////////////////////////

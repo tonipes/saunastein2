@@ -89,6 +89,8 @@ namespace SFG
 			.buffer_count				 = 12,
 		});
 
+		_builder->add_input_layer(0, _builder->get_root());
+
 		_font_manager = new vekt::font_manager();
 		_font_manager->init();
 		_font_manager->set_callback_user_data(&_renderer);
@@ -101,7 +103,7 @@ namespace SFG
 		const string default_font_str = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/VT323-Regular.ttf");
 		const string title_font_str	  = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/VT323-Regular.ttf");
 
-		_font_main	= _font_manager->load_font_from_file(default_font_str.c_str(), 18);
+		_font_main	= _font_manager->load_font_from_file(default_font_str.c_str(), 28);
 		_font_title = _font_manager->load_font_from_file(title_font_str.c_str(), 36);
 
 		_camera_controller.init(_app.get_world(), _app.get_main_window());
@@ -245,8 +247,19 @@ namespace SFG
 		if (_camera_controller.on_window_event(ev))
 			return true;
 
+		if (ev.type == window_event_type::delta)
+		{
+			const vector2i16& mp = _app.get_main_window().get_mouse_position();
+			_builder->on_mouse_move(vector2(mp.x, mp.y));
+		}
 		if (ev.type == window_event_type::mouse && ev.sub_type == window_event_sub_type::press)
 		{
+			_builder->on_mouse_event({
+				.type	  = static_cast<vekt::input_event_type>(ev.sub_type),
+				.button	  = ev.button,
+				.position = VEKT_VEC2(ev.value.x, ev.value.y),
+			});
+
 			if (ev.button == input_code::mouse_0 && ev.value.x > 0 && ev.value.y > 0)
 			{
 				// const uint32	   id	= _game.get_renderer()->get_world_renderer()->get_render_pass_object_id().read_location(ev.value.x, ev.value.y, 0);

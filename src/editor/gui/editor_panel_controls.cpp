@@ -40,11 +40,27 @@ namespace SFG
 	{
 
 		vekt::gui_builder gui_builder = vekt::gui_builder(builder);
-		gui_builder.style.active_font = editor_theme::get().font_title;
 		_widget						  = gui_builder.begin_root();
 
+		gui_builder.style.active_font = editor_theme::get().font_title;
 		gui_builder.add_title("general");
+		gui_builder.style.active_font = editor_theme::get().font_default;
+		const string vstr			  = "stakeforge_engine v." + std::to_string(SFG_MAJOR) + "." + std::to_string(SFG_MINOR) + "." + string(SFG_BUILD);
+
+		gui_builder.add_label(vstr.c_str());
+		gui_builder.add_hyperlink("github", "https://github.com/inanevin/stakeforge");
+
+		gui_builder.style.active_font = editor_theme::get().font_title;
 		gui_builder.add_title("stats");
+
+		gui_builder.style.active_font = editor_theme::get().font_default;
+		gui_builder.add_label("fps: ");
+		gui_builder.add_label("main: ");
+		gui_builder.add_label("render: ");
+		gui_builder.add_label("ram: ");
+		gui_builder.add_label("vram: ");
+
+		// gui_builder.add_title("stats");
 		gui_builder.end_root();
 
 		builder->widget_add_child(builder->get_root(), _widget);

@@ -182,11 +182,12 @@ namespace SFG
 
 		imgui_renderer _imgui = {};
 
-		static constexpr uint32 SNAPSHOTS_SIZE = 2;
+		static constexpr uint32 SNAPSHOTS_SIZE = 3;
 		// GUI snapshot mailbox (lock-free)
 		vekt::snapshot* _snapshots			= nullptr;
 		atomic<uint32>	_published_snapshot = UINT32_MAX;
 		atomic<uint32>	_reader_slot		= 0;
+		uint32			_writer_slot		= 0;
 		uint32			_current_read_slot	= UINT32_MAX;
 	};
 }

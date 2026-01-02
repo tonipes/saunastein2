@@ -43,16 +43,21 @@ namespace vekt
 		{
 
 			gui_builder_style();
+			SFG::vector4 col_title_line_start;
+			SFG::vector4 col_title_line_end;
+			SFG::vector4 col_hyperlink;
 
-			SFG::vector4 title_color;
-			SFG::vector4 text_color;
-			SFG::vector4 frame_background;
-			SFG::vector4 area_background;
-			SFG::vector4 root_background;
+			SFG::vector4 col_title;
+			SFG::vector4 col_text;
+			SFG::vector4 col_frame_bg;
+			SFG::vector4 col_area_bg;
+			SFG::vector4 col_root;
 			font*		 active_font = nullptr;
 
-			float root_margin  = 8.0f;
-			float item_spacing = 4.0f;
+			float root_margin;
+			float item_spacing;
+			float title_line_width;
+			float title_line_height;
 		};
 
 		gui_builder_style style = {};
@@ -64,6 +69,8 @@ namespace vekt
 		void end_area();
 
 		id add_title(const char* title);
+		id add_label(const char* label);
+		id add_hyperlink(const char* label, const char* link);
 
 	private:
 		id new_widget(bool push_to_stack = false);

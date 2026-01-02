@@ -503,7 +503,10 @@ namespace vekt
 
 			VEKT_VEC2 final_size = VEKT_VEC2();
 
-			if (sz.flags & size_flags::sf_x_max_children || sz.flags & size_flags::sf_y_max_children || sz.flags & size_flags::sf_x_total_children || sz.flags & size_flags::sf_y_total_children)
+			const bool touch_x = sz.flags & size_flags::sf_x_max_children || sz.flags & size_flags::sf_x_total_children;
+			const bool touch_y = sz.flags & size_flags::sf_y_max_children || sz.flags & size_flags::sf_y_total_children;
+
+			if (touch_x || touch_y)
 			{
 				for (id child : meta.children)
 				{
@@ -511,18 +514,18 @@ namespace vekt
 
 					if (sz.flags & size_flags::sf_x_max_children)
 						final_size.x = math::max(child_res.size.x, final_size.x);
-					else
+					else if (sz.flags & size_flags::sf_x_total_children)
 						final_size.x += child_res.size.x + sz.spacing;
 
 					if (sz.flags & size_flags::sf_y_max_children)
 						final_size.y = math::max(child_res.size.y + sz.child_margins.top + sz.child_margins.bottom, final_size.y);
-					else
+					else if (sz.flags & size_flags::sf_y_total_children)
 						final_size.y += child_res.size.y + sz.spacing;
 				}
 
 				if (sz.flags & size_flags::sf_x_total_children && !math::equals(final_size.x, 0.0f, 0.001f))
 					final_size.x -= sz.spacing;
-				if (sz.flags & size_flags::sf_x_total_children && !math::equals(final_size.y, 0.0f, 0.001f))
+				if (sz.flags & size_flags::sf_y_total_children && !math::equals(final_size.y, 0.0f, 0.001f))
 					final_size.y -= sz.spacing;
 
 				final_size.x += sz.child_margins.left + sz.child_margins.right;
@@ -534,7 +537,10 @@ namespace vekt
 					final_size.y = final_size.x;
 
 				size_result& res = _size_results[widget];
-				res.size		 = final_size;
+				if (touch_x)
+					res.size.x = final_size.x;
+				if (touch_y)
+					res.size.y = final_size.y;
 			}
 
 			if (widget == fill_parent)
@@ -543,14 +549,15 @@ namespace vekt
 				size_result& res	= _size_results[widget];
 				float		 x_left = res.size.x - sz.child_margins.left - sz.child_margins.right;
 				float		 y_left = res.size.y - sz.child_margins.top - sz.child_margins.bottom;
+				const auto	 pf		= _pos_properties[widget].flags;
 
 				for (id child : meta.children)
 				{
 					const size_result& child_res = _size_results[child];
 
-					if (fill_x_children.find(child) == fill_x_children.end())
+					if (pf & pos_flags::pf_child_pos_row && (fill_x_children.find(child) == fill_x_children.end()))
 						x_left -= child_res.size.x;
-					if (fill_y_children.find(child) == fill_y_children.end())
+					if (pf & pos_flags::pf_child_pos_column && (fill_y_children.find(child) == fill_y_children.end()))
 						y_left -= child_res.size.y;
 				}
 
@@ -633,7 +640,7 @@ namespace vekt
 					const float parent_width = parent_sz_result.size.x;
 
 					if (pp.flags & pos_flags::pf_x_anchor_end)
-						final_pos.x = (parent_result.pos.x + parent_sz_props.child_margins.left) + (parent_width * pp.pos.x) - sr.size.x;
+						final_pos.x = (parent_result.pos.x + parent_width - parent_sz_props.child_margins.right) - sr.size.x;
 					else if (pp.flags & pos_flags::pf_x_anchor_center)
 						final_pos.x = (parent_result.pos.x + parent_sz_props.child_margins.left) + (parent_width * pp.pos.x) - sr.size.x * 0.5f;
 					else
@@ -645,7 +652,7 @@ namespace vekt
 					const float parent_height = parent_sz_result.size.y;
 
 					if (pp.flags & pos_flags::pf_y_anchor_end)
-						final_pos.y = (parent_result.pos.y + parent_sz_props.child_margins.top) + (parent_height * pp.pos.y) - sr.size.x;
+						final_pos.y = (parent_result.pos.y + parent_height - parent_sz_props.child_margins.bottom) - sr.size.y;
 					else if (pp.flags & pos_flags::pf_y_anchor_center)
 						final_pos.y = (parent_result.pos.y + parent_sz_props.child_margins.top) + (parent_height * pp.pos.y) - sr.size.y * 0.5f;
 					else

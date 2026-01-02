@@ -41,7 +41,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace SFG
 {
-	uint8 window::s_key_down_map[512] = {};
+	uint8		 window::s_key_down_map[512] = {};
+	cursor_state window::s_cursor_state		 = cursor_state::arrow;
 
 	namespace
 	{
@@ -129,6 +130,33 @@ namespace SFG
 
 		switch (msg)
 		{
+		case WM_SETCURSOR: {
+			if (LOWORD(lParam) == HTCLIENT) // only client area
+			{
+				switch (s_cursor_state)
+				{
+				case cursor_state::arrow:
+					::SetCursor(::LoadCursor(nullptr, IDC_ARROW));
+					return TRUE;
+				case cursor_state::hand:
+					::SetCursor(::LoadCursor(nullptr, IDC_HAND));
+					return TRUE;
+				case cursor_state::resize_hr:
+					::SetCursor(::LoadCursor(nullptr, IDC_SIZEWE));
+					return TRUE;
+				case cursor_state::resize_vt:
+					::SetCursor(::LoadCursor(nullptr, IDC_SIZENS));
+					return TRUE;
+				case cursor_state::resize_nwse:
+					::SetCursor(::LoadCursor(nullptr, IDC_SIZENWSE));
+					return TRUE;
+				case cursor_state::resize_nesw:
+					::SetCursor(::LoadCursor(nullptr, IDC_SIZENESW));
+					return TRUE;
+				}
+			}
+			break;
+		}
 		case WM_DROPFILES: {
 			HDROP hDrop = (HDROP)wParam;
 			UINT  count = DragQueryFileW(hDrop, 0xFFFFFFFF, nullptr, 0);
@@ -260,17 +288,24 @@ namespace SFG
 			else if (raw->header.dwType == RIM_TYPEMOUSE)
 			{
 				USHORT mouse_flags = raw->data.mouse.usButtonFlags;
-				POINT  cursorPos;
-				GetCursorPos(&cursorPos);
+				// POINT  cursorPos;
+				// GetCursorPos(&cursorPos);
+				//
+				// wnd->_mouse_position_abs = vector2i16(static_cast<int32>(cursorPos.x), static_cast<int32>(cursorPos.y));
+				//
+				// const vector2i16 relative = wnd->_mouse_position_abs - wnd->_position;
+				// wnd->_mouse_position	  = vector2i16::clamp(relative, vector2i16(), vector2i16(static_cast<int16>(wnd->_size.x), static_cast<int16>(wnd->_size.y)));
 
-				wnd->_mouse_position_abs = vector2i16(static_cast<int32>(cursorPos.x), static_cast<int32>(cursorPos.y));
+				POINT screenPt;
+				GetCursorPos(&screenPt);
+				wnd->_mouse_position_abs = vector2i16((int32)screenPt.x, (int32)screenPt.y);
 
-				const vector2i16 relative = wnd->_mouse_position_abs - wnd->_position;
-				wnd->_mouse_position	  = vector2i16::clamp(relative, vector2i16(), vector2i16(static_cast<int16>(wnd->_size.x), static_cast<int16>(wnd->_size.y)));
+				POINT clientPt = screenPt;
+				ScreenToClient(hwnd, &clientPt);
+				wnd->_mouse_position = vector2i16((int16)clientPt.x, (int16)clientPt.y);
 
 				window_event ev = {
-
-					.value = relative,
+					.value = wnd->_mouse_position,
 					.type  = window_event_type::mouse,
 					.flags = wef_high_freq,
 				};
@@ -800,6 +835,11 @@ namespace SFG
 
 		ShowCursor(vis);
 		_flags.set(window_flags::wf_cursor_hidden, !vis);
+	}
+
+	void window::set_cursor_state(cursor_state cs)
+	{
+		s_cursor_state = cs;
 	}
 
 	bool window::is_maximized() const

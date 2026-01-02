@@ -60,6 +60,7 @@ namespace SFG
 		void		bring_to_front();
 		void		confine_cursor(cursor_confinement conf);
 		void		set_cursor_visible(bool vis);
+		static void set_cursor_state(cursor_state cs);
 		bool		is_maximized() const;
 		static void query_all_monitors(vector<monitor_info>& out_info);
 
@@ -141,20 +142,21 @@ namespace SFG
 		void add_event(const window_event& ev);
 
 	private:
-		event_callback	_event_callback			  = nullptr;
-		void*			_event_callback_user_data = nullptr;
-		monitor_info	_monitor_info			  = {};
-		void*			_window_handle			  = nullptr;
-		void*			_platform_handle		  = nullptr;
-		int				_prev_confinement[4];
-		vector2i16		_mouse_position		= vector2i16::zero;
-		vector2i16		_mouse_position_abs = vector2i16::zero;
-		vector2i16		_position			= vector2i16::zero;
-		vector2ui16		_true_size			= vector2ui16::zero;
-		vector2ui16		_size				= vector2ui16::zero;
-		bitmask<uint16> _flags				= 0;
-		vector<string>	_dropped_files;
-		static uint8	s_key_down_map[512];
+		event_callback		_event_callback			  = nullptr;
+		void*				_event_callback_user_data = nullptr;
+		monitor_info		_monitor_info			  = {};
+		void*				_window_handle			  = nullptr;
+		void*				_platform_handle		  = nullptr;
+		int					_prev_confinement[4];
+		vector2i16			_mouse_position		= vector2i16::zero;
+		vector2i16			_mouse_position_abs = vector2i16::zero;
+		vector2i16			_position			= vector2i16::zero;
+		vector2ui16			_true_size			= vector2ui16::zero;
+		vector2ui16			_size				= vector2ui16::zero;
+		bitmask<uint16>		_flags				= 0;
+		vector<string>		_dropped_files;
+		static uint8		s_key_down_map[512];
+		static cursor_state s_cursor_state;
 	};
 
 }

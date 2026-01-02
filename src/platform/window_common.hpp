@@ -61,6 +61,15 @@ namespace SFG
 		wef_high_freq = 1 << 0,
 	};
 
+	enum class cursor_state : uint8
+	{
+		arrow,
+		hand,
+		resize_hr,
+		resize_vt,
+		resize_nwse,
+		resize_nesw,
+	};
 	enum class window_event_type : uint8
 	{
 		key = 0,

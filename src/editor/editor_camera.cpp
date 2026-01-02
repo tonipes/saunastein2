@@ -47,7 +47,6 @@ namespace SFG
 
 	void editor_camera::uninit()
 	{
-		
 	}
 
 	void editor_camera::activate()
@@ -170,8 +169,9 @@ namespace SFG
 					_is_looking	 = false;
 					_mouse_delta = vector2::zero;
 				}
+				return true;
 			}
-			return true;
+			return false;
 		}
 		case window_event_type::wheel:
 			break;
@@ -180,12 +180,12 @@ namespace SFG
 			{
 				_mouse_delta.x += static_cast<float>(ev.value.x);
 				_mouse_delta.y += static_cast<float>(ev.value.y);
+				return true;
 			}
 			else
 			{
 				_mouse_delta = vector2::zero;
 			}
-			return true;
 		}
 		default:
 			break;

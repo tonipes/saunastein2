@@ -91,14 +91,14 @@ namespace SFG
 								   {.size = static_cast<uint32>(idx_sz), .flags = resource_flags::rf_index_buffer | resource_flags::rf_gpu_only, .debug_name = "editor_gui_index_gpu"});
 		}
 
-		// Preallocate GUI snapshots for lock-free handoff
-		_published_snapshot.store(UINT32_MAX, std::memory_order_relaxed);
-		_reader_slot.store(0, std::memory_order_relaxed);
-		_current_read_slot = UINT32_MAX;
-
 		_snapshots = new vekt::snapshot[SNAPSHOTS_SIZE];
 		for (uint32 i = 0; i < SNAPSHOTS_SIZE; i++)
 			_snapshots[i].init(vtx_sz, idx_sz);
+
+		_published_snapshot.store(UINT32_MAX, std::memory_order_relaxed);
+		_reader_slot.store(UINT32_MAX, std::memory_order_relaxed);
+		_writer_slot	   = 0;
+		_current_read_slot = UINT32_MAX;
 	}
 
 	void editor_renderer::uninit()
@@ -134,11 +134,22 @@ namespace SFG
 	{
 		const vekt::vector<vekt::draw_buffer>& draw_buffers = builder->get_draw_buffers();
 
-		// Publish the latest draw buffers into a snapshot without locks.
-		const uint32 reader		= _reader_slot.load(std::memory_order_acquire);
-		const uint32 write_slot = 1u - reader; // double-buffered mailbox
-		_snapshots[write_slot].copy(draw_buffers);
-		_published_snapshot.store(write_slot, std::memory_order_release);
+		const uint32 w = _writer_slot;
+		_snapshots[w].copy(draw_buffers);
+
+		_published_snapshot.store(w, std::memory_order_release);
+
+		// 3) pick next writer slot that is not currently being read
+		const uint32 in_use = _reader_slot.load(std::memory_order_acquire);
+
+		uint32 next = (w + 1) % SNAPSHOTS_SIZE;
+		if (next == in_use)
+			next = (next + 1) % SNAPSHOTS_SIZE;
+
+		// const uint32 latest = _published_snapshot.load(std::memory_order_relaxed);
+		// if (next == latest) next = (next + 1) % SNAPSHOTS_SIZE;
+
+		_writer_slot = next;
 	}
 
 	void editor_renderer::prepare(proxy_manager& pm, gfx_id cmd_buffer, uint8 frame_index)
@@ -164,18 +175,24 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 
 		// consume the latest published snapshot
-		{
-			uint32 published = _published_snapshot.exchange(UINT32_MAX, std::memory_order_acq_rel);
-			if (published != UINT32_MAX)
-				_current_read_slot = published;
+		uint32 idx = _published_snapshot.load(std::memory_order_acquire);
+		if (idx != UINT32_MAX)
+			_current_read_slot = idx;
 
-			if (_current_read_slot != UINT32_MAX)
-			{
-				_reader_slot.store(_current_read_slot, std::memory_order_release);
-				const vekt::vector<vekt::draw_buffer>& draw_buffers = _snapshots[_current_read_slot].draw_buffers;
-				for (const vekt::draw_buffer& db : draw_buffers)
-					draw_vekt(frame_index, db);
-			}
+		if (_current_read_slot != UINT32_MAX)
+		{
+			const uint32 r = _current_read_slot;
+
+			// Claim this slot as used so writer won't pick it
+			_reader_slot.store(r, std::memory_order_release);
+
+			// Consume it
+			const vekt::vector<vekt::draw_buffer>& draw_buffers = _snapshots[r].draw_buffers;
+			for (const vekt::draw_buffer& db : draw_buffers)
+				draw_vekt(frame_index, db);
+
+			// Release claim
+			_reader_slot.store(UINT32_MAX, std::memory_order_release);
 		}
 
 		// -----------------------------------------------------------------------------
