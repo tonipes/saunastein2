@@ -30,10 +30,18 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "data/string.hpp"
 #include <vendor/nhlohmann/json_fwd.hpp>
 
+namespace vekt
+{
+	struct font;
+}
+
 namespace SFG
 {
 	struct editor_theme
 	{
+		vekt::font* font_title	 = nullptr;
+		vekt::font* font_default = nullptr;
+
 		float	default_indent	= 8.0f;
 		vector4 col_bg_frame	= vector4(3, 3, 3, 255) / 255.0f;
 		vector4 col_bg_child	= vector4(8, 8, 8, 255) / 255.0f;
@@ -49,7 +57,6 @@ namespace SFG
 			static editor_theme et;
 			return et;
 		}
-
 
 		void init(const char* base_directory);
 		bool load(const char* path);

@@ -47,7 +47,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace SFG
 {
-	void editor_renderer::init(window& window, texture_queue* texture_queue)
+	void editor_renderer::init(window& window, texture_queue* texture_queue, size_t vtx_sz, size_t idx_sz)
 	{
 		_gfx_data.texture_queue = texture_queue;
 		_gfx_data.screen_size	= window.get_size();
@@ -85,28 +85,24 @@ namespace SFG
 			per_frame_data& pfd = _pfd[i];
 
 			pfd.buf_pass_data.create({.size = sizeof(gui_pass_view), .flags = resource_flags::rf_cpu_visible | resource_flags::rf_constant_buffer, .debug_name = "cbv_editor_gui_pass"});
-			pfd.buf_gui_vtx.create({.size = sizeof(vekt::vertex) * 240000, .flags = resource_flags::rf_vertex_buffer | resource_flags::rf_cpu_visible, .debug_name = "editor_gui_vertex_stg"},
-								   {.size = sizeof(vekt::vertex) * 240000, .flags = resource_flags::rf_vertex_buffer | resource_flags::rf_gpu_only, .debug_name = "editor_gui_vertex_gpu"});
-			pfd.buf_gui_idx.create({.size = sizeof(vekt::index) * 320000, .flags = resource_flags::rf_index_buffer | resource_flags::rf_cpu_visible, .debug_name = "editor_gui_index_stg"},
-								   {.size = sizeof(vekt::index) * 320000, .flags = resource_flags::rf_index_buffer | resource_flags::rf_gpu_only, .debug_name = "editor_gui_index_gpu"});
+			pfd.buf_gui_vtx.create({.size = static_cast<uint32>(vtx_sz), .flags = resource_flags::rf_vertex_buffer | resource_flags::rf_cpu_visible, .debug_name = "editor_gui_vertex_stg"},
+								   {.size = static_cast<uint32>(vtx_sz), .flags = resource_flags::rf_vertex_buffer | resource_flags::rf_gpu_only, .debug_name = "editor_gui_vertex_gpu"});
+			pfd.buf_gui_idx.create({.size = static_cast<uint32>(idx_sz), .flags = resource_flags::rf_index_buffer | resource_flags::rf_cpu_visible, .debug_name = "editor_gui_index_stg"},
+								   {.size = static_cast<uint32>(idx_sz), .flags = resource_flags::rf_index_buffer | resource_flags::rf_gpu_only, .debug_name = "editor_gui_index_gpu"});
 		}
 
-		_snapshots = new vekt::snapshot[THREAD_BUF_SIZE];
-		for (uint32 i = 0; i < THREAD_BUF_SIZE; i++)
-			_snapshots[i].init(1024 * 1024 * 4, 1024 * 1024 * 8);
+		// Preallocate GUI snapshots for lock-free handoff
+		_published_snapshot.store(UINT32_MAX, std::memory_order_relaxed);
+		_reader_slot.store(0, std::memory_order_relaxed);
+		_current_read_slot = UINT32_MAX;
 
-		_imgui.init(window);
+		_snapshots = new vekt::snapshot[SNAPSHOTS_SIZE];
+		for (uint32 i = 0; i < SNAPSHOTS_SIZE; i++)
+			_snapshots[i].init(vtx_sz, idx_sz);
 	}
 
 	void editor_renderer::uninit()
 	{
-		_imgui.uninit();
-
-		for (uint32 i = 0; i < THREAD_BUF_SIZE; i++)
-			_snapshots[i].uninit();
-
-		delete[] _snapshots;
-		_snapshots = nullptr;
 
 		gfx_backend* backend = gfx_backend::get();
 
@@ -126,28 +122,23 @@ namespace SFG
 		}
 
 		destroy_textures();
-	}
 
-	void editor_renderer::draw_begin()
-	{
-		_imgui.new_frame();
-	}
-
-	void editor_renderer::draw_end()
-	{
-		_imgui.end_frame();
+		// Release snapshots
+		for (uint32 i = 0; i < SNAPSHOTS_SIZE; i++)
+			_snapshots[i].uninit();
+		delete[] _snapshots;
+		_snapshots = nullptr;
 	}
 
 	void editor_renderer::draw_end(vekt::builder* builder)
 	{
 		const vekt::vector<vekt::draw_buffer>& draw_buffers = builder->get_draw_buffers();
-		if (draw_buffers.empty())
-			return;
 
-		const int8 last_rendered = _tb_rendered.load(std::memory_order_acquire);
-		_tb_write_index			 = (last_rendered + 1) % THREAD_BUF_SIZE;
-		_snapshots[_tb_write_index].copy(draw_buffers);
-		_tb_latest.store(_tb_write_index, std::memory_order_release);
+		// Publish the latest draw buffers into a snapshot without locks.
+		const uint32 reader		= _reader_slot.load(std::memory_order_acquire);
+		const uint32 write_slot = 1u - reader; // double-buffered mailbox
+		_snapshots[write_slot].copy(draw_buffers);
+		_published_snapshot.store(write_slot, std::memory_order_release);
 	}
 
 	void editor_renderer::prepare(proxy_manager& pm, gfx_id cmd_buffer, uint8 frame_index)
@@ -172,14 +163,20 @@ namespace SFG
 		// flush commands and draw gui here.
 		// -----------------------------------------------------------------------------
 
-		const int8 last_written = _tb_latest.load(std::memory_order_acquire);
-		if (last_written < 0)
-			return;
+		// consume the latest published snapshot
+		{
+			uint32 published = _published_snapshot.exchange(UINT32_MAX, std::memory_order_acq_rel);
+			if (published != UINT32_MAX)
+				_current_read_slot = published;
 
-		_tb_rendered.store(last_written, std::memory_order_release);
-		const vekt::vector<vekt::draw_buffer>& draw_buffers = _snapshots[last_written].draw_buffers;
-		for (const vekt::draw_buffer& db : draw_buffers)
-			draw_vekt(frame_index, db);
+			if (_current_read_slot != UINT32_MAX)
+			{
+				_reader_slot.store(_current_read_slot, std::memory_order_release);
+				const vekt::vector<vekt::draw_buffer>& draw_buffers = _snapshots[_current_read_slot].draw_buffers;
+				for (const vekt::draw_buffer& db : draw_buffers)
+					draw_vekt(frame_index, db);
+			}
+		}
 
 		// -----------------------------------------------------------------------------
 		// copy vtx-index
@@ -272,7 +269,6 @@ namespace SFG
 										   .color_attachment_count = 1,
 									   });
 
-		_imgui.render(cmd_buffer);
 		backend->cmd_bind_layout(cmd_buffer, {.layout = p.global_layout});
 		backend->cmd_bind_group(cmd_buffer, {.group = p.global_group});
 

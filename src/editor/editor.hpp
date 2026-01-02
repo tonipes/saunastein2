@@ -162,6 +162,7 @@ namespace SFG
 		vekt::builder*		_builder		 = nullptr;
 		vekt::font_manager* _font_manager	 = nullptr;
 		vekt::font*			_font_main		 = nullptr;
+		vekt::font*			_font_title		 = nullptr;
 		world_handle		_selected_entity = {};
 		atomic<uint32>		_world_rt_gpu_index{0};
 

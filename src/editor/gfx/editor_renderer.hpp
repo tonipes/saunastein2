@@ -62,8 +62,6 @@ namespace SFG
 	class editor_renderer
 	{
 	private:
-		static constexpr uint32 THREAD_BUF_SIZE = 6;
-
 	public:
 		struct render_params
 		{
@@ -79,10 +77,8 @@ namespace SFG
 		// lifecycle
 		// -----------------------------------------------------------------------------
 
-		void init(window& window, texture_queue* texture_queue);
+		void init(window& window, texture_queue* texture_queue, size_t vtx_size, size_t idx_size);
 		void uninit();
-		void draw_begin();
-		void draw_end();
 		void draw_end(vekt::builder* builder);
 
 		// -----------------------------------------------------------------------------
@@ -184,11 +180,13 @@ namespace SFG
 		per_frame_data _pfd[BACK_BUFFER_COUNT] = {};
 		gui_draw_call  _gui_draw_calls[64]	   = {};
 
-		atomic<int8>	_tb_latest{-1};
-		atomic<int8>	_tb_rendered{-1};
-		int8			_tb_write_index = -1;
-		vekt::snapshot* _snapshots		= nullptr;
-
 		imgui_renderer _imgui = {};
+
+		static constexpr uint32 SNAPSHOTS_SIZE = 2;
+		// GUI snapshot mailbox (lock-free)
+		vekt::snapshot* _snapshots			= nullptr;
+		atomic<uint32>	_published_snapshot = UINT32_MAX;
+		atomic<uint32>	_reader_slot		= 0;
+		uint32			_current_read_slot	= UINT32_MAX;
 	};
 }

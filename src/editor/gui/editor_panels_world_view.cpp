@@ -23,6 +23,7 @@ OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGEN
 OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 OF THE POSSIBILITY OF SUCH DAMAGE.
 */
+
 #include "editor_panels_world_view.hpp"
 #include "math/vector2ui16.hpp"
 #include "imgui.h"
@@ -31,10 +32,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace SFG
 {
-	static vector2ui16 _wv_last = {};
-	static vector2ui16 _wv_pending = {};
-	static bool _wv_has_pending = false;
-	static bool _wv_has_committed = false;
 
 	void editor_panels_world_view::init()
 	{
@@ -46,46 +43,10 @@ namespace SFG
 
 	void editor_panels_world_view::draw(const vector2ui16& window_size)
 	{
-		static bool open = true;
-		if (ImGui::Begin("World View", &open))
-		{
-			ImVec2 avail = ImGui::GetContentRegionAvail();
-			ImGui::BeginChild("WorldViewChild", avail, false);
-			ImVec2 win_sz = ImGui::GetWindowSize();
-			vector2ui16 cur(static_cast<uint16>(win_sz.x), static_cast<uint16>(win_sz.y));
-			if ((_wv_last.x != cur.x || _wv_last.y != cur.y))
-			{
-				_wv_pending = cur;
-				_wv_has_pending = true;
-			}
-			if (_wv_has_pending && !ImGui::IsAnyMouseDown())
-			{
-				_wv_last = _wv_pending;
-				_wv_has_pending = false;
-				_wv_has_committed = true;
-			}
-			if (_wv_last.x == 0 || _wv_last.y == 0)
-			{
-				_wv_last = cur;
-				_wv_has_committed = true;
-			}
-			uint32 idx = editor::get().get_world_rt_gpu_index();
-			if (idx != 0 && avail.x > 1.0f && avail.y > 1.0f)
-			{
-				ImU64 handle = gfx_backend::get()->get_srv_gpu_handle_from_index(idx);
-				ImGui::Image(ImTextureRef(handle), avail);
-			}
-			ImGui::EndChild();
-		}
-		ImGui::End();
 	}
 
 	bool editor_panels_world_view::consume_committed_size(vector2ui16& out_size)
 	{
-		if (!_wv_has_committed)
-			return false;
-		_wv_has_committed = false;
-		out_size = _wv_last;
-		return true;
+		return false;
 	}
 }

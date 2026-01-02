@@ -79,8 +79,10 @@ namespace vekt
 #define ASSERT(...)	 assert(__VA_ARGS__)
 #define MEMSET(...)	 memset(__VA_ARGS__)
 
-#define VEKT_STRING_CSTR
-#define VEKT_STRING const char*
+// #define VEKT_STRING_CSTR
+#include <string>
+// #define VEKT_STRING const char*
+#define VEKT_STRING std::string
 
 #ifndef VEKT_VARIANT
 #define VEKT_VARIANT std::variant

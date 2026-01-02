@@ -78,9 +78,12 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 
 		_builder = new vekt::builder();
+
+		constexpr size_t VTX_SZ = 1024 * 1024 * 4;
+		constexpr size_t IDX_SZ = 1024 * 1024 * 4;
 		_builder->init({
-			.vertex_buffer_sz			 = 1024 * 1024 * 4,
-			.index_buffer_sz			 = 1024 * 1024 * 8,
+			.vertex_buffer_sz			 = VTX_SZ,
+			.index_buffer_sz			 = IDX_SZ,
 			.text_cache_vertex_buffer_sz = 1024 * 1024 * 2,
 			.text_cache_index_buffer_sz	 = 1024 * 1024 * 4,
 			.buffer_count				 = 12,
@@ -93,14 +96,13 @@ namespace SFG
 		_font_manager->set_atlas_updated_callback(editor_renderer::on_atlas_updated);
 		_font_manager->set_atlas_destroyed_callback(editor_renderer::on_atlas_destroyed);
 
-		_renderer.init(_app.get_main_window(), _app.get_renderer().get_texture_queue());
+		_renderer.init(_app.get_main_window(), _app.get_renderer().get_texture_queue(), VTX_SZ, IDX_SZ);
 
-#ifdef SFG_TOOLMODE
-		const string p = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/VT323-Regular.ttf");
-		_font_main	   = _font_manager->load_font_from_file(p.c_str(), 18);
-#else
-		SFG_NOTIMPLEMENTED();
-#endif
+		const string default_font_str = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/VT323-Regular.ttf");
+		const string title_font_str	  = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/VT323-Regular.ttf");
+
+		_font_main	= _font_manager->load_font_from_file(default_font_str.c_str(), 18);
+		_font_title = _font_manager->load_font_from_file(title_font_str.c_str(), 36);
 
 		_camera_controller.init(_app.get_world(), _app.get_main_window());
 
@@ -122,13 +124,16 @@ namespace SFG
 		editor_theme::get().init(editor_settings::get()._editor_folder.c_str());
 		editor_layout::get().init(editor_settings::get()._editor_folder.c_str());
 
+		editor_theme::get().font_default = _font_main;
+		editor_theme::get().font_title	 = _font_title;
+
 		// _app.get_world().uninit();
 		// _app.get_world().init();
 
 		_app.get_world().init();
 		_camera_controller.activate();
 
-		//if (!editor_settings::get().last_world_relative.empty())
+		// if (!editor_settings::get().last_world_relative.empty())
 		//{
 		//	const string last_world = editor_settings::get().working_dir + editor_settings::get().last_world_relative;
 		//
@@ -139,29 +144,32 @@ namespace SFG
 		//		_app.get_world().init();
 		//		_camera_controller.activate();
 		//	}
-		//}
-		//else
+		// }
+		// else
 		//{
 		//	_app.get_world().init();
 		//	_camera_controller.activate();
-		//}
+		// }
 
 		// -----------------------------------------------------------------------------
 		// gui
 		// -----------------------------------------------------------------------------
 
 		_gui_world_overlays.init(_builder);
-		_panel_controls.init();
+		_panel_controls.init(_builder);
 		_panel_entities.init();
 		_panel_properties.init();
 		_panel_world_view.init();
 		_panels_docking.init();
-
 	}
 
 	void editor::uninit()
 	{
+		editor_theme::get().font_default = nullptr;
+		editor_theme::get().font_title	 = nullptr;
+
 		_font_manager->unload_font(_font_main);
+		_font_manager->unload_font(_font_title);
 		_font_manager->uninit();
 		delete _font_manager;
 		_font_manager = nullptr;
@@ -196,28 +204,26 @@ namespace SFG
 		}
 		wnd.clear_dropped_files();
 
-
 		world&			   w  = _app.get_world();
 		const vector2ui16& ws = _app.get_main_window().get_size();
 		vector2ui16		   world_res;
 		if (_panel_world_view.consume_committed_size(world_res))
 			_app.set_game_resolution(world_res);
 
-		_renderer.draw_begin();
-		_panels_docking.draw(ws);
-		_panel_entities.draw(w, ws);
-		_panel_properties.draw(w, _selected_entity, ws);
-		_panel_controls.draw(ws);
-		_panel_world_view.draw(ws);
+		// _renderer.draw_begin();
+		// _panels_docking.draw(ws);
+		// _panel_entities.draw(w, ws);
+		// _panel_properties.draw(w, _selected_entity, ws);
+		// _panel_controls.draw(ws);
+		// _panel_world_view.draw(ws);
+		// _renderer.draw_end();
 
-		_renderer.draw_end();
+		_panel_controls.draw(ws, _builder);
+		_builder->build_begin(vector2(ws.x, ws.y));
+		_builder->build_end();
 
-		// _builder->build_begin(vector2(ws.x, ws.y));
-		// _panel_controls.draw({});
-		// _builder->build_end();
-		//
-		// // notify buffer swap
-		// _renderer.draw_end(_builder);
+		// notify buffer swap
+		_renderer.draw_end(_builder);
 	}
 
 	void editor::render(const render_params& p)

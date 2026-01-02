@@ -26,18 +26,59 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+#include "gui/vekt_defines.hpp"
+#include "math/vector4.hpp"
 
-namespace SFG
+namespace vekt
 {
-	class world;
+	class builder;
+	class font;
 
-	class editor_panel_entities
+	class gui_builder
 	{
 	public:
-		void init();
-		void uninit();
-		void draw(world& w, const struct vector2ui16& window_size);
+		gui_builder(vekt::builder* b) : _builder(b) {};
+
+		struct gui_builder_style
+		{
+
+			gui_builder_style();
+
+			SFG::vector4 title_color;
+			SFG::vector4 text_color;
+			SFG::vector4 frame_background;
+			SFG::vector4 area_background;
+			SFG::vector4 root_background;
+			font*		 active_font = nullptr;
+
+			float root_margin  = 8.0f;
+			float item_spacing = 4.0f;
+		};
+
+		gui_builder_style style = {};
+
+		id	 begin_root();
+		void end_root();
+
+		id	 begin_area();
+		void end_area();
+
+		id add_title(const char* title);
 
 	private:
+		id new_widget(bool push_to_stack = false);
+
+		void push_stack(id s);
+		id	 pop_stack();
+		id	 stack();
+
+	private:
+		static constexpr unsigned int STACK_SIZE = 512;
+
+		vekt::builder* _builder			  = nullptr;
+		id			   _stack[STACK_SIZE] = {NULL_WIDGET_ID};
+		id			   _root			  = NULL_WIDGET_ID;
+		id			   _stack_ptr		  = 0;
 	};
+
 }

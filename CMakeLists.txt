@@ -143,6 +143,7 @@ src/gfx/proxy/*.cpp
 src/resources/*.cpp
 src/physics/*.cpp
 src/gui/*.cpp
+src/gui/widgets/*.cpp
 src/game/*.cpp
 src/world/*.cpp
 src/world/components/*.cpp
@@ -178,6 +179,7 @@ src/gfx/world/render_pass/*.hpp
 src/gfx/event_stream/*.hpp
 src/gfx/proxy/*.hpp
 src/gui/*.hpp
+src/gui/widgets/*.hpp
 src/app/*.hpp
 src/project/*.hpp
 src/resources/*.hpp

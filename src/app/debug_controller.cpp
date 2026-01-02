@@ -74,14 +74,14 @@ namespace SFG
 
 #define MAX_CONSOLE_TEXT		128
 #define MAX_INPUT_FIELD			127
-#define COLOR_TEXT				color::srgb_to_linear(color(129.0f / 255.0f, 220.0f / 255.0f, 148.0f / 255.0f, 1.0f)).to_vector()
-#define COLOR_TEXT_WARN			color::srgb_to_linear(color(240.0f / 255.0f, 220.0f / 255.0f, 148.0f / 255.0f, 1.0f)).to_vector()
-#define COLOR_TEXT_PROGRESS		color::srgb_to_linear(color(148.0f / 255.0f, 170.0f / 255.0f, 240.0f / 255.0f, 1.0f)).to_vector()
-#define COLOR_TEXT_ERR			color::srgb_to_linear(color(250.0f / 255.0f, 120.0f / 255.0f, 88.0f / 255.0f, 1.0f)).to_vector()
-#define COLOR_TEXT_DARK			color::srgb_to_linear(color(119.0f / 255.0f, 210.0f / 255.0f, 138.0f / 255.0f, 1.0f)).to_vector()
-#define COLOR_CONSOLE_BG		color::srgb_to_linear(color(12.0f / 255.0f, 16.0f / 255.0f, 12.0f / 255.0f, 0.95f)).to_vector()
-#define COLOR_CONSOLE_BG_OPAQUE color::srgb_to_linear(color(12.0f / 255.0f, 16.0f / 255.0f, 12.0f / 255.0f, 1.0f)).to_vector()
-#define COLOR_BORDER			color::srgb_to_linear(color(89.0f / 255.0f, 180.0f / 255.0f, 108.0f / 255.0f, 1.0f)).to_vector()
+#define COLOR_TEXT				color(129.0f / 255.0f, 220.0f / 255.0f, 148.0f / 255.0f, 1.0f).srgb_to_linear().to_vector()
+#define COLOR_TEXT_WARN			color(240.0f / 255.0f, 220.0f / 255.0f, 148.0f / 255.0f, 1.0f).srgb_to_linear().to_vector()
+#define COLOR_TEXT_PROGRESS		color(148.0f / 255.0f, 170.0f / 255.0f, 240.0f / 255.0f, 1.0f).srgb_to_linear().to_vector()
+#define COLOR_TEXT_ERR			color(250.0f / 255.0f, 120.0f / 255.0f, 88.0f / 255.0f, 1.0f).srgb_to_linear().to_vector()
+#define COLOR_TEXT_DARK			color(119.0f / 255.0f, 210.0f / 255.0f, 138.0f / 255.0f, 1.0f).srgb_to_linear().to_vector()
+#define COLOR_CONSOLE_BG		color(12.0f / 255.0f, 16.0f / 255.0f, 12.0f / 255.0f, 0.95f).srgb_to_linear().to_vector()
+#define COLOR_CONSOLE_BG_OPAQUE color(12.0f / 255.0f, 16.0f / 255.0f, 12.0f / 255.0f, 1.0f).srgb_to_linear().to_vector()
+#define COLOR_BORDER			color(89.0f / 255.0f, 180.0f / 255.0f, 108.0f / 255.0f, 1.0f).srgb_to_linear().to_vector()
 #define DEBUG_FONT_SIZE			20
 #define INPUT_FIELD_HEIGHT		static_cast<float>(get_font_size()) * 1.5f
 #define CONSOLE_SPACING			static_cast<float>(get_font_size()) * 0.5f
@@ -949,29 +949,45 @@ namespace SFG
 		_gfx_data.frame_counter++;
 		if (_gfx_data.frame_counter % 120 == 0)
 		{
-			const vekt::text_props& fps_props	 = _vekt_data.builder->widget_get_text(_vekt_data.widget_fps);
-			const vekt::text_props& update_props = _vekt_data.builder->widget_get_text(_vekt_data.widget_main_thread);
-			const vekt::text_props& render_props = _vekt_data.builder->widget_get_text(_vekt_data.widget_render_thread);
+			vekt::text_props& fps_props	   = _vekt_data.builder->widget_get_text(_vekt_data.widget_fps);
+			vekt::text_props& update_props = _vekt_data.builder->widget_get_text(_vekt_data.widget_main_thread);
+			vekt::text_props& render_props = _vekt_data.builder->widget_get_text(_vekt_data.widget_render_thread);
+#ifdef VEKT_STRING_CSTR
 			string_util::append_float(static_cast<float>(frame_info::get_fps()), (char*)fps_props.text + 5, 4, 1, true);
 			string_util::append_float(static_cast<float>(frame_info::get_main_thread_time_milli()), (char*)update_props.text + 6, 7, 4, true);
 			string_util::append_float(static_cast<float>(frame_info::get_render_thread_time_milli()), (char*)render_props.text + 8, 7, 4, true);
+#else
+			fps_props.text	  = "FPS: " + std::to_string(frame_info::get_fps());
+			update_props.text = "main: " + std::to_string(frame_info::get_main_thread_time_milli());
+			render_props.text = "render: " + std::to_string(frame_info::get_render_thread_time_milli());
+#endif
 
 #ifdef SFG_ENABLE_MEMORY_TRACER
 			memory_tracer& tracer = memory_tracer::get();
 			LOCK_GUARD(tracer.get_category_mtx());
 
-			const vekt::text_props& glob_mem_props = _vekt_data.builder->widget_get_text(_vekt_data.widget_global_mem);
-			const vekt::text_props& gfx_mem_props  = _vekt_data.builder->widget_get_text(_vekt_data.widget_gfx_mem);
+			vekt::text_props& glob_mem_props = _vekt_data.builder->widget_get_text(_vekt_data.widget_global_mem);
+			vekt::text_props& gfx_mem_props	 = _vekt_data.builder->widget_get_text(_vekt_data.widget_gfx_mem);
 
 			for (const memory_category& cat : tracer.get_categories())
 			{
 				if (TO_SID(cat.name) == TO_SID("General"))
 				{
+#ifdef VEKT_STRING_CSTR
+
 					string_util::append_float(static_cast<float>(cat.total_size) / B_TO_MB, (char*)glob_mem_props.text + 5, 6, 4, true);
+#else
+					// glob_mem_props.text = "ram: " + std::to_string(static_cast<float>(cat.total_size) / B_TO_MB);
+#endif
 				}
 				else if (TO_SID(cat.name) == TO_SID("Gfx"))
 				{
+#ifdef VEKT_STRING_CSTR
+
 					string_util::append_float(static_cast<float>(cat.total_size) / B_TO_MB, (char*)gfx_mem_props.text + 6, 6, 4, true);
+#else
+					//gfx_mem_props.text = "vram: " + std::to_string(static_cast<float>(cat.total_size) / B_TO_MB);
+#endif
 				}
 			}
 #endif
@@ -1037,7 +1053,9 @@ namespace SFG
 			vekt::id		  t	 = _vekt_data.console_texts[0];
 			vekt::text_props& tp = _vekt_data.builder->widget_get_text(t);
 			_vekt_data.console_total_text_size_y -= _vekt_data.builder->widget_get_size_props(t).size.y + get_spacing();
+#ifdef VEKT_STRING_CSTR
 			_text_allocator.deallocate((char*)tp.text);
+#endif
 			_vekt_data.builder->deallocate(t);
 			_vekt_data.console_texts.erase(_vekt_data.console_texts.begin());
 		}

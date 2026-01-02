@@ -874,7 +874,6 @@ namespace vekt
 	{
 		size_props& props = _size_properties[widget_id];
 		props.size		  = size;
-		props.flags		  = 0;
 		props.flags |= size_flags::sf_x_abs;
 		props.flags |= size_flags::sf_y_abs;
 	}
@@ -945,7 +944,6 @@ namespace vekt
 	{
 		pos_props& props = _pos_properties[widget_id];
 		props.pos		 = pos;
-		props.flags		 = 0;
 		props.flags |= pos_flags::pf_x_abs;
 		props.flags |= pos_flags::pf_y_abs;
 	}

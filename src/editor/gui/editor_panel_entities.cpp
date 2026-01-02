@@ -36,48 +36,10 @@ namespace SFG
 {
 	static void draw_entity_node(entity_manager& em, world_handle e)
 	{
-		const entity_meta& meta	 = em.get_entity_meta(e);
-		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanFullWidth | ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_FramePadding ;
-		bool			   open	 = ImGui::TreeNodeEx((void*)(uintptr_t)e.index, flags, "%s", meta.name);
-		if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
-		{
-			editor::get().set_selected_entity(e);
-		}
-		if (ImGui::BeginPopupContextItem())
-		{
-			if (ImGui::MenuItem("add child"))
-			{
-				world_handle child = em.create_entity("entity");
-				em.add_child(e, child);
-			}
-			if (ImGui::MenuItem("delete"))
-			{
-				em.destroy_entity(e);
-				ImGui::EndPopup();
-				if (open)
-					ImGui::TreePop();
-				return;
-			}
-			ImGui::EndPopup();
-		}
-
-		if (open)
-		{
-			const entity_family& fam = em.get_entity_family(e);
-			world_handle		 c	 = fam.first_child;
-			while (!c.is_null())
-			{
-				world_handle next = em.get_entity_family(c).next_sibling;
-				draw_entity_node(em, c);
-				c = next;
-			}
-			ImGui::TreePop();
-		}
 	}
 
 	void editor_panel_entities::init()
 	{
-		
 	}
 
 	void editor_panel_entities::uninit()
@@ -86,36 +48,5 @@ namespace SFG
 
 	void editor_panel_entities::draw(world& w, const vector2ui16& window_size)
 	{
-		const ImVec2 initial_pos(0.0f, 0.0f);
-		const ImVec2 initial_size(static_cast<float>(window_size.x) * 0.25f, static_cast<float>(window_size.y) * 0.6f);
-		ImGui::SetNextWindowPos(initial_pos, ImGuiCond_FirstUseEver);
-		ImGui::SetNextWindowSize(initial_size, ImGuiCond_FirstUseEver);
-		static bool open = true;
-		if (ImGui::Begin("Entities", &open))
-		{
-			ImGui::BeginChild("EntitiesChild", ImVec2(0.0f, 0.0f), false);
-			entity_manager& em		 = w.get_entity_manager();
-			auto&			entities = *em.get_entities();
-			_reuse_roots.resize(0);
-			for (auto it = entities.handles_begin(); it != entities.handles_end(); ++it)
-			{
-				world_handle		 e	 = *it;
-				const entity_family& fam = em.get_entity_family(e);
-				if (fam.parent.is_null())
-					_reuse_roots.push_back(e);
-			}
-			for (const world_handle r : _reuse_roots)
-				draw_entity_node(em, r);
-			if (ImGui::BeginPopupContextWindow("EntitiesChildCtx", ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
-			{
-				if (ImGui::MenuItem("add root"))
-				{
-					w.get_entity_manager().create_entity("entity");
-				}
-				ImGui::EndPopup();
-			}
-			ImGui::EndChild();
-		}
-		ImGui::End();
 	}
 }

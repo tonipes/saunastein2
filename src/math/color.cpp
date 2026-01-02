@@ -49,7 +49,7 @@ namespace SFG
 	color color::brown	= color(0.647f, 0.164f, 0.164f);
 	color color::gray	= color(0.5f, 0.5f, 0.5f);
 
-	color color::linear_to_srgb(const color& linear_color)
+	color color::linear_to_srgb()
 	{
 		auto convert = [](float value) {
 			if (value <= 0.0031308f)
@@ -62,10 +62,10 @@ namespace SFG
 			}
 		};
 
-		return color(convert(linear_color.x), convert(linear_color.y), convert(linear_color.z), convert(linear_color.w));
+		return color(convert(x), convert(y), convert(z), convert(w));
 	}
 
-	color color::srgb_to_linear(const color& srgb_color)
+	color color::srgb_to_linear()
 	{
 		auto convert = [](float value) {
 			if (value <= 0.04045f)
@@ -78,7 +78,7 @@ namespace SFG
 			}
 		};
 
-		return color(convert(srgb_color.x), convert(srgb_color.y), convert(srgb_color.z), convert(srgb_color.w));
+		return color(convert(x), convert(y), convert(z), convert(w));
 	}
 
 	color color::from255(float r, float g, float b, float a)

@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -42,8 +42,8 @@ namespace SFG
 	public:
 		color(float rv = 1.0f, float gv = 1.0f, float bv = 1.0f, float av = 1.0f) : x(rv), y(gv), z(bv), w(av) {};
 		static color from255(float r, float g, float b, float a);
-		static color linear_to_srgb(const color& linear_color);
-		static color srgb_to_linear(const color& srgb_color);
+		color		 linear_to_srgb();
+		color		 srgb_to_linear();
 
 		vector4 to_vector() const;
 		void	round();
