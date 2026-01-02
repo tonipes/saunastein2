@@ -36,6 +36,9 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace SFG
 {
+#ifdef SFG_PLATFORM_WINDOWS
+	CRITICAL_SECTION g_imgui_rend_crit;
+#endif
 	void imgui_renderer::init(window& w)
 	{
 		ImGui_ImplWin32_EnableDpiAwareness();
@@ -78,6 +81,8 @@ namespace SFG
 		style.ChildRounding	  = 4;
 		style.ChildBorderSize = 2;
 		style.FrameBorderSize = 1.0f;
+		style.WindowPadding.x = 0;
+		style.WindowPadding.y = 0;
 
 		ImVec4* colors							   = style.Colors;
 		colors[ImGuiCol_Text]					   = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
@@ -159,10 +164,19 @@ namespace SFG
 		ImGui_ImplDX12_Init(&init_info);
 
 		_snapshots = new ImDrawDataSnapshot[BUFFER_SIZE];
+
+#ifdef SFG_PLATFORM_WINDOWS
+		if (!InitializeCriticalSectionAndSpinCount(&g_imgui_rend_crit, 0x00000400))
+			return;
+#endif
 	}
 
 	void imgui_renderer::uninit()
 	{
+#ifdef SFG_PLATFORM_WINDOWS
+		DeleteCriticalSection(&g_imgui_rend_crit);
+#endif
+
 		delete[] _snapshots;
 		_snapshots = nullptr;
 
@@ -173,7 +187,10 @@ namespace SFG
 
 	void imgui_renderer::new_frame()
 	{
+		EnterCriticalSection(&g_imgui_rend_crit);
+		SFG_TRACE("CRIT ENTER MAIN");
 		ImGui_ImplDX12_NewFrame();
+
 		ImGui_ImplWin32_NewFrame();
 		ImGui::NewFrame();
 
@@ -184,39 +201,48 @@ namespace SFG
 	void imgui_renderer::end_frame()
 	{
 		ImGui::Render();
+		LeaveCriticalSection(&g_imgui_rend_crit);
+		SFG_TRACE("CRIT LEAVE MAIN");
 
-		// Process texture create/update/destroy on the main thread
-		ImDrawData* dd = ImGui::GetDrawData();
-		if (dd->Textures)
-		{
-			for (ImTextureData* tex : *dd->Textures)
-				if (tex->Status != ImTextureStatus_OK)
-					ImGui_ImplDX12_UpdateTexture(tex);
-		}
-
-		int r = _rendered.load(std::memory_order_acquire);
-		int l = _latest.load(std::memory_order_acquire);
-
-		int next = (l + 1) % BUFFER_SIZE;
-		if (next == r)
-		{
-			// ring full -> drop this snapshot (or spin/wait)
-			return;
-		}
-
-		_snapshots[next].SnapUsingSwap(ImGui::GetDrawData(), ImGui::GetTime());
-		_snapshots[next].DrawData.Textures = nullptr;
-		_latest.store(next, std::memory_order_release);
+		// // Process texture create/update/destroy on the main thread
+		// ImDrawData* dd = ImGui::GetDrawData();
+		// if (dd->Textures)
+		// {
+		// 	for (ImTextureData* tex : *dd->Textures)
+		// 		if (tex->Status != ImTextureStatus_OK)
+		// 			ImGui_ImplDX12_UpdateTexture(tex);
+		// }
+		//
+		// int r = _rendered.load(std::memory_order_acquire);
+		// int l = _latest.load(std::memory_order_acquire);
+		//
+		// int next = (l + 1) % BUFFER_SIZE;
+		// if (next == r)
+		// {
+		// 	// ring full -> drop this snapshot (or spin/wait)
+		// 	return;
+		// }
+		//
+		// _snapshots[next].SnapUsingSwap(ImGui::GetDrawData(), ImGui::GetTime());
+		// _snapshots[next].DrawData.Textures = nullptr;
+		// _latest.store(next, std::memory_order_release);
 	}
 
 	void imgui_renderer::render(gfx_id cmd_buffer)
 	{
-		int idx = _latest.load(std::memory_order_acquire);
-		if (idx < 0)
-			return;
-		gfx_backend* backend = gfx_backend::get();
-		_rendered.store(idx, std::memory_order_release);
-		ImGui_ImplDX12_RenderDrawData(&_snapshots[idx].DrawData, backend->get_gfx_cmd_list(cmd_buffer));
-		_rendered.store(-1, std::memory_order_release);
+		return;
+
+		EnterCriticalSection(&g_imgui_rend_crit);
+		if (ImGui::GetDrawData())
+			ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), gfx_backend::get()->get_gfx_cmd_list(cmd_buffer));
+		LeaveCriticalSection(&g_imgui_rend_crit);
+
+		// int idx = _latest.load(std::memory_order_acquire);
+		// if (idx < 0)
+		//	return;
+		// gfx_backend* backend = gfx_backend::get();
+		//_rendered.store(idx, std::memory_order_release);
+		// ImGui_ImplDX12_RenderDrawData(&_snapshots[idx].DrawData, backend->get_gfx_cmd_list(cmd_buffer));
+		//_rendered.store(-1, std::memory_order_release);
 	}
 }

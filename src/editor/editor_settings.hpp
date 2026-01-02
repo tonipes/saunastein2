@@ -41,6 +41,7 @@ namespace SFG
 		string	working_dir			= "";
 		string	cache_dir			= "";
 		string	_editor_folder		= "";
+		string	_resource_cache		= "";
 		vector2 window_pos			= vector2::zero;
 		vector2 window_size			= vector2::zero;
 

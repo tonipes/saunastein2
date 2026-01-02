@@ -42,6 +42,8 @@ namespace SFG
 	class render_event_stream
 	{
 	public:
+		static constexpr uint8 TRANSFORM_BUFFERS = 3;
+
 		struct buffered_data
 		{
 			uint8* data = nullptr;
@@ -68,9 +70,8 @@ namespace SFG
 		void init();
 		void uninit();
 		void publish();
-		void open_into(istream& stream);
 		void add_entity_transform_event(world_id index, const matrix4x3& model, const quat& rot);
-		void read_transform_events(render_proxy_entity* out_entities, uint32& out_size);
+		void read(render_proxy_entity* out_entities, uint32& out_size, istream& stream);
 
 		// -----------------------------------------------------------------------------
 		// event api
@@ -89,11 +90,25 @@ namespace SFG
 		}
 
 	private:
+		inline void reset_xform_buffer(render_event_stream::proxy_entity_data& ped)
+		{
+			for (world_id idx : ped.dirty_indices)
+				ped.dirty_flags[idx] = 0;
+
+			ped.dirty_indices.resize(0);
+			ped.peak_size = 0;
+		}
+
+	private:
 		buffered_data	  _stream_data[RENDER_STREAM_MAX_BATCHES];
-		proxy_entity_data _proxy_entity_data[RENDER_STREAM_MAX_BATCHES];
+		proxy_entity_data _xform_data[TRANSFORM_BUFFERS];
 		atomic<int8>	  _latest			= {-1};
 		atomic<int8>	  _rendered			= {-1};
 		ostream			  _main_thread_data = {};
 		uint8			  _write_index		= 0;
+
+		std::atomic<int8> _xform_latest = {-1}; // last published transform buffer
+		std::atomic<int8> _xform_in_use = {-1}; // render thread sets while reading
+		uint8			  _xform_write	= 0;	// game thread writes here
 	};
 }

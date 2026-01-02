@@ -60,6 +60,7 @@ namespace SFG
 		void		bring_to_front();
 		void		confine_cursor(cursor_confinement conf);
 		void		set_cursor_visible(bool vis);
+		bool		is_maximized() const;
 		static void query_all_monitors(vector<monitor_info>& out_info);
 
 		// -----------------------------------------------------------------------------
@@ -77,7 +78,10 @@ namespace SFG
 		{
 			return _size;
 		}
-
+		inline const vector2ui16 get_true_size() const
+		{
+			return _true_size;
+		}
 		inline void* get_window_handle() const
 		{
 			return _window_handle;
@@ -117,6 +121,11 @@ namespace SFG
 		inline void set_size_dirty(bool dirty)
 		{
 			_flags.set(window_flags::wf_size_dirty, dirty);
+		}
+
+		inline void set_pos_dirty(bool dirty)
+		{
+			_flags.set(window_flags::wf_pos_dirty, dirty);
 		}
 
 		inline const vector2i16& get_mouse_position() const

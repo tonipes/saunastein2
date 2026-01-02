@@ -69,20 +69,20 @@ namespace SFG
 	public:
 		struct render_params
 		{
-			uint8													frame_index;
-			const vector2ui16&										size;
-			const static_vector<gpu_index, GBUFFER_COLOR_TEXTURES>& gpu_index_gbuffer_textures;
-			gpu_index												gpu_index_depth_texture;
-			gpu_index												gpu_index_point_lights;
-			gpu_index												gpu_index_spot_lights;
-			gpu_index												gpu_index_dir_lights;
-			gpu_index												gpu_index_entities;
-			gpu_index												gpu_index_shadow_data_buffer;
-			gpu_index												gpu_index_float_buffer;
-			gpu_index												gpu_index_ao_out;
-			gfx_id													depth_texture;
-			gfx_id													global_layout;
-			gfx_id													global_group;
+			uint8			   frame_index;
+			const vector2ui16& size;
+			const gpu_index*   gpu_index_gbuffer_textures;
+			gpu_index		   gpu_index_depth_texture;
+			gpu_index		   gpu_index_point_lights;
+			gpu_index		   gpu_index_spot_lights;
+			gpu_index		   gpu_index_dir_lights;
+			gpu_index		   gpu_index_entities;
+			gpu_index		   gpu_index_shadow_data_buffer;
+			gpu_index		   gpu_index_float_buffer;
+			gpu_index		   gpu_index_ao_out;
+			gfx_id			   depth_texture;
+			gfx_id			   global_layout;
+			gfx_id			   global_group;
 		};
 
 		// -----------------------------------------------------------------------------
@@ -109,7 +109,7 @@ namespace SFG
 			return _pfd[frame_index].gpu_index_render_target;
 		}
 
-		inline gpu_index get_output_hw(uint8 frame_index) const
+		inline gfx_id get_output_hw(uint8 frame_index) const
 		{
 			return _pfd[frame_index].render_target;
 		}

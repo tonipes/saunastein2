@@ -91,24 +91,39 @@ namespace SFG
 			{
 				ImGui::TableNextRow();
 				ImGui::TableSetColumnIndex(0);
+				ImGui::Text("window");
+				ImGui::TableSetColumnIndex(1);
+				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 8.0f);
+				ImGui::Text("%ux%u", window_size.x, window_size.y);
+
+				const vector2ui16 gr = editor::get().get_game_resolution();
+				ImGui::TableNextRow();
+				ImGui::TableSetColumnIndex(0);
+				ImGui::Text("game");
+				ImGui::TableSetColumnIndex(1);
+				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 8.0f);
+				ImGui::Text("%ux%u", gr.x, gr.y);
+
+				ImGui::TableNextRow();
+				ImGui::TableSetColumnIndex(0);
 				ImGui::Text("fps");
-                ImGui::TableSetColumnIndex(1);
-                ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 8.0f);
-                ImGui::Text("%d", fps);
+				ImGui::TableSetColumnIndex(1);
+				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 8.0f);
+				ImGui::Text("%d", fps);
 
 				ImGui::TableNextRow();
 				ImGui::TableSetColumnIndex(0);
 				ImGui::Text("main");
-                ImGui::TableSetColumnIndex(1);
-                ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 8.0f);
-                ImGui::Text("%f ms", main_ms);
+				ImGui::TableSetColumnIndex(1);
+				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 8.0f);
+				ImGui::Text("%f ms", main_ms);
 
 				ImGui::TableNextRow();
 				ImGui::TableSetColumnIndex(0);
 				ImGui::Text("render");
-                ImGui::TableSetColumnIndex(1);
-                ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 8.0f);
-                ImGui::Text("%f ms", render_ms);
+				ImGui::TableSetColumnIndex(1);
+				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 8.0f);
+				ImGui::Text("%f ms", render_ms);
 
 				static uint32 ctr = 0;
 				if (ctr > 60)
@@ -132,9 +147,9 @@ namespace SFG
 						ImGui::TableNextRow();
 						ImGui::TableSetColumnIndex(0);
 						ImGui::Text("ram");
-                    ImGui::TableSetColumnIndex(1);
-                    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 8.0f);
-                    ImGui::Text("%d mb", d);
+						ImGui::TableSetColumnIndex(1);
+						ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 8.0f);
+						ImGui::Text("%d mb", d);
 					}
 					else if (TO_SID(cat.name) == TO_SID("Gfx"))
 					{
@@ -142,9 +157,9 @@ namespace SFG
 						ImGui::TableNextRow();
 						ImGui::TableSetColumnIndex(0);
 						ImGui::Text("vram");
-                    ImGui::TableSetColumnIndex(1);
-                    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 8.0f);
-                    ImGui::Text("%d mb", d);
+						ImGui::TableSetColumnIndex(1);
+						ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 8.0f);
+						ImGui::Text("%d mb", d);
 					}
 				}
 #endif

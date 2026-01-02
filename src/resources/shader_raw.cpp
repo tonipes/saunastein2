@@ -85,11 +85,11 @@ namespace SFG
 			f.close();
 
 			// Receive & verify source.
-			source			 = json_data.value<string>("source", "");
-			is_compute		 = json_data.value<uint8>("is_compute", 0);
-			const string& wd = editor_settings::get().working_dir;
-			const string  p	 = file_path;
-			name			 = p.substr(wd.size(), p.size() - wd.size());
+			source			= json_data.value<string>("source", "");
+			is_compute		= json_data.value<uint8>("is_compute", 0);
+			const string wd = base_directory == nullptr ? editor_settings::get().working_dir : base_directory;
+			const string p	= file_path;
+			name			= p.substr(wd.size(), p.size() - wd.size());
 
 			const string full_source = base_directory == nullptr ? (editor_settings::get().working_dir + source) : (string(base_directory) + source);
 			if (!file_system::exists(full_source.c_str()))

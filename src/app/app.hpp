@@ -93,6 +93,13 @@ namespace SFG
 			return *_world;
 		}
 
+		inline const vector2ui16& get_game_resolution() const
+		{
+			return _game_resolution;
+		}
+
+		void set_game_resolution(const vector2ui16& size);
+
 		inline gameplay& get_gameplay() const
 		{
 			return *_gameplay;
@@ -131,5 +138,6 @@ namespace SFG
 		atomic<uint8>		_should_close;
 		atomic<uint8>		_render_joined;
 		bitmask<uint8>		_flags = 0;
+		vector2ui16			_game_resolution = {};
 	};
 }

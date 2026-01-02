@@ -136,11 +136,23 @@ namespace SFG
 			shader_raw default_gui_sdf_raw	= {};
 
 #ifdef SFG_TOOLMODE
-			default_gbuffer_raw.load_from_file(DEFAULT_OPAQUE_SHADER_PATH, SFG_ROOT_DIRECTORY);
-			default_forward_raw.load_from_file(DEFAULT_FORWARD_SHADER_PATH, SFG_ROOT_DIRECTORY);
-			default_gui_raw.load_from_file(DEFAULT_GUI_SHADER_PATH, SFG_ROOT_DIRECTORY);
-			default_gui_text_raw.load_from_file(DEFAULT_GUI_TEXT_SHADER_PATH, SFG_ROOT_DIRECTORY);
-			default_gui_sdf_raw.load_from_file(DEFAULT_GUI_SDF_SHADER_PATH, SFG_ROOT_DIRECTORY);
+			const string engine_cache = editor_settings::get()._resource_cache;
+
+			{
+				auto load = [&](auto& raw, const char* path) {
+					if (!raw.load_from_cache(engine_cache.c_str(), path, ".stkcache"))
+					{
+						raw.load_from_file(path, SFG_ROOT_DIRECTORY);
+						raw.save_to_cache(engine_cache.c_str(), path, ".stkcache");
+					}
+				};
+				load(default_gbuffer_raw, DEFAULT_OPAQUE_SHADER_PATH);
+				load(default_forward_raw, DEFAULT_OPAQUE_SHADER_PATH);
+				load(default_gui_raw, DEFAULT_OPAQUE_SHADER_PATH);
+				load(default_gui_text_raw, DEFAULT_OPAQUE_SHADER_PATH);
+				load(default_gui_sdf_raw, DEFAULT_OPAQUE_SHADER_PATH);
+			}
+
 #else
 			SFG_NOTIMPLEMENTED();
 #endif
@@ -171,9 +183,20 @@ namespace SFG
 			material_raw default_gui_sdf_mat_raw  = {};
 
 #ifdef SFG_TOOLMODE
-			default_gui_mat_raw.load_from_file(DEFAULT_GUI_MAT_PATH, SFG_ROOT_DIRECTORY);
-			default_gui_text_mat_raw.load_from_file(DEFAULT_GUI_TEXT_MAT_PATH, SFG_ROOT_DIRECTORY);
-			default_gui_sdf_mat_raw.load_from_file(DEFAULT_GUI_SDF_MAT_PATH, SFG_ROOT_DIRECTORY);
+
+			{
+				auto load = [&](auto& raw, const char* path) {
+					if (!raw.load_from_cache(engine_cache.c_str(), path, ".stkcache"))
+					{
+						raw.load_from_file(path, SFG_ROOT_DIRECTORY);
+						raw.save_to_cache(engine_cache.c_str(), path, ".stkcache");
+					}
+				};
+				load(default_gui_mat_raw, DEFAULT_GUI_MAT_PATH);
+				load(default_gui_text_mat_raw, DEFAULT_GUI_TEXT_MAT_PATH);
+				load(default_gui_sdf_mat_raw, DEFAULT_GUI_SDF_MAT_PATH);
+			}
+
 #else
 			SFG_NOTIMPLEMENTED();
 #endif

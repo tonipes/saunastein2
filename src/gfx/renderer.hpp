@@ -64,7 +64,7 @@ namespace SFG
 		// lifecycle
 		// -----------------------------------------------------------------------------
 
-		bool init();
+		bool init(const vector2ui16& game_resolution);
 		void uninit();
 		void wait_backend();
 		void tick();
@@ -77,6 +77,7 @@ namespace SFG
 		bool		on_window_event(const window_event& ev);
 		void		on_window_resize(const vector2ui16& size);
 		void		on_swapchain_flags(uint8 flags);
+		void		on_world_resolution(const vector2ui16& size);
 		static void create_bind_layout_global();
 		static void destroy_bind_layout_global();
 
@@ -113,12 +114,12 @@ namespace SFG
 
 		struct per_frame_data
 		{
-			buffer_gpu	   buf_engine_global  = {};
-			semaphore_data sem_frame		  = {};
-			semaphore_data sem_copy			  = {};
-			gfx_id		   cmd_gfx			  = 0;
-			gfx_id		   cmd_copy			  = 0;
-			gfx_id		   bind_group_global  = 0;
+			buffer_gpu	   buf_engine_global = {};
+			semaphore_data sem_frame		 = {};
+			semaphore_data sem_copy			 = {};
+			gfx_id		   cmd_gfx			 = 0;
+			gfx_id		   cmd_copy			 = 0;
+			gfx_id		   bind_group_global = 0;
 		};
 
 		struct gfx_data
@@ -155,6 +156,7 @@ namespace SFG
 		texture_queue	_texture_queue						= {};
 		proxy_manager	_proxy_manager;
 		vector2ui16		_base_size		 = {};
+		vector2ui16		_world_size		 = {};
 		uint8			_swapchain_flags = 0;
 
 		static gfx_id s_bind_layout_global;

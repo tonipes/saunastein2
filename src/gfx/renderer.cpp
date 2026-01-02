@@ -85,13 +85,14 @@ namespace SFG
 		s_bind_layout_global_compute = 0;
 	}
 
-	bool renderer::init()
+	bool renderer::init(const vector2ui16& game_resolution)
 	{
 		gfx_backend* backend = gfx_backend::get();
 
 		// swapchain
 		_swapchain_flags = swapchain_flags::sf_allow_tearing;
 		_base_size		 = _main_window.get_size();
+		_world_size		 = game_resolution;
 
 		_gfx_data.swapchain = backend->create_swapchain({
 			.window	   = _main_window.get_window_handle(),
@@ -109,7 +110,7 @@ namespace SFG
 #endif
 
 		_world_renderer = new game_world_renderer(_proxy_manager, _world);
-		_world_renderer->init(_base_size, &_texture_queue, &_buffer_queue, s_bind_layout_global, s_bind_layout_global_compute);
+		_world_renderer->init(_world_size, &_texture_queue, &_buffer_queue, s_bind_layout_global, s_bind_layout_global_compute);
 
 		// pfd
 		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
@@ -342,6 +343,7 @@ namespace SFG
 			.size		   = size,
 			.global_layout = layout_global,
 			.global_group  = bg_global,
+			.world_rt_index = rt_world_index,
 		});
 
 #endif
@@ -454,8 +456,6 @@ namespace SFG
 			.flags	   = _swapchain_flags,
 		});
 
-		_world_renderer->resize(_base_size);
-
 #ifdef SFG_USE_DEBUG_CONTROLLER
 		_debug_controller.on_window_resize(_base_size);
 #endif
@@ -474,5 +474,11 @@ namespace SFG
 			.swapchain = _gfx_data.swapchain,
 			.flags	   = _swapchain_flags,
 		});
+	}
+
+	void renderer::on_world_resolution(const vector2ui16& size)
+	{
+		_world_size = (size.x == 0 || size.y == 0) ? vector2ui16(32, 32) : size;
+		_world_renderer->resize(_world_size);
 	}
 }

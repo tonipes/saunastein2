@@ -367,7 +367,7 @@ namespace SFG
 
 		entity_meta& meta = _metas->get(handle.index);
 		meta.name		  = _world.get_text_allocator().allocate(name);
-
+		SFG_TRACE("created entity {0} {1}", handle.index, name);
 		return handle;
 	}
 

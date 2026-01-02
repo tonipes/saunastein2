@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -62,6 +62,7 @@ namespace SFG
 			if (_free_count > 0)
 			{
 				const SIZE_TYPE index = _free_list[_free_count - 1];
+				_items[index].~T();
 				new (&_items[index]) T();
 				_free_count--;
 				_actives[index] = 1;
@@ -74,6 +75,7 @@ namespace SFG
 			SFG_ASSERT(_head < N);
 
 			const SIZE_TYPE index = _head;
+			_items[index].~T();
 			new (&_items[index]) T();
 			_actives[index] = 1;
 			_head++;
@@ -127,7 +129,6 @@ namespace SFG
 			SFG_ASSERT(is_valid(handle));
 			return _items[handle.index];
 		}
-
 
 		inline SIZE_TYPE get_generation(SIZE_TYPE index) const
 		{

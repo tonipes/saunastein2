@@ -309,6 +309,188 @@ namespace SFG
 #endif
 	}
 
+	void game_world_renderer::run_pre_depth(const void* context)
+	{
+		const game_world_renderer::task_common* cmn = static_cast<const game_world_renderer::task_common*>(context);
+		cmn->rend->_pass_pre_depth.render({
+			.frame_index		= cmn->frame_index,
+			.size				= cmn->resolution,
+			.gpu_index_entities = cmn->gpu_index_entities,
+			.gpu_index_bones	= cmn->gpu_index_bones,
+			.global_layout		= cmn->layout_global,
+			.global_group		= cmn->bind_group_global,
+		});
+	}
+
+	void game_world_renderer::run_shadows(const void* context)
+	{
+		const game_world_renderer::task_common* cmn = static_cast<const game_world_renderer::task_common*>(context);
+		cmn->rend->_pass_shadows.render({
+			.frame_index		= cmn->frame_index,
+			.size				= cmn->resolution,
+			.gpu_index_entities = cmn->gpu_index_entities,
+			.gpu_index_bones	= cmn->gpu_index_bones,
+			.global_layout		= cmn->layout_global,
+			.global_group		= cmn->bind_group_global,
+		});
+	}
+
+	void game_world_renderer::run_ssao(const void* context)
+	{
+		const game_world_renderer::task_common* cmn = static_cast<const game_world_renderer::task_common*>(context);
+
+		cmn->rend->_pass_ssao.render({
+			.frame_index		   = cmn->frame_index,
+			.size				   = cmn->resolution,
+			.gpu_index_depth	   = cmn->gpu_index_depth_texture,
+			.gpu_index_normals	   = cmn->gpu_index_gbuffer_textures[1],
+			.global_layout_compute = cmn->layout_global_compute,
+			.global_group		   = cmn->bind_group_global,
+		});
+	}
+
+	void game_world_renderer::run_opaque(const void* context)
+	{
+		const game_world_renderer::task_common* cmn = static_cast<const game_world_renderer::task_common*>(context);
+		cmn->rend->_pass_opaque.render({
+			.frame_index		= cmn->frame_index,
+			.size				= cmn->resolution,
+			.gpu_index_entities = cmn->gpu_index_entities,
+			.gpu_index_bones	= cmn->gpu_index_bones,
+			.depth_texture		= cmn->depth_texture,
+			.global_layout		= cmn->layout_global,
+			.global_group		= cmn->bind_group_global,
+		});
+	}
+
+	void game_world_renderer::run_particles_compute(const void* context)
+	{
+		const game_world_renderer::task_common* cmn = static_cast<const game_world_renderer::task_common*>(context);
+		cmn->rend->_pass_particles.compute({
+			.frame_index		   = cmn->frame_index,
+			.global_layout_compute = cmn->layout_global_compute,
+			.global_group		   = cmn->bind_group_global,
+		});
+	}
+	void game_world_renderer::run_obj_id(const void* context)
+	{
+		const game_world_renderer::task_common* cmn = static_cast<const game_world_renderer::task_common*>(context);
+		cmn->rend->_pass_object_id.render({
+			.frame_index		= cmn->frame_index,
+			.size				= cmn->resolution,
+			.gpu_index_entities = cmn->gpu_index_entities,
+			.gpu_index_bones	= cmn->gpu_index_bones,
+			.depth_texture		= cmn->depth_texture,
+			.global_layout		= cmn->layout_global,
+			.global_group		= cmn->bind_group_global,
+		});
+	}
+	void game_world_renderer::run_selection_outline(const void* context)
+	{
+		const game_world_renderer::task_common* cmn = static_cast<const game_world_renderer::task_common*>(context);
+		cmn->rend->_pass_selection_outline.render({
+			.frame_index		= cmn->frame_index,
+			.size				= cmn->resolution,
+			.gpu_index_entities = cmn->gpu_index_entities,
+			.gpu_index_bones	= cmn->gpu_index_bones,
+			.global_layout		= cmn->layout_global,
+			.global_group		= cmn->bind_group_global,
+		});
+	}
+	void game_world_renderer::run_physics(const void* ctx)
+	{
+		const game_world_renderer::task_common* cmn = static_cast<const game_world_renderer::task_common*>(ctx);
+		cmn->rend->_pass_physics_debug.render({
+			.frame_index   = cmn->frame_index,
+			.size		   = cmn->resolution,
+			.depth_texture = cmn->depth_texture,
+			.input_texture = cmn->lighting_texture,
+			.global_layout = cmn->layout_global,
+			.global_group  = cmn->bind_group_global,
+		});
+	}
+	void game_world_renderer::run_lighting(const void* ctx)
+	{
+		const game_world_renderer::task_common* cmn = static_cast<const game_world_renderer::task_common*>(ctx);
+		cmn->rend->_pass_lighting.render({
+			.frame_index				  = cmn->frame_index,
+			.size						  = cmn->resolution,
+			.gpu_index_gbuffer_textures	  = cmn->gpu_index_gbuffer_textures,
+			.gpu_index_depth_texture	  = cmn->gpu_index_depth_texture,
+			.gpu_index_point_lights		  = cmn->gpu_index_point_lights,
+			.gpu_index_spot_lights		  = cmn->gpu_index_spot_lights,
+			.gpu_index_dir_lights		  = cmn->gpu_index_dir_lights,
+			.gpu_index_entities			  = cmn->gpu_index_entities,
+			.gpu_index_shadow_data_buffer = cmn->gpu_index_shadow_data_buffer,
+			.gpu_index_float_buffer		  = cmn->gpu_index_float_buffer,
+			.gpu_index_ao_out			  = cmn->gpu_index_ao_out,
+			.global_layout				  = cmn->layout_global,
+			.global_group				  = cmn->bind_group_global,
+		});
+	}
+	void game_world_renderer::run_forward(const void* ctx)
+	{
+		const game_world_renderer::task_common* cmn = static_cast<const game_world_renderer::task_common*>(ctx);
+		cmn->rend->_pass_forward.render({
+			.frame_index		= cmn->frame_index,
+			.size				= cmn->resolution,
+			.gpu_index_entities = cmn->gpu_index_entities,
+			.gpu_index_bones	= cmn->gpu_index_bones,
+			.depth_texture		= cmn->depth_texture,
+			.input_texture		= cmn->lighting_texture,
+			.global_layout		= cmn->layout_global,
+			.global_group		= cmn->bind_group_global,
+		});
+	}
+	void game_world_renderer::run_particles_render(const void* ctx)
+	{
+		const game_world_renderer::task_common* cmn = static_cast<const game_world_renderer::task_common*>(ctx);
+		cmn->rend->_pass_particles.render({
+			.frame_index   = cmn->frame_index,
+			.size		   = cmn->resolution,
+			.global_layout = cmn->layout_global,
+			.global_group  = cmn->bind_group_global,
+			.hw_lighting   = cmn->lighting_texture,
+			.hw_depth	   = cmn->depth_texture,
+
+		});
+	}
+	void game_world_renderer::run_post(const void* ctx)
+	{
+		const game_world_renderer::task_common* cmn = static_cast<const game_world_renderer::task_common*>(ctx);
+		cmn->rend->_pass_post.render({
+			.frame_index				 = cmn->frame_index,
+			.size						 = cmn->resolution,
+			.gpu_index_lighting			 = cmn->gpu_index_lighting,
+			.gpu_index_bloom			 = cmn->gpu_index_bloom,
+			.gpu_index_selection_outline = cmn->gpu_index_selection_outline,
+			.global_layout				 = cmn->layout_global,
+			.global_group				 = cmn->bind_group_global,
+		});
+	}
+	void game_world_renderer::run_bloom(const void* ctx)
+	{
+		const game_world_renderer::task_common* cmn = static_cast<const game_world_renderer::task_common*>(ctx);
+		cmn->rend->_pass_bloom.render({
+			.frame_index		   = cmn->frame_index,
+			.size				   = cmn->resolution,
+			.lighting			   = cmn->lighting_texture,
+			.gpu_index_lighting	   = cmn->gpu_index_lighting,
+			.global_layout_compute = cmn->layout_global_compute,
+			.global_group		   = cmn->bind_group_global,
+		});
+	}
+	void game_world_renderer::run_canvas_2d(const void* ctx)
+	{
+		const game_world_renderer::task_common* cmn = static_cast<const game_world_renderer::task_common*>(ctx);
+		cmn->rend->_pass_canvas_2d.render({
+			.frame_index   = cmn->frame_index,
+			.size		   = cmn->resolution,
+			.input_texture = cmn->post_combiner_texture,
+			.global_layout = cmn->layout_global,
+			.global_group  = cmn->bind_group_global,
+		});
+	}
 	void game_world_renderer::render(uint8 frame_index, gfx_id layout_global, gfx_id layout_global_compute, gfx_id bind_group_global, uint64 prev_copy, uint64 next_copy, gfx_id sem_copy)
 	{
 		ZoneScoped;
@@ -347,13 +529,7 @@ namespace SFG
 		const uint64 sem_lighting_val1 = ++pfd.semp_lighting.value;
 		const uint64 sem_ssao_val0	   = ++pfd.semp_ssao.value;
 		const uint64 sem_ssao_val1	   = ++pfd.semp_ssao.value;
-
 		const uint64 sem_frame_val	   = ++pfd.semp_frame.value;
-		const uint16 shadow_pass_count = _pass_shadows.get_pass_count();
-
-		const gfx_id depth_texture		   = _pass_pre_depth.get_output_hw(frame_index);
-		const gfx_id lighting_texture	   = _pass_lighting.get_output_hw(frame_index);
-		const gfx_id post_combiner_texture = _pass_post.get_output_hw(frame_index);
 
 #ifdef SFG_TOOLMODE
 		const gpu_index gpu_index_selection_outline = _pass_selection_outline.get_gpu_index_output(frame_index);
@@ -361,101 +537,47 @@ namespace SFG
 		const gpu_index gpu_index_selection_outline = 0;
 #endif
 
-		const gpu_index gpu_index_lighting			 = _pass_lighting.get_output_gpu_index(frame_index);
-		const gpu_index gpu_index_bloom				 = _pass_bloom.get_output_gpu_index(frame_index);
-		const gpu_index gpu_index_depth_texture		 = _pass_pre_depth.get_output_gpu_index(frame_index);
-		const gpu_index gpu_index_ao_out			 = _pass_ssao.get_output_gpu_index(frame_index);
-		const gpu_index gpu_index_entities			 = pfd.entity_buffer.get_index();
-		const gpu_index gpu_index_shadow_data_buffer = pfd.shadow_data_buffer.get_index();
-		const gpu_index gpu_index_bones				 = pfd.bones_buffer.get_index();
-		const gpu_index gpu_index_point_lights		 = pfd.point_lights_buffer.get_index();
-		const gpu_index gpu_index_spot_lights		 = pfd.spot_lights_buffer.get_index();
-		const gpu_index gpu_index_dir_lights		 = pfd.dir_lights_buffer.get_index();
-		const gpu_index gpu_index_float_buffer		 = pfd.float_buffer.get_index();
-
 		const static_vector<gpu_index, GBUFFER_COLOR_TEXTURES>& gpu_index_gbuffer_textures = _pass_opaque.get_output_gpu_index(frame_index);
 
-		static_vector<std::function<void()>, 12> tasks;
+		const task_common common_data = {
+			.rend						  = this,
+			.resolution					  = resolution,
+			.gpu_index_entities			  = pfd.entity_buffer.get_index(),
+			.gpu_index_bones			  = pfd.bones_buffer.get_index(),
+			.gpu_index_gbuffer_textures	  = gpu_index_gbuffer_textures.data(),
+			.gpu_index_point_lights		  = pfd.point_lights_buffer.get_index(),
+			.gpu_index_spot_lights		  = pfd.spot_lights_buffer.get_index(),
+			.gpu_index_dir_lights		  = pfd.dir_lights_buffer.get_index(),
+			.gpu_index_shadow_data_buffer = pfd.shadow_data_buffer.get_index(),
+			.gpu_index_float_buffer		  = pfd.float_buffer.get_index(),
+			.gpu_index_depth_texture	  = _pass_pre_depth.get_output_gpu_index(frame_index),
+			.gpu_index_ao_out			  = _pass_ssao.get_output_gpu_index(frame_index),
+			.gpu_index_lighting			  = _pass_lighting.get_output_gpu_index(frame_index),
+			.gpu_index_bloom			  = _pass_bloom.get_output_gpu_index(frame_index),
+			.gpu_index_selection_outline  = gpu_index_selection_outline,
+			.layout_global				  = layout_global,
+			.layout_global_compute		  = layout_global_compute,
+			.bind_group_global			  = bind_group_global,
+			.depth_texture				  = _pass_pre_depth.get_output_hw(frame_index),
+			.lighting_texture			  = _pass_lighting.get_output_hw(frame_index),
+			.post_combiner_texture		  = _pass_post.get_output_hw(frame_index),
+			.frame_index				  = frame_index,
+		};
 
-		tasks.push_back([&] {
-			_pass_pre_depth.render({
-				.frame_index		= frame_index,
-				.size				= resolution,
-				.gpu_index_entities = gpu_index_entities,
-				.gpu_index_bones	= gpu_index_bones,
-				.global_layout		= layout_global,
-				.global_group		= bind_group_global,
-			});
-		});
+		static_vector<task, 12> tt;
 
-		tasks.push_back([&] {
-			_pass_shadows.render({
-				.frame_index		= frame_index,
-				.size				= resolution,
-				.gpu_index_entities = gpu_index_entities,
-				.gpu_index_bones	= gpu_index_bones,
-				.global_layout		= layout_global,
-				.global_group		= bind_group_global,
-			});
-		});
-
-		tasks.push_back([&] {
-			_pass_opaque.render({
-				.frame_index		= frame_index,
-				.size				= resolution,
-				.gpu_index_entities = gpu_index_entities,
-				.gpu_index_bones	= gpu_index_bones,
-				.depth_texture		= depth_texture,
-				.global_layout		= layout_global,
-				.global_group		= bind_group_global,
-			});
-		});
-
-		tasks.push_back([&] {
-			_pass_ssao.render({
-				.frame_index		   = frame_index,
-				.size				   = resolution,
-				.gpu_index_depth	   = gpu_index_depth_texture,
-				.gpu_index_normals	   = gpu_index_gbuffer_textures[1],
-				.global_layout_compute = layout_global_compute,
-				.global_group		   = bind_group_global,
-			});
-		});
-
-		tasks.push_back([&] {
-			_pass_particles.compute({
-				.frame_index		   = frame_index,
-				.global_layout_compute = layout_global_compute,
-				.global_group		   = bind_group_global,
-			});
-		});
+		tt.push_back({run_pre_depth, (void*)&common_data});
+		tt.push_back({run_shadows, (void*)&common_data});
+		tt.push_back({run_opaque, (void*)&common_data});
+		tt.push_back({run_ssao, (void*)&common_data});
+		tt.push_back({run_particles_compute, (void*)&common_data});
 
 #ifdef OBJECT_ID_PASS
-		tasks.push_back([&] {
-			_pass_object_id.render({
-				.frame_index		= frame_index,
-				.size				= resolution,
-				.gpu_index_entities = gpu_index_entities,
-				.gpu_index_bones	= gpu_index_bones,
-				.depth_texture		= depth_texture,
-				.global_layout		= layout_global,
-				.global_group		= bind_group_global,
-			});
-		});
+		tt.push_back({run_obj_id, (void*)&common_data});
+		tt.push_back({run_selection_outline, (void*)&common_data});
 
-		tasks.push_back([&] {
-			_pass_selection_outline.render({
-				.frame_index		= frame_index,
-				.size				= resolution,
-				.gpu_index_entities = gpu_index_entities,
-				.gpu_index_bones	= gpu_index_bones,
-				.global_layout		= layout_global,
-				.global_group		= bind_group_global,
-			});
-		});
 #endif
-
-		std::for_each(std::execution::par, tasks.begin(), tasks.end(), [](auto&& task) { task(); });
+		std::for_each(std::execution::par, tt.begin(), tt.end(), [](auto&& task) { task(); });
 
 		if (prev_copy != next_copy)
 			backend->queue_wait(queue_gfx, &sem_copy, &next_copy, 1);
@@ -473,66 +595,16 @@ namespace SFG
 		backend->submit_commands(queue_gfx, &cmd_outline, 1);
 #endif
 
-		tasks.resize(0);
+		tt.resize(0);
 
 #ifdef JPH_DEBUG_RENDERER
-		tasks.push_back([&] {
-			_pass_physics_debug.render({
-				.frame_index   = frame_index,
-				.size		   = resolution,
-				.depth_texture = depth_texture,
-				.input_texture = lighting_texture,
-				.global_layout = layout_global,
-				.global_group  = bind_group_global,
-			});
-		});
-
+		tt.push_back({run_physics, (void*)&common_data});
 #endif
+		tt.push_back({run_lighting, (void*)&common_data});
+		tt.push_back({run_forward, (void*)&common_data});
+		tt.push_back({run_particles_render, (void*)&common_data});
 
-		tasks.push_back([&] {
-			_pass_lighting.render({
-				.frame_index				  = frame_index,
-				.size						  = resolution,
-				.gpu_index_gbuffer_textures	  = gpu_index_gbuffer_textures,
-				.gpu_index_depth_texture	  = gpu_index_depth_texture,
-				.gpu_index_point_lights		  = gpu_index_point_lights,
-				.gpu_index_spot_lights		  = gpu_index_spot_lights,
-				.gpu_index_dir_lights		  = gpu_index_dir_lights,
-				.gpu_index_entities			  = gpu_index_entities,
-				.gpu_index_shadow_data_buffer = gpu_index_shadow_data_buffer,
-				.gpu_index_float_buffer		  = gpu_index_float_buffer,
-				.gpu_index_ao_out			  = gpu_index_ao_out,
-				.global_layout				  = layout_global,
-				.global_group				  = bind_group_global,
-			});
-		});
-
-		tasks.push_back([&] {
-			_pass_forward.render({
-				.frame_index		= frame_index,
-				.size				= resolution,
-				.gpu_index_entities = gpu_index_entities,
-				.gpu_index_bones	= gpu_index_bones,
-				.depth_texture		= depth_texture,
-				.input_texture		= lighting_texture,
-				.global_layout		= layout_global,
-				.global_group		= bind_group_global,
-			});
-		});
-
-		tasks.push_back([&] {
-			_pass_particles.render({
-				.frame_index   = frame_index,
-				.size		   = resolution,
-				.global_layout = layout_global,
-				.global_group  = bind_group_global,
-				.hw_lighting   = lighting_texture,
-				.hw_depth	   = depth_texture,
-
-			});
-		});
-
-		std::for_each(std::execution::par, tasks.begin(), tasks.end(), [](auto&& task) { task(); });
+		std::for_each(std::execution::par, tt.begin(), tt.end(), [](auto&& task) { task(); });
 
 		// SSAO waits for opaque, signals after done
 		backend->queue_wait(queue_compute, &sem_ssao, &sem_ssao_val0, 1);
@@ -550,42 +622,12 @@ namespace SFG
 #endif
 		backend->queue_signal(queue_gfx, &sem_lighting, &sem_lighting_val0, 1);
 
-		tasks.resize(0);
+		tt.resize(0);
+		tt.push_back({run_post, (void*)&common_data});
+		tt.push_back({run_bloom, (void*)&common_data});
+		tt.push_back({run_canvas_2d, (void*)&common_data});
 
-		tasks.push_back([&] {
-			_pass_post.render({
-				.frame_index				 = frame_index,
-				.size						 = resolution,
-				.gpu_index_lighting			 = gpu_index_lighting,
-				.gpu_index_bloom			 = gpu_index_bloom,
-				.gpu_index_selection_outline = gpu_index_selection_outline,
-				.global_layout				 = layout_global,
-				.global_group				 = bind_group_global,
-			});
-		});
-
-		tasks.push_back([&] {
-			_pass_bloom.render({
-				.frame_index		   = frame_index,
-				.size				   = resolution,
-				.lighting			   = lighting_texture,
-				.gpu_index_lighting	   = gpu_index_lighting,
-				.global_layout_compute = layout_global_compute,
-				.global_group		   = bind_group_global,
-			});
-		});
-
-		tasks.push_back([&] {
-			_pass_canvas_2d.render({
-				.frame_index   = frame_index,
-				.size		   = resolution,
-				.input_texture = post_combiner_texture,
-				.global_layout = layout_global,
-				.global_group  = bind_group_global,
-			});
-		});
-
-		std::for_each(std::execution::par, tasks.begin(), tasks.end(), [](auto&& task) { task(); });
+		std::for_each(std::execution::par, tt.begin(), tt.end(), [](auto&& task) { task(); });
 
 		// bloom waits for all lighting results.
 		backend->queue_wait(queue_compute, &sem_lighting, &sem_lighting_val0, 1);

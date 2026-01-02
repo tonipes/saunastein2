@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -23,54 +23,18 @@ OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGEN
 OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-
 #pragma once
-#include "data/bitmask.hpp"
-#include "resources/common_resources.hpp"
-#include "reflection/resource_reflection.hpp"
-#include "gfx/common/descriptions.hpp"
-
-#ifndef SFG_STRIP_DEBUG_NAMES
-#include "memory/chunk_handle.hpp"
-#endif
 
 namespace SFG
 {
-	struct texture_sampler_raw;
-	class world;
+	struct vector2ui16;
 
-	class texture_sampler
+	class editor_panels_world_view
 	{
 	public:
-		enum flags
-		{
-			created = 1 << 0,
-		};
-
-		texture_sampler();
-		~texture_sampler();
-
-		// -----------------------------------------------------------------------------
-		// resource
-		// -----------------------------------------------------------------------------
-
-		void create_from_loader(const texture_sampler_raw& raw, world& w, resource_handle handle);
-		void destroy(world& w, resource_handle handle);
-
-		inline const sampler_desc& get_desc() const
-		{
-			return _desc;
-		}
-
-	private:
-#ifndef SFG_STRIP_DEBUG_NAMES
-		chunk_handle32 _name;
-#endif
-
-		sampler_desc   _desc  = {};
-		bitmask<uint8> _flags = 0;
+		void init();
+		void uninit();
+		void draw(const vector2ui16& window_size);
+		bool consume_committed_size(vector2ui16& out_size);
 	};
-
-	REGISTER_RESOURCE(texture_sampler, "stksampler");
-
 }

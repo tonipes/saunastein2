@@ -27,7 +27,12 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "engine_shaders.hpp"
 #include "resources/shader_raw.hpp"
 #include "data/string.hpp"
+#include "io/file_system.hpp"
 #include "app/app.hpp"
+
+#ifdef SFG_TOOLMODE
+#include "editor/editor_settings.hpp"
+#endif
 
 namespace SFG
 {
@@ -66,6 +71,12 @@ namespace SFG
 
 		shader_raw raw = {};
 
+#ifdef SFG_TOOLMODE
+		const string shader_cache = editor_settings::get()._resource_cache;
+		if (!file_system::exists(shader_cache.c_str()))
+			file_system::create_directory(shader_cache.c_str());
+#endif
+
 		for (uint8 i = 0; i < engine_shader_type_max; i++)
 		{
 			const string  p = paths[i];
@@ -73,10 +84,16 @@ namespace SFG
 			raw				= {};
 
 #ifdef SFG_TOOLMODE
-			if (!raw.load_from_file(p.c_str(), SFG_ROOT_DIRECTORY))
+
+			if (!raw.load_from_cache(shader_cache.c_str(), p.c_str(), ".stkcache"))
 			{
-				raw.destroy();
-				return false;
+				if (!raw.load_from_file(p.c_str(), SFG_ROOT_DIRECTORY))
+				{
+					raw.destroy();
+					return false;
+				}
+
+				raw.save_to_cache(shader_cache.c_str(), p.c_str(), ".stkcache");
 			}
 
 			e.src_path = p;

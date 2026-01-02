@@ -329,6 +329,7 @@ namespace SFG
 		ID3D12DescriptorHeap* get_srv_heap();
 		void				  alloc_srv(D3D12_CPU_DESCRIPTOR_HANDLE* out_cpu_handle, D3D12_GPU_DESCRIPTOR_HANDLE* out_gpu_handle);
 		void				  free_srv(D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle, D3D12_GPU_DESCRIPTOR_HANDLE gpu_handle);
+		uint64				  get_srv_gpu_handle_from_index(uint32 index);
 
 		inline gfx_id get_queue_gfx() const
 		{

@@ -3249,4 +3249,9 @@ namespace SFG
 		_external_descriptors.remove(*h);
 	}
 
+	uint64 dx12_backend::get_srv_gpu_handle_from_index(uint32 index)
+	{
+		return _heap_gpu_buffer.get_gpu_start() + static_cast<uint64>(index) * _heap_gpu_buffer.get_descriptor_size();
+	}
+
 }

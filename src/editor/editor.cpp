@@ -122,17 +122,29 @@ namespace SFG
 		editor_theme::get().init(editor_settings::get()._editor_folder.c_str());
 		editor_layout::get().init(editor_settings::get()._editor_folder.c_str());
 
-		if (!editor_settings::get().last_world_relative.empty())
-		{
-			const string last_world = editor_settings::get().working_dir + editor_settings::get().last_world_relative;
+		// _app.get_world().uninit();
+		// _app.get_world().init();
 
-			if (file_system::exists(last_world.c_str()))
-				load_level(editor_settings::get().last_world_relative.c_str());
-			else
-				_app.get_world().init();
-		}
-		else
-			_app.get_world().init();
+		_app.get_world().init();
+		_camera_controller.activate();
+
+		//if (!editor_settings::get().last_world_relative.empty())
+		//{
+		//	const string last_world = editor_settings::get().working_dir + editor_settings::get().last_world_relative;
+		//
+		//	if (file_system::exists(last_world.c_str()))
+		//		load_level(editor_settings::get().last_world_relative.c_str());
+		//	else
+		//	{
+		//		_app.get_world().init();
+		//		_camera_controller.activate();
+		//	}
+		//}
+		//else
+		//{
+		//	_app.get_world().init();
+		//	_camera_controller.activate();
+		//}
 
 		// -----------------------------------------------------------------------------
 		// gui
@@ -142,6 +154,9 @@ namespace SFG
 		_panel_controls.init();
 		_panel_entities.init();
 		_panel_properties.init();
+		_panel_world_view.init();
+		_panels_docking.init();
+
 	}
 
 	void editor::uninit()
@@ -158,6 +173,8 @@ namespace SFG
 		_renderer.uninit();
 
 		_camera_controller.uninit();
+		_panel_world_view.uninit();
+		_panels_docking.uninit();
 	}
 
 	void editor::pre_world_tick(float delta)
@@ -171,22 +188,29 @@ namespace SFG
 
 	void editor::tick()
 	{
-		world&			   w  = _app.get_world();
-		const vector2ui16& ws = _app.get_main_window().get_size();
-
-		_renderer.draw_begin();
-		_panel_entities.draw(w, ws);
-		_panel_properties.draw(w, _selected_entity, ws);
-		_panel_controls.draw({});
-		_renderer.draw_end();
-		window& wnd = _app.get_main_window();
-
+		window&				  wnd	= _app.get_main_window();
 		const vector<string>& drops = wnd.get_dropped_files();
 		for (const string& str : drops)
 		{
 			on_file_dropped(str.c_str());
 		}
 		wnd.clear_dropped_files();
+
+
+		world&			   w  = _app.get_world();
+		const vector2ui16& ws = _app.get_main_window().get_size();
+		vector2ui16		   world_res;
+		if (_panel_world_view.consume_committed_size(world_res))
+			_app.set_game_resolution(world_res);
+
+		_renderer.draw_begin();
+		_panels_docking.draw(ws);
+		_panel_entities.draw(w, ws);
+		_panel_properties.draw(w, _selected_entity, ws);
+		_panel_controls.draw(ws);
+		_panel_world_view.draw(ws);
+
+		_renderer.draw_end();
 
 		// _builder->build_begin(vector2(ws.x, ws.y));
 		// _panel_controls.draw({});
@@ -198,6 +222,7 @@ namespace SFG
 
 	void editor::render(const render_params& p)
 	{
+		_world_rt_gpu_index.store(p.world_rt_index, std::memory_order_release);
 		_renderer.prepare(p.pm, p.cmd_buffer, p.frame_index);
 		_renderer.render({
 			.cmd_buffer	   = p.cmd_buffer,
@@ -256,6 +281,12 @@ namespace SFG
 		entity_manager&	   em = w.get_entity_manager();
 		component_manager& cm = w.get_comp_manager();
 
+		if (ext.compare("stkworld") == 0)
+		{
+			load_level(relative.c_str());
+			return;
+		}
+
 		if (ext.compare("stkmodel") == 0)
 		{
 			const string_id sid = TO_SID(relative);
@@ -283,6 +314,11 @@ namespace SFG
 		}
 
 		SFG_ERR("dropped file with unknown extension: {0}", ext.c_str());
+	}
+
+	const vector2ui16& editor::get_game_resolution() const
+	{
+		return _app.get_game_resolution();
 	}
 
 	void editor::load_level_prompt()

@@ -31,12 +31,15 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "editor_camera.hpp"
 #include "editor/gfx/editor_renderer.hpp"
+#include "data/atomic.hpp"
 
 // gui
 #include "editor/gui/editor_panel_controls.hpp"
 #include "editor/gui/editor_panel_properties.hpp"
 #include "editor/gui/editor_panel_entities.hpp"
 #include "editor/gui/editor_gui_world_overlays.hpp"
+#include "editor/gui/editor_panels_docking.hpp"
+#include "editor/gui/editor_panels_world_view.hpp"
 
 namespace vekt
 {
@@ -66,6 +69,7 @@ namespace SFG
 			vector2ui16		size;
 			gfx_id			global_layout;
 			gfx_id			global_group;
+			gpu_index		world_rt_index;
 		};
 
 		explicit editor(app& game);
@@ -79,15 +83,16 @@ namespace SFG
 		// lifecycle
 		// -----------------------------------------------------------------------------
 
-		void init();
-		void uninit();
-		void tick();
-		void render(const render_params& p);
-		void pre_world_tick(float delta);
-		void post_world_tick(float delta);
-		bool on_window_event(const window_event& ev);
-		void resize(const vector2ui16& size);
-		void on_file_dropped(const char* path);
+		void			   init();
+		void			   uninit();
+		void			   tick();
+		void			   render(const render_params& p);
+		void			   pre_world_tick(float delta);
+		void			   post_world_tick(float delta);
+		bool			   on_window_event(const window_event& ev);
+		void			   resize(const vector2ui16& size);
+		void			   on_file_dropped(const char* path);
+		const vector2ui16& get_game_resolution() const;
 
 		// -----------------------------------------------------------------------------
 		// level
@@ -126,6 +131,11 @@ namespace SFG
 			return _renderer.get_output_gpu_index(frame);
 		}
 
+		inline uint32 get_world_rt_gpu_index() const
+		{
+			return _world_rt_gpu_index.load(std::memory_order_acquire);
+		}
+
 	private:
 		app&		 _app;
 		world_handle _camera_entity	  = {};
@@ -144,6 +154,8 @@ namespace SFG
 		editor_panel_controls	  _panel_controls	  = {};
 		editor_panel_entities	  _panel_entities	  = {};
 		editor_panel_properties	  _panel_properties	  = {};
+		editor_panels_world_view  _panel_world_view	  = {};
+		editor_panels_docking	  _panels_docking	  = {};
 		editor_gui_world_overlays _gui_world_overlays = {};
 
 		// vekt
@@ -151,6 +163,7 @@ namespace SFG
 		vekt::font_manager* _font_manager	 = nullptr;
 		vekt::font*			_font_main		 = nullptr;
 		world_handle		_selected_entity = {};
+		atomic<uint32>		_world_rt_gpu_index{0};
 
 		static editor* s_instance;
 	};

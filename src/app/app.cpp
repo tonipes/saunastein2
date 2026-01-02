@@ -140,7 +140,10 @@ namespace SFG
 #else
 		_renderer = new renderer(*_main_window, *_world, _render_stream, nullptr);
 #endif
-		if (!_renderer->init())
+
+		_game_resolution = vector2ui16(3840, 2160);
+
+		if (!_renderer->init(_game_resolution))
 		{
 			time::uninit();
 			debug_console::uninit();
@@ -270,7 +273,7 @@ namespace SFG
 #ifdef SFG_TOOLMODE
 				if (ws.x > 64 && ws.y > 64)
 				{
-					editor_settings::get().window_size = ws;
+					editor_settings::get().window_size = _main_window->get_true_size();
 					editor_settings::get().save_last();
 				}
 #endif
@@ -281,6 +284,7 @@ namespace SFG
 #ifdef SFG_TOOLMODE
 			if (window_flags.is_set(window_flags::wf_pos_dirty))
 			{
+				_main_window->set_pos_dirty(false);
 				editor_settings::get().window_pos = vector2(_main_window->get_position().x, _main_window->get_position().y);
 				editor_settings::get().save_last();
 			}
@@ -386,6 +390,16 @@ namespace SFG
 
 		frame_info::s_is_render_active = false;
 		_renderer->wait_backend();
+	}
+
+	void app::set_game_resolution(const vector2ui16& size)
+	{
+		if (_game_resolution.x == size.x && _game_resolution.y == size.y)
+			return;
+		_game_resolution = size;
+		join_render();
+		_renderer->on_world_resolution(_game_resolution);
+		kick_off_render();
 	}
 
 	void app::kick_off_render()

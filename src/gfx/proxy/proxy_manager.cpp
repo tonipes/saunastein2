@@ -185,10 +185,8 @@ namespace SFG
 		ZoneScoped;
 
 		_peak_entities = 0;
-		stream.read_transform_events(&_entities->get(0), _peak_entities);
-
 		istream in;
-		stream.open_into(in);
+		stream.read(&_entities->get(0), _peak_entities, in);
 
 		if (in.get_size() == 0)
 			return;

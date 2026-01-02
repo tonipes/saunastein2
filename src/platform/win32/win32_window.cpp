@@ -182,10 +182,16 @@ namespace SFG
 			return 0;
 		}
 		case WM_MOVE: {
-			const int32 x  = static_cast<int32>((short)LOWORD(lParam));
-			const int32 y  = static_cast<int32>((short)HIWORD(lParam));
-			wnd->_position = vector2i16(x, y);
+			// const int32 x  = static_cast<int32>((short)LOWORD(lParam));
+			// const int32 y  = static_cast<int32>((short)HIWORD(lParam));
+			// wnd->_position = vector2i16(x, y);
+			// wnd->_flags.set(window_flags::wf_pos_dirty);
+
+			RECT r;
+			GetWindowRect(hwnd, &r); // outer window (includes frame/caption)
+			wnd->_position = vector2i16(r.left, r.top);
 			wnd->_flags.set(window_flags::wf_pos_dirty);
+
 			return 0;
 		}
 		case WM_SIZE: {
@@ -206,8 +212,8 @@ namespace SFG
 			{
 				RECT rect;
 				GetWindowRect(hwnd, &rect);
-				wnd->_true_size.x = rect.right - rect.left;
-				wnd->_true_size.y = rect.bottom - rect.top;
+				wnd->_true_size.x = rect.right - (rect.left < 0 ? -rect.left : rect.left);
+				wnd->_true_size.y = rect.bottom - (rect.top < 0 ? -rect.top : rect.top);
 			}
 			return 0;
 		}
@@ -686,27 +692,27 @@ namespace SFG
 		HWND hwnd = static_cast<HWND>(_window_handle);
 		ShowWindow(hwnd, SW_MAXIMIZE);
 	}
-	void window::set_size(const vector2ui16& size)
+	void window::set_size(const vector2ui16& full_size)
 	{
-		HWND hwnd = static_cast<HWND>(_window_handle);
+		HWND hwnd = (HWND)_window_handle;
 
-		_size = size;
+		if (IsZoomed(hwnd))
+			return;
+
+		_true_size = full_size;
 		_flags.set(wf_size_dirty);
 
-		if (_flags.is_set(window_flags::wf_style_windowed))
-		{
-			RECT windowRect = {0, 0, static_cast<LONG>(size.x), static_cast<LONG>(size.y)};
-			AdjustWindowRect(&windowRect, GetWindowLong(hwnd, GWL_STYLE), FALSE);
+		SetWindowPos(hwnd, nullptr, 0, 0, (int)full_size.x, (int)full_size.y, SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
 
-			const int adjusted_width  = windowRect.right - windowRect.left;
-			const int adjusted_height = windowRect.bottom - windowRect.top;
-			_true_size.x			  = static_cast<uint32>(adjusted_width);
-			_true_size.y			  = static_cast<uint32>(adjusted_height);
-		}
-		else
-			_true_size = size;
+		RECT wr{};
+		GetWindowRect(hwnd, &wr);
+		_true_size.x = (uint32)(wr.right - wr.left);
+		_true_size.y = (uint32)(wr.bottom - wr.top);
 
-		SetWindowPos(hwnd, NULL, 0, 0, _true_size.x, _true_size.y, SWP_NOMOVE | SWP_NOZORDER);
+		RECT cr{};
+		GetClientRect(hwnd, &cr);
+		_size.x = (uint32)(cr.right - cr.left); // render resolution / framebuffer size
+		_size.y = (uint32)(cr.bottom - cr.top);
 	}
 
 	void window::set_style(window_flags flags)
@@ -794,6 +800,11 @@ namespace SFG
 
 		ShowCursor(vis);
 		_flags.set(window_flags::wf_cursor_hidden, !vis);
+	}
+
+	bool window::is_maximized() const
+	{
+		return _true_size.x == _monitor_info.work_size.x && _true_size.y == _monitor_info.work_size.y;
 	}
 
 	void window::query_all_monitors(vector<monitor_info>& out_info)

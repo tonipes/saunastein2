@@ -99,7 +99,7 @@ namespace SFG
 			return _pfd[frame_index].gpu_index_render_target;
 		}
 
-		inline gpu_index get_output_hw(uint8 frame_index) const
+		inline gfx_id get_output_hw(uint8 frame_index) const
 		{
 			return _pfd[frame_index].render_target;
 		}

@@ -65,7 +65,59 @@ namespace SFG
 
 	class game_world_renderer
 	{
+	public:
+		struct task_common
+		{
+			game_world_renderer* rend;
+			vector2ui16			 resolution;
+			gpu_index			 gpu_index_entities;
+			gpu_index			 gpu_index_bones;
+			const gpu_index*	 gpu_index_gbuffer_textures;
+			gpu_index			 gpu_index_point_lights;
+			gpu_index			 gpu_index_spot_lights;
+			gpu_index			 gpu_index_dir_lights;
+			gpu_index			 gpu_index_shadow_data_buffer;
+			gpu_index			 gpu_index_float_buffer;
+			gpu_index			 gpu_index_depth_texture;
+			gpu_index			 gpu_index_ao_out;
+			gpu_index			 gpu_index_lighting;
+			gpu_index			 gpu_index_bloom;
+			gpu_index			 gpu_index_selection_outline;
+			gfx_id				 layout_global;
+			gfx_id				 layout_global_compute;
+			gfx_id				 bind_group_global;
+			gfx_id				 depth_texture;
+			gfx_id				 lighting_texture;
+			gfx_id				 post_combiner_texture;
+			uint8				 frame_index;
+		};
+
 	private:
+		static void run_pre_depth(const void* ctx);
+		static void run_shadows(const void* ctx);
+		static void run_opaque(const void* ctx);
+		static void run_ssao(const void* ctx);
+		static void run_particles_compute(const void* ctx);
+		static void run_obj_id(const void* ctx);
+		static void run_selection_outline(const void* ctx);
+		static void run_physics(const void* ctx);
+		static void run_lighting(const void* ctx);
+		static void run_forward(const void* ctx);
+		static void run_particles_render(const void* ctx);
+		static void run_post(const void* ctx);
+		static void run_bloom(const void* ctx);
+		static void run_canvas_2d(const void* ctx);
+
+		struct task
+		{
+			void (*fn)(const void*) = nullptr;
+			void* ctx				= nullptr;
+			void  operator()() const
+			{
+				fn(ctx);
+			}
+		};
+
 		struct per_frame_data
 		{
 			buffer		   shadow_data_buffer;
