@@ -29,6 +29,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vekt_defines.hpp"
 #include "math/vector2.hpp"
 #include "math/vector4.hpp"
+#include "memory/text_allocator.hpp"
 
 #include <memory>
 #include <assert.h>
@@ -79,10 +80,10 @@ namespace vekt
 #define ASSERT(...)	 assert(__VA_ARGS__)
 #define MEMSET(...)	 memset(__VA_ARGS__)
 
-// #define VEKT_STRING_CSTR
-#include <string>
-// #define VEKT_STRING const char*
-#define VEKT_STRING std::string
+#define VEKT_STRING_CSTR
+	// #include <string>
+#define VEKT_STRING const char*
+	// #define VEKT_STRING std::string
 
 #ifndef VEKT_VARIANT
 #define VEKT_VARIANT std::variant
@@ -1115,6 +1116,7 @@ namespace vekt
 			size_t		 text_cache_vertex_buffer_sz = 1024 * 1024;
 			size_t		 text_cache_index_buffer_sz	 = 1024 * 1024;
 			size_t		 buffer_count				 = 10;
+			size_t		 text_allocator_size		 = 1024 * 512;
 		};
 
 		builder()					  = default;
@@ -1278,6 +1280,8 @@ namespace vekt
 
 		unsigned int _widget_head  = 0;
 		unsigned int _widget_count = 0;
+
+		SFG::text_allocator _text_allocator = {};
 
 		draw_callback		_on_draw				  = nullptr;
 		void*				_on_draw_ud				  = nullptr;

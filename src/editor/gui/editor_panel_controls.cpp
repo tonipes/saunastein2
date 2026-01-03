@@ -138,26 +138,26 @@ namespace SFG
 
 			const vector2ui16& game_res = editor::get().get_app().get_game_resolution();
 
-			b->widget_get_text(_game_res).text	 = std::to_string(game_res.x) + "x" + std::to_string(game_res.y);
-			b->widget_get_text(_window_res).text = std::to_string(window_size.x) + "x" + std::to_string(window_size.y);
-			b->widget_get_text(_fps).text		 = std::to_string(frame_info::get_fps());
-			b->widget_get_text(_main).text		 = std::to_string(main_time_ms) + " ms";
-			b->widget_get_text(_render).text	 = std::to_string(frame_info::get_render_thread_time_milli()) + " ms";
-			b->widget_get_text(_ram).text		 = std::to_string(ram) + " mb";
-			b->widget_get_text(_vram).text		 = std::to_string(vram) + " mb";
-			b->widget_get_text(_vram_txt).text	 = std::to_string(vram_txt) + " mb";
-			b->widget_get_text(_vram_res).text	 = std::to_string(vram_res) + " mb";
-			b->widget_get_text(_draw_calls).text = std::to_string(dc);
-			b->widget_update_text(_game_res);
-			b->widget_update_text(_window_res);
-			b->widget_update_text(_fps);
-			b->widget_update_text(_main);
-			b->widget_update_text(_render);
-			b->widget_update_text(_ram);
-			b->widget_update_text(_vram);
-			b->widget_update_text(_vram_txt);
-			b->widget_update_text(_vram_res);
-			b->widget_update_text(_draw_calls);
+			// b->widget_get_text(_game_res).text	 = std::to_string(game_res.x) + "x" + std::to_string(game_res.y);
+			// b->widget_get_text(_window_res).text = std::to_string(window_size.x) + "x" + std::to_string(window_size.y);
+			// b->widget_get_text(_fps).text		 = std::to_string(frame_info::get_fps());
+			// b->widget_get_text(_main).text		 = std::to_string(main_time_ms) + " ms";
+			// b->widget_get_text(_render).text	 = std::to_string(frame_info::get_render_thread_time_milli()) + " ms";
+			// b->widget_get_text(_ram).text		 = std::to_string(ram) + " mb";
+			// b->widget_get_text(_vram).text		 = std::to_string(vram) + " mb";
+			// b->widget_get_text(_vram_txt).text	 = std::to_string(vram_txt) + " mb";
+			// b->widget_get_text(_vram_res).text	 = std::to_string(vram_res) + " mb";
+			// b->widget_get_text(_draw_calls).text = std::to_string(dc);
+			// b->widget_update_text(_game_res);
+			// b->widget_update_text(_window_res);
+			// b->widget_update_text(_fps);
+			// b->widget_update_text(_main);
+			// b->widget_update_text(_render);
+			// b->widget_update_text(_ram);
+			// b->widget_update_text(_vram);
+			// b->widget_update_text(_vram_txt);
+			// b->widget_update_text(_vram_res);
+			// b->widget_update_text(_draw_calls);
 			fetch_time = 0;
 		}
 

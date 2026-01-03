@@ -65,6 +65,7 @@ namespace vekt
 		ASSERT(conf.buffer_count * sizeof(vertex) < conf.vertex_buffer_sz && conf.buffer_count * sizeof(index) < conf.index_buffer_sz);
 
 		_widget_count = conf.widget_count;
+		_text_allocator.init(conf.text_allocator_size);
 
 		// Layout arena
 		const size_t widget_meta_sz = ALIGN_8(sizeof(widget_meta)) * _widget_count;
@@ -224,6 +225,8 @@ namespace vekt
 
 		_vertex_buffer = nullptr;
 		_index_buffer  = nullptr;
+
+		_text_allocator.uninit();
 	}
 
 	void builder::build_begin(const VEKT_VEC2& screen_size)

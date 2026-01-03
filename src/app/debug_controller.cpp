@@ -364,8 +364,8 @@ namespace SFG
 			_vekt_data.builder->widget_set_size(w, vector2(1.0f, get_field_height()), vekt::helper_size_type::relative, vekt::helper_size_type::absolute);
 
 			vekt::pos_props& pp = _vekt_data.builder->widget_get_pos_props(w);
-			pp.flags			= vekt::pos_flags::pf_x_relative | vekt::pos_flags::pf_child_pos_row;
-			pp.pos.y			= 0.0f;
+			pp.flags			=vekt::pos_flags::pf_x_relative |  vekt::pos_flags::pf_child_pos_row ;
+			pp.pos.x			= 0.0f;
 
 			vekt::widget_gfx& gfx = _vekt_data.builder->widget_get_gfx(w);
 			gfx.flags			  = vekt::gfx_flags::gfx_is_rect;
@@ -383,9 +383,9 @@ namespace SFG
 			_vekt_data.builder->widget_add_child(_vekt_data.widget_input_field, w);
 
 			vekt::pos_props& pp = _vekt_data.builder->widget_get_pos_props(w);
-			pp.flags			=  vekt::pos_flags::pf_y_relative ;
+			pp.flags			= vekt::pos_flags::pf_y_relative | vekt::pos_flags::pf_y_anchor_center;
 			pp.pos.x			= 0.0f;
-			pp.pos.y			= 0.0f;
+			pp.pos.y			= 0.5f;
 
 			vekt::widget_gfx& gfx = _vekt_data.builder->widget_get_gfx(w);
 			gfx.flags			  = vekt::gfx_flags::gfx_is_text;
@@ -403,9 +403,8 @@ namespace SFG
 			_vekt_data.builder->widget_add_child(_vekt_data.widget_input_field, w);
 
 			vekt::pos_props& pp = _vekt_data.builder->widget_get_pos_props(w);
-			pp.flags			= vekt::pos_flags::pf_x_relative | vekt::pos_flags::pf_y_relative;
-			pp.pos.x			= 0.0f;
-			pp.pos.y			= 0.0f;
+			pp.flags			= vekt::pos_flags::pf_y_relative  | vekt::pos_flags::pf_y_anchor_center;
+			pp.pos.y			= 0.5f;
 
 			vekt::widget_gfx& gfx = _vekt_data.builder->widget_get_gfx(w);
 			gfx.flags			  = vekt::gfx_flags::gfx_is_text;
@@ -1039,15 +1038,14 @@ namespace SFG
 			vekt::text_props& gfx_mem_props	 = _vekt_data.builder->widget_get_text(_vekt_data.widget_gfx_mem);
 
 #ifdef VEKT_STRING_CSTR
-
-			string_util::append_float(static_cast<float>(cat.total_size) / B_TO_MB, (char*)glob_mem_props.text + 5, 6, 4, true);
+			string_util::append_float(general, (char*)glob_mem_props.text + 5, 6, 4, true);
 #else
 			glob_mem_props.text = "ram: " + std::to_string(general);
 #endif
 
 #ifdef VEKT_STRING_CSTR
 
-			string_util::append_float(static_cast<float>(cat.total_size) / B_TO_MB, (char*)gfx_mem_props.text + 6, 6, 4, true);
+			string_util::append_float(gfx, (char*)gfx_mem_props.text + 6, 6, 4, true);
 #else
 			gfx_mem_props.text = "vram: " + std::to_string(gfx);
 #endif

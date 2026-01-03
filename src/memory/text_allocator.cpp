@@ -50,13 +50,10 @@ namespace SFG
 		_free_list.clear();
 	}
 
-	// text_allocator.cpp (only the changed methods shown)
-
 	const char* text_allocator::allocate(size_t len)
 	{
-		const size_t need = len + 1; // include '\0'
+		const size_t need = len + 1;
 
-		// find a free block large enough
 		auto it = vector_util::find_if(_free_list, [need](const allocation& alloc) { return alloc.size >= need; });
 
 		if (it != _free_list.end())
@@ -70,17 +67,16 @@ namespace SFG
 			}
 			else
 			{
-				free.ptr += need;  // advance start of the remaining free block
-				free.size -= need; // shrink remaining size
+				free.ptr += need;
+				free.size -= need;
 			}
 
-			// ensure there's a terminator so future strlen(ptr) is valid
 			result[need - 1] = '\0';
 			return result;
 		}
 
 		// fallback to bump allocation
-		SFG_ASSERT(_head + need <= _capacity); // <= because need already counts the '\0'
+		SFG_ASSERT(_head + need <= _capacity);
 		if (_head + need > _capacity)
 			return nullptr;
 
@@ -114,7 +110,7 @@ namespace SFG
 				free.size -= need;
 			}
 
-			std::memcpy(result, text, need); // copy including '\0'
+			std::memcpy(result, text, need);
 			return result;
 		}
 
@@ -133,7 +129,7 @@ namespace SFG
 			return;
 		_free_list.push_back({
 			.ptr  = ptr,
-			.size = std::strlen(ptr) + 1, // count the '\0' for correct future splits
+			.size = std::strlen(ptr) + 1,
 		});
 	}
 
