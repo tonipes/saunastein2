@@ -92,6 +92,8 @@ namespace SFG
 		b->widget_set_pos_abs(_widget, vector2(30, 60));
 		b->widget_set_size_abs(_widget, vector2(700, 400));
 
+		return;
+
 		static float fetch_time = 0.0f;
 
 		const float main_time_ms = static_cast<float>(frame_info::get_main_thread_time_milli());

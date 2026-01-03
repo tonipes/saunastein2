@@ -112,8 +112,8 @@ namespace vekt
 		const id w = new_widget(true);
 		{
 			pos_props& pp = _builder->widget_get_pos_props(w);
-			pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_y_relative | pos_flags::pf_child_pos_column;
-			pp.pos		  = VEKT_VEC2();
+			pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_child_pos_column;
+			pp.pos.x	  = 0.0f;
 
 			size_props& sz = _builder->widget_get_size_props(w);
 			sz.flags	   = size_flags::sf_x_relative;
@@ -131,7 +131,7 @@ namespace vekt
 			sz.child_margins = {style.item_spacing, style.item_spacing, style.item_spacing, style.item_spacing};
 
 			widget_gfx& gfx = _builder->widget_get_gfx(w);
-			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_rounding;
+			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_rounding | gfx_flags::gfx_clip_children;
 			gfx.color		= style.col_area_bg;
 
 			rounding_props& rp = _builder->widget_get_rounding(w);
@@ -148,7 +148,7 @@ namespace vekt
 			size_props& sz = _builder->widget_get_size_props(scroll_bg);
 			sz.flags	   = size_flags::sf_x_abs | size_flags::sf_y_abs;
 			sz.size.x	   = style.scroll_thickness;
-			sz.size.y	   = 1.0f;
+			sz.size.y	   = 15.0f;
 
 			widget_gfx& gfx = _builder->widget_get_gfx(scroll_bg);
 			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_rounding;
@@ -159,25 +159,25 @@ namespace vekt
 			rp.rounding		   = style.scroll_rounding;
 		}
 
-	// const id scroll = new_widget();
-	// {
-	// 	pos_props& pp = _builder->widget_get_pos_props(scroll);
-	// 	pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_y_relative;
-	// 	pp.pos		  = VEKT_VEC2(0.0f, 0.0f);
-	// 
-	// 	size_props& sz = _builder->widget_get_size_props(scroll);
-	// 	sz.flags	   = size_flags::sf_x_relative | size_flags::sf_y_abs;
-	// 	sz.size.x	   = 1.0f;
-	// 	sz.size.y	   = 50;
-	// 
-	// 	widget_gfx& gfx = _builder->widget_get_gfx(scroll);
-	// 	gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_rounding;
-	// 	gfx.color		= style.col_scroll_bar;
-	// 
-	// 	rounding_props& rp = _builder->widget_get_rounding(scroll);
-	// 	rp.segments		   = 16;
-	// 	rp.rounding		   = style.scroll_rounding;
-	// }
+		// const id scroll = new_widget();
+		// {
+		// 	pos_props& pp = _builder->widget_get_pos_props(scroll);
+		// 	pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_y_relative;
+		// 	pp.pos		  = VEKT_VEC2(0.0f, 0.0f);
+		//
+		// 	size_props& sz = _builder->widget_get_size_props(scroll);
+		// 	sz.flags	   = size_flags::sf_x_relative | size_flags::sf_y_abs;
+		// 	sz.size.x	   = 1.0f;
+		// 	sz.size.y	   = 50;
+		//
+		// 	widget_gfx& gfx = _builder->widget_get_gfx(scroll);
+		// 	gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_rounding;
+		// 	gfx.color		= style.col_scroll_bar;
+		//
+		// 	rounding_props& rp = _builder->widget_get_rounding(scroll);
+		// 	rp.segments		   = 16;
+		// 	rp.rounding		   = style.scroll_rounding;
+		// }
 
 		pop_stack();
 

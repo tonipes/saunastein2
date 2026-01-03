@@ -177,7 +177,7 @@ namespace SFG
 			texture_queue*	  texture_queue = nullptr;
 			vector2ui16		  screen_size	= vector2ui16::zero;
 			vector2ui16		  rt_size		= vector2ui16::zero;
-			uint64			  frame_counter = 0;
+			float			  frame_counter = 0;
 		};
 
 		struct vekt_data

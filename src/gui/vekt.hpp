@@ -1217,7 +1217,6 @@ namespace vekt
 		void		 populate_hierarchy(id current_widget_id, unsigned int depth);
 		void		 build_hierarchy();
 		void		 calculate_sizes();
-		void		 calculate_position_relative();
 		void		 calculate_positions();
 		void		 calculate_draw();
 		void		 generate_rounded_rect(vector<VEKT_VEC2>& out_path, const VEKT_VEC2& min, const VEKT_VEC2& max, float rounding, int segments);

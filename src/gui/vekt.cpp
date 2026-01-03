@@ -706,10 +706,6 @@ namespace vekt
 		}
 	}
 
-	void builder::calculate_position_relative()
-	{
-	}
-
 	void builder::calculate_positions()
 	{
 		uint32 i = 0;
@@ -725,100 +721,71 @@ namespace vekt
 				continue;
 			}
 
-	
-			size_result& sr = _size_results[widget];
-			pos_result&	 pr = _pos_results[widget];
+			const size_props&  sz		 = _size_properties[widget];
+			const size_result& sr		 = _size_results[widget];
+			const float		   my_width	 = sr.size.x;
+			const float		   my_height = sr.size.y;
 
-			VEKT_VEC2 final_pos = pr.pos;
-
+			// set my pos if abs needed.
+			pos_result& pr = _pos_results[widget];
 			if (pp.flags & pos_flags::pf_x_abs)
-				final_pos.x = pp.pos.x;
+				pr.pos.x = pp.pos.x;
 			if (pp.flags & pos_flags::pf_y_abs)
-				final_pos.y = pp.pos.y;
+				pr.pos.y = pp.pos.y;
 
-			const bool x_relative = pp.flags & pos_flags::pf_x_relative;
-			const bool y_relative = pp.flags & pos_flags::pf_y_relative;
+			const float my_pos_x = pr.pos.x;
+			const float my_pos_y = pr.pos.y;
+			const bool	is_row	 = pp.flags & pos_flags::pf_child_pos_row;
+			const bool	is_col	 = pp.flags & pos_flags::pf_child_pos_column;
 
-			if (x_relative || y_relative)
+			widget_meta& meta = _metas[widget];
+
+			float row_position = my_pos_x + sz.child_margins.left;
+			float col_position = my_pos_y + sz.child_margins.top;
+
+			for (id child : meta.children)
 			{
-				widget_meta& meta			  = _metas[widget];
-				pos_result&	 parent_result	  = _pos_results[meta.parent];
-				size_result& parent_sz_result = _size_results[meta.parent];
-				size_props&	 parent_sz_props  = _size_properties[meta.parent];
+				pos_props&	 child_pos_props = _pos_properties[child];
+				pos_result&	 child_pr		 = _pos_results[child];
+				size_result& child_sr		 = _size_results[child];
 
-				if (x_relative)
+				if (child_pos_props.flags & pos_flags::pf_x_relative)
 				{
-					const float parent_width = parent_sz_result.size.x;
-
-					if (pp.flags & pos_flags::pf_x_anchor_end)
-						final_pos.x = (parent_result.pos.x + parent_width - parent_sz_props.child_margins.right) - sr.size.x;
-					else if (pp.flags & pos_flags::pf_x_anchor_center)
-						final_pos.x = (parent_result.pos.x + parent_sz_props.child_margins.left) + (parent_width * pp.pos.x) - sr.size.x * 0.5f;
+					if (child_pos_props.flags & pos_flags::pf_x_anchor_end)
+						child_pr.pos.x = (my_pos_x + my_width - sz.child_margins.right) - child_sr.size.x;
+					else if (child_pos_props.flags & pos_flags::pf_x_anchor_center)
+						child_pr.pos.x = (my_pos_x + sz.child_margins.left) + (my_width * child_pos_props.pos.x) - child_sr.size.x * 0.5f;
 					else
-						final_pos.x = (parent_result.pos.x + parent_sz_props.child_margins.left) + (parent_width * pp.pos.x);
+						child_pr.pos.x = (my_pos_x + sz.child_margins.left) + (my_width * child_pos_props.pos.x);
+
+					if (is_row && !(child_pos_props.flags & pos_flags::pf_overlay))
+						row_position = math::max(row_position, child_pr.pos.x + child_sr.size.x + sz.spacing);
+				}
+				else if (!(child_pos_props.flags & pos_flags::pf_x_abs) && is_row)
+				{
+					child_pr.pos.x = row_position;
+					row_position += child_sr.size.x + sz.spacing;
 				}
 
-				if (y_relative)
+				if (child_pos_props.flags & pos_flags::pf_y_relative)
 				{
-					const float parent_height = parent_sz_result.size.y;
-
-					if (pp.flags & pos_flags::pf_y_anchor_end)
-						final_pos.y = (parent_result.pos.y + parent_height - parent_sz_props.child_margins.bottom) - sr.size.y;
-					else if (pp.flags & pos_flags::pf_y_anchor_center)
-						final_pos.y = (parent_result.pos.y + parent_sz_props.child_margins.top) + (parent_height * pp.pos.y) - sr.size.y * 0.5f;
+					if (child_pos_props.flags & pos_flags::pf_y_anchor_end)
+						child_pr.pos.y = (my_pos_y + my_height - sz.child_margins.bottom) - child_sr.size.y;
+					else if (child_pos_props.flags & pos_flags::pf_y_anchor_center)
+						child_pr.pos.y = (my_pos_y + sz.child_margins.top) + (my_height * child_pos_props.pos.y) - child_sr.size.y * 0.5f;
 					else
-						final_pos.y = (parent_result.pos.y + parent_sz_props.child_margins.top) + (parent_height * pp.pos.y);
+						child_pr.pos.y = (my_pos_y + sz.child_margins.top) + (my_height * child_pos_props.pos.y);
+
+					if (is_col && !(child_pos_props.flags & pos_flags::pf_overlay))
+						col_position = math::max(col_position, child_pr.pos.y + child_sr.size.y + sz.spacing);
 				}
-			}
-
-			pr.pos = final_pos;
-		}
-
-		// columns and rowns
-		for (id widget : _depth_first_widgets)
-		{
-			pos_props&	 pp		   = _pos_properties[widget];
-			widget_meta& meta	   = _metas[widget];
-			VEKT_VEC2	 final_pos = _pos_results[widget].pos;
-
-			if (pp.flags & pf_child_pos_row)
-			{
-				size_props& sp = _size_properties[widget];
-
-				float child_x = final_pos.x + sp.child_margins.left;
-
-				for (id child : meta.children)
+				else if (!(child_pos_props.flags & pos_flags::pf_y_abs) && is_col)
 				{
-					pos_props& child_pos_props = _pos_properties[child];
-					if (child_pos_props.flags & pos_flags::pf_overlay)
-						continue;
-
-					pos_result&	 child_res		= _pos_results[child];
-					size_result& child_size_res = _size_results[child];
-					child_res.pos.x				= child_x;
-					child_x += sp.spacing + child_size_res.size.x;
-				}
-			}
-			else if (pp.flags & pf_child_pos_column)
-			{
-				size_props& sp = _size_properties[widget];
-
-				float child_y = final_pos.y + sp.child_margins.top + pp.scroll_offset;
-
-				for (id child : meta.children)
-				{
-					pos_props& child_pos_props = _pos_properties[child];
-					if (child_pos_props.flags & pos_flags::pf_overlay)
-						continue;
-
-					pos_result&	 child_res		= _pos_results[child];
-					size_result& child_size_res = _size_results[child];
-					child_res.pos.y				= child_y;
-					child_y += sp.spacing + child_size_res.size.y;
+					child_pr.pos.y = col_position;
+					col_position += child_sr.size.y + sz.spacing;
 				}
 			}
 		}
-
 	}
 
 	void builder::calculate_draw()

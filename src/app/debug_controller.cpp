@@ -130,7 +130,7 @@ namespace SFG
 			_vekt_data.builder->widget_set_size(header, vector2(1.0f, get_field_height()), vekt::helper_size_type::relative, vekt::helper_size_type::absolute);
 
 			vekt::pos_props& pos_props = _vekt_data.builder->widget_get_pos_props(header);
-			pos_props.flags			   = vekt::pos_flags::pf_child_pos_row;
+			pos_props.flags			   = vekt::pos_flags::pf_x_relative | vekt::pos_flags::pf_y_relative | vekt::pos_flags::pf_child_pos_row;
 
 			vekt::size_props& props	 = _vekt_data.builder->widget_get_size_props(header);
 			props.child_margins.left = static_cast<float>(get_font_size()) * 0.5f;
@@ -143,7 +143,9 @@ namespace SFG
 			{
 				vekt::id w = _vekt_data.builder->allocate();
 				_vekt_data.builder->widget_add_child(header, w);
-				_vekt_data.builder->widget_set_pos(w, vector2(0.0f, 0.5f), vekt::helper_pos_type::relative, vekt::helper_pos_type::relative, vekt::helper_anchor_type::start, vekt::helper_anchor_type::center);
+				vekt::pos_props& pp = _vekt_data.builder->widget_get_pos_props(w);
+				pp.flags			= vekt::pos_flags::pf_y_relative | vekt::pos_flags::pf_y_anchor_center;
+				pp.pos.y			= 0.5f;
 
 				vekt::widget_gfx& gfx = _vekt_data.builder->widget_get_gfx(w);
 				gfx.flags			  = vekt::gfx_flags::gfx_is_text;
@@ -161,7 +163,11 @@ namespace SFG
 			{
 				vekt::id w = _vekt_data.builder->allocate();
 				_vekt_data.builder->widget_add_child(header, w);
-				_vekt_data.builder->widget_set_pos(w, vector2(0.0f, 0.5f), vekt::helper_pos_type::relative, vekt::helper_pos_type::relative, vekt::helper_anchor_type::start, vekt::helper_anchor_type::center);
+
+				vekt::pos_props& pp = _vekt_data.builder->widget_get_pos_props(w);
+				pp.flags			= vekt::pos_flags::pf_y_relative | vekt::pos_flags::pf_y_anchor_center;
+				pp.pos.y			= 0.5f;
+
 				_vekt_data.builder->widget_set_size(w, vector2(get_font_size() * 0.2f, 1.0f), vekt::helper_size_type::absolute, vekt::helper_size_type::relative);
 				vekt::widget_gfx& gfx = _vekt_data.builder->widget_get_gfx(w);
 				gfx.flags			  = vekt::gfx_flags::gfx_is_rect;
@@ -171,7 +177,10 @@ namespace SFG
 			{
 				vekt::id w = _vekt_data.builder->allocate();
 				_vekt_data.builder->widget_add_child(header, w);
-				_vekt_data.builder->widget_set_pos(w, vector2(0.0f, 0.5f), vekt::helper_pos_type::relative, vekt::helper_pos_type::relative, vekt::helper_anchor_type::start, vekt::helper_anchor_type::center);
+
+				vekt::pos_props& pp = _vekt_data.builder->widget_get_pos_props(w);
+				pp.flags			= vekt::pos_flags::pf_y_relative | vekt::pos_flags::pf_y_anchor_center;
+				pp.pos.y			= 0.5f;
 
 				vekt::widget_gfx& gfx = _vekt_data.builder->widget_get_gfx(w);
 				gfx.flags			  = vekt::gfx_flags::gfx_is_text;
@@ -189,7 +198,11 @@ namespace SFG
 			{
 				vekt::id w = _vekt_data.builder->allocate();
 				_vekt_data.builder->widget_add_child(header, w);
-				_vekt_data.builder->widget_set_pos(w, vector2(0.0f, 0.5f), vekt::helper_pos_type::relative, vekt::helper_pos_type::relative, vekt::helper_anchor_type::start, vekt::helper_anchor_type::center);
+
+				vekt::pos_props& pp = _vekt_data.builder->widget_get_pos_props(w);
+				pp.flags			= vekt::pos_flags::pf_y_relative | vekt::pos_flags::pf_y_anchor_center;
+				pp.pos.y			= 0.5f;
+
 				_vekt_data.builder->widget_set_size(w, vector2(get_font_size() * 0.2f, 1.0f), vekt::helper_size_type::absolute, vekt::helper_size_type::relative);
 				vekt::widget_gfx& gfx = _vekt_data.builder->widget_get_gfx(w);
 				gfx.flags			  = vekt::gfx_flags::gfx_is_rect;
@@ -199,7 +212,10 @@ namespace SFG
 			{
 				vekt::id w = _vekt_data.builder->allocate();
 				_vekt_data.builder->widget_add_child(header, w);
-				_vekt_data.builder->widget_set_pos(w, vector2(0.0f, 0.5f), vekt::helper_pos_type::relative, vekt::helper_pos_type::relative, vekt::helper_anchor_type::start, vekt::helper_anchor_type::center);
+
+				vekt::pos_props& pp = _vekt_data.builder->widget_get_pos_props(w);
+				pp.flags			= vekt::pos_flags::pf_y_relative | vekt::pos_flags::pf_y_anchor_center;
+				pp.pos.y			= 0.5f;
 
 				vekt::widget_gfx& gfx = _vekt_data.builder->widget_get_gfx(w);
 				gfx.flags			  = vekt::gfx_flags::gfx_is_text;
@@ -217,7 +233,11 @@ namespace SFG
 			{
 				vekt::id w = _vekt_data.builder->allocate();
 				_vekt_data.builder->widget_add_child(header, w);
-				_vekt_data.builder->widget_set_pos(w, vector2(0.0f, 0.5f), vekt::helper_pos_type::relative, vekt::helper_pos_type::relative, vekt::helper_anchor_type::start, vekt::helper_anchor_type::center);
+
+				vekt::pos_props& pp = _vekt_data.builder->widget_get_pos_props(w);
+				pp.flags			= vekt::pos_flags::pf_y_relative | vekt::pos_flags::pf_y_anchor_center;
+				pp.pos.y			= 0.5f;
+
 				_vekt_data.builder->widget_set_size(w, vector2(get_font_size() * 0.2f, 1.0f), vekt::helper_size_type::absolute, vekt::helper_size_type::relative);
 				vekt::widget_gfx& gfx = _vekt_data.builder->widget_get_gfx(w);
 				gfx.flags			  = vekt::gfx_flags::gfx_is_rect;
@@ -227,7 +247,10 @@ namespace SFG
 			{
 				vekt::id w = _vekt_data.builder->allocate();
 				_vekt_data.builder->widget_add_child(header, w);
-				_vekt_data.builder->widget_set_pos(w, vector2(0.0f, 0.5f), vekt::helper_pos_type::relative, vekt::helper_pos_type::relative, vekt::helper_anchor_type::start, vekt::helper_anchor_type::center);
+
+				vekt::pos_props& pp = _vekt_data.builder->widget_get_pos_props(w);
+				pp.flags			= vekt::pos_flags::pf_y_relative | vekt::pos_flags::pf_y_anchor_center;
+				pp.pos.y			= 0.5f;
 
 				vekt::widget_gfx& gfx = _vekt_data.builder->widget_get_gfx(w);
 				gfx.flags			  = vekt::gfx_flags::gfx_is_text;
@@ -245,7 +268,11 @@ namespace SFG
 			{
 				vekt::id w = _vekt_data.builder->allocate();
 				_vekt_data.builder->widget_add_child(header, w);
-				_vekt_data.builder->widget_set_pos(w, vector2(0.0f, 0.5f), vekt::helper_pos_type::relative, vekt::helper_pos_type::relative, vekt::helper_anchor_type::start, vekt::helper_anchor_type::center);
+
+				vekt::pos_props& pp = _vekt_data.builder->widget_get_pos_props(w);
+				pp.flags			= vekt::pos_flags::pf_y_relative | vekt::pos_flags::pf_y_anchor_center;
+				pp.pos.y			= 0.5f;
+
 				_vekt_data.builder->widget_set_size(w, vector2(get_font_size() * 0.2f, 1.0f), vekt::helper_size_type::absolute, vekt::helper_size_type::relative);
 				vekt::widget_gfx& gfx = _vekt_data.builder->widget_get_gfx(w);
 				gfx.flags			  = vekt::gfx_flags::gfx_is_rect;
@@ -255,7 +282,10 @@ namespace SFG
 			{
 				vekt::id w = _vekt_data.builder->allocate();
 				_vekt_data.builder->widget_add_child(header, w);
-				_vekt_data.builder->widget_set_pos(w, vector2(0.0f, 0.5f), vekt::helper_pos_type::relative, vekt::helper_pos_type::relative, vekt::helper_anchor_type::start, vekt::helper_anchor_type::center);
+
+				vekt::pos_props& pp = _vekt_data.builder->widget_get_pos_props(w);
+				pp.flags			= vekt::pos_flags::pf_y_relative | vekt::pos_flags::pf_y_anchor_center;
+				pp.pos.y			= 0.5f;
 
 				vekt::widget_gfx& gfx = _vekt_data.builder->widget_get_gfx(w);
 				gfx.flags			  = vekt::gfx_flags::gfx_is_text;
@@ -273,8 +303,12 @@ namespace SFG
 			{
 				vekt::id w = _vekt_data.builder->allocate();
 				_vekt_data.builder->widget_add_child(header, w);
-				_vekt_data.builder->widget_set_pos(w, vector2(0.0f, 0.5f), vekt::helper_pos_type::relative, vekt::helper_pos_type::relative, vekt::helper_anchor_type::start, vekt::helper_anchor_type::center);
 				_vekt_data.builder->widget_set_size(w, vector2(get_font_size() * 0.2f, 1.0f), vekt::helper_size_type::absolute, vekt::helper_size_type::relative);
+
+				vekt::pos_props& pp = _vekt_data.builder->widget_get_pos_props(w);
+				pp.flags			= vekt::pos_flags::pf_y_relative | vekt::pos_flags::pf_y_anchor_center;
+				pp.pos.y			= 0.5f;
+
 				vekt::widget_gfx& gfx = _vekt_data.builder->widget_get_gfx(w);
 				gfx.flags			  = vekt::gfx_flags::gfx_is_rect;
 				gfx.color			  = COLOR_CONSOLE_BG;
@@ -946,9 +980,12 @@ namespace SFG
 
 	void debug_controller::console_logic()
 	{
-		_gfx_data.frame_counter++;
-		if (_gfx_data.frame_counter % 120 == 0)
+		_gfx_data.frame_counter += frame_info::get_render_thread_time_milli();
+
+		if (_gfx_data.frame_counter > 1500)
 		{
+			_gfx_data.frame_counter = 0.0f;
+
 			vekt::text_props& fps_props	   = _vekt_data.builder->widget_get_text(_vekt_data.widget_fps);
 			vekt::text_props& update_props = _vekt_data.builder->widget_get_text(_vekt_data.widget_main_thread);
 			vekt::text_props& render_props = _vekt_data.builder->widget_get_text(_vekt_data.widget_render_thread);
@@ -962,34 +999,43 @@ namespace SFG
 			render_props.text = "render: " + std::to_string(frame_info::get_render_thread_time_milli());
 #endif
 
+			size_t general = 0;
+			size_t gfx	   = 0;
+
 #ifdef SFG_ENABLE_MEMORY_TRACER
-			memory_tracer& tracer = memory_tracer::get();
-			LOCK_GUARD(tracer.get_category_mtx());
+			{
+				memory_tracer& tracer = memory_tracer::get();
+				LOCK_GUARD(tracer.get_category_mtx());
+
+				for (const memory_category& cat : tracer.get_categories())
+				{
+					if (TO_SID(cat.name) == TO_SID("General"))
+					{
+						general = static_cast<float>(cat.total_size) / B_TO_MB;
+					}
+					else if (TO_SID(cat.name) == TO_SID("Gfx"))
+					{
+						gfx = static_cast<float>(cat.total_size) / B_TO_MB;
+					}
+				}
+			}
+#endif
 
 			vekt::text_props& glob_mem_props = _vekt_data.builder->widget_get_text(_vekt_data.widget_global_mem);
 			vekt::text_props& gfx_mem_props	 = _vekt_data.builder->widget_get_text(_vekt_data.widget_gfx_mem);
 
-			for (const memory_category& cat : tracer.get_categories())
-			{
-				if (TO_SID(cat.name) == TO_SID("General"))
-				{
 #ifdef VEKT_STRING_CSTR
 
-					string_util::append_float(static_cast<float>(cat.total_size) / B_TO_MB, (char*)glob_mem_props.text + 5, 6, 4, true);
+			string_util::append_float(static_cast<float>(cat.total_size) / B_TO_MB, (char*)glob_mem_props.text + 5, 6, 4, true);
 #else
-					// glob_mem_props.text = "ram: " + std::to_string(static_cast<float>(cat.total_size) / B_TO_MB);
+			glob_mem_props.text = "ram: " + std::to_string(general);
 #endif
-				}
-				else if (TO_SID(cat.name) == TO_SID("Gfx"))
-				{
+
 #ifdef VEKT_STRING_CSTR
 
-					string_util::append_float(static_cast<float>(cat.total_size) / B_TO_MB, (char*)gfx_mem_props.text + 6, 6, 4, true);
+			string_util::append_float(static_cast<float>(cat.total_size) / B_TO_MB, (char*)gfx_mem_props.text + 6, 6, 4, true);
 #else
-					//gfx_mem_props.text = "vram: " + std::to_string(static_cast<float>(cat.total_size) / B_TO_MB);
-#endif
-				}
-			}
+			gfx_mem_props.text = "vram: " + std::to_string(gfx);
 #endif
 		}
 
