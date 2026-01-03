@@ -511,35 +511,13 @@ namespace vekt
 				continue;
 			}
 
-			const widget_meta& meta = _metas[widget];
-
-			VEKT_VEC2 final_size = VEKT_VEC2();
-
+			const widget_meta& meta		  = _metas[widget];
+			VEKT_VEC2		   final_size = VEKT_VEC2();
+			size_result&	   res		  = _size_results[widget];
 			if (sz.flags & size_flags::sf_x_abs)
-				final_size.x = sz.size.x;
+				res.size.x = sz.size.x;
 			if (sz.flags & size_flags::sf_y_abs)
-				final_size.y = sz.size.y;
-
-			const bool x_relative = sz.flags & size_flags::sf_x_relative;
-			const bool y_relative = sz.flags & size_flags::sf_y_relative;
-
-			if (x_relative || y_relative)
-			{
-				const size_props&  parent_sz  = _size_properties[meta.parent];
-				const size_result& parent_res = _size_results[meta.parent];
-				if (x_relative)
-					final_size.x = (parent_res.size.x - parent_sz.child_margins.left - parent_sz.child_margins.right) * sz.size.x;
-				if (y_relative)
-					final_size.y = (parent_res.size.y - parent_sz.child_margins.top - parent_sz.child_margins.bottom) * sz.size.y;
-			}
-
-			if (sz.flags & size_flags::sf_x_copy_y)
-				final_size.x = final_size.y;
-			else if (sz.flags & size_flags::sf_y_copy_x)
-				final_size.y = final_size.x;
-
-			size_result& res = _size_results[widget];
-			res.size		 = final_size;
+				res.size.y = sz.size.y;
 		}
 
 		// bottom-up
@@ -595,9 +573,52 @@ namespace vekt
 			}
 		}
 
+		// top-down
+		for (id widget : _depth_first_widgets)
+		{
+			const size_props& sz = _size_properties[widget];
+			if (sz.flags & size_flags::sf_custom_pass)
+			{
+				custom_passes& passes = _custom_passes[widget];
+				if (passes.custom_size_pass)
+					passes.custom_size_pass(this, widget);
+				continue;
+			}
+
+			const widget_meta& meta = _metas[widget];
+
+			const bool	 x_relative = sz.flags & size_flags::sf_x_relative;
+			const bool	 y_relative = sz.flags & size_flags::sf_y_relative;
+			size_result& res		= _size_results[widget];
+
+			if (x_relative || y_relative)
+			{
+				const size_props&  parent_sz  = _size_properties[meta.parent];
+				const size_result& parent_res = _size_results[meta.parent];
+				if (x_relative)
+					res.size.x = (parent_res.size.x - parent_sz.child_margins.left - parent_sz.child_margins.right) * sz.size.x;
+				if (y_relative)
+					res.size.y = (parent_res.size.y - parent_sz.child_margins.top - parent_sz.child_margins.bottom) * sz.size.y;
+			}
+
+			if (sz.flags & size_flags::sf_x_copy_y)
+				res.size.x = res.size.y;
+			else if (sz.flags & size_flags::sf_y_copy_x)
+				res.size.y = res.size.x;
+		}
+
 		// top-down fill
 		for (id widget : _depth_first_fill_parents)
 		{
+			const size_props& sz = _size_properties[widget];
+			if (sz.flags & size_flags::sf_custom_pass)
+			{
+				custom_passes& passes = _custom_passes[widget];
+				if (passes.custom_size_pass)
+					passes.custom_size_pass(this, widget);
+				continue;
+			}
+
 			const size_result& parent_result	= _size_results[widget];
 			const pos_props&   parent_pos_props = _pos_properties[widget];
 			const size_props&  parent_props		= _size_properties[widget];

@@ -342,7 +342,12 @@ namespace SFG
 		{
 			vekt::id w = _vekt_data.builder->allocate();
 			_vekt_data.builder->widget_add_child(_vekt_data.builder->get_root(), w);
-			_vekt_data.builder->widget_set_pos(w, vector2(0.0f, 0.0f), vekt::helper_pos_type::relative, vekt::helper_pos_type::absolute);
+			//_vekt_data.builder->widget_set_pos(w, vector2(0.0f, 0.0f), vekt::helper_pos_type::relative, vekt::helper_pos_type::absolute);
+
+			vekt::pos_props& pp = _vekt_data.builder->widget_get_pos_props(w);
+			pp.flags			= vekt::pos_flags::pf_x_relative;
+			pp.pos.x			= 0.0f;
+
 			_vekt_data.builder->widget_set_size(w, vector2(1.0f, get_font_size() * 0.05f), vekt::helper_size_type::relative, vekt::helper_size_type::absolute);
 			vekt::widget_gfx& gfx	 = _vekt_data.builder->widget_get_gfx(w);
 			gfx.flags				 = vekt::gfx_flags::gfx_is_rect;
@@ -355,15 +360,16 @@ namespace SFG
 			vekt::id w = _vekt_data.builder->allocate();
 			_vekt_data.builder->widget_add_child(_vekt_data.builder->get_root(), w);
 
-			_vekt_data.builder->widget_set_pos(w, vector2(0.0f, 0.0f));
+			// _vekt_data.builder->widget_set_pos(w, vector2(0.0f, 0.0f));
 			_vekt_data.builder->widget_set_size(w, vector2(1.0f, get_field_height()), vekt::helper_size_type::relative, vekt::helper_size_type::absolute);
+
+			vekt::pos_props& pp = _vekt_data.builder->widget_get_pos_props(w);
+			pp.flags			= vekt::pos_flags::pf_x_relative | vekt::pos_flags::pf_child_pos_row;
+			pp.pos.y			= 0.0f;
 
 			vekt::widget_gfx& gfx = _vekt_data.builder->widget_get_gfx(w);
 			gfx.flags			  = vekt::gfx_flags::gfx_is_rect;
 			gfx.color			  = COLOR_CONSOLE_BG;
-
-			vekt::pos_props& pos_props = _vekt_data.builder->widget_get_pos_props(w);
-			pos_props.flags			   = vekt::pos_flags::pf_child_pos_row;
 
 			vekt::size_props& props		  = _vekt_data.builder->widget_get_size_props(w);
 			props.child_margins.left	  = static_cast<float>(get_font_size()) * 0.5f;
@@ -375,7 +381,11 @@ namespace SFG
 		{
 			vekt::id w = _vekt_data.builder->allocate();
 			_vekt_data.builder->widget_add_child(_vekt_data.widget_input_field, w);
-			_vekt_data.builder->widget_set_pos(w, vector2(0.0f, 0.5f), vekt::helper_pos_type::relative, vekt::helper_pos_type::relative, vekt::helper_anchor_type::start, vekt::helper_anchor_type::center);
+
+			vekt::pos_props& pp = _vekt_data.builder->widget_get_pos_props(w);
+			pp.flags			=  vekt::pos_flags::pf_y_relative ;
+			pp.pos.x			= 0.0f;
+			pp.pos.y			= 0.0f;
 
 			vekt::widget_gfx& gfx = _vekt_data.builder->widget_get_gfx(w);
 			gfx.flags			  = vekt::gfx_flags::gfx_is_text;
@@ -391,7 +401,11 @@ namespace SFG
 		{
 			vekt::id w = _vekt_data.builder->allocate();
 			_vekt_data.builder->widget_add_child(_vekt_data.widget_input_field, w);
-			_vekt_data.builder->widget_set_pos(w, vector2(0.0f, 0.5f), vekt::helper_pos_type::relative, vekt::helper_pos_type::relative, vekt::helper_anchor_type::start, vekt::helper_anchor_type::center);
+
+			vekt::pos_props& pp = _vekt_data.builder->widget_get_pos_props(w);
+			pp.flags			= vekt::pos_flags::pf_x_relative | vekt::pos_flags::pf_y_relative;
+			pp.pos.x			= 0.0f;
+			pp.pos.y			= 0.0f;
 
 			vekt::widget_gfx& gfx = _vekt_data.builder->widget_get_gfx(w);
 			gfx.flags			  = vekt::gfx_flags::gfx_is_text;
@@ -1110,8 +1124,10 @@ namespace SFG
 		if (!allocated)
 			return;
 
-		vekt::id w = _vekt_data.builder->allocate();
-		_vekt_data.builder->widget_set_pos(w, vector2(0.0f, 0.0f));
+		vekt::id		 w = _vekt_data.builder->allocate();
+		vekt::pos_props& p = _vekt_data.builder->widget_get_pos_props(w);
+		p.flags			   = vekt::pos_flags::pf_x_relative;
+		p.pos.x			   = 0.0f;
 
 		vekt::widget_gfx& gfx = _vekt_data.builder->widget_get_gfx(w);
 		gfx.flags			  = vekt::gfx_flags::gfx_is_text;

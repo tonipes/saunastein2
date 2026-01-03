@@ -43,7 +43,7 @@ namespace SFG
 {
 	void editor_panel_controls::init(vekt::builder* builder)
 	{
-
+		return;
 		vekt::gui_builder gui_builder	= vekt::gui_builder(builder);
 		gui_builder.callbacks.on_mouse	= on_mouse;
 		gui_builder.callbacks.user_data = this;
@@ -89,10 +89,11 @@ namespace SFG
 
 	void editor_panel_controls::draw(const vector2ui16& window_size, vekt::builder* b)
 	{
+		return;
+
 		b->widget_set_pos_abs(_widget, vector2(30, 60));
 		b->widget_set_size_abs(_widget, vector2(700, 400));
 
-		return;
 
 		static float fetch_time = 0.0f;
 
