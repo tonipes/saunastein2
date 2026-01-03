@@ -32,6 +32,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gfx/util/gfx_util.hpp"
 #include "resources/vertex.hpp"
 #include "gui/vekt.hpp"
+#include "common/system_info.hpp"
 #include <algorithm>
 #include <tracy/Tracy.hpp>
 
@@ -93,6 +94,10 @@ namespace SFG
 													.start_instance_location  = 0,
 												});
 		}
+
+#ifdef SFG_TOOLMODE
+		frame_info::add_draw_call(_commands_count);
+#endif
 	}
 
 	void draw_stream::add_command(const draw_command& cmd)
@@ -168,6 +173,10 @@ namespace SFG
 													.start_instance_location  = 0,
 												});
 		}
+
+#ifdef SFG_TOOLMODE
+		frame_info::add_draw_call(_commands_count);
+#endif
 	}
 	void draw_stream_distance::add_command(const draw_command_distance& cmd)
 	{
@@ -224,6 +233,10 @@ namespace SFG
 													.start_instance_location  = 0,
 												});
 		}
+
+#ifdef SFG_TOOLMODE
+		frame_info::add_draw_call(_commands_count);
+#endif
 	}
 
 	void draw_stream_gui::add_command(const draw_command_gui& cmd)
@@ -272,6 +285,10 @@ namespace SFG
 											  .indirect_signature	  = indirect_signature,
 										  });
 		}
+
+#ifdef SFG_TOOLMODE
+		frame_info::add_draw_call(_commands_count);
+#endif
 	}
 	void draw_stream_particle::add_command(const draw_command_particle& cmd)
 	{

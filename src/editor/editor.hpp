@@ -136,6 +136,11 @@ namespace SFG
 			return _world_rt_gpu_index.load(std::memory_order_acquire);
 		}
 
+		inline app& get_app()
+		{
+			return _app;
+		}
+
 	private:
 		app&		 _app;
 		world_handle _camera_entity	  = {};

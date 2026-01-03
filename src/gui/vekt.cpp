@@ -72,15 +72,29 @@ namespace vekt
 		const size_t size_props_sz	= ALIGN_8(sizeof(size_props)) * _widget_count;
 		const size_t pos_result_sz	= ALIGN_8(sizeof(pos_result)) * _widget_count;
 		const size_t size_result_sz = ALIGN_8(sizeof(size_result)) * _widget_count;
-		_layout_arena.capacity		= widget_meta_sz + pos_props_sz + size_props_sz + pos_result_sz + size_result_sz;
+		const size_t user_data_sz	= ALIGN_8(sizeof(widget_user_data)) * _widget_count;
+		_layout_arena.capacity		= widget_meta_sz + pos_props_sz + size_props_sz + pos_result_sz + size_result_sz + user_data_sz;
 		_layout_arena.base_ptr		= ALIGNED_MALLOC(_layout_arena.capacity, 8);
 		MEMSET(_layout_arena.base_ptr, 0, _layout_arena.capacity);
 
-		_metas			 = reinterpret_cast<widget_meta*>(_layout_arena.base_ptr);
-		_pos_properties	 = reinterpret_cast<pos_props*>(reinterpret_cast<unsigned char*>(_layout_arena.base_ptr) + widget_meta_sz);
-		_size_properties = reinterpret_cast<size_props*>(reinterpret_cast<unsigned char*>(_layout_arena.base_ptr) + widget_meta_sz + pos_props_sz);
-		_pos_results	 = reinterpret_cast<pos_result*>(reinterpret_cast<unsigned char*>(_layout_arena.base_ptr) + widget_meta_sz + pos_props_sz + size_props_sz);
-		_size_results	 = reinterpret_cast<size_result*>(reinterpret_cast<unsigned char*>(_layout_arena.base_ptr) + widget_meta_sz + pos_props_sz + size_props_sz + pos_result_sz);
+		size_t offset = 0;
+		_metas		  = reinterpret_cast<widget_meta*>(_layout_arena.base_ptr);
+		offset += widget_meta_sz;
+
+		_pos_properties = reinterpret_cast<pos_props*>(reinterpret_cast<unsigned char*>(_layout_arena.base_ptr) + offset);
+		offset += pos_props_sz;
+
+		_size_properties = reinterpret_cast<size_props*>(reinterpret_cast<unsigned char*>(_layout_arena.base_ptr) + offset);
+		offset += size_props_sz;
+
+		_pos_results = reinterpret_cast<pos_result*>(reinterpret_cast<unsigned char*>(_layout_arena.base_ptr) + offset);
+		offset += pos_result_sz;
+
+		_size_results = reinterpret_cast<size_result*>(reinterpret_cast<unsigned char*>(_layout_arena.base_ptr) + offset);
+		offset += size_result_sz;
+
+		_user_datas = reinterpret_cast<widget_user_data*>(reinterpret_cast<unsigned char*>(_layout_arena.base_ptr) + offset);
+		offset += user_data_sz;
 
 		// Gfx arena
 		const size_t widget_gfx_sz		   = ALIGN_8(sizeof(widget_gfx)) * _widget_count;
@@ -157,6 +171,12 @@ namespace vekt
 		_total_sz = _layout_arena.capacity + _gfx_arena.capacity + _misc_arena.capacity + conf.vertex_buffer_sz + conf.index_buffer_sz + conf.text_cache_vertex_buffer_sz + conf.text_cache_index_buffer_sz;
 		V_LOG("Vekt builder initialized with %d widgets. Total memory reserved: %zu bytes - %0.2f mb", _widget_count, _total_sz, static_cast<float>(_total_sz) / 1000000.f);
 		PUSH_ALLOCATION_SZ(_total_sz);
+
+		_depth_first_widgets.reserve(1024);
+		_depth_first_child_info.reserve(1024);
+		_depth_first_fill_parents.reserve(1024);
+		_depth_first_fill_parents.reserve(1024);
+		_depth_first_overlays.reserve(1024);
 
 		_root = allocate();
 	}
@@ -242,6 +262,9 @@ namespace vekt
 		widget_meta& meta		= _metas[widget_id];
 		widget_meta& child_meta = _metas[child_id];
 
+		if (child_meta.parent != NULL_WIDGET_ID)
+			widget_remove_child(child_meta.parent, child_id);
+
 		child_meta.parent = widget_id;
 		meta.children.push_back(child_id);
 
@@ -304,6 +327,16 @@ namespace vekt
 	hover_callback& builder::widget_get_hover_callbacks(id widget)
 	{
 		return _hover_callbacks[widget];
+	}
+
+	widget_user_data& builder::widget_get_user_data(id widget)
+	{
+		return _user_datas[widget];
+	}
+
+	id builder::widget_get_child(id widget, unsigned int index)
+	{
+		return _metas[widget].children[index];
 	}
 
 	void builder::widget_update_text(id widget)
@@ -421,12 +454,29 @@ namespace vekt
 
 		widget_meta&	   current	   = _metas[current_widget_id];
 		const unsigned int child_depth = ++depth;
+		bool			   pushed	   = false;
+
+		pos_props& pp = _pos_properties[current_widget_id];
+		if (pp.flags & pos_flags::pf_overlay)
+			_depth_first_overlays.push_back(current_widget_id);
+
 		for (id child : current.children)
+		{
+			size_props& sz = _size_properties[child];
+			if (!pushed && sz.flags & size_flags::sf_x_fill || sz.flags & size_flags::sf_y_fill)
+			{
+				_depth_first_fill_parents.push_back(current_widget_id);
+				pushed = false;
+			}
+
 			populate_hierarchy(child, child_depth);
+		}
 	}
 
 	void builder::build_hierarchy()
 	{
+		_depth_first_overlays.resize_explicit(0);
+		_depth_first_fill_parents.resize_explicit(0);
 		_depth_first_widgets.resize_explicit(0);
 		_depth_first_child_info.resize_explicit(0);
 		populate_hierarchy(_root, 0);
@@ -463,7 +513,7 @@ namespace vekt
 
 			const widget_meta& meta = _metas[widget];
 
-			VEKT_VEC2 final_size = sz.size;
+			VEKT_VEC2 final_size = VEKT_VEC2();
 
 			if (sz.flags & size_flags::sf_x_abs)
 				final_size.x = sz.size.x;
@@ -493,9 +543,6 @@ namespace vekt
 		}
 
 		// bottom-up
-		vector<id> fill_x_children;
-		vector<id> fill_y_children;
-		id		   fill_parent = NULL_WIDGET_ID;
 		for (id widget : _reverse_depth_first_widgets)
 		{
 			const size_props&  sz	= _size_properties[widget];
@@ -510,6 +557,10 @@ namespace vekt
 			{
 				for (id child : meta.children)
 				{
+					pos_props& child_pos_props = _pos_properties[child];
+					if (child_pos_props.flags & pos_flags::pf_overlay)
+						continue;
+
 					const size_result& child_res = _size_results[child];
 
 					if (sz.flags & size_flags::sf_x_max_children)
@@ -542,62 +593,121 @@ namespace vekt
 				if (touch_y)
 					res.size.y = final_size.y;
 			}
+		}
 
-			if (widget == fill_parent)
+		// top-down fill
+		for (id widget : _depth_first_fill_parents)
+		{
+			const size_result& parent_result	= _size_results[widget];
+			const pos_props&   parent_pos_props = _pos_properties[widget];
+			const size_props&  parent_props		= _size_properties[widget];
+			const widget_meta& parent_meta		= _metas[widget];
+
+			const float available_size_default_x = parent_result.size.x - parent_props.child_margins.left - parent_props.child_margins.right;
+			const float available_size_default_y = parent_result.size.y - parent_props.child_margins.top - parent_props.child_margins.bottom;
+
+			if (parent_pos_props.flags & pos_flags::pf_child_pos_row)
 			{
-				fill_parent			= NULL_WIDGET_ID;
-				size_result& res	= _size_results[widget];
-				float		 x_left = res.size.x - sz.child_margins.left - sz.child_margins.right;
-				float		 y_left = res.size.y - sz.child_margins.top - sz.child_margins.bottom;
-				const auto	 pf		= _pos_properties[widget].flags;
+				float		 total		   = 0.0f;
+				unsigned int total_count   = 0;
+				unsigned int waiting_count = 0;
 
-				for (id child : meta.children)
+				for (id c : parent_meta.children)
 				{
-					const size_result& child_res = _size_results[child];
+					const pos_props& child_pos_props = _pos_properties[c];
 
-					if (pf & pos_flags::pf_child_pos_row && (fill_x_children.find(child) == fill_x_children.end()))
-						x_left -= child_res.size.x;
-					if (pf & pos_flags::pf_child_pos_column && (fill_y_children.find(child) == fill_y_children.end()))
-						y_left -= child_res.size.y;
+					if (child_pos_props.flags & pos_flags::pf_overlay)
+						continue;
+
+					const size_props& child_props = _size_properties[c];
+
+					if (child_props.flags & size_flags::sf_x_fill)
+					{
+						waiting_count++;
+					}
+					else
+					{
+						size_result& child_result = _size_results[c];
+						total += child_result.size.x;
+					}
+					total_count++;
 				}
 
-				for (id child : fill_x_children)
+				const float available_size = available_size_default_x - (total_count - 1) * parent_props.spacing - total;
+				const float size_per_child = available_size / static_cast<float>(waiting_count);
+
+				for (id c : parent_meta.children)
 				{
-					size_result&	  child_res	  = _size_results[child];
-					const size_props& child_props = _size_properties[child];
+					const size_props& child_props  = _size_properties[c];
+					size_result&	  child_result = _size_results[c];
 
-					child_res.size.x = x_left / static_cast<float>(fill_x_children.size());
+					if (child_props.flags & size_flags::sf_x_fill)
+						child_result.size.x = size_per_child;
 
-					if (child_props.flags & size_flags::sf_x_copy_y)
-						child_res.size.y = child_res.size.x;
+					if (child_props.flags & size_flags::sf_y_fill)
+						child_result.size.y = available_size_default_y;
 				}
-
-				for (id child : fill_y_children)
-				{
-					size_result&	  child_res	  = _size_results[child];
-					const size_props& child_props = _size_properties[child];
-					child_res.size.y			  = y_left / static_cast<float>(fill_y_children.size());
-
-					if (child_props.flags & size_flags::sf_y_copy_x)
-						child_res.size.x = child_res.size.y;
-				}
-
-				fill_y_children.resize(0);
-				fill_x_children.resize(0);
 			}
-
-			if (sz.flags & size_flags::sf_x_fill)
+			else if (parent_pos_props.flags & pos_flags::pf_child_pos_column)
 			{
-				fill_x_children.push_back(widget);
-				fill_parent = meta.parent;
+				float		 total		   = 0.0f;
+				unsigned int total_count   = 0;
+				unsigned int waiting_count = 0;
+
+				for (id c : parent_meta.children)
+				{
+					const pos_props& child_pos_props = _pos_properties[c];
+
+					if (child_pos_props.flags & pos_flags::pf_overlay)
+						continue;
+
+					const size_props& child_props = _size_properties[c];
+					if (child_props.flags & size_flags::sf_y_fill)
+					{
+						waiting_count++;
+					}
+					else
+					{
+						size_result& child_result = _size_results[c];
+						total += child_result.size.y;
+					}
+					total_count++;
+				}
+
+				const float available_size = available_size_default_y - (total_count - 1) * parent_props.spacing - total;
+				const float size_per_child = available_size / static_cast<float>(waiting_count);
+
+				for (id c : parent_meta.children)
+				{
+					const size_props& child_props  = _size_properties[c];
+					size_result&	  child_result = _size_results[c];
+
+					if (child_props.flags & size_flags::sf_y_fill)
+						child_result.size.y = size_per_child;
+
+					if (child_props.flags & size_flags::sf_x_fill)
+						child_result.size.x = available_size_default_x;
+				}
 			}
-
-			if (sz.flags & size_flags::sf_y_fill)
+			else
 			{
-				fill_y_children.push_back(widget);
-				fill_parent = meta.parent;
+				for (id c : parent_meta.children)
+				{
+					const size_props& child_props  = _size_properties[c];
+					size_result&	  child_result = _size_results[c];
+
+					if (child_props.flags & size_flags::sf_x_fill)
+						child_result.size.x = available_size_default_x;
+
+					if (child_props.flags & size_flags::sf_y_fill)
+						child_result.size.x = available_size_default_y;
+				}
 			}
 		}
+	}
+
+	void builder::calculate_position_relative()
+	{
 	}
 
 	void builder::calculate_positions()
@@ -615,6 +725,7 @@ namespace vekt
 				continue;
 			}
 
+	
 			size_result& sr = _size_results[widget];
 			pos_result&	 pr = _pos_results[widget];
 
@@ -663,6 +774,7 @@ namespace vekt
 			pr.pos = final_pos;
 		}
 
+		// columns and rowns
 		for (id widget : _depth_first_widgets)
 		{
 			pos_props&	 pp		   = _pos_properties[widget];
@@ -677,6 +789,10 @@ namespace vekt
 
 				for (id child : meta.children)
 				{
+					pos_props& child_pos_props = _pos_properties[child];
+					if (child_pos_props.flags & pos_flags::pf_overlay)
+						continue;
+
 					pos_result&	 child_res		= _pos_results[child];
 					size_result& child_size_res = _size_results[child];
 					child_res.pos.x				= child_x;
@@ -691,6 +807,10 @@ namespace vekt
 
 				for (id child : meta.children)
 				{
+					pos_props& child_pos_props = _pos_properties[child];
+					if (child_pos_props.flags & pos_flags::pf_overlay)
+						continue;
+
 					pos_result&	 child_res		= _pos_results[child];
 					size_result& child_size_res = _size_results[child];
 					child_res.pos.y				= child_y;
@@ -698,6 +818,7 @@ namespace vekt
 				}
 			}
 		}
+
 	}
 
 	void builder::calculate_draw()

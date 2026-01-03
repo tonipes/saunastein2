@@ -41,36 +41,91 @@ namespace vekt
 
 		struct gui_builder_style
 		{
+			static float DPI_SCALE;
 
 			gui_builder_style();
 			SFG::vector4 col_title_line_start;
 			SFG::vector4 col_title_line_end;
 			SFG::vector4 col_hyperlink;
+			SFG::vector4 col_accent;
+			SFG::vector4 col_accent_second;
 
+			SFG::vector4 col_scroll_bar;
+			SFG::vector4 col_scroll_bar_bg;
 			SFG::vector4 col_title;
 			SFG::vector4 col_text;
 			SFG::vector4 col_frame_bg;
 			SFG::vector4 col_area_bg;
 			SFG::vector4 col_root;
-			font*		 active_font = nullptr;
+			font*		 default_font = nullptr;
+			font*		 title_font	  = nullptr;
 
 			float root_margin;
 			float item_spacing;
 			float title_line_width;
 			float title_line_height;
+			float item_height;
+			float table_cell_height;
+			float property_cell_div;
+			float seperator_thickness;
+			float area_rounding;
+			float scroll_thickness;
+			float scroll_rounding;
 		};
 
-		gui_builder_style style = {};
+		struct gui_builder_callbacks
+		{
+			void*			 user_data = nullptr;
+			vekt::mouse_func on_mouse  = nullptr;
+			vekt::key_func	 on_key	   = nullptr;
+		};
+
+		struct id_pair
+		{
+			id first;
+			id second;
+		};
+
+		gui_builder_style	  style		= {};
+		gui_builder_callbacks callbacks = {};
+
+		// -----------------------------------------------------------------------------
+		// big layout
+		// -----------------------------------------------------------------------------
 
 		id	 begin_root();
 		void end_root();
-
-		id	 begin_area();
+		id	 begin_area(bool fill = true);
 		void end_area();
+
+		// -----------------------------------------------------------------------------
+		// properties
+		// -----------------------------------------------------------------------------
+
+		id_pair add_property_row_label(const char* label, const char* label2);
+		id		add_property_single_label(const char* label);
+		id		add_property_single_hyperlink(const char* label);
+		id		add_property_row();
+		id		add_row_cell(float size);
+		id		add_row_cell_seperator();
+
+		// -----------------------------------------------------------------------------
+		// raw items
+		// -----------------------------------------------------------------------------
 
 		id add_title(const char* title);
 		id add_label(const char* label);
-		id add_hyperlink(const char* label, const char* link);
+		id add_hyperlink(const char* label);
+
+		inline void push_title_font(vekt::font* f)
+		{
+			style.title_font = f;
+		}
+
+		inline void push_text_font(vekt::font* f)
+		{
+			style.default_font = f;
+		}
 
 	private:
 		id new_widget(bool push_to_stack = false);

@@ -683,6 +683,7 @@ namespace vekt
 		pf_child_pos_row	= 1 << 8,
 		pf_child_pos_column = 1 << 9,
 		pf_custom_pass		= 1 << 10,
+		pf_overlay			= 1 << 11,
 	};
 
 	enum class helper_pos_type
@@ -837,12 +838,6 @@ namespace vekt
 	////////////////////////////////////////////////////////////////////////////////
 	class builder;
 
-	typedef void (*widget_func)(builder* b, id widget);
-	typedef input_event_result (*mouse_func)(builder* b, id widget, const mouse_event& ev, input_event_phase phase);
-	typedef input_event_result (*key_func)(builder* b, id widget, const key_event& ev);
-	typedef input_event_result (*wheel_func)(builder* b, id widget, const mouse_wheel_event& ev);
-	typedef void (*drag_func)(builder* b, id widget, const VEKT_VEC2& mouse, const VEKT_VEC2& mouse_delta);
-
 	////////////////////////////////////////////////////////////////////////////////
 	// :: VERTICES
 	////////////////////////////////////////////////////////////////////////////////
@@ -975,6 +970,11 @@ namespace vekt
 	{
 		id		   parent = NULL_WIDGET_ID;
 		vector<id> children;
+	};
+
+	struct widget_user_data
+	{
+		void* ptr = nullptr;
 	};
 
 	struct size_props
@@ -1150,6 +1150,8 @@ namespace vekt
 		mouse_callback&		widget_get_mouse_callbacks(id widget);
 		key_callback&		widget_get_key_callbacks(id widget);
 		hover_callback&		widget_get_hover_callbacks(id widget);
+		widget_user_data&	widget_get_user_data(id widget);
+		id					widget_get_child(id widget, unsigned int index);
 		void				widget_add_child(id widget_id, id child_id);
 		void				widget_remove_child(id widget_id, id child_id);
 		void				widget_update_text(id widget);
@@ -1215,6 +1217,7 @@ namespace vekt
 		void		 populate_hierarchy(id current_widget_id, unsigned int depth);
 		void		 build_hierarchy();
 		void		 calculate_sizes();
+		void		 calculate_position_relative();
 		void		 calculate_positions();
 		void		 calculate_draw();
 		void		 generate_rounded_rect(vector<VEKT_VEC2>& out_path, const VEKT_VEC2& min, const VEKT_VEC2& max, float rounding, int segments);
@@ -1259,6 +1262,8 @@ namespace vekt
 		vector<input_layer>			   _input_layers;
 		vector<draw_buffer>			   _draw_buffers;
 		vector<id>					   _depth_first_widgets;
+		vector<id>					   _depth_first_overlays;
+		vector<id>					   _depth_first_fill_parents;
 		vector<id>					   _reverse_depth_first_widgets;
 		vector<depth_first_child_info> _depth_first_child_info;
 		vector<text_cache>			   _text_cache = {};
@@ -1278,6 +1283,7 @@ namespace vekt
 		draw_callback		_on_draw				  = nullptr;
 		void*				_on_draw_ud				  = nullptr;
 		widget_meta*		_metas					  = nullptr;
+		widget_user_data*	_user_datas				  = nullptr;
 		size_props*			_size_properties		  = {};
 		pos_props*			_pos_properties			  = {};
 		size_result*		_size_results			  = {};

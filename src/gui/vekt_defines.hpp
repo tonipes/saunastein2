@@ -32,4 +32,18 @@ namespace vekt
 	typedef unsigned short index;
 #define NULL_WIDGET_ID 0xffffffffui32
 
+	struct builder;
+	struct mouse_event;
+	struct mouse_wheel_event;
+	struct key_event;
+	enum class input_event_phase;
+	enum class input_event_result;
+	struct VEKT_VEC2;
+
+	typedef void (*widget_func)(builder* b, id widget);
+	typedef input_event_result (*mouse_func)(builder* b, id widget, const mouse_event& ev, input_event_phase phase);
+	typedef input_event_result (*key_func)(builder* b, id widget, const key_event& ev);
+	typedef input_event_result (*wheel_func)(builder* b, id widget, const mouse_wheel_event& ev);
+	typedef void (*drag_func)(builder* b, id widget, const VEKT_VEC2& mouse, const VEKT_VEC2& mouse_delta);
+
 }

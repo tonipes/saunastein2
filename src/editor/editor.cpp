@@ -50,10 +50,13 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 // components
 #include "world/components/comp_model_instance.hpp"
 
+// gui
+#include "gui/vekt.hpp"
+#include "gui/vekt_gui_builder.hpp"
+
 // misc
 #include "serialization/serialization.hpp"
 #include "io/file_system.hpp"
-#include "gui/vekt.hpp"
 #include "input/input_mappings.hpp"
 #include "math/math.hpp"
 
@@ -77,8 +80,7 @@ namespace SFG
 		// vekt init
 		// -----------------------------------------------------------------------------
 
-		_builder = new vekt::builder();
-
+		_builder				= new vekt::builder();
 		constexpr size_t VTX_SZ = 1024 * 1024 * 4;
 		constexpr size_t IDX_SZ = 1024 * 1024 * 4;
 		_builder->init({
@@ -88,9 +90,9 @@ namespace SFG
 			.text_cache_index_buffer_sz	 = 1024 * 1024 * 4,
 			.buffer_count				 = 12,
 		});
-
 		_builder->add_input_layer(0, _builder->get_root());
 
+		// font
 		_font_manager = new vekt::font_manager();
 		_font_manager->init();
 		_font_manager->set_callback_user_data(&_renderer);
@@ -100,13 +102,13 @@ namespace SFG
 
 		_renderer.init(_app.get_main_window(), _app.get_renderer().get_texture_queue(), VTX_SZ, IDX_SZ);
 
+		const float dpi_scale							= _app.get_main_window().get_monitor_info().dpi_scale;
+		vekt::gui_builder::gui_builder_style::DPI_SCALE = dpi_scale;
+
 		const string default_font_str = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/VT323-Regular.ttf");
 		const string title_font_str	  = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/VT323-Regular.ttf");
-
-		_font_main	= _font_manager->load_font_from_file(default_font_str.c_str(), 28);
-		_font_title = _font_manager->load_font_from_file(title_font_str.c_str(), 36);
-
-		_camera_controller.init(_app.get_world(), _app.get_main_window());
+		_font_main					  = _font_manager->load_font_from_file(default_font_str.c_str(), 14 * dpi_scale);
+		_font_title					  = _font_manager->load_font_from_file(title_font_str.c_str(), 18 * dpi_scale);
 
 		// -----------------------------------------------------------------------------
 		// editor pipeline
@@ -129,9 +131,7 @@ namespace SFG
 		editor_theme::get().font_default = _font_main;
 		editor_theme::get().font_title	 = _font_title;
 
-		// _app.get_world().uninit();
-		// _app.get_world().init();
-
+		_camera_controller.init(_app.get_world(), _app.get_main_window());
 		_app.get_world().init();
 		_camera_controller.activate();
 
@@ -176,6 +176,7 @@ namespace SFG
 		delete _font_manager;
 		_font_manager = nullptr;
 
+		_builder->remove_input_layer(0);
 		_builder->uninit();
 		delete _builder;
 		_builder = nullptr;
