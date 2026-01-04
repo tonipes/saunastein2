@@ -29,7 +29,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vekt_defines.hpp"
 #include "math/vector2.hpp"
 #include "math/vector4.hpp"
-#include "memory/text_allocator.hpp"
 
 #include <memory>
 #include <assert.h>
@@ -38,15 +37,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <fstream>
 #include <functional>
 #include <utility> // For std::swap, std::move
-
-#ifndef VEKT_STRING
-#include <string>
-#endif
-
-#ifndef VEKT_VARIANT
-#include <variant>
-#endif
-
 #define VEKT_INLINE inline
 #define VEKT_API	extern
 
@@ -954,11 +944,13 @@ namespace vekt
 		widget_func	  on_hover_begin = nullptr;
 		widget_func	  on_hover_end	 = nullptr;
 		unsigned char is_hovered	 = 0;
+		unsigned char receive_drag	 = 0;
 	};
 
 	struct mouse_callback
 	{
 		mouse_func on_mouse		  = nullptr;
+		drag_func  on_drag		  = nullptr;
 		wheel_func on_mouse_wheel = nullptr;
 	};
 
@@ -1001,6 +993,12 @@ namespace vekt
 		VEKT_VEC2	   pos			 = VEKT_VEC2();
 		float		   scroll_offset = 0.0f;
 		unsigned short flags		 = 0;
+	};
+
+	struct scroll_props
+	{
+		id	  scroll_parent = NULL_WIDGET_ID;
+		float scroll_ratio	= 0.0f;
 	};
 
 	struct custom_passes
@@ -1102,6 +1100,7 @@ namespace vekt
 		{
 			unsigned int priority = 0;
 			id			 root	  = NULL_WIDGET_ID;
+			id			 dragging = NULL_WIDGET_ID;
 			bool		 operator==(const input_layer& other) const
 			{
 				return priority == other.priority && root == other.root;
@@ -1116,7 +1115,6 @@ namespace vekt
 			size_t		 text_cache_vertex_buffer_sz = 1024 * 1024;
 			size_t		 text_cache_index_buffer_sz	 = 1024 * 1024;
 			size_t		 buffer_count				 = 10;
-			size_t		 text_allocator_size		 = 1024 * 512;
 		};
 
 		builder()					  = default;
@@ -1141,6 +1139,7 @@ namespace vekt
 		const VEKT_VEC2&	widget_get_size(id widget_id) const;
 		const VEKT_VEC2&	widget_get_pos(id widget_id) const;
 		size_props&			widget_get_size_props(id widget_id);
+		scroll_props&		widget_get_scroll_props(id widget_id);
 		pos_props&			widget_get_pos_props(id widget_id);
 		VEKT_VEC4			widget_get_clip(id widget_id) const;
 		widget_gfx&			widget_get_gfx(id widget);
@@ -1263,8 +1262,8 @@ namespace vekt
 		vector<input_layer>			   _input_layers;
 		vector<draw_buffer>			   _draw_buffers;
 		vector<id>					   _depth_first_widgets;
-		vector<id>					   _depth_first_overlays;
 		vector<id>					   _depth_first_fill_parents;
+		vector<id>					   _depth_first_scrolls;
 		vector<id>					   _reverse_depth_first_widgets;
 		vector<depth_first_child_info> _depth_first_child_info;
 		vector<text_cache>			   _text_cache = {};
@@ -1281,14 +1280,13 @@ namespace vekt
 		unsigned int _widget_head  = 0;
 		unsigned int _widget_count = 0;
 
-		SFG::text_allocator _text_allocator = {};
-
 		draw_callback		_on_draw				  = nullptr;
 		void*				_on_draw_ud				  = nullptr;
 		widget_meta*		_metas					  = nullptr;
 		widget_user_data*	_user_datas				  = nullptr;
 		size_props*			_size_properties		  = {};
 		pos_props*			_pos_properties			  = {};
+		scroll_props*		_scroll_properties		  = {};
 		size_result*		_size_results			  = {};
 		pos_result*			_pos_results			  = {};
 		widget_gfx*			_gfxs					  = {};

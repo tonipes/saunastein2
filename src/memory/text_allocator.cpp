@@ -86,12 +86,13 @@ namespace SFG
 		return allocated;
 	}
 
-	const char* text_allocator::allocate(const char* text)
+	const char* text_allocator::allocate(const char* text, size_t len)
 	{
 		if (!text)
 			return nullptr;
 
-		const size_t need = std::strlen(text) + 1;
+		const size_t txt_sz = std::strlen(text) + 1;
+		const size_t need	= txt_sz > len ? txt_sz : len;
 
 		auto it = vector_util::find_if(_free_list, [need](const allocation& alloc) { return alloc.size >= need; });
 

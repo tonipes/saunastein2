@@ -52,13 +52,14 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // gui
 #include "gui/vekt.hpp"
-#include "gui/vekt_gui_builder.hpp"
+#include "gui/gui_builder.hpp"
 
 // misc
 #include "serialization/serialization.hpp"
 #include "io/file_system.hpp"
 #include "input/input_mappings.hpp"
 #include "math/math.hpp"
+#include <regex>
 
 namespace SFG
 {
@@ -71,7 +72,30 @@ namespace SFG
 	editor::~editor() = default;
 
 	editor* editor::s_instance = nullptr;
+	namespace
+	{
 
+		void vekt_log(vekt::log_verbosity verb, const char* err, ...)
+		{
+			va_list args;
+			va_start(args, err);
+
+			char buffer[4096];
+			vsnprintf(buffer, sizeof(buffer), err, args);
+
+			std::string formattedMessage(buffer);
+
+			formattedMessage = std::regex_replace(formattedMessage, std::regex("\\{"), "{{");
+			formattedMessage = std::regex_replace(formattedMessage, std::regex("\\}"), "}}");
+
+			if (verb == vekt::log_verbosity::error)
+				SFG_ERR(formattedMessage.c_str());
+			else
+				SFG_TRACE(formattedMessage.c_str());
+
+			va_end(args);
+		}
+	}
 	void editor::init()
 	{
 		s_instance = this;
@@ -79,6 +103,8 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 		// vekt init
 		// -----------------------------------------------------------------------------
+
+		vekt::config.on_log = vekt_log;
 
 		_builder				= new vekt::builder();
 		constexpr size_t VTX_SZ = 1024 * 1024 * 4;
@@ -102,8 +128,8 @@ namespace SFG
 
 		_renderer.init(_app.get_main_window(), _app.get_renderer().get_texture_queue(), VTX_SZ, IDX_SZ);
 
-		const float dpi_scale							= _app.get_main_window().get_monitor_info().dpi_scale;
-		vekt::gui_builder::gui_builder_style::DPI_SCALE = dpi_scale;
+		const float dpi_scale					  = _app.get_main_window().get_monitor_info().dpi_scale;
+		gui_builder::gui_builder_style::DPI_SCALE = dpi_scale;
 
 		const string default_font_str = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/VT323-Regular.ttf");
 		const string title_font_str	  = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/VT323-Regular.ttf");
@@ -156,6 +182,7 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 		// gui
 		// -----------------------------------------------------------------------------
+		_bump_text_allocator.init(1024 * 512);
 
 		_gui_world_overlays.init(_builder);
 		_panel_controls.init(_builder);
@@ -167,6 +194,12 @@ namespace SFG
 
 	void editor::uninit()
 	{
+		_bump_text_allocator.uninit();
+
+		_panel_controls.uninit();
+		_panel_world_view.uninit();
+		_panels_docking.uninit();
+
 		editor_theme::get().font_default = nullptr;
 		editor_theme::get().font_title	 = nullptr;
 
@@ -184,8 +217,6 @@ namespace SFG
 		_renderer.uninit();
 
 		_camera_controller.uninit();
-		_panel_world_view.uninit();
-		_panels_docking.uninit();
 	}
 
 	void editor::pre_world_tick(float delta)
@@ -221,7 +252,9 @@ namespace SFG
 		// _panel_world_view.draw(ws);
 		// _renderer.draw_end();
 
-		_panel_controls.draw(ws, _builder);
+		_bump_text_allocator.reset();
+
+		_panel_controls.draw(ws);
 		_builder->build_begin(vector2(ws.x, ws.y));
 		_builder->build_end();
 
@@ -253,7 +286,12 @@ namespace SFG
 			const vector2i16& mp = _app.get_main_window().get_mouse_position();
 			_builder->on_mouse_move(vector2(mp.x, mp.y));
 		}
-		if (ev.type == window_event_type::mouse && ev.sub_type == window_event_sub_type::press)
+
+		if (ev.type == window_event_type::wheel)
+		{
+			_builder->on_mouse_wheel_event({.amount = static_cast<float>(-ev.value.y) / window::get_wheel_delta()});
+		}
+		if (ev.type == window_event_type::mouse)
 		{
 			_builder->on_mouse_event({
 				.type	  = static_cast<vekt::input_event_type>(ev.sub_type),

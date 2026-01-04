@@ -364,7 +364,7 @@ namespace SFG
 			_vekt_data.builder->widget_set_size(w, vector2(1.0f, get_field_height()), vekt::helper_size_type::relative, vekt::helper_size_type::absolute);
 
 			vekt::pos_props& pp = _vekt_data.builder->widget_get_pos_props(w);
-			pp.flags			=vekt::pos_flags::pf_x_relative |  vekt::pos_flags::pf_child_pos_row ;
+			pp.flags			= vekt::pos_flags::pf_x_relative | vekt::pos_flags::pf_child_pos_row;
 			pp.pos.x			= 0.0f;
 
 			vekt::widget_gfx& gfx = _vekt_data.builder->widget_get_gfx(w);
@@ -403,7 +403,7 @@ namespace SFG
 			_vekt_data.builder->widget_add_child(_vekt_data.widget_input_field, w);
 
 			vekt::pos_props& pp = _vekt_data.builder->widget_get_pos_props(w);
-			pp.flags			= vekt::pos_flags::pf_y_relative  | vekt::pos_flags::pf_y_anchor_center;
+			pp.flags			= vekt::pos_flags::pf_y_relative | vekt::pos_flags::pf_y_anchor_center;
 			pp.pos.y			= 0.5f;
 
 			vekt::widget_gfx& gfx = _vekt_data.builder->widget_get_gfx(w);
@@ -1316,6 +1316,9 @@ namespace SFG
 
 		if (ev.type == window_event_type::wheel)
 		{
+			if (_console_state == console_state::invisible)
+				return false;
+
 			const input_event ke = {.wheel = ev.value.y};
 			_input_events.try_enqueue(ke);
 			return true;

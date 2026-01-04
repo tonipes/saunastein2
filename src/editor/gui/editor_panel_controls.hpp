@@ -27,6 +27,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include "gui/vekt_defines.hpp"
+#include "memory/text_allocator.hpp"
 
 namespace vekt
 {
@@ -41,24 +42,26 @@ namespace SFG
 	{
 	public:
 		void init(vekt::builder* builder);
-		void uninit(vekt::builder* builder);
+		void uninit();
 
-		void draw(const vector2ui16& window_size, vekt::builder* b);
+		void draw(const vector2ui16& window_size);
 
 		static vekt::input_event_result on_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase);
 
 	private:
-		vekt::id _widget	 = NULL_WIDGET_ID;
-		vekt::id _hyperlink	 = NULL_WIDGET_ID;
-		vekt::id _fps		 = NULL_WIDGET_ID;
-		vekt::id _main		 = NULL_WIDGET_ID;
-		vekt::id _render	 = NULL_WIDGET_ID;
-		vekt::id _ram		 = NULL_WIDGET_ID;
-		vekt::id _vram		 = NULL_WIDGET_ID;
-		vekt::id _vram_txt	 = NULL_WIDGET_ID;
-		vekt::id _vram_res	 = NULL_WIDGET_ID;
-		vekt::id _game_res	 = NULL_WIDGET_ID;
-		vekt::id _window_res = NULL_WIDGET_ID;
-		vekt::id _draw_calls = NULL_WIDGET_ID;
+		vekt::builder* _builder	   = nullptr;
+		text_allocator _text_alloc = {};
+		vekt::id	   _widget	   = NULL_WIDGET_ID;
+		vekt::id	   _hyperlink  = NULL_WIDGET_ID;
+		vekt::id	   _fps		   = NULL_WIDGET_ID;
+		vekt::id	   _main	   = NULL_WIDGET_ID;
+		vekt::id	   _render	   = NULL_WIDGET_ID;
+		vekt::id	   _ram		   = NULL_WIDGET_ID;
+		vekt::id	   _vram	   = NULL_WIDGET_ID;
+		vekt::id	   _vram_txt   = NULL_WIDGET_ID;
+		vekt::id	   _vram_res   = NULL_WIDGET_ID;
+		vekt::id	   _game_res   = NULL_WIDGET_ID;
+		vekt::id	   _window_res = NULL_WIDGET_ID;
+		vekt::id	   _draw_calls = NULL_WIDGET_ID;
 	};
 }

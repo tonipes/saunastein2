@@ -24,40 +24,54 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISE
 OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "vekt_gui_builder.hpp"
+#include "gui_builder.hpp "
+#include "io/log.hpp"
 #include "vekt.hpp"
 #include "math/color.hpp"
-
+#include "memory/text_allocator.hpp"
 #include "platform/window.hpp"
 
-namespace vekt
+namespace SFG
 {
+	using namespace vekt;
+
 	float gui_builder::gui_builder_style::DPI_SCALE = 1.0f;
 
-	void on_hover_begin_hyperlink(builder* b, id widget)
+	void on_hover_begin_hand_c(vekt::builder* b, vekt::id widget)
 	{
 		SFG::window::set_cursor_state(SFG::cursor_state::hand);
 	}
 
-	void on_hover_end_hyperlink(builder* b, id widget)
+	void on_hover_end_hand_c(vekt::builder* b, vekt::id widget)
 	{
 		SFG::window::set_cursor_state(SFG::cursor_state::arrow);
+	}
+
+	void on_scrollbar_drag(vekt::builder* b, vekt::id widget, float mouse_x, float mouse_y, float delta_x, float delta_y)
+	{
+		float dt_y = delta_y;
+	}
+	input_event_result on_scrollbar_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase)
+	{
+		const hover_callback& hc = b->widget_get_hover_callbacks(widget);
+
+		return input_event_result::handled;
 	}
 
 	gui_builder::gui_builder_style::gui_builder_style()
 	{
 
-		col_accent			 = SFG::color::from255(151.0f, 0.0f, 119.0f, 255.0f).srgb_to_linear().to_vector();
-		col_accent_second	 = SFG::color::from255(7, 131, 214, 255.0f).srgb_to_linear().to_vector();
-		col_title_line_start = SFG::color::from255(91.0f, 0.0f, 72.0f, 0.0f).srgb_to_linear().to_vector();
-		col_title_line_end	 = SFG::color::from255(151.0f, 0.0f, 119.0f, 255.0f).srgb_to_linear().to_vector();
-		col_hyperlink		 = SFG::color::from255(7, 131, 214, 255.0f).srgb_to_linear().to_vector();
+		col_accent			 = color::from255(151.0f, 0.0f, 119.0f, 255.0f).srgb_to_linear().to_vector();
+		col_accent_second	 = color::from255(7, 131, 214, 255.0f).srgb_to_linear().to_vector();
+		col_title_line_start = color::from255(91.0f, 0.0f, 72.0f, 0.0f).srgb_to_linear().to_vector();
+		col_title_line_end	 = color::from255(151.0f, 0.0f, 119.0f, 255.0f).srgb_to_linear().to_vector();
+		col_hyperlink		 = color::from255(7, 131, 214, 255.0f).srgb_to_linear().to_vector();
 
-		col_title	 = SFG::color::from255(180, 180, 180, 255).srgb_to_linear().to_vector();
-		col_text	 = SFG::color::from255(180, 180, 180, 255).srgb_to_linear().to_vector();
-		col_frame_bg = SFG::color::from255(4, 4, 4, 255).srgb_to_linear().to_vector();
-		col_area_bg	 = SFG::color::from255(15, 15, 15, 255).srgb_to_linear().to_vector();
-		col_root	 = SFG::color::from255(28, 28, 28, 255).srgb_to_linear().to_vector();
+		col_title	 = color::from255(180, 180, 180, 255).srgb_to_linear().to_vector();
+		col_text	 = color::from255(180, 180, 180, 255).srgb_to_linear().to_vector();
+		col_frame_bg = color::from255(4, 4, 4, 255).srgb_to_linear().to_vector();
+		col_area_bg	 = color::from255(15, 15, 15, 255).srgb_to_linear().to_vector();
+		col_root	 = color::from255(28, 28, 28, 255).srgb_to_linear().to_vector();
 
 		col_scroll_bar	  = col_accent;
 		col_scroll_bar_bg = col_frame_bg;
@@ -159,25 +173,34 @@ namespace vekt
 			rp.rounding		   = style.scroll_rounding;
 		}
 
-	 const id scroll = new_widget();
-	 {
-	 	pos_props& pp = _builder->widget_get_pos_props(scroll);
-	 	pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_y_relative;
-	 	pp.pos		  = VEKT_VEC2(0.0f, 0.0f);
-	
-	 	size_props& sz = _builder->widget_get_size_props(scroll);
-	 	sz.flags	   = size_flags::sf_x_relative | size_flags::sf_y_abs;
-	 	sz.size.x	   = 1.0f;
-	 	sz.size.y	   = 50;
-	
-	 	widget_gfx& gfx = _builder->widget_get_gfx(scroll);
-	 	gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_rounding;
-	 	gfx.color		= style.col_scroll_bar;
-	
-	 	rounding_props& rp = _builder->widget_get_rounding(scroll);
-	 	rp.segments		   = 16;
-	 	rp.rounding		   = style.scroll_rounding;
-	 }
+		const id scroll = new_widget();
+		{
+			pos_props& pp = _builder->widget_get_pos_props(scroll);
+			pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_y_relative;
+			pp.pos		  = VEKT_VEC2(0.0f, 0.0f);
+
+			size_props& sz = _builder->widget_get_size_props(scroll);
+			sz.flags	   = size_flags::sf_x_relative;
+			sz.size.x	   = 1.0f;
+
+			scroll_props& sc = _builder->widget_get_scroll_props(scroll);
+			sc.scroll_parent = w;
+
+			widget_gfx& gfx = _builder->widget_get_gfx(scroll);
+			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_rounding;
+			gfx.color		= style.col_scroll_bar;
+
+			rounding_props& rp = _builder->widget_get_rounding(scroll);
+			rp.segments		   = 16;
+			rp.rounding		   = style.scroll_rounding;
+
+			hover_callback& hb = _builder->widget_get_hover_callbacks(scroll);
+			hb.on_hover_begin  = on_hover_begin_hand_c;
+			hb.on_hover_end	   = on_hover_end_hand_c;
+			hb.receive_drag	   = 1;
+
+			_builder->widget_get_mouse_callbacks(scroll).on_drag = on_scrollbar_drag;
+		}
 
 		pop_stack();
 
@@ -284,7 +307,7 @@ namespace vekt
 
 			size_props& sz = _builder->widget_get_size_props(w);
 			sz.flags	   = size_flags::sf_y_relative;
-			if (math::equals(size, 0.0f))
+			if (vekt::math::equals(size, 0.0f))
 				sz.flags |= size_flags::sf_x_fill;
 			else
 			{
@@ -343,7 +366,7 @@ namespace vekt
 			pp.pos.x	  = 1.0f;
 
 			text_props& tp = _builder->widget_get_text(txt);
-			tp.text		   = title;
+			tp.text		   = _txt_alloc->allocate(title);
 			tp.font		   = style.title_font;
 			_builder->widget_update_text(txt);
 		}
@@ -367,7 +390,7 @@ namespace vekt
 		pp.pos.y	  = 0.5f;
 
 		text_props& tp = _builder->widget_get_text(w);
-		tp.text		   = label;
+		tp.text		   = _txt_alloc->allocate(label);
 		tp.font		   = style.default_font;
 		_builder->widget_update_text(w);
 
@@ -388,8 +411,8 @@ namespace vekt
 			sz.flags	   = size_flags::sf_x_max_children | size_flags::sf_y_total_children;
 			sz.size.x	   = 1.0f;
 
-			_builder->widget_get_hover_callbacks(w).on_hover_begin = on_hover_begin_hyperlink;
-			_builder->widget_get_hover_callbacks(w).on_hover_end   = on_hover_end_hyperlink;
+			_builder->widget_get_hover_callbacks(w).on_hover_begin = on_hover_begin_hand_c;
+			_builder->widget_get_hover_callbacks(w).on_hover_end   = on_hover_end_hand_c;
 			_builder->widget_get_mouse_callbacks(w).on_mouse	   = callbacks.on_mouse;
 		}
 
@@ -404,7 +427,7 @@ namespace vekt
 			pp.pos.x	  = 0.0f;
 
 			text_props& tp = _builder->widget_get_text(txt);
-			tp.text		   = label;
+			tp.text		   = _txt_alloc->allocate(label);
 			tp.font		   = style.default_font;
 			_builder->widget_update_text(txt);
 		}

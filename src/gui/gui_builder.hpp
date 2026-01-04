@@ -31,34 +31,40 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace vekt
 {
+	struct font;
+}
+
+namespace SFG
+{
 	class builder;
 	class font;
+	class text_allocator;
 
 	class gui_builder
 	{
 	public:
-		gui_builder(vekt::builder* b) : _builder(b) {};
+		gui_builder(vekt::builder* b, text_allocator* alloc) : _builder(b), _txt_alloc(alloc) {};
 
 		struct gui_builder_style
 		{
 			static float DPI_SCALE;
 
 			gui_builder_style();
-			SFG::vector4 col_title_line_start;
-			SFG::vector4 col_title_line_end;
-			SFG::vector4 col_hyperlink;
-			SFG::vector4 col_accent;
-			SFG::vector4 col_accent_second;
+			vector4 col_title_line_start;
+			vector4 col_title_line_end;
+			vector4 col_hyperlink;
+			vector4 col_accent;
+			vector4 col_accent_second;
 
-			SFG::vector4 col_scroll_bar;
-			SFG::vector4 col_scroll_bar_bg;
-			SFG::vector4 col_title;
-			SFG::vector4 col_text;
-			SFG::vector4 col_frame_bg;
-			SFG::vector4 col_area_bg;
-			SFG::vector4 col_root;
-			font*		 default_font = nullptr;
-			font*		 title_font	  = nullptr;
+			vector4		col_scroll_bar;
+			vector4		col_scroll_bar_bg;
+			vector4		col_title;
+			vector4		col_text;
+			vector4		col_frame_bg;
+			vector4		col_area_bg;
+			vector4		col_root;
+			vekt::font* default_font = nullptr;
+			vekt::font* title_font	 = nullptr;
 
 			float root_margin;
 			float item_spacing;
@@ -82,8 +88,8 @@ namespace vekt
 
 		struct id_pair
 		{
-			id first;
-			id second;
+			vekt::id first;
+			vekt::id second;
 		};
 
 		gui_builder_style	  style		= {};
@@ -93,29 +99,29 @@ namespace vekt
 		// big layout
 		// -----------------------------------------------------------------------------
 
-		id	 begin_root();
-		void end_root();
-		id	 begin_area(bool fill = true);
-		void end_area();
+		vekt::id begin_root();
+		void	 end_root();
+		vekt::id begin_area(bool fill = true);
+		void	 end_area();
 
 		// -----------------------------------------------------------------------------
 		// properties
 		// -----------------------------------------------------------------------------
 
-		id_pair add_property_row_label(const char* label, const char* label2);
-		id		add_property_single_label(const char* label);
-		id		add_property_single_hyperlink(const char* label);
-		id		add_property_row();
-		id		add_row_cell(float size);
-		id		add_row_cell_seperator();
+		id_pair	 add_property_row_label(const char* label, const char* label2);
+		vekt::id add_property_single_label(const char* label);
+		vekt::id add_property_single_hyperlink(const char* label);
+		vekt::id add_property_row();
+		vekt::id add_row_cell(float size);
+		vekt::id add_row_cell_seperator();
 
 		// -----------------------------------------------------------------------------
 		// raw items
 		// -----------------------------------------------------------------------------
 
-		id add_title(const char* title);
-		id add_label(const char* label);
-		id add_hyperlink(const char* label);
+		vekt::id add_title(const char* title);
+		vekt::id add_label(const char* label);
+		vekt::id add_hyperlink(const char* label);
 
 		inline void push_title_font(vekt::font* f)
 		{
@@ -128,19 +134,20 @@ namespace vekt
 		}
 
 	private:
-		id new_widget(bool push_to_stack = false);
+		vekt::id new_widget(bool push_to_stack = false);
 
-		void push_stack(id s);
-		id	 pop_stack();
-		id	 stack();
+		void	 push_stack(vekt::id s);
+		vekt::id pop_stack();
+		vekt::id stack();
 
 	private:
 		static constexpr unsigned int STACK_SIZE = 512;
 
-		vekt::builder* _builder			  = nullptr;
-		id			   _stack[STACK_SIZE] = {NULL_WIDGET_ID};
-		id			   _root			  = NULL_WIDGET_ID;
-		id			   _stack_ptr		  = 0;
+		text_allocator* _txt_alloc		   = nullptr;
+		vekt::builder*	_builder		   = nullptr;
+		vekt::id		_stack[STACK_SIZE] = {NULL_WIDGET_ID};
+		vekt::id		_root			   = NULL_WIDGET_ID;
+		vekt::id		_stack_ptr		   = 0;
 	};
 
 }

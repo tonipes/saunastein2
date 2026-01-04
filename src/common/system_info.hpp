@@ -135,12 +135,12 @@ namespace SFG
 
 		static inline void add_draw_call(uint32 ctx)
 		{
-			s_draw_calls.fetch_add(ctx, std::memory_order_relaxed);
+			s_draw_calls += ctx;
 		}
 
 		static inline uint64 get_draw_calls()
 		{
-			return s_draw_calls.load(std::memory_order_acquire);
+			return s_draw_calls_ui.load(std::memory_order_acquire);
 		}
 
 	private:
@@ -159,7 +159,8 @@ namespace SFG
 		static atomic<uint32> s_fps;
 		static atomic<uint64> s_frame;
 		static atomic<uint64> s_render_frame;
-		static atomic<uint32> s_draw_calls;
+		static uint32		  s_draw_calls;
+		static atomic<uint32> s_draw_calls_ui;
 		static bool			  s_is_render_active;
 	};
 

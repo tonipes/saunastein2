@@ -353,11 +353,11 @@ namespace SFG
 					wnd->add_event(ev);
 				else if (mouse_flags & RI_MOUSE_WHEEL)
 				{
-					const uint16 wheelDelta = (uint16)raw->data.mouse.usButtonData;
-					const short	 wheel		= (short)raw->data.mouse.usButtonData / (short)WHEEL_DELTA;
+					const int16 wheelDelta = (int16)raw->data.mouse.usButtonData;
+					const short wheel	   = (short)raw->data.mouse.usButtonData / (short)WHEEL_DELTA;
 
 					const window_event mwe = {
-						.value = vector2i16(0, wheel),
+						.value = vector2i16(0, wheelDelta),
 						.type  = window_event_type::wheel,
 						.flags = wef_high_freq,
 					};
@@ -850,5 +850,9 @@ namespace SFG
 	void window::query_all_monitors(vector<monitor_info>& out_info)
 	{
 		EnumDisplayMonitors(nullptr, nullptr, EnumMonitorsProc, reinterpret_cast<LPARAM>(&out_info));
+	}
+	float window::get_wheel_delta()
+	{
+		return (float)WHEEL_DELTA;
 	}
 }

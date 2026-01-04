@@ -27,69 +27,102 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include "common/size_definitions.hpp"
-#include "data/vector.hpp"
 
 namespace SFG
 {
-	class text_allocator
+	class bump_text_allocator
 	{
-
-	private:
-		struct allocation
+	public:
+		struct string_view
 		{
-			char*  ptr	= nullptr;
-			size_t size = 0;
+			const char* ptr;
+			size_t		sz;
+
+			inline bool empty()
+			{
+				return sz == 0;
+			}
+
+			inline const char* data()
+			{
+				return ptr;
+			}
+
+			inline size_t size()
+			{
+				return sz;
+			}
 		};
 
-	public:
-		text_allocator() : _head(0) {};
+		bump_text_allocator() = default;
+		~bump_text_allocator();
+
+		bump_text_allocator(const bump_text_allocator&)			   = delete;
+		bump_text_allocator& operator=(const bump_text_allocator&) = delete;
 
 		// -----------------------------------------------------------------------------
 		// lifecycle
 		// -----------------------------------------------------------------------------
 
-		void init(uint32 capacity);
+		void init(size_t capacity_bytes);
 		void uninit();
+		void reset();
 
 		// -----------------------------------------------------------------------------
-		// memory api
+		// string building
 		// -----------------------------------------------------------------------------
 
-		const char* allocate(size_t len);
-		const char* allocate(const char* text, size_t len = 0);
-		void		deallocate(char* ptr);
-		void		deallocate(const char* ptr);
+		const char* allocate_reserve(size_t reserve_bytes_including_null);
+		const char* allocate(const char* initial_text, size_t reserve_extra = 0);
+		const char* terminate();
+		const char* current_c_str() const;
+		size_t		remaining() const;
+
+		// -----------------------------------------------------------------------------
+		// append utilities
+		// -----------------------------------------------------------------------------
+
+		bool append(string_view s);
+		bool append(const char* s);
+		bool append(char c);
+		bool append(int32 v);
+		bool append(uint32 v);
+		bool append(int64 v);
+		bool append(uint64 v);
+		bool append(double v, int precision = 3);
+		bool appendf(const char* fmt, ...);
 
 		// -----------------------------------------------------------------------------
 		// accessors
 		// -----------------------------------------------------------------------------
 
-		inline constexpr size_t get_capacity() const
+		size_t capacity() const
 		{
-			return _capacity;
+			return _cap;
 		}
-
-		inline constexpr size_t get_head() const
+		size_t head() const
 		{
 			return _head;
 		}
-
-		inline char* get_raw() const
+		const char* raw() const
 		{
 			return _raw;
 		}
 
-		inline void reset()
-		{
-			_free_list.resize(0);
-			_head = 0;
-		}
+	private:
+		bool append_i64(int64 v);
+		bool append_u64(uint64 v);
+		bool ensure_space(size_t bytes_needed_including_null) const;
+		void null_terminate_in_place();
 
 	private:
-		vector<allocation> _free_list;
-		char*			   _raw		 = nullptr;
-		uint32			   _head	 = 0;
-		uint32			   _capacity = 0;
-	};
+		char*  _raw	 = nullptr;
+		size_t _cap	 = 0;
+		size_t _head = 0;
 
+		// Active string state
+		char* _cur_start = nullptr;
+		char* _cur		 = nullptr;
+		char* _cur_end	 = nullptr; // one-past last byte owned by active reservation
+	};
 }

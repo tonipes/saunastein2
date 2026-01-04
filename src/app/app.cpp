@@ -440,14 +440,11 @@ namespace SFG
 			frame_info::s_fps.store(1.0f / static_cast<float>(delta_seconds));
 #endif
 
-#ifdef SFG_TOOLMODE
-			frame_info::s_draw_calls.store(0, std::memory_order_relaxed);
-#endif
-
+			frame_info::s_draw_calls = 0;
 			_renderer->render();
 
 #ifdef SFG_TOOLMODE
-			frame_info::s_draw_calls.store(0, std::memory_order_release);
+			frame_info::s_draw_calls_ui.store(frame_info::s_draw_calls, std::memory_order_release);
 #endif
 			frame_info::s_render_frame.fetch_add(1);
 		}

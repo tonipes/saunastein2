@@ -65,7 +65,6 @@ namespace vekt
 		ASSERT(conf.buffer_count * sizeof(vertex) < conf.vertex_buffer_sz && conf.buffer_count * sizeof(index) < conf.index_buffer_sz);
 
 		_widget_count = conf.widget_count;
-		_text_allocator.init(conf.text_allocator_size);
 
 		// Layout arena
 		const size_t widget_meta_sz = ALIGN_8(sizeof(widget_meta)) * _widget_count;
@@ -74,7 +73,8 @@ namespace vekt
 		const size_t pos_result_sz	= ALIGN_8(sizeof(pos_result)) * _widget_count;
 		const size_t size_result_sz = ALIGN_8(sizeof(size_result)) * _widget_count;
 		const size_t user_data_sz	= ALIGN_8(sizeof(widget_user_data)) * _widget_count;
-		_layout_arena.capacity		= widget_meta_sz + pos_props_sz + size_props_sz + pos_result_sz + size_result_sz + user_data_sz;
+		const size_t scroll_sz		= ALIGN_8(sizeof(scroll_props)) * _widget_count;
+		_layout_arena.capacity		= widget_meta_sz + pos_props_sz + size_props_sz + pos_result_sz + size_result_sz + user_data_sz + scroll_sz;
 		_layout_arena.base_ptr		= ALIGNED_MALLOC(_layout_arena.capacity, 8);
 		MEMSET(_layout_arena.base_ptr, 0, _layout_arena.capacity);
 
@@ -97,6 +97,9 @@ namespace vekt
 		_user_datas = reinterpret_cast<widget_user_data*>(reinterpret_cast<unsigned char*>(_layout_arena.base_ptr) + offset);
 		offset += user_data_sz;
 
+		_scroll_properties = reinterpret_cast<scroll_props*>(reinterpret_cast<unsigned char*>(_layout_arena.base_ptr) + offset);
+		offset += scroll_sz;
+
 		// Gfx arena
 		const size_t widget_gfx_sz		   = ALIGN_8(sizeof(widget_gfx)) * _widget_count;
 		const size_t stroke_props_sz	   = ALIGN_8(sizeof(stroke_props)) * _widget_count;
@@ -107,6 +110,12 @@ namespace vekt
 		_gfx_arena.capacity				   = widget_gfx_sz + stroke_props_sz + second_color_props_sz + rounding_props_sz + aa_props_sz + text_props_sz;
 		_gfx_arena.base_ptr				   = ALIGNED_MALLOC(_gfx_arena.capacity, 8);
 		MEMSET(_gfx_arena.base_ptr, 0, _gfx_arena.capacity);
+
+		for (unsigned int i = 0; i < _widget_count; i++)
+		{
+			_metas[i].parent					= NULL_WIDGET_ID;
+			_scroll_properties[i].scroll_parent = NULL_WIDGET_ID;
+		}
 
 		_gfxs		   = reinterpret_cast<widget_gfx*>(_gfx_arena.base_ptr);
 		_strokes	   = reinterpret_cast<stroke_props*>(reinterpret_cast<unsigned char*>(_gfx_arena.base_ptr) + widget_gfx_sz);
@@ -176,8 +185,7 @@ namespace vekt
 		_depth_first_widgets.reserve(1024);
 		_depth_first_child_info.reserve(1024);
 		_depth_first_fill_parents.reserve(1024);
-		_depth_first_fill_parents.reserve(1024);
-		_depth_first_overlays.reserve(1024);
+		_depth_first_scrolls.reserve(1024);
 
 		_root = allocate();
 	}
@@ -225,8 +233,6 @@ namespace vekt
 
 		_vertex_buffer = nullptr;
 		_index_buffer  = nullptr;
-
-		_text_allocator.uninit();
 	}
 
 	void builder::build_begin(const VEKT_VEC2& screen_size)
@@ -459,9 +465,9 @@ namespace vekt
 		const unsigned int child_depth = ++depth;
 		bool			   pushed	   = false;
 
-		pos_props& pp = _pos_properties[current_widget_id];
-		if (pp.flags & pos_flags::pf_overlay)
-			_depth_first_overlays.push_back(current_widget_id);
+		scroll_props& sc = _scroll_properties[current_widget_id];
+		if (sc.scroll_parent != NULL_WIDGET_ID)
+			_depth_first_scrolls.push_back(current_widget_id);
 
 		for (id child : current.children)
 		{
@@ -478,8 +484,8 @@ namespace vekt
 
 	void builder::build_hierarchy()
 	{
-		_depth_first_overlays.resize_explicit(0);
 		_depth_first_fill_parents.resize_explicit(0);
+		_depth_first_scrolls.resize_explicit(0);
 		_depth_first_widgets.resize_explicit(0);
 		_depth_first_child_info.resize_explicit(0);
 		populate_hierarchy(_root, 0);
@@ -728,6 +734,55 @@ namespace vekt
 				}
 			}
 		}
+
+		for (id widget : _depth_first_scrolls)
+		{
+			scroll_props& sc = _scroll_properties[widget];
+			if (sc.scroll_parent == NULL_WIDGET_ID)
+				continue;
+
+			const size_props&  props	   = _size_properties[widget];
+			const widget_meta& parent_meta = _metas[sc.scroll_parent];
+			const size_props&  parent_size = _size_properties[sc.scroll_parent];
+
+			float		 total_y				  = 0.0f;
+			unsigned int count					  = 0;
+			const float	 available_size_default_y = _size_results[sc.scroll_parent].size.y - parent_size.child_margins.top - parent_size.child_margins.bottom;
+
+			for (id c : parent_meta.children)
+			{
+				const size_props& sz = _size_properties[c];
+				if (c == widget)
+					continue;
+
+				if (_pos_properties[c].flags & pos_flags::pf_overlay)
+					continue;
+
+				total_y += _size_results[c].size.y;
+				count++;
+			}
+
+			if (count == 0)
+				break;
+
+			const float total = total_y + parent_size.spacing * (count - 1);
+			const float ratio = total / available_size_default_y;
+
+			const widget_meta& meta = _metas[widget];
+
+			_size_results[widget].size.y = ratio > 1.0f ? _size_results[meta.parent].size.y * (1.0f / ratio) : 0.0f;
+
+			const float diff = total - available_size_default_y;
+			pos_props&	pp	 = _pos_properties[sc.scroll_parent];
+
+			if (pp.scroll_offset < -diff)
+				pp.scroll_offset = -diff;
+
+			if (pp.scroll_offset > 0)
+				pp.scroll_offset = 0;
+
+			sc.scroll_ratio = (pp.scroll_offset / -diff);
+		}
 	}
 
 	void builder::calculate_positions()
@@ -765,7 +820,7 @@ namespace vekt
 			widget_meta& meta = _metas[widget];
 
 			float row_position = my_pos_x + sz.child_margins.left;
-			float col_position = my_pos_y + sz.child_margins.top;
+			float col_position = my_pos_y + sz.child_margins.top + pp.scroll_offset;
 
 			for (id child : meta.children)
 			{
@@ -809,6 +864,21 @@ namespace vekt
 					col_position += child_sr.size.y + sz.spacing;
 				}
 			}
+		}
+
+		for (id widget : _depth_first_scrolls)
+		{
+			scroll_props& sc = _scroll_properties[widget];
+			if (sc.scroll_parent == NULL_WIDGET_ID)
+				continue;
+
+			widget_meta& meta = _metas[widget];
+
+			pos_result&	 parent_pr = _pos_results[meta.parent];
+			size_result& parent_sr = _size_results[meta.parent];
+			size_result& sr		   = _size_results[widget];
+
+			_pos_results[widget].pos.y = math::remap(sc.scroll_ratio, 0.0f, 1.0f, parent_pr.pos.y, parent_pr.pos.y + parent_sr.size.y - sr.size.y);
 		}
 	}
 
@@ -1082,6 +1152,11 @@ namespace vekt
 		return _size_properties[widget_id];
 	}
 
+	scroll_props& builder::widget_get_scroll_props(id widget_id)
+	{
+		return _scroll_properties[widget_id];
+	}
+
 	pos_props& builder::widget_get_pos_props(id widget_id)
 	{
 		return _pos_properties[widget_id];
@@ -1108,6 +1183,24 @@ namespace vekt
 				hover_state.on_hover_begin(this, widget);
 			hover_state.is_hovered = hovered;
 		}
+
+		for (input_layer& layer : _input_layers)
+		{
+			if (layer.dragging != NULL_WIDGET_ID)
+			{
+				mouse_callback& mc = _mouse_callbacks[layer.dragging];
+
+				scroll_props& sc = _scroll_properties[layer.dragging];
+				if (sc.scroll_parent != NULL_WIDGET_ID)
+				{
+					pos_props& pp = _pos_properties[sc.scroll_parent];
+					pp.scroll_offset -= delta.y;
+				}
+				if (mc.on_drag)
+					mc.on_drag(this, layer.dragging, _mouse_position.x, _mouse_position.y, delta.x, delta.y);
+				break;
+			}
+		}
 	}
 
 	input_event_result builder::on_mouse_event(const mouse_event& ev)
@@ -1118,11 +1211,19 @@ namespace vekt
 			return input_event_result::not_handled;
 		}
 
-		for (const input_layer& layer : _input_layers)
+		for (input_layer& layer : _input_layers)
 		{
 			depth_first_child_info& root_info = _depth_first_child_info[layer.root];
 			input_event_result		res		  = input_event_result::not_handled;
 			const int				root_idx  = _depth_first_widgets.index_of(layer.root);
+
+			if (root_idx == -1)
+				continue;
+
+			if (ev.type == input_event_type::released && layer.dragging != NULL_WIDGET_ID)
+			{
+				layer.dragging = NULL_WIDGET_ID;
+			}
 
 			int begin = root_idx;
 			int end	  = root_idx + static_cast<int>(root_info.owned_children) + 1;
@@ -1131,6 +1232,15 @@ namespace vekt
 			{
 				const id		widget = _depth_first_widgets[i];
 				mouse_callback& ms	   = _mouse_callbacks[widget];
+
+				if (ev.type == input_event_type::pressed)
+				{
+					hover_callback& hb = _hover_callbacks[widget];
+					if (hb.is_hovered && hb.receive_drag)
+					{
+						layer.dragging = widget;
+					}
+				}
 
 				if (ms.on_mouse)
 				{
@@ -1190,6 +1300,17 @@ namespace vekt
 				const id		widget = _depth_first_widgets[i];
 				mouse_callback& ms	   = _mouse_callbacks[widget];
 
+				for (id sc : _depth_first_scrolls)
+				{
+					const id p = _scroll_properties[sc].scroll_parent;
+					if (p == NULL_WIDGET_ID)
+						continue;
+					hover_callback& hb = _hover_callbacks[p];
+					if (hb.is_hovered)
+					{
+						_pos_properties[p].scroll_offset -= ev.amount;
+					}
+				}
 				if (ms.on_mouse_wheel)
 				{
 					res = ms.on_mouse_wheel(this, widget, ev);
@@ -1802,6 +1923,17 @@ namespace vekt
 			return;
 		}
 
+		if (text.text == nullptr)
+			return;
+
+#ifdef VEKT_STRING_CSTR
+		const unsigned int char_count = static_cast<unsigned int>(strlen(text.text));
+#else
+		const unsigned int char_count = static_cast<unsigned int>(text.text.size());
+#endif
+		if (char_count == 0)
+			return;
+
 		draw_buffer* db = get_draw_buffer(draw_order, user_data, text.font);
 
 		const float pixel_scale = text.font->_scale;
@@ -1810,11 +1942,6 @@ namespace vekt
 		const unsigned int start_vertices_idx = db->vertex_count;
 		const unsigned int start_indices_idx  = db->index_count;
 
-#ifdef VEKT_STRING_CSTR
-		const unsigned int char_count = static_cast<unsigned int>(strlen(text.text));
-#else
-		const unsigned int char_count = static_cast<unsigned int>(text.text.size());
-#endif
 		unsigned int vtx_counter = 0;
 
 		VEKT_VEC2 pen = position;
@@ -2073,6 +2200,9 @@ namespace vekt
 			V_ERR("vekt::builder::get_text_size() -> No font is set!");
 			return VEKT_VEC2();
 		}
+
+		if (text.text == nullptr)
+			return VEKT_VEC2();
 
 		const font* fnt			= text.font;
 		const float pixel_scale = fnt->_scale;
