@@ -33,6 +33,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "editor/editor_theme.hpp"
 #include "editor/editor.hpp"
+#include "editor/editor_settings.hpp"
 
 #include "app/app.hpp"
 
@@ -65,7 +66,7 @@ namespace SFG
 
 		// stats
 		gb.add_title("stats");
-		gb.begin_area();
+		gb.begin_area(false);
 
 		_game_res	= gb.add_property_row_label("game_res:", nullptr).second;
 		_window_res = gb.add_property_row_label("window_res:", nullptr).second;
@@ -77,6 +78,16 @@ namespace SFG
 		_vram_txt	= gb.add_property_row_label("vram_texture:", nullptr).second;
 		_vram_res	= gb.add_property_row_label("vram_buffer:", nullptr).second;
 		_draw_calls = gb.add_property_row_label("draw_calls:", nullptr).second;
+		gb.end_area();
+
+		gb.add_title("level");
+		gb.begin_area();
+		_loaded_level = gb.add_property_row_label("level:", nullptr).second;
+
+		gb.add_property_single_button("new_level");
+
+		gb.add_property_single_button("load_level");
+		//gb.add_property_single_button("save_level");
 		gb.end_area();
 
 		gb.end_root();
@@ -94,7 +105,7 @@ namespace SFG
 	{
 
 		_builder->widget_set_pos_abs(_widget, vector2(30, 60));
-		_builder->widget_set_size_abs(_widget, vector2(700, 400));
+		_builder->widget_set_size_abs(_widget, vector2(700, 1000));
 
 		static float stat_fetch_time = 0.0f;
 		static float mem_fetch_time	 = 0.0f;
@@ -181,34 +192,56 @@ namespace SFG
 		alloc.append(" ms");
 
 		const char* ramc = alloc.allocate_reserve(16);
-		alloc.append(stat_ram);
-		alloc.append(" mb");
+		if (stat_ram)
+		{
+			alloc.append(stat_ram);
+			alloc.append(" mb");
+		}
+		else
+			alloc.append("fetching...");
 
 		const char* vramc = alloc.allocate_reserve(16);
-		alloc.append(stat_vram);
-		alloc.append(" mb");
+		if (stat_vram)
+		{
+			alloc.append(stat_ram);
+			alloc.append(" mb");
+		}
+		else
+			alloc.append("fetching...");
 
 		const char* vramc_txt = alloc.allocate_reserve(16);
-		alloc.append(stat_vram_txt);
-		alloc.append(" mb");
-
+		if (stat_vram_txt)
+		{
+			alloc.append(stat_ram);
+			alloc.append(" mb");
+		}
+		else
+			alloc.append("fetching...");
 		const char* vramc_res = alloc.allocate_reserve(16);
-		alloc.append(stat_vram_res);
-		alloc.append(" mb");
-
+		if (stat_ram)
+		{
+			alloc.append(stat_vram_res);
+			alloc.append(" mb");
+		}
+		else
+			alloc.append("fetching...");
 		const char* draws = alloc.allocate_reserve(8);
 		alloc.append(stat_dc);
 
-		_builder->widget_get_text(_game_res).text	= game_res;
-		_builder->widget_get_text(_window_res).text = window_res;
-		_builder->widget_get_text(_fps).text		= fps;
-		_builder->widget_get_text(_main).text		= main_time;
-		_builder->widget_get_text(_render).text		= render_time;
-		_builder->widget_get_text(_ram).text		= ramc;
-		_builder->widget_get_text(_vram).text		= vramc;
-		_builder->widget_get_text(_vram_txt).text	= vramc_txt;
-		_builder->widget_get_text(_vram_res).text	= vramc_res;
-		_builder->widget_get_text(_draw_calls).text = draws;
+		const char* loaded_level = alloc.allocate_reserve(512);
+		alloc.append(editor_settings::get().last_world_relative.c_str());
+
+		_builder->widget_get_text(_game_res).text	  = game_res;
+		_builder->widget_get_text(_window_res).text	  = window_res;
+		_builder->widget_get_text(_fps).text		  = fps;
+		_builder->widget_get_text(_main).text		  = main_time;
+		_builder->widget_get_text(_render).text		  = render_time;
+		_builder->widget_get_text(_ram).text		  = ramc;
+		_builder->widget_get_text(_vram).text		  = vramc;
+		_builder->widget_get_text(_vram_txt).text	  = vramc_txt;
+		_builder->widget_get_text(_vram_res).text	  = vramc_res;
+		_builder->widget_get_text(_draw_calls).text	  = draws;
+		_builder->widget_get_text(_loaded_level).text = loaded_level;
 
 		_builder->widget_update_text(_game_res);
 		_builder->widget_update_text(_window_res);
@@ -220,6 +253,7 @@ namespace SFG
 		_builder->widget_update_text(_vram_txt);
 		_builder->widget_update_text(_vram_res);
 		_builder->widget_update_text(_draw_calls);
+		_builder->widget_update_text(_loaded_level);
 	}
 
 	vekt::input_event_result editor_panel_controls::on_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase)

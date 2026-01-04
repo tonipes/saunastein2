@@ -74,6 +74,7 @@ namespace vekt
 		const size_t size_result_sz = ALIGN_8(sizeof(size_result)) * _widget_count;
 		const size_t user_data_sz	= ALIGN_8(sizeof(widget_user_data)) * _widget_count;
 		const size_t scroll_sz		= ALIGN_8(sizeof(scroll_props)) * _widget_count;
+		const size_t inp_col_sz		= ALIGN_8(sizeof(input_color_props)) * _widget_count;
 		_layout_arena.capacity		= widget_meta_sz + pos_props_sz + size_props_sz + pos_result_sz + size_result_sz + user_data_sz + scroll_sz;
 		_layout_arena.base_ptr		= ALIGNED_MALLOC(_layout_arena.capacity, 8);
 		MEMSET(_layout_arena.base_ptr, 0, _layout_arena.capacity);
@@ -99,6 +100,9 @@ namespace vekt
 
 		_scroll_properties = reinterpret_cast<scroll_props*>(reinterpret_cast<unsigned char*>(_layout_arena.base_ptr) + offset);
 		offset += scroll_sz;
+
+		_input_color_properties = reinterpret_cast<input_color_props*>(reinterpret_cast<unsigned char*>(_layout_arena.base_ptr) + offset);
+		offset += inp_col_sz;
 
 		// Gfx arena
 		const size_t widget_gfx_sz		   = ALIGN_8(sizeof(widget_gfx)) * _widget_count;
@@ -254,6 +258,28 @@ namespace vekt
 
 		calculate_sizes();
 		calculate_positions();
+			{
+			auto a = _pos_results[92].pos;
+			auto b = _size_results[92].size;
+			int	 x= 5;
+		}
+		{
+			auto a = _pos_results[93].pos;
+			auto b = _size_results[93].size;
+			int	 x= 5;
+		}
+
+			{
+			auto a = _pos_results[94].pos;
+			auto b = _size_results[94].size;
+			int	 x= 5;
+		}
+
+		{
+			auto a = _pos_results[95].pos;
+			auto b = _size_results[95].size;
+			int	 x= 5;
+		}
 
 		_clip_stack.resize_explicit(0);
 		_clip_stack.push_back({{0.0f, 0.0f, screen_size.x, screen_size.y}, 0});
@@ -317,6 +343,10 @@ namespace vekt
 	second_color_props& builder::widget_get_second_color(id widget)
 	{
 		return _second_colors[widget];
+	}
+	input_color_props& builder::widget_get_input_colors(id widget)
+	{
+		return _input_color_properties[widget];
 	}
 	text_props& builder::widget_get_text(id widget)
 	{
@@ -833,7 +863,7 @@ namespace vekt
 					if (child_pos_props.flags & pos_flags::pf_x_anchor_end)
 						child_pr.pos.x = (my_pos_x + my_width - sz.child_margins.right) - child_sr.size.x;
 					else if (child_pos_props.flags & pos_flags::pf_x_anchor_center)
-						child_pr.pos.x = (my_pos_x + sz.child_margins.left) + (my_width * child_pos_props.pos.x) - child_sr.size.x * 0.5f;
+						child_pr.pos.x = (my_pos_x) + (my_width * child_pos_props.pos.x) - child_sr.size.x * 0.5f;
 					else
 						child_pr.pos.x = (my_pos_x + sz.child_margins.left) + (my_width * child_pos_props.pos.x);
 
@@ -851,7 +881,7 @@ namespace vekt
 					if (child_pos_props.flags & pos_flags::pf_y_anchor_end)
 						child_pr.pos.y = (my_pos_y + my_height - sz.child_margins.bottom) - child_sr.size.y;
 					else if (child_pos_props.flags & pos_flags::pf_y_anchor_center)
-						child_pr.pos.y = (my_pos_y + sz.child_margins.top) + (my_height * child_pos_props.pos.y) - child_sr.size.y * 0.5f;
+						child_pr.pos.y = (my_pos_y) + (my_height * child_pos_props.pos.y) - child_sr.size.y * 0.5f;
 					else
 						child_pr.pos.y = (my_pos_y + sz.child_margins.top) + (my_height * child_pos_props.pos.y);
 
@@ -884,7 +914,6 @@ namespace vekt
 
 	void builder::calculate_draw()
 	{
-		VEKT_VEC4 second_color;
 		direction color_direction = direction::horizontal;
 		bool	  multi_color	  = false;
 
@@ -932,23 +961,44 @@ namespace vekt
 				continue;
 			}
 
+			VEKT_VEC4 start_color = gfx.color;
+			VEKT_VEC4 end_color	  = VEKT_VEC4();
+
 			multi_color = false;
 			if (gfx.flags & gfx_has_second_color)
 			{
 				second_color_props& p = widget_get_second_color(widget);
-				second_color		  = p.color;
+				end_color			  = p.color;
 				color_direction		  = p.direction;
 				multi_color			  = true;
+			}
+
+			if (gfx.flags & gfx_has_hover_color)
+			{
+				hover_callback& hb = _hover_callbacks[widget];
+				if (hb.is_hovered)
+				{
+					start_color = _input_color_properties[widget].hovered_color;
+					multi_color = false;
+				}
+			}
+
+			if (gfx.flags & gfx_has_press_color)
+			{
+				hover_callback& hb = _hover_callbacks[widget];
+				if (hb.is_pressing)
+				{
+					start_color = _input_color_properties[widget].pressed_color;
+					multi_color = false;
+				}
 			}
 
 			const rect_props props = {
 				.gfx			 = gfx,
 				.min			 = pos,
 				.max			 = pos + size,
-				.use_hovered	 = false,
-				.use_pressed	 = false,
-				.color_start	 = gfx.color,
-				.color_end		 = second_color,
+				.color_start	 = start_color,
+				.color_end		 = end_color,
 				.color_direction = color_direction,
 				.widget_id		 = widget,
 				.multi_color	 = multi_color,
@@ -1222,6 +1272,7 @@ namespace vekt
 
 			if (ev.type == input_event_type::released && layer.dragging != NULL_WIDGET_ID)
 			{
+				set_pressing(layer.dragging, 0);
 				layer.dragging = NULL_WIDGET_ID;
 			}
 
@@ -1230,18 +1281,19 @@ namespace vekt
 
 			for (int i = begin; i < end; i++)
 			{
-				const id		widget = _depth_first_widgets[i];
-				mouse_callback& ms	   = _mouse_callbacks[widget];
+				const id widget = _depth_first_widgets[i];
+
+				hover_callback& hb = _hover_callbacks[widget];
+				if (!hb.receive_drag)
+					continue;
 
 				if (ev.type == input_event_type::pressed)
 				{
-					hover_callback& hb = _hover_callbacks[widget];
-					if (hb.is_hovered && hb.receive_drag)
-					{
+					if (hb.is_hovered)
 						layer.dragging = widget;
-					}
 				}
 
+				mouse_callback& ms = _mouse_callbacks[widget];
 				if (ms.on_mouse)
 				{
 					res = ms.on_mouse(this, widget, ev, input_event_phase::tunneling);
@@ -1251,6 +1303,7 @@ namespace vekt
 			}
 			if (res == input_event_result::handled)
 			{
+				set_pressing(layer.dragging, 1);
 				return res;
 			}
 
@@ -1259,8 +1312,13 @@ namespace vekt
 
 			for (int i = begin; i >= end; i--)
 			{
-				const id		widget = _depth_first_widgets[i];
-				mouse_callback& ms	   = _mouse_callbacks[widget];
+				const id widget = _depth_first_widgets[i];
+
+				hover_callback& hb = _hover_callbacks[widget];
+				if (!hb.receive_drag)
+					continue;
+
+				mouse_callback& ms = _mouse_callbacks[widget];
 				if (ms.on_mouse)
 				{
 					res = ms.on_mouse(this, widget, ev, input_event_phase::bubbling);
@@ -1271,8 +1329,11 @@ namespace vekt
 
 			if (res == input_event_result::handled)
 			{
+				set_pressing(layer.dragging, 1);
 				return res;
 			}
+
+			set_pressing(layer.dragging, 1);
 		}
 
 		return input_event_result::not_handled;

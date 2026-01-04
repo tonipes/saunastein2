@@ -55,6 +55,7 @@ namespace SFG
 			vector4 col_hyperlink;
 			vector4 col_accent;
 			vector4 col_accent_second;
+			vector4 col_accent_second_dim;
 
 			vector4		col_scroll_bar;
 			vector4		col_scroll_bar_bg;
@@ -63,10 +64,14 @@ namespace SFG
 			vector4		col_frame_bg;
 			vector4		col_area_bg;
 			vector4		col_root;
+			vector4		col_button;
+			vector4		col_button_hover;
+			vector4		col_button_press;
+			vector4		col_frame_outline;
 			vekt::font* default_font = nullptr;
 			vekt::font* title_font	 = nullptr;
 
-			float root_margin;
+			float outer_margin;
 			float item_spacing;
 			float title_line_width;
 			float title_line_height;
@@ -77,6 +82,9 @@ namespace SFG
 			float area_rounding;
 			float scroll_thickness;
 			float scroll_rounding;
+			float inner_margin;
+			float frame_thickness;
+			float frame_rounding;
 		};
 
 		struct gui_builder_callbacks
@@ -110,6 +118,8 @@ namespace SFG
 
 		id_pair	 add_property_row_label(const char* label, const char* label2);
 		vekt::id add_property_single_label(const char* label);
+		id_pair	 add_property_single_button(const char* label);
+
 		vekt::id add_property_single_hyperlink(const char* label);
 		vekt::id add_property_row();
 		vekt::id add_row_cell(float size);
@@ -122,6 +132,7 @@ namespace SFG
 		vekt::id add_title(const char* title);
 		vekt::id add_label(const char* label);
 		vekt::id add_hyperlink(const char* label);
+		id_pair	 add_button(const char* title);
 
 		inline void push_title_font(vekt::font* f)
 		{

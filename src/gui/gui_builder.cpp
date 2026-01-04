@@ -61,11 +61,12 @@ namespace SFG
 	gui_builder::gui_builder_style::gui_builder_style()
 	{
 
-		col_accent			 = color::from255(151.0f, 0.0f, 119.0f, 255.0f).srgb_to_linear().to_vector();
-		col_accent_second	 = color::from255(7, 131, 214, 255.0f).srgb_to_linear().to_vector();
-		col_title_line_start = color::from255(91.0f, 0.0f, 72.0f, 0.0f).srgb_to_linear().to_vector();
-		col_title_line_end	 = color::from255(151.0f, 0.0f, 119.0f, 255.0f).srgb_to_linear().to_vector();
-		col_hyperlink		 = color::from255(7, 131, 214, 255.0f).srgb_to_linear().to_vector();
+		col_accent			  = color::from255(151.0f, 0.0f, 119.0f, 255.0f).srgb_to_linear().to_vector();
+		col_accent_second	  = color::from255(7, 131, 214, 255.0f).srgb_to_linear().to_vector();
+		col_accent_second_dim = color::from255(7, 131, 214, 150.0f).srgb_to_linear().to_vector();
+		col_title_line_start  = color::from255(91.0f, 0.0f, 72.0f, 0.0f).srgb_to_linear().to_vector();
+		col_title_line_end	  = color::from255(151.0f, 0.0f, 119.0f, 255.0f).srgb_to_linear().to_vector();
+		col_hyperlink		  = color::from255(7, 131, 214, 255.0f).srgb_to_linear().to_vector();
 
 		col_title	 = color::from255(180, 180, 180, 255).srgb_to_linear().to_vector();
 		col_text	 = color::from255(180, 180, 180, 255).srgb_to_linear().to_vector();
@@ -75,8 +76,12 @@ namespace SFG
 
 		col_scroll_bar	  = col_accent;
 		col_scroll_bar_bg = col_frame_bg;
+		col_button		  = col_root;
+		col_button_hover  = col_area_bg;
+		col_button_press  = col_frame_bg;
+		col_frame_outline = color::from255(60, 60, 60, 255).srgb_to_linear().to_vector();
 
-		root_margin		  = DPI_SCALE * 8;
+		outer_margin	  = DPI_SCALE * 8;
 		item_spacing	  = DPI_SCALE * 4;
 		title_line_width  = 0.8f;
 		title_line_height = DPI_SCALE * 2;
@@ -89,6 +94,10 @@ namespace SFG
 		area_rounding	 = 8.0f;
 		scroll_thickness = DPI_SCALE * 4;
 		scroll_rounding	 = 8.0f;
+
+		inner_margin	= DPI_SCALE * 4;
+		frame_thickness = DPI_SCALE * 1;
+		frame_rounding	= 6.0f;
 	}
 
 	// -----------------------------------------------------------------------------
@@ -109,7 +118,7 @@ namespace SFG
 
 		// sizes
 		_builder->widget_get_size_props(w).spacing		 = style.item_spacing;
-		_builder->widget_get_size_props(w).child_margins = {style.root_margin, style.root_margin, style.root_margin, style.root_margin};
+		_builder->widget_get_size_props(w).child_margins = {style.outer_margin, style.outer_margin, style.outer_margin, style.outer_margin};
 		pos_props& pp									 = _builder->widget_get_pos_props(w);
 		pp.flags										 = pos_flags::pf_child_pos_column;
 
@@ -142,7 +151,7 @@ namespace SFG
 				sz.flags |= size_flags::sf_y_total_children;
 			}
 			sz.spacing		 = style.item_spacing;
-			sz.child_margins = {style.item_spacing, style.item_spacing, style.item_spacing, style.item_spacing};
+			sz.child_margins = {style.outer_margin, style.outer_margin, style.outer_margin, style.outer_margin};
 
 			widget_gfx& gfx = _builder->widget_get_gfx(w);
 			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_rounding | gfx_flags::gfx_clip_children;
@@ -224,6 +233,14 @@ namespace SFG
 		return w;
 	}
 
+	gui_builder::id_pair gui_builder::add_property_single_button(const char* label)
+	{
+		const id	  row = add_property_row();
+		const id_pair p	  = add_button(label);
+		pop_stack();
+		return {0, 0};
+	}
+
 	id gui_builder::add_property_single_hyperlink(const char* label)
 	{
 		const id row = add_property_row();
@@ -293,6 +310,10 @@ namespace SFG
 			sz.size.x	   = 1.0f;
 			sz.size.y	   = style.item_height;
 			sz.spacing	   = style.item_spacing;
+
+			widget_gfx& gfx = _builder->widget_get_gfx(w);
+			gfx.flags		= gfx_flags::gfx_is_rect;
+			gfx.color		= style.col_accent;
 		};
 		return w;
 	}
@@ -413,6 +434,7 @@ namespace SFG
 
 			_builder->widget_get_hover_callbacks(w).on_hover_begin = on_hover_begin_hand_c;
 			_builder->widget_get_hover_callbacks(w).on_hover_end   = on_hover_end_hand_c;
+			_builder->widget_get_hover_callbacks(w).receive_drag   = 1;
 			_builder->widget_get_mouse_callbacks(w).on_mouse	   = callbacks.on_mouse;
 		}
 
@@ -451,6 +473,55 @@ namespace SFG
 		_builder->widget_add_child(w, line);
 
 		return w;
+	}
+
+	gui_builder::id_pair gui_builder::add_button(const char* title)
+	{
+		const id w = new_widget(false);
+		{
+			pos_props& pp = _builder->widget_get_pos_props(w);
+			pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_y_relative | pos_flags::pf_y_anchor_center;
+			pp.pos.x	  = 0.0f;
+			pp.pos.y	  = 0.5f;
+
+			size_props& sz	 = _builder->widget_get_size_props(w);
+			sz.flags		 = size_flags::sf_x_relative | size_flags::sf_y_relative;
+			sz.size.y		 = 1.0f;
+			sz.size.x		 = 0.5f;
+			sz.child_margins = {style.inner_margin, style.inner_margin, style.inner_margin, style.inner_margin};
+
+			widget_gfx& gfx = _builder->widget_get_gfx(w);
+			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_stroke | gfx_flags::gfx_has_rounding | gfx_flags::gfx_has_press_color | gfx_flags::gfx_has_hover_color;
+			gfx.color		= style.col_button;
+
+			stroke_props& st = _builder->widget_get_stroke(w);
+			st.thickness	 = style.frame_thickness;
+			st.color		 = style.col_frame_outline;
+
+			rounding_props& rp = _builder->widget_get_rounding(w);
+			rp.rounding		   = style.frame_rounding;
+			rp.segments		   = 8;
+
+			input_color_props& icp = _builder->widget_get_input_colors(w);
+			icp.pressed_color	   = style.col_accent_second_dim;
+			icp.hovered_color	   = style.col_accent_second;
+
+			mouse_callback& mc = _builder->widget_get_mouse_callbacks(w);
+			mc.on_mouse		   = callbacks.on_mouse;
+
+			_builder->widget_get_hover_callbacks(w).receive_drag = 1;
+		}
+
+		// const id txt = add_label(title);
+		//{
+		//	pos_props& pp = _builder->widget_get_pos_props(txt);
+		//	pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_y_relative | pos_flags::pf_x_anchor_center | pos_flags::pf_y_anchor_center;
+		//	pp.pos.x	  = 0.5f;
+		//	pp.pos.y	  = 0.5f;
+		// }
+
+		// pop_stack();
+		return {w, 0};
 	}
 
 	id gui_builder::new_widget(bool push_to_stack)

@@ -1074,8 +1074,6 @@ namespace SFG
 			.gfx			 = gfx,
 			.min			 = pos,
 			.max			 = vector2(pos.x + get_field_height() * 0.25f, pos.y + get_field_height() * 0.5f),
-			.use_hovered	 = false,
-			.use_pressed	 = false,
 			.color_start	 = COLOR_TEXT,
 			.color_end		 = {},
 			.color_direction = vekt::direction::horizontal,

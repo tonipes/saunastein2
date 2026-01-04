@@ -390,9 +390,8 @@ namespace SFG
 			SFG_ERR("level should be in project directory.");
 			return;
 		}
-		const string relative					   = file.substr(work_dir.size(), file.length() - work_dir.size());
-		editor_settings::get().last_world_relative = relative;
-		editor_settings::get().save_last();
+		const string relative = file.substr(work_dir.size(), file.length() - work_dir.size());
+
 		load_level(relative.c_str());
 	}
 
@@ -409,6 +408,9 @@ namespace SFG
 		w.create_from_loader(raw);
 
 		_camera_controller.activate();
+
+		editor_settings::get().last_world_relative = relative_path;
+		editor_settings::get().save_last();
 	}
 
 	void editor::save_lavel()

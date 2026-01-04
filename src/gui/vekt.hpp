@@ -781,6 +781,8 @@ namespace vekt
 		gfx_clip_children	 = 1 << 8,
 		gfx_invisible		 = 1 << 9,
 		gfx_custom_pass		 = 1 << 10,
+		gfx_has_hover_color	 = 1 << 11,
+		gfx_has_press_color	 = 1 << 12,
 	};
 
 	struct stroke_props
@@ -798,6 +800,12 @@ namespace vekt
 	{
 		VEKT_VEC4 color		= VEKT_VEC4(1, 1, 1, 1);
 		direction direction = direction::horizontal;
+	};
+
+	struct input_color_props
+	{
+		VEKT_VEC4 hovered_color = VEKT_VEC4(1, 1, 1, 1);
+		VEKT_VEC4 pressed_color = VEKT_VEC4(1, 1, 1, 1);
 	};
 
 	struct rounding_props
@@ -945,6 +953,7 @@ namespace vekt
 		widget_func	  on_hover_end	 = nullptr;
 		unsigned char is_hovered	 = 0;
 		unsigned char receive_drag	 = 0;
+		unsigned char is_pressing	 = 0;
 	};
 
 	struct mouse_callback
@@ -1086,8 +1095,6 @@ namespace vekt
 			const widget_gfx& gfx;
 			const VEKT_VEC2&  min;
 			const VEKT_VEC2&  max;
-			bool			  use_hovered;
-			bool			  use_pressed;
 			VEKT_VEC4		  color_start;
 			VEKT_VEC4		  color_end;
 			direction		  color_direction;
@@ -1147,6 +1154,7 @@ namespace vekt
 		rounding_props&		widget_get_rounding(id widget);
 		aa_props&			widget_get_aa(id widget);
 		second_color_props& widget_get_second_color(id widget);
+		input_color_props&	widget_get_input_colors(id widget);
 		text_props&			widget_get_text(id widget);
 		mouse_callback&		widget_get_mouse_callbacks(id widget);
 		key_callback&		widget_get_key_callbacks(id widget);
@@ -1237,6 +1245,13 @@ namespace vekt
 		// Immediate helpers
 		void generate_circle_path(vector<VEKT_VEC2>& out_path, const VEKT_VEC2& center, float radius, unsigned int segments);
 
+		inline void set_pressing(id widget, unsigned char pressing)
+		{
+			if (widget == NULL_WIDGET_ID)
+				return;
+			_hover_callbacks[widget].is_pressing = pressing;
+		}
+
 	private:
 		struct clip_info
 		{
@@ -1285,6 +1300,7 @@ namespace vekt
 		widget_meta*		_metas					  = nullptr;
 		widget_user_data*	_user_datas				  = nullptr;
 		size_props*			_size_properties		  = {};
+		input_color_props*	_input_color_properties	  = {};
 		pos_props*			_pos_properties			  = {};
 		scroll_props*		_scroll_properties		  = {};
 		size_result*		_size_results			  = {};
