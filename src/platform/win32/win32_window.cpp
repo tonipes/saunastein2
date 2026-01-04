@@ -153,6 +153,9 @@ namespace SFG
 				case cursor_state::resize_nesw:
 					::SetCursor(::LoadCursor(nullptr, IDC_SIZENESW));
 					return TRUE;
+				case cursor_state::caret:
+					::SetCursor(::LoadCursor(nullptr, IDC_IBEAM));
+					return TRUE;
 				}
 			}
 			break;

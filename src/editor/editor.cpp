@@ -116,7 +116,6 @@ namespace SFG
 			.text_cache_index_buffer_sz	 = 1024 * 1024 * 4,
 			.buffer_count				 = 12,
 		});
-		_builder->add_input_layer(0, _builder->get_root());
 
 		// font
 		_font_manager = new vekt::font_manager();
@@ -183,6 +182,7 @@ namespace SFG
 		// gui
 		// -----------------------------------------------------------------------------
 		_bump_text_allocator.init(1024 * 512);
+		_text_allocator.init(1024 * 1024);
 
 		_gui_world_overlays.init(_builder);
 		_panel_controls.init(_builder);
@@ -194,11 +194,12 @@ namespace SFG
 
 	void editor::uninit()
 	{
-		_bump_text_allocator.uninit();
-
 		_panel_controls.uninit();
 		_panel_world_view.uninit();
 		_panels_docking.uninit();
+
+		_bump_text_allocator.uninit();
+		_text_allocator.uninit();
 
 		editor_theme::get().font_default = nullptr;
 		editor_theme::get().font_title	 = nullptr;
@@ -209,7 +210,6 @@ namespace SFG
 		delete _font_manager;
 		_font_manager = nullptr;
 
-		_builder->remove_input_layer(0);
 		_builder->uninit();
 		delete _builder;
 		_builder = nullptr;
@@ -286,12 +286,11 @@ namespace SFG
 			const vector2i16& mp = _app.get_main_window().get_mouse_position();
 			_builder->on_mouse_move(vector2(mp.x, mp.y));
 		}
-
-		if (ev.type == window_event_type::wheel)
+		else if (ev.type == window_event_type::wheel)
 		{
-			_builder->on_mouse_wheel_event({.amount = static_cast<float>(-ev.value.y) / window::get_wheel_delta()});
+			_builder->on_mouse_wheel_event({.amount = 12 * static_cast<float>(-ev.value.y) / window::get_wheel_delta()});
 		}
-		if (ev.type == window_event_type::mouse)
+		else if (ev.type == window_event_type::mouse)
 		{
 			_builder->on_mouse_event({
 				.type	  = static_cast<vekt::input_event_type>(ev.sub_type),
@@ -308,6 +307,14 @@ namespace SFG
 				// _game.get_renderer()->get_world_renderer()->get_render_pass_selection_outline().set_selected_entity_id(id == 0 ? NULL_WORLD_ID : id);
 				// SFG_WARN("Pressed on object {0} - name: {1}", id, meta.name);
 			}
+		}
+		else if (ev.type == window_event_type::key)
+		{
+			_builder->on_key_event({
+				.type	   = static_cast<vekt::input_event_type>(ev.sub_type),
+				.key	   = ev.button,
+				.scan_code = ev.value.x,
+			});
 		}
 
 		return false;

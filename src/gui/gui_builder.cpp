@@ -26,10 +26,16 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "gui_builder.hpp "
 #include "io/log.hpp"
+#include "io/assert.hpp"
 #include "vekt.hpp"
+#include "data/vector_util.hpp"
 #include "math/color.hpp"
 #include "memory/text_allocator.hpp"
+#include "memory/memory.hpp"
 #include "platform/window.hpp"
+
+#include <cstdio>
+#include <cstdlib>
 
 namespace SFG
 {
@@ -37,30 +43,56 @@ namespace SFG
 
 	float gui_builder::gui_builder_style::DPI_SCALE = 1.0f;
 
-	void on_hover_begin_hand_c(vekt::builder* b, vekt::id widget)
+	namespace
 	{
-		SFG::window::set_cursor_state(SFG::cursor_state::hand);
+		void on_hover_begin_hand_c(vekt::builder* b, vekt::id widget)
+		{
+			SFG::window::set_cursor_state(SFG::cursor_state::hand);
+		}
+
+		void on_hover_end_hand_c(vekt::builder* b, vekt::id widget)
+		{
+			SFG::window::set_cursor_state(SFG::cursor_state::arrow);
+		}
+
+		void on_hover_begin_text_field(vekt::builder* b, vekt::id widget)
+		{
+			SFG::window::set_cursor_state(SFG::cursor_state::caret);
+		}
+
+		void on_hover_end_text_field(vekt::builder* b, vekt::id widget)
+		{
+			SFG::window::set_cursor_state(SFG::cursor_state::arrow);
+		}
+
 	}
 
-	void on_hover_end_hand_c(vekt::builder* b, vekt::id widget)
+	vekt::input_event_result gui_builder::on_text_field_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase)
 	{
-		SFG::window::set_cursor_state(SFG::cursor_state::arrow);
+		gui_builder* gb = static_cast<gui_builder*>(b->widget_get_user_data(widget).ptr);
+		auto		 it = vector_util::find_if(gb->_text_fields, [widget](const gui_text_field& tf) -> bool { return tf.widget == widget; });
+		SFG_ASSERT(it != gb->_text_fields.end());
+
+		const vekt::id text_widget	= it->text_widget;
+		const vekt::id input_widget = 0;
+		return vekt::input_event_result::not_handled;
 	}
 
-	void on_scrollbar_drag(vekt::builder* b, vekt::id widget, float mouse_x, float mouse_y, float delta_x, float delta_y)
+	vekt::input_event_result gui_builder::on_text_field_key(vekt::builder* b, vekt::id widget, const vekt::key_event& ev)
 	{
-		float dt_y = delta_y;
+		gui_builder* gb = static_cast<gui_builder*>(b->widget_get_user_data(widget).ptr);
+		auto		 it = vector_util::find_if(gb->_text_fields, [widget](const gui_text_field& tf) -> bool { return tf.widget == widget; });
+		SFG_ASSERT(it != gb->_text_fields.end());
+
+		const vekt::id text_widget	= it->text_widget;
+		const vekt::id input_widget = 0;
+
+		SFG_TRACE("key");
+		return vekt::input_event_result::not_handled;
 	}
-	input_event_result on_scrollbar_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase)
+
+	void gui_builder::gui_builder_style::init_defaults()
 	{
-		const hover_callback& hc = b->widget_get_hover_callbacks(widget);
-
-		return input_event_result::handled;
-	}
-
-	gui_builder::gui_builder_style::gui_builder_style()
-	{
-
 		col_accent			  = color::from255(151.0f, 0.0f, 119.0f, 255.0f).srgb_to_linear().to_vector();
 		col_accent_second	  = color::from255(7, 131, 214, 255.0f).srgb_to_linear().to_vector();
 		col_accent_second_dim = color::from255(7, 131, 214, 150.0f).srgb_to_linear().to_vector();
@@ -79,10 +111,14 @@ namespace SFG
 		col_button		  = col_root;
 		col_button_hover  = col_area_bg;
 		col_button_press  = col_frame_bg;
-		col_frame_outline = color::from255(60, 60, 60, 255).srgb_to_linear().to_vector();
+		col_frame_outline = color::from255(30, 30, 30, 255).srgb_to_linear().to_vector();
+
+		root_rounding = 6.0f;
 
 		outer_margin	  = DPI_SCALE * 8;
-		item_spacing	  = DPI_SCALE * 4;
+		item_spacing	  = DPI_SCALE * 3;
+		row_spacing		  = DPI_SCALE * 6;
+		row_height		  = DPI_SCALE * 20;
 		title_line_width  = 0.8f;
 		title_line_height = DPI_SCALE * 2;
 
@@ -97,20 +133,27 @@ namespace SFG
 
 		inner_margin	= DPI_SCALE * 4;
 		frame_thickness = DPI_SCALE * 1;
-		frame_rounding	= 6.0f;
+		frame_rounding	= 2.0f;
 	}
 
 	// -----------------------------------------------------------------------------
 	// big layout
 	// -----------------------------------------------------------------------------
 
-	id gui_builder::begin_root()
+	void gui_builder::init(vekt::builder* b, text_allocator* alloc)
 	{
-		const id w = new_widget(true);
+		_builder   = b;
+		_txt_alloc = alloc;
+		_text_fields.reserve(256);
+
+		const id w = _builder->allocate();
 
 		// gfx
 		_builder->widget_get_gfx(w).color = style.col_root;
-		_builder->widget_get_gfx(w).flags = gfx_flags::gfx_is_rect;
+		_builder->widget_get_gfx(w).flags = gfx_flags::gfx_is_rect | gfx_flags::gfx_has_rounding;
+		rounding_props& rp				  = _builder->widget_get_rounding(w);
+		rp.segments						  = 16;
+		rp.rounding						  = style.root_rounding;
 
 		// positioning
 		_builder->widget_set_pos_abs(w, VEKT_VEC2());
@@ -121,13 +164,18 @@ namespace SFG
 		_builder->widget_get_size_props(w).child_margins = {style.outer_margin, style.outer_margin, style.outer_margin, style.outer_margin};
 		pos_props& pp									 = _builder->widget_get_pos_props(w);
 		pp.flags										 = pos_flags::pf_child_pos_column;
-
-		return w;
+		_root											 = w;
 	}
 
-	void gui_builder::end_root()
+	void gui_builder::uninit()
 	{
-		pop_stack();
+		for (const gui_text_field& tf : _text_fields)
+		{
+			_txt_alloc->deallocate(tf.buffer);
+		}
+		_text_fields.resize(0);
+		_builder->deallocate(_root);
+		_root = NULL_WIDGET_ID;
 	}
 
 	id gui_builder::begin_area(bool fill)
@@ -206,9 +254,7 @@ namespace SFG
 			hover_callback& hb = _builder->widget_get_hover_callbacks(scroll);
 			hb.on_hover_begin  = on_hover_begin_hand_c;
 			hb.on_hover_end	   = on_hover_end_hand_c;
-			hb.receive_drag	   = 1;
-
-			_builder->widget_get_mouse_callbacks(scroll).on_drag = on_scrollbar_drag;
+			hb.receive_mouse   = 1;
 		}
 
 		pop_stack();
@@ -238,7 +284,7 @@ namespace SFG
 		const id	  row = add_property_row();
 		const id_pair p	  = add_button(label);
 		pop_stack();
-		return {0, 0};
+		return p;
 	}
 
 	id gui_builder::add_property_single_hyperlink(const char* label)
@@ -270,6 +316,24 @@ namespace SFG
 		pop_stack();
 
 		return {id0, id1};
+	}
+
+	gui_builder::id_pair gui_builder::add_property_row_text_field(const char* label, const char* text)
+	{
+		const id row = add_property_row();
+
+		add_row_cell(style.property_cell_div);
+		add_label(label);
+		pop_stack();
+
+		add_row_cell_seperator();
+
+		add_row_cell(0.0f);
+		const id_pair field = add_text_field(text, 100);
+		pop_stack();
+
+		pop_stack();
+		return field;
 	}
 
 	// -----------------------------------------------------------------------------
@@ -305,15 +369,16 @@ namespace SFG
 			pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_child_pos_row;
 			pp.pos.x	  = 0.0f;
 
-			size_props& sz = _builder->widget_get_size_props(w);
-			sz.flags	   = size_flags::sf_x_relative | size_flags::sf_y_abs;
-			sz.size.x	   = 1.0f;
-			sz.size.y	   = style.item_height;
-			sz.spacing	   = style.item_spacing;
+			size_props& sz		   = _builder->widget_get_size_props(w);
+			sz.flags			   = size_flags::sf_x_relative | size_flags::sf_y_abs;
+			sz.size.x			   = 1.0f;
+			sz.size.y			   = style.row_height;
+			sz.spacing			   = style.row_spacing;
+			sz.child_margins.right = style.outer_margin;
 
-			widget_gfx& gfx = _builder->widget_get_gfx(w);
-			gfx.flags		= gfx_flags::gfx_is_rect;
-			gfx.color		= style.col_accent;
+			// widget_gfx& gfx = _builder->widget_get_gfx(w);
+			// gfx.flags		= gfx_flags::gfx_is_rect;
+			// gfx.color		= style.col_accent;
 		};
 		return w;
 	}
@@ -328,6 +393,8 @@ namespace SFG
 
 			size_props& sz = _builder->widget_get_size_props(w);
 			sz.flags	   = size_flags::sf_y_relative;
+			sz.size.y	   = 1.0f;
+
 			if (vekt::math::equals(size, 0.0f))
 				sz.flags |= size_flags::sf_x_fill;
 			else
@@ -335,7 +402,10 @@ namespace SFG
 				sz.flags |= size_flags::sf_x_relative;
 				sz.size.x = size;
 			}
-			sz.size.y = 1.0f;
+
+			// widget_gfx& gfx = _builder->widget_get_gfx(w);
+			// gfx.flags		= gfx_flags::gfx_is_rect;
+			// gfx.color		= style.col_accent;
 		}
 		return w;
 	}
@@ -434,7 +504,7 @@ namespace SFG
 
 			_builder->widget_get_hover_callbacks(w).on_hover_begin = on_hover_begin_hand_c;
 			_builder->widget_get_hover_callbacks(w).on_hover_end   = on_hover_end_hand_c;
-			_builder->widget_get_hover_callbacks(w).receive_drag   = 1;
+			_builder->widget_get_hover_callbacks(w).receive_mouse  = 1;
 			_builder->widget_get_mouse_callbacks(w).on_mouse	   = callbacks.on_mouse;
 		}
 
@@ -484,8 +554,8 @@ namespace SFG
 			pp.pos.y	  = 0.5f;
 
 			size_props& sz	 = _builder->widget_get_size_props(w);
-			sz.flags		 = size_flags::sf_x_max_children | size_flags::sf_y_relative;
-			sz.size.y		 = 1.0f;
+			sz.flags		 = size_flags::sf_x_max_children | size_flags::sf_y_abs;
+			sz.size.y		 = style.item_height;
 			sz.child_margins = {style.inner_margin, style.inner_margin, style.inner_margin, style.inner_margin};
 
 			widget_gfx& gfx = _builder->widget_get_gfx(w);
@@ -499,15 +569,15 @@ namespace SFG
 			rounding_props& rp = _builder->widget_get_rounding(w);
 			rp.rounding		   = style.frame_rounding;
 			rp.segments		   = 8;
-			
-			 input_color_props& icp = _builder->widget_get_input_colors(w);
-			 icp.pressed_color	   = style.col_accent_second_dim;
-			 icp.hovered_color	   = style.col_accent_second;
+
+			input_color_props& icp = _builder->widget_get_input_colors(w);
+			icp.pressed_color	   = style.col_accent_second_dim;
+			icp.hovered_color	   = style.col_accent_second;
 
 			mouse_callback& mc = _builder->widget_get_mouse_callbacks(w);
 			mc.on_mouse		   = callbacks.on_mouse;
 
-			_builder->widget_get_hover_callbacks(w).receive_drag = 1;
+			_builder->widget_get_hover_callbacks(w).receive_mouse = 1;
 		}
 
 		const id txt = add_label(title);
@@ -519,17 +589,99 @@ namespace SFG
 		}
 
 		pop_stack();
-		return {w, 0};
+		return {w, txt};
+	}
+
+	void gui_builder::set_fill_x(vekt::id id)
+	{
+		size_props& sz = _builder->widget_get_size_props(id);
+		sz.flags &= ~size_flags::sf_x_abs;
+		sz.flags &= ~size_flags::sf_x_relative;
+		sz.flags &= ~size_flags::sf_x_copy_y;
+		sz.flags &= ~size_flags::sf_x_max_children;
+		sz.flags &= ~size_flags::sf_x_total_children;
+		sz.flags |= size_flags::sf_x_fill;
+	}
+
+	gui_builder::id_pair gui_builder::add_text_field(const char* text, unsigned int max_size)
+	{
+		const id w = new_widget(true);
+		{
+			pos_props& pp = _builder->widget_get_pos_props(w);
+			pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_y_relative | pos_flags::pf_y_anchor_center;
+			pp.pos.y	  = 0.5f;
+			pp.pos.x	  = 0.0f;
+
+			size_props& sz	 = _builder->widget_get_size_props(w);
+			sz.flags		 = size_flags::sf_x_relative | size_flags::sf_y_abs;
+			sz.size.x		 = 1.0f;
+			sz.size.y		 = style.item_height;
+			sz.child_margins = {style.inner_margin, style.inner_margin, style.inner_margin, style.inner_margin};
+
+			widget_gfx& gfx = _builder->widget_get_gfx(w);
+			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_stroke | gfx_flags::gfx_has_rounding;
+			gfx.color		= style.col_frame_bg;
+
+			stroke_props& st = _builder->widget_get_stroke(w);
+			st.thickness	 = style.frame_thickness;
+			st.color		 = style.col_frame_outline;
+
+			rounding_props& rp = _builder->widget_get_rounding(w);
+			rp.rounding		   = style.frame_rounding;
+			rp.segments		   = 8;
+
+			input_color_props& icp = _builder->widget_get_input_colors(w);
+			icp.hovered_color	   = style.col_area_bg;
+
+			mouse_callback& mc = _builder->widget_get_mouse_callbacks(w);
+			mc.on_mouse		   = callbacks.on_mouse;
+
+			key_callback& kc = _builder->widget_get_key_callbacks(w);
+			kc.on_key		 = on_text_field_key;
+
+			hover_callback& hb = _builder->widget_get_hover_callbacks(w);
+			hb.receive_mouse   = 1;
+			hb.on_hover_begin  = on_hover_begin_text_field;
+			hb.on_hover_end	   = on_hover_end_text_field;
+
+			widget_user_data& ud = _builder->widget_get_user_data(w);
+			ud.ptr				 = this;
+		}
+
+		const id txt = add_label(nullptr);
+		{
+			pos_props& pp = _builder->widget_get_pos_props(txt);
+			pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_y_relative | pos_flags::pf_y_anchor_center;
+			pp.pos.x	  = 0.0f;
+			pp.pos.y	  = 0.5f;
+
+			ASSERT(max_size != 0);
+
+			const gui_text_field tf = {
+				.buffer		 = _txt_alloc->allocate(max_size),
+				.widget		 = w,
+				.text_widget = txt,
+			};
+
+			SFG_MEMCPY((void*)tf.buffer, (void*)text, strlen(text));
+			_text_fields.push_back(tf);
+
+			text_props& tp = _builder->widget_get_text(txt);
+			tp.text		   = tf.buffer;
+			_builder->widget_update_text(txt);
+		}
+
+		pop_stack();
+		return {w, txt};
 	}
 
 	id gui_builder::new_widget(bool push_to_stack)
 	{
 		const id w = _builder->allocate();
 
-		const id parent = _stack_ptr == 0 ? NULL_WIDGET_ID : stack();
+		const id parent = _stack_ptr == 0 ? _root : stack();
 
-		if (parent != NULL_WIDGET_ID)
-			_builder->widget_add_child(parent, w);
+		_builder->widget_add_child(parent, w);
 
 		if (push_to_stack)
 			push_stack(w);

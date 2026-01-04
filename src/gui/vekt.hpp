@@ -952,7 +952,7 @@ namespace vekt
 		widget_func	  on_hover_begin = nullptr;
 		widget_func	  on_hover_end	 = nullptr;
 		unsigned char is_hovered	 = 0;
-		unsigned char receive_drag	 = 0;
+		unsigned char receive_mouse	 = 0;
 		unsigned char is_pressing	 = 0;
 	};
 
@@ -1103,17 +1103,6 @@ namespace vekt
 		};
 
 	public:
-		struct input_layer
-		{
-			unsigned int priority = 0;
-			id			 root	  = NULL_WIDGET_ID;
-			id			 dragging = NULL_WIDGET_ID;
-			bool		 operator==(const input_layer& other) const
-			{
-				return priority == other.priority && root == other.root;
-			}
-		};
-
 		struct init_config
 		{
 			unsigned int widget_count				 = 1024;
@@ -1170,8 +1159,6 @@ namespace vekt
 		input_event_result	on_mouse_event(const mouse_event& ev);
 		input_event_result	on_mouse_wheel_event(const mouse_wheel_event& ev);
 		input_event_result	on_key_event(const key_event& ev);
-		void				add_input_layer(unsigned int priority, id root);
-		void				remove_input_layer(unsigned int priority);
 		void				add_line(const line_props& props);
 		void				add_line_aa(const line_aa_props& props);
 		void				add_circle(const circle_props& props);
@@ -1222,6 +1209,9 @@ namespace vekt
 		}
 
 	private:
+		void set_focus(id widget);
+		void set_pressing(id widget);
+
 		unsigned int count_total_children(id widget_id) const;
 		void		 populate_hierarchy(id current_widget_id, unsigned int depth);
 		void		 build_hierarchy();
@@ -1274,9 +1264,9 @@ namespace vekt
 
 		vector<id>					   _free_list;
 		vector<clip_info>			   _clip_stack;
-		vector<input_layer>			   _input_layers;
 		vector<draw_buffer>			   _draw_buffers;
 		vector<id>					   _depth_first_widgets;
+		vector<id>					   _depth_first_mouse_widgets;
 		vector<id>					   _depth_first_fill_parents;
 		vector<id>					   _depth_first_scrolls;
 		vector<id>					   _reverse_depth_first_widgets;
@@ -1330,7 +1320,9 @@ namespace vekt
 		unsigned int _text_cache_vertex_size  = 0;
 		unsigned int _text_cache_index_count  = 0;
 		unsigned int _text_cache_index_size	  = 0;
-		id			 _root					  = 0;
+		id			 _root					  = NULL_WIDGET_ID;
+		id			 _pressed_widget		  = NULL_WIDGET_ID;
+		id			 _focused_widget		  = NULL_WIDGET_ID;
 	};
 
 	////////////////////////////////////////////////////////////////////////////////

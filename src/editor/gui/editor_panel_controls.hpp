@@ -26,7 +26,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include "gui/vekt_defines.hpp"
+#include "gui/gui_builder.hpp"
 #include "memory/text_allocator.hpp"
 
 namespace vekt
@@ -50,7 +50,7 @@ namespace SFG
 
 	private:
 		vekt::builder* _builder		 = nullptr;
-		text_allocator _text_alloc	 = {};
+		gui_builder	   _gui_builder	 = {};
 		vekt::id	   _widget		 = NULL_WIDGET_ID;
 		vekt::id	   _hyperlink	 = NULL_WIDGET_ID;
 		vekt::id	   _fps			 = NULL_WIDGET_ID;

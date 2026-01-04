@@ -190,6 +190,7 @@ namespace vekt
 		_depth_first_child_info.reserve(1024);
 		_depth_first_fill_parents.reserve(1024);
 		_depth_first_scrolls.reserve(1024);
+		_depth_first_mouse_widgets.reserve(1024);
 
 		_root = allocate();
 	}
@@ -446,15 +447,6 @@ namespace vekt
 
 	void builder::deallocate(id w)
 	{
-		for (const input_layer& layer : _input_layers)
-		{
-			if (layer.root == w)
-			{
-				V_ERR("Cannot deallocate widget %d, it is a root of an input layer. Remove the input layer first!", w);
-				ASSERT(false);
-				return;
-			}
-		}
 
 		widget_meta& meta = _metas[w];
 
@@ -472,6 +464,29 @@ namespace vekt
 	void builder::clear_text_cache()
 	{
 		_text_cache.resize_explicit(0);
+	}
+
+	void builder::set_focus(id widget)
+	{
+		if (_focused_widget != NULL_WIDGET_ID)
+		{
+			// clear
+		}
+
+		_focused_widget = widget;
+		V_LOG("Focused %d ", widget);
+	}
+
+	void builder::set_pressing(id widget)
+	{
+		if (_pressed_widget != NULL_WIDGET_ID)
+		{
+			_hover_callbacks[_pressed_widget].is_pressing = 0;
+		}
+
+		_pressed_widget = widget;
+		if (_pressed_widget != NULL_WIDGET_ID)
+			_hover_callbacks[_pressed_widget].is_pressing = 1;
 	}
 
 	unsigned int builder::count_total_children(id widget_id) const
@@ -498,6 +513,8 @@ namespace vekt
 		scroll_props& sc = _scroll_properties[current_widget_id];
 		if (sc.scroll_parent != NULL_WIDGET_ID)
 			_depth_first_scrolls.push_back(current_widget_id);
+		if (_hover_callbacks[current_widget_id].receive_mouse)
+			_depth_first_mouse_widgets.push_back(current_widget_id);
 
 		for (id child : current.children)
 		{
@@ -514,6 +531,7 @@ namespace vekt
 
 	void builder::build_hierarchy()
 	{
+		_depth_first_mouse_widgets.resize_explicit(0);
 		_depth_first_fill_parents.resize_explicit(0);
 		_depth_first_scrolls.resize_explicit(0);
 		_depth_first_widgets.resize_explicit(0);
@@ -1234,151 +1252,95 @@ namespace vekt
 			hover_state.is_hovered = hovered;
 		}
 
-		for (input_layer& layer : _input_layers)
+		if (_pressed_widget != NULL_WIDGET_ID)
 		{
-			if (layer.dragging != NULL_WIDGET_ID)
-			{
-				mouse_callback& mc = _mouse_callbacks[layer.dragging];
+			mouse_callback& mc = _mouse_callbacks[_pressed_widget];
 
-				scroll_props& sc = _scroll_properties[layer.dragging];
-				if (sc.scroll_parent != NULL_WIDGET_ID)
-				{
-					pos_props& pp = _pos_properties[sc.scroll_parent];
-					pp.scroll_offset -= delta.y;
-				}
-				if (mc.on_drag)
-					mc.on_drag(this, layer.dragging, _mouse_position.x, _mouse_position.y, delta.x, delta.y);
-				break;
+			scroll_props& sc = _scroll_properties[_pressed_widget];
+			if (sc.scroll_parent != NULL_WIDGET_ID)
+			{
+				pos_props& pp = _pos_properties[sc.scroll_parent];
+				pp.scroll_offset -= delta.y;
 			}
+			if (mc.on_drag)
+				mc.on_drag(this, _pressed_widget, _mouse_position.x, _mouse_position.y, delta.x, delta.y);
 		}
 	}
 
 	input_event_result builder::on_mouse_event(const mouse_event& ev)
 	{
-		if (_input_layers.empty())
-		{
-			V_ERR("vekt::builder::on_mouse_event -> No input layers are added to the builder!");
-			return input_event_result::not_handled;
-		}
 
-		for (input_layer& layer : _input_layers)
-		{
-			depth_first_child_info& root_info = _depth_first_child_info[layer.root];
-			input_event_result		res		  = input_event_result::not_handled;
-			const int				root_idx  = _depth_first_widgets.index_of(layer.root);
+		id pressed_widget = NULL_WIDGET_ID;
 
-			if (root_idx == -1)
+		input_event_result ret_res = input_event_result::not_handled;
+		for (id widget : _depth_first_mouse_widgets)
+		{
+			hover_callback& hb = _hover_callbacks[widget];
+
+			if (ev.type == input_event_type::pressed && hb.is_hovered)
+			{
+				pressed_widget = widget;
+			}
+
+			mouse_callback& mc = _mouse_callbacks[widget];
+
+			if (!mc.on_mouse)
 				continue;
 
-			if (ev.type == input_event_type::released && layer.dragging != NULL_WIDGET_ID)
-			{
-				set_pressing(layer.dragging, 0);
-				layer.dragging = NULL_WIDGET_ID;
-			}
-
-			int begin = root_idx;
-			int end	  = root_idx + static_cast<int>(root_info.owned_children) + 1;
-
-			for (int i = begin; i < end; i++)
-			{
-				const id widget = _depth_first_widgets[i];
-
-				hover_callback& hb = _hover_callbacks[widget];
-				if (!hb.receive_drag)
-					continue;
-
-				if (ev.type == input_event_type::pressed)
-				{
-					if (hb.is_hovered)
-						layer.dragging = widget;
-				}
-
-				mouse_callback& ms = _mouse_callbacks[widget];
-				if (ms.on_mouse)
-				{
-					res = ms.on_mouse(this, widget, ev, input_event_phase::tunneling);
-					if (res == input_event_result::handled)
-						break;
-				}
-			}
+			const input_event_result res = mc.on_mouse(this, widget, ev, input_event_phase::bubbling);
 			if (res == input_event_result::handled)
-			{
-				set_pressing(layer.dragging, 1);
-				return res;
-			}
-
-			begin = end - 1;
-			end	  = root_idx;
-
-			for (int i = begin; i >= end; i--)
-			{
-				const id widget = _depth_first_widgets[i];
-
-				hover_callback& hb = _hover_callbacks[widget];
-				if (!hb.receive_drag)
-					continue;
-
-				mouse_callback& ms = _mouse_callbacks[widget];
-				if (ms.on_mouse)
-				{
-					res = ms.on_mouse(this, widget, ev, input_event_phase::bubbling);
-					if (res == input_event_result::handled)
-						break;
-				}
-			}
-
-			if (res == input_event_result::handled)
-			{
-				set_pressing(layer.dragging, 1);
-				return res;
-			}
-
-			set_pressing(layer.dragging, 1);
+				ret_res = res;
 		}
 
-		return input_event_result::not_handled;
+		if (ev.type == input_event_type::pressed)
+		{
+			if (pressed_widget == NULL_WIDGET_ID)
+			{
+				set_focus(NULL_WIDGET_ID);
+				set_pressing(NULL_WIDGET_ID);
+			}
+			else
+			{
+				set_focus(pressed_widget);
+				set_pressing(pressed_widget);
+			}
+		}
+		else if (ev.type == input_event_type::released)
+		{
+			set_pressing(NULL_WIDGET_ID);
+		}
+
+		return ret_res;
 	}
 
 	input_event_result builder::on_mouse_wheel_event(const mouse_wheel_event& ev)
 	{
-		if (_input_layers.empty())
+
+		for (id sc : _depth_first_scrolls)
 		{
-			V_ERR("vekt::builder::on_mouse_wheel_event -> No input layers are added to the builder!");
-			return input_event_result::not_handled;
+			const id p = _scroll_properties[sc].scroll_parent;
+			if (p == NULL_WIDGET_ID)
+				continue;
+			hover_callback& hb = _hover_callbacks[p];
+			if (hb.is_hovered)
+				_pos_properties[p].scroll_offset -= ev.amount;
 		}
 
-		for (const input_layer& layer : _input_layers)
+		for (id widget : _depth_first_mouse_widgets)
 		{
-			depth_first_child_info& root_info = _depth_first_child_info[layer.root];
-			input_event_result		res		  = input_event_result::not_handled;
-			const int				root_idx  = _depth_first_widgets.index_of(layer.root);
+			hover_callback& hb = _hover_callbacks[widget];
 
-			int begin = root_idx;
-			int end	  = root_idx + static_cast<int>(root_info.owned_children) + 1;
+			if (!hb.is_hovered)
+				continue;
 
-			for (int i = begin; i < end; i++)
-			{
-				const id		widget = _depth_first_widgets[i];
-				mouse_callback& ms	   = _mouse_callbacks[widget];
+			mouse_callback& mc = _mouse_callbacks[widget];
 
-				for (id sc : _depth_first_scrolls)
-				{
-					const id p = _scroll_properties[sc].scroll_parent;
-					if (p == NULL_WIDGET_ID)
-						continue;
-					hover_callback& hb = _hover_callbacks[p];
-					if (hb.is_hovered)
-					{
-						_pos_properties[p].scroll_offset -= ev.amount;
-					}
-				}
-				if (ms.on_mouse_wheel)
-				{
-					res = ms.on_mouse_wheel(this, widget, ev);
-					if (res == input_event_result::handled)
-						return res;
-				}
-			}
+			if (!mc.on_mouse_wheel)
+				continue;
+
+			const input_event_result res = mc.on_mouse_wheel(this, widget, ev);
+			if (res == input_event_result::handled)
+				return input_event_result::handled;
 		}
 
 		return input_event_result::not_handled;
@@ -1386,69 +1348,14 @@ namespace vekt
 
 	input_event_result builder::on_key_event(const key_event& ev)
 	{
-		if (_input_layers.empty())
-		{
-			V_ERR("vekt::builder::on_key_event -> No input layers are added to the builder!");
+		if (_focused_widget == NULL_WIDGET_ID)
 			return input_event_result::not_handled;
-		}
+		key_callback& ks = _key_callbacks[_focused_widget];
 
-		for (const input_layer& layer : _input_layers)
-		{
-			depth_first_child_info& root_info = _depth_first_child_info[layer.root];
-			input_event_result		res		  = input_event_result::not_handled;
-			const int				root_idx  = _depth_first_widgets.index_of(layer.root);
+		if (!ks.on_key)
+			return input_event_result::not_handled;
 
-			int begin = root_idx;
-			int end	  = root_idx + static_cast<int>(root_info.owned_children) + 1;
-
-			for (int i = begin; i < end; i++)
-			{
-				const id	  widget = _depth_first_widgets[i];
-				key_callback& ks	 = _key_callbacks[widget];
-
-				if (ks.on_key)
-				{
-					res = ks.on_key(this, widget, ev);
-					if (res == input_event_result::handled)
-						return res;
-				}
-			}
-		}
-
-		return input_event_result::not_handled;
-	}
-
-	void builder::add_input_layer(unsigned int priority, id root)
-	{
-		for (input_layer& layer : _input_layers)
-		{
-			if (layer.priority == priority)
-			{
-				V_WARN("vekt::builder::add_input_layer -> Input layer with this priority already exists, overriding it's root! priority: %d", priority);
-				return;
-			}
-		}
-
-		_input_layers.push_back({
-			.priority = priority,
-			.root	  = root,
-		});
-
-		std::sort(_input_layers.begin(), _input_layers.end(), [](const input_layer& layer0, const input_layer& layer1) -> bool { return layer0.priority < layer1.priority; });
-	}
-
-	void builder::remove_input_layer(unsigned int priority)
-	{
-		for (input_layer& layer : _input_layers)
-		{
-			if (layer.priority == priority)
-			{
-				_input_layers.remove(layer);
-				std::sort(_input_layers.begin(), _input_layers.end(), [](const input_layer& layer0, const input_layer& layer1) -> bool { return layer0.priority < layer1.priority; });
-				return;
-			}
-		}
-		V_ERR("vekt::remove_input_layer -> No input layer with the given priority exists! priority: %d", priority);
+		return ks.on_key(this, _focused_widget, ev);
 	}
 
 	void builder::add_line(const line_props& props)

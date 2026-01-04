@@ -69,6 +69,7 @@ namespace SFG
 		resize_vt,
 		resize_nwse,
 		resize_nesw,
+		caret,
 	};
 	enum class window_event_type : uint8
 	{

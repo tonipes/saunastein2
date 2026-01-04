@@ -28,6 +28,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "gui/vekt_defines.hpp"
 #include "math/vector4.hpp"
+#include "data/vector.hpp"
 
 namespace vekt
 {
@@ -40,16 +41,23 @@ namespace SFG
 	class font;
 	class text_allocator;
 
+	struct gui_text_field
+	{
+		const char*	 buffer		 = nullptr;
+		vekt::id	 widget		 = 0;
+		vekt::id	 text_widget = 0;
+		unsigned int caret_pos;
+	};
+
 	class gui_builder
 	{
 	public:
-		gui_builder(vekt::builder* b, text_allocator* alloc) : _builder(b), _txt_alloc(alloc) {};
-
 		struct gui_builder_style
 		{
 			static float DPI_SCALE;
 
-			gui_builder_style();
+			void init_defaults();
+
 			vector4 col_title_line_start;
 			vector4 col_title_line_end;
 			vector4 col_hyperlink;
@@ -71,11 +79,15 @@ namespace SFG
 			vekt::font* default_font = nullptr;
 			vekt::font* title_font	 = nullptr;
 
+			float root_rounding;
+
 			float outer_margin;
 			float item_spacing;
+			float row_spacing;
 			float title_line_width;
 			float title_line_height;
 			float item_height;
+			float row_height;
 			float table_cell_height;
 			float property_cell_div;
 			float seperator_thickness;
@@ -104,11 +116,16 @@ namespace SFG
 		gui_builder_callbacks callbacks = {};
 
 		// -----------------------------------------------------------------------------
+		// lifecycle
+		// -----------------------------------------------------------------------------
+
+		void init(vekt::builder* b, text_allocator* alloc);
+		void uninit();
+
+		// -----------------------------------------------------------------------------
 		// big layout
 		// -----------------------------------------------------------------------------
 
-		vekt::id begin_root();
-		void	 end_root();
 		vekt::id begin_area(bool fill = true);
 		void	 end_area();
 
@@ -119,8 +136,10 @@ namespace SFG
 		id_pair	 add_property_row_label(const char* label, const char* label2);
 		vekt::id add_property_single_label(const char* label);
 		id_pair	 add_property_single_button(const char* label);
-
 		vekt::id add_property_single_hyperlink(const char* label);
+
+		// property row variants for fields
+		id_pair	 add_property_row_text_field(const char* label, const char* text);
 		vekt::id add_property_row();
 		vekt::id add_row_cell(float size);
 		vekt::id add_row_cell_seperator();
@@ -133,6 +152,10 @@ namespace SFG
 		vekt::id add_label(const char* label);
 		vekt::id add_hyperlink(const char* label);
 		id_pair	 add_button(const char* title);
+		void	 set_fill_x(vekt::id id);
+
+		// raw field widgets
+		id_pair add_text_field(const char* text, unsigned int max_size);
 
 		inline void push_title_font(vekt::font* f)
 		{
@@ -144,21 +167,28 @@ namespace SFG
 			style.default_font = f;
 		}
 
-	private:
-		vekt::id new_widget(bool push_to_stack = false);
+		inline vekt::id get_root() const
+		{
+			return _root;
+		}
 
-		void	 push_stack(vekt::id s);
+		static vekt::input_event_result on_text_field_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase);
+		static vekt::input_event_result on_text_field_key(vekt::builder* b, vekt::id widget, const vekt::key_event& ev);
+
+		vekt::id new_widget(bool push_to_stack = false);
 		vekt::id pop_stack();
 		vekt::id stack();
+		void	 push_stack(vekt::id s);
 
 	private:
 		static constexpr unsigned int STACK_SIZE = 512;
 
-		text_allocator* _txt_alloc		   = nullptr;
-		vekt::builder*	_builder		   = nullptr;
-		vekt::id		_stack[STACK_SIZE] = {NULL_WIDGET_ID};
-		vekt::id		_root			   = NULL_WIDGET_ID;
-		vekt::id		_stack_ptr		   = 0;
+		text_allocator*		   _txt_alloc		  = nullptr;
+		vekt::builder*		   _builder			  = nullptr;
+		vector<gui_text_field> _text_fields		  = {};
+		vekt::id			   _stack[STACK_SIZE] = {NULL_WIDGET_ID};
+		vekt::id			   _root			  = NULL_WIDGET_ID;
+		vekt::id			   _stack_ptr		  = 0;
 	};
 
 }

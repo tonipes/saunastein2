@@ -33,6 +33,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "editor/gfx/editor_renderer.hpp"
 #include "data/atomic.hpp"
 #include "memory/bump_text_allocator.hpp"
+#include "memory/text_allocator.hpp"
 
 // gui
 #include "editor/gui/editor_panel_controls.hpp"
@@ -147,6 +148,11 @@ namespace SFG
 			return _bump_text_allocator;
 		}
 
+		inline text_allocator& get_text_allocator()
+		{
+			return _text_allocator;
+		}
+
 	private:
 		app&		 _app;
 		world_handle _camera_entity	  = {};
@@ -163,6 +169,7 @@ namespace SFG
 
 		// gui
 		bump_text_allocator _bump_text_allocator = {};
+		text_allocator		_text_allocator		 = {};
 
 		editor_panel_controls	  _panel_controls	  = {};
 		editor_panel_entities	  _panel_entities	  = {};

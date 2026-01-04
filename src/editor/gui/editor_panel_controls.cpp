@@ -44,68 +44,71 @@ namespace SFG
 {
 	void editor_panel_controls::init(vekt::builder* builder)
 	{
-		_text_alloc.init(1024);
 		_builder = builder;
 
-		gui_builder gb(_builder, &_text_alloc);
-		gb.callbacks.on_mouse  = on_mouse;
-		gb.callbacks.user_data = this;
-		gb.style.title_font	   = editor_theme::get().font_title;
-		gb.style.default_font  = editor_theme::get().font_default;
+		// gui builder
+		_gui_builder.style.init_defaults();
+		_gui_builder.style.title_font	= editor_theme::get().font_title;
+		_gui_builder.style.default_font = editor_theme::get().font_default;
 
-		_widget = gb.begin_root();
+		_gui_builder.init(builder, &editor::get().get_text_allocator());
+		_gui_builder.callbacks.on_mouse	 = on_mouse;
+		_gui_builder.callbacks.user_data = this;
+
+		_widget = _gui_builder.get_root();
+
+		const string vstr = "stakeforge_engine v." + std::to_string(SFG_MAJOR) + "." + std::to_string(SFG_MINOR) + "." + string(SFG_BUILD);
 
 		// general
-		gb.add_title("general");
-
-		gb.begin_area(false);
-		const string vstr = "stakeforge_engine v." + std::to_string(SFG_MAJOR) + "." + std::to_string(SFG_MINOR) + "." + string(SFG_BUILD);
-		gb.add_property_single_label(vstr.c_str());
-		_hyperlink = gb.add_property_single_hyperlink("github");
-		gb.end_area();
+		_gui_builder.add_title("general");
+		_gui_builder.begin_area(false);
+		_gui_builder.add_property_single_label(vstr.c_str());
+		_hyperlink = _gui_builder.add_property_single_hyperlink("github");
+		_gui_builder.end_area();
 
 		// stats
-		gb.add_title("stats");
-		gb.begin_area(false);
+		_gui_builder.add_title("stats");
+		_gui_builder.begin_area();
+		_game_res	= _gui_builder.add_property_row_label("game_res:", nullptr).second;
+		_window_res = _gui_builder.add_property_row_label("window_res:", nullptr).second;
+		_fps		= _gui_builder.add_property_row_label("fps:", nullptr).second;
+		_main		= _gui_builder.add_property_row_label("main:", nullptr).second;
+		_render		= _gui_builder.add_property_row_label("render:", nullptr).second;
+		_ram		= _gui_builder.add_property_row_label("ram:", nullptr).second;
+		_vram		= _gui_builder.add_property_row_label("vram:", nullptr).second;
+		_vram_txt	= _gui_builder.add_property_row_label("vram_texture:", nullptr).second;
+		_vram_res	= _gui_builder.add_property_row_label("vram_buffer:", nullptr).second;
+		_draw_calls = _gui_builder.add_property_row_label("draw_calls:", nullptr).second;
+		_gui_builder.end_area();
 
-		_game_res	= gb.add_property_row_label("game_res:", nullptr).second;
-		_window_res = gb.add_property_row_label("window_res:", nullptr).second;
-		_fps		= gb.add_property_row_label("fps:", nullptr).second;
-		_main		= gb.add_property_row_label("main:", nullptr).second;
-		_render		= gb.add_property_row_label("render:", nullptr).second;
-		_ram		= gb.add_property_row_label("ram:", nullptr).second;
-		_vram		= gb.add_property_row_label("vram:", nullptr).second;
-		_vram_txt	= gb.add_property_row_label("vram_texture:", nullptr).second;
-		_vram_res	= gb.add_property_row_label("vram_buffer:", nullptr).second;
-		_draw_calls = gb.add_property_row_label("draw_calls:", nullptr).second;
-		gb.end_area();
-
-		gb.add_title("level");
-		gb.begin_area();
-		_loaded_level = gb.add_property_row_label("level:", nullptr).second;
-
-		gb.add_property_single_button("new_level");
-
-		gb.add_property_single_button("load_level");
-		//gb.add_property_single_button("save_level");
-		gb.end_area();
-
-		gb.end_root();
+		// level
+		_gui_builder.add_title("level");
+		_gui_builder.begin_area();
+		_loaded_level = _gui_builder.add_property_row_label("level:", nullptr).second;
+		_gui_builder.add_property_row_text_field("lol", "yamate");
+		_gui_builder.add_property_row();
+		_gui_builder.set_fill_x(_gui_builder.add_button("new_level").first);
+		_gui_builder.set_fill_x(_gui_builder.add_button("save_level").first);
+		_gui_builder.set_fill_x(_gui_builder.add_button("load_level").first);
+		// _gui_builder.add_property_single_button("new_level");
+		// _gui_builder.add_property_single_button("load_level");
+		// _gui_builder.add_property_single_button("save_level");
+		_gui_builder.pop_stack();
+		_gui_builder.end_area();
 
 		_builder->widget_add_child(_builder->get_root(), _widget);
 	}
 
 	void editor_panel_controls::uninit()
 	{
-		_text_alloc.uninit();
-		_builder->deallocate(_widget);
+		_gui_builder.uninit();
 	}
 
 	void editor_panel_controls::draw(const vector2ui16& window_size)
 	{
 
 		_builder->widget_set_pos_abs(_widget, vector2(30, 60));
-		_builder->widget_set_size_abs(_widget, vector2(700, 1000));
+		_builder->widget_set_size_abs(_widget, vector2(700,600));
 
 		static float stat_fetch_time = 0.0f;
 		static float mem_fetch_time	 = 0.0f;
