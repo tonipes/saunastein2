@@ -477,17 +477,15 @@ namespace SFG
 
 	gui_builder::id_pair gui_builder::add_button(const char* title)
 	{
-		const id w = new_widget(false);
+		const id w = new_widget(true);
 		{
 			pos_props& pp = _builder->widget_get_pos_props(w);
-			pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_y_relative | pos_flags::pf_y_anchor_center;
-			pp.pos.x	  = 0.0f;
+			pp.flags	  = pos_flags::pf_y_relative | pos_flags::pf_y_anchor_center;
 			pp.pos.y	  = 0.5f;
 
 			size_props& sz	 = _builder->widget_get_size_props(w);
-			sz.flags		 = size_flags::sf_x_relative | size_flags::sf_y_relative;
+			sz.flags		 = size_flags::sf_x_max_children | size_flags::sf_y_relative;
 			sz.size.y		 = 1.0f;
-			sz.size.x		 = 0.5f;
 			sz.child_margins = {style.inner_margin, style.inner_margin, style.inner_margin, style.inner_margin};
 
 			widget_gfx& gfx = _builder->widget_get_gfx(w);
@@ -501,10 +499,10 @@ namespace SFG
 			rounding_props& rp = _builder->widget_get_rounding(w);
 			rp.rounding		   = style.frame_rounding;
 			rp.segments		   = 8;
-
-			input_color_props& icp = _builder->widget_get_input_colors(w);
-			icp.pressed_color	   = style.col_accent_second_dim;
-			icp.hovered_color	   = style.col_accent_second;
+			
+			 input_color_props& icp = _builder->widget_get_input_colors(w);
+			 icp.pressed_color	   = style.col_accent_second_dim;
+			 icp.hovered_color	   = style.col_accent_second;
 
 			mouse_callback& mc = _builder->widget_get_mouse_callbacks(w);
 			mc.on_mouse		   = callbacks.on_mouse;
@@ -512,15 +510,15 @@ namespace SFG
 			_builder->widget_get_hover_callbacks(w).receive_drag = 1;
 		}
 
-		// const id txt = add_label(title);
-		//{
-		//	pos_props& pp = _builder->widget_get_pos_props(txt);
-		//	pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_y_relative | pos_flags::pf_x_anchor_center | pos_flags::pf_y_anchor_center;
-		//	pp.pos.x	  = 0.5f;
-		//	pp.pos.y	  = 0.5f;
-		// }
+		const id txt = add_label(title);
+		{
+			pos_props& pp = _builder->widget_get_pos_props(txt);
+			pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_y_relative | pos_flags::pf_x_anchor_center | pos_flags::pf_y_anchor_center;
+			pp.pos.x	  = 0.5f;
+			pp.pos.y	  = 0.5f;
+		}
 
-		// pop_stack();
+		pop_stack();
 		return {w, 0};
 	}
 

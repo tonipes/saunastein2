@@ -75,7 +75,7 @@ namespace vekt
 		const size_t user_data_sz	= ALIGN_8(sizeof(widget_user_data)) * _widget_count;
 		const size_t scroll_sz		= ALIGN_8(sizeof(scroll_props)) * _widget_count;
 		const size_t inp_col_sz		= ALIGN_8(sizeof(input_color_props)) * _widget_count;
-		_layout_arena.capacity		= widget_meta_sz + pos_props_sz + size_props_sz + pos_result_sz + size_result_sz + user_data_sz + scroll_sz;
+		_layout_arena.capacity		= widget_meta_sz + pos_props_sz + size_props_sz + pos_result_sz + size_result_sz + user_data_sz + scroll_sz + inp_col_sz;
 		_layout_arena.base_ptr		= ALIGNED_MALLOC(_layout_arena.capacity, 8);
 		MEMSET(_layout_arena.base_ptr, 0, _layout_arena.capacity);
 
@@ -258,27 +258,27 @@ namespace vekt
 
 		calculate_sizes();
 		calculate_positions();
-			{
+		{
 			auto a = _pos_results[92].pos;
 			auto b = _size_results[92].size;
-			int	 x= 5;
+			int	 x = 5;
 		}
 		{
 			auto a = _pos_results[93].pos;
 			auto b = _size_results[93].size;
-			int	 x= 5;
+			int	 x = 5;
 		}
 
-			{
+		{
 			auto a = _pos_results[94].pos;
 			auto b = _size_results[94].size;
-			int	 x= 5;
+			int	 x = 5;
 		}
 
 		{
 			auto a = _pos_results[95].pos;
 			auto b = _size_results[95].size;
-			int	 x= 5;
+			int	 x = 5;
 		}
 
 		_clip_stack.resize_explicit(0);
