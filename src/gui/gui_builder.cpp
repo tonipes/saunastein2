@@ -28,20 +28,114 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "io/log.hpp"
 #include "io/assert.hpp"
 #include "vekt.hpp"
+#include "data/string_util.hpp"
 #include "data/vector_util.hpp"
 #include "math/color.hpp"
+#include "math/math.hpp"
 #include "memory/text_allocator.hpp"
 #include "memory/memory.hpp"
-#include "platform/window.hpp"
+#include "common/system_info.hpp"
+#include "input/input_mappings.hpp"
 
-#include <cstdio>
-#include <cstdlib>
+#include "platform/window.hpp"
+#include "platform/process.hpp"
+
+#undef min
+#undef max
 
 namespace SFG
 {
 	using namespace vekt;
 
 	float gui_builder::gui_builder_style::DPI_SCALE = 1.0f;
+
+	// -----------------------------------------------------------------------------
+	// gui text field
+	// -----------------------------------------------------------------------------
+
+	namespace
+	{
+		static inline unsigned int umin(unsigned int a, unsigned int b)
+		{
+			return a < b ? a : b;
+		}
+		static inline unsigned int umax(unsigned int a, unsigned int b)
+		{
+			return a > b ? a : b;
+		}
+	}
+
+	unsigned int gui_text_field::selection_min() const
+	{
+		return umin(caret_pos, caret_end_pos);
+	}
+	unsigned int gui_text_field::selection_max() const
+	{
+		return umax(caret_pos, caret_end_pos);
+	}
+	void gui_text_field::collapse_caret_to(unsigned int p)
+	{
+		p			  = umin(p, buffer_size);
+		caret_pos	  = p;
+		caret_end_pos = p;
+	}
+
+	void gui_text_field::delete_range(unsigned int from, unsigned int to)
+	{
+		if (from > to)
+		{
+			unsigned int tmp = from;
+			from			 = to;
+			to				 = tmp;
+		}
+		from = umin(from, buffer_size);
+		to	 = umin(to, buffer_size);
+		if (from == to)
+			return;
+
+		const unsigned int tail_count = (buffer_size - to) + 1;
+		SFG_MEMMOVE((char*)buffer + from, buffer + to, tail_count);
+
+		buffer_size -= (to - from);
+		collapse_caret_to(from);
+	}
+	bool gui_text_field::delete_selection_if_any()
+	{
+		const unsigned int mn = selection_min();
+		const unsigned int mx = selection_max();
+		if (mn == mx)
+			return false;
+		delete_range(mn, mx);
+		return true;
+	}
+	void gui_text_field::insert_string_at_caret(const char* s, unsigned int len)
+	{
+		if (!s || len == 0)
+			return;
+
+		delete_selection_if_any();
+
+		const unsigned int available = (buffer_capacity > 0) ? (buffer_capacity - 1) : 0;
+		if (buffer_size >= available)
+			return;
+
+		const unsigned int can_add = umin(len, available - buffer_size);
+		if (can_add == 0)
+			return;
+
+		const unsigned int pos = umin(caret_pos, buffer_size);
+
+		const unsigned int tail_count = (buffer_size - pos) + 1;
+		SFG_MEMMOVE((char*)buffer + pos + can_add, buffer + pos, tail_count);
+		SFG_MEMCPY((char*)buffer + pos, s, can_add);
+
+		buffer_size += can_add;
+		collapse_caret_to(pos + can_add);
+	}
+	void gui_text_field::insert_char_at_caret(char c)
+	{
+		insert_string_at_caret(&c, 1);
+	}
 
 	namespace
 	{
@@ -69,28 +163,319 @@ namespace SFG
 
 	vekt::input_event_result gui_builder::on_text_field_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase)
 	{
+		const hover_callback& hb = b->widget_get_hover_callbacks(widget);
+		if (!hb.is_hovered)
+			return vekt::input_event_result::not_handled;
+
+		if (ev.type == vekt::input_event_type::released)
+			return vekt::input_event_result::not_handled;
+
 		gui_builder* gb = static_cast<gui_builder*>(b->widget_get_user_data(widget).ptr);
 		auto		 it = vector_util::find_if(gb->_text_fields, [widget](const gui_text_field& tf) -> bool { return tf.widget == widget; });
 		SFG_ASSERT(it != gb->_text_fields.end());
 
-		const vekt::id text_widget	= it->text_widget;
-		const vekt::id input_widget = 0;
-		return vekt::input_event_result::not_handled;
+		if (ev.type == vekt::input_event_type::repeated)
+		{
+			it->caret_pos	  = 0;
+			it->caret_end_pos = it->buffer_size;
+			return vekt::input_event_result::handled;
+		}
+
+		const vekt::id text_widget = it->text_widget;
+
+		if (it->buffer_size == 0)
+		{
+			it->caret_end_pos = 0;
+		}
+		else
+		{
+			const size_props& sz	 = b->widget_get_size_props(widget);
+			const vector2	  pos	 = b->widget_get_pos(widget) + vector2(sz.child_margins.left, 0.0f);
+			const float		  x_diff = ev.position.x - pos.x;
+
+			it->caret_pos = math::clamp(b->widget_get_character_index(it->text_widget, x_diff), (uint32)0, it->buffer_size);
+		}
+		it->caret_end_pos = it->caret_pos;
+		return vekt::input_event_result::handled;
 	}
 
-	vekt::input_event_result gui_builder::on_text_field_key(vekt::builder* b, vekt::id widget, const vekt::key_event& ev)
+	void gui_builder::on_text_field_drag(vekt::builder* b, vekt::id widget, float mp_x, float mp_y, float delta_x, float delta_y, unsigned int button)
 	{
 		gui_builder* gb = static_cast<gui_builder*>(b->widget_get_user_data(widget).ptr);
 		auto		 it = vector_util::find_if(gb->_text_fields, [widget](const gui_text_field& tf) -> bool { return tf.widget == widget; });
 		SFG_ASSERT(it != gb->_text_fields.end());
 
-		const vekt::id text_widget	= it->text_widget;
-		const vekt::id input_widget = 0;
+		if (button == input_code::mouse_middle)
+		{
+			if (math::almost_equal(it->value_increment, 0.0f))
+				return;
 
-		SFG_TRACE("key");
-		return vekt::input_event_result::not_handled;
+			it->value += math::clamp(delta_x, -1.0f, 1.0f) * it->value_increment;
+			gb->text_field_edit_complete(*it);
+			return;
+		}
+
+		if (button != input_code::mouse_0)
+			return;
+
+		if (it->buffer_size == 0)
+		{
+			it->caret_end_pos = 0;
+			return;
+		}
+		const vekt::id text_widget = it->text_widget;
+
+		const size_props& sz	 = b->widget_get_size_props(widget);
+		const vector2	  pos	 = b->widget_get_pos(widget) + vector2(sz.child_margins.left, 0.0f);
+		const float		  x_diff = mp_x - pos.x;
+
+		if (x_diff < 0)
+		{
+			it->caret_end_pos = 0;
+			return;
+		}
+		it->caret_end_pos = math::clamp(b->widget_get_character_index(it->text_widget, x_diff), (uint32)0, it->buffer_size);
 	}
 
+	void gui_builder::on_text_field_focus_lost(vekt::builder* b, vekt::id widget)
+	{
+		gui_builder* gb = static_cast<gui_builder*>(b->widget_get_user_data(widget).ptr);
+		auto		 it = vector_util::find_if(gb->_text_fields, [widget](const gui_text_field& tf) -> bool { return tf.widget == widget; });
+		SFG_ASSERT(it != gb->_text_fields.end());
+		gb->text_field_edit_complete(*it);
+	}
+
+	void gui_builder::on_text_field_focus_gained(vekt::builder* b, vekt::id widget, bool from_nav)
+	{
+
+		gui_builder* gb = static_cast<gui_builder*>(b->widget_get_user_data(widget).ptr);
+		auto		 it = vector_util::find_if(gb->_text_fields, [widget](const gui_text_field& tf) -> bool { return tf.widget == widget; });
+		SFG_ASSERT(it != gb->_text_fields.end());
+
+		if (from_nav)
+		{
+			it->caret_pos	  = 0;
+			it->caret_end_pos = it->buffer_size;
+		}
+	}
+
+	void gui_builder::on_text_field_draw(vekt::builder* b, vekt::id widget)
+	{
+		hover_callback& hb = b->widget_get_hover_callbacks(widget);
+		if (!hb.is_focused)
+			return;
+
+		gui_builder* gb = static_cast<gui_builder*>(b->widget_get_user_data(widget).ptr);
+		auto		 it = vector_util::find_if(gb->_text_fields, [widget](const gui_text_field& tf) -> bool { return tf.widget == widget; });
+		SFG_ASSERT(it != gb->_text_fields.end());
+
+		const gui_text_field& tf = *it;
+
+		const size_props& sz		= b->widget_get_size_props(widget);
+		const vector2	  pos		= b->widget_get_pos(widget) + vector2(sz.child_margins.left, 0.0f);
+		const vector2	  text_size = b->widget_get_size(it->text_widget);
+
+		const unsigned int min		  = math::min(tf.caret_pos, tf.caret_end_pos);
+		const unsigned int max		  = math::max(tf.caret_pos, tf.caret_end_pos);
+		const float		   min_offset = b->widget_get_character_offset(tf.text_widget, min);
+		const float		   max_offset = b->widget_get_character_offset(tf.text_widget, max);
+
+		widget_gfx gfx = {
+			.flags = gfx_flags::gfx_is_rect,
+		};
+
+		static float timer = 0.0f;
+
+		if (timer > 500)
+		{
+			// caret
+
+			b->add_filled_rect({
+				.gfx			 = gfx,
+				.min			 = pos + vector2(min_offset, sz.size.y * 0.1f),
+				.max			 = pos + vector2(min_offset + 1.0f * gui_builder::gui_builder_style::DPI_SCALE, sz.size.y - (sz.size.y * 0.1f)),
+				.color_start	 = gb->style.col_text_dim,
+				.color_end		 = gb->style.col_text_dim,
+				.color_direction = vekt::direction::horizontal,
+				.widget_id		 = widget,
+				.multi_color	 = false,
+			});
+
+			if (timer > 1500)
+				timer = 0.0f;
+		}
+
+		timer += frame_info::get_main_thread_time_milli();
+
+		if (min == max)
+			return;
+
+		// highlight
+		b->add_filled_rect({
+			.gfx			 = gfx,
+			.min			 = pos + vector2(min_offset, sz.size.y * 0.1f),
+			.max			 = pos + vector2(max_offset, sz.size.y - (sz.size.y * 0.1f)),
+			.color_start	 = gb->style.col_highlight_transparent,
+			.color_end		 = gb->style.col_highlight_transparent,
+			.color_direction = vekt::direction::horizontal,
+			.widget_id		 = widget,
+			.multi_color	 = false,
+		});
+	}
+
+	vekt::input_event_result gui_builder::on_text_field_key(vekt::builder* b, vekt::id widget, const vekt::key_event& ev)
+	{
+		if (ev.type != vekt::input_event_type::pressed || (ev.type == vekt::input_event_type::repeated && ev.key == input_code::key_backspace))
+			return vekt::input_event_result::not_handled;
+
+		gui_builder* gb = static_cast<gui_builder*>(b->widget_get_user_data(widget).ptr);
+		auto		 it = vector_util::find_if(gb->_text_fields, [widget](const gui_text_field& tf) -> bool { return tf.widget == widget; });
+		SFG_ASSERT(it != gb->_text_fields.end());
+
+		gui_text_field& tf	   = *it;
+		char*			buffer = (char*)tf.buffer;
+
+		const unsigned int capacity = tf.buffer_capacity;
+		SFG_ASSERT(capacity != 0);
+
+		// Clamp caret positions into [0, tf.buffer_size]
+		tf.caret_pos	 = umin(tf.caret_pos, tf.buffer_size);
+		tf.caret_end_pos = umin(tf.caret_end_pos, tf.buffer_size);
+
+		const bool ctrl = window::is_key_down(input_code::key_lctrl);
+
+		bool text_changed = false;
+
+		if (ev.key == input_code::key_left)
+		{
+			const unsigned int mn = tf.selection_min();
+			if (mn > 0)
+				tf.collapse_caret_to(mn - 1);
+			else
+				tf.collapse_caret_to(0);
+			return vekt::input_event_result::handled;
+		}
+		else if (ev.key == input_code::key_right)
+		{
+			const unsigned int mx = tf.selection_max();
+			if (mx < tf.buffer_size)
+				tf.collapse_caret_to(mx + 1);
+			else
+				tf.collapse_caret_to(tf.buffer_size);
+			return vekt::input_event_result::handled;
+		}
+		else if (ev.key == input_code::key_return)
+		{
+			gb->text_field_edit_complete(tf);
+			return vekt::input_event_result::handled;
+		}
+		else if (ev.key == input_code::key_backspace)
+		{
+			if (!tf.delete_selection_if_any())
+			{
+				if (tf.caret_pos > 0)
+				{
+					const unsigned int p = umin(tf.caret_pos, tf.buffer_size);
+					tf.delete_range(p - 1, p);
+				}
+			}
+			text_changed = true;
+		}
+		else if (ev.key == input_code::key_a && ctrl)
+		{
+			tf.caret_pos	 = 0;
+			tf.caret_end_pos = tf.buffer_size;
+			return vekt::input_event_result::handled;
+		}
+		else if (ev.key == input_code::key_x && ctrl)
+		{
+			const unsigned int mn = tf.selection_min();
+			const unsigned int mx = tf.selection_max();
+			if (mn != mx)
+			{
+				const string slice(buffer + mn, buffer + mx);
+				process::push_clipboard(slice.c_str());
+
+				if (!tf.delete_selection_if_any())
+				{
+					if (tf.caret_pos > 0)
+					{
+						const unsigned int p = umin(tf.caret_pos, tf.buffer_size);
+						tf.delete_range(p - 1, p);
+					}
+				}
+				text_changed = true;
+			}
+		}
+		else if (ev.key == input_code::key_c && ctrl)
+		{
+			const unsigned int mn = tf.selection_min();
+			const unsigned int mx = tf.selection_max();
+			if (mn != mx)
+			{
+				const string slice(buffer + mn, buffer + mx);
+				process::push_clipboard(slice.c_str());
+			}
+			return vekt::input_event_result::handled;
+		}
+		else if (ev.key == input_code::key_v && ctrl)
+		{
+			const string clip = process::get_clipboard();
+			tf.insert_string_at_caret(clip.c_str(), (unsigned int)clip.size());
+			text_changed = true;
+
+			return vekt::input_event_result::handled;
+		}
+		else
+		{
+			const char	 c	  = process::get_character_from_key(static_cast<uint32>(ev.key));
+			const uint16 mask = process::get_character_mask_from_key(static_cast<uint32>(ev.key), c);
+			if (!(mask & character_mask::printable))
+				return vekt::input_event_result::not_handled;
+
+			tf.insert_char_at_caret(c);
+			text_changed = true;
+		}
+
+		if (text_changed)
+		{
+			if (capacity > 0)
+			{
+				const unsigned int safe_end = umin(tf.buffer_size, capacity - 1);
+				buffer[safe_end]			= '\0';
+				tf.buffer_size				= safe_end;
+			}
+
+			if (tf.type == gui_text_field_type::number)
+			{
+				if (tf.decimals == 0)
+				{
+					int val;
+					if (string_util::to_int(tf.buffer, val))
+						tf.value = val;
+					else
+						tf.value = 0.0f;
+				}
+				else
+				{
+					float  val	 = 0.0f;
+					uint32 out_d = 0;
+					if (string_util::to_float(tf.buffer, val, out_d))
+					{
+						tf.value = val;
+					}
+					else
+						tf.value = 0.0f;
+				}
+			}
+
+			if (gb->callbacks.on_input_field_changed)
+				gb->callbacks.on_input_field_changed(widget, tf.buffer, tf.value);
+			b->widget_update_text(tf.text_widget);
+		}
+
+		return vekt::input_event_result::handled;
+	}
 	void gui_builder::gui_builder_style::init_defaults()
 	{
 		col_accent			  = color::from255(151.0f, 0.0f, 119.0f, 255.0f).srgb_to_linear().to_vector();
@@ -100,8 +485,13 @@ namespace SFG
 		col_title_line_end	  = color::from255(151.0f, 0.0f, 119.0f, 255.0f).srgb_to_linear().to_vector();
 		col_hyperlink		  = color::from255(7, 131, 214, 255.0f).srgb_to_linear().to_vector();
 
+		col_highlight				= col_accent_second;
+		col_highlight_transparent	= col_accent_second;
+		col_highlight_transparent.w = 0.5f;
+
 		col_title	 = color::from255(180, 180, 180, 255).srgb_to_linear().to_vector();
 		col_text	 = color::from255(180, 180, 180, 255).srgb_to_linear().to_vector();
+		col_text_dim = color::from255(130, 130, 130, 255).srgb_to_linear().to_vector();
 		col_frame_bg = color::from255(4, 4, 4, 255).srgb_to_linear().to_vector();
 		col_area_bg	 = color::from255(15, 15, 15, 255).srgb_to_linear().to_vector();
 		col_root	 = color::from255(28, 28, 28, 255).srgb_to_linear().to_vector();
@@ -117,6 +507,7 @@ namespace SFG
 
 		outer_margin	  = DPI_SCALE * 8;
 		item_spacing	  = DPI_SCALE * 3;
+		root_spacing	  = DPI_SCALE *6;
 		row_spacing		  = DPI_SCALE * 6;
 		row_height		  = DPI_SCALE * 20;
 		title_line_width  = 0.8f;
@@ -160,7 +551,7 @@ namespace SFG
 		_builder->widget_set_size_abs(w, VEKT_VEC2(100, 100));
 
 		// sizes
-		_builder->widget_get_size_props(w).spacing		 = style.item_spacing;
+		_builder->widget_get_size_props(w).spacing		 = style.root_spacing;
 		_builder->widget_get_size_props(w).child_margins = {style.outer_margin, style.outer_margin, style.outer_margin, style.outer_margin};
 		pos_props& pp									 = _builder->widget_get_pos_props(w);
 		pp.flags										 = pos_flags::pf_child_pos_column;
@@ -318,7 +709,7 @@ namespace SFG
 		return {id0, id1};
 	}
 
-	gui_builder::id_pair gui_builder::add_property_row_text_field(const char* label, const char* text)
+	gui_builder::id_pair gui_builder::add_property_row_text_field(const char* label, const char* text, unsigned int max_text_size, gui_text_field_type type, unsigned int decimals, float increment)
 	{
 		const id row = add_property_row();
 
@@ -329,9 +720,8 @@ namespace SFG
 		add_row_cell_seperator();
 
 		add_row_cell(0.0f);
-		const id_pair field = add_text_field(text, 100);
+		const id_pair field = add_text_field(text, max_text_size, type, decimals, increment);
 		pop_stack();
-
 		pop_stack();
 		return field;
 	}
@@ -592,7 +982,7 @@ namespace SFG
 		return {w, txt};
 	}
 
-	void gui_builder::set_fill_x(vekt::id id)
+	id gui_builder::set_fill_x(vekt::id id)
 	{
 		size_props& sz = _builder->widget_get_size_props(id);
 		sz.flags &= ~size_flags::sf_x_abs;
@@ -601,9 +991,57 @@ namespace SFG
 		sz.flags &= ~size_flags::sf_x_max_children;
 		sz.flags &= ~size_flags::sf_x_total_children;
 		sz.flags |= size_flags::sf_x_fill;
+		return id;
 	}
 
-	gui_builder::id_pair gui_builder::add_text_field(const char* text, unsigned int max_size)
+	void gui_builder::set_text_field_text(gui_text_field& tf, const char* text)
+	{
+		const size_t sz = strlen(text);
+		SFG_ASSERT(sz < tf.buffer_capacity);
+		char* c = (char*)tf.buffer;
+
+		if (sz == 0)
+		{
+			c[0]			 = '\0';
+			tf.buffer_size	 = 0;
+			tf.caret_end_pos = tf.caret_pos = 0;
+			return;
+		}
+
+		SFG_MEMCPY(c, (char*)text, sz);
+		tf.buffer_size	  = sz;
+		c[tf.buffer_size] = '\0';
+		tf.caret_pos	  = math::clamp(tf.caret_pos, (uint32)0, tf.buffer_size);
+		tf.caret_end_pos  = tf.caret_pos;
+		_builder->widget_update_text(tf.text_widget);
+	}
+
+	void gui_builder::set_text_field_text(vekt::id id, const char* text)
+	{
+		auto it = vector_util::find_if(_text_fields, [id](const gui_text_field& tf) -> bool { return tf.widget == id; });
+		SFG_ASSERT(it != _text_fields.end());
+		set_text_field_text(*it, text);
+	}
+
+	void gui_builder::text_field_edit_complete(gui_text_field& tf)
+	{
+		if (tf.type == gui_text_field_type::number)
+		{
+			if (tf.decimals == 0)
+			{
+				const int val = static_cast<int>(tf.value);
+				set_text_field_text(tf, std::to_string(val).c_str());
+			}
+			else
+			{
+				int written = string_util::append_float(tf.value, (char*)tf.buffer, 16, tf.decimals, true);
+				_builder->widget_update_text(tf.text_widget);
+				tf.buffer_size = tf.caret_pos = tf.caret_end_pos = written;
+			}
+		}
+	}
+
+	gui_builder::id_pair gui_builder::add_text_field(const char* text, unsigned int max_size, gui_text_field_type type, unsigned int decimals, float increment)
 	{
 		const id w = new_widget(true);
 		{
@@ -619,7 +1057,7 @@ namespace SFG
 			sz.child_margins = {style.inner_margin, style.inner_margin, style.inner_margin, style.inner_margin};
 
 			widget_gfx& gfx = _builder->widget_get_gfx(w);
-			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_stroke | gfx_flags::gfx_has_rounding;
+			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_stroke | gfx_flags::gfx_has_rounding | gfx_flags::gfx_custom_pass | gfx_flags::gfx_focusable;
 			gfx.color		= style.col_frame_bg;
 
 			stroke_props& st = _builder->widget_get_stroke(w);
@@ -632,9 +1070,11 @@ namespace SFG
 
 			input_color_props& icp = _builder->widget_get_input_colors(w);
 			icp.hovered_color	   = style.col_area_bg;
+			icp.focus_color		   = style.col_accent;
 
 			mouse_callback& mc = _builder->widget_get_mouse_callbacks(w);
-			mc.on_mouse		   = callbacks.on_mouse;
+			mc.on_mouse		   = on_text_field_mouse;
+			mc.on_drag		   = on_text_field_drag;
 
 			key_callback& kc = _builder->widget_get_key_callbacks(w);
 			kc.on_key		 = on_text_field_key;
@@ -643,9 +1083,14 @@ namespace SFG
 			hb.receive_mouse   = 1;
 			hb.on_hover_begin  = on_hover_begin_text_field;
 			hb.on_hover_end	   = on_hover_end_text_field;
+			hb.on_focus_lost   = on_text_field_focus_lost;
+			hb.on_focus_gained = on_text_field_focus_gained;
 
 			widget_user_data& ud = _builder->widget_get_user_data(w);
 			ud.ptr				 = this;
+
+			custom_passes& cp	= _builder->widget_get_custom_pass(w);
+			cp.custom_draw_pass = on_text_field_draw;
 		}
 
 		const id txt = add_label(nullptr);
@@ -658,9 +1103,14 @@ namespace SFG
 			ASSERT(max_size != 0);
 
 			const gui_text_field tf = {
-				.buffer		 = _txt_alloc->allocate(max_size),
-				.widget		 = w,
-				.text_widget = txt,
+				.buffer			 = _txt_alloc->allocate(max_size),
+				.widget			 = w,
+				.text_widget	 = txt,
+				.buffer_size	 = static_cast<uint32>(strlen(text)),
+				.buffer_capacity = max_size,
+				.decimals		 = decimals,
+				.value_increment = increment,
+				.type			 = type,
 			};
 
 			SFG_MEMCPY((void*)tf.buffer, (void*)text, strlen(text));
@@ -710,4 +1160,5 @@ namespace SFG
 		ASSERT(_stack_ptr > 0);
 		return _stack[_stack_ptr - 1];
 	}
+
 };

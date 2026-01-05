@@ -85,14 +85,18 @@ namespace SFG
 		_gui_builder.add_title("level");
 		_gui_builder.begin_area();
 		_loaded_level = _gui_builder.add_property_row_label("level:", nullptr).second;
-		_gui_builder.add_property_row_text_field("lol", "yamate");
+		// _gui_builder.add_property_row_text_field("lol", "yamate");
+		// _gui_builder.add_property_row_text_field("bduudfy", "yeah");
 		_gui_builder.add_property_row();
-		_gui_builder.set_fill_x(_gui_builder.add_button("new_level").first);
-		_gui_builder.set_fill_x(_gui_builder.add_button("save_level").first);
-		_gui_builder.set_fill_x(_gui_builder.add_button("load_level").first);
-		// _gui_builder.add_property_single_button("new_level");
-		// _gui_builder.add_property_single_button("load_level");
-		// _gui_builder.add_property_single_button("save_level");
+		_button_new_project		 = _gui_builder.set_fill_x(_gui_builder.add_button("new_project").first);
+		_button_open_project_dir = _gui_builder.set_fill_x(_gui_builder.add_button("open_project_dir").first);
+		_button_package			 = _gui_builder.set_fill_x(_gui_builder.add_button("package_project").first);
+		_gui_builder.pop_stack();
+
+		_gui_builder.add_property_row();
+		_button_new_level  = _gui_builder.set_fill_x(_gui_builder.add_button("new_level").first);
+		_button_save_level = _gui_builder.set_fill_x(_gui_builder.add_button("save_level").first);
+		_button_load_level = _gui_builder.set_fill_x(_gui_builder.add_button("load_level").first);
 		_gui_builder.pop_stack();
 		_gui_builder.end_area();
 
@@ -106,9 +110,10 @@ namespace SFG
 
 	void editor_panel_controls::draw(const vector2ui16& window_size)
 	{
-
-		_builder->widget_set_pos_abs(_widget, vector2(30, 60));
-		_builder->widget_set_size_abs(_widget, vector2(700,600));
+		const float wsx = 700.0f;
+		const float wsy = 1200.0f;
+		_builder->widget_set_pos_abs(_widget, vector2(window_size.x - wsx, 50));
+		_builder->widget_set_size_abs(_widget, vector2(700, 1200));
 
 		static float stat_fetch_time = 0.0f;
 		static float mem_fetch_time	 = 0.0f;

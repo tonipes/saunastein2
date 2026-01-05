@@ -41,6 +41,7 @@ namespace SFG
 	{
 		vekt::font* font_title	 = nullptr;
 		vekt::font* font_default = nullptr;
+		vekt::font* font_icons	 = nullptr;
 
 		float	default_indent	= 8.0f;
 		vector4 col_bg_frame	= vector4(3, 3, 3, 255) / 255.0f;

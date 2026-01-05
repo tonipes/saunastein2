@@ -191,6 +191,7 @@ namespace vekt
 		_depth_first_fill_parents.reserve(1024);
 		_depth_first_scrolls.reserve(1024);
 		_depth_first_mouse_widgets.reserve(1024);
+		_depth_first_focusables.reserve(1024);
 
 		_root = allocate();
 	}
@@ -259,29 +260,7 @@ namespace vekt
 
 		calculate_sizes();
 		calculate_positions();
-		{
-			auto a = _pos_results[92].pos;
-			auto b = _size_results[92].size;
-			int	 x = 5;
-		}
-		{
-			auto a = _pos_results[93].pos;
-			auto b = _size_results[93].size;
-			int	 x = 5;
-		}
-
-		{
-			auto a = _pos_results[94].pos;
-			auto b = _size_results[94].size;
-			int	 x = 5;
-		}
-
-		{
-			auto a = _pos_results[95].pos;
-			auto b = _size_results[95].size;
-			int	 x = 5;
-		}
-
+	
 		_clip_stack.resize_explicit(0);
 		_clip_stack.push_back({{0.0f, 0.0f, screen_size.x, screen_size.y}, 0});
 		calculate_draw();
@@ -372,6 +351,11 @@ namespace vekt
 	widget_user_data& builder::widget_get_user_data(id widget)
 	{
 		return _user_datas[widget];
+	}
+
+	custom_passes& builder::widget_get_custom_pass(id widget)
+	{
+		return _custom_passes[widget];
 	}
 
 	id builder::widget_get_child(id widget, unsigned int index)
@@ -466,19 +450,35 @@ namespace vekt
 		_text_cache.resize_explicit(0);
 	}
 
-	void builder::set_focus(id widget)
+	void builder::set_focus(id widget, bool from_nav)
 	{
+		if (widget == _focused_widget)
+			return;
+
+		const id prev_focused = _focused_widget;
 		if (_focused_widget != NULL_WIDGET_ID)
 		{
-			// clear
+			hover_callback& hb = _hover_callbacks[_focused_widget];
+			hb.is_focused	   = false;
+
+			if (hb.on_focus_lost)
+				hb.on_focus_lost(this, _focused_widget);
 		}
 
 		_focused_widget = widget;
-		V_LOG("Focused %d ", widget);
+		if (_focused_widget != NULL_WIDGET_ID)
+		{
+			hover_callback& hb = _hover_callbacks[_focused_widget];
+			hb.is_focused	   = true;
+			if (hb.on_focus_gained && prev_focused != _focused_widget)
+				hb.on_focus_gained(this, _focused_widget, from_nav);
+		}
 	}
 
-	void builder::set_pressing(id widget)
+	void builder::set_pressing(id widget, unsigned int button)
 	{
+		_pressed_button = button;
+
 		if (_pressed_widget != NULL_WIDGET_ID)
 		{
 			_hover_callbacks[_pressed_widget].is_pressing = 0;
@@ -516,6 +516,9 @@ namespace vekt
 		if (_hover_callbacks[current_widget_id].receive_mouse)
 			_depth_first_mouse_widgets.push_back(current_widget_id);
 
+		if (_gfxs[current_widget_id].flags & gfx_flags::gfx_focusable)
+			_depth_first_focusables.push_back(current_widget_id);
+
 		for (id child : current.children)
 		{
 			size_props& sz = _size_properties[child];
@@ -536,6 +539,8 @@ namespace vekt
 		_depth_first_scrolls.resize_explicit(0);
 		_depth_first_widgets.resize_explicit(0);
 		_depth_first_child_info.resize_explicit(0);
+		_depth_first_focusables.resize_explicit(0);
+
 		populate_hierarchy(_root, 0);
 
 		_reverse_depth_first_widgets.resize_explicit(0);
@@ -968,17 +973,6 @@ namespace vekt
 				continue;
 			}
 
-			if (gfx.flags & gfx_flags::gfx_custom_pass)
-			{
-				custom_passes& passes = _custom_passes[widget];
-				if (passes.custom_draw_pass)
-					passes.custom_draw_pass(this, widget);
-				if (has_clip)
-					_clip_stack.push_back({widget_clip, info.depth});
-				i++;
-				continue;
-			}
-
 			VEKT_VEC4 start_color = gfx.color;
 			VEKT_VEC4 end_color	  = VEKT_VEC4();
 
@@ -1011,20 +1005,29 @@ namespace vekt
 				}
 			}
 
+			const bool has_aa		= gfx.flags & gfx_has_aa;
+			const bool has_outline	= gfx.flags & gfx_has_stroke;
+			const bool has_rounding = gfx.flags & gfx_has_rounding;
+
+			VEKT_VEC4 stroke_col = has_outline ? _strokes[widget].color : VEKT_VEC4();
+
+			if (has_outline && (gfx.flags & gfx_focusable))
+			{
+				if (_hover_callbacks[widget].is_focused)
+					stroke_col = _input_color_properties[widget].focus_color;
+			}
+
 			const rect_props props = {
 				.gfx			 = gfx,
 				.min			 = pos,
 				.max			 = pos + size,
 				.color_start	 = start_color,
 				.color_end		 = end_color,
+				.stroke_col		 = stroke_col,
 				.color_direction = color_direction,
 				.widget_id		 = widget,
 				.multi_color	 = multi_color,
 			};
-
-			const bool has_aa		= gfx.flags & gfx_has_aa;
-			const bool has_outline	= gfx.flags & gfx_has_stroke;
-			const bool has_rounding = gfx.flags & gfx_has_rounding;
 
 			if (gfx.flags & gfx_is_rect)
 			{
@@ -1067,6 +1070,13 @@ namespace vekt
 
 			if (has_clip)
 				_clip_stack.push_back({widget_clip, info.depth});
+
+			if (gfx.flags & gfx_flags::gfx_custom_pass)
+			{
+				custom_passes& passes = _custom_passes[widget];
+				if (passes.custom_draw_pass)
+					passes.custom_draw_pass(this, widget);
+			}
 
 			i++;
 		}
@@ -1263,7 +1273,7 @@ namespace vekt
 				pp.scroll_offset -= delta.y;
 			}
 			if (mc.on_drag)
-				mc.on_drag(this, _pressed_widget, _mouse_position.x, _mouse_position.y, delta.x, delta.y);
+				mc.on_drag(this, _pressed_widget, _mouse_position.x, _mouse_position.y, delta.x, delta.y, _pressed_button);
 		}
 	}
 
@@ -1296,18 +1306,18 @@ namespace vekt
 		{
 			if (pressed_widget == NULL_WIDGET_ID)
 			{
-				set_focus(NULL_WIDGET_ID);
-				set_pressing(NULL_WIDGET_ID);
+				set_focus(NULL_WIDGET_ID, false);
+				set_pressing(NULL_WIDGET_ID, static_cast<unsigned int>(ev.button));
 			}
 			else
 			{
-				set_focus(pressed_widget);
-				set_pressing(pressed_widget);
+				set_focus(pressed_widget, false);
+				set_pressing(pressed_widget, static_cast<unsigned int>(ev.button));
 			}
 		}
 		else if (ev.type == input_event_type::released)
 		{
-			set_pressing(NULL_WIDGET_ID);
+			set_pressing(NULL_WIDGET_ID, static_cast<unsigned int>(ev.button));
 		}
 
 		return ret_res;
@@ -1350,12 +1360,63 @@ namespace vekt
 	{
 		if (_focused_widget == NULL_WIDGET_ID)
 			return input_event_result::not_handled;
+
 		key_callback& ks = _key_callbacks[_focused_widget];
 
 		if (!ks.on_key)
 			return input_event_result::not_handled;
 
 		return ks.on_key(this, _focused_widget, ev);
+	}
+
+	void builder::next_focus()
+	{
+		if (_focused_widget == NULL_WIDGET_ID)
+			return;
+
+		unsigned int index = 0;
+		for (id w : _depth_first_focusables)
+		{
+			if (w == _focused_widget)
+			{
+				if (index == _depth_first_focusables.size() - 1 && !_depth_first_focusables.empty())
+				{
+					set_focus(_depth_first_focusables[0], true);
+					return;
+				}
+				else if (!_depth_first_focusables.empty())
+				{
+					set_focus(_depth_first_focusables[index + 1], true);
+					return;
+				}
+			}
+			index++;
+		}
+	}
+
+	void builder::prev_focus()
+	{
+		if (_focused_widget == NULL_WIDGET_ID)
+			return;
+
+		unsigned int index = 0;
+		for (id w : _depth_first_focusables)
+		{
+			if (w == _focused_widget)
+			{
+				if (index == 0 && !_depth_first_focusables.empty())
+				{
+					set_focus(_depth_first_focusables[_depth_first_focusables.size() - 1], true);
+					return;
+				}
+				else if (!_depth_first_focusables.empty())
+				{
+					set_focus(_depth_first_focusables[index - 1], true);
+					return;
+				}
+			}
+			index++;
+		}
 	}
 
 	void builder::add_line(const line_props& props)
@@ -1563,10 +1624,10 @@ namespace vekt
 		unsigned int outline_start = 0;
 		// add original vertices
 		const unsigned int copy_start = db->vertex_count;
-		add_vertices(db, _reuse_outer_path, out_p.color, props.min, props.max);
+		add_vertices(db, _reuse_outer_path, props.stroke_col, props.min, props.max);
 
 		outline_start = db->vertex_count;
-		add_vertices(db, _reuse_outline_path, out_p.color, props.min, props.max);
+		add_vertices(db, _reuse_outline_path, props.stroke_col, props.min, props.max);
 		add_strip(db, outline_start, copy_start, _reuse_outline_path.size(), false);
 	}
 
@@ -1628,10 +1689,10 @@ namespace vekt
 
 		// add original vertices
 		const unsigned int copy_start = db->vertex_count;
-		add_vertices(db, _reuse_outer_path, out_p.color, props.min, props.max);
+		add_vertices(db, _reuse_outer_path, props.stroke_col, props.min, props.max);
 
 		outline_start = db->vertex_count;
-		add_vertices(db, _reuse_outline_path, out_p.color, props.min, props.max);
+		add_vertices(db, _reuse_outline_path, props.stroke_col, props.min, props.max);
 		add_strip(db, outline_start, copy_start, _reuse_outline_path.size(), false);
 
 		const unsigned int out_aa_start = db->vertex_count;
@@ -1709,10 +1770,10 @@ namespace vekt
 
 		// add original vertices
 		const unsigned int copy_start = db->vertex_count;
-		add_vertices(db, _reuse_outer_path, out_p.color, props.min, props.max);
+		add_vertices(db, _reuse_outer_path, props.stroke_col, props.min, props.max);
 
 		outline_start = db->vertex_count;
-		add_vertices(db, _reuse_outline_path, out_p.color, props.min, props.max);
+		add_vertices(db, _reuse_outline_path, props.stroke_col, props.min, props.max);
 		add_strip(db, outline_start, copy_start, _reuse_outline_path.size(), false);
 	}
 
@@ -1753,10 +1814,10 @@ namespace vekt
 
 		// add original vertices
 		const unsigned int copy_start = db->vertex_count;
-		add_vertices(db, _reuse_outer_path, out_p.color, props.min, props.max);
+		add_vertices(db, _reuse_outer_path, props.stroke_col, props.min, props.max);
 
 		outline_start = db->vertex_count;
-		add_vertices(db, _reuse_outline_path, out_p.color, props.min, props.max);
+		add_vertices(db, _reuse_outline_path, props.stroke_col, props.min, props.max);
 		add_strip(db, outline_start, copy_start, _reuse_outline_path.size(), false);
 
 		const unsigned int out_aa_start = db->vertex_count;
@@ -2159,6 +2220,99 @@ namespace vekt
 		{
 			indices[i] += start_vertices_idx;
 		}
+	}
+
+	unsigned int builder::widget_get_character_index(id widget, float x_diff)
+	{
+		text_props& tp = widget_get_text(widget);
+		if (tp.font == nullptr)
+			return 0;
+
+		if (tp.text == nullptr)
+			return 0;
+
+		const font* fnt			= tp.font;
+		const float pixel_scale = fnt->_scale;
+
+		float total_x = 0.0f;
+
+		const float used_scale = tp.scale;
+#ifdef VEKT_STRING_CSTR
+		const char* str = tp.text;
+#else
+		const char* str = tp.text.c_str();
+#endif
+		const float	 spacing = static_cast<float>(tp.spacing) * used_scale;
+		const float	 scale	 = pixel_scale * used_scale;
+		unsigned int p		 = 0;
+
+		for (size_t i = 0; str[i]; ++i)
+		{
+			const uint8_t c0 = static_cast<uint8_t>(str[i]);
+			const glyph&  g0 = fnt->glyph_info[c0];
+
+			if (total_x > x_diff)
+				return static_cast<unsigned int>(i);
+
+			total_x += g0.advance_x * scale;
+
+			if (str[i + 1])
+			{
+				const uint8_t c1 = static_cast<uint8_t>(str[i + 1]);
+				total_x += g0.kern_advance[c1] * scale;
+			}
+
+			total_x += spacing;
+			p++;
+		}
+
+		return p;
+	}
+
+	float builder::widget_get_character_offset(id widget, unsigned int index)
+	{
+		text_props& tp = widget_get_text(widget);
+		if (tp.font == nullptr)
+			return 0;
+
+		if (tp.text == nullptr)
+			return 0;
+
+		const font* fnt			= tp.font;
+		const float pixel_scale = fnt->_scale;
+
+		float total_x = 0.0f;
+
+		const float used_scale = tp.scale;
+#ifdef VEKT_STRING_CSTR
+		const char* str = tp.text;
+#else
+		const char* str = tp.text.c_str();
+#endif
+		const float spacing = static_cast<float>(tp.spacing) * used_scale;
+		const float scale	= pixel_scale * used_scale;
+		float		f		= 0.0f;
+
+		for (size_t i = 0; str[i]; ++i)
+		{
+			const uint8_t c0 = static_cast<uint8_t>(str[i]);
+			const glyph&  g0 = fnt->glyph_info[c0];
+
+			if (i == index)
+				return f;
+			total_x += g0.advance_x * scale;
+
+			if (str[i + 1])
+			{
+				const uint8_t c1 = static_cast<uint8_t>(str[i + 1]);
+				total_x += g0.kern_advance[c1] * scale;
+			}
+
+			total_x += spacing;
+			f = total_x;
+		}
+
+		return f;
 	}
 
 	VEKT_VEC2 builder::get_text_size(const text_props& text, const VEKT_VEC2& parent_size)

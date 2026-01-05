@@ -60,25 +60,11 @@ namespace SFG
 		static uint16 get_character_mask_from_key(uint32 key, char ch);
 		static string select_folder(const char* title);
 		static string select_file(const char* title, const char* extension);
-
-		/*
-		static void send_pipe_data(void* data, size_t data_size);
-
-		static inline void set_pipe_handle(void* hnd)
-		{
-			s_pipe_handle = hnd;
-		}
-
-		static inline void* get_pipe_handle()
-		{
-			return s_pipe_handle;
-		}
-		*/
+		static string get_clipboard();
+		static void	  push_clipboard(const char* cp);
 
 	private:
-		/*
-				static void* s_pipe_handle;
-		*/
+	
 	};
 
 } // namespace SFG

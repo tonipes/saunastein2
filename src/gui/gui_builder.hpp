@@ -41,17 +41,40 @@ namespace SFG
 	class font;
 	class text_allocator;
 
+	enum class gui_text_field_type : unsigned char
+	{
+		text_only,
+		number,
+	};
+
 	struct gui_text_field
 	{
-		const char*	 buffer		 = nullptr;
-		vekt::id	 widget		 = 0;
-		vekt::id	 text_widget = 0;
-		unsigned int caret_pos;
+		const char*			buffer			= nullptr;
+		vekt::id			widget			= 0;
+		vekt::id			text_widget		= 0;
+		unsigned int		caret_pos		= 0;
+		unsigned int		buffer_size		= 0;
+		unsigned int		caret_end_pos	= 0;
+		unsigned int		buffer_capacity = 0;
+		unsigned int		decimals		= 0;
+		float				value			= 0.0f;
+		float				value_increment = 0.0f;
+		gui_text_field_type type			= gui_text_field_type::text_only;
+		unsigned char		is_editing		= 0;
+
+		unsigned int selection_min() const;
+		unsigned int selection_max() const;
+		void		 collapse_caret_to(unsigned int p);
+		void		 delete_range(unsigned int from, unsigned int to);
+		bool		 delete_selection_if_any();
+		void		 insert_string_at_caret(const char* s, unsigned int len);
+		void		 insert_char_at_caret(char c);
 	};
 
 	class gui_builder
 	{
 	public:
+		typedef void (*input_field_fn)(vekt::id id, const char* txt, float value);
 		struct gui_builder_style
 		{
 			static float DPI_SCALE;
@@ -64,11 +87,14 @@ namespace SFG
 			vector4 col_accent;
 			vector4 col_accent_second;
 			vector4 col_accent_second_dim;
+			vector4 col_highlight;
+			vector4 col_highlight_transparent;
 
 			vector4		col_scroll_bar;
 			vector4		col_scroll_bar_bg;
 			vector4		col_title;
 			vector4		col_text;
+			vector4		col_text_dim;
 			vector4		col_frame_bg;
 			vector4		col_area_bg;
 			vector4		col_root;
@@ -82,6 +108,7 @@ namespace SFG
 			float root_rounding;
 
 			float outer_margin;
+			float root_spacing;
 			float item_spacing;
 			float row_spacing;
 			float title_line_width;
@@ -101,9 +128,10 @@ namespace SFG
 
 		struct gui_builder_callbacks
 		{
-			void*			 user_data = nullptr;
-			vekt::mouse_func on_mouse  = nullptr;
-			vekt::key_func	 on_key	   = nullptr;
+			void*			 user_data				= nullptr;
+			vekt::mouse_func on_mouse				= nullptr;
+			vekt::key_func	 on_key					= nullptr;
+			input_field_fn	 on_input_field_changed = nullptr;
 		};
 
 		struct id_pair
@@ -139,7 +167,7 @@ namespace SFG
 		vekt::id add_property_single_hyperlink(const char* label);
 
 		// property row variants for fields
-		id_pair	 add_property_row_text_field(const char* label, const char* text);
+		id_pair	 add_property_row_text_field(const char* label, const char* text, unsigned int max_text_size, gui_text_field_type type = gui_text_field_type::text_only, unsigned int decimals = 0, float increment = 0.0f);
 		vekt::id add_property_row();
 		vekt::id add_row_cell(float size);
 		vekt::id add_row_cell_seperator();
@@ -152,10 +180,20 @@ namespace SFG
 		vekt::id add_label(const char* label);
 		vekt::id add_hyperlink(const char* label);
 		id_pair	 add_button(const char* title);
-		void	 set_fill_x(vekt::id id);
+		id_pair	 add_text_field(const char* text, unsigned int max_size, gui_text_field_type type = gui_text_field_type::text_only, unsigned int decimals = 0, float increment = 0.0f);
 
-		// raw field widgets
-		id_pair add_text_field(const char* text, unsigned int max_size);
+		// -----------------------------------------------------------------------------
+		// util
+		// -----------------------------------------------------------------------------
+
+		vekt::id set_fill_x(vekt::id id);
+		void	 set_text_field_text(gui_text_field& tf, const char* text);
+		void	 set_text_field_text(vekt::id id, const char* text);
+		void	 text_field_edit_complete(gui_text_field& tf);
+
+		// -----------------------------------------------------------------------------
+		// accessors
+		// -----------------------------------------------------------------------------
 
 		inline void push_title_font(vekt::font* f)
 		{
@@ -174,6 +212,10 @@ namespace SFG
 
 		static vekt::input_event_result on_text_field_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase);
 		static vekt::input_event_result on_text_field_key(vekt::builder* b, vekt::id widget, const vekt::key_event& ev);
+		static void						on_text_field_draw(vekt::builder* b, vekt::id widget);
+		static void						on_text_field_drag(vekt::builder* b, vekt::id widget, float mp_x, float mp_y, float delta_x, float delta_y, unsigned int button);
+		static void						on_text_field_focus_lost(vekt::builder* b, vekt::id widget);
+		static void						on_text_field_focus_gained(vekt::builder* b, vekt::id widget, bool from_nav);
 
 		vekt::id new_widget(bool push_to_stack = false);
 		vekt::id pop_stack();

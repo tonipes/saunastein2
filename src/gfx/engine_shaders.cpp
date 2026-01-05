@@ -85,7 +85,7 @@ namespace SFG
 
 #ifdef SFG_TOOLMODE
 
-			if (!raw.load_from_cache(shader_cache.c_str(), p.c_str(), ".stkcache"))
+			if (!raw.load_from_cache(shader_cache.c_str(), SFG_ROOT_DIRECTORY, ".stkcache"))
 			{
 				if (!raw.load_from_file(p.c_str(), SFG_ROOT_DIRECTORY))
 				{
@@ -144,10 +144,12 @@ namespace SFG
 		{
 			return;
 		}
-
+		const string shader_cache = editor_settings::get()._resource_cache;
 		es->_app->join_render();
 		entry.direct.destroy();
 		entry.direct.create_from_loader(raw, entry.layout);
+		raw.save_to_cache(shader_cache.c_str(), SFG_ROOT_DIRECTORY, ".stkcache");
+
 		raw.destroy();
 		for (auto cb : es->_reload_callbacks)
 			cb(type, entry.direct);

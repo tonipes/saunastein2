@@ -45,6 +45,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "gui/vekt.hpp"
 
+#include <tracy/Tracy.hpp>
 namespace SFG
 {
 	void editor_renderer::init(window& window, texture_queue* texture_queue, size_t vtx_sz, size_t idx_sz)
@@ -154,6 +155,8 @@ namespace SFG
 
 	void editor_renderer::prepare(proxy_manager& pm, gfx_id cmd_buffer, uint8 frame_index)
 	{
+		ZoneScoped;
+
 		gfx_backend* backend = gfx_backend::get();
 
 		per_frame_data& pfd = _pfd[frame_index];
@@ -242,6 +245,8 @@ namespace SFG
 
 	void editor_renderer::render(const render_params& p)
 	{
+		ZoneScoped;
+
 		gfx_backend*	backend = gfx_backend::get();
 		per_frame_data& pfd		= _pfd[p.frame_index];
 
@@ -408,6 +413,8 @@ namespace SFG
 
 	void editor_renderer::draw_vekt(uint8 frame_index, const vekt::draw_buffer& buffer)
 	{
+		ZoneScoped;
+
 		const vekt::id		  font			   = buffer.font_id;
 		const vekt::id		  atlas			   = buffer.atlas_id;
 		const vekt::font_type font_type		   = buffer.font_type;

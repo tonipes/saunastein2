@@ -153,6 +153,11 @@ namespace SFG
 			return _text_allocator;
 		}
 
+		inline editor_panel_entities& get_panel_entities()
+		{
+			return _panel_entities;
+		}
+
 	private:
 		app&		 _app;
 		world_handle _camera_entity	  = {};
@@ -183,6 +188,7 @@ namespace SFG
 		vekt::font_manager* _font_manager	 = nullptr;
 		vekt::font*			_font_main		 = nullptr;
 		vekt::font*			_font_title		 = nullptr;
+		vekt::font*			_font_icons		 = nullptr;
 		world_handle		_selected_entity = {};
 		atomic<uint32>		_world_rt_gpu_index{0};
 

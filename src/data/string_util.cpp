@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -119,7 +119,7 @@ namespace SFG
 		str = result;
 	}
 
-	float string_util::to_float(const string& str, uint32& outDecimals, char seperator)
+	bool string_util::to_float(const string& str, float& out_f, uint32& outDecimals, char seperator)
 	{
 		try
 		{
@@ -127,38 +127,38 @@ namespace SFG
 			if (pos != std::string::npos)
 				outDecimals = static_cast<uint32>(str.length() - pos - 1);
 
-			return std::stof(str);
+			out_f = std::stof(str);
+			return true;
 		}
 		catch (const std::exception& e)
 		{
-			// SFG_ERR("Exception: to_float() string: {0} - decimals: {1} - {2}", str, outDecimals, e.what());
-			return 0.0f;
+			return false;
 		}
 	}
 
-	int string_util::to_int(const string& str)
+	bool string_util::to_int(const string& str, int& out_i)
 	{
 		try
 		{
-			return std::stoi(str);
+			out_i = std::stoi(str);
+			return true;
 		}
 		catch (const std::exception& e)
 		{
-			// SFG_ERR("Exception: to_int() string: {0} - {1}", str, e.what());
-			return 0;
+			return false;
 		}
 	}
 
-	uint64 string_util::to_big_int(const string& str)
+	bool string_util::to_big_uint(const string& str, uint64& out_i)
 	{
 		try
 		{
-			return static_cast<uint64>(std::stoull(str));
+			out_i = static_cast<uint64>(std::stoull(str));
+			return true;
 		}
 		catch (const std::exception& e)
 		{
-			// SFG_ERR("Exception: to_int() string: {0} - {1}", str, e.what());
-			return 0;
+			return false;
 		}
 	}
 
@@ -182,10 +182,10 @@ namespace SFG
 		return result;
 	}
 
-	void string_util::append_float(float value, char* target_buffer, uint32 max_chars, uint32 decimals, bool null_term)
+	int string_util::append_float(float value, char* target_buffer, uint32 max_chars, uint32 decimals, bool null_term)
 	{
 		SFG_ASSERT(decimals < max_chars);
-		SFG_ASSERT(max_chars < 16);
+		SFG_ASSERT(max_chars <= 16);
 		int	 written = 0;
 		char float_buf[16];
 
@@ -200,6 +200,7 @@ namespace SFG
 
 		if (null_term)
 			target_buffer[written] = '\0';
+		return written;
 	}
 
 	void string_util::split(vector<string>& out, const string& str, const string& split)

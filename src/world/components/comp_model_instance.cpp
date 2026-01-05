@@ -278,7 +278,6 @@ namespace SFG
 
 			const resource_handle& mesh_handle = ptr_meshes_handle[node.get_mesh_index()];
 			const mesh&			   m		   = res.get_resource<mesh>(mesh_handle);
-			SFG_WARN("mesh instance adding now {0}", entity.index);
 			const world_handle	   comp_handle = cm.add_component<comp_mesh_instance>(entity);
 			comp_mesh_instance&	   mi		   = cm.get_component<comp_mesh_instance>(comp_handle);
 			mi.set_mesh(w, model_handle, mesh_handle, skin_handle, skin_index != -1 ? created_node_entities.data() : nullptr, skin_index != -1 ? static_cast<uint32>(created_node_entities.size()) : 0);

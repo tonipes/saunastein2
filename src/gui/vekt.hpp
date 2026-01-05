@@ -783,6 +783,7 @@ namespace vekt
 		gfx_custom_pass		 = 1 << 10,
 		gfx_has_hover_color	 = 1 << 11,
 		gfx_has_press_color	 = 1 << 12,
+		gfx_focusable		 = 1 << 13,
 	};
 
 	struct stroke_props
@@ -806,6 +807,7 @@ namespace vekt
 	{
 		VEKT_VEC4 hovered_color = VEKT_VEC4(1, 1, 1, 1);
 		VEKT_VEC4 pressed_color = VEKT_VEC4(1, 1, 1, 1);
+		VEKT_VEC4 focus_color	= VEKT_VEC4(1, 1, 1, 1);
 	};
 
 	struct rounding_props
@@ -949,11 +951,14 @@ namespace vekt
 
 	struct hover_callback
 	{
-		widget_func	  on_hover_begin = nullptr;
-		widget_func	  on_hover_end	 = nullptr;
-		unsigned char is_hovered	 = 0;
-		unsigned char receive_mouse	 = 0;
-		unsigned char is_pressing	 = 0;
+		widget_func		on_hover_begin	= nullptr;
+		widget_func		on_hover_end	= nullptr;
+		widget_func		on_focus_lost	= nullptr;
+		focus_gain_func on_focus_gained = nullptr;
+		unsigned char	is_hovered		= 0;
+		unsigned char	receive_mouse	= 0;
+		unsigned char	is_pressing		= 0;
+		unsigned char	is_focused		= 0;
 	};
 
 	struct mouse_callback
@@ -1097,6 +1102,7 @@ namespace vekt
 			const VEKT_VEC2&  max;
 			VEKT_VEC4		  color_start;
 			VEKT_VEC4		  color_end;
+			VEKT_VEC4		  stroke_col;
 			direction		  color_direction;
 			id				  widget_id = 0;
 			bool			  multi_color;
@@ -1145,10 +1151,13 @@ namespace vekt
 		second_color_props& widget_get_second_color(id widget);
 		input_color_props&	widget_get_input_colors(id widget);
 		text_props&			widget_get_text(id widget);
+		unsigned int		widget_get_character_index(id widget, float x_diff);
+		float				widget_get_character_offset(id widget, unsigned int index);
 		mouse_callback&		widget_get_mouse_callbacks(id widget);
 		key_callback&		widget_get_key_callbacks(id widget);
 		hover_callback&		widget_get_hover_callbacks(id widget);
 		widget_user_data&	widget_get_user_data(id widget);
+		custom_passes&		widget_get_custom_pass(id widget);
 		id					widget_get_child(id widget, unsigned int index);
 		void				widget_add_child(id widget_id, id child_id);
 		void				widget_remove_child(id widget_id, id child_id);
@@ -1159,6 +1168,8 @@ namespace vekt
 		input_event_result	on_mouse_event(const mouse_event& ev);
 		input_event_result	on_mouse_wheel_event(const mouse_wheel_event& ev);
 		input_event_result	on_key_event(const key_event& ev);
+		void				next_focus();
+		void				prev_focus();
 		void				add_line(const line_props& props);
 		void				add_line_aa(const line_aa_props& props);
 		void				add_circle(const circle_props& props);
@@ -1209,8 +1220,8 @@ namespace vekt
 		}
 
 	private:
-		void set_focus(id widget);
-		void set_pressing(id widget);
+		void set_focus(id widget, bool from_nav);
+		void set_pressing(id widget, unsigned int button);
 
 		unsigned int count_total_children(id widget_id) const;
 		void		 populate_hierarchy(id current_widget_id, unsigned int depth);
@@ -1269,6 +1280,7 @@ namespace vekt
 		vector<id>					   _depth_first_mouse_widgets;
 		vector<id>					   _depth_first_fill_parents;
 		vector<id>					   _depth_first_scrolls;
+		vector<id>					   _depth_first_focusables;
 		vector<id>					   _reverse_depth_first_widgets;
 		vector<depth_first_child_info> _depth_first_child_info;
 		vector<text_cache>			   _text_cache = {};
@@ -1323,6 +1335,7 @@ namespace vekt
 		id			 _root					  = NULL_WIDGET_ID;
 		id			 _pressed_widget		  = NULL_WIDGET_ID;
 		id			 _focused_widget		  = NULL_WIDGET_ID;
+		unsigned int _pressed_button		  = 0;
 	};
 
 	////////////////////////////////////////////////////////////////////////////////

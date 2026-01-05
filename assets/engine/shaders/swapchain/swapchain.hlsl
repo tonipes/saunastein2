@@ -75,9 +75,13 @@ float4 PSMain(VSOutput IN) : SV_TARGET
 	float4 color_world = txt_world.SampleLevel(sampler_base, IN.uv, 0);
 	float4 color_editor = txt_editor.SampleLevel(sampler_base, IN.uv, 0);
 
+	//if(IN.uv.y < 0.5)
+	//	return (color_debug_controller + color_world * (1.0f - color_debug_controller.w));
+//
+	//return color_world ;
+
 	if(IN.uv.y < 0.5)
 		return (color_debug_controller + color_world * (1.0f - color_debug_controller.w)) * (1.0 - color_editor.w) + color_editor;
-
 
 	return color_world * (1.0 - color_editor.w) + color_editor;
 

@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -36,7 +36,7 @@ namespace SFG
 	{
 	public:
 		static string		  remove_all_except_first(const string& str, const string& delimiter);
-		static void			  append_float(float value, char* target_bufffer, uint32 significant_digits, uint32 decimals, bool null_term);
+		static int			  append_float(float value, char* target_bufffer, uint32 max_chars, uint32 decimals, bool null_term);
 		static void			  replace_all(string& str, const string& to_replace, const string& replacement);
 		static void			  to_upper(string& str);
 		static void			  to_lower(string& str);
@@ -45,9 +45,9 @@ namespace SFG
 		static void			  split(vector<string>& out, const string& str, const string& split);
 		static char*		  wchar_to_char(const wchar_t* wch);
 		static const wchar_t* char_to_wchar(const char* ch);
-		static float		  to_float(const string& str, uint32& out_decimals, char seperator = '.');
-		static int			  to_int(const string& str);
-		static uint64		  to_big_int(const string& str);
+		static bool			  to_float(const string& str, float& out_f, uint32& out_decimals, char seperator = '.');
+		static bool			  to_int(const string& str, int& out_i);
+		static bool			  to_big_uint(const string& str, uint64& out_i);
 	};
 
 }

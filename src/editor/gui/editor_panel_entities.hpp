@@ -26,6 +26,14 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+#include "gui/gui_builder.hpp"
+#include "world/world_constants.hpp"
+#include "data/vector.hpp"
+
+namespace vekt
+{
+	class builder;
+};
 
 namespace SFG
 {
@@ -34,10 +42,51 @@ namespace SFG
 	class editor_panel_entities
 	{
 	public:
-		void init();
+		void init(vekt::builder* b);
 		void uninit();
 		void draw(world& w, const struct vector2ui16& window_size);
 
+		inline void set_tree_dirty()
+		{
+			_tree_dirty = true;
+		}
 	private:
+		void							rebuild_tree(class world& w);
+		void							build_entity_node(class world& w, world_handle e, unsigned int depth);
+		static vekt::input_event_result on_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase);
+
+	private:
+		struct entity_panel_meta
+		{
+			unsigned char collapsed = 0;
+		};
+
+		struct node_binding
+		{
+			vekt::id	 widget;
+			world_handle handle;
+		};
+
+	private:
+		vekt::builder* _builder		= nullptr;
+		gui_builder	   _gui_builder = {};
+		vekt::id	   _root		= 0;
+		vekt::id	   _entity_area = 0;
+
+		// Properties section labels (value cells)
+		vekt::id _prop_name	  = 0;
+		vekt::id _prop_handle = 0;
+		vekt::id _prop_pos	  = 0;
+		vekt::id _prop_rot	  = 0;
+		vekt::id _prop_scale  = 0;
+
+		vector<entity_panel_meta> _entity_meta	 = {};
+		vector<vekt::id>		  _node_widgets	 = {};
+		vector<node_binding>	  _node_bindings = {};
+
+		const char* _text_icon_dd			= nullptr;
+		const char* _text_icon_dd_collapsed = nullptr;
+
+		bool _tree_dirty = true;
 	};
 }

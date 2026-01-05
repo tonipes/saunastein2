@@ -60,6 +60,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "input/input_mappings.hpp"
 #include "math/math.hpp"
 #include <regex>
+#include <tracy/Tracy.hpp>
 
 namespace SFG
 {
@@ -114,7 +115,7 @@ namespace SFG
 			.index_buffer_sz			 = IDX_SZ,
 			.text_cache_vertex_buffer_sz = 1024 * 1024 * 2,
 			.text_cache_index_buffer_sz	 = 1024 * 1024 * 4,
-			.buffer_count				 = 12,
+			.buffer_count				 = 24,
 		});
 
 		// font
@@ -132,8 +133,10 @@ namespace SFG
 
 		const string default_font_str = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/VT323-Regular.ttf");
 		const string title_font_str	  = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/VT323-Regular.ttf");
+		const string icon_font_str	  = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/icons.ttf");
 		_font_main					  = _font_manager->load_font_from_file(default_font_str.c_str(), 14 * dpi_scale);
 		_font_title					  = _font_manager->load_font_from_file(title_font_str.c_str(), 18 * dpi_scale);
+		_font_icons					  = _font_manager->load_font_from_file(icon_font_str.c_str(), 14 * dpi_scale, 32, 128, vekt::font_type::sdf, 3, 128, 32);
 
 		// -----------------------------------------------------------------------------
 		// editor pipeline
@@ -155,6 +158,7 @@ namespace SFG
 
 		editor_theme::get().font_default = _font_main;
 		editor_theme::get().font_title	 = _font_title;
+		editor_theme::get().font_icons	 = _font_icons;
 
 		_camera_controller.init(_app.get_world(), _app.get_main_window());
 		_app.get_world().init();
@@ -186,7 +190,7 @@ namespace SFG
 
 		_gui_world_overlays.init(_builder);
 		_panel_controls.init(_builder);
-		_panel_entities.init();
+		_panel_entities.init(_builder);
 		_panel_properties.init();
 		_panel_world_view.init();
 		_panels_docking.init();
@@ -195,6 +199,7 @@ namespace SFG
 	void editor::uninit()
 	{
 		_panel_controls.uninit();
+		_panel_entities.uninit();
 		_panel_world_view.uninit();
 		_panels_docking.uninit();
 
@@ -206,6 +211,7 @@ namespace SFG
 
 		_font_manager->unload_font(_font_main);
 		_font_manager->unload_font(_font_title);
+		_font_manager->unload_font(_font_icons);
 		_font_manager->uninit();
 		delete _font_manager;
 		_font_manager = nullptr;
@@ -230,6 +236,7 @@ namespace SFG
 
 	void editor::tick()
 	{
+		ZoneScoped;
 		window&				  wnd	= _app.get_main_window();
 		const vector<string>& drops = wnd.get_dropped_files();
 		for (const string& str : drops)
@@ -255,6 +262,7 @@ namespace SFG
 		_bump_text_allocator.reset();
 
 		_panel_controls.draw(ws);
+		_panel_entities.draw(w, ws);
 		_builder->build_begin(vector2(ws.x, ws.y));
 		_builder->build_end();
 
@@ -264,7 +272,9 @@ namespace SFG
 
 	void editor::render(const render_params& p)
 	{
-		_world_rt_gpu_index.store(p.world_rt_index, std::memory_order_release);
+		ZoneScoped;
+
+		// _world_rt_gpu_index.store(p.world_rt_index, std::memory_order_release);
 		_renderer.prepare(p.pm, p.cmd_buffer, p.frame_index);
 		_renderer.render({
 			.cmd_buffer	   = p.cmd_buffer,
@@ -310,11 +320,21 @@ namespace SFG
 		}
 		else if (ev.type == window_event_type::key)
 		{
-			_builder->on_key_event({
-				.type	   = static_cast<vekt::input_event_type>(ev.sub_type),
-				.key	   = ev.button,
-				.scan_code = ev.value.x,
-			});
+			if (ev.button == input_code::key_tab && ev.sub_type == window_event_sub_type::press)
+			{
+				if (window::is_key_down(input_code::key_lshift))
+					_builder->prev_focus();
+				else
+					_builder->next_focus();
+			}
+			else
+			{
+				_builder->on_key_event({
+					.type	   = static_cast<vekt::input_event_type>(ev.sub_type),
+					.key	   = ev.button,
+					.scan_code = ev.value.x,
+				});
+			}
 		}
 
 		return false;
@@ -349,6 +369,7 @@ namespace SFG
 		if (ext.compare("stkworld") == 0)
 		{
 			load_level(relative.c_str());
+			_panel_entities.set_tree_dirty();
 			return;
 		}
 
@@ -375,6 +396,9 @@ namespace SFG
 			const world_handle	 inst	= cm.add_component<comp_model_instance>(entity);
 			comp_model_instance& mi		= cm.get_component<comp_model_instance>(inst);
 			mi.instantiate_model_to_world(w, handle);
+			set_selected_entity(entity);
+			_panel_entities.set_tree_dirty();
+
 			return;
 		}
 

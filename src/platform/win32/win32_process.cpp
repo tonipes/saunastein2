@@ -178,6 +178,89 @@ namespace SFG
 		return result;
 	}
 
+	string process::get_clipboard()
+	{
+		if (!OpenClipboard(nullptr))
+			return string();
+
+		HANDLE hData = GetClipboardData(CF_UNICODETEXT);
+		if (!hData)
+		{
+			CloseClipboard();
+			return string();
+		}
+
+		const wchar_t* w = static_cast<const wchar_t*>(GlobalLock(hData));
+		if (!w)
+		{
+			CloseClipboard();
+			return string();
+		}
+
+		const int needed = WideCharToMultiByte(CP_UTF8, 0, w, -1, nullptr, 0, nullptr, nullptr);
+		if (needed <= 0)
+		{
+			GlobalUnlock(hData);
+			CloseClipboard();
+			return string();
+		}
+
+		std::string out;
+		out.resize(static_cast<size_t>(needed - 1));
+		WideCharToMultiByte(CP_UTF8, 0, w, -1, out.data(), needed, nullptr, nullptr);
+
+		GlobalUnlock(hData);
+		CloseClipboard();
+
+		return string(out.c_str());
+	}
+
+	void process::push_clipboard(const char* cp)
+	{
+		if (!cp)
+			cp = "";
+
+		const int wNeeded = MultiByteToWideChar(CP_UTF8, 0, cp, -1, nullptr, 0);
+		if (wNeeded <= 0)
+			return;
+
+		HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, static_cast<SIZE_T>(wNeeded) * sizeof(wchar_t));
+		if (!hMem)
+			return;
+
+		wchar_t* wBuf = static_cast<wchar_t*>(GlobalLock(hMem));
+		if (!wBuf)
+		{
+			GlobalFree(hMem);
+			return;
+		}
+
+		MultiByteToWideChar(CP_UTF8, 0, cp, -1, wBuf, wNeeded);
+		GlobalUnlock(hMem);
+
+		if (!OpenClipboard(nullptr))
+		{
+			GlobalFree(hMem);
+			return;
+		}
+
+		if (!EmptyClipboard())
+		{
+			CloseClipboard();
+			GlobalFree(hMem);
+			return;
+		}
+
+		if (!SetClipboardData(CF_UNICODETEXT, hMem))
+		{
+			CloseClipboard();
+			GlobalFree(hMem);
+			return;
+		}
+
+		CloseClipboard();
+	}
+
 	void process::init()
 	{
 		SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
