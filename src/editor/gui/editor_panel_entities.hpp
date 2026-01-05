@@ -26,7 +26,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include "gui/gui_builder.hpp"
+#include "editor/gui/editor_gui_builder.hpp"
 #include "world/world_constants.hpp"
 #include "data/vector.hpp"
 
@@ -45,6 +45,7 @@ namespace SFG
 		void init(vekt::builder* b);
 		void uninit();
 		void draw(world& w, const struct vector2ui16& window_size);
+		void set_selected(world_handle h);
 
 		inline void set_tree_dirty()
 		{
@@ -52,13 +53,13 @@ namespace SFG
 		}
 
 	private:
-		void							rebuild_tree(class world& w);
-		void							build_entity_node(class world& w, world_handle e, unsigned int depth);
+		static void						on_input_field_changed(vekt::builder* b, vekt::id id, const char* txt, float value);
 		static vekt::input_event_result on_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase);
 		static void						on_drag(vekt::builder* b, vekt::id widget, float mp_x, float mp_y, float delta_x, float delta_y, unsigned int button);
-		void							open_context_menu(float x, float y, world_handle target);
-		void							close_context_menu();
-		bool							is_ancestor_of(world_handle ancestor, world_handle node);
+
+		void rebuild_tree(class world& w);
+		void build_entity_node(class world& w, world_handle e, unsigned int depth);
+		bool is_ancestor_of(world_handle ancestor, world_handle node);
 
 	private:
 		struct entity_panel_meta
@@ -78,11 +79,21 @@ namespace SFG
 		vekt::id	   _root		= 0;
 		vekt::id	   _entity_area = 0;
 
-		vekt::id _prop_name	  = 0;
-		vekt::id _prop_handle = 0;
-		vekt::id _prop_pos	  = 0;
-		vekt::id _prop_rot	  = 0;
-		vekt::id _prop_scale  = 0;
+		vekt::id _prop_name		   = 0;
+		vekt::id _prop_handle	   = 0;
+		vekt::id _ctx_new_entity   = 0;
+		vekt::id _ctx_add_child	   = 0;
+		vekt::id _ctx_duplicate	   = 0;
+		vekt::id _ctx_delete	   = 0;
+		vekt::id _selected_pos_x   = 0;
+		vekt::id _selected_pos_y   = 0;
+		vekt::id _selected_pos_z   = 0;
+		vekt::id _selected_rot_x   = 0;
+		vekt::id _selected_rot_y   = 0;
+		vekt::id _selected_rot_z   = 0;
+		vekt::id _selected_scale_x = 0;
+		vekt::id _selected_scale_y = 0;
+		vekt::id _selected_scale_z = 0;
 
 		vector<entity_panel_meta> _entity_meta	 = {};
 		vector<vekt::id>		  _node_widgets	 = {};
@@ -90,24 +101,10 @@ namespace SFG
 
 		const char* _text_icon_dd			= nullptr;
 		const char* _text_icon_dd_collapsed = nullptr;
+		bool		_tree_dirty				= true;
 
-		bool _tree_dirty = true;
-
-		// Drag & Drop
-		bool		 _is_dragging = false;
-		world_handle _drag_source = {};
-
-		// Context Menu
-		bool		 _menu_visible = false;
-		vekt::id	 _menu_root	   = 0;
-		vekt::id	 _menu_scrim   = 0;
-		world_handle _menu_target  = {};
-		struct menu_item
-		{
-			const char* label  = nullptr;
-			int			action = 0; // 0=add,1=remove
-			vekt::id	widget = 0;
-		};
-		vector<menu_item> _menu_items = {};
+		bool		 _is_dragging	  = false;
+		world_handle _drag_source	  = {};
+		world_handle _selected_entity = {};
 	};
 }

@@ -10,6 +10,7 @@ See root license for details.
 #include "world/world_constants.hpp"
 #include "math/vector2ui16.hpp"
 #include "gui/vekt_defines.hpp"
+#include "platform/window_common.hpp"
 
 namespace vekt
 {
@@ -42,6 +43,7 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 
 		void set_entities_tree_dirty();
+		void on_mouse_event(const window_event& ev);
 
 		// -----------------------------------------------------------------------------
 		// gui
@@ -55,15 +57,10 @@ namespace SFG
 		// accessors
 		// -----------------------------------------------------------------------------
 
-		inline void set_selected_entity(world_handle e)
+		inline editor_panel_entities* get_entities() const
 		{
-			_selected_entity = e;
+			return _panel_entities;
 		}
-		inline world_handle get_selected_entity() const
-		{
-			return _selected_entity;
-		}
-
 	private:
 		static void on_context_item_hover_begin(vekt::builder* b, vekt::id widget);
 		static void on_context_item_hover_end(vekt::builder* b, vekt::id widget);
@@ -76,7 +73,9 @@ namespace SFG
 		editor_gui_world_overlays* _gui_world_overlays = nullptr;
 		editor_panels_docking*	   _panels_docking	   = nullptr;
 		editor_panels_world_view*  _panel_world_view   = nullptr;
-		world_handle			   _selected_entity	   = {};
-		vekt::id				   _ctx_root		   = 0;
+		uint64					   _ctx_frame		   = 0;
+
+		vekt::id	 _ctx_root		  = NULL_WIDGET_ID;
+		vekt::id	 _ctx_active	  = NULL_WIDGET_ID;
 	};
 }

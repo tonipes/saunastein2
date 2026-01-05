@@ -38,7 +38,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "app/app.hpp"
 
 #include "gui/vekt.hpp"
-#include "gui/gui_builder.hpp"
 
 namespace SFG
 {

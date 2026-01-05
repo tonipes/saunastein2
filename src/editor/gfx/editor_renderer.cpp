@@ -140,7 +140,6 @@ namespace SFG
 
 		_published_snapshot.store(w, std::memory_order_release);
 
-		// 3) pick next writer slot that is not currently being read
 		const uint32 in_use = _reader_slot.load(std::memory_order_acquire);
 
 		uint32 next = (w + 1) % SNAPSHOTS_SIZE;
@@ -177,7 +176,6 @@ namespace SFG
 		// flush commands and draw gui here.
 		// -----------------------------------------------------------------------------
 
-		// consume the latest published snapshot
 		uint32 idx = _published_snapshot.load(std::memory_order_acquire);
 		if (idx != UINT32_MAX)
 			_current_read_slot = idx;
@@ -186,15 +184,12 @@ namespace SFG
 		{
 			const uint32 r = _current_read_slot;
 
-			// Claim this slot as used so writer won't pick it
 			_reader_slot.store(r, std::memory_order_release);
 
-			// Consume it
 			const vekt::vector<vekt::draw_buffer>& draw_buffers = _snapshots[r].draw_buffers;
 			for (const vekt::draw_buffer& db : draw_buffers)
 				draw_vekt(frame_index, db);
 
-			// Release claim
 			_reader_slot.store(UINT32_MAX, std::memory_order_release);
 		}
 

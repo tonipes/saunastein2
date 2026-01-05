@@ -24,10 +24,9 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISE
 OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "gui_builder.hpp "
+#include "editor_gui_builder.hpp "
 #include "io/log.hpp"
 #include "io/assert.hpp"
-#include "vekt.hpp"
 #include "data/string_util.hpp"
 #include "data/vector_util.hpp"
 #include "math/color.hpp"
@@ -36,7 +35,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "memory/memory.hpp"
 #include "common/system_info.hpp"
 #include "input/input_mappings.hpp"
-
+#include "gui/vekt.hpp"
 #include "editor/editor_theme.hpp"
 
 #include "platform/window.hpp"
@@ -163,9 +162,6 @@ namespace SFG
 
 	vekt::input_event_result gui_builder::on_text_field_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase)
 	{
-		const hover_callback& hb = b->widget_get_hover_callbacks(widget);
-		if (!hb.is_hovered)
-			return vekt::input_event_result::not_handled;
 
 		if (ev.type == vekt::input_event_type::released)
 			return vekt::input_event_result::not_handled;
@@ -481,7 +477,7 @@ namespace SFG
 			}
 
 			if (gb->callbacks.on_input_field_changed)
-				gb->callbacks.on_input_field_changed(widget, tf.buffer, tf.value);
+				gb->callbacks.on_input_field_changed(gb->_builder, widget, tf.buffer, tf.value);
 			b->widget_update_text(tf.text_widget);
 		}
 
@@ -771,6 +767,32 @@ namespace SFG
 		pop_stack();
 		pop_stack();
 		return field;
+	}
+
+	gui_builder::id_trip gui_builder::add_property_row_vector3(const char* label, const char* text, unsigned int max_text_size, unsigned int decimals, float increment)
+	{
+
+		const id row = add_property_row();
+
+		add_row_cell(editor_theme::get().property_cell_div);
+		add_label(label);
+		pop_stack();
+
+		add_row_cell_seperator();
+
+		add_row_cell(0.0f);
+		const id_pair x = add_text_field(text, max_text_size, gui_text_field_type::number, decimals, increment);
+		pop_stack();
+
+		add_row_cell(0.0f);
+		const id_pair y = add_text_field(text, max_text_size, gui_text_field_type::number, decimals, increment);
+		pop_stack();
+
+		add_row_cell(0.0f);
+		const id_pair z = add_text_field(text, max_text_size, gui_text_field_type::number, decimals, increment);
+		pop_stack();
+		pop_stack();
+		return {x.first, y.first, z.first};
 	}
 
 	// -----------------------------------------------------------------------------
@@ -1070,6 +1092,13 @@ namespace SFG
 		set_text_field_text(*it, text);
 	}
 
+	void gui_builder::set_text_field_text(vekt::id id, float f)
+	{
+		auto it = vector_util::find_if(_text_fields, [id](const gui_text_field& tf) -> bool { return tf.widget == id; });
+		SFG_ASSERT(it != _text_fields.end());
+
+	}
+
 	void gui_builder::text_field_edit_complete(gui_text_field& tf)
 	{
 		if (tf.type == gui_text_field_type::number)
@@ -1153,14 +1182,15 @@ namespace SFG
 				.buffer			 = _txt_alloc->allocate(max_size),
 				.widget			 = w,
 				.text_widget	 = txt,
-				.buffer_size	 = static_cast<uint32>(strlen(text)),
+				.buffer_size	 = text == nullptr ? 0 : static_cast<uint32>(strlen(text)),
 				.buffer_capacity = max_size,
 				.decimals		 = decimals,
 				.value_increment = increment,
 				.type			 = type,
 			};
 
-			SFG_MEMCPY((void*)tf.buffer, (void*)text, strlen(text));
+			if (text != nullptr)
+				SFG_MEMCPY((void*)tf.buffer, (void*)text, strlen(text));
 			_text_fields.push_back(tf);
 
 			text_props& tp = _builder->widget_get_text(txt);

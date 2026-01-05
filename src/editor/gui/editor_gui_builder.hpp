@@ -74,7 +74,7 @@ namespace SFG
 	class gui_builder
 	{
 	public:
-		typedef void (*input_field_fn)(vekt::id id, const char* txt, float value);
+		typedef void (*input_field_fn)(vekt::builder* b, vekt::id id, const char* txt, float value);
 
 		struct gui_builder_callbacks
 		{
@@ -88,6 +88,13 @@ namespace SFG
 		{
 			vekt::id first;
 			vekt::id second;
+		};
+
+		struct id_trip
+		{
+			vekt::id first;
+			vekt::id second;
+			vekt::id third;
 		};
 
 		gui_builder_callbacks callbacks = {};
@@ -121,6 +128,7 @@ namespace SFG
 
 		// property row variants for fields
 		id_pair	 add_property_row_text_field(const char* label, const char* text, unsigned int max_text_size, gui_text_field_type type = gui_text_field_type::text_only, unsigned int decimals = 0, float increment = 0.0f);
+		id_trip	 add_property_row_vector3(const char* label, const char* text, unsigned int max_text_size, unsigned int decimals, float increment);
 		vekt::id add_property_row();
 		vekt::id add_row_cell(float size);
 		vekt::id add_row_cell_seperator();

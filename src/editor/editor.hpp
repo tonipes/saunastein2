@@ -31,7 +31,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "editor_camera.hpp"
 #include "editor/gfx/editor_renderer.hpp"
-#include "data/atomic.hpp"
 #include "memory/bump_text_allocator.hpp"
 #include "memory/text_allocator.hpp"
 
@@ -124,11 +123,6 @@ namespace SFG
 			return _renderer.get_output_gpu_index(frame);
 		}
 
-		inline uint32 get_world_rt_gpu_index() const
-		{
-			return _world_rt_gpu_index.load(std::memory_order_acquire);
-		}
-
 		inline app& get_app()
 		{
 			return _app;
@@ -169,7 +163,6 @@ namespace SFG
 		vekt::font*			_font_main	  = nullptr;
 		vekt::font*			_font_title	  = nullptr;
 		vekt::font*			_font_icons	  = nullptr;
-		atomic<uint32>		_world_rt_gpu_index{0};
 
 		static editor* s_instance;
 	};

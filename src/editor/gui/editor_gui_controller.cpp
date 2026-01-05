@@ -16,6 +16,7 @@ See root license for details.
 #include "editor/editor.hpp"
 #include "editor/editor_theme.hpp"
 
+#include "common/system_info.hpp"
 #include "app/app.hpp"
 
 #include "gui/vekt.hpp"
@@ -161,7 +162,9 @@ namespace SFG
 
 	void editor_gui_controller::end_context_menu()
 	{
-		_ctx_root = 0;
+		_ctx_active = _ctx_root;
+		_ctx_root	= NULL_WIDGET_ID;
+		_ctx_frame	= frame_info::get_frame();
 	}
 
 	void editor_gui_controller::on_context_item_hover_begin(vekt::builder* b, vekt::id widget)
@@ -177,5 +180,19 @@ namespace SFG
 	{
 		if (_panel_entities)
 			_panel_entities->set_tree_dirty();
+	}
+	void editor_gui_controller::on_mouse_event(const window_event& ev)
+	{
+		if (_ctx_active == NULL_WIDGET_ID)
+			return;
+
+		if (ev.sub_type != window_event_sub_type::press)
+			return;
+
+		if (frame_info::get_frame() == _ctx_frame)
+			return;
+
+		_builder->deallocate(_ctx_active);
+		_ctx_active = _ctx_root = NULL_WIDGET_ID;
 	}
 }

@@ -26,7 +26,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include "gui/gui_builder.hpp"
+#include "editor/gui/editor_gui_builder.hpp"
 #include "memory/text_allocator.hpp"
 
 namespace vekt

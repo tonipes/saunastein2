@@ -85,10 +85,10 @@ namespace SFG
 		}
 
 	private:
-		T _data[N];
-		U _free_list[N];
-		U _head		 = 0;
-		U _free_size = 0;
+		T _data[N]		= {};
+		U _free_list[N] = {};
+		U _head			= 0;
+		U _free_size	= 0;
 	};
 
 }

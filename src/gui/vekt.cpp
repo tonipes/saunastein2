@@ -1268,7 +1268,6 @@ namespace vekt
 				hover_state.on_hover_begin(this, widget);
 			}
 
-
 			hover_state.is_hovered = hovered;
 		}
 
@@ -1290,9 +1289,12 @@ namespace vekt
 	input_event_result builder::on_mouse_event(const mouse_event& ev)
 	{
 
-		id pressed_widget = NULL_WIDGET_ID;
+		id		   pressed_widget = NULL_WIDGET_ID;
+		id		   last_hovered	  = NULL_WIDGET_ID;
+		mouse_func last_cb		  = nullptr;
 
 		input_event_result ret_res = input_event_result::not_handled;
+
 		for (id widget : _depth_first_mouse_widgets)
 		{
 			hover_callback& hb = _hover_callbacks[widget];
@@ -1303,11 +1305,19 @@ namespace vekt
 			}
 
 			mouse_callback& mc = _mouse_callbacks[widget];
-
 			if (!mc.on_mouse)
 				continue;
 
-			const input_event_result res = mc.on_mouse(this, widget, ev, input_event_phase::bubbling);
+			if (hb.is_hovered)
+			{
+				last_hovered = widget;
+				last_cb		 = mc.on_mouse;
+			}
+		}
+
+		if (last_hovered != NULL_WIDGET_ID)
+		{
+			const input_event_result res = last_cb(this, last_hovered, ev, input_event_phase::bubbling);
 			if (res == input_event_result::handled)
 				ret_res = res;
 		}

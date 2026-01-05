@@ -52,22 +52,37 @@ namespace SFG
 		// gui_builder now uses editor_theme directly for styles and fonts.
 		_gui_builder.init(b, &editor::get().get_text_allocator());
 
-		_gui_builder.callbacks.user_data = this;
-		_root							 = _gui_builder.get_root();
+		_gui_builder.callbacks.user_data			  = this;
+		_gui_builder.callbacks.on_input_field_changed = on_input_field_changed;
+		_root										  = _gui_builder.get_root();
 
 		_gui_builder.add_title("entities");
 		_entity_area													 = _gui_builder.begin_area(true);
 		_builder->widget_get_size_props(_entity_area).child_margins.left = 0.0f;
+		_builder->widget_get_hover_callbacks(_entity_area).receive_mouse = 1;
+		_builder->widget_get_mouse_callbacks(_entity_area).on_mouse		 = on_mouse;
 		_gui_builder.end_area();
 
 		// Properties section
 		_gui_builder.add_title("properties");
 		_gui_builder.begin_area(true);
-		_prop_name	 = _gui_builder.add_property_row_label("name:", "").second;
-		_prop_handle = _gui_builder.add_property_row_label("handle:", "").second;
-		_prop_pos	 = _gui_builder.add_property_row_label("position:", "").second;
-		_prop_rot	 = _gui_builder.add_property_row_label("rotation:", "").second;
-		_prop_scale	 = _gui_builder.add_property_row_label("scale:", "").second;
+		_prop_name						 = _gui_builder.add_property_row_label("name:", "").second;
+		_prop_handle					 = _gui_builder.add_property_row_label("handle:", "").second;
+		const gui_builder::id_trip pos	 = _gui_builder.add_property_row_vector3("position", "0.0", 100, 3, 0.1f);
+		const gui_builder::id_trip rot	 = _gui_builder.add_property_row_vector3("rotation", "0.0", 100, 3, 0.1f);
+		const gui_builder::id_trip scale = _gui_builder.add_property_row_vector3("scale", "1.0", 100, 3, 0.1f);
+		_selected_pos_x					 = pos.first;
+		_selected_pos_y					 = pos.second;
+		_selected_pos_z					 = pos.third;
+
+		_selected_rot_x = rot.first;
+		_selected_rot_y = rot.second;
+		_selected_rot_z = rot.third;
+
+		_selected_scale_x = scale.first;
+		_selected_scale_y = scale.second;
+		_selected_scale_z = scale.third;
+
 		_gui_builder.end_area();
 
 		_builder->widget_add_child(_builder->get_root(), _root);
@@ -98,7 +113,7 @@ namespace SFG
 			_tree_dirty = false;
 		}
 
-		const world_handle	 selected = editor::get().get_gui_controller().get_selected_entity();
+		const world_handle	 selected = _selected_entity;
 		bump_text_allocator& alloc	  = editor::get().get_bump_text_allocator();
 		entity_manager&		 em		  = w.get_entity_manager();
 
@@ -125,45 +140,11 @@ namespace SFG
 			_builder->widget_get_text(_prop_handle).text = handle_txt;
 			_builder->widget_update_text(_prop_handle);
 		}
-
-		// Transforms
-		auto vec3_to_txt = [&alloc](const vector3& v) -> const char* {
-			const char* t = alloc.allocate_reserve(64);
-			alloc.appendf("%.3f, %.3f, %.3f", v.x, v.y, v.z);
-			return t;
-		};
-
-		if (selected.is_null())
-		{
-			const char* dash							= "-";
-			_builder->widget_get_text(_prop_pos).text	= dash;
-			_builder->widget_get_text(_prop_rot).text	= dash;
-			_builder->widget_get_text(_prop_scale).text = dash;
-		}
-		else
-		{
-			const vector3 pos = em.get_entity_position(selected);
-			const vector3 scl = em.get_entity_scale(selected);
-			const quat&	  rot = em.get_entity_rotation(selected);
-
-			const char* pos_txt = vec3_to_txt(pos);
-			const char* rot_txt = alloc.allocate_reserve(64);
-			alloc.appendf("%.3f, %.3f, %.3f, %.3f", rot.x, rot.y, rot.z, rot.w);
-			const char* scl_txt = vec3_to_txt(scl);
-
-			_builder->widget_get_text(_prop_pos).text	= pos_txt;
-			_builder->widget_get_text(_prop_rot).text	= rot_txt;
-			_builder->widget_get_text(_prop_scale).text = scl_txt;
-		}
-
-		_builder->widget_update_text(_prop_pos);
-		_builder->widget_update_text(_prop_rot);
-		_builder->widget_update_text(_prop_scale);
 	}
 
 	void editor_panel_entities::rebuild_tree(world& w)
 	{
-	
+
 		// Remove old nodes
 		for (vekt::id nid : _node_widgets)
 		{
@@ -189,7 +170,7 @@ namespace SFG
 	{
 		entity_manager& em			 = w.get_entity_manager();
 		const bool		is_collapsed = _entity_meta[e.index].collapsed == 1;
-		const bool		selected	 = editor::get().get_gui_controller().get_selected_entity() == e;
+		const bool		selected	 = _selected_entity == e;
 
 		static uint8 color_alt = 0;
 		color_alt			   = (color_alt + 1) % 2;
@@ -304,14 +285,128 @@ namespace SFG
 		}
 	}
 
+	bool editor_panel_entities::is_ancestor_of(world_handle ancestor, world_handle node)
+	{
+		if (ancestor.is_null() || node.is_null())
+			return false;
+		world&			w	= editor::get().get_app().get_world();
+		entity_manager& em	= w.get_entity_manager();
+		bool			res = false;
+		em.visit_parents(node, [&res, ancestor](world_handle e) {
+			if (e == ancestor)
+				res = true;
+		});
+		return res;
+	}
+
+	void editor_panel_entities::set_selected(world_handle h)
+	{
+		// deselect previous
+		const world_handle existing = _selected_entity;
+		if (!existing.is_null())
+		{
+			auto it = std::find_if(_node_bindings.begin(), _node_bindings.end(), [existing](const node_binding& nb) -> bool { return existing == nb.handle; });
+			if (it != _node_bindings.end())
+			{
+				vekt::widget_gfx& gfx = _builder->widget_get_gfx(it->widget);
+				gfx.color			  = {0, 0, 0, 0};
+			}
+		}
+
+		// select new
+		_selected_entity = h;
+		auto it			 = std::find_if(_node_bindings.begin(), _node_bindings.end(), [h](const node_binding& nb) -> bool { return h == nb.handle; });
+		if (it != _node_bindings.end())
+		{
+			vekt::widget_gfx& gfx = _builder->widget_get_gfx(it->widget);
+			gfx.color			  = editor_theme::get().col_accent_second_dim;
+		}
+
+		world& w = editor::get().get_app().get_world();
+
+		if (_selected_entity.is_null())
+		{
+			_gui_builder.set_text_field_text(_selected_pos_x, "0.0");
+			_gui_builder.set_text_field_text(_selected_pos_y, "0.0");
+			_gui_builder.set_text_field_text(_selected_pos_z, "0.0");
+			_gui_builder.set_text_field_text(_selected_rot_x, "0.0");
+			_gui_builder.set_text_field_text(_selected_rot_y, "0.0");
+			_gui_builder.set_text_field_text(_selected_rot_z, "0.0");
+			_gui_builder.set_text_field_text(_selected_scale_x, "0.0");
+			_gui_builder.set_text_field_text(_selected_scale_y, "0.0");
+			_gui_builder.set_text_field_text(_selected_scale_z, "0.0");
+		}
+		else
+		{
+			entity_manager& em	  = w.get_entity_manager();
+			const vector3&	pos	  = em.get_entity_position(_selected_entity);
+			const quat&		rot	  = em.get_entity_rotation(_selected_entity);
+			const vector3&	scale = em.get_entity_scale(_selected_entity);
+
+			_gui_builder.set_text_field_text(_selected_pos_x, "0.0");
+			_gui_builder.set_text_field_text(_selected_pos_y, "0.0");
+			_gui_builder.set_text_field_text(_selected_pos_z, "0.0");
+			_gui_builder.set_text_field_text(_selected_rot_x, "0.0");
+			_gui_builder.set_text_field_text(_selected_rot_y, "0.0");
+			_gui_builder.set_text_field_text(_selected_rot_z, "0.0");
+			_gui_builder.set_text_field_text(_selected_scale_x, "0.0");
+			_gui_builder.set_text_field_text(_selected_scale_y, "0.0");
+			_gui_builder.set_text_field_text(_selected_scale_z, "0.0");
+		}
+	}
+
+	void editor_panel_entities::on_input_field_changed(vekt::builder* b, vekt::id widget, const char* txt, float value)
+	{
+		editor_panel_entities* self = static_cast<editor_panel_entities*>(b->widget_get_user_data(widget).ptr);
+		if (widget == self->_selected_pos_x)
+		{
+		}
+		else if (widget == self->_selected_pos_y)
+		{
+		}
+		else if (widget == self->_selected_pos_z)
+		{
+		}
+		else if (widget == self->_selected_rot_x)
+		{
+		}
+		else if (widget == self->_selected_rot_y)
+		{
+		}
+		else if (widget == self->_selected_rot_z)
+		{
+		}
+		else if (widget == self->_selected_scale_x)
+		{
+		}
+		else if (widget == self->_selected_scale_y)
+		{
+		}
+		else if (widget == self->_selected_scale_z)
+		{
+		}
+	}
+
 	vekt::input_event_result editor_panel_entities::on_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase)
 	{
 		editor_panel_entities* self = static_cast<editor_panel_entities*>(b->widget_get_user_data(widget).ptr);
 
-		// ensure hover
-		const vekt::hover_callback& hb = b->widget_get_hover_callbacks(widget);
-		if (!hb.is_hovered)
+		if (widget == self->_entity_area)
+		{
+			if (ev.button == input_code::mouse_1 && ev.type == vekt::input_event_type::pressed)
+			{
+				editor::get().get_gui_controller().begin_context_menu(ev.position.x, ev.position.y);
+				self->_ctx_new_entity = editor::get().get_gui_controller().add_context_menu_item("new_entity");
+				editor::get().get_gui_controller().end_context_menu();
+				return vekt::input_event_result::handled;
+			}
+			else if (ev.button == input_code::mouse_0 && ev.type == vekt::input_event_type::pressed)
+			{
+				self->set_selected({});
+				return vekt::input_event_result::handled;
+			}
 			return vekt::input_event_result::not_handled;
+		}
 
 		// find entity ret if empty.
 		world_handle clicked = {};
@@ -330,10 +425,10 @@ namespace SFG
 		if (ev.button == static_cast<uint16>(input_code::mouse_1) && ev.type == vekt::input_event_type::pressed)
 		{
 			editor::get().get_gui_controller().begin_context_menu(ev.position.x, ev.position.y);
-			editor::get().get_gui_controller().add_context_menu_item("test");
-			editor::get().get_gui_controller().add_context_menu_item("test2");
+			self->_ctx_add_child = editor::get().get_gui_controller().add_context_menu_item("add_child");
+			self->_ctx_duplicate = editor::get().get_gui_controller().add_context_menu_item("duplicate");
+			self->_ctx_delete	 = editor::get().get_gui_controller().add_context_menu_item("delete");
 			editor::get().get_gui_controller().end_context_menu();
-			// self->open_context_menu(ev.position.x, ev.position.y, clicked);
 			return vekt::input_event_result::handled;
 		}
 
@@ -346,26 +441,7 @@ namespace SFG
 
 		if (ev.button == static_cast<uint16>(input_code::mouse_0) && ev.type == vekt::input_event_type::pressed)
 		{
-			// deselect previous
-			const world_handle existing = editor::get().get_gui_controller().get_selected_entity();
-			if (!existing.is_null())
-			{
-				auto it = std::find_if(self->_node_bindings.begin(), self->_node_bindings.end(), [existing](const node_binding& nb) -> bool { return existing == nb.handle; });
-				if (it != self->_node_bindings.end())
-				{
-					vekt::widget_gfx& gfx = b->widget_get_gfx(it->widget);
-					gfx.color			  = {0, 0, 0, 0};
-				}
-			}
-
-			// select new
-			editor::get().get_gui_controller().set_selected_entity(clicked);
-			auto it = std::find_if(self->_node_bindings.begin(), self->_node_bindings.end(), [clicked](const node_binding& nb) -> bool { return clicked == nb.handle; });
-			if (it != self->_node_bindings.end())
-			{
-				vekt::widget_gfx& gfx = b->widget_get_gfx(it->widget);
-					gfx.color			  = editor_theme::get().col_accent_second_dim;
-			}
+			self->set_selected(clicked);
 
 			self->_is_dragging = true;
 			self->_drag_source = clicked;
@@ -397,21 +473,6 @@ namespace SFG
 
 	void editor_panel_entities::on_drag(vekt::builder* b, vekt::id widget, float mp_x, float mp_y, float delta_x, float delta_y, unsigned int button)
 	{
-		
-	}
-
-	bool editor_panel_entities::is_ancestor_of(world_handle ancestor, world_handle node)
-	{
-		if (ancestor.is_null() || node.is_null())
-			return false;
-		world&			w	= editor::get().get_app().get_world();
-		entity_manager& em	= w.get_entity_manager();
-		bool			res = false;
-		em.visit_parents(node, [&res, ancestor](world_handle e) {
-			if (e == ancestor)
-				res = true;
-		});
-		return res;
 	}
 
 }

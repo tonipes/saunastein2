@@ -38,13 +38,100 @@ namespace SFG
 
 	void to_json(nlohmann::json& j, const editor_theme& t)
 	{
-		// j["default_indent"]	 = t.default_indent;
+		j["root_rounding"]					= t.root_rounding;
+		j["root_spacing"]					= t.root_spacing;
+		j["outer_margin"]					= t.outer_margin;
+		j["item_spacing"]					= t.item_spacing;
+		j["row_spacing"]					= t.row_spacing;
+		j["title_line_width"]				= t.title_line_width;
+		j["title_line_height"]				= t.title_line_height;
+		j["item_height"]					= t.item_height;
+		j["row_height"]						= t.row_height;
+		j["table_cell_height"]				= t.table_cell_height;
+		j["property_cell_div"]				= t.property_cell_div;
+		j["seperator_thickness"]			= t.seperator_thickness;
+		j["area_rounding"]					= t.area_rounding;
+		j["scroll_thickness"]				= t.scroll_thickness;
+		j["scroll_rounding"]				= t.scroll_rounding;
+		j["inner_margin"]					= t.inner_margin;
+		j["frame_thickness"]				= t.frame_thickness;
+		j["frame_rounding"]					= t.frame_rounding;
+		j["context_menu_outline_thickness"] = t.context_menu_outline_thickness;
+
+		j["col_title_line_start"]	   = t.col_title_line_start;
+		j["col_title_line_end"]		   = t.col_title_line_end;
+		j["col_hyperlink"]			   = t.col_hyperlink;
+		j["col_accent"]				   = t.col_accent;
+		j["col_accent_second"]		   = t.col_accent_second;
+		j["col_accent_second_dim"]	   = t.col_accent_second_dim;
+		j["col_highlight"]			   = t.col_highlight;
+		j["col_highlight_transparent"] = t.col_highlight_transparent;
+		j["col_scroll_bar"]			   = t.col_scroll_bar;
+		j["col_scroll_bar_bg"]		   = t.col_scroll_bar_bg;
+		j["col_title"]				   = t.col_title;
+		j["col_text"]				   = t.col_text;
+		j["col_text_dim"]			   = t.col_text_dim;
+		j["col_frame_bg"]			   = t.col_frame_bg;
+		j["col_area_bg"]			   = t.col_area_bg;
+		j["col_root"]				   = t.col_root;
+		j["col_button"]				   = t.col_button;
+		j["col_button_hover"]		   = t.col_button_hover;
+		j["col_button_press"]		   = t.col_button_press;
+		j["col_frame_outline"]		   = t.col_frame_outline;
+		j["col_context_menu_outline"]  = t.col_context_menu_outline;
+
+		j["color_axis_x"] = t.color_axis_x;
+		j["color_axis_y"] = t.color_axis_y;
+		j["color_axis_z"] = t.color_axis_z;
 	}
 
 	void from_json(const nlohmann::json& j, editor_theme& s)
 	{
-		//s.default_indent  = j.value<float>("default_indent", 0.0f);
-	
+		s.root_rounding					 = j.value<float>("root_rounding", 0.0f);
+		s.root_spacing					 = j.value<float>("root_spacing", 0.0f);
+		s.outer_margin					 = j.value<float>("outer_margin", 0.0f);
+		s.item_spacing					 = j.value<float>("item_spacing", 0.0f);
+		s.row_spacing					 = j.value<float>("row_spacing", 0.0f);
+		s.title_line_width				 = j.value<float>("title_line_width", 0.0f);
+		s.title_line_height				 = j.value<float>("title_line_height", 0.0f);
+		s.item_height					 = j.value<float>("item_height", 0.0f);
+		s.row_height					 = j.value<float>("row_height", 0.0f);
+		s.table_cell_height				 = j.value<float>("table_cell_height", 0.0f);
+		s.property_cell_div				 = j.value<float>("property_cell_div", 0.0f);
+		s.seperator_thickness			 = j.value<float>("seperator_thickness", 0.0f);
+		s.area_rounding					 = j.value<float>("area_rounding", 0.0f);
+		s.scroll_thickness				 = j.value<float>("scroll_thickness", 0.0f);
+		s.scroll_rounding				 = j.value<float>("scroll_rounding", 0.0f);
+		s.inner_margin					 = j.value<float>("inner_margin", 0.0f);
+		s.frame_thickness				 = j.value<float>("frame_thickness", 0.0f);
+		s.frame_rounding				 = j.value<float>("frame_rounding", 0.0f);
+		s.context_menu_outline_thickness = j.value<float>("context_menu_outline_thickness", 0.0f);
+
+		s.col_title_line_start		= j.value<vector4>("col_title_line_start", vector4::zero);
+		s.col_title_line_end		= j.value<vector4>("col_title_line_end", vector4::zero);
+		s.col_hyperlink				= j.value<vector4>("col_hyperlink", vector4::zero);
+		s.col_accent				= j.value<vector4>("col_accent", vector4::zero);
+		s.col_accent_second			= j.value<vector4>("col_accent_second", vector4::zero);
+		s.col_accent_second_dim		= j.value<vector4>("col_accent_second_dim", vector4::zero);
+		s.col_highlight				= j.value<vector4>("col_highlight", vector4::zero);
+		s.col_highlight_transparent = j.value<vector4>("col_highlight_transparent", vector4::zero);
+		s.col_scroll_bar			= j.value<vector4>("col_scroll_bar", vector4::zero);
+		s.col_scroll_bar_bg			= j.value<vector4>("col_scroll_bar_bg", vector4::zero);
+		s.col_title					= j.value<vector4>("col_title", vector4::zero);
+		s.col_text					= j.value<vector4>("col_text", vector4::zero);
+		s.col_text_dim				= j.value<vector4>("col_text_dim", vector4::zero);
+		s.col_frame_bg				= j.value<vector4>("col_frame_bg", vector4::zero);
+		s.col_area_bg				= j.value<vector4>("col_area_bg", vector4::zero);
+		s.col_root					= j.value<vector4>("col_root", vector4::zero);
+		s.col_button				= j.value<vector4>("col_button", vector4::zero);
+		s.col_button_hover			= j.value<vector4>("col_button_hover", vector4::zero);
+		s.col_button_press			= j.value<vector4>("col_button_press", vector4::zero);
+		s.col_frame_outline			= j.value<vector4>("col_frame_outline", vector4::zero);
+		s.col_context_menu_outline	= j.value<vector4>("col_context_menu_outline", vector4::zero);
+
+		s.color_axis_x = j.value<vector4>("color_axis_x", vector4::zero);
+		s.color_axis_y = j.value<vector4>("color_axis_y", vector4::zero);
+		s.color_axis_z = j.value<vector4>("color_axis_z", vector4::zero);
 	}
 
 	void editor_theme::init_defaults()

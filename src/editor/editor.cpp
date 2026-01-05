@@ -53,6 +53,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 // gui
 #include "gui/vekt.hpp"
 #include "editor/gui/editor_gui_controller.hpp"
+#include "editor/gui/editor_panel_entities.hpp"
 
 // misc
 #include "serialization/serialization.hpp"
@@ -232,22 +233,11 @@ namespace SFG
 		window&				  wnd	= _app.get_main_window();
 		const vector<string>& drops = wnd.get_dropped_files();
 		for (const string& str : drops)
-		{
 			on_file_dropped(str.c_str());
-		}
 		wnd.clear_dropped_files();
 
 		world&			   w  = _app.get_world();
 		const vector2ui16& ws = _app.get_main_window().get_size();
-		// gui controller handles world view commit
-
-		// _renderer.draw_begin();
-		// _panels_docking.draw(ws);
-		// _panel_entities.draw(w, ws);
-		// _panel_properties.draw(w, _selected_entity, ws);
-		// _panel_controls.draw(ws);
-		// _panel_world_view.draw(ws);
-		// _renderer.draw_end();
 
 		_bump_text_allocator.reset();
 
@@ -263,7 +253,6 @@ namespace SFG
 	{
 		ZoneScoped;
 
-		// _world_rt_gpu_index.store(p.world_rt_index, std::memory_order_release);
 		_renderer.prepare(p.pm, p.cmd_buffer, p.frame_index);
 		_renderer.render({
 			.cmd_buffer	   = p.cmd_buffer,
@@ -288,6 +277,8 @@ namespace SFG
 		}
 		else if (ev.type == window_event_type::mouse)
 		{
+			_gui_controller.on_mouse_event(ev);
+
 			const vekt::input_event_result res = _builder->on_mouse_event({
 				.type	  = static_cast<vekt::input_event_type>(ev.sub_type),
 				.button	  = ev.button,
@@ -379,6 +370,7 @@ namespace SFG
 			comp_model_instance& mi		= cm.get_component<comp_model_instance>(inst);
 			mi.instantiate_model_to_world(w, handle);
 			_gui_controller.set_entities_tree_dirty();
+			_gui_controller.get_entities()->set_selected(entity);
 
 			return;
 		}
