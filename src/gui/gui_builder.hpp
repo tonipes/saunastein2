@@ -89,6 +89,7 @@ namespace SFG
 			vector4 col_accent_second_dim;
 			vector4 col_highlight;
 			vector4 col_highlight_transparent;
+			vector4 col_context_menu_outline;
 
 			vector4		col_scroll_bar;
 			vector4		col_scroll_bar_bg;
@@ -107,6 +108,7 @@ namespace SFG
 
 			float root_rounding;
 
+			float context_menu_outline_thickness;
 			float outer_margin;
 			float root_spacing;
 			float item_spacing;
@@ -156,6 +158,10 @@ namespace SFG
 
 		vekt::id begin_area(bool fill = true);
 		void	 end_area();
+
+		vekt::id begin_context_menu(float abs_x, float abs_y);
+		vekt::id add_context_menu_item(const char* label);
+		void	 end_context_menu();
 
 		// -----------------------------------------------------------------------------
 		// properties
@@ -216,6 +222,8 @@ namespace SFG
 		static void						on_text_field_drag(vekt::builder* b, vekt::id widget, float mp_x, float mp_y, float delta_x, float delta_y, unsigned int button);
 		static void						on_text_field_focus_lost(vekt::builder* b, vekt::id widget);
 		static void						on_text_field_focus_gained(vekt::builder* b, vekt::id widget, bool from_nav);
+		static void						on_context_item_hover_begin(vekt::builder* b, vekt::id widget);
+		static void						on_context_item_hover_end(vekt::builder* b, vekt::id widget);
 
 		vekt::id new_widget(bool push_to_stack = false);
 		vekt::id pop_stack();

@@ -36,6 +36,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "memory/text_allocator.hpp"
 
 // gui
+#include "gui/vekt_defines.hpp"
 #include "editor/gui/editor_panel_controls.hpp"
 #include "editor/gui/editor_panel_properties.hpp"
 #include "editor/gui/editor_panel_entities.hpp"
@@ -192,6 +193,6 @@ namespace SFG
 		world_handle		_selected_entity = {};
 		atomic<uint32>		_world_rt_gpu_index{0};
 
-		static editor* s_instance;
+		static editor*	 s_instance;
 	};
 }

@@ -288,9 +288,6 @@ namespace SFG
 
 	bool editor::on_window_event(const window_event& ev)
 	{
-		if (_camera_controller.on_window_event(ev))
-			return true;
-
 		if (ev.type == window_event_type::delta)
 		{
 			const vector2i16& mp = _app.get_main_window().get_mouse_position();
@@ -302,21 +299,14 @@ namespace SFG
 		}
 		else if (ev.type == window_event_type::mouse)
 		{
-			_builder->on_mouse_event({
+			const vekt::input_event_result res = _builder->on_mouse_event({
 				.type	  = static_cast<vekt::input_event_type>(ev.sub_type),
 				.button	  = ev.button,
 				.position = VEKT_VEC2(ev.value.x, ev.value.y),
 			});
 
-			if (ev.button == input_code::mouse_0 && ev.value.x > 0 && ev.value.y > 0)
-			{
-				// const uint32	   id	= _game.get_renderer()->get_world_renderer()->get_render_pass_object_id().read_location(ev.value.x, ev.value.y, 0);
-				// const entity_meta& meta = _game.get_world().get_entity_manager().get_entity_meta({.generation = 2, .index = id});
-				// _game.get_world().get_entity_manager().set_entity_position(_gizmo_entity, _game.get_world().get_entity_manager().get_entity_position_abs({.generation = 2, .index = id}));
-				// _game.get_world().get_entity_manager().teleport_entity(_gizmo_entity);
-				// _game.get_renderer()->get_world_renderer()->get_render_pass_selection_outline().set_selected_entity_id(id == 0 ? NULL_WORLD_ID : id);
-				// SFG_WARN("Pressed on object {0} - name: {1}", id, meta.name);
-			}
+			if (res == vekt::input_event_result::handled)
+				return true;
 		}
 		else if (ev.type == window_event_type::key)
 		{
@@ -329,15 +319,18 @@ namespace SFG
 			}
 			else
 			{
-				_builder->on_key_event({
+				const vekt::input_event_result res = _builder->on_key_event({
 					.type	   = static_cast<vekt::input_event_type>(ev.sub_type),
 					.key	   = ev.button,
 					.scan_code = ev.value.x,
 				});
+
+				if (res == vekt::input_event_result::handled)
+					return true;
 			}
 		}
 
-		return false;
+		return _camera_controller.on_window_event(ev);
 	}
 
 	void editor::resize(const vector2ui16& size)

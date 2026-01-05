@@ -39,6 +39,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "math/vector3.hpp"
 #include "math/quat.hpp"
 #include "gui/icon_defs.hpp"
+#include "input/input_mappings.hpp"
+#include "app/app.hpp"
 
 namespace SFG
 {
@@ -144,7 +146,7 @@ namespace SFG
 		{
 			const vector3 pos = em.get_entity_position(selected);
 			const vector3 scl = em.get_entity_scale(selected);
-			const quat& rot = em.get_entity_rotation(selected);
+			const quat&	  rot = em.get_entity_rotation(selected);
 
 			const char* pos_txt = vec3_to_txt(pos);
 			const char* rot_txt = alloc.allocate_reserve(64);
@@ -163,6 +165,7 @@ namespace SFG
 
 	void editor_panel_entities::rebuild_tree(world& w)
 	{
+	
 		// Remove old nodes
 		for (vekt::id nid : _node_widgets)
 		{
@@ -237,10 +240,11 @@ namespace SFG
 			rp.segments				 = 12;
 
 			vekt::hover_callback& hb = _builder->widget_get_hover_callbacks(row_inner);
-			hb.receive_mouse		 = 1;
+			hb.receive_mouse		 = 17;
 
 			vekt::mouse_callback& mc = _builder->widget_get_mouse_callbacks(row_inner);
 			mc.on_mouse				 = on_mouse;
+			mc.on_drag				 = on_drag;
 
 			_builder->widget_get_user_data(row_inner).ptr = this;
 		}
@@ -304,17 +308,14 @@ namespace SFG
 
 	vekt::input_event_result editor_panel_entities::on_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase)
 	{
-		
-		if (ev.type == vekt::input_event_type::released)
-			return vekt::input_event_result::not_handled;
-		
 		editor_panel_entities* self = static_cast<editor_panel_entities*>(b->widget_get_user_data(widget).ptr);
-		if (!self)
-			return vekt::input_event_result::not_handled;
-	
-		if (!b->widget_get_hover_callbacks(widget).is_hovered)
+
+		// ensure hover
+		const vekt::hover_callback& hb = b->widget_get_hover_callbacks(widget);
+		if (!hb.is_hovered)
 			return vekt::input_event_result::not_handled;
 
+		// find entity ret if empty.
 		world_handle clicked = {};
 		for (const node_binding& nb : self->_node_bindings)
 		{
@@ -324,16 +325,96 @@ namespace SFG
 				break;
 			}
 		}
-	
 		if (clicked.is_null())
 			return vekt::input_event_result::not_handled;
 
-		editor::get().set_selected_entity(clicked);
-			self->_tree_dirty = true;
+		// context
+		if (ev.button == static_cast<uint16>(input_code::mouse_1) && ev.type == vekt::input_event_type::pressed)
+		{
+			self->_gui_builder.begin_context_menu(ev.position.x, ev.position.y);
+			 self->_gui_builder.add_context_menu_item("test");
+			 self->_gui_builder.add_context_menu_item("test2");
+			 self->_gui_builder.add_context_menu_item("hehehehehe");
+			self->_gui_builder.end_context_menu();
+			// self->open_context_menu(ev.position.x, ev.position.y, clicked);
+			return vekt::input_event_result::handled;
+		}
 
 		if (ev.type == vekt::input_event_type::repeated)
+		{
 			self->_entity_meta[clicked.index].collapsed ^= 1;
+			self->set_tree_dirty();
+			return vekt::input_event_result::handled;
+		}
+
+		if (ev.button == static_cast<uint16>(input_code::mouse_0) && ev.type == vekt::input_event_type::pressed)
+		{
+			// deselect previous
+			const world_handle existing = editor::get().get_selected_entity();
+			if (!existing.is_null())
+			{
+				auto it = std::find_if(self->_node_bindings.begin(), self->_node_bindings.end(), [existing](const node_binding& nb) -> bool { return existing == nb.handle; });
+				if (it != self->_node_bindings.end())
+				{
+					vekt::widget_gfx& gfx = b->widget_get_gfx(it->widget);
+					gfx.color			  = {0, 0, 0, 0};
+				}
+			}
+
+			// select new
+			editor::get().set_selected_entity(clicked);
+			auto it = std::find_if(self->_node_bindings.begin(), self->_node_bindings.end(), [clicked](const node_binding& nb) -> bool { return clicked == nb.handle; });
+			if (it != self->_node_bindings.end())
+			{
+				vekt::widget_gfx& gfx = b->widget_get_gfx(it->widget);
+				gfx.color			  = self->_gui_builder.style.col_accent_second_dim;
+			}
+
+			self->_is_dragging = true;
+			self->_drag_source = clicked;
+			return vekt::input_event_result::handled;
+		}
+
+		if (ev.type == vekt::input_event_type::released && ev.button == static_cast<uint16>(input_code::mouse_0))
+		{
+			if (self->_is_dragging && !self->_drag_source.is_null())
+			{
+				world_handle src = self->_drag_source;
+				world_handle dst = clicked;
+				if (!(src == dst) && !self->is_ancestor_of(src, dst))
+				{
+					world&			world = editor::get().get_app().get_world();
+					entity_manager& em	  = world.get_entity_manager();
+					em.remove_from_parent(src);
+					em.add_child(dst, src);
+					self->_tree_dirty = true;
+				}
+			}
+			self->_is_dragging = false;
+			self->_drag_source = {};
+			return vekt::input_event_result::handled;
+		}
 
 		return vekt::input_event_result::handled;
 	}
+
+	void editor_panel_entities::on_drag(vekt::builder* b, vekt::id widget, float mp_x, float mp_y, float delta_x, float delta_y, unsigned int button)
+	{
+		
+	}
+
+	bool editor_panel_entities::is_ancestor_of(world_handle ancestor, world_handle node)
+	{
+		if (ancestor.is_null() || node.is_null())
+			return false;
+		world&			w	= editor::get().get_app().get_world();
+		entity_manager& em	= w.get_entity_manager();
+		bool			res = false;
+		em.visit_parents(node, [&res, ancestor](world_handle e) {
+			if (e == ancestor)
+				res = true;
+		});
+		return res;
+	}
+
 }

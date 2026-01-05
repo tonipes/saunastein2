@@ -259,6 +259,17 @@ namespace SFG
 		}
 	}
 
+	void gui_builder::on_context_item_hover_begin(vekt::builder* b, vekt::id widget)
+	{
+		gui_builder* gb					= static_cast<gui_builder*>(b->widget_get_user_data(widget).ptr);
+		b->widget_get_gfx(widget).color = gb->style.col_highlight_transparent;
+	}
+
+	void gui_builder::on_context_item_hover_end(vekt::builder* b, vekt::id widget)
+	{
+		b->widget_get_gfx(widget).color = {};
+	}
+
 	void gui_builder::on_text_field_draw(vekt::builder* b, vekt::id widget)
 	{
 		hover_callback& hb = b->widget_get_hover_callbacks(widget);
@@ -496,18 +507,19 @@ namespace SFG
 		col_area_bg	 = color::from255(15, 15, 15, 255).srgb_to_linear().to_vector();
 		col_root	 = color::from255(28, 28, 28, 255).srgb_to_linear().to_vector();
 
-		col_scroll_bar	  = col_accent;
-		col_scroll_bar_bg = col_frame_bg;
-		col_button		  = col_root;
-		col_button_hover  = col_area_bg;
-		col_button_press  = col_frame_bg;
-		col_frame_outline = color::from255(30, 30, 30, 255).srgb_to_linear().to_vector();
+		col_scroll_bar			 = col_accent;
+		col_scroll_bar_bg		 = col_frame_bg;
+		col_button				 = col_root;
+		col_button_hover		 = col_area_bg;
+		col_button_press		 = col_frame_bg;
+		col_frame_outline		 = color::from255(60, 60, 60, 255).srgb_to_linear().to_vector();
+		col_context_menu_outline = color::from255(60, 60, 60, 255).srgb_to_linear().to_vector();
 
 		root_rounding = 6.0f;
 
 		outer_margin	  = DPI_SCALE * 8;
 		item_spacing	  = DPI_SCALE * 3;
-		root_spacing	  = DPI_SCALE *6;
+		root_spacing	  = DPI_SCALE * 6;
 		row_spacing		  = DPI_SCALE * 6;
 		row_height		  = DPI_SCALE * 20;
 		title_line_width  = 0.8f;
@@ -522,9 +534,10 @@ namespace SFG
 		scroll_thickness = DPI_SCALE * 4;
 		scroll_rounding	 = 8.0f;
 
-		inner_margin	= DPI_SCALE * 4;
-		frame_thickness = DPI_SCALE * 1;
-		frame_rounding	= 2.0f;
+		inner_margin				   = DPI_SCALE * 4;
+		frame_thickness				   = DPI_SCALE * 1;
+		frame_rounding				   = 2.0f;
+		context_menu_outline_thickness = DPI_SCALE * 1.2f;
 	}
 
 	// -----------------------------------------------------------------------------
@@ -654,6 +667,92 @@ namespace SFG
 	}
 
 	void gui_builder::end_area()
+	{
+		pop_stack();
+	}
+
+	vekt::id gui_builder::begin_context_menu(float abs_x, float abs_y)
+	{
+		const id w = _builder->allocate();
+		push_stack(w);
+		_builder->widget_add_child(_builder->get_root(), w);
+		{
+			pos_props& p = _builder->widget_get_pos_props(w);
+			p.flags		 = pos_flags::pf_x_abs | pos_flags::pf_y_abs | pos_flags::pf_child_pos_column;
+			p.pos.x		 = abs_x;
+			p.pos.y		 = abs_y;
+
+			size_props& sz	 = _builder->widget_get_size_props(w);
+			sz.flags		 = size_flags::sf_x_max_children | size_flags::sf_y_total_children;
+			sz.child_margins = {style.inner_margin, style.inner_margin, 0.0f, 0.0f};
+			sz.spacing		 = style.item_spacing;
+
+			widget_gfx& gfx = _builder->widget_get_gfx(w);
+			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_stroke;
+			gfx.color		= style.col_area_bg;
+			gfx.draw_order	= 1;
+
+			stroke_props& sp = _builder->widget_get_stroke(w);
+			sp.thickness	 = style.context_menu_outline_thickness;
+			sp.color		 = style.col_context_menu_outline;
+		}
+
+		return w;
+	}
+
+	vekt::id gui_builder::add_context_menu_item(const char* label)
+	{
+		const id w = new_widget(true);
+		{
+			pos_props& p = _builder->widget_get_pos_props(w);
+			p.flags		 = pos_flags::pf_x_relative | pos_flags::pf_child_pos_row;
+			p.pos.x		 = 0.0f;
+
+			size_props& sz	 = _builder->widget_get_size_props(w);
+			sz.flags		 = size_flags::sf_x_abs | size_flags::sf_y_abs;
+			sz.size.y		 = style.item_height;
+			sz.size.x		 = 200;
+			sz.child_margins = {0.0f, 0.0f, style.inner_margin, style.inner_margin};
+			sz.spacing		 = style.row_spacing;
+
+			widget_gfx& gfx = _builder->widget_get_gfx(w);
+			gfx.flags		= gfx_flags::gfx_is_rect;
+			gfx.color		= {0.0f, 0.0f, 0.0f, 0.0f};
+			gfx.draw_order	= 2;
+
+			hover_callback& hb = _builder->widget_get_hover_callbacks(w);
+			hb.on_hover_begin  = on_context_item_hover_begin;
+			hb.on_hover_end	   = on_context_item_hover_end;
+
+			mouse_callback& mb = _builder->widget_get_mouse_callbacks(w);
+			mb.on_mouse		   = callbacks.on_mouse;
+
+			widget_user_data& ud = _builder->widget_get_user_data(w);
+			ud.ptr				 = this;
+		}
+
+		const id txt = new_widget();
+		{
+			widget_gfx& gfx = _builder->widget_get_gfx(txt);
+			gfx.flags		= gfx_flags::gfx_is_text;
+			gfx.color		= style.col_text;
+			gfx.draw_order	= 3;
+
+			pos_props& pp = _builder->widget_get_pos_props(txt);
+			pp.flags	  = pos_flags::pf_y_relative | pos_flags::pf_y_anchor_center;
+			pp.pos.y	  = 0.5f;
+
+			text_props& tp = _builder->widget_get_text(txt);
+			tp.text		   = _txt_alloc->allocate(label);
+			tp.font		   = style.default_font;
+			_builder->widget_update_text(txt);
+		}
+
+		pop_stack();
+		return w;
+	}
+
+	void gui_builder::end_context_menu()
 	{
 		pop_stack();
 	}

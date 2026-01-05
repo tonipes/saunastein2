@@ -260,7 +260,7 @@ namespace vekt
 
 		calculate_sizes();
 		calculate_positions();
-	
+
 		_clip_stack.resize_explicit(0);
 		_clip_stack.push_back({{0.0f, 0.0f, screen_size.x, screen_size.y}, 0});
 		calculate_draw();
@@ -962,6 +962,10 @@ namespace vekt
 				continue;
 			}
 
+			if (widget == 154)
+			{
+				int a = 5;
+			}
 			const VEKT_VEC2& pos		  = _pos_results[widget].pos;
 			const VEKT_VEC2& size		  = _size_results[widget].size;
 			const VEKT_VEC4	 widget_clip  = VEKT_VEC4(pos.x, pos.y, size.x, size.y);
@@ -1256,9 +1260,15 @@ namespace vekt
 			hover_callback& hover_state = _hover_callbacks[widget];
 
 			if (!hovered && hover_state.is_hovered && hover_state.on_hover_end)
+			{
 				hover_state.on_hover_end(this, widget);
+			}
 			if (hovered && !hover_state.is_hovered && hover_state.on_hover_begin)
+			{
 				hover_state.on_hover_begin(this, widget);
+			}
+
+
 			hover_state.is_hovered = hovered;
 		}
 
