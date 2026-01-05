@@ -68,7 +68,7 @@ namespace SFG
 		constexpr float thickness			= 2.0f;
 
 		const vector2 box_size = vector2(static_cast<float>(size.x) * box_size_multiplier, static_cast<float>(size.x) * box_size_multiplier);
-		const vector2 min	   = vector2(editor_theme::get().default_indent + box_size.x * 0.5f, size.y - editor_theme::get().default_indent - box_size.y);
+		const vector2 min	   = vector2(editor_theme::get().outer_margin + box_size.x * 0.5f, size.y - editor_theme::get().outer_margin - box_size.y);
 		const vector2 max	   = min + box_size;
 		const vector2 center   = (min + max) * 0.5f;
 

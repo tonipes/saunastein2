@@ -75,58 +75,6 @@ namespace SFG
 	{
 	public:
 		typedef void (*input_field_fn)(vekt::id id, const char* txt, float value);
-		struct gui_builder_style
-		{
-			static float DPI_SCALE;
-
-			void init_defaults();
-
-			vector4 col_title_line_start;
-			vector4 col_title_line_end;
-			vector4 col_hyperlink;
-			vector4 col_accent;
-			vector4 col_accent_second;
-			vector4 col_accent_second_dim;
-			vector4 col_highlight;
-			vector4 col_highlight_transparent;
-			vector4 col_context_menu_outline;
-
-			vector4		col_scroll_bar;
-			vector4		col_scroll_bar_bg;
-			vector4		col_title;
-			vector4		col_text;
-			vector4		col_text_dim;
-			vector4		col_frame_bg;
-			vector4		col_area_bg;
-			vector4		col_root;
-			vector4		col_button;
-			vector4		col_button_hover;
-			vector4		col_button_press;
-			vector4		col_frame_outline;
-			vekt::font* default_font = nullptr;
-			vekt::font* title_font	 = nullptr;
-
-			float root_rounding;
-
-			float context_menu_outline_thickness;
-			float outer_margin;
-			float root_spacing;
-			float item_spacing;
-			float row_spacing;
-			float title_line_width;
-			float title_line_height;
-			float item_height;
-			float row_height;
-			float table_cell_height;
-			float property_cell_div;
-			float seperator_thickness;
-			float area_rounding;
-			float scroll_thickness;
-			float scroll_rounding;
-			float inner_margin;
-			float frame_thickness;
-			float frame_rounding;
-		};
 
 		struct gui_builder_callbacks
 		{
@@ -142,7 +90,6 @@ namespace SFG
 			vekt::id second;
 		};
 
-		gui_builder_style	  style		= {};
 		gui_builder_callbacks callbacks = {};
 
 		// -----------------------------------------------------------------------------
@@ -200,16 +147,6 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 		// accessors
 		// -----------------------------------------------------------------------------
-
-		inline void push_title_font(vekt::font* f)
-		{
-			style.title_font = f;
-		}
-
-		inline void push_text_font(vekt::font* f)
-		{
-			style.default_font = f;
-		}
 
 		inline vekt::id get_root() const
 		{

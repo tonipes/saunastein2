@@ -37,6 +37,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "common/system_info.hpp"
 #include "input/input_mappings.hpp"
 
+#include "editor/editor_theme.hpp"
+
 #include "platform/window.hpp"
 #include "platform/process.hpp"
 
@@ -46,8 +48,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace SFG
 {
 	using namespace vekt;
-
-	float gui_builder::gui_builder_style::DPI_SCALE = 1.0f;
 
 	// -----------------------------------------------------------------------------
 	// gui text field
@@ -262,7 +262,7 @@ namespace SFG
 	void gui_builder::on_context_item_hover_begin(vekt::builder* b, vekt::id widget)
 	{
 		gui_builder* gb					= static_cast<gui_builder*>(b->widget_get_user_data(widget).ptr);
-		b->widget_get_gfx(widget).color = gb->style.col_highlight_transparent;
+		b->widget_get_gfx(widget).color = editor_theme::get().col_highlight_transparent;
 	}
 
 	void gui_builder::on_context_item_hover_end(vekt::builder* b, vekt::id widget)
@@ -304,9 +304,9 @@ namespace SFG
 			b->add_filled_rect({
 				.gfx			 = gfx,
 				.min			 = pos + vector2(min_offset, sz.size.y * 0.1f),
-				.max			 = pos + vector2(min_offset + 1.0f * gui_builder::gui_builder_style::DPI_SCALE, sz.size.y - (sz.size.y * 0.1f)),
-				.color_start	 = gb->style.col_text_dim,
-				.color_end		 = gb->style.col_text_dim,
+				.max			 = pos + vector2(min_offset + 1.0f * editor_theme::DPI_SCALE, sz.size.y - (sz.size.y * 0.1f)),
+				.color_start	 = editor_theme::get().col_text_dim,
+				.color_end		 = editor_theme::get().col_text_dim,
 				.color_direction = vekt::direction::horizontal,
 				.widget_id		 = widget,
 				.multi_color	 = false,
@@ -326,8 +326,8 @@ namespace SFG
 			.gfx			 = gfx,
 			.min			 = pos + vector2(min_offset, sz.size.y * 0.1f),
 			.max			 = pos + vector2(max_offset, sz.size.y - (sz.size.y * 0.1f)),
-			.color_start	 = gb->style.col_highlight_transparent,
-			.color_end		 = gb->style.col_highlight_transparent,
+			.color_start	 = editor_theme::get().col_highlight_transparent,
+			.color_end		 = editor_theme::get().col_highlight_transparent,
 			.color_direction = vekt::direction::horizontal,
 			.widget_id		 = widget,
 			.multi_color	 = false,
@@ -487,58 +487,6 @@ namespace SFG
 
 		return vekt::input_event_result::handled;
 	}
-	void gui_builder::gui_builder_style::init_defaults()
-	{
-		col_accent			  = color::from255(151.0f, 0.0f, 119.0f, 255.0f).srgb_to_linear().to_vector();
-		col_accent_second	  = color::from255(7, 131, 214, 255.0f).srgb_to_linear().to_vector();
-		col_accent_second_dim = color::from255(7, 131, 214, 150.0f).srgb_to_linear().to_vector();
-		col_title_line_start  = color::from255(91.0f, 0.0f, 72.0f, 0.0f).srgb_to_linear().to_vector();
-		col_title_line_end	  = color::from255(151.0f, 0.0f, 119.0f, 255.0f).srgb_to_linear().to_vector();
-		col_hyperlink		  = color::from255(7, 131, 214, 255.0f).srgb_to_linear().to_vector();
-
-		col_highlight				= col_accent_second;
-		col_highlight_transparent	= col_accent_second;
-		col_highlight_transparent.w = 0.5f;
-
-		col_title	 = color::from255(180, 180, 180, 255).srgb_to_linear().to_vector();
-		col_text	 = color::from255(180, 180, 180, 255).srgb_to_linear().to_vector();
-		col_text_dim = color::from255(130, 130, 130, 255).srgb_to_linear().to_vector();
-		col_frame_bg = color::from255(4, 4, 4, 255).srgb_to_linear().to_vector();
-		col_area_bg	 = color::from255(15, 15, 15, 255).srgb_to_linear().to_vector();
-		col_root	 = color::from255(28, 28, 28, 255).srgb_to_linear().to_vector();
-
-		col_scroll_bar			 = col_accent;
-		col_scroll_bar_bg		 = col_frame_bg;
-		col_button				 = col_root;
-		col_button_hover		 = col_area_bg;
-		col_button_press		 = col_frame_bg;
-		col_frame_outline		 = color::from255(60, 60, 60, 255).srgb_to_linear().to_vector();
-		col_context_menu_outline = color::from255(60, 60, 60, 255).srgb_to_linear().to_vector();
-
-		root_rounding = 6.0f;
-
-		outer_margin	  = DPI_SCALE * 8;
-		item_spacing	  = DPI_SCALE * 3;
-		root_spacing	  = DPI_SCALE * 6;
-		row_spacing		  = DPI_SCALE * 6;
-		row_height		  = DPI_SCALE * 20;
-		title_line_width  = 0.8f;
-		title_line_height = DPI_SCALE * 2;
-
-		item_height			= DPI_SCALE * 16;
-		table_cell_height	= DPI_SCALE * 10;
-		seperator_thickness = DPI_SCALE * 1;
-		property_cell_div	= 0.3f;
-
-		area_rounding	 = 8.0f;
-		scroll_thickness = DPI_SCALE * 4;
-		scroll_rounding	 = 8.0f;
-
-		inner_margin				   = DPI_SCALE * 4;
-		frame_thickness				   = DPI_SCALE * 1;
-		frame_rounding				   = 2.0f;
-		context_menu_outline_thickness = DPI_SCALE * 1.2f;
-	}
 
 	// -----------------------------------------------------------------------------
 	// big layout
@@ -553,19 +501,19 @@ namespace SFG
 		const id w = _builder->allocate();
 
 		// gfx
-		_builder->widget_get_gfx(w).color = style.col_root;
+		_builder->widget_get_gfx(w).color = editor_theme::get().col_root;
 		_builder->widget_get_gfx(w).flags = gfx_flags::gfx_is_rect | gfx_flags::gfx_has_rounding;
 		rounding_props& rp				  = _builder->widget_get_rounding(w);
 		rp.segments						  = 16;
-		rp.rounding						  = style.root_rounding;
+		rp.rounding						  = editor_theme::get().root_rounding;
 
 		// positioning
 		_builder->widget_set_pos_abs(w, VEKT_VEC2());
 		_builder->widget_set_size_abs(w, VEKT_VEC2(100, 100));
 
 		// sizes
-		_builder->widget_get_size_props(w).spacing		 = style.root_spacing;
-		_builder->widget_get_size_props(w).child_margins = {style.outer_margin, style.outer_margin, style.outer_margin, style.outer_margin};
+		_builder->widget_get_size_props(w).spacing		 = editor_theme::get().root_spacing;
+		_builder->widget_get_size_props(w).child_margins = {editor_theme::get().outer_margin, editor_theme::get().outer_margin, editor_theme::get().outer_margin, editor_theme::get().outer_margin};
 		pos_props& pp									 = _builder->widget_get_pos_props(w);
 		pp.flags										 = pos_flags::pf_child_pos_column;
 		_root											 = w;
@@ -602,15 +550,15 @@ namespace SFG
 			{
 				sz.flags |= size_flags::sf_y_total_children;
 			}
-			sz.spacing		 = style.item_spacing;
-			sz.child_margins = {style.outer_margin, style.outer_margin, style.outer_margin, style.outer_margin};
+			sz.spacing		 = editor_theme::get().item_spacing;
+			sz.child_margins = {editor_theme::get().outer_margin, editor_theme::get().outer_margin, editor_theme::get().outer_margin, editor_theme::get().outer_margin};
 
 			widget_gfx& gfx = _builder->widget_get_gfx(w);
 			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_rounding | gfx_flags::gfx_clip_children;
-			gfx.color		= style.col_area_bg;
+			gfx.color		= editor_theme::get().col_area_bg;
 
 			rounding_props& rp = _builder->widget_get_rounding(w);
-			rp.rounding		   = style.area_rounding;
+			rp.rounding		   = editor_theme::get().area_rounding;
 			rp.segments		   = 16;
 		}
 
@@ -622,16 +570,16 @@ namespace SFG
 
 			size_props& sz = _builder->widget_get_size_props(scroll_bg);
 			sz.flags	   = size_flags::sf_x_abs | size_flags::sf_y_relative;
-			sz.size.x	   = style.scroll_thickness;
+			sz.size.x	   = editor_theme::get().scroll_thickness;
 			sz.size.y	   = 1.0f;
 
 			widget_gfx& gfx = _builder->widget_get_gfx(scroll_bg);
 			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_rounding;
-			gfx.color		= style.col_scroll_bar_bg;
+			gfx.color		= editor_theme::get().col_scroll_bar_bg;
 
 			rounding_props& rp = _builder->widget_get_rounding(scroll_bg);
 			rp.segments		   = 16;
-			rp.rounding		   = style.scroll_rounding;
+			rp.rounding		   = editor_theme::get().scroll_rounding;
 		}
 
 		const id scroll = new_widget();
@@ -649,11 +597,11 @@ namespace SFG
 
 			widget_gfx& gfx = _builder->widget_get_gfx(scroll);
 			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_rounding;
-			gfx.color		= style.col_scroll_bar;
+			gfx.color		= editor_theme::get().col_scroll_bar;
 
 			rounding_props& rp = _builder->widget_get_rounding(scroll);
 			rp.segments		   = 16;
-			rp.rounding		   = style.scroll_rounding;
+			rp.rounding		   = editor_theme::get().scroll_rounding;
 
 			hover_callback& hb = _builder->widget_get_hover_callbacks(scroll);
 			hb.on_hover_begin  = on_hover_begin_hand_c;
@@ -684,17 +632,17 @@ namespace SFG
 
 			size_props& sz	 = _builder->widget_get_size_props(w);
 			sz.flags		 = size_flags::sf_x_max_children | size_flags::sf_y_total_children;
-			sz.child_margins = {style.inner_margin, style.inner_margin, 0.0f, 0.0f};
-			sz.spacing		 = style.item_spacing;
+			sz.child_margins = {editor_theme::get().inner_margin, editor_theme::get().inner_margin, 0.0f, 0.0f};
+			sz.spacing		 = editor_theme::get().item_spacing;
 
 			widget_gfx& gfx = _builder->widget_get_gfx(w);
 			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_stroke;
-			gfx.color		= style.col_area_bg;
+			gfx.color		= editor_theme::get().col_area_bg;
 			gfx.draw_order	= 1;
 
 			stroke_props& sp = _builder->widget_get_stroke(w);
-			sp.thickness	 = style.context_menu_outline_thickness;
-			sp.color		 = style.col_context_menu_outline;
+			sp.thickness	 = editor_theme::get().context_menu_outline_thickness;
+			sp.color		 = editor_theme::get().col_context_menu_outline;
 		}
 
 		return w;
@@ -710,10 +658,10 @@ namespace SFG
 
 			size_props& sz	 = _builder->widget_get_size_props(w);
 			sz.flags		 = size_flags::sf_x_abs | size_flags::sf_y_abs;
-			sz.size.y		 = style.item_height;
+			sz.size.y		 = editor_theme::get().item_height;
 			sz.size.x		 = 200;
-			sz.child_margins = {0.0f, 0.0f, style.inner_margin, style.inner_margin};
-			sz.spacing		 = style.row_spacing;
+			sz.child_margins = {0.0f, 0.0f, editor_theme::get().inner_margin, editor_theme::get().inner_margin};
+			sz.spacing		 = editor_theme::get().row_spacing;
 
 			widget_gfx& gfx = _builder->widget_get_gfx(w);
 			gfx.flags		= gfx_flags::gfx_is_rect;
@@ -735,7 +683,7 @@ namespace SFG
 		{
 			widget_gfx& gfx = _builder->widget_get_gfx(txt);
 			gfx.flags		= gfx_flags::gfx_is_text;
-			gfx.color		= style.col_text;
+			gfx.color		= editor_theme::get().col_text;
 			gfx.draw_order	= 3;
 
 			pos_props& pp = _builder->widget_get_pos_props(txt);
@@ -744,7 +692,7 @@ namespace SFG
 
 			text_props& tp = _builder->widget_get_text(txt);
 			tp.text		   = _txt_alloc->allocate(label);
-			tp.font		   = style.default_font;
+			tp.font		   = editor_theme::get().font_default;
 			_builder->widget_update_text(txt);
 		}
 
@@ -793,7 +741,7 @@ namespace SFG
 	{
 		const id row = add_property_row();
 
-		add_row_cell(style.property_cell_div);
+		add_row_cell(editor_theme::get().property_cell_div);
 		const id id0 = add_label(label);
 		pop_stack();
 
@@ -812,7 +760,7 @@ namespace SFG
 	{
 		const id row = add_property_row();
 
-		add_row_cell(style.property_cell_div);
+		add_row_cell(editor_theme::get().property_cell_div);
 		add_label(label);
 		pop_stack();
 
@@ -840,11 +788,11 @@ namespace SFG
 			size_props& sz = _builder->widget_get_size_props(w);
 			sz.flags	   = size_flags::sf_x_abs | size_flags::sf_y_relative;
 			sz.size.y	   = 1.0f;
-			sz.size.x	   = style.seperator_thickness;
+			sz.size.x	   = editor_theme::get().seperator_thickness;
 
 			widget_gfx& gfx = _builder->widget_get_gfx(w);
 			gfx.flags		= gfx_flags::gfx_is_rect;
-			gfx.color		= style.col_accent;
+			gfx.color		= editor_theme::get().col_accent;
 		}
 
 		return w;
@@ -861,13 +809,13 @@ namespace SFG
 			size_props& sz		   = _builder->widget_get_size_props(w);
 			sz.flags			   = size_flags::sf_x_relative | size_flags::sf_y_abs;
 			sz.size.x			   = 1.0f;
-			sz.size.y			   = style.row_height;
-			sz.spacing			   = style.row_spacing;
-			sz.child_margins.right = style.outer_margin;
+			sz.size.y			   = editor_theme::get().row_height;
+			sz.spacing			   = editor_theme::get().row_spacing;
+			sz.child_margins.right = editor_theme::get().outer_margin;
 
 			// widget_gfx& gfx = _builder->widget_get_gfx(w);
 			// gfx.flags		= gfx_flags::gfx_is_rect;
-			// gfx.color		= style.col_accent;
+			// gfx.color		= editor_theme::get().col_accent;
 		};
 		return w;
 	}
@@ -894,7 +842,7 @@ namespace SFG
 
 			// widget_gfx& gfx = _builder->widget_get_gfx(w);
 			// gfx.flags		= gfx_flags::gfx_is_rect;
-			// gfx.color		= style.col_accent;
+			// gfx.color		= editor_theme::get().col_accent;
 		}
 		return w;
 	}
@@ -912,7 +860,7 @@ namespace SFG
 			pp.pos.x	  = 0.0f;
 
 			size_props& sz = _builder->widget_get_size_props(w);
-			sz.spacing	   = style.item_spacing * 0.75f;
+			sz.spacing	   = editor_theme::get().item_spacing * 0.75f;
 			sz.flags	   = size_flags::sf_x_relative | size_flags::sf_y_total_children;
 			sz.size.x	   = 1.0f;
 		}
@@ -921,17 +869,17 @@ namespace SFG
 		{
 			widget_gfx& gfx = _builder->widget_get_gfx(line);
 			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_second_color;
-			gfx.color		= style.col_title_line_start;
+			gfx.color		= editor_theme::get().col_title_line_start;
 
 			second_color_props& sc = _builder->widget_get_second_color(line);
-			sc.color			   = style.col_title_line_end;
+			sc.color			   = editor_theme::get().col_title_line_end;
 
 			pos_props& pp = _builder->widget_get_pos_props(line);
 			pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_x_anchor_end;
 			pp.pos.x	  = 1.0f;
 
 			size_props& sz = _builder->widget_get_size_props(line);
-			sz.size		   = VEKT_VEC2(style.title_line_width, style.title_line_height);
+			sz.size		   = VEKT_VEC2(editor_theme::get().title_line_width, editor_theme::get().title_line_height);
 			sz.flags	   = size_flags::sf_x_relative | size_flags::sf_y_abs;
 		}
 
@@ -939,7 +887,7 @@ namespace SFG
 		{
 			widget_gfx& gfx = _builder->widget_get_gfx(txt);
 			gfx.flags		= gfx_flags::gfx_is_text;
-			gfx.color		= style.col_title;
+			gfx.color		= editor_theme::get().col_title;
 
 			pos_props& pp = _builder->widget_get_pos_props(txt);
 			pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_x_anchor_end;
@@ -947,7 +895,7 @@ namespace SFG
 
 			text_props& tp = _builder->widget_get_text(txt);
 			tp.text		   = _txt_alloc->allocate(title);
-			tp.font		   = style.title_font;
+			tp.font		   = editor_theme::get().font_title;
 			_builder->widget_update_text(txt);
 		}
 
@@ -962,7 +910,7 @@ namespace SFG
 
 		widget_gfx& gfx = _builder->widget_get_gfx(w);
 		gfx.flags		= gfx_flags::gfx_is_text;
-		gfx.color		= style.col_text;
+		gfx.color		= editor_theme::get().col_text;
 
 		pos_props& pp = _builder->widget_get_pos_props(w);
 		pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_y_relative | pos_flags::pf_y_anchor_center;
@@ -971,7 +919,7 @@ namespace SFG
 
 		text_props& tp = _builder->widget_get_text(w);
 		tp.text		   = _txt_alloc->allocate(label);
-		tp.font		   = style.default_font;
+		tp.font		   = editor_theme::get().font_default;
 		_builder->widget_update_text(w);
 
 		return w;
@@ -1001,7 +949,7 @@ namespace SFG
 		{
 			widget_gfx& gfx = _builder->widget_get_gfx(txt);
 			gfx.flags		= gfx_flags::gfx_is_text;
-			gfx.color		= style.col_hyperlink;
+			gfx.color		= editor_theme::get().col_hyperlink;
 
 			pos_props& pp = _builder->widget_get_pos_props(txt);
 			pp.flags	  = pos_flags::pf_x_relative;
@@ -1009,7 +957,7 @@ namespace SFG
 
 			text_props& tp = _builder->widget_get_text(txt);
 			tp.text		   = _txt_alloc->allocate(label);
-			tp.font		   = style.default_font;
+			tp.font		   = editor_theme::get().font_default;
 			_builder->widget_update_text(txt);
 		}
 
@@ -1017,7 +965,7 @@ namespace SFG
 		{
 			widget_gfx& gfx = _builder->widget_get_gfx(line);
 			gfx.flags		= gfx_flags::gfx_is_rect;
-			gfx.color		= style.col_hyperlink;
+			gfx.color		= editor_theme::get().col_hyperlink;
 
 			pos_props& pp = _builder->widget_get_pos_props(line);
 			pp.flags	  = pos_flags::pf_x_relative;
@@ -1044,24 +992,24 @@ namespace SFG
 
 			size_props& sz	 = _builder->widget_get_size_props(w);
 			sz.flags		 = size_flags::sf_x_max_children | size_flags::sf_y_abs;
-			sz.size.y		 = style.item_height;
-			sz.child_margins = {style.inner_margin, style.inner_margin, style.inner_margin, style.inner_margin};
+			sz.size.y		 = editor_theme::get().item_height;
+			sz.child_margins = {editor_theme::get().inner_margin, editor_theme::get().inner_margin, editor_theme::get().inner_margin, editor_theme::get().inner_margin};
 
 			widget_gfx& gfx = _builder->widget_get_gfx(w);
 			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_stroke | gfx_flags::gfx_has_rounding | gfx_flags::gfx_has_press_color | gfx_flags::gfx_has_hover_color;
-			gfx.color		= style.col_button;
+			gfx.color		= editor_theme::get().col_button;
 
 			stroke_props& st = _builder->widget_get_stroke(w);
-			st.thickness	 = style.frame_thickness;
-			st.color		 = style.col_frame_outline;
+			st.thickness	 = editor_theme::get().frame_thickness;
+			st.color		 = editor_theme::get().col_frame_outline;
 
 			rounding_props& rp = _builder->widget_get_rounding(w);
-			rp.rounding		   = style.frame_rounding;
+			rp.rounding		   = editor_theme::get().frame_rounding;
 			rp.segments		   = 8;
 
 			input_color_props& icp = _builder->widget_get_input_colors(w);
-			icp.pressed_color	   = style.col_accent_second_dim;
-			icp.hovered_color	   = style.col_accent_second;
+			icp.pressed_color	   = editor_theme::get().col_accent_second_dim;
+			icp.hovered_color	   = editor_theme::get().col_accent_second;
 
 			mouse_callback& mc = _builder->widget_get_mouse_callbacks(w);
 			mc.on_mouse		   = callbacks.on_mouse;
@@ -1152,24 +1100,24 @@ namespace SFG
 			size_props& sz	 = _builder->widget_get_size_props(w);
 			sz.flags		 = size_flags::sf_x_relative | size_flags::sf_y_abs;
 			sz.size.x		 = 1.0f;
-			sz.size.y		 = style.item_height;
-			sz.child_margins = {style.inner_margin, style.inner_margin, style.inner_margin, style.inner_margin};
+			sz.size.y		 = editor_theme::get().item_height;
+			sz.child_margins = {editor_theme::get().inner_margin, editor_theme::get().inner_margin, editor_theme::get().inner_margin, editor_theme::get().inner_margin};
 
 			widget_gfx& gfx = _builder->widget_get_gfx(w);
 			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_stroke | gfx_flags::gfx_has_rounding | gfx_flags::gfx_custom_pass | gfx_flags::gfx_focusable;
-			gfx.color		= style.col_frame_bg;
+			gfx.color		= editor_theme::get().col_frame_bg;
 
 			stroke_props& st = _builder->widget_get_stroke(w);
-			st.thickness	 = style.frame_thickness;
-			st.color		 = style.col_frame_outline;
+			st.thickness	 = editor_theme::get().frame_thickness;
+			st.color		 = editor_theme::get().col_frame_outline;
 
 			rounding_props& rp = _builder->widget_get_rounding(w);
-			rp.rounding		   = style.frame_rounding;
+			rp.rounding		   = editor_theme::get().frame_rounding;
 			rp.segments		   = 8;
 
 			input_color_props& icp = _builder->widget_get_input_colors(w);
-			icp.hovered_color	   = style.col_area_bg;
-			icp.focus_color		   = style.col_accent;
+			icp.hovered_color	   = editor_theme::get().col_area_bg;
+			icp.focus_color		   = editor_theme::get().col_accent;
 
 			mouse_callback& mc = _builder->widget_get_mouse_callbacks(w);
 			mc.on_mouse		   = on_text_field_mouse;

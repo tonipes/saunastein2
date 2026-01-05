@@ -43,15 +43,53 @@ namespace SFG
 		vekt::font* font_default = nullptr;
 		vekt::font* font_icons	 = nullptr;
 
-		float	default_indent	= 8.0f;
-		vector4 col_bg_frame	= vector4(3, 3, 3, 255) / 255.0f;
-		vector4 col_bg_child	= vector4(8, 8, 8, 255) / 255.0f;
-		vector4 col_bg_window	= vector4(16, 16, 16, 255) / 255.0f;
-		vector4 col_accent_prim = vector4(231, 63, 71, 255) / 255.0f;
-		vector4 col_accent_sec	= vector4(231, 63, 71, 255) / 255.0f;
-		vector4 color_axis_x	= vector4(204.0f, 51.0f, 51.0f, 255.0f) / 255.0f;
-		vector4 color_axis_y	= vector4(51.0f, 204.0f, 51.0f, 255.0f) / 255.0f;
-		vector4 color_axis_z	= vector4(51.0f, 51.0f, 204.0f, 255.0f) / 255.0f;
+		static float DPI_SCALE;
+
+		float root_rounding;
+		float root_spacing;
+		float outer_margin;
+		float item_spacing;
+		float row_spacing;
+		float title_line_width;
+		float title_line_height;
+		float item_height;
+		float row_height;
+		float table_cell_height;
+		float property_cell_div;
+		float seperator_thickness;
+		float area_rounding;
+		float scroll_thickness;
+		float scroll_rounding;
+		float inner_margin;
+		float frame_thickness;
+		float frame_rounding;
+		float context_menu_outline_thickness;
+
+		vector4 col_title_line_start;
+		vector4 col_title_line_end;
+		vector4 col_hyperlink;
+		vector4 col_accent;
+		vector4 col_accent_second;
+		vector4 col_accent_second_dim;
+		vector4 col_highlight;
+		vector4 col_highlight_transparent;
+		vector4 col_scroll_bar;
+		vector4 col_scroll_bar_bg;
+		vector4 col_title;
+		vector4 col_text;
+		vector4 col_text_dim;
+		vector4 col_frame_bg;
+		vector4 col_area_bg;
+		vector4 col_root;
+		vector4 col_button;
+		vector4 col_button_hover;
+		vector4 col_button_press;
+		vector4 col_frame_outline;
+		vector4 col_context_menu_outline;
+
+		vector4 color_axis_x = vector4(204.0f, 51.0f, 51.0f, 255.0f) / 255.0f;
+		vector4 color_axis_y = vector4(51.0f, 204.0f, 51.0f, 255.0f) / 255.0f;
+		vector4 color_axis_z = vector4(51.0f, 51.0f, 204.0f, 255.0f) / 255.0f;
 
 		static editor_theme& get()
 		{
@@ -60,6 +98,7 @@ namespace SFG
 		}
 
 		void init(const char* base_directory);
+		void init_defaults();
 		bool load(const char* path);
 		bool save(const char* path);
 

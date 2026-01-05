@@ -27,32 +27,78 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "editor_theme.hpp"
 #include "io/file_system.hpp"
 #include "io/log.hpp"
+#include "math/color.hpp"
 #include <vendor/nhlohmann/json.hpp>
 #include <fstream>
 using json = nlohmann::json;
 
 namespace SFG
 {
+	float editor_theme::DPI_SCALE = 1.0f;
+
 	void to_json(nlohmann::json& j, const editor_theme& t)
 	{
-		j["default_indent"]	 = t.default_indent;
-		j["col_bg_frame"]	 = t.col_bg_frame;
-		j["col_bg_child"]	 = t.col_bg_child;
-		j["col_bg_window"]	 = t.col_bg_window;
-		j["col_accent_prim"] = t.col_accent_prim;
-		j["col_accent_sec"]	 = t.col_accent_sec;
+		// j["default_indent"]	 = t.default_indent;
 	}
 
 	void from_json(const nlohmann::json& j, editor_theme& s)
 	{
-		s.default_indent  = j.value<float>("default_indent", 0.0f);
-		s.col_bg_frame	  = j.value<vector4>("col_bg_frame", vector4::zero);
-		s.col_bg_child	  = j.value<vector4>("col_bg_child", vector4::zero);
-		s.col_bg_window	  = j.value<vector4>("col_bg_window", vector4::zero);
-		s.col_accent_prim = j.value<vector4>("col_accent_prim", vector4::zero);
-		s.col_accent_sec  = j.value<vector4>("col_accent_sec", vector4::zero);
+		//s.default_indent  = j.value<float>("default_indent", 0.0f);
+	
 	}
 
+	void editor_theme::init_defaults()
+	{
+		col_accent			  = color::from255(151.0f, 0.0f, 119.0f, 255.0f).srgb_to_linear().to_vector();
+		col_accent_second	  = color::from255(7, 131, 214, 255.0f).srgb_to_linear().to_vector();
+		col_accent_second_dim = color::from255(7, 131, 214, 150.0f).srgb_to_linear().to_vector();
+		col_title_line_start  = color::from255(91.0f, 0.0f, 72.0f, 0.0f).srgb_to_linear().to_vector();
+		col_title_line_end	  = color::from255(151.0f, 0.0f, 119.0f, 255.0f).srgb_to_linear().to_vector();
+		col_hyperlink		  = color::from255(7, 131, 214, 255.0f).srgb_to_linear().to_vector();
+
+		col_highlight				= col_accent_second;
+		col_highlight_transparent	= col_accent_second;
+		col_highlight_transparent.w = 0.5f;
+
+		col_title	 = color::from255(180, 180, 180, 255).srgb_to_linear().to_vector();
+		col_text	 = color::from255(180, 180, 180, 255).srgb_to_linear().to_vector();
+		col_text_dim = color::from255(130, 130, 130, 255).srgb_to_linear().to_vector();
+		col_frame_bg = color::from255(4, 4, 4, 255).srgb_to_linear().to_vector();
+		col_area_bg	 = color::from255(15, 15, 15, 255).srgb_to_linear().to_vector();
+		col_root	 = color::from255(28, 28, 28, 255).srgb_to_linear().to_vector();
+
+		col_scroll_bar			 = col_accent;
+		col_scroll_bar_bg		 = col_frame_bg;
+		col_button				 = col_root;
+		col_button_hover		 = col_area_bg;
+		col_button_press		 = col_frame_bg;
+		col_frame_outline		 = color::from255(60, 60, 60, 255).srgb_to_linear().to_vector();
+		col_context_menu_outline = color::from255(60, 60, 60, 255).srgb_to_linear().to_vector();
+
+		root_rounding = 6.0f;
+
+		outer_margin	  = DPI_SCALE * 8;
+		item_spacing	  = DPI_SCALE * 3;
+		root_spacing	  = DPI_SCALE * 6;
+		row_spacing		  = DPI_SCALE * 6;
+		row_height		  = DPI_SCALE * 20;
+		title_line_width  = 0.8f;
+		title_line_height = DPI_SCALE * 2;
+
+		item_height			= DPI_SCALE * 16;
+		table_cell_height	= DPI_SCALE * 10;
+		seperator_thickness = DPI_SCALE * 1;
+		property_cell_div	= 0.3f;
+
+		area_rounding	 = 8.0f;
+		scroll_thickness = DPI_SCALE * 4;
+		scroll_rounding	 = 8.0f;
+
+		inner_margin				   = DPI_SCALE * 4;
+		frame_thickness				   = DPI_SCALE * 1;
+		frame_rounding				   = 2.0f;
+		context_menu_outline_thickness = DPI_SCALE * 1.2f;
+	}
 	void editor_theme::init(const char* base_directory)
 	{
 		const string last_path = string(base_directory) + "editor_theme.stksettings";
@@ -63,7 +109,7 @@ namespace SFG
 		}
 		else
 		{
-			// init defaults
+			init_defaults();
 			save(last_path.c_str());
 		}
 		_last_path = last_path;

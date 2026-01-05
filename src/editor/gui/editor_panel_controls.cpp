@@ -47,9 +47,7 @@ namespace SFG
 		_builder = builder;
 
 		// gui builder
-		_gui_builder.style.init_defaults();
-		_gui_builder.style.title_font	= editor_theme::get().font_title;
-		_gui_builder.style.default_font = editor_theme::get().font_default;
+		// gui_builder now uses editor_theme directly for styles and fonts.
 
 		_gui_builder.init(builder, &editor::get().get_text_allocator());
 		_gui_builder.callbacks.on_mouse	 = on_mouse;

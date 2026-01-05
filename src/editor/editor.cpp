@@ -52,7 +52,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // gui
 #include "gui/vekt.hpp"
-#include "gui/gui_builder.hpp"
+#include "editor/gui/editor_gui_controller.hpp"
 
 // misc
 #include "serialization/serialization.hpp"
@@ -128,8 +128,8 @@ namespace SFG
 
 		_renderer.init(_app.get_main_window(), _app.get_renderer().get_texture_queue(), VTX_SZ, IDX_SZ);
 
-		const float dpi_scale					  = _app.get_main_window().get_monitor_info().dpi_scale;
-		gui_builder::gui_builder_style::DPI_SCALE = dpi_scale;
+		const float dpi_scale	= _app.get_main_window().get_monitor_info().dpi_scale;
+		editor_theme::DPI_SCALE = dpi_scale;
 
 		const string default_font_str = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/VT323-Regular.ttf");
 		const string title_font_str	  = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/VT323-Regular.ttf");
@@ -188,20 +188,12 @@ namespace SFG
 		_bump_text_allocator.init(1024 * 512);
 		_text_allocator.init(1024 * 1024);
 
-		_gui_world_overlays.init(_builder);
-		_panel_controls.init(_builder);
-		_panel_entities.init(_builder);
-		_panel_properties.init();
-		_panel_world_view.init();
-		_panels_docking.init();
+		_gui_controller.init(_builder);
 	}
 
 	void editor::uninit()
 	{
-		_panel_controls.uninit();
-		_panel_entities.uninit();
-		_panel_world_view.uninit();
-		_panels_docking.uninit();
+		_gui_controller.uninit();
 
 		_bump_text_allocator.uninit();
 		_text_allocator.uninit();
@@ -247,9 +239,7 @@ namespace SFG
 
 		world&			   w  = _app.get_world();
 		const vector2ui16& ws = _app.get_main_window().get_size();
-		vector2ui16		   world_res;
-		if (_panel_world_view.consume_committed_size(world_res))
-			_app.set_game_resolution(world_res);
+		// gui controller handles world view commit
 
 		// _renderer.draw_begin();
 		// _panels_docking.draw(ws);
@@ -261,8 +251,7 @@ namespace SFG
 
 		_bump_text_allocator.reset();
 
-		_panel_controls.draw(ws);
-		_panel_entities.draw(w, ws);
+		_gui_controller.tick(w, ws);
 		_builder->build_begin(vector2(ws.x, ws.y));
 		_builder->build_end();
 
@@ -362,7 +351,7 @@ namespace SFG
 		if (ext.compare("stkworld") == 0)
 		{
 			load_level(relative.c_str());
-			_panel_entities.set_tree_dirty();
+			_gui_controller.set_entities_tree_dirty();
 			return;
 		}
 
@@ -389,8 +378,7 @@ namespace SFG
 			const world_handle	 inst	= cm.add_component<comp_model_instance>(entity);
 			comp_model_instance& mi		= cm.get_component<comp_model_instance>(inst);
 			mi.instantiate_model_to_world(w, handle);
-			set_selected_entity(entity);
-			_panel_entities.set_tree_dirty();
+			_gui_controller.set_entities_tree_dirty();
 
 			return;
 		}

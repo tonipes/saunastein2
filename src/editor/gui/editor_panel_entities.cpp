@@ -49,9 +49,7 @@ namespace SFG
 	{
 		_builder = b;
 
-		_gui_builder.style.init_defaults();
-		_gui_builder.style.title_font	= editor_theme::get().font_title;
-		_gui_builder.style.default_font = editor_theme::get().font_default;
+		// gui_builder now uses editor_theme directly for styles and fonts.
 		_gui_builder.init(b, &editor::get().get_text_allocator());
 
 		_gui_builder.callbacks.user_data = this;
@@ -100,7 +98,7 @@ namespace SFG
 			_tree_dirty = false;
 		}
 
-		const world_handle	 selected = editor::get().get_selected_entity();
+		const world_handle	 selected = editor::get().get_gui_controller().get_selected_entity();
 		bump_text_allocator& alloc	  = editor::get().get_bump_text_allocator();
 		entity_manager&		 em		  = w.get_entity_manager();
 
@@ -191,7 +189,7 @@ namespace SFG
 	{
 		entity_manager& em			 = w.get_entity_manager();
 		const bool		is_collapsed = _entity_meta[e.index].collapsed == 1;
-		const bool		selected	 = editor::get().get_selected_entity() == e;
+		const bool		selected	 = editor::get().get_gui_controller().get_selected_entity() == e;
 
 		static uint8 color_alt = 0;
 		color_alt			   = (color_alt + 1) % 2;
@@ -208,10 +206,10 @@ namespace SFG
 			vekt::size_props& sz   = _builder->widget_get_size_props(row);
 			sz.flags			   = vekt::size_flags::sf_x_relative | vekt::size_flags::sf_y_abs;
 			sz.size.x			   = 1.0f;
-			sz.size.y			   = _gui_builder.style.row_height;
-			sz.child_margins	   = {0.0f, 0.0f, 0.0f, _gui_builder.style.inner_margin};
-			sz.child_margins.left  = _gui_builder.style.outer_margin;
-			sz.child_margins.right = _gui_builder.style.outer_margin;
+			sz.size.y			   = editor_theme::get().row_height;
+			sz.child_margins	   = {0.0f, 0.0f, 0.0f, editor_theme::get().inner_margin};
+			sz.child_margins.left  = editor_theme::get().outer_margin;
+			sz.child_margins.right = editor_theme::get().outer_margin;
 		}
 
 		// Row container
@@ -228,15 +226,15 @@ namespace SFG
 			sz.flags			 = vekt::size_flags::sf_x_relative | vekt::size_flags::sf_y_relative;
 			sz.size.x			 = 1.0f;
 			sz.size.y			 = 1.0f;
-			sz.child_margins	 = {0.0f, 0.0f, (depth + 1) * _gui_builder.style.outer_margin, _gui_builder.style.inner_margin};
-			sz.spacing			 = _gui_builder.style.item_spacing;
+			sz.child_margins	 = {0.0f, 0.0f, (depth + 1) * editor_theme::get().outer_margin, editor_theme::get().inner_margin};
+			sz.spacing			 = editor_theme::get().item_spacing;
 
 			vekt::widget_gfx& gfx = _builder->widget_get_gfx(row_inner);
 			gfx.flags			  = vekt::gfx_flags::gfx_is_rect | vekt::gfx_flags::gfx_has_rounding;
-			gfx.color			  = selected ? _gui_builder.style.col_accent_second_dim : (vector4());
+			gfx.color			  = selected ? editor_theme::get().col_accent_second_dim : (vector4());
 
 			vekt::rounding_props& rp = _builder->widget_get_rounding(row_inner);
-			rp.rounding				 = _gui_builder.style.frame_rounding;
+			rp.rounding				 = editor_theme::get().frame_rounding;
 			rp.segments				 = 12;
 
 			vekt::hover_callback& hb = _builder->widget_get_hover_callbacks(row_inner);
@@ -255,7 +253,7 @@ namespace SFG
 
 			vekt::widget_gfx& gfx = _builder->widget_get_gfx(icon);
 			gfx.flags			  = vekt::gfx_flags::gfx_is_text;
-			gfx.color			  = _gui_builder.style.col_text;
+			gfx.color			  = editor_theme::get().col_text;
 
 			vekt::pos_props& pp = _builder->widget_get_pos_props(icon);
 			pp.flags			= vekt::pos_flags::pf_y_relative | vekt::pos_flags::pf_y_anchor_center;
@@ -274,7 +272,7 @@ namespace SFG
 
 			vekt::widget_gfx& gfx = _builder->widget_get_gfx(txt);
 			gfx.flags			  = vekt::gfx_flags::gfx_is_text;
-			gfx.color			  = _gui_builder.style.col_text;
+			gfx.color			  = editor_theme::get().col_text;
 
 			vekt::pos_props& pp = _builder->widget_get_pos_props(txt);
 			pp.flags			= vekt::pos_flags::pf_y_relative | vekt::pos_flags::pf_y_anchor_center;
@@ -282,7 +280,7 @@ namespace SFG
 
 			vekt::text_props& tp = _builder->widget_get_text(txt);
 			tp.text				 = em.get_entity_meta(e).name;
-			tp.font				 = _gui_builder.style.default_font;
+			tp.font				 = editor_theme::get().font_default;
 			_builder->widget_update_text(txt);
 		}
 
@@ -331,11 +329,10 @@ namespace SFG
 		// context
 		if (ev.button == static_cast<uint16>(input_code::mouse_1) && ev.type == vekt::input_event_type::pressed)
 		{
-			self->_gui_builder.begin_context_menu(ev.position.x, ev.position.y);
-			 self->_gui_builder.add_context_menu_item("test");
-			 self->_gui_builder.add_context_menu_item("test2");
-			 self->_gui_builder.add_context_menu_item("hehehehehe");
-			self->_gui_builder.end_context_menu();
+			editor::get().get_gui_controller().begin_context_menu(ev.position.x, ev.position.y);
+			editor::get().get_gui_controller().add_context_menu_item("test");
+			editor::get().get_gui_controller().add_context_menu_item("test2");
+			editor::get().get_gui_controller().end_context_menu();
 			// self->open_context_menu(ev.position.x, ev.position.y, clicked);
 			return vekt::input_event_result::handled;
 		}
@@ -350,7 +347,7 @@ namespace SFG
 		if (ev.button == static_cast<uint16>(input_code::mouse_0) && ev.type == vekt::input_event_type::pressed)
 		{
 			// deselect previous
-			const world_handle existing = editor::get().get_selected_entity();
+			const world_handle existing = editor::get().get_gui_controller().get_selected_entity();
 			if (!existing.is_null())
 			{
 				auto it = std::find_if(self->_node_bindings.begin(), self->_node_bindings.end(), [existing](const node_binding& nb) -> bool { return existing == nb.handle; });
@@ -362,12 +359,12 @@ namespace SFG
 			}
 
 			// select new
-			editor::get().set_selected_entity(clicked);
+			editor::get().get_gui_controller().set_selected_entity(clicked);
 			auto it = std::find_if(self->_node_bindings.begin(), self->_node_bindings.end(), [clicked](const node_binding& nb) -> bool { return clicked == nb.handle; });
 			if (it != self->_node_bindings.end())
 			{
 				vekt::widget_gfx& gfx = b->widget_get_gfx(it->widget);
-				gfx.color			  = self->_gui_builder.style.col_accent_second_dim;
+					gfx.color			  = editor_theme::get().col_accent_second_dim;
 			}
 
 			self->_is_dragging = true;

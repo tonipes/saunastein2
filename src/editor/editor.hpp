@@ -37,12 +37,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // gui
 #include "gui/vekt_defines.hpp"
-#include "editor/gui/editor_panel_controls.hpp"
-#include "editor/gui/editor_panel_properties.hpp"
-#include "editor/gui/editor_panel_entities.hpp"
-#include "editor/gui/editor_gui_world_overlays.hpp"
-#include "editor/gui/editor_panels_docking.hpp"
-#include "editor/gui/editor_panels_world_view.hpp"
+#include "editor/gui/editor_gui_controller.hpp"
 
 namespace vekt
 {
@@ -119,14 +114,9 @@ namespace SFG
 			return _renderer;
 		}
 
-		inline void set_selected_entity(world_handle e)
+		inline editor_gui_controller& get_gui_controller()
 		{
-			_selected_entity = e;
-		}
-
-		inline world_handle get_selected_entity() const
-		{
-			return _selected_entity;
+			return _gui_controller;
 		}
 
 		inline gpu_index get_render_output(uint8 frame) const
@@ -154,11 +144,6 @@ namespace SFG
 			return _text_allocator;
 		}
 
-		inline editor_panel_entities& get_panel_entities()
-		{
-			return _panel_entities;
-		}
-
 	private:
 		app&		 _app;
 		world_handle _camera_entity	  = {};
@@ -174,25 +159,18 @@ namespace SFG
 		editor_renderer _renderer = {};
 
 		// gui
-		bump_text_allocator _bump_text_allocator = {};
-		text_allocator		_text_allocator		 = {};
-
-		editor_panel_controls	  _panel_controls	  = {};
-		editor_panel_entities	  _panel_entities	  = {};
-		editor_panel_properties	  _panel_properties	  = {};
-		editor_panels_world_view  _panel_world_view	  = {};
-		editor_panels_docking	  _panels_docking	  = {};
-		editor_gui_world_overlays _gui_world_overlays = {};
+		bump_text_allocator	  _bump_text_allocator = {};
+		text_allocator		  _text_allocator	   = {};
+		editor_gui_controller _gui_controller	   = {};
 
 		// vekt
-		vekt::builder*		_builder		 = nullptr;
-		vekt::font_manager* _font_manager	 = nullptr;
-		vekt::font*			_font_main		 = nullptr;
-		vekt::font*			_font_title		 = nullptr;
-		vekt::font*			_font_icons		 = nullptr;
-		world_handle		_selected_entity = {};
+		vekt::builder*		_builder	  = nullptr;
+		vekt::font_manager* _font_manager = nullptr;
+		vekt::font*			_font_main	  = nullptr;
+		vekt::font*			_font_title	  = nullptr;
+		vekt::font*			_font_icons	  = nullptr;
 		atomic<uint32>		_world_rt_gpu_index{0};
 
-		static editor*	 s_instance;
+		static editor* s_instance;
 	};
 }
