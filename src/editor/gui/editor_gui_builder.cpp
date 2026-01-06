@@ -526,6 +526,7 @@ namespace SFG
 		{
 			_txt_alloc->deallocate(tf.buffer);
 		}
+
 		_text_fields.resize(0);
 		_builder->deallocate(_root);
 		_root = NULL_WIDGET_ID;
@@ -1090,14 +1091,7 @@ namespace SFG
 		_builder->widget_update_text(tf.text_widget);
 	}
 
-	void gui_builder::set_text_field_text(vekt::id id, const char* text)
-	{
-		auto it = vector_util::find_if(_text_fields, [id](const gui_text_field& tf) -> bool { return tf.widget == id; });
-		SFG_ASSERT(it != _text_fields.end());
-		set_text_field_text(*it, text);
-	}
-
-	void gui_builder::set_text_field_text(vekt::id id, float f, bool skip_if_focused)
+	void gui_builder::set_text_field_text(vekt::id id, const char* text, bool skip_if_focused)
 	{
 		auto it = vector_util::find_if(_text_fields, [id](const gui_text_field& tf) -> bool { return tf.widget == id; });
 		SFG_ASSERT(it != _text_fields.end());
@@ -1105,8 +1099,21 @@ namespace SFG
 		if (skip_if_focused && _builder->widget_get_hover_callbacks(it->widget).is_focused)
 			return;
 
+		set_text_field_text(*it, text);
+	}
+
+	void gui_builder::set_text_field_value(vekt::id id, float f, bool skip_if_focused)
+	{
+		auto it = vector_util::find_if(_text_fields, [id](const gui_text_field& tf) -> bool { return tf.widget == id; });
+		SFG_ASSERT(it != _text_fields.end());
+
+		if (skip_if_focused && _builder->widget_get_hover_callbacks(it->widget).is_focused)
+			return;
+
+		it->value = f;
+
 		char* cur = (char*)it->buffer;
-		char_util::append_double(cur, cur + it->buffer_capacity, cur, f, 3.0f);
+		char_util::append_double(cur, cur + it->buffer_capacity, f, 3.0f);
 		size_t diff		= cur - it->buffer;
 		it->buffer_size = static_cast<unsigned int>(diff);
 	}

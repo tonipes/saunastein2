@@ -52,10 +52,17 @@ namespace SFG
 			_tree_dirty = true;
 		}
 
+		inline void payload_disabled()
+		{
+			_is_payload_on	 = 0;
+		}
+
 	private:
 		static void						on_input_field_changed(void* callback_ud, vekt::builder* b, vekt::id id, const char* txt, float value);
 		static vekt::input_event_result on_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase);
 		static void						on_drag(vekt::builder* b, vekt::id widget, float mp_x, float mp_y, float delta_x, float delta_y, unsigned int button);
+		static void						on_tree_item_hover_begin(vekt::builder* b, vekt::id widget);
+		static void						on_tree_item_hover_end(vekt::builder* b, vekt::id widget);
 
 		void rebuild_tree(class world& w);
 		void build_entity_node(class world& w, world_handle e, unsigned int depth);
@@ -103,7 +110,11 @@ namespace SFG
 		const char* _text_icon_dd_collapsed = nullptr;
 		bool		_tree_dirty				= true;
 
-		bool		 _is_dragging	  = false;
+		vekt::id _drag_src_widget = 0;
+		bool	 _is_dragging	  = false;
+		bool	 _is_payload_on	  = false;
+		float	 _drag_y		  = 0.0f;
+
 		world_handle _drag_source	  = {};
 		world_handle _selected_entity = {};
 	};

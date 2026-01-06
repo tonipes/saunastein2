@@ -16,13 +16,17 @@ See root license for details.
 #include "editor/editor.hpp"
 #include "editor/editor_theme.hpp"
 
+#include "data/char_util.hpp"
 #include "common/system_info.hpp"
 #include "app/app.hpp"
+#include "platform/window.hpp"
 
 #include "gui/vekt.hpp"
 
 namespace SFG
 {
+#define MAX_PAYLOAD_SIZE 128
+
 	void editor_gui_controller::init(vekt::builder* b)
 	{
 		_builder = b;
@@ -41,10 +45,50 @@ namespace SFG
 		_panel_properties->init();
 		_panel_world_view->init();
 		_panels_docking->init();
+
+		_payload = _builder->allocate();
+		{
+			vekt::pos_props& pp = _builder->widget_get_pos_props(_payload);
+			pp.flags			= vekt::pos_flags::pf_x_abs | vekt::pos_flags::pf_y_abs;
+
+			vekt::size_props& sz = _builder->widget_get_size_props(_payload);
+			sz.flags			 = vekt::size_flags::sf_x_max_children | vekt::size_flags::sf_y_abs;
+			sz.size.y			 = editor_theme::get().item_height;
+			sz.child_margins	 = {0.0f, 0.0f, editor_theme::get().outer_margin, editor_theme::get().outer_margin};
+
+			vekt::widget_gfx& gfx = _builder->widget_get_gfx(_payload);
+			gfx.flags			  = vekt::gfx_flags::gfx_is_rect | vekt::gfx_flags::gfx_has_stroke;
+			gfx.color			  = editor_theme::get().col_area_bg;
+
+			vekt::stroke_props& sp = _builder->widget_get_stroke(_payload);
+			sp.color			   = editor_theme::get().col_frame_outline;
+			sp.thickness		   = editor_theme::get().frame_thickness;
+		}
+
+		_payload_text = _builder->allocate();
+		{
+			vekt::pos_props& pp = _builder->widget_get_pos_props(_payload_text);
+			pp.flags			= vekt::pos_flags::pf_x_relative | vekt::pos_flags::pf_y_relative | vekt::pos_flags::pf_y_anchor_center;
+			pp.pos.x			= 0.0f;
+			pp.pos.y			= 0.5f;
+
+			vekt::text_props& tp = _builder->widget_get_text(_payload_text);
+			tp.font				 = editor_theme::get().font_default;
+			tp.text				 = editor::get().get_text_allocator().allocate(MAX_PAYLOAD_SIZE);
+			_builder->widget_update_text(_payload_text);
+		}
+
+		_builder->widget_add_child(_builder->get_root(), _payload);
+		_builder->widget_add_child(_payload, _payload_text);
+		_builder->widget_set_visible(_payload, false);
 	}
 
 	void editor_gui_controller::uninit()
 	{
+		editor::get().get_text_allocator().deallocate(_builder->widget_get_text(_payload_text).text);
+		_builder->deallocate(_payload);
+		_payload = _payload_text = NULL_WIDGET_ID;
+
 		_panel_controls->uninit();
 		delete _panel_controls;
 		_panel_controls = nullptr;
@@ -75,6 +119,11 @@ namespace SFG
 		if (_panel_world_view->consume_committed_size(world_res))
 			editor::get().get_app().set_game_resolution(world_res);
 
+		if (_payload_active)
+		{
+			const vector2i16 mp = editor::get().get_app().get_main_window().get_mouse_position();
+			_builder->widget_set_pos_abs(_payload, vector2(mp.x + 20, mp.y + 20));
+		}
 		_panel_controls->draw(window_size);
 		_panel_entities->draw(w, window_size);
 	}
@@ -167,6 +216,23 @@ namespace SFG
 		_ctx_frame	= frame_info::get_frame();
 	}
 
+	void editor_gui_controller::enable_payload(const char* text)
+	{
+		SFG_ASSERT(strlen(text) < MAX_PAYLOAD_SIZE);
+		vekt::text_props& tp  = _builder->widget_get_text(_payload_text);
+		char*			  cur = (char*)tp.text;
+		char_util::append(cur, cur + MAX_PAYLOAD_SIZE, text);
+		_builder->widget_update_text(_payload_text);
+		_builder->widget_set_visible(_payload, true);
+		_payload_active = 1;
+	}
+
+	void editor_gui_controller::disable_payload()
+	{
+		_builder->widget_set_visible(_payload, false);
+		_payload_active = 0;
+	}
+
 	void editor_gui_controller::on_context_item_hover_begin(vekt::builder* b, vekt::id widget)
 	{
 		b->widget_get_gfx(widget).color = editor_theme::get().col_highlight_transparent;
@@ -181,8 +247,19 @@ namespace SFG
 		if (_panel_entities)
 			_panel_entities->set_tree_dirty();
 	}
+
 	void editor_gui_controller::on_mouse_event(const window_event& ev)
 	{
+		if (ev.sub_type == window_event_sub_type::release)
+		{
+			if (_payload_active)
+			{
+				_panel_entities->payload_disabled();
+				disable_payload();
+				return;
+			}
+		}
+
 		if (_ctx_active == NULL_WIDGET_ID)
 			return;
 

@@ -32,6 +32,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "world/world.hpp"
 #include "world/entity_manager.hpp"
 
+#include "math/math.hpp"
 #include "math/vector2ui16.hpp"
 #include "editor/editor.hpp"
 #include "gui/vekt.hpp"
@@ -67,8 +68,8 @@ namespace SFG
 		// Properties section
 		_gui_builder.add_title("properties");
 		_gui_builder.begin_area(true);
-		_prop_name						 = _gui_builder.add_property_row_label("name:", "").second;
-		_prop_handle					 = _gui_builder.add_property_row_label("handle:", "").second;
+		_prop_name						 = _gui_builder.add_property_row_text_field("name", "-", 256).first;
+		_prop_handle					 = _gui_builder.add_property_row_label("handle:", nullptr).second;
 		const gui_builder::id_trip pos	 = _gui_builder.add_property_row_vector3("position", "0.0", 100, 3, 0.1f);
 		const gui_builder::id_trip rot	 = _gui_builder.add_property_row_vector3("rotation", "0.0", 100, 3, 0.1f);
 		const gui_builder::id_trip scale = _gui_builder.add_property_row_vector3("scale", "1.0", 100, 3, 0.1f);
@@ -118,9 +119,8 @@ namespace SFG
 		bump_text_allocator& alloc	  = editor::get().get_bump_text_allocator();
 		entity_manager&		 em		  = w.get_entity_manager();
 
-		const char* name_txt					   = selected.is_null() ? "-" : em.get_entity_meta(selected).name;
-		_builder->widget_get_text(_prop_name).text = name_txt;
-		_builder->widget_update_text(_prop_name);
+		const char* name_txt = selected.is_null() ? "-" : em.get_entity_meta(selected).name;
+		_gui_builder.set_text_field_text(_prop_name, name_txt, true);
 
 		// Handle
 		{
@@ -146,15 +146,15 @@ namespace SFG
 		{
 			if (selected.is_null())
 			{
-				_gui_builder.set_text_field_text(_selected_pos_x, "0.0");
-				_gui_builder.set_text_field_text(_selected_pos_y, "0.0");
-				_gui_builder.set_text_field_text(_selected_pos_z, "0.0");
-				_gui_builder.set_text_field_text(_selected_rot_x, "0.0");
-				_gui_builder.set_text_field_text(_selected_rot_y, "0.0");
-				_gui_builder.set_text_field_text(_selected_rot_z, "0.0");
-				_gui_builder.set_text_field_text(_selected_scale_x, "0.0");
-				_gui_builder.set_text_field_text(_selected_scale_y, "0.0");
-				_gui_builder.set_text_field_text(_selected_scale_z, "0.0");
+				_gui_builder.set_text_field_value(_selected_pos_x, 0.0f, true);
+				_gui_builder.set_text_field_value(_selected_pos_y, 0.0f, true);
+				_gui_builder.set_text_field_value(_selected_pos_z, 0.0f, true);
+				_gui_builder.set_text_field_value(_selected_rot_x, 0.0f, true);
+				_gui_builder.set_text_field_value(_selected_rot_y, 0.0f, true);
+				_gui_builder.set_text_field_value(_selected_rot_z, 0.0f, true);
+				_gui_builder.set_text_field_value(_selected_scale_x, 0.0f, true);
+				_gui_builder.set_text_field_value(_selected_scale_y, 0.0f, true);
+				_gui_builder.set_text_field_value(_selected_scale_z, 0.0f, true);
 			}
 			else
 			{
@@ -163,15 +163,15 @@ namespace SFG
 				const quat&		rot	  = em.get_entity_rotation(selected);
 				const vector3&	scale = em.get_entity_scale(selected);
 				const vector3&	eul	  = quat::to_euler(rot);
-				_gui_builder.set_text_field_text(_selected_pos_x, pos.x, true);
-				_gui_builder.set_text_field_text(_selected_pos_y, pos.y, true);
-				_gui_builder.set_text_field_text(_selected_pos_z, pos.z, true);
-				_gui_builder.set_text_field_text(_selected_rot_x, eul.x, true);
-				_gui_builder.set_text_field_text(_selected_rot_y, eul.y, true);
-				_gui_builder.set_text_field_text(_selected_rot_z, eul.z, true);
-				_gui_builder.set_text_field_text(_selected_scale_x, scale.x, true);
-				_gui_builder.set_text_field_text(_selected_scale_y, scale.y, true);
-				_gui_builder.set_text_field_text(_selected_scale_z, scale.z, true);
+				_gui_builder.set_text_field_value(_selected_pos_x, pos.x, true);
+				_gui_builder.set_text_field_value(_selected_pos_y, pos.y, true);
+				_gui_builder.set_text_field_value(_selected_pos_z, pos.z, true);
+				_gui_builder.set_text_field_value(_selected_rot_x, eul.x, true);
+				_gui_builder.set_text_field_value(_selected_rot_y, eul.y, true);
+				_gui_builder.set_text_field_value(_selected_rot_z, eul.z, true);
+				_gui_builder.set_text_field_value(_selected_scale_x, scale.x, true);
+				_gui_builder.set_text_field_value(_selected_scale_y, scale.y, true);
+				_gui_builder.set_text_field_value(_selected_scale_z, scale.z, true);
 			}
 		}
 	}
@@ -245,15 +245,21 @@ namespace SFG
 			sz.spacing			 = editor_theme::get().item_spacing;
 
 			vekt::widget_gfx& gfx = _builder->widget_get_gfx(row_inner);
-			gfx.flags			  = vekt::gfx_flags::gfx_is_rect | vekt::gfx_flags::gfx_has_rounding;
+			gfx.flags			  = vekt::gfx_flags::gfx_is_rect | vekt::gfx_flags::gfx_has_rounding | vekt::gfx_flags::gfx_has_stroke;
 			gfx.color			  = selected ? editor_theme::get().col_accent_second_dim : (vector4());
+
+			vekt::stroke_props& sp = _builder->widget_get_stroke(row_inner);
+			sp.thickness		   = editor_theme::get().frame_thickness;
+			sp.color			   = {0.0f, 0.0f, 0.0f, 0.0f};
 
 			vekt::rounding_props& rp = _builder->widget_get_rounding(row_inner);
 			rp.rounding				 = editor_theme::get().frame_rounding;
 			rp.segments				 = 12;
 
 			vekt::hover_callback& hb = _builder->widget_get_hover_callbacks(row_inner);
-			hb.receive_mouse		 = 17;
+			hb.receive_mouse		 = 1;
+			hb.on_hover_begin		 = on_tree_item_hover_begin;
+			hb.on_hover_end			 = on_tree_item_hover_end;
 
 			vekt::mouse_callback& mc = _builder->widget_get_mouse_callbacks(row_inner);
 			mc.on_mouse				 = on_mouse;
@@ -374,7 +380,12 @@ namespace SFG
 		const vector3& scale = em.get_entity_scale(self->_selected_entity);
 		const vector3& eul	 = quat::to_euler(rot);
 
-		if (widget == self->_selected_pos_x)
+		if (widget == self->_prop_name)
+		{
+			em.set_entity_name(self->_selected_entity, txt);
+			self->set_tree_dirty();
+		}
+		else if (widget == self->_selected_pos_x)
 		{
 			em.set_entity_position(self->_selected_entity, vector3(value, pos.y, pos.z));
 		}
@@ -468,8 +479,10 @@ namespace SFG
 		{
 			self->set_selected(clicked);
 
-			self->_is_dragging = true;
-			self->_drag_source = clicked;
+			self->_is_dragging	   = true;
+			self->_drag_source	   = clicked;
+			self->_drag_src_widget = widget;
+			self->_drag_y		   = ev.position.y;
 			return vekt::input_event_result::handled;
 		}
 
@@ -477,14 +490,24 @@ namespace SFG
 		{
 			if (self->_is_dragging && !self->_drag_source.is_null())
 			{
+				editor::get().get_gui_controller().disable_payload();
+
 				world_handle src = self->_drag_source;
 				world_handle dst = clicked;
 				if (!(src == dst) && !self->is_ancestor_of(src, dst))
 				{
 					world&			world = editor::get().get_app().get_world();
 					entity_manager& em	  = world.get_entity_manager();
+
+					const vector3 pos	= em.get_entity_position_abs(src);
+					const quat	  rot	= em.get_entity_rotation_abs(src);
+					const vector3 scale = em.get_entity_scale_abs(src);
 					em.remove_from_parent(src);
 					em.add_child(dst, src);
+
+					em.set_entity_position_abs(src, pos);
+					em.set_entity_rotation_abs(src, rot);
+					em.set_entity_scale_abs(src, scale);
 					self->_tree_dirty = true;
 				}
 			}
@@ -498,6 +521,25 @@ namespace SFG
 
 	void editor_panel_entities::on_drag(vekt::builder* b, vekt::id widget, float mp_x, float mp_y, float delta_x, float delta_y, unsigned int button)
 	{
+		editor_panel_entities* self = static_cast<editor_panel_entities*>(b->widget_get_user_data(widget).ptr);
+		if (self->_is_dragging && !self->_is_payload_on && math::abs(mp_y - self->_drag_y))
+		{
+			const char* name = editor::get().get_app().get_world().get_entity_manager().get_entity_meta(self->_drag_source).name;
+			editor::get().get_gui_controller().enable_payload(name);
+			self->_is_payload_on = true;
+		}
+	}
+
+	void editor_panel_entities::on_tree_item_hover_begin(vekt::builder* b, vekt::id widget)
+	{
+		editor_panel_entities* self = static_cast<editor_panel_entities*>(b->widget_get_user_data(widget).ptr);
+		if (self->_is_payload_on && widget != self->_drag_src_widget)
+			b->widget_get_stroke(widget).color = editor_theme::get().col_highlight;
+	}
+
+	void editor_panel_entities::on_tree_item_hover_end(vekt::builder* b, vekt::id widget)
+	{
+		b->widget_get_stroke(widget).color = {};
 	}
 
 }

@@ -140,56 +140,89 @@ namespace SFG
 
 	bool bump_text_allocator::append(string_view s)
 	{
-		return char_util::append(_cur, _cur_end, _cur_start, s.data(), s.size());
+		if (!_cur_start)
+			return false;
+
+		return char_util::append(_cur, _cur_end, s.data(), s.size());
 	}
 
 	bool bump_text_allocator::append(const char* s)
 	{
-		return char_util::append(_cur, _cur_end, _cur_start, s);
+		if (!_cur_start)
+			return false;
+
+		return char_util::append(_cur, _cur_end, s);
 	}
 
 	bool bump_text_allocator::append(char c)
 	{
-		return char_util::append_char(_cur, _cur_end, _cur_start, c);
+		if (!_cur_start)
+			return false;
+
+		return char_util::append_char(_cur, _cur_end, c);
 	}
 
 	bool bump_text_allocator::append(int32 v)
 	{
-		return char_util::append_i32(_cur, _cur_end, _cur_start, v);
+		if (!_cur_start)
+			return false;
+
+		return char_util::append_i32(_cur, _cur_end, v);
 	}
 	bool bump_text_allocator::append(uint32 v)
 	{
-		return char_util::append_u32(_cur, _cur_end, _cur_start, v);
+		if (!_cur_start)
+			return false;
+
+		return char_util::append_u32(_cur, _cur_end, v);
 	}
 	bool bump_text_allocator::append(int64 v)
 	{
-		return char_util::append_i64(_cur, _cur_end, _cur_start, v);
+		if (!_cur_start)
+			return false;
+
+		return char_util::append_i64(_cur, _cur_end, v);
 	}
 	bool bump_text_allocator::append(uint64 v)
 	{
-		return char_util::append_u64(_cur, _cur_end, _cur_start, v);
+		if (!_cur_start)
+			return false;
+
+		return char_util::append_u64(_cur, _cur_end, v);
 	}
 
 	bool bump_text_allocator::append_i64(int64 v)
 	{
-		return char_util::append_i64(_cur, _cur_end, _cur_start, v);
+		if (!_cur_start)
+			return false;
+
+		return char_util::append_i64(_cur, _cur_end, v);
 	}
 
 	bool bump_text_allocator::append_u64(uint64 v)
 	{
-		return char_util::append_u64(_cur, _cur_end, _cur_start, v);
+		if (!_cur_start)
+			return false;
+
+		return char_util::append_u64(_cur, _cur_end, v);
 	}
 
 	bool bump_text_allocator::append(double v, int precision)
 	{
-		return char_util::append_double(_cur, _cur_end, _cur_start, v, precision);
+		if (!_cur_start)
+			return false;
+
+		return char_util::append_double(_cur, _cur_end, v, precision);
 	}
 
 	bool bump_text_allocator::appendf(const char* fmt, ...)
 	{
+		if (!_cur_start)
+			return false;
+
 		va_list args;
 		va_start(args, fmt);
-		bool ok = char_util::appendf_va(_cur, _cur_end, _cur_start, fmt, args);
+		bool ok = char_util::appendf_va(_cur, _cur_end, fmt, args);
 		va_end(args);
 		return ok;
 	}

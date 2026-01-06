@@ -25,6 +25,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "char_util.hpp"
+#include "memory/memory.hpp"
 
 #include <cstring>
 #include <cstdio>
@@ -45,11 +46,8 @@ namespace SFG
 			*(end - 1) = '\0';
 	}
 
-	bool char_util::append(char*& cur, char* end, const char* start, const char* data, size_t len)
+	bool char_util::append(char*& cur, char* end, const char* data, size_t len)
 	{
-		if (!start)
-			return false;
-
 		if (len == 0)
 			return true;
 
@@ -57,24 +55,21 @@ namespace SFG
 		if (avail < (len + 1))
 			return false;
 
-		std::memcpy(cur, data, len);
+		SFG_MEMCPY(cur, data, len);
 		cur += len;
 		null_terminate_in_place(cur, end);
 		return true;
 	}
 
-	bool char_util::append(char*& cur, char* end, const char* start, const char* cstr)
+	bool char_util::append(char*& cur, char* end, const char* cstr)
 	{
 		if (!cstr)
 			return false;
-		return append(cur, end, start, cstr, std::strlen(cstr));
+		return append(cur, end, cstr, std::strlen(cstr));
 	}
 
-	bool char_util::append_char(char*& cur, char* end, const char* start, char c)
+	bool char_util::append_char(char*& cur, char* end, char c)
 	{
-		if (!start)
-			return false;
-
 		size_t avail = remaining_bytes(cur, end);
 		if (avail < 2)
 			return false;
@@ -84,21 +79,18 @@ namespace SFG
 		return true;
 	}
 
-	bool char_util::append_i32(char*& cur, char* end, const char* start, int32 v)
+	bool char_util::append_i32(char*& cur, char* end, int32 v)
 	{
-		return append_i64(cur, end, start, static_cast<int64>(v));
+		return append_i64(cur, end, static_cast<int64>(v));
 	}
 
-	bool char_util::append_u32(char*& cur, char* end, const char* start, uint32 v)
+	bool char_util::append_u32(char*& cur, char* end, uint32 v)
 	{
-		return append_u64(cur, end, start, static_cast<uint64>(v));
+		return append_u64(cur, end, static_cast<uint64>(v));
 	}
 
-	bool char_util::append_i64(char*& cur, char* end, const char* start, int64 v)
+	bool char_util::append_i64(char*& cur, char* end, int64 v)
 	{
-		if (!start)
-			return false;
-
 		// Need at least one char + '\0'
 		if (remaining_bytes(cur, end) < 2)
 			return false;
@@ -115,11 +107,8 @@ namespace SFG
 		return true;
 	}
 
-	bool char_util::append_u64(char*& cur, char* end, const char* start, uint64 v)
+	bool char_util::append_u64(char*& cur, char* end, uint64 v)
 	{
-		if (!start)
-			return false;
-
 		if (remaining_bytes(cur, end) < 2)
 			return false;
 
@@ -135,22 +124,19 @@ namespace SFG
 		return true;
 	}
 
-	bool char_util::append_double(char*& cur, char* end, const char* start, double v, int precision)
+	bool char_util::append_double(char*& cur, char* end, double v, int precision)
 	{
-		if (!start)
-			return false;
-
 		char	  tmp[128];
 		const int n = std::snprintf(tmp, sizeof(tmp), "%.*f", precision, v);
 		if (n <= 0)
 			return false;
 
-		return append(cur, end, start, tmp, static_cast<size_t>(n));
+		return append(cur, end, tmp, static_cast<size_t>(n));
 	}
 
-	bool char_util::appendf_va(char*& cur, char* end, const char* start, const char* fmt, va_list args)
+	bool char_util::appendf_va(char*& cur, char* end, const char* fmt, va_list args)
 	{
-		if (!start || !fmt)
+		if (!fmt)
 			return false;
 
 		size_t avail = remaining_bytes(cur, end);

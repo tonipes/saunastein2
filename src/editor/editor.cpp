@@ -309,7 +309,7 @@ namespace SFG
 					return true;
 			}
 		}
-
+		
 		return _camera_controller.on_window_event(ev);
 	}
 

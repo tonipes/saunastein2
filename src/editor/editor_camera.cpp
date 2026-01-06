@@ -117,29 +117,29 @@ namespace SFG
 
 			if (button == input_code::key_w && ev.sub_type == window_event_sub_type::press)
 				_direction_input.z += 1.0f;
-			else if (button == input_code::key_w && ev.sub_type == window_event_sub_type::release)
+			else if (button == input_code::key_w && ev.sub_type == window_event_sub_type::release && _direction_input.z > 0.1f)
 				_direction_input.z -= 1.0f;
 			if (button == input_code::key_s && ev.sub_type == window_event_sub_type::press)
 				_direction_input.z -= 1.0f;
-			else if (button == input_code::key_s && ev.sub_type == window_event_sub_type::release)
+			else if (button == input_code::key_s && ev.sub_type == window_event_sub_type::release && _direction_input.z < -0.1f)
 				_direction_input.z += 1.0f;
 
 			if (button == input_code::key_d && ev.sub_type == window_event_sub_type::press)
 				_direction_input.x += 1.0f;
-			else if (button == input_code::key_d && ev.sub_type == window_event_sub_type::release)
+			else if (button == input_code::key_d && ev.sub_type == window_event_sub_type::release && _direction_input.x > 0.1f)
 				_direction_input.x -= 1.0f;
 			if (button == input_code::key_a && ev.sub_type == window_event_sub_type::press)
 				_direction_input.x -= 1.0f;
-			else if (button == input_code::key_a && ev.sub_type == window_event_sub_type::release)
+			else if (button == input_code::key_a && ev.sub_type == window_event_sub_type::release && _direction_input.x < -0.1f)
 				_direction_input.x += 1.0f;
 
 			if (button == input_code::key_e && ev.sub_type == window_event_sub_type::press)
 				_direction_input.y += 1.0f;
-			else if (button == input_code::key_e && ev.sub_type == window_event_sub_type::release)
+			else if (button == input_code::key_e && ev.sub_type == window_event_sub_type::release  && _direction_input.y > 0.1f)
 				_direction_input.y -= 1.0f;
 			if (button == input_code::key_q && ev.sub_type == window_event_sub_type::press)
 				_direction_input.y -= 1.0f;
-			else if (button == input_code::key_q && ev.sub_type == window_event_sub_type::release)
+			else if (button == input_code::key_q && ev.sub_type == window_event_sub_type::release && _direction_input.y < -0.1f)
 				_direction_input.y += 1.0f;
 
 			if (button == input_code::key_lshift && ev.sub_type == window_event_sub_type::press)

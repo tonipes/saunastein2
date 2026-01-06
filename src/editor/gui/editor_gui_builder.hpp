@@ -150,8 +150,8 @@ namespace SFG
 
 		vekt::id set_fill_x(vekt::id id);
 		void	 set_text_field_text(gui_text_field& tf, const char* text);
-		void	 set_text_field_text(vekt::id id, const char* text);
-		void	 set_text_field_text(vekt::id id, float f, bool skip_if_focused);
+		void	 set_text_field_text(vekt::id id, const char* text, bool skip_if_focused);
+		void	 set_text_field_value(vekt::id id, float f, bool skip_if_focused);
 		void	 text_field_edit_complete(gui_text_field& tf);
 
 		// -----------------------------------------------------------------------------

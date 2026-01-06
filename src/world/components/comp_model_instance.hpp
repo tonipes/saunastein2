@@ -97,7 +97,7 @@ namespace SFG
 	private:
 		on_instantiated _instantiate_callback  = nullptr;
 		void*			_instantiate_user_data = nullptr;
-		component_header	_header				   = {};
+		component_header _header				   = {};
 		resource_handle _target_model		   = {};
 		chunk_handle32	_root_entities		   = {};
 		chunk_handle32	_skin_entities		   = {};

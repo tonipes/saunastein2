@@ -35,14 +35,14 @@ namespace SFG
 	class char_util
 	{
 	public:
-		static bool append(char*& cur, char* end, const char* start, const char* data, size_t len);
-		static bool append(char*& cur, char* end, const char* start, const char* cstr);
-		static bool append_char(char*& cur, char* end, const char* start, char c);
-		static bool append_i32(char*& cur, char* end, const char* start, int32 v);
-		static bool append_u32(char*& cur, char* end, const char* start, uint32 v);
-		static bool append_i64(char*& cur, char* end, const char* start, int64 v);
-		static bool append_u64(char*& cur, char* end, const char* start, uint64 v);
-		static bool append_double(char*& cur, char* end, const char* start, double v, int precision);
-		static bool appendf_va(char*& cur, char* end, const char* start, const char* fmt, va_list args);
+		static bool append(char*& cur, char* end, const char* data, size_t len);
+		static bool append(char*& cur, char* end, const char* cstr);
+		static bool append_char(char*& cur, char* end, char c);
+		static bool append_i32(char*& cur, char* end, int32 v);
+		static bool append_u32(char*& cur, char* end, uint32 v);
+		static bool append_i64(char*& cur, char* end, int64 v);
+		static bool append_u64(char*& cur, char* end, uint64 v);
+		static bool append_double(char*& cur, char* end, double v, int precision);
+		static bool appendf_va(char*& cur, char* end, const char* fmt, va_list args);
 	};
 }

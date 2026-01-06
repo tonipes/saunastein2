@@ -53,6 +53,9 @@ namespace SFG
 		vekt::id add_context_menu_item(const char* label);
 		void	 end_context_menu();
 
+		void enable_payload(const char* text);
+		void disable_payload();
+
 		// -----------------------------------------------------------------------------
 		// accessors
 		// -----------------------------------------------------------------------------
@@ -61,6 +64,7 @@ namespace SFG
 		{
 			return _panel_entities;
 		}
+
 	private:
 		static void on_context_item_hover_begin(vekt::builder* b, vekt::id widget);
 		static void on_context_item_hover_end(vekt::builder* b, vekt::id widget);
@@ -75,7 +79,10 @@ namespace SFG
 		editor_panels_world_view*  _panel_world_view   = nullptr;
 		uint64					   _ctx_frame		   = 0;
 
-		vekt::id	 _ctx_root		  = NULL_WIDGET_ID;
-		vekt::id	 _ctx_active	  = NULL_WIDGET_ID;
+		vekt::id _ctx_root		 = NULL_WIDGET_ID;
+		vekt::id _ctx_active	 = NULL_WIDGET_ID;
+		vekt::id _payload		 = NULL_WIDGET_ID;
+		vekt::id _payload_text	 = NULL_WIDGET_ID;
+		uint8	 _payload_active = 0;
 	};
 }
