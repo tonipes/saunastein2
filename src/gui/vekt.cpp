@@ -26,6 +26,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "vekt.hpp"
 #include "memory/memory_tracer.hpp"
+#include "data/char_util.hpp"
 #define STB_TRUETYPE_IMPLEMENTATION
 #include "vendor/stb/stb_truetype.h"
 
@@ -297,6 +298,112 @@ namespace vekt
 		build_hierarchy();
 	}
 
+	void builder::widget_set_text(id w, const char* text, size_t default_cap)
+	{
+		text_props& tp = _texts[w];
+
+#ifdef VEKT_STRING_CSTR
+
+		if (tp.text == nullptr)
+		{
+			ASSERT(_on_allocate_text != nullptr);
+			ASSERT(_on_deallocate_text != nullptr);
+			tp.text			 = _on_allocate_text(_callback_user_data, default_cap == 0 ? (strlen(text) + 1) : default_cap);
+			tp.text_capacity = default_cap == 0 ? (strlen(text) + 1) : default_cap;
+		}
+
+		ASSERT((strlen(text) + 1) <= tp.text_capacity);
+		char* b = (char*)tp.text;
+		SFG::char_util::append(b, b + tp.text_capacity, text);
+#else
+		tp.text = text;
+#endif
+
+		widget_update_text(w);
+	}
+
+	void builder::widget_append_text_start(id widget)
+	{
+		text_props& tp = _texts[widget];
+		tp.append_ctr  = 0;
+	}
+
+	void builder::widget_append_text(id widget, float f, int precision, size_t default_cap)
+	{
+		text_props& tp = _texts[widget];
+
+#ifdef VEKT_STRING_CSTR
+		if (tp.text == nullptr)
+		{
+			ASSERT(_on_allocate_text != nullptr);
+			ASSERT(_on_deallocate_text != nullptr);
+			tp.text			 = _on_allocate_text(_callback_user_data, default_cap == 0 ? 64 : default_cap);
+			tp.text_capacity = default_cap == 0 ? 64 : default_cap;
+		}
+
+		char* end		   = (char*)tp.text + tp.text_capacity;
+		char* start_append = (char*)tp.text + tp.append_ctr;
+		char* start		   = start_append;
+
+		SFG::char_util::append_double(start_append, end, f, precision);
+		tp.append_ctr += (start_append - start);
+#else
+		tp.text = std::to_string(f);
+#endif
+		widget_update_text(widget);
+	}
+
+	void builder::widget_append_text(id widget, unsigned int i, size_t default_cap)
+	{
+		text_props& tp = _texts[widget];
+
+#ifdef VEKT_STRING_CSTR
+		if (tp.text == nullptr)
+		{
+			ASSERT(_on_allocate_text != nullptr);
+			ASSERT(_on_deallocate_text != nullptr);
+			tp.text			 = _on_allocate_text(_callback_user_data, default_cap == 0 ? 64 : default_cap);
+			tp.text_capacity = default_cap == 0 ? 64 : default_cap;
+		}
+
+		char* end		   = (char*)tp.text + tp.text_capacity;
+		char* start_append = (char*)tp.text + tp.append_ctr;
+		char* start		   = start_append;
+
+		SFG::char_util::append_u32(start_append, end, i);
+		tp.append_ctr += (start_append - start);
+
+#else
+		tp.text = std::to_string(i);
+#endif
+		widget_update_text(widget);
+	}
+
+	void builder::widget_append_text(id widget, const char* cstr, size_t default_cap)
+	{
+		text_props& tp = _texts[widget];
+
+#ifdef VEKT_STRING_CSTR
+		if (tp.text == nullptr)
+		{
+			ASSERT(_on_allocate_text != nullptr);
+			ASSERT(_on_deallocate_text != nullptr);
+			tp.text			 = _on_allocate_text(_callback_user_data, default_cap == 0 ? (strlen(cstr) + 1) : default_cap);
+			tp.text_capacity = default_cap == 0 ? (strlen(cstr) + 1) : default_cap;
+		}
+
+		char* end		   = (char*)tp.text + tp.text_capacity;
+		char* start_append = (char*)tp.text + tp.append_ctr;
+		char* start		   = start_append;
+		SFG::char_util::append(start_append, end, cstr);
+		tp.append_ctr += (start_append - start);
+
+#else
+		tp.text = std::to_string(i);
+#endif
+		widget_update_text(widget);
+	}
+
 	VEKT_VEC4 builder::widget_get_clip(id widget_id) const
 	{
 		const size_result& sz = _size_results[widget_id];
@@ -400,6 +507,7 @@ namespace vekt
 		const id idx = static_cast<id>(_widget_head);
 		_widget_head++;
 		ASSERT(_widget_head < _widget_count);
+
 		return idx;
 	}
 
@@ -407,6 +515,22 @@ namespace vekt
 	{
 		widget_meta& meta = _metas[w];
 
+		text_props& tp = _texts[w];
+
+		if (w == _pressed_widget)
+			set_pressing(NULL_WIDGET_ID, _pressed_button);
+		if (w == _focused_widget)
+			set_focus(NULL_WIDGET_ID, false);
+
+#ifdef VEKT_STRING_CSTR
+		if (tp.text_capacity != 0 && tp.text)
+		{
+			ASSERT(_on_deallocate_text);
+			_on_deallocate_text(_callback_user_data, tp.text);
+			tp.text			 = nullptr;
+			tp.text_capacity = 0;
+		}
+#endif
 		for (id c : meta.children)
 			deallocate_impl(c);
 
@@ -555,11 +679,15 @@ namespace vekt
 		{
 			_reverse_depth_first_widgets.push_back(_depth_first_widgets[i]);
 		}
+
+		// restore hover states
+		calculate_sizes();
+		calculate_positions();
+		on_mouse_move(_mouse_position);
 	}
 
 	void builder::calculate_sizes()
 	{
-
 		// top-down
 		for (id widget : _depth_first_widgets)
 		{
@@ -1288,7 +1416,6 @@ namespace vekt
 
 	input_event_result builder::on_mouse_event(const mouse_event& ev)
 	{
-
 		id		   pressed_widget = NULL_WIDGET_ID;
 		id		   last_hovered	  = NULL_WIDGET_ID;
 		mouse_func last_cb		  = nullptr;

@@ -108,7 +108,10 @@ namespace SFG
 
 		vekt::config.on_log = vekt_log;
 
-		_builder				= new vekt::builder();
+		_builder = new vekt::builder();
+		_builder->set_callback_user_data(this);
+		_builder->set_on_allocate_text(on_vekt_allocate_text);
+		_builder->set_on_deallocate_text(on_vekt_deallocate_text);
 		constexpr size_t VTX_SZ = 1024 * 1024 * 4;
 		constexpr size_t IDX_SZ = 1024 * 1024 * 4;
 		_builder->init({
@@ -277,15 +280,8 @@ namespace SFG
 		}
 		else if (ev.type == window_event_type::mouse)
 		{
-			_gui_controller.on_mouse_event(ev);
-
-			const vekt::input_event_result res = _builder->on_mouse_event({
-				.type	  = static_cast<vekt::input_event_type>(ev.sub_type),
-				.button	  = ev.button,
-				.position = VEKT_VEC2(ev.value.x, ev.value.y),
-			});
-
-			if (res == vekt::input_event_result::handled)
+			
+			if (_gui_controller.on_mouse_event(ev))
 				return true;
 		}
 		else if (ev.type == window_event_type::key)
@@ -309,7 +305,9 @@ namespace SFG
 					return true;
 			}
 		}
-		
+
+		if (ev.type == window_event_type::mouse)
+			SFG_TRACE("event going to camera {0}", (uint32)ev.sub_type);
 		return _camera_controller.on_window_event(ev);
 	}
 
@@ -419,6 +417,18 @@ namespace SFG
 
 	void editor::save_lavel()
 	{
+	}
+
+	const char* editor::on_vekt_allocate_text(void* ud, size_t sz)
+	{
+		editor* ed = static_cast<editor*>(ud);
+		return ed->_text_allocator.allocate(sz);
+	}
+
+	void editor::on_vekt_deallocate_text(void* ud, const char* ptr)
+	{
+		editor* ed = static_cast<editor*>(ud);
+		ed->_text_allocator.deallocate(ptr);
 	}
 
 }

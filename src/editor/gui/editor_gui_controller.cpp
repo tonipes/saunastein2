@@ -130,6 +130,12 @@ namespace SFG
 
 	vekt::id editor_gui_controller::begin_context_menu(float abs_x, float abs_y)
 	{
+		if (_ctx_active != NULL_WIDGET_ID)
+		{
+			_builder->deallocate(_ctx_active);
+			_ctx_active = _ctx_root = NULL_WIDGET_ID;
+		}
+
 		using namespace vekt;
 		const editor_theme& theme = editor_theme::get();
 		const id			w	  = _builder->allocate();
@@ -184,8 +190,8 @@ namespace SFG
 			hover_callback& hb = _builder->widget_get_hover_callbacks(w);
 			hb.on_hover_begin  = on_context_item_hover_begin;
 			hb.on_hover_end	   = on_context_item_hover_end;
+			hb.receive_mouse   = 1;
 
-			_builder->widget_get_user_data(w).ptr = this;
 		}
 
 		const id txt = _builder->allocate();
@@ -200,9 +206,8 @@ namespace SFG
 			pp.pos.y	  = 0.5f;
 
 			text_props& tp = _builder->widget_get_text(txt);
-			tp.text		   = editor::get().get_text_allocator().allocate(label);
 			tp.font		   = theme.font_default;
-			_builder->widget_update_text(txt);
+			_builder->widget_set_text(txt, label);
 			_builder->widget_add_child(w, txt);
 		}
 
@@ -248,28 +253,34 @@ namespace SFG
 			_panel_entities->set_tree_dirty();
 	}
 
-	void editor_gui_controller::on_mouse_event(const window_event& ev)
+	bool editor_gui_controller::on_mouse_event(const window_event& ev)
 	{
-		if (ev.sub_type == window_event_sub_type::release)
+		if (ev.type == window_event_type::mouse)
 		{
-			if (_payload_active)
+
+			const vekt::input_event_result res = _builder->on_mouse_event({
+				.type	  = static_cast<vekt::input_event_type>(ev.sub_type),
+				.button	  = ev.button,
+				.position = VEKT_VEC2(ev.value.x, ev.value.y),
+			});
+
+			if (frame_info::get_frame() != _ctx_frame && _ctx_active != NULL_WIDGET_ID && ev.sub_type == window_event_sub_type::press)
 			{
-				_panel_entities->payload_disabled();
-				disable_payload();
-				return;
+				_panel_entities->kill_context();
+				_builder->deallocate(_ctx_active);
+				_ctx_active = _ctx_root = NULL_WIDGET_ID;
 			}
+
+			if (_builder->widget_get_hover_callbacks(_panel_entities->get_root()).is_hovered)
+				return true;
 		}
 
-		if (_ctx_active == NULL_WIDGET_ID)
-			return;
+		if (_payload_active && ev.sub_type == window_event_sub_type::release)
+		{
+			_panel_entities->kill_drag();
+			disable_payload();
+		}
 
-		if (ev.sub_type != window_event_sub_type::press)
-			return;
-
-		if (frame_info::get_frame() == _ctx_frame)
-			return;
-
-		_builder->deallocate(_ctx_active);
-		_ctx_active = _ctx_root = NULL_WIDGET_ID;
+		return false;
 	}
 }

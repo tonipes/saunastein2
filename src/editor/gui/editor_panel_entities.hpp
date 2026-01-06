@@ -52,9 +52,20 @@ namespace SFG
 			_tree_dirty = true;
 		}
 
-		inline void payload_disabled()
+		void drop_drag(world_handle target);
+		void kill_drag();
+
+		inline void kill_context()
 		{
-			_is_payload_on	 = 0;
+			_ctx_new_entity = NULL_WIDGET_ID;
+			_ctx_add_child	= NULL_WIDGET_ID;
+			_ctx_duplicate	= NULL_WIDGET_ID;
+			_ctx_delete		= NULL_WIDGET_ID;
+		}
+
+		inline vekt::id get_root() const
+		{
+			return _root;
 		}
 
 	private:
@@ -111,7 +122,6 @@ namespace SFG
 		bool		_tree_dirty				= true;
 
 		vekt::id _drag_src_widget = 0;
-		bool	 _is_dragging	  = false;
 		bool	 _is_payload_on	  = false;
 		float	 _drag_y		  = 0.0f;
 

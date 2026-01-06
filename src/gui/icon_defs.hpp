@@ -31,5 +31,6 @@ namespace SFG
 #define ICON_ARROW_RIGHT "\u0071"
 #define ICON_DD_RIGHT	 "\u0046"
 #define ICON_DD_DOWN	 "\u0048"
+#define ICON_CHECK		 "\u0042"
 
 }

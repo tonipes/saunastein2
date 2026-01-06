@@ -157,8 +157,8 @@ namespace SFG
 		col_scroll_bar			 = col_accent;
 		col_scroll_bar_bg		 = col_frame_bg;
 		col_button				 = col_root;
-		col_button_hover		 = col_area_bg;
-		col_button_press		 = col_frame_bg;
+		col_button_hover		 = col_accent_second;
+		col_button_press		 = col_accent_second_dim;
 		col_frame_outline		 = color::from255(60, 60, 60, 255).srgb_to_linear().to_vector();
 		col_context_menu_outline = color::from255(60, 60, 60, 255).srgb_to_linear().to_vector();
 

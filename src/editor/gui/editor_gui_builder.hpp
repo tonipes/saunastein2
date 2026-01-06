@@ -29,6 +29,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gui/vekt_defines.hpp"
 #include "math/vector4.hpp"
 #include "data/vector.hpp"
+#include "data/string.hpp"
 
 namespace vekt
 {
@@ -39,7 +40,6 @@ namespace SFG
 {
 	class builder;
 	class font;
-	class text_allocator;
 
 	enum class gui_text_field_type : unsigned char
 	{
@@ -47,34 +47,17 @@ namespace SFG
 		number,
 	};
 
-	struct gui_text_field
-	{
-		const char*			buffer			= nullptr;
-		vekt::id			widget			= 0;
-		vekt::id			text_widget		= 0;
-		unsigned int		caret_pos		= 0;
-		unsigned int		buffer_size		= 0;
-		unsigned int		caret_end_pos	= 0;
-		unsigned int		buffer_capacity = 0;
-		unsigned int		decimals		= 0;
-		float				value			= 0.0f;
-		float				value_increment = 0.0f;
-		gui_text_field_type type			= gui_text_field_type::text_only;
-		unsigned char		is_editing		= 0;
-
-		unsigned int selection_min() const;
-		unsigned int selection_max() const;
-		void		 collapse_caret_to(unsigned int p);
-		void		 delete_range(unsigned int from, unsigned int to);
-		bool		 delete_selection_if_any();
-		void		 insert_string_at_caret(const char* s, unsigned int len);
-		void		 insert_char_at_caret(char c);
-	};
-
 	class gui_builder
 	{
 	public:
+		size_t MAX_TEXT_FIELD_SIZE	   = 256;
+		size_t MAX_RESOURCE_FIELD_SIZE = 512;
+		size_t MAX_CHECKBOX_SIZE	   = 4;
+
 		typedef void (*input_field_fn)(void* callback_ud, vekt::builder* b, vekt::id id, const char* txt, float value);
+		typedef void (*checkbox_fn)(void* callback_ud, vekt::builder* b, vekt::id id, unsigned char value);
+		typedef bool (*resource_fn)(void* callback_ud, vekt::builder* b, vekt::id id, const string& value);
+		typedef bool (*slider_fn)(void* callback_ud, vekt::builder* b, vekt::id id, float val);
 
 		struct gui_builder_callbacks
 		{
@@ -83,6 +66,9 @@ namespace SFG
 			vekt::mouse_func on_mouse				= nullptr;
 			vekt::key_func	 on_key					= nullptr;
 			input_field_fn	 on_input_field_changed = nullptr;
+			checkbox_fn		 on_checkbox_changed	= nullptr;
+			resource_fn		 on_resource_changed	= nullptr;
+			slider_fn		 on_slider_changed		= nullptr;
 		};
 
 		struct id_pair
@@ -98,13 +84,61 @@ namespace SFG
 			vekt::id third;
 		};
 
+		struct gui_text_field
+		{
+			const char*			buffer			= nullptr;
+			vekt::id			widget			= 0;
+			vekt::id			text_widget		= 0;
+			unsigned int		caret_pos		= 0;
+			unsigned int		buffer_size		= 0;
+			unsigned int		caret_end_pos	= 0;
+			unsigned int		buffer_capacity = 0;
+			unsigned int		decimals		= 0;
+			float				value			= 0.0f;
+			float				value_increment = 0.0f;
+			gui_text_field_type type			= gui_text_field_type::text_only;
+			unsigned char		is_editing		= 0;
+
+			unsigned int selection_min() const;
+			unsigned int selection_max() const;
+			void		 collapse_caret_to(unsigned int p);
+			void		 delete_range(unsigned int from, unsigned int to);
+			bool		 delete_selection_if_any();
+			void		 insert_string_at_caret(const char* s, unsigned int len);
+			void		 insert_char_at_caret(char c);
+		};
+
+		struct gui_checkbox
+		{
+			vekt::id	  widget	  = 0;
+			vekt::id	  text_widget = 0;
+			unsigned char state		  = 0; // 0: unchecked, 1: checked
+		};
+
+		struct gui_resource
+		{
+			const char* extension	= nullptr;
+			vekt::id	widget		= 0;
+			vekt::id	text_widget = 0;
+		};
+
+		struct gui_slider
+		{
+			float	 min		   = 0.0f;
+			float	 max		   = 0.0;
+			float	 value		   = 0.0f;
+			vekt::id widget		   = 0;
+			vekt::id slider_widget = 0;
+			vekt::id text_widget   = 0;
+		};
+
 		gui_builder_callbacks callbacks = {};
 
 		// -----------------------------------------------------------------------------
 		// lifecycle
 		// -----------------------------------------------------------------------------
 
-		void init(vekt::builder* b, text_allocator* alloc);
+		void init(vekt::builder* b);
 		void uninit();
 
 		// -----------------------------------------------------------------------------
@@ -114,22 +148,21 @@ namespace SFG
 		vekt::id begin_area(bool fill = true);
 		void	 end_area();
 
-		vekt::id begin_context_menu(float abs_x, float abs_y);
-		vekt::id add_context_menu_item(const char* label);
-		void	 end_context_menu();
-
 		// -----------------------------------------------------------------------------
 		// properties
 		// -----------------------------------------------------------------------------
 
-		id_pair	 add_property_row_label(const char* label, const char* label2);
-		vekt::id add_property_single_label(const char* label);
-		id_pair	 add_property_single_button(const char* label);
-		vekt::id add_property_single_hyperlink(const char* label);
+		id_pair	 add_property_row_label(const char* label, const char* label2, size_t buffer_capacity = 0);
+		vekt::id add_property_single_label(const char* label, size_t buffer_capacity = 0);
+		id_pair	 add_property_single_button(const char* label, size_t buffer_capacity = 0);
+		vekt::id add_property_single_hyperlink(const char* label, size_t buffer_capacity = 0);
+		vekt::id add_property_row_checkbox(const char* label, bool initial_state);
+		vekt::id add_property_row_resource(const char* label, const char* extension, const char* initial_resource, size_t buffer_capacity = 0);
+		vekt::id add_property_row_slider(const char* label, size_t buffer_capacity = 0, float min = 0.0f, float max = 0.0f, float val = 0.0f);
 
 		// property row variants for fields
-		id_pair	 add_property_row_text_field(const char* label, const char* text, unsigned int max_text_size, gui_text_field_type type = gui_text_field_type::text_only, unsigned int decimals = 0, float increment = 0.0f);
-		id_trip	 add_property_row_vector3(const char* label, const char* text, unsigned int max_text_size, unsigned int decimals, float increment);
+		id_pair	 add_property_row_text_field(const char* label, const char* text, size_t buffer_capacity = 0, gui_text_field_type type = gui_text_field_type::text_only, unsigned int decimals = 0, float increment = 0.0f);
+		id_trip	 add_property_row_vector3(const char* label, const char* text, size_t buffer_capacity = 0, unsigned int decimals = 3, float increment = 0.1f);
 		vekt::id add_property_row();
 		vekt::id add_row_cell(float size);
 		vekt::id add_row_cell_seperator();
@@ -139,10 +172,14 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 
 		vekt::id add_title(const char* title);
-		vekt::id add_label(const char* label);
-		vekt::id add_hyperlink(const char* label);
-		id_pair	 add_button(const char* title);
-		id_pair	 add_text_field(const char* text, unsigned int max_size, gui_text_field_type type = gui_text_field_type::text_only, unsigned int decimals = 0, float increment = 0.0f);
+		vekt::id add_label(const char* label, size_t buffer_capacity = 0);
+		vekt::id add_hyperlink(const char* label, size_t buffer_capacity = 0);
+		id_pair	 add_button(const char* title, size_t buffer_capacity = 0);
+		id_pair	 add_text_field(const char* text, size_t buffer_capacity = 0, gui_text_field_type type = gui_text_field_type::text_only, unsigned int decimals = 0, float increment = 0.0f);
+		vekt::id add_checkbox(bool initial_state);
+		vekt::id add_resource(const char* res, const char* extension, size_t buffer_capacity = 0);
+		vekt::id add_slider(float val, float min, float max, size_t buffer_capacity = 0);
+		//vekt::id add_slider(float val, float min, float max, size_t buffer_capacity = 0);
 
 		// -----------------------------------------------------------------------------
 		// util
@@ -171,6 +208,9 @@ namespace SFG
 		static void						on_text_field_focus_gained(vekt::builder* b, vekt::id widget, bool from_nav);
 		static void						on_context_item_hover_begin(vekt::builder* b, vekt::id widget);
 		static void						on_context_item_hover_end(vekt::builder* b, vekt::id widget);
+		static vekt::input_event_result on_checkbox_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase);
+		static vekt::input_event_result on_resource_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase);
+		static void						on_slider_drag(vekt::builder* b, vekt::id widget, float mp_x, float mp_y, float delta_x, float delta_y, unsigned int button);
 
 		vekt::id new_widget(bool push_to_stack = false);
 		vekt::id pop_stack();
@@ -180,9 +220,11 @@ namespace SFG
 	private:
 		static constexpr unsigned int STACK_SIZE = 512;
 
-		text_allocator*		   _txt_alloc		  = nullptr;
 		vekt::builder*		   _builder			  = nullptr;
 		vector<gui_text_field> _text_fields		  = {};
+		vector<gui_checkbox>   _checkboxes		  = {};
+		vector<gui_resource>   _resources		  = {};
+		vector<gui_slider>	   _sliders			  = {};
 		vekt::id			   _stack[STACK_SIZE] = {NULL_WIDGET_ID};
 		vekt::id			   _root			  = NULL_WIDGET_ID;
 		vekt::id			   _stack_ptr		  = 0;

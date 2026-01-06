@@ -43,7 +43,7 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 
 		void set_entities_tree_dirty();
-		void on_mouse_event(const window_event& ev);
+		bool on_mouse_event(const window_event& ev);
 
 		// -----------------------------------------------------------------------------
 		// gui
@@ -63,6 +63,11 @@ namespace SFG
 		inline editor_panel_entities* get_entities() const
 		{
 			return _panel_entities;
+		}
+
+		inline vekt::id get_root() const
+		{
+			return _ctx_root;
 		}
 
 	private:

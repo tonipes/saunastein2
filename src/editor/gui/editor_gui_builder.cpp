@@ -37,7 +37,9 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "common/system_info.hpp"
 #include "input/input_mappings.hpp"
 #include "gui/vekt.hpp"
+#include "editor/editor.hpp"
 #include "editor/editor_theme.hpp"
+#include "gui/icon_defs.hpp"
 
 #include "platform/window.hpp"
 #include "platform/process.hpp"
@@ -65,22 +67,22 @@ namespace SFG
 		}
 	}
 
-	unsigned int gui_text_field::selection_min() const
+	unsigned int gui_builder::gui_text_field::selection_min() const
 	{
 		return umin(caret_pos, caret_end_pos);
 	}
-	unsigned int gui_text_field::selection_max() const
+	unsigned int gui_builder::gui_text_field::selection_max() const
 	{
 		return umax(caret_pos, caret_end_pos);
 	}
-	void gui_text_field::collapse_caret_to(unsigned int p)
+	void gui_builder::gui_text_field::collapse_caret_to(unsigned int p)
 	{
 		p			  = umin(p, buffer_size);
 		caret_pos	  = p;
 		caret_end_pos = p;
 	}
 
-	void gui_text_field::delete_range(unsigned int from, unsigned int to)
+	void gui_builder::gui_text_field::delete_range(unsigned int from, unsigned int to)
 	{
 		if (from > to)
 		{
@@ -99,7 +101,7 @@ namespace SFG
 		buffer_size -= (to - from);
 		collapse_caret_to(from);
 	}
-	bool gui_text_field::delete_selection_if_any()
+	bool gui_builder::gui_text_field::delete_selection_if_any()
 	{
 		const unsigned int mn = selection_min();
 		const unsigned int mx = selection_max();
@@ -108,7 +110,7 @@ namespace SFG
 		delete_range(mn, mx);
 		return true;
 	}
-	void gui_text_field::insert_string_at_caret(const char* s, unsigned int len)
+	void gui_builder::gui_text_field::insert_string_at_caret(const char* s, unsigned int len)
 	{
 		if (!s || len == 0)
 			return;
@@ -132,7 +134,7 @@ namespace SFG
 		buffer_size += can_add;
 		collapse_caret_to(pos + can_add);
 	}
-	void gui_text_field::insert_char_at_caret(char c)
+	void gui_builder::gui_text_field::insert_char_at_caret(char c)
 	{
 		insert_string_at_caret(&c, 1);
 	}
@@ -163,7 +165,6 @@ namespace SFG
 
 	vekt::input_event_result gui_builder::on_text_field_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase)
 	{
-
 		if (ev.type == vekt::input_event_type::released)
 			return vekt::input_event_result::not_handled;
 
@@ -489,15 +490,80 @@ namespace SFG
 		return vekt::input_event_result::handled;
 	}
 
+	vekt::input_event_result gui_builder::on_checkbox_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase)
+	{
+		if (ev.type != vekt::input_event_type::pressed || ev.button != static_cast<uint16>(input_code::mouse_0))
+			return vekt::input_event_result::not_handled;
+
+		gui_builder* gb = static_cast<gui_builder*>(b->widget_get_user_data(widget).ptr);
+		auto		 it = vector_util::find_if(gb->_checkboxes, [widget](const gui_checkbox& cb) -> bool { return cb.widget == widget; });
+		SFG_ASSERT(it != gb->_checkboxes.end());
+
+		it->state ^= 1;
+		b->widget_set_visible(it->text_widget, it->state);
+
+		if (gb->callbacks.on_checkbox_changed)
+			gb->callbacks.on_checkbox_changed(gb->callbacks.callback_ud, b, widget, it->state);
+
+		return vekt::input_event_result::handled;
+	}
+
+	vekt::input_event_result gui_builder::on_resource_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase)
+	{
+		if (ev.type != vekt::input_event_type::pressed || ev.button != static_cast<uint16>(input_code::mouse_0))
+			return vekt::input_event_result::not_handled;
+
+		gui_builder* gb = static_cast<gui_builder*>(b->widget_get_user_data(widget).ptr);
+
+		if (!gb->callbacks.on_resource_changed)
+			return vekt::input_event_result::not_handled;
+
+		auto it = vector_util::find_if(gb->_resources, [widget](const gui_resource& r) -> bool { return r.widget == widget; });
+		SFG_ASSERT(it != gb->_resources.end());
+
+		const string file = process::select_file("select", it->extension);
+		if (gb->callbacks.on_resource_changed(gb->callbacks.callback_ud, b, widget, file))
+		{
+			b->widget_set_text(it->text_widget, file.c_str());
+		}
+
+		return vekt::input_event_result::handled;
+	}
+
+	void gui_builder::on_slider_drag(vekt::builder* b, vekt::id widget, float mp_x, float mp_y, float delta_x, float delta_y, unsigned int button)
+	{
+		gui_builder* gb = static_cast<gui_builder*>(b->widget_get_user_data(widget).ptr);
+		auto		 it = vector_util::find_if(gb->_sliders, [widget](const gui_slider& r) -> bool { return r.widget == widget; });
+		SFG_ASSERT(it != gb->_sliders.end());
+
+		const vector2 pos	= b->widget_get_pos(it->widget);
+		const vector2 size	= b->widget_get_size(it->widget);
+		const float	  ratio = math::clamp(math::remap(mp_x, pos.x, pos.x + size.x, 0.0f, 1.0f), 0.0f, 1.0f);
+
+		it->value = it->min + (it->max - it->min) * ratio;
+		it->value = math::clamp(it->value, it->min, it->max);
+
+		b->widget_append_text_start(it->text_widget);
+		b->widget_append_text(it->text_widget, it->value);
+
+		size_props& sz = b->widget_get_size_props(it->slider_widget);
+		sz.size.x	   = ratio;
+
+		if (gb->callbacks.on_slider_changed)
+			gb->callbacks.on_slider_changed(gb->callbacks.callback_ud, b, widget, it->value);
+	}
+
 	// -----------------------------------------------------------------------------
 	// big layout
 	// -----------------------------------------------------------------------------
 
-	void gui_builder::init(vekt::builder* b, text_allocator* alloc)
+	void gui_builder::init(vekt::builder* b)
 	{
-		_builder   = b;
-		_txt_alloc = alloc;
+		_builder = b;
 		_text_fields.reserve(256);
+		_checkboxes.reserve(256);
+		_resources.reserve(256);
+		_sliders.reserve(256);
 
 		const id w = _builder->allocate();
 
@@ -522,11 +588,12 @@ namespace SFG
 
 	void gui_builder::uninit()
 	{
-		for (const gui_text_field& tf : _text_fields)
+		for (const gui_resource& r : _resources)
 		{
-			_txt_alloc->deallocate(tf.buffer);
+			editor::get().get_text_allocator().deallocate(r.extension);
 		}
-
+		_resources.resize(0);
+		_checkboxes.resize(0);
 		_text_fields.resize(0);
 		_builder->deallocate(_root);
 		_root = NULL_WIDGET_ID;
@@ -621,116 +688,30 @@ namespace SFG
 		pop_stack();
 	}
 
-	vekt::id gui_builder::begin_context_menu(float abs_x, float abs_y)
-	{
-		const id w = _builder->allocate();
-		push_stack(w);
-		_builder->widget_add_child(_builder->get_root(), w);
-		{
-			pos_props& p = _builder->widget_get_pos_props(w);
-			p.flags		 = pos_flags::pf_x_abs | pos_flags::pf_y_abs | pos_flags::pf_child_pos_column;
-			p.pos.x		 = abs_x;
-			p.pos.y		 = abs_y;
-
-			size_props& sz	 = _builder->widget_get_size_props(w);
-			sz.flags		 = size_flags::sf_x_max_children | size_flags::sf_y_total_children;
-			sz.child_margins = {editor_theme::get().inner_margin, editor_theme::get().inner_margin, 0.0f, 0.0f};
-			sz.spacing		 = editor_theme::get().item_spacing;
-
-			widget_gfx& gfx = _builder->widget_get_gfx(w);
-			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_stroke;
-			gfx.color		= editor_theme::get().col_area_bg;
-			gfx.draw_order	= 1;
-
-			stroke_props& sp = _builder->widget_get_stroke(w);
-			sp.thickness	 = editor_theme::get().context_menu_outline_thickness;
-			sp.color		 = editor_theme::get().col_context_menu_outline;
-		}
-
-		return w;
-	}
-
-	vekt::id gui_builder::add_context_menu_item(const char* label)
-	{
-		const id w = new_widget(true);
-		{
-			pos_props& p = _builder->widget_get_pos_props(w);
-			p.flags		 = pos_flags::pf_x_relative | pos_flags::pf_child_pos_row;
-			p.pos.x		 = 0.0f;
-
-			size_props& sz	 = _builder->widget_get_size_props(w);
-			sz.flags		 = size_flags::sf_x_abs | size_flags::sf_y_abs;
-			sz.size.y		 = editor_theme::get().item_height;
-			sz.size.x		 = 200;
-			sz.child_margins = {0.0f, 0.0f, editor_theme::get().inner_margin, editor_theme::get().inner_margin};
-			sz.spacing		 = editor_theme::get().row_spacing;
-
-			widget_gfx& gfx = _builder->widget_get_gfx(w);
-			gfx.flags		= gfx_flags::gfx_is_rect;
-			gfx.color		= {0.0f, 0.0f, 0.0f, 0.0f};
-			gfx.draw_order	= 2;
-
-			hover_callback& hb = _builder->widget_get_hover_callbacks(w);
-			hb.on_hover_begin  = on_context_item_hover_begin;
-			hb.on_hover_end	   = on_context_item_hover_end;
-
-			mouse_callback& mb = _builder->widget_get_mouse_callbacks(w);
-			mb.on_mouse		   = callbacks.on_mouse;
-
-			widget_user_data& ud = _builder->widget_get_user_data(w);
-			ud.ptr				 = this;
-		}
-
-		const id txt = new_widget();
-		{
-			widget_gfx& gfx = _builder->widget_get_gfx(txt);
-			gfx.flags		= gfx_flags::gfx_is_text;
-			gfx.color		= editor_theme::get().col_text;
-			gfx.draw_order	= 3;
-
-			pos_props& pp = _builder->widget_get_pos_props(txt);
-			pp.flags	  = pos_flags::pf_y_relative | pos_flags::pf_y_anchor_center;
-			pp.pos.y	  = 0.5f;
-
-			text_props& tp = _builder->widget_get_text(txt);
-			tp.text		   = _txt_alloc->allocate(label);
-			tp.font		   = editor_theme::get().font_default;
-			_builder->widget_update_text(txt);
-		}
-
-		pop_stack();
-		return w;
-	}
-
-	void gui_builder::end_context_menu()
-	{
-		pop_stack();
-	}
-
 	// -----------------------------------------------------------------------------
 	// property - single
 	// -----------------------------------------------------------------------------
 
-	id gui_builder::add_property_single_label(const char* label)
+	id gui_builder::add_property_single_label(const char* label, size_t buffer_capacity)
 	{
 		const id row = add_property_row();
-		const id w	 = add_label(label);
+		const id w	 = add_label(label, buffer_capacity);
 		pop_stack();
 		return w;
 	}
 
-	gui_builder::id_pair gui_builder::add_property_single_button(const char* label)
+	gui_builder::id_pair gui_builder::add_property_single_button(const char* label, size_t buffer_capacity)
 	{
 		const id	  row = add_property_row();
-		const id_pair p	  = add_button(label);
+		const id_pair p	  = add_button(label, buffer_capacity);
 		pop_stack();
 		return p;
 	}
 
-	id gui_builder::add_property_single_hyperlink(const char* label)
+	id gui_builder::add_property_single_hyperlink(const char* label, size_t buffer_capacity)
 	{
 		const id row = add_property_row();
-		const id w	 = add_hyperlink(label);
+		const id w	 = add_hyperlink(label, buffer_capacity);
 		pop_stack();
 		return w;
 	}
@@ -739,7 +720,60 @@ namespace SFG
 	// property - rows
 	// -----------------------------------------------------------------------------
 
-	gui_builder::id_pair gui_builder::add_property_row_label(const char* label, const char* text)
+	vekt::id gui_builder::add_property_row_checkbox(const char* label, bool initial_state)
+	{
+		const id row = add_property_row();
+
+		add_row_cell(editor_theme::get().property_cell_div);
+		add_label(label);
+		pop_stack();
+
+		add_row_cell_seperator();
+
+		add_row_cell(0.0f);
+		const id w = add_checkbox(initial_state);
+		pop_stack();
+		pop_stack();
+		return w;
+	}
+
+	vekt::id gui_builder::add_property_row_resource(const char* label, const char* extension, const char* initial_resource, size_t buffer_capacity)
+	{
+		const id row = add_property_row();
+
+		add_row_cell(editor_theme::get().property_cell_div);
+		add_label(label);
+		pop_stack();
+
+		add_row_cell_seperator();
+
+		add_row_cell(0.0f);
+		const id w = add_resource(initial_resource, extension, buffer_capacity);
+		pop_stack();
+
+		pop_stack();
+		return w;
+	}
+
+	vekt::id gui_builder::add_property_row_slider(const char* label, size_t buffer_capacity, float min, float max, float val)
+	{
+		const id row = add_property_row();
+
+		add_row_cell(editor_theme::get().property_cell_div);
+		add_label(label);
+		pop_stack();
+
+		add_row_cell_seperator();
+
+		add_row_cell(0.0f);
+		const id w = add_slider(val, min, max, buffer_capacity);
+		pop_stack();
+
+		pop_stack();
+		return w;
+	}
+
+	gui_builder::id_pair gui_builder::add_property_row_label(const char* label, const char* text, size_t buffer_capacity)
 	{
 		const id row = add_property_row();
 
@@ -750,7 +784,7 @@ namespace SFG
 		add_row_cell_seperator();
 
 		add_row_cell(0.0f);
-		const id id1 = add_label(text);
+		const id id1 = add_label(text, buffer_capacity);
 		pop_stack();
 
 		pop_stack();
@@ -758,7 +792,7 @@ namespace SFG
 		return {id0, id1};
 	}
 
-	gui_builder::id_pair gui_builder::add_property_row_text_field(const char* label, const char* text, unsigned int max_text_size, gui_text_field_type type, unsigned int decimals, float increment)
+	gui_builder::id_pair gui_builder::add_property_row_text_field(const char* label, const char* text, size_t buffer_capacity, gui_text_field_type type, unsigned int decimals, float increment)
 	{
 		const id row = add_property_row();
 
@@ -769,15 +803,14 @@ namespace SFG
 		add_row_cell_seperator();
 
 		add_row_cell(0.0f);
-		const id_pair field = add_text_field(text, max_text_size, type, decimals, increment);
+		const id_pair field = add_text_field(text, buffer_capacity, type, decimals, increment);
 		pop_stack();
 		pop_stack();
 		return field;
 	}
 
-	gui_builder::id_trip gui_builder::add_property_row_vector3(const char* label, const char* text, unsigned int max_text_size, unsigned int decimals, float increment)
+	gui_builder::id_trip gui_builder::add_property_row_vector3(const char* label, const char* text, size_t buffer_capacity, unsigned int decimals, float increment)
 	{
-
 		const id row = add_property_row();
 
 		add_row_cell(editor_theme::get().property_cell_div);
@@ -787,15 +820,15 @@ namespace SFG
 		add_row_cell_seperator();
 
 		add_row_cell(0.0f);
-		const id_pair x = add_text_field(text, max_text_size, gui_text_field_type::number, decimals, increment);
+		const id_pair x = add_text_field(text, buffer_capacity, gui_text_field_type::number, decimals, increment);
 		pop_stack();
 
 		add_row_cell(0.0f);
-		const id_pair y = add_text_field(text, max_text_size, gui_text_field_type::number, decimals, increment);
+		const id_pair y = add_text_field(text, buffer_capacity, gui_text_field_type::number, decimals, increment);
 		pop_stack();
 
 		add_row_cell(0.0f);
-		const id_pair z = add_text_field(text, max_text_size, gui_text_field_type::number, decimals, increment);
+		const id_pair z = add_text_field(text, buffer_capacity, gui_text_field_type::number, decimals, increment);
 		pop_stack();
 		pop_stack();
 		return {x.first, y.first, z.first};
@@ -853,7 +886,7 @@ namespace SFG
 		const id w = new_widget(true);
 		{
 			pos_props& pp = _builder->widget_get_pos_props(w);
-			pp.flags	  = pos_flags::pf_y_relative;
+			pp.flags	  = pos_flags::pf_y_relative | pos_flags::pf_child_pos_row;
 			pp.pos.y	  = 0.0f;
 
 			size_props& sz = _builder->widget_get_size_props(w);
@@ -922,9 +955,8 @@ namespace SFG
 			pp.pos.x	  = 1.0f;
 
 			text_props& tp = _builder->widget_get_text(txt);
-			tp.text		   = _txt_alloc->allocate(title);
 			tp.font		   = editor_theme::get().font_title;
-			_builder->widget_update_text(txt);
+			_builder->widget_set_text(txt, title);
 		}
 
 		_builder->widget_add_child(w, txt);
@@ -932,7 +964,7 @@ namespace SFG
 		return w;
 	}
 
-	id gui_builder::add_label(const char* label)
+	id gui_builder::add_label(const char* label, size_t buffer_capacity)
 	{
 		const id w = new_widget();
 
@@ -946,14 +978,13 @@ namespace SFG
 		pp.pos.y	  = 0.5f;
 
 		text_props& tp = _builder->widget_get_text(w);
-		tp.text		   = _txt_alloc->allocate(label);
 		tp.font		   = editor_theme::get().font_default;
-		_builder->widget_update_text(w);
+		_builder->widget_set_text(w, label, buffer_capacity);
 
 		return w;
 	}
 
-	id gui_builder::add_hyperlink(const char* label)
+	id gui_builder::add_hyperlink(const char* label, size_t buffer_capacity)
 	{
 		const id w = new_widget();
 		{
@@ -984,9 +1015,8 @@ namespace SFG
 			pp.pos.x	  = 0.0f;
 
 			text_props& tp = _builder->widget_get_text(txt);
-			tp.text		   = _txt_alloc->allocate(label);
 			tp.font		   = editor_theme::get().font_default;
-			_builder->widget_update_text(txt);
+			_builder->widget_set_text(txt, label, buffer_capacity);
 		}
 
 		const id line = _builder->allocate();
@@ -1010,7 +1040,7 @@ namespace SFG
 		return w;
 	}
 
-	gui_builder::id_pair gui_builder::add_button(const char* title)
+	gui_builder::id_pair gui_builder::add_button(const char* title, size_t buffer_capacity)
 	{
 		const id w = new_widget(true);
 		{
@@ -1036,8 +1066,8 @@ namespace SFG
 			rp.segments		   = 8;
 
 			input_color_props& icp = _builder->widget_get_input_colors(w);
-			icp.pressed_color	   = editor_theme::get().col_accent_second_dim;
-			icp.hovered_color	   = editor_theme::get().col_accent_second;
+			icp.pressed_color	   = editor_theme::get().col_button_press;
+			icp.hovered_color	   = editor_theme::get().col_button_hover;
 
 			mouse_callback& mc = _builder->widget_get_mouse_callbacks(w);
 			mc.on_mouse		   = callbacks.on_mouse;
@@ -1045,7 +1075,7 @@ namespace SFG
 			_builder->widget_get_hover_callbacks(w).receive_mouse = 1;
 		}
 
-		const id txt = add_label(title);
+		const id txt = add_label(title, buffer_capacity);
 		{
 			pos_props& pp = _builder->widget_get_pos_props(txt);
 			pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_y_relative | pos_flags::pf_x_anchor_center | pos_flags::pf_y_anchor_center;
@@ -1136,7 +1166,7 @@ namespace SFG
 		}
 	}
 
-	gui_builder::id_pair gui_builder::add_text_field(const char* text, unsigned int max_size, gui_text_field_type type, unsigned int decimals, float increment)
+	gui_builder::id_pair gui_builder::add_text_field(const char* text, size_t buffer_capacity, gui_text_field_type type, unsigned int decimals, float increment)
 	{
 		const id w = new_widget(true);
 		{
@@ -1188,33 +1218,27 @@ namespace SFG
 			cp.custom_draw_pass = on_text_field_draw;
 		}
 
-		const id txt = add_label(nullptr);
+		const id txt = add_label(text, buffer_capacity);
 		{
 			pos_props& pp = _builder->widget_get_pos_props(txt);
 			pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_y_relative | pos_flags::pf_y_anchor_center;
 			pp.pos.x	  = 0.0f;
 			pp.pos.y	  = 0.5f;
 
-			ASSERT(max_size != 0);
+			text_props& tp = _builder->widget_get_text(txt);
 
 			const gui_text_field tf = {
-				.buffer			 = _txt_alloc->allocate(max_size),
+				.buffer			 = tp.text,
 				.widget			 = w,
 				.text_widget	 = txt,
 				.buffer_size	 = text == nullptr ? 0 : static_cast<uint32>(strlen(text)),
-				.buffer_capacity = max_size,
+				.buffer_capacity = static_cast<unsigned int>(tp.text_capacity),
 				.decimals		 = decimals,
 				.value_increment = increment,
 				.type			 = type,
 			};
 
-			if (text != nullptr)
-				SFG_MEMCPY((void*)tf.buffer, (void*)text, strlen(text));
 			_text_fields.push_back(tf);
-
-			text_props& tp = _builder->widget_get_text(txt);
-			tp.text		   = tf.buffer;
-			_builder->widget_update_text(txt);
 		}
 
 		pop_stack();
@@ -1255,6 +1279,211 @@ namespace SFG
 	{
 		ASSERT(_stack_ptr > 0);
 		return _stack[_stack_ptr - 1];
+	}
+
+	vekt::id gui_builder::add_checkbox(bool initial_state)
+	{
+		const id w = new_widget(true);
+		{
+			pos_props& pp = _builder->widget_get_pos_props(w);
+			pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_y_relative | pos_flags::pf_y_anchor_center;
+			pp.pos.y	  = 0.5f;
+			pp.pos.x	  = 0.0f;
+
+			size_props& sz	 = _builder->widget_get_size_props(w);
+			sz.flags		 = size_flags::sf_x_abs | size_flags::sf_y_abs;
+			sz.size.x		 = editor_theme::get().item_height;
+			sz.size.y		 = editor_theme::get().item_height;
+			sz.child_margins = {editor_theme::get().inner_margin * 0.25f, editor_theme::get().inner_margin * 0.25f, editor_theme::get().inner_margin * 0.25f, editor_theme::get().inner_margin * 0.25f};
+
+			widget_gfx& gfx = _builder->widget_get_gfx(w);
+			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_stroke | gfx_flags::gfx_has_rounding | gfx_flags::gfx_has_press_color | gfx_flags::gfx_has_hover_color;
+			gfx.color		= editor_theme::get().col_frame_bg;
+
+			stroke_props& st = _builder->widget_get_stroke(w);
+			st.thickness	 = editor_theme::get().frame_thickness;
+			st.color		 = editor_theme::get().col_frame_outline;
+
+			rounding_props& rp = _builder->widget_get_rounding(w);
+			rp.rounding		   = editor_theme::get().frame_rounding;
+			rp.segments		   = 8;
+
+			input_color_props& icp = _builder->widget_get_input_colors(w);
+			icp.pressed_color	   = editor_theme::get().col_button_press;
+			icp.hovered_color	   = editor_theme::get().col_button_hover;
+
+			hover_callback& hb = _builder->widget_get_hover_callbacks(w);
+			hb.receive_mouse   = 1;
+
+			mouse_callback& mc = _builder->widget_get_mouse_callbacks(w);
+			mc.on_mouse		   = on_checkbox_mouse;
+
+			widget_user_data& ud = _builder->widget_get_user_data(w);
+			ud.ptr				 = this;
+		}
+
+		const id txt = _builder->allocate();
+		{
+			_builder->widget_add_child(w, txt);
+
+			widget_gfx& gfx = _builder->widget_get_gfx(txt);
+			gfx.flags		= gfx_flags::gfx_is_text;
+			gfx.color		= editor_theme::get().col_accent_second;
+
+			pos_props& pp = _builder->widget_get_pos_props(txt);
+			pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_y_relative | pos_flags::pf_x_anchor_center | pos_flags::pf_y_anchor_center;
+			pp.pos.x	  = 0.5f;
+			pp.pos.y	  = 0.5f;
+
+			text_props& tp = _builder->widget_get_text(txt);
+			tp.font		   = editor_theme::get().font_icons;
+			tp.scale	   = 0.7f;
+			_builder->widget_set_text(txt, ICON_CHECK, 4);
+			_builder->widget_set_visible(txt, initial_state);
+		}
+
+		gui_checkbox cb = {.widget = w, .text_widget = txt, .state = static_cast<unsigned char>(initial_state ? 1 : 0)};
+		_checkboxes.push_back(cb);
+
+		pop_stack();
+		return w;
+	}
+
+	vekt::id gui_builder::add_resource(const char* res, const char* extension, size_t buffer_capacity)
+	{
+		const id w = new_widget(true);
+		{
+			pos_props& pp = _builder->widget_get_pos_props(w);
+			pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_y_relative | pos_flags::pf_y_anchor_center;
+			pp.pos.y	  = 0.5f;
+			pp.pos.x	  = 0.0f;
+
+			size_props& sz	 = _builder->widget_get_size_props(w);
+			sz.flags		 = size_flags::sf_x_relative | size_flags::sf_y_abs;
+			sz.size.x		 = 1.0f;
+			sz.size.y		 = editor_theme::get().item_height;
+			sz.child_margins = {0.0f, 0.0f, editor_theme::get().inner_margin * 0.25f, editor_theme::get().inner_margin * 0.25f};
+
+			widget_gfx& gfx = _builder->widget_get_gfx(w);
+			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_stroke | gfx_flags::gfx_has_rounding | gfx_flags::gfx_has_hover_color | gfx_flags::gfx_has_press_color;
+			gfx.color		= editor_theme::get().col_frame_bg;
+
+			stroke_props& st = _builder->widget_get_stroke(w);
+			st.thickness	 = editor_theme::get().frame_thickness;
+			st.color		 = editor_theme::get().col_frame_outline;
+
+			rounding_props& rp = _builder->widget_get_rounding(w);
+			rp.rounding		   = editor_theme::get().frame_rounding;
+			rp.segments		   = 8;
+
+			input_color_props& icp = _builder->widget_get_input_colors(w);
+			icp.pressed_color	   = editor_theme::get().col_button_press;
+			icp.hovered_color	   = editor_theme::get().col_button_hover;
+
+			hover_callback& hb = _builder->widget_get_hover_callbacks(w);
+			hb.receive_mouse   = 1;
+
+			mouse_callback& mc = _builder->widget_get_mouse_callbacks(w);
+			mc.on_mouse		   = on_resource_mouse;
+
+			widget_user_data& ud = _builder->widget_get_user_data(w);
+			ud.ptr				 = this;
+		}
+
+		const id txt = add_label(res, buffer_capacity);
+		{
+		}
+
+		pop_stack();
+
+		const gui_resource r = {
+			.extension	 = editor::get().get_text_allocator().allocate(extension),
+			.widget		 = w,
+			.text_widget = txt,
+		};
+		_resources.push_back(r);
+
+		return w;
+	}
+
+	vekt::id gui_builder::add_slider(float val, float min, float max, size_t buffer_capacity)
+	{
+		const id w = new_widget(true);
+		{
+			pos_props& pp = _builder->widget_get_pos_props(w);
+			pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_y_relative | pos_flags::pf_y_anchor_center;
+			pp.pos.y	  = 0.5f;
+			pp.pos.x	  = 0.0f;
+
+			size_props& sz = _builder->widget_get_size_props(w);
+			sz.flags	   = size_flags::sf_x_relative | size_flags::sf_y_abs;
+			sz.size.x	   = 1.0f;
+			sz.size.y	   = editor_theme::get().item_height;
+
+			widget_gfx& gfx = _builder->widget_get_gfx(w);
+			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_stroke | gfx_flags::gfx_has_rounding;
+			gfx.color		= editor_theme::get().col_frame_bg;
+
+			stroke_props& st = _builder->widget_get_stroke(w);
+			st.thickness	 = editor_theme::get().frame_thickness;
+			st.color		 = editor_theme::get().col_frame_outline;
+
+			rounding_props& rp = _builder->widget_get_rounding(w);
+			rp.rounding		   = editor_theme::get().frame_rounding;
+			rp.segments		   = 8;
+
+			hover_callback& hb = _builder->widget_get_hover_callbacks(w);
+			hb.receive_mouse   = 1;
+
+			mouse_callback& mc = _builder->widget_get_mouse_callbacks(w);
+			mc.on_drag		   = on_slider_drag;
+
+			widget_user_data& ud = _builder->widget_get_user_data(w);
+			ud.ptr				 = this;
+		}
+
+		const id txt = add_label("0.00000", buffer_capacity);
+		{
+			pos_props& pp = _builder->widget_get_pos_props(txt);
+			pp.pos.x	  = 0.5f;
+			pp.flags |= pos_flags::pf_x_anchor_center;
+			_builder->widget_append_text(txt, val);
+		}
+
+		const id w2 = new_widget();
+		{
+			pos_props& pp = _builder->widget_get_pos_props(w2);
+			pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_y_relative;
+			pp.pos.y	  = 0.0f;
+			pp.pos.x	  = 0.0f;
+
+			size_props& sz = _builder->widget_get_size_props(w2);
+			sz.flags	   = size_flags::sf_x_relative | size_flags::sf_y_relative;
+			sz.size.x	   = math::clamp(math::remap(val, min, max, 0.0f, 1.0f), 0.0f, 1.0f);
+			sz.size.y	   = 1.0f;
+
+			widget_gfx& gfx = _builder->widget_get_gfx(w2);
+			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_rounding;
+			gfx.color		= editor_theme::get().col_accent_second;
+
+			rounding_props& rp = _builder->widget_get_rounding(w2);
+			rp.rounding		   = editor_theme::get().frame_rounding;
+			rp.segments		   = 8;
+		}
+
+		pop_stack();
+
+		const gui_slider s = {
+			.min		   = min,
+			.max		   = max,
+			.value		   = val,
+			.widget		   = w,
+			.slider_widget = w2,
+			.text_widget   = txt,
+		};
+		_sliders.push_back(s);
+
+		return w;
 	}
 
 };

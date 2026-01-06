@@ -75,10 +75,6 @@ namespace vekt
 #define VEKT_STRING const char*
 	// #define VEKT_STRING std::string
 
-#ifndef VEKT_VARIANT
-#define VEKT_VARIANT std::variant
-#endif
-
 	////////////////////////////////////////////////////////////////////////////////
 	// :: LOGS & CONFIGS
 	////////////////////////////////////////////////////////////////////////////////
@@ -819,11 +815,19 @@ namespace vekt
 
 	struct text_props
 	{
-		VEKT_STRING	  text	  = "";
-		font*		  font	  = nullptr;
-		unsigned char spacing = 0;
+#ifdef VEKT_STRING_CSTR
+		VEKT_STRING text = nullptr;
+#else
+		VEKT_STRING text = "";
+#endif
+		font*	 font = nullptr;
+		uint64_t hash = 0;
+#ifdef VEKT_STRING_CSTR
+		size_t		 text_capacity = 0;
+		unsigned int append_ctr	   = 0;
+#endif
 		float		  scale	  = 1.0f;
-		uint64_t	  hash	  = 0;
+		unsigned char spacing = 0;
 	};
 
 	struct widget_gfx
@@ -929,6 +933,8 @@ namespace vekt
 	};
 
 	typedef void (*draw_callback)(const draw_buffer& db, void* user_data);
+	typedef const char* (*allocate_text_callback)(void* ud, size_t sz);
+	typedef void (*deallocate_text_callback)(void* ud, const char* ptr);
 
 	class theme
 	{
@@ -1161,6 +1167,11 @@ namespace vekt
 		id					widget_get_child(id widget, unsigned int index);
 		void				widget_add_child(id widget_id, id child_id);
 		void				widget_remove_child(id widget_id, id child_id);
+		void				widget_set_text(id wg, const char* text, size_t default_text_capacity = 256);
+		void				widget_append_text_start(id widget);
+		void				widget_append_text(id widget, float f, int precision = 3, size_t default_text_capacity = 256);
+		void				widget_append_text(id widget, unsigned int, size_t default_text_capacity = 256);
+		void				widget_append_text(id widget, const char*, size_t default_text_capacity = 256);
 		void				widget_update_text(id widget);
 		void				widget_set_visible(id widget, bool is_visible);
 		bool				widget_get_visible(id widget) const;
@@ -1217,6 +1228,21 @@ namespace vekt
 		inline const vector<draw_buffer>& get_draw_buffers() const
 		{
 			return _draw_buffers;
+		}
+
+		inline void set_callback_user_data(void* callback_user_data)
+		{
+			_callback_user_data = callback_user_data;
+		}
+
+		inline void set_on_allocate_text(allocate_text_callback cb)
+		{
+			_on_allocate_text = cb;
+		}
+
+		inline void set_on_deallocate_text(deallocate_text_callback cb)
+		{
+			_on_deallocate_text = cb;
 		}
 
 	private:
@@ -1297,31 +1323,34 @@ namespace vekt
 		unsigned int _widget_head  = 0;
 		unsigned int _widget_count = 0;
 
-		draw_callback		_on_draw				  = nullptr;
-		void*				_on_draw_ud				  = nullptr;
-		widget_meta*		_metas					  = nullptr;
-		widget_user_data*	_user_datas				  = nullptr;
-		size_props*			_size_properties		  = {};
-		input_color_props*	_input_color_properties	  = {};
-		pos_props*			_pos_properties			  = {};
-		scroll_props*		_scroll_properties		  = {};
-		size_result*		_size_results			  = {};
-		pos_result*			_pos_results			  = {};
-		widget_gfx*			_gfxs					  = {};
-		stroke_props*		_strokes				  = {};
-		second_color_props* _second_colors			  = {};
-		rounding_props*		_roundings				  = {};
-		aa_props*			_aa_props				  = {};
-		text_props*			_texts					  = {};
-		hover_callback*		_hover_callbacks		  = {};
-		mouse_callback*		_mouse_callbacks		  = {};
-		key_callback*		_key_callbacks			  = {};
-		custom_passes*		_custom_passes			  = {};
-		vertex*				_vertex_buffer			  = nullptr;
-		index*				_index_buffer			  = nullptr;
-		vertex*				_text_cache_vertex_buffer = nullptr;
-		index*				_text_cache_index_buffer  = nullptr;
-		VEKT_VEC2			_mouse_position			  = {};
+		allocate_text_callback	 _on_allocate_text		   = nullptr;
+		deallocate_text_callback _on_deallocate_text	   = nullptr;
+		draw_callback			 _on_draw				   = nullptr;
+		void*					 _on_draw_ud			   = nullptr;
+		void*					 _callback_user_data	   = nullptr;
+		widget_meta*			 _metas					   = nullptr;
+		widget_user_data*		 _user_datas			   = nullptr;
+		size_props*				 _size_properties		   = {};
+		input_color_props*		 _input_color_properties   = {};
+		pos_props*				 _pos_properties		   = {};
+		scroll_props*			 _scroll_properties		   = {};
+		size_result*			 _size_results			   = {};
+		pos_result*				 _pos_results			   = {};
+		widget_gfx*				 _gfxs					   = {};
+		stroke_props*			 _strokes				   = {};
+		second_color_props*		 _second_colors			   = {};
+		rounding_props*			 _roundings				   = {};
+		aa_props*				 _aa_props				   = {};
+		text_props*				 _texts					   = {};
+		hover_callback*			 _hover_callbacks		   = {};
+		mouse_callback*			 _mouse_callbacks		   = {};
+		key_callback*			 _key_callbacks			   = {};
+		custom_passes*			 _custom_passes			   = {};
+		vertex*					 _vertex_buffer			   = nullptr;
+		index*					 _index_buffer			   = nullptr;
+		vertex*					 _text_cache_vertex_buffer = nullptr;
+		index*					 _text_cache_index_buffer  = nullptr;
+		VEKT_VEC2				 _mouse_position		   = {};
 
 		size_t		 _total_sz				  = 0;
 		unsigned int _vertex_count_per_buffer = 0;

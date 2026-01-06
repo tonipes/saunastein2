@@ -139,6 +139,10 @@ namespace SFG
 		}
 
 	private:
+		static const char* on_vekt_allocate_text(void* ud, size_t sz);
+		static void		   on_vekt_deallocate_text(void* ud, const char* ptr);
+
+	private:
 		app&		 _app;
 		world_handle _camera_entity	  = {};
 		world_handle _camera_trait	  = {};
