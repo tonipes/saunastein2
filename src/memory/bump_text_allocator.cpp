@@ -26,9 +26,10 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "bump_text_allocator.hpp"
 #include "memory/memory.hpp"
+#include "data/char_util.hpp"
 
 #include <cstdarg>
-#include <charconv>
+#include <cstring>
 
 namespace SFG
 {
@@ -139,139 +140,58 @@ namespace SFG
 
 	bool bump_text_allocator::append(string_view s)
 	{
-		if (!_cur_start)
-			return false;
-
-		if (s.empty())
-			return true;
-
-		if (!ensure_space(s.size() + 1)) // +1 for '\0'
-			return false;
-
-		std::memcpy(_cur, s.data(), s.size());
-		_cur += s.size();
-		null_terminate_in_place();
-		return true;
+		return char_util::append(_cur, _cur_end, _cur_start, s.data(), s.size());
 	}
 
 	bool bump_text_allocator::append(const char* s)
 	{
-		if (!s)
-			return false;
-
-		return append(string_view(s, std::strlen(s)));
+		return char_util::append(_cur, _cur_end, _cur_start, s);
 	}
 
 	bool bump_text_allocator::append(char c)
 	{
-		if (!_cur_start)
-			return false;
-
-		if (!ensure_space(1 + 1)) // char + '\0'
-			return false;
-
-		*_cur++ = c;
-		null_terminate_in_place();
-		return true;
+		return char_util::append_char(_cur, _cur_end, _cur_start, c);
 	}
 
 	bool bump_text_allocator::append(int32 v)
 	{
-		return append_i64((int64)v);
+		return char_util::append_i32(_cur, _cur_end, _cur_start, v);
 	}
 	bool bump_text_allocator::append(uint32 v)
 	{
-		return append_u64((uint64)v);
+		return char_util::append_u32(_cur, _cur_end, _cur_start, v);
 	}
 	bool bump_text_allocator::append(int64 v)
 	{
-		return append_i64(v);
+		return char_util::append_i64(_cur, _cur_end, _cur_start, v);
 	}
 	bool bump_text_allocator::append(uint64 v)
 	{
-		return append_u64(v);
+		return char_util::append_u64(_cur, _cur_end, _cur_start, v);
 	}
 
 	bool bump_text_allocator::append_i64(int64 v)
 	{
-		if (!_cur_start)
-			return false;
-
-		// need at least one char + '\0'
-		if (remaining() < 2)
-			return false;
-
-		// Reserve 1 byte for '\0'
-		char* out_begin = _cur;
-		char* out_end	= _cur_end - 1;
-
-		auto r = std::to_chars(out_begin, out_end, v);
-		if (r.ec != std::errc{})
-			return false;
-
-		_cur = r.ptr;
-		null_terminate_in_place();
-		return true;
+		return char_util::append_i64(_cur, _cur_end, _cur_start, v);
 	}
 
 	bool bump_text_allocator::append_u64(uint64 v)
 	{
-		if (!_cur_start)
-			return false;
-
-		if (remaining() < 2)
-			return false;
-
-		char* out_begin = _cur;
-		char* out_end	= _cur_end - 1;
-
-		auto r = std::to_chars(out_begin, out_end, v);
-		if (r.ec != std::errc{})
-			return false;
-
-		_cur = r.ptr;
-		null_terminate_in_place();
-		return true;
+		return char_util::append_u64(_cur, _cur_end, _cur_start, v);
 	}
 
 	bool bump_text_allocator::append(double v, int precision)
 	{
-		if (!_cur_start)
-			return false;
-
-		char	  tmp[128];
-		const int n = std::snprintf(tmp, sizeof(tmp), "%.*f", precision, v);
-		if (n <= 0)
-			return false;
-
-		return append(string_view(tmp, (size_t)n));
+		return char_util::append_double(_cur, _cur_end, _cur_start, v, precision);
 	}
 
 	bool bump_text_allocator::appendf(const char* fmt, ...)
 	{
-		if (!_cur_start || !fmt)
-			return false;
-
-		const size_t avail = remaining();
-		if (avail < 2)
-			return false;
-
 		va_list args;
 		va_start(args, fmt);
-
-		const int wrote = std::vsnprintf(_cur, avail, fmt, args);
-
+		bool ok = char_util::appendf_va(_cur, _cur_end, _cur_start, fmt, args);
 		va_end(args);
-
-		if (wrote < 0)
-			return false;
-
-		if ((size_t)wrote >= avail)
-			return false;
-
-		_cur += (size_t)wrote;
-		null_terminate_in_place();
-		return true;
+		return ok;
 	}
 
 	bool bump_text_allocator::ensure_space(size_t bytes_needed_including_null) const

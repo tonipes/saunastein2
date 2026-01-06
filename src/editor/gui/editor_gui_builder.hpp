@@ -74,11 +74,12 @@ namespace SFG
 	class gui_builder
 	{
 	public:
-		typedef void (*input_field_fn)(vekt::builder* b, vekt::id id, const char* txt, float value);
+		typedef void (*input_field_fn)(void* callback_ud, vekt::builder* b, vekt::id id, const char* txt, float value);
 
 		struct gui_builder_callbacks
 		{
 			void*			 user_data				= nullptr;
+			void*			 callback_ud			= nullptr;
 			vekt::mouse_func on_mouse				= nullptr;
 			vekt::key_func	 on_key					= nullptr;
 			input_field_fn	 on_input_field_changed = nullptr;
@@ -150,6 +151,7 @@ namespace SFG
 		vekt::id set_fill_x(vekt::id id);
 		void	 set_text_field_text(gui_text_field& tf, const char* text);
 		void	 set_text_field_text(vekt::id id, const char* text);
+		void	 set_text_field_text(vekt::id id, float f, bool skip_if_focused);
 		void	 text_field_edit_complete(gui_text_field& tf);
 
 		// -----------------------------------------------------------------------------

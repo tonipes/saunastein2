@@ -53,6 +53,7 @@ namespace SFG
 		_gui_builder.init(b, &editor::get().get_text_allocator());
 
 		_gui_builder.callbacks.user_data			  = this;
+		_gui_builder.callbacks.callback_ud			  = this;
 		_gui_builder.callbacks.on_input_field_changed = on_input_field_changed;
 		_root										  = _gui_builder.get_root();
 
@@ -139,6 +140,39 @@ namespace SFG
 
 			_builder->widget_get_text(_prop_handle).text = handle_txt;
 			_builder->widget_update_text(_prop_handle);
+		}
+
+		// transform
+		{
+			if (selected.is_null())
+			{
+				_gui_builder.set_text_field_text(_selected_pos_x, "0.0");
+				_gui_builder.set_text_field_text(_selected_pos_y, "0.0");
+				_gui_builder.set_text_field_text(_selected_pos_z, "0.0");
+				_gui_builder.set_text_field_text(_selected_rot_x, "0.0");
+				_gui_builder.set_text_field_text(_selected_rot_y, "0.0");
+				_gui_builder.set_text_field_text(_selected_rot_z, "0.0");
+				_gui_builder.set_text_field_text(_selected_scale_x, "0.0");
+				_gui_builder.set_text_field_text(_selected_scale_y, "0.0");
+				_gui_builder.set_text_field_text(_selected_scale_z, "0.0");
+			}
+			else
+			{
+				entity_manager& em	  = w.get_entity_manager();
+				const vector3&	pos	  = em.get_entity_position(selected);
+				const quat&		rot	  = em.get_entity_rotation(selected);
+				const vector3&	scale = em.get_entity_scale(selected);
+				const vector3&	eul	  = quat::to_euler(rot);
+				_gui_builder.set_text_field_text(_selected_pos_x, pos.x, true);
+				_gui_builder.set_text_field_text(_selected_pos_y, pos.y, true);
+				_gui_builder.set_text_field_text(_selected_pos_z, pos.z, true);
+				_gui_builder.set_text_field_text(_selected_rot_x, eul.x, true);
+				_gui_builder.set_text_field_text(_selected_rot_y, eul.y, true);
+				_gui_builder.set_text_field_text(_selected_rot_z, eul.z, true);
+				_gui_builder.set_text_field_text(_selected_scale_x, scale.x, true);
+				_gui_builder.set_text_field_text(_selected_scale_y, scale.y, true);
+				_gui_builder.set_text_field_text(_selected_scale_z, scale.z, true);
+			}
 		}
 	}
 
@@ -322,68 +356,59 @@ namespace SFG
 			gfx.color			  = editor_theme::get().col_accent_second_dim;
 		}
 
-		world& w = editor::get().get_app().get_world();
-
-		if (_selected_entity.is_null())
-		{
-			_gui_builder.set_text_field_text(_selected_pos_x, "0.0");
-			_gui_builder.set_text_field_text(_selected_pos_y, "0.0");
-			_gui_builder.set_text_field_text(_selected_pos_z, "0.0");
-			_gui_builder.set_text_field_text(_selected_rot_x, "0.0");
-			_gui_builder.set_text_field_text(_selected_rot_y, "0.0");
-			_gui_builder.set_text_field_text(_selected_rot_z, "0.0");
-			_gui_builder.set_text_field_text(_selected_scale_x, "0.0");
-			_gui_builder.set_text_field_text(_selected_scale_y, "0.0");
-			_gui_builder.set_text_field_text(_selected_scale_z, "0.0");
-		}
-		else
-		{
-			entity_manager& em	  = w.get_entity_manager();
-			const vector3&	pos	  = em.get_entity_position(_selected_entity);
-			const quat&		rot	  = em.get_entity_rotation(_selected_entity);
-			const vector3&	scale = em.get_entity_scale(_selected_entity);
-
-			_gui_builder.set_text_field_text(_selected_pos_x, "0.0");
-			_gui_builder.set_text_field_text(_selected_pos_y, "0.0");
-			_gui_builder.set_text_field_text(_selected_pos_z, "0.0");
-			_gui_builder.set_text_field_text(_selected_rot_x, "0.0");
-			_gui_builder.set_text_field_text(_selected_rot_y, "0.0");
-			_gui_builder.set_text_field_text(_selected_rot_z, "0.0");
-			_gui_builder.set_text_field_text(_selected_scale_x, "0.0");
-			_gui_builder.set_text_field_text(_selected_scale_y, "0.0");
-			_gui_builder.set_text_field_text(_selected_scale_z, "0.0");
-		}
+		// world& w = editor::get().get_app().get_world();
 	}
 
-	void editor_panel_entities::on_input_field_changed(vekt::builder* b, vekt::id widget, const char* txt, float value)
+	void editor_panel_entities::on_input_field_changed(void* callback_ud, vekt::builder* b, vekt::id widget, const char* txt, float value)
 	{
-		editor_panel_entities* self = static_cast<editor_panel_entities*>(b->widget_get_user_data(widget).ptr);
+		editor_panel_entities* self = static_cast<editor_panel_entities*>(callback_ud);
+
+		world&			w  = editor::get().get_app().get_world();
+		entity_manager& em = w.get_entity_manager();
+
+		if (!em.is_valid(self->_selected_entity))
+			return;
+
+		const vector3& pos	 = em.get_entity_position(self->_selected_entity);
+		const quat&	   rot	 = em.get_entity_rotation(self->_selected_entity);
+		const vector3& scale = em.get_entity_scale(self->_selected_entity);
+		const vector3& eul	 = quat::to_euler(rot);
+
 		if (widget == self->_selected_pos_x)
 		{
+			em.set_entity_position(self->_selected_entity, vector3(value, pos.y, pos.z));
 		}
 		else if (widget == self->_selected_pos_y)
 		{
+			em.set_entity_position(self->_selected_entity, vector3(pos.x, value, pos.z));
 		}
 		else if (widget == self->_selected_pos_z)
 		{
+			em.set_entity_position(self->_selected_entity, vector3(pos.x, pos.y, value));
 		}
 		else if (widget == self->_selected_rot_x)
 		{
+			em.set_entity_rotation(self->_selected_entity, quat::from_euler(value, eul.y, eul.z));
 		}
 		else if (widget == self->_selected_rot_y)
 		{
+			em.set_entity_rotation(self->_selected_entity, quat::from_euler(eul.x, eul.y, eul.z));
 		}
 		else if (widget == self->_selected_rot_z)
 		{
+			em.set_entity_rotation(self->_selected_entity, quat::from_euler(eul.x, eul.y, value));
 		}
 		else if (widget == self->_selected_scale_x)
 		{
+			em.set_entity_scale(self->_selected_entity, vector3(value, scale.y, scale.z));
 		}
 		else if (widget == self->_selected_scale_y)
 		{
+			em.set_entity_scale(self->_selected_entity, vector3(scale.x, value, scale.z));
 		}
 		else if (widget == self->_selected_scale_z)
 		{
+			em.set_entity_scale(self->_selected_entity, vector3(scale.x, scale.y, value));
 		}
 	}
 

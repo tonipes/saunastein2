@@ -29,6 +29,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "io/assert.hpp"
 #include "data/string_util.hpp"
 #include "data/vector_util.hpp"
+#include "data/char_util.hpp"
 #include "math/color.hpp"
 #include "math/math.hpp"
 #include "memory/text_allocator.hpp"
@@ -208,6 +209,10 @@ namespace SFG
 
 			it->value += math::clamp(delta_x, -1.0f, 1.0f) * it->value_increment;
 			gb->text_field_edit_complete(*it);
+
+			if (gb->callbacks.on_input_field_changed)
+				gb->callbacks.on_input_field_changed(gb->callbacks.callback_ud, gb->_builder, widget, it->buffer, it->value);
+
 			return;
 		}
 
@@ -477,7 +482,7 @@ namespace SFG
 			}
 
 			if (gb->callbacks.on_input_field_changed)
-				gb->callbacks.on_input_field_changed(gb->_builder, widget, tf.buffer, tf.value);
+				gb->callbacks.on_input_field_changed(gb->callbacks.callback_ud, gb->_builder, widget, tf.buffer, tf.value);
 			b->widget_update_text(tf.text_widget);
 		}
 
@@ -1092,11 +1097,18 @@ namespace SFG
 		set_text_field_text(*it, text);
 	}
 
-	void gui_builder::set_text_field_text(vekt::id id, float f)
+	void gui_builder::set_text_field_text(vekt::id id, float f, bool skip_if_focused)
 	{
 		auto it = vector_util::find_if(_text_fields, [id](const gui_text_field& tf) -> bool { return tf.widget == id; });
 		SFG_ASSERT(it != _text_fields.end());
 
+		if (skip_if_focused && _builder->widget_get_hover_callbacks(it->widget).is_focused)
+			return;
+
+		char* cur = (char*)it->buffer;
+		char_util::append_double(cur, cur + it->buffer_capacity, cur, f, 3.0f);
+		size_t diff		= cur - it->buffer;
+		it->buffer_size = static_cast<unsigned int>(diff);
 	}
 
 	void gui_builder::text_field_edit_complete(gui_text_field& tf)
