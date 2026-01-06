@@ -1205,6 +1205,8 @@ namespace vekt
 		id					allocate();
 		void				deallocate(id w);
 		void				clear_text_cache();
+		void				set_focus(id widget, bool from_nav);
+		void				set_pressing(id widget, unsigned int button);
 
 		// Widgets
 		void widget_add_debug_wrap(id widget);
@@ -1246,9 +1248,6 @@ namespace vekt
 		}
 
 	private:
-		void set_focus(id widget, bool from_nav);
-		void set_pressing(id widget, unsigned int button);
-
 		unsigned int count_total_children(id widget_id) const;
 		void		 populate_hierarchy(id current_widget_id, unsigned int depth);
 		void		 build_hierarchy();

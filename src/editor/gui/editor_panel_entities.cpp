@@ -32,6 +32,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "world/world.hpp"
 #include "world/entity_manager.hpp"
 
+#include "platform/window.hpp"
+
 #include "math/math.hpp"
 #include "math/vector2ui16.hpp"
 #include "editor/editor.hpp"
@@ -205,6 +207,15 @@ namespace SFG
 				build_entity_node(w, h, 0);
 			}
 		}
+
+		for (const node_binding& b : _node_bindings)
+		{
+			if (b.handle == _selected_entity)
+			{
+				_builder->set_focus(b.widget, false);
+				break;
+			}
+		}
 	}
 
 	void editor_panel_entities::build_entity_node(world& w, world_handle e, unsigned int depth)
@@ -252,8 +263,9 @@ namespace SFG
 			sz.spacing			 = editor_theme::get().item_spacing;
 
 			vekt::widget_gfx& gfx = _builder->widget_get_gfx(row_inner);
-			gfx.flags			  = vekt::gfx_flags::gfx_is_rect | vekt::gfx_flags::gfx_has_rounding | vekt::gfx_flags::gfx_has_stroke;
+			gfx.flags			  = vekt::gfx_flags::gfx_is_rect | vekt::gfx_flags::gfx_has_rounding | vekt::gfx_flags::gfx_has_stroke | vekt::gfx_flags::gfx_focusable;
 			gfx.color			  = selected ? editor_theme::get().col_accent_second_dim : (vector4());
+
 
 			vekt::stroke_props& sp = _builder->widget_get_stroke(row_inner);
 			sp.thickness		   = editor_theme::get().frame_thickness;
@@ -267,10 +279,14 @@ namespace SFG
 			hb.receive_mouse		 = 1;
 			hb.on_hover_begin		 = on_tree_item_hover_begin;
 			hb.on_hover_end			 = on_tree_item_hover_end;
+			hb.on_focus_gained		 = on_focus_gained;
 
 			vekt::mouse_callback& mc = _builder->widget_get_mouse_callbacks(row_inner);
 			mc.on_mouse				 = on_mouse;
 			mc.on_drag				 = on_drag;
+
+			vekt::key_callback& kb = _builder->widget_get_key_callbacks(row_inner);
+			kb.on_key			   = on_key;
 
 			_builder->widget_get_user_data(row_inner).ptr = this;
 		}
@@ -496,8 +512,13 @@ namespace SFG
 			return vekt::input_event_result::handled;
 		}
 
-		if (widget == self->_ctx_duplicate)
+		if (widget == self->_ctx_duplicate && !self->_selected_entity.is_null())
 		{
+			world&			   w  = editor::get().get_app().get_world();
+			entity_manager&	   em = w.get_entity_manager();
+			const world_handle h  = em.clone_entity(self->_selected_entity);
+			self->set_tree_dirty();
+			self->set_selected(h);
 			return vekt::input_event_result::handled;
 		}
 
@@ -606,6 +627,38 @@ namespace SFG
 		return vekt::input_event_result::handled;
 	}
 
+	vekt::input_event_result editor_panel_entities::on_key(vekt::builder* b, vekt::id widget, const vekt::key_event& ev)
+	{
+		editor_panel_entities* self = static_cast<editor_panel_entities*>(b->widget_get_user_data(widget).ptr);
+		if (self->_selected_entity.is_null())
+			return vekt::input_event_result::not_handled;
+
+		if (ev.type != vekt::input_event_type::pressed)
+			return vekt::input_event_result::not_handled;
+
+		if (ev.key == input_code::key_d && window::is_key_down(input_code::key_lctrl))
+		{
+			world&			   w  = editor::get().get_app().get_world();
+			entity_manager&	   em = w.get_entity_manager();
+			const world_handle h  = em.clone_entity(self->_selected_entity);
+			self->set_selected(h);
+			self->set_tree_dirty();
+			return vekt::input_event_result::handled;
+		}
+
+		if (ev.key == input_code::key_delete)
+		{
+			world&			w  = editor::get().get_app().get_world();
+			entity_manager& em = w.get_entity_manager();
+			em.destroy_entity(self->_selected_entity);
+			self->set_selected({});
+			self->set_tree_dirty();
+			return vekt::input_event_result::handled;
+		}
+
+		return vekt::input_event_result::not_handled;
+	}
+
 	void editor_panel_entities::on_drag(vekt::builder* b, vekt::id widget, float mp_x, float mp_y, float delta_x, float delta_y, unsigned int button)
 	{
 		editor_panel_entities* self = static_cast<editor_panel_entities*>(b->widget_get_user_data(widget).ptr);
@@ -627,6 +680,20 @@ namespace SFG
 	void editor_panel_entities::on_tree_item_hover_end(vekt::builder* b, vekt::id widget)
 	{
 		b->widget_get_stroke(widget).color = {};
+	}
+
+	void editor_panel_entities::on_focus_gained(vekt::builder* b, vekt::id widget, bool from_nav)
+	{
+		editor_panel_entities* self = static_cast<editor_panel_entities*>(b->widget_get_user_data(widget).ptr);
+
+		for (const node_binding& binding : self->_node_bindings)
+		{
+			if (binding.widget == widget)
+			{
+				self->set_selected(binding.handle);
+				return;
+			}
+		}
 	}
 
 }

@@ -30,6 +30,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gfx/event_stream/render_event_stream.hpp"
 #include "gfx/event_stream/render_events_entity.hpp"
 #include "math/math.hpp"
+#include "data/ostream.hpp"
+#include "data/istream.hpp"
 #include "game/app_defines.hpp"
 #include <tracy/Tracy.hpp>
 
@@ -400,6 +402,43 @@ namespace SFG
 		});
 
 		return h;
+	}
+
+	world_handle entity_manager::clone_entity(world_handle source)
+	{
+		SFG_ASSERT(_entities->is_valid(source));
+
+		const char*	 src_name = _metas->get(source.index).name;
+		world_handle clone	  = create_entity(src_name);
+
+		const entity_transform& src_tr		= _local_transforms->get(source.index);
+		_local_transforms->get(clone.index) = src_tr;
+
+		const entity_family& fam = _families->get(source.index);
+		if (_entities->is_valid(fam.parent))
+			add_child(fam.parent, clone);
+
+		//component_manager&			cm	= _world.get_comp_manager();
+		//const entity_comp_register& reg = _comp_registers->get(source.index);
+		//for (const entity_comp& c : reg.comps)
+		//{
+		//	ostream out;
+		//	cm.save_component_to_stream(c.comp_type, out, c.comp_handle);
+		//	istream in(out.get_raw(), out.get_size());
+		//	cm.add_component_from_stream(c.comp_type, in, clone);
+		//	out.destroy();
+		//}
+
+		const bitmask<uint16> fl = _flags->get(source.index);
+		set_entity_visible(clone, !fl.is_set(entity_flags::entity_flags_invisible));
+
+		entity_meta& new_meta = _metas->get(clone.index);
+		const entity_meta& src_meta = get_entity_meta(source);
+		if (src_meta.render_proxy_count != 0 && new_meta.render_proxy_count == 0)
+		{
+			
+		}
+		return clone;
 	}
 
 	void entity_manager::destroy_entity(world_handle entity)
