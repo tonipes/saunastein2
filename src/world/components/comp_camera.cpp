@@ -25,6 +25,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "comp_camera.hpp"
+#include "reflection/type_reflection.hpp"
 #include "data/ostream.hpp"
 #include "data/istream.hpp"
 #include "world/world.hpp"
@@ -38,11 +39,16 @@ using json = nlohmann::json;
 
 namespace SFG
 {
+	void comp_camera::reflect()
+	{
+		meta& m = reflection::get().resolve(type_id<comp_camera>::value);
+		m.add_field<&comp_camera::_near, comp_camera>("near", reflected_field_type::rf_float_clamped, "", 0.001f, 2000.0f);
+		m.add_field<&comp_camera::_near, comp_camera>("far", reflected_field_type::rf_float_clamped, "", 0.001f, 2000.0f);
+		m.add_field<&comp_camera::_near, comp_camera>("fov_degrees", reflected_field_type::rf_float_clamped, "", 0.0f, 180.0f);
+	}
+
 	void comp_camera::set_values(world& w, float near_plane, float far_plane, float fov_degrees, std::initializer_list<float> cascades)
 	{
-		reflection::get().resolve(type_id<comp_camera>::value).add_field<&comp_camera::_near, comp_camera>(0, reflected_field_type::rf_float, "", "", 0, 1);
-		// 
-
 		_near		 = near_plane;
 		_far		 = far_plane;
 		_fov_degrees = fov_degrees;

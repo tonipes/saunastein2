@@ -48,10 +48,7 @@ namespace SFG
 	class comp_dir_light
 	{
 	public:
-		static inline void reflect()
-		{
-			meta& m = reflection::get().resolve(type_id<comp_dir_light>::value);
-		}
+		static void reflect();
 
 		// -----------------------------------------------------------------------------
 		// trait
@@ -101,6 +98,8 @@ namespace SFG
 	class comp_spot_light
 	{
 	public:
+		static void reflect();
+
 		// -----------------------------------------------------------------------------
 		// trait
 		// -----------------------------------------------------------------------------
@@ -172,6 +171,8 @@ namespace SFG
 	class comp_point_light
 	{
 	public:
+		static void reflect();
+
 		// -----------------------------------------------------------------------------
 		// trait
 		// -----------------------------------------------------------------------------

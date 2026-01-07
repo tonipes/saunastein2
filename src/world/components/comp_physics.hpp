@@ -47,6 +47,8 @@ namespace SFG
 	class comp_physics
 	{
 	public:
+		static void reflect();
+
 		enum flags
 		{
 			comp_physics_flags_in_sim = 1 << 0,

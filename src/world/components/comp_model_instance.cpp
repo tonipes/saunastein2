@@ -25,6 +25,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "comp_model_instance.hpp"
+#include "reflection/type_reflection.hpp"
 #include "data/ostream.hpp"
 #include "data/istream.hpp"
 #include "world/world.hpp"
@@ -46,6 +47,12 @@ using json = nlohmann::json;
 
 namespace SFG
 {
+
+	void comp_model_instance::reflect()
+	{
+		meta& m = reflection::get().resolve(type_id<comp_model_instance>::value);
+	}
+
 
 	void comp_model_instance::on_add(world& w)
 	{

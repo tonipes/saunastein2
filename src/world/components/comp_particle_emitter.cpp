@@ -25,6 +25,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "comp_particle_emitter.hpp"
+#include "reflection/type_reflection.hpp"
 #include "data/ostream.hpp"
 #include "data/istream.hpp"
 #include "world/world.hpp"
@@ -33,6 +34,11 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace SFG
 {
+	void comp_particle_emitter::reflect()
+	{
+		meta& m = reflection::get().resolve(type_id<comp_particle_emitter>::value);
+	}
+
 	void comp_particle_emitter::on_add(world& w)
 	{
 		w.get_entity_manager().add_render_proxy(_header.entity);

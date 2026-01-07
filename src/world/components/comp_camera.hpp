@@ -43,13 +43,7 @@ namespace SFG
 	class comp_camera
 	{
 	public:
-		static inline void reflect()
-		{
-			meta& m = reflection::get().resolve(type_id<comp_camera>::value);
-			m.add_field<&comp_camera::_near, comp_camera>("near", reflected_field_type::rf_float_clamped, "", 0.001f, 2000.0f);
-			m.add_field<&comp_camera::_near, comp_camera>("far", reflected_field_type::rf_float_clamped, "", 0.001f, 2000.0f);
-			m.add_field<&comp_camera::_near, comp_camera>("fov_degrees", reflected_field_type::rf_float_clamped, "", 0.0f, 180.0f);
-		}
+		static void reflect();
 
 		// -----------------------------------------------------------------------------
 		// trait

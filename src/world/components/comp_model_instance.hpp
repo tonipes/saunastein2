@@ -46,6 +46,8 @@ namespace SFG
 	class comp_model_instance
 	{
 	public:
+		static void reflect();
+
 		typedef void (*on_instantiated)(comp_model_instance* inst, resource_handle model, void* user_data);
 
 		// -----------------------------------------------------------------------------

@@ -723,7 +723,8 @@ namespace SFG
 	const entity_comp_register& entity_manager::get_component_register(world_handle entity) const
 	{
 		SFG_ASSERT(is_valid(entity));
-		return _comp_registers->get(entity);
+		const entity_comp_register& reg = _comp_registers->get(entity.index);
+		return reg;
 	}
 
 	/* ----------------                   ---------------- */

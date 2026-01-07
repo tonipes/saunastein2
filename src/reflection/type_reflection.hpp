@@ -29,32 +29,27 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "common/size_definitions.hpp"
 #include "common/string_id.hpp"
 #include "common/type_id.hpp"
-#include "reflection/reflection.hpp"
 
 namespace SFG
 {
 
-	template <typename T> struct ref_register
+	template <typename T> struct call_ref
 	{
-		ref_register(string_id type, const string& tag)
-		{
-			reflection::get().register_meta(type, 0, tag);
-		}
 	};
 
 	// clang-format off
-#define REFLECT_TYPE(T, TAG)           \
-	template <> struct type_id<T>                              \
+#define REFLECT_TYPE(T, TAG)			\
+template <> struct call_ref<T>                              \
 	{                                                          \
-		static constexpr std::string_view name	= #T;          \
+		call_ref() { T::reflect();} \
+	};\
+template <> struct type_id<T>                              \
+	{                                                          \
+		static constexpr std::string_view name = #T;          \
 		static constexpr string_id		  value = fnv1a(name); \
-		static inline ref_register<T>  reflection = ref_register<T>(value, TAG); \
+		static constexpr call_ref<T> cr = {}; \
 	}
 
-	template<typename T> struct call_ref
-	{
-
-	};
 
 #define REFLECT_COMPONENT(T)			\
 template <> struct call_ref<T>                              \
@@ -65,7 +60,7 @@ template <> struct type_id<T>                              \
 	{                                                          \
 		static constexpr std::string_view name = #T;          \
 		static constexpr string_id		  value = fnv1a(name); \
-		static inline ref_register<T>  reflection = ref_register<T>(value, "component"); \
+		static constexpr call_ref<T> cr = {}; \
 	}
 
 	/*

@@ -25,6 +25,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "comp_canvas.hpp"
+#include "reflection/type_reflection.hpp"
 #include "data/ostream.hpp"
 #include "data/istream.hpp"
 #include "math/math.hpp"
@@ -37,6 +38,11 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace SFG
 {
+	void comp_canvas::reflect()
+	{
+		meta& m = reflection::get().resolve(type_id<comp_canvas>::value);
+	}
+
 	void comp_canvas::on_add(world& w)
 	{
 		w.get_entity_manager().add_render_proxy(_header.entity);

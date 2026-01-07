@@ -25,6 +25,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "comp_audio.hpp"
+#include "reflection/type_reflection.hpp"
 #include "data/ostream.hpp"
 #include "data/istream.hpp"
 #include "world/world.hpp"
@@ -34,6 +35,11 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace SFG
 {
+	void comp_audio::reflect()
+	{
+		meta& m = reflection::get().resolve(type_id<comp_audio>::value);
+	}
+
 	void comp_audio::on_add(world& w)
 	{
 		component_manager& cm  = w.get_comp_manager();

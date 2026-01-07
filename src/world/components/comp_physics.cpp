@@ -25,6 +25,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "comp_physics.hpp"
+#include "reflection/type_reflection.hpp"
 #include "data/ostream.hpp"
 #include "data/istream.hpp"
 #include "world/world.hpp"
@@ -34,6 +35,12 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace SFG
 {
+
+	void comp_physics::reflect()
+	{
+		meta& m = reflection::get().resolve(type_id<comp_physics>::value);
+	}
+
 
 	void comp_physics::on_add(world& w)
 	{

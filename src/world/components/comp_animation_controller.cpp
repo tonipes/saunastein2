@@ -25,12 +25,18 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "comp_animation_controller.hpp"
+#include "reflection/type_reflection.hpp"
 #include "data/ostream.hpp"
 #include "data/istream.hpp"
 #include "world/world.hpp"
 
 namespace SFG
 {
+	void comp_animation_controller::reflect()
+	{
+		meta& m = reflection::get().resolve(type_id<comp_animation_controller>::value);
+	}
+
 	void comp_animation_controller::on_add(world& w)
 	{
 		animation_graph& anim_graph							= w.get_animation_graph();

@@ -25,6 +25,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "comp_light.hpp"
+#include "reflection/type_reflection.hpp"
 #include "data/ostream.hpp"
 #include "data/istream.hpp"
 #include "math/math.hpp"
@@ -39,6 +40,21 @@ using json = nlohmann::json;
 
 namespace SFG
 {
+
+	void comp_dir_light::reflect()
+	{
+		meta& m = reflection::get().resolve(type_id<comp_dir_light>::value);
+	}
+
+	void comp_spot_light::reflect()
+	{
+		meta& m = reflection::get().resolve(type_id<comp_spot_light>::value);
+	}
+
+	void comp_point_light::reflect()
+	{
+		meta& m = reflection::get().resolve(type_id<comp_point_light>::value);
+	}
 
 	void comp_dir_light::on_add(world& w)
 	{
