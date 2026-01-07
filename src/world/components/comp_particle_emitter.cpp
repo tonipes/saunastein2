@@ -31,12 +31,13 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "world/world.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"
 #include "gfx/event_stream/render_events_trait.hpp"
+#include "reflection/reflection.hpp"
 
 namespace SFG
 {
 	void comp_particle_emitter::reflect()
 	{
-		meta& m = reflection::get().resolve(type_id<comp_particle_emitter>::value);
+		meta& m = reflection::get().register_meta(type_id<comp_particle_emitter>::value, 0, "component");
 	}
 
 	void comp_particle_emitter::on_add(world& w)

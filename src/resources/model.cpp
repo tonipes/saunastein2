@@ -25,6 +25,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "model.hpp"
+#include "reflection/type_reflection.hpp"
 #include "memory/chunk_allocator.hpp"
 #include "mesh.hpp"
 #include "model_node.hpp"
@@ -37,9 +38,14 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "light_raw.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"
 #include "gfx/event_stream/render_events_gfx.hpp"
+#include "reflection/reflection.hpp"
 
 namespace SFG
 {
+	void model::reflect()
+	{
+		reflection::get().register_meta(type_id<model>::value, 0, "stkmodel");
+	}
 
 	model::~model()
 	{

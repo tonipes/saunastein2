@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -39,6 +39,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "resources/skin.hpp"
 #include "resources/common_skin.hpp"
 #include "io/log.hpp"
+#include "reflection/reflection.hpp"
 
 #ifdef SFG_TOOLMODE
 #include <vendor/nhlohmann/json.hpp>
@@ -50,9 +51,8 @@ namespace SFG
 
 	void comp_model_instance::reflect()
 	{
-		meta& m = reflection::get().resolve(type_id<comp_model_instance>::value);
+		meta& m = reflection::get().register_meta(type_id<comp_model_instance>::value, 0, "component");
 	}
-
 
 	void comp_model_instance::on_add(world& w)
 	{

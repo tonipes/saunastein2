@@ -35,12 +35,13 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gfx/event_stream/render_events_trait.hpp"
 #include "resources/material.hpp"
 #include "resources/font.hpp"
+#include "reflection/reflection.hpp"
 
 namespace SFG
 {
 	void comp_canvas::reflect()
 	{
-		meta& m = reflection::get().resolve(type_id<comp_canvas>::value);
+		meta& m = reflection::get().register_meta(type_id<comp_canvas>::value, 0, "component");
 	}
 
 	void comp_canvas::on_add(world& w)

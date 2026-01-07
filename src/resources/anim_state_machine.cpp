@@ -25,6 +25,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "anim_state_machine.hpp"
+#include "reflection/type_reflection.hpp"
 #include "anim_state_machine_raw.hpp"
 
 #include "world/world.hpp"
@@ -33,9 +34,14 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "world/animation/animation_graph.hpp"
 #include "world/animation/animation_state.hpp"
 #include "data/string.hpp"
+#include "reflection/reflection.hpp"
 
 namespace SFG
 {
+	void anim_state_machine::reflect()
+	{
+		reflection::get().register_meta(type_id<anim_state_machine>::value, 0, "stkanim");
+	}
 	void anim_state_machine::create_from_loader(const anim_state_machine_raw& raw, world& w, resource_handle handle)
 	{
 		animation_graph&  ag = w.get_animation_graph();

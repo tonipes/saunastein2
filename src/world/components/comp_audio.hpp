@@ -87,5 +87,5 @@ namespace SFG
 		uint8			 _is_looping	 = 0;
 	};
 
-	REFLECT_COMPONENT(comp_audio);
+	REFLECT_TYPE(comp_audio);
 }

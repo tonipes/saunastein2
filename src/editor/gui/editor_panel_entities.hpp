@@ -116,9 +116,10 @@ namespace SFG
 		vekt::id _selected_scale_z = NULL_WIDGET_ID;
 		vekt::id _components_area  = NULL_WIDGET_ID;
 
-		vector<entity_panel_meta> _entity_meta	 = {};
-		vector<vekt::id>		  _node_widgets	 = {};
-		vector<node_binding>	  _node_bindings = {};
+		vector<vekt::id>		  _component_properties = {};
+		vector<entity_panel_meta> _entity_meta			= {};
+		vector<vekt::id>		  _node_widgets			= {};
+		vector<node_binding>	  _node_bindings		= {};
 
 		const char* _text_icon_dd			= nullptr;
 		const char* _text_icon_dd_collapsed = nullptr;

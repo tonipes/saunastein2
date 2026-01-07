@@ -41,6 +41,7 @@ namespace SFG
 	class audio
 	{
 	public:
+		static void reflect();
 		enum flags
 		{
 			is_streaming = 1 << 0,
@@ -76,5 +77,5 @@ namespace SFG
 		bitmask<uint8> _flags = 0;
 	};
 
-	REFLECT_TYPE(audio, "stkaud");
+	REFLECT_TYPE(audio);
 }

@@ -69,6 +69,7 @@ namespace SFG
 		vector4 col_title_line_end;
 		vector4 col_hyperlink;
 		vector4 col_accent;
+		vector4 col_accent_dim;
 		vector4 col_accent_second;
 		vector4 col_accent_second_dim;
 		vector4 col_highlight;

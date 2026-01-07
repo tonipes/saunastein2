@@ -43,6 +43,7 @@ namespace SFG
 	class physical_material
 	{
 	public:
+		static void reflect();
 		enum flags
 		{
 			created = 1 << 0,
@@ -75,6 +76,6 @@ namespace SFG
 		bitmask<uint8>			   _flags	 = 0;
 	};
 
-	REFLECT_TYPE(physical_material, "stkphymat");
+	REFLECT_TYPE(physical_material);
 
 }

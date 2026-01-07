@@ -107,5 +107,5 @@ namespace SFG
 		uint32			_root_entities_count   = 0;
 	};
 
-	REFLECT_COMPONENT(comp_model_instance);
+	REFLECT_TYPE(comp_model_instance);
 }

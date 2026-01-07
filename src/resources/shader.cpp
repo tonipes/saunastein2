@@ -25,14 +25,20 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "shader.hpp"
+#include "reflection/type_reflection.hpp"
 #include "shader_raw.hpp"
 #include "gfx/renderer.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"
 #include "gfx/event_stream/render_events_gfx.hpp"
 #include "world/world.hpp"
+#include "reflection/reflection.hpp"
 
 namespace SFG
 {
+	void shader::reflect()
+	{
+		reflection::get().register_meta(type_id<shader>::value, 0, "stkshader");
+	}
 	shader::~shader()
 	{
 		SFG_ASSERT(!_flags.is_set(shader::flags::created));

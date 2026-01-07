@@ -78,5 +78,5 @@ namespace SFG
 		color			 _base_color = {};
 	};
 
-	REFLECT_COMPONENT(comp_ambient);
+	REFLECT_TYPE(comp_ambient);
 }

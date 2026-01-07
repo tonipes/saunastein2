@@ -108,5 +108,5 @@ namespace SFG
 		uint16			 _skin_entities_count = 0;
 	};
 
-	REFLECT_COMPONENT(comp_mesh_instance);
+	REFLECT_TYPE(comp_mesh_instance);
 }

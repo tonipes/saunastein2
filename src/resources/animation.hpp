@@ -66,6 +66,7 @@ namespace SFG
 	class animation
 	{
 	public:
+		static void reflect();
 		// -----------------------------------------------------------------------------
 		// resource
 		// -----------------------------------------------------------------------------
@@ -125,5 +126,5 @@ namespace SFG
 		uint16		   _scale_count	   = 0;
 	};
 
-	REFLECT_TYPE(animation, "");
+	REFLECT_TYPE(animation);
 }

@@ -25,12 +25,18 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "font.hpp"
+#include "reflection/type_reflection.hpp"
 #include "font_raw.hpp"
 #include "gui/vekt.hpp"
 #include "world/world.hpp"
+#include "reflection/reflection.hpp"
 
 namespace SFG
 {
+	void font::reflect()
+	{
+		reflection::get().register_meta(type_id<font>::value, 0, "stkfont");
+	}
 	font::~font()
 	{
 		SFG_ASSERT(!_flags.is_set(font::flags::created));

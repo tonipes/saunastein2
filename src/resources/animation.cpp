@@ -25,14 +25,20 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "animation.hpp"
+#include "reflection/type_reflection.hpp"
 #include "animation_raw.hpp"
 #include "memory/chunk_allocator.hpp"
 #include "world/world.hpp"
+#include "reflection/reflection.hpp"
 
 #include <tracy/Tracy.hpp>
 
 namespace SFG
 {
+	void animation::reflect()
+	{
+		reflection::get().register_meta(type_id<animation>::value, 0, "");
+	}
 	namespace
 	{
 		template <typename T> uint16 find_segment(const T* keys, uint16 count, float time)

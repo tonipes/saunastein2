@@ -29,12 +29,13 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "data/ostream.hpp"
 #include "data/istream.hpp"
 #include "world/world.hpp"
+#include "reflection/reflection.hpp"
 
 namespace SFG
 {
 	void comp_animation_controller::reflect()
 	{
-		meta& m = reflection::get().resolve(type_id<comp_animation_controller>::value);
+		meta& m = reflection::get().register_meta(type_id<comp_animation_controller>::value, 0, "component");
 	}
 
 	void comp_animation_controller::on_add(world& w)

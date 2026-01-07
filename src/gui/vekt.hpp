@@ -1164,6 +1164,7 @@ namespace vekt
 		hover_callback&		widget_get_hover_callbacks(id widget);
 		widget_user_data&	widget_get_user_data(id widget);
 		custom_passes&		widget_get_custom_pass(id widget);
+		const widget_meta&	widget_get_meta(id widget);
 		id					widget_get_child(id widget, unsigned int index);
 		void				widget_add_child(id widget_id, id child_id);
 		void				widget_remove_child(id widget_id, id child_id);

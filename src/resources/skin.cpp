@@ -25,15 +25,21 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "skin.hpp"
+#include "reflection/type_reflection.hpp"
 #include "skin_raw.hpp"
 #include "memory/chunk_allocator.hpp"
 #include "world/world.hpp"
+#include "reflection/reflection.hpp"
 
 #include "gfx/event_stream/render_event_stream.hpp"
 #include "gfx/event_stream/render_events_gfx.hpp"
 
 namespace SFG
 {
+	void skin::reflect()
+	{
+		reflection::get().register_meta(type_id<skin>::value, 0, "");
+	}
 
 	void skin::create_from_loader(const skin_raw& raw, world& w, resource_handle handle)
 	{

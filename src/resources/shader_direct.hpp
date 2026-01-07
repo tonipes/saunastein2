@@ -37,7 +37,6 @@ namespace SFG
 
 	class shader_direct
 	{
-
 	private:
 		struct hw
 		{

@@ -25,6 +25,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "mesh.hpp"
+#include "reflection/type_reflection.hpp"
 #include "mesh_raw.hpp"
 #include "primitive_raw.hpp"
 #include "primitive.hpp"
@@ -32,9 +33,14 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "world/world.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"
 #include "gfx/event_stream/render_events_gfx.hpp"
+#include "reflection/reflection.hpp"
 
 namespace SFG
 {
+	void mesh::reflect()
+	{
+		reflection::get().register_meta(type_id<mesh>::value, 0, "");
+	}
 	mesh::~mesh()
 	{
 		SFG_ASSERT(!_flags.is_set(mesh::flags::created));

@@ -40,6 +40,7 @@ namespace SFG
 	class model
 	{
 	public:
+		static void reflect();
 		enum flags
 		{
 			created = 1 << 0,
@@ -158,6 +159,6 @@ namespace SFG
 		bitmask<uint8> _flags;
 	};
 
-	REFLECT_TYPE(model, "stkmodel");
+	REFLECT_TYPE(model);
 
 }

@@ -43,6 +43,7 @@ namespace SFG
 	class material
 	{
 	public:
+		static void reflect();
 		~material();
 
 		// -----------------------------------------------------------------------------
@@ -90,6 +91,6 @@ namespace SFG
 #endif
 	};
 
-	REFLECT_TYPE(material, "stkmat");
+	REFLECT_TYPE(material);
 
 }

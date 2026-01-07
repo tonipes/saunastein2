@@ -42,6 +42,7 @@ namespace SFG
 	class texture
 	{
 	public:
+		static void reflect();
 		enum flags
 		{
 			created = 1 << 0,
@@ -59,5 +60,5 @@ namespace SFG
 		bitmask<uint8> _flags		   = 0;
 	};
 
-	REFLECT_TYPE(texture, "stktexture");
+	REFLECT_TYPE(texture);
 }

@@ -31,13 +31,15 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "world/world.hpp"
 #include "resources/audio.hpp"
 #include "io/log.hpp"
+#include "reflection/reflection.hpp"
+
 #include <vendor/miniaudio/miniaudio.h>
 
 namespace SFG
 {
 	void comp_audio::reflect()
 	{
-		meta& m = reflection::get().resolve(type_id<comp_audio>::value);
+		meta& m = reflection::get().register_meta(type_id<comp_audio>::value, 0, "component");
 	}
 
 	void comp_audio::on_add(world& w)

@@ -25,14 +25,20 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "audio.hpp"
+#include "reflection/type_reflection.hpp"
 #include "audio_raw.hpp"
 #include "io/assert.hpp"
 #include "memory/chunk_allocator.hpp"
 #include "world/world.hpp"
+#include "reflection/reflection.hpp"
 #include <vendor/miniaudio/miniaudio.h>
 
 namespace SFG
 {
+	void audio::reflect()
+	{
+		reflection::get().register_meta(type_id<audio>::value, 0, "stkaud");
+	}
 	audio::~audio()
 	{
 		_flags.set(audio::flags::is_created);

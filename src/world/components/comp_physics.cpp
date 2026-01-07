@@ -29,6 +29,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "data/ostream.hpp"
 #include "data/istream.hpp"
 #include "world/world.hpp"
+#include "reflection/reflection.hpp"
 
 #include <Jolt/Jolt.h>
 #include <Jolt/Physics/Body/Body.h>
@@ -38,7 +39,7 @@ namespace SFG
 
 	void comp_physics::reflect()
 	{
-		meta& m = reflection::get().resolve(type_id<comp_physics>::value);
+		meta& m = reflection::get().register_meta(type_id<comp_physics>::value, 0, "component");
 	}
 
 

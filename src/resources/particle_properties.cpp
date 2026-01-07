@@ -25,14 +25,20 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "particle_properties.hpp"
+#include "reflection/type_reflection.hpp"
 #include "particle_properties_raw.hpp"
 #include "gui/vekt.hpp"
 #include "world/world.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"
 #include "gfx/event_stream/render_events_gfx.hpp"
+#include "reflection/reflection.hpp"
 
 namespace SFG
 {
+	void particle_properties::reflect()
+	{
+		reflection::get().register_meta(type_id<particle_properties>::value, 0, "stkparticle");
+	}
 	particle_properties::~particle_properties()
 	{
 		SFG_ASSERT(!_flags.is_set(particle_properties::flags::created));

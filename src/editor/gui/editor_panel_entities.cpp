@@ -101,6 +101,7 @@ namespace SFG
 		_entity_meta.resize(MAX_ENTITIES);
 		_node_bindings.reserve(512);
 		_node_widgets.reserve(512);
+		_component_properties.reserve(512);
 
 		_text_icon_dd_collapsed = editor::get().get_text_allocator().allocate(ICON_DD_RIGHT);
 		_text_icon_dd			= editor::get().get_text_allocator().allocate(ICON_DD_DOWN);
@@ -399,6 +400,9 @@ namespace SFG
 
 	void editor_panel_entities::set_selected(world_handle h)
 	{
+		if (_selected_entity == h)
+			return;
+
 		// deselect previous
 		const world_handle existing = _selected_entity;
 		if (!existing.is_null())
@@ -420,8 +424,15 @@ namespace SFG
 			gfx.color			  = editor_theme::get().col_accent_second_dim;
 		}
 
+		for (vekt::id c : _component_properties)
+			_gui_builder.deallocate(c);
+
+		_component_properties.resize(0);
+
 		if (_selected_entity.is_null())
 			return;
+
+		_gui_builder.push_stack(_components_area);
 
 		world&						w  = editor::get().get_app().get_world();
 		entity_manager&				em = w.get_entity_manager();
@@ -431,16 +442,21 @@ namespace SFG
 		{
 			const meta&			   m	  = reflection::get().resolve(c.comp_type);
 			const meta::field_vec& fields = m.get_fields();
-			for (const field_base* f : fields)
+			for (field_base* f : fields)
 			{
 				if (f->_type == reflected_field_type::rf_float_clamped)
 				{
-					_gui_builder.push_stack(_components_area);
-					_gui_builder.add_property_row_slider(f->_title.c_str(), 0, f->_min, f->_max, 0.0f);
-					_gui_builder.pop_stack();
+
+					void*		comp_ptr = cm.get_component(c.comp_type, c.comp_handle);
+					const float val		 = f->value(comp_ptr).cast<float>();
+
+					const vekt::id w = _gui_builder.add_property_row_slider(f->_title.c_str(), 16, f->_min, f->_max, val).first;
+					_component_properties.push_back(w);
 				}
 			}
 		}
+
+		_gui_builder.pop_stack();
 	}
 
 	void editor_panel_entities::on_input_field_changed(void* callback_ud, vekt::builder* b, vekt::id widget, const char* txt, float value)
@@ -481,7 +497,7 @@ namespace SFG
 		}
 		else if (widget == self->_selected_rot_y)
 		{
-			em.set_entity_rotation(self->_selected_entity, quat::from_euler(eul.x, eul.y, eul.z));
+			em.set_entity_rotation(self->_selected_entity, quat::from_euler(eul.x, value, eul.z));
 		}
 		else if (widget == self->_selected_rot_z)
 		{

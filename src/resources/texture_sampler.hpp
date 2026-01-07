@@ -42,6 +42,7 @@ namespace SFG
 	class texture_sampler
 	{
 	public:
+		static void reflect();
 		enum flags
 		{
 			created = 1 << 0,
@@ -71,6 +72,6 @@ namespace SFG
 		bitmask<uint8> _flags = 0;
 	};
 
-	REFLECT_TYPE(texture_sampler, "stksampler");
+	REFLECT_TYPE(texture_sampler);
 
 }

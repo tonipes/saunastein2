@@ -187,9 +187,9 @@ namespace SFG
 		}
 		else
 		{
-			const size_props& sz	 = b->widget_get_size_props(widget);
-			const vector2	  pos	 = b->widget_get_pos(widget) + vector2(sz.child_margins.left, 0.0f);
-			const float		  x_diff = ev.position.x - pos.x;
+			const vector2 pos		= b->widget_get_pos(text_widget);
+			const vector2 text_size = b->widget_get_size(text_widget);
+			const float	  x_diff	= ev.position.x - pos.x;
 
 			it->caret_pos = math::clamp(b->widget_get_character_index(it->text_widget, x_diff), (uint32)0, it->buffer_size);
 		}
@@ -205,10 +205,22 @@ namespace SFG
 
 		if (button == input_code::mouse_middle)
 		{
-			if (math::almost_equal(it->value_increment, 0.0f))
-				return;
+			if (it->is_slider)
+			{
+				const vector2 pos	= b->widget_get_pos(it->widget);
+				const vector2 size	= b->widget_get_size(it->widget);
+				const float	  ratio = math::clamp(math::remap(mp_x, pos.x, pos.x + size.x, 0.0f, 1.0f), 0.0f, 1.0f);
+				it->value			= it->min + (it->max - it->min) * ratio;
+				it->value			= math::clamp(it->value, it->min, it->max);
 
-			it->value += math::clamp(delta_x, -1.0f, 1.0f) * it->value_increment;
+				size_props& sz = b->widget_get_size_props(it->sliding_widget);
+				sz.size.x	   = ratio;
+			}
+			else
+			{
+				it->value += math::clamp(delta_x, -1.0f, 1.0f) * it->value_increment;
+			}
+
 			gb->text_field_edit_complete(*it);
 
 			if (gb->callbacks.on_input_field_changed)
@@ -227,9 +239,9 @@ namespace SFG
 		}
 		const vekt::id text_widget = it->text_widget;
 
-		const size_props& sz	 = b->widget_get_size_props(widget);
-		const vector2	  pos	 = b->widget_get_pos(widget) + vector2(sz.child_margins.left, 0.0f);
-		const float		  x_diff = mp_x - pos.x;
+		const vector2 pos		= b->widget_get_pos(text_widget);
+		const vector2 text_size = b->widget_get_size(text_widget);
+		const float	  x_diff	= mp_x - pos.x;
 
 		if (x_diff < 0)
 		{
@@ -284,17 +296,17 @@ namespace SFG
 
 		const gui_text_field& tf = *it;
 
-		const size_props& sz		= b->widget_get_size_props(widget);
-		const vector2	  pos		= b->widget_get_pos(widget) + vector2(sz.child_margins.left, 0.0f);
-		const vector2	  text_size = b->widget_get_size(it->text_widget);
+		const vector2 pos		= b->widget_get_pos(tf.text_widget) + vector2(0.0f, 0.0f);
+		const vector2 text_size = b->widget_get_size(tf.text_widget);
 
 		const unsigned int min		  = math::min(tf.caret_pos, tf.caret_end_pos);
 		const unsigned int max		  = math::max(tf.caret_pos, tf.caret_end_pos);
 		const float		   min_offset = b->widget_get_character_offset(tf.text_widget, min);
 		const float		   max_offset = b->widget_get_character_offset(tf.text_widget, max);
 
-		widget_gfx gfx = {
-			.flags = gfx_flags::gfx_is_rect,
+		const widget_gfx gfx = {
+			.draw_order = b->widget_get_gfx(tf.text_widget).draw_order,
+			.flags		= gfx_flags::gfx_is_rect,
 		};
 
 		static float timer = 0.0f;
@@ -305,8 +317,8 @@ namespace SFG
 
 			b->add_filled_rect({
 				.gfx			 = gfx,
-				.min			 = pos + vector2(min_offset, sz.size.y * 0.1f),
-				.max			 = pos + vector2(min_offset + 1.0f * editor_theme::DPI_SCALE, sz.size.y - (sz.size.y * 0.1f)),
+				.min			 = pos + vector2(min_offset, 0.0f),
+				.max			 = pos + vector2(min_offset + 1.0f * editor_theme::DPI_SCALE, text_size.y),
 				.color_start	 = editor_theme::get().col_text_dim,
 				.color_end		 = editor_theme::get().col_text_dim,
 				.color_direction = vekt::direction::horizontal,
@@ -326,8 +338,8 @@ namespace SFG
 		// highlight
 		b->add_filled_rect({
 			.gfx			 = gfx,
-			.min			 = pos + vector2(min_offset, sz.size.y * 0.1f),
-			.max			 = pos + vector2(max_offset, sz.size.y - (sz.size.y * 0.1f)),
+			.min			 = pos + vector2(min_offset, 0.0f),
+			.max			 = pos + vector2(max_offset, text_size.y),
 			.color_start	 = editor_theme::get().col_highlight_transparent,
 			.color_end		 = editor_theme::get().col_highlight_transparent,
 			.color_direction = vekt::direction::horizontal,
@@ -485,6 +497,13 @@ namespace SFG
 			if (gb->callbacks.on_input_field_changed)
 				gb->callbacks.on_input_field_changed(gb->callbacks.callback_ud, gb->_builder, widget, tf.buffer, tf.value);
 			b->widget_update_text(tf.text_widget);
+
+			if (tf.is_slider)
+			{
+				tf.value	   = math::clamp(tf.value, tf.min, tf.max);
+				size_props& sz = b->widget_get_size_props(tf.sliding_widget);
+				sz.size.x	   = math::remap(tf.value, tf.min, tf.max, 0.0f, 1.0f);
+			}
 		}
 
 		return vekt::input_event_result::handled;
@@ -530,29 +549,6 @@ namespace SFG
 		return vekt::input_event_result::handled;
 	}
 
-	void gui_builder::on_slider_drag(vekt::builder* b, vekt::id widget, float mp_x, float mp_y, float delta_x, float delta_y, unsigned int button)
-	{
-		gui_builder* gb = static_cast<gui_builder*>(b->widget_get_user_data(widget).ptr);
-		auto		 it = vector_util::find_if(gb->_sliders, [widget](const gui_slider& r) -> bool { return r.widget == widget; });
-		SFG_ASSERT(it != gb->_sliders.end());
-
-		const vector2 pos	= b->widget_get_pos(it->widget);
-		const vector2 size	= b->widget_get_size(it->widget);
-		const float	  ratio = math::clamp(math::remap(mp_x, pos.x, pos.x + size.x, 0.0f, 1.0f), 0.0f, 1.0f);
-
-		it->value = it->min + (it->max - it->min) * ratio;
-		it->value = math::clamp(it->value, it->min, it->max);
-
-		b->widget_append_text_start(it->text_widget);
-		b->widget_append_text(it->text_widget, it->value);
-
-		size_props& sz = b->widget_get_size_props(it->slider_widget);
-		sz.size.x	   = ratio;
-
-		if (gb->callbacks.on_slider_changed)
-			gb->callbacks.on_slider_changed(gb->callbacks.callback_ud, b, widget, it->value);
-	}
-
 	// -----------------------------------------------------------------------------
 	// big layout
 	// -----------------------------------------------------------------------------
@@ -563,7 +559,6 @@ namespace SFG
 		_text_fields.reserve(256);
 		_checkboxes.reserve(256);
 		_resources.reserve(256);
-		_sliders.reserve(256);
 
 		const id w = _builder->allocate();
 
@@ -592,11 +587,52 @@ namespace SFG
 		{
 			editor::get().get_text_allocator().deallocate(r.extension);
 		}
+
 		_resources.resize(0);
 		_checkboxes.resize(0);
 		_text_fields.resize(0);
 		_builder->deallocate(_root);
 		_root = NULL_WIDGET_ID;
+	}
+
+	void gui_builder::remove_impl(vekt::id id)
+	{
+		auto it_res = std::find_if(_resources.begin(), _resources.end(), [id](const gui_resource& it) -> bool { return it.widget == id; });
+		auto it_txt = std::find_if(_text_fields.begin(), _text_fields.end(), [id](const gui_text_field& it) -> bool { return it.widget == id; });
+		auto it_c	= std::find_if(_checkboxes.begin(), _checkboxes.end(), [id](const gui_checkbox& it) -> bool { return it.widget == id; });
+
+		if (it_res != _resources.end())
+			_resources.erase(it_res);
+
+		if (it_txt != _text_fields.end())
+			_text_fields.erase(it_txt);
+
+		if (it_c != _checkboxes.end())
+			_checkboxes.erase(it_c);
+
+		const vekt::widget_meta& meta = _builder->widget_get_meta(id);
+
+		for (vekt::id c : meta.children)
+		{
+			remove_impl(c);
+		}
+	}
+
+	void gui_builder::deallocate_children(vekt::id id)
+	{
+		const vekt::widget_meta& meta = _builder->widget_get_meta(id);
+
+		for (vekt::id c : meta.children)
+		{
+			remove_impl(c);
+			_builder->deallocate(c);
+		}
+	}
+
+	void gui_builder::deallocate(vekt::id id)
+	{
+		remove_impl(id);
+		_builder->deallocate(id);
 	}
 
 	id gui_builder::begin_area(bool fill)
@@ -720,7 +756,7 @@ namespace SFG
 	// property - rows
 	// -----------------------------------------------------------------------------
 
-	vekt::id gui_builder::add_property_row_checkbox(const char* label, bool initial_state)
+	gui_builder::id_pair gui_builder::add_property_row_checkbox(const char* label, bool initial_state)
 	{
 		const id row = add_property_row();
 
@@ -734,10 +770,10 @@ namespace SFG
 		const id w = add_checkbox(initial_state);
 		pop_stack();
 		pop_stack();
-		return w;
+		return {row, w};
 	}
 
-	vekt::id gui_builder::add_property_row_resource(const char* label, const char* extension, const char* initial_resource, size_t buffer_capacity)
+	gui_builder::id_pair gui_builder::add_property_row_resource(const char* label, const char* extension, const char* initial_resource, size_t buffer_capacity)
 	{
 		const id row = add_property_row();
 
@@ -752,10 +788,10 @@ namespace SFG
 		pop_stack();
 
 		pop_stack();
-		return w;
+		return {row, w};
 	}
 
-	vekt::id gui_builder::add_property_row_slider(const char* label, size_t buffer_capacity, float min, float max, float val)
+	gui_builder::id_pair gui_builder::add_property_row_slider(const char* label, size_t buffer_capacity, float min, float max, float val)
 	{
 		const id row = add_property_row();
 
@@ -766,11 +802,12 @@ namespace SFG
 		add_row_cell_seperator();
 
 		add_row_cell(0.0f);
-		const id w = add_slider(val, min, max, buffer_capacity);
+		const id w = add_text_field("0.000", buffer_capacity, gui_text_field_type::number, 3, 0, min, max, val, 1).first;
+		set_text_field_value(w, val, false);
 		pop_stack();
 
 		pop_stack();
-		return w;
+		return {row, w};
 	}
 
 	gui_builder::id_pair gui_builder::add_property_row_label(const char* label, const char* text, size_t buffer_capacity)
@@ -1146,6 +1183,13 @@ namespace SFG
 		char_util::append_double(cur, cur + it->buffer_capacity, f, 3.0f);
 		size_t diff		= cur - it->buffer;
 		it->buffer_size = static_cast<unsigned int>(diff);
+
+		if (it->is_slider)
+		{
+			it->value	   = math::clamp(it->value, it->min, it->max);
+			size_props& sz = _builder->widget_get_size_props(it->sliding_widget);
+			sz.size.x	   = math::remap(it->value, it->min, it->max, 0.0f, 1.0f);
+		}
 	}
 
 	void gui_builder::text_field_edit_complete(gui_text_field& tf)
@@ -1166,7 +1210,7 @@ namespace SFG
 		}
 	}
 
-	gui_builder::id_pair gui_builder::add_text_field(const char* text, size_t buffer_capacity, gui_text_field_type type, unsigned int decimals, float increment)
+	gui_builder::id_pair gui_builder::add_text_field(const char* text, size_t buffer_capacity, gui_text_field_type type, unsigned int decimals, float increment, float min, float max, float val, unsigned char is_slider)
 	{
 		const id w = new_widget(true);
 		{
@@ -1179,7 +1223,7 @@ namespace SFG
 			sz.flags		 = size_flags::sf_x_relative | size_flags::sf_y_abs;
 			sz.size.x		 = 1.0f;
 			sz.size.y		 = editor_theme::get().item_height;
-			sz.child_margins = {editor_theme::get().inner_margin, editor_theme::get().inner_margin, editor_theme::get().inner_margin, editor_theme::get().inner_margin};
+			sz.child_margins = {0.0f, 0.0f, is_slider ? 0.0f : editor_theme::get().inner_margin, is_slider ? 0.0f : editor_theme::get().inner_margin};
 
 			widget_gfx& gfx = _builder->widget_get_gfx(w);
 			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_stroke | gfx_flags::gfx_has_rounding | gfx_flags::gfx_custom_pass | gfx_flags::gfx_focusable;
@@ -1222,24 +1266,60 @@ namespace SFG
 		{
 			pos_props& pp = _builder->widget_get_pos_props(txt);
 			pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_y_relative | pos_flags::pf_y_anchor_center;
-			pp.pos.x	  = 0.0f;
+			pp.pos.x	  = is_slider ? 0.5f : 0.0f;
 			pp.pos.y	  = 0.5f;
 
-			text_props& tp = _builder->widget_get_text(txt);
-
-			const gui_text_field tf = {
-				.buffer			 = tp.text,
-				.widget			 = w,
-				.text_widget	 = txt,
-				.buffer_size	 = text == nullptr ? 0 : static_cast<uint32>(strlen(text)),
-				.buffer_capacity = static_cast<unsigned int>(tp.text_capacity),
-				.decimals		 = decimals,
-				.value_increment = increment,
-				.type			 = type,
-			};
-
-			_text_fields.push_back(tf);
+			widget_gfx& gfx = _builder->widget_get_gfx(txt);
+			if (is_slider)
+			{
+				pp.flags |= pos_flags::pf_x_anchor_center;
+				gfx.draw_order = 1;
+			}
 		}
+
+		text_props& tp = _builder->widget_get_text(txt);
+
+		gui_text_field tf = {
+			.buffer			 = tp.text,
+			.widget			 = w,
+			.text_widget	 = txt,
+			.buffer_size	 = text == nullptr ? 0 : static_cast<uint32>(strlen(text)),
+			.buffer_capacity = static_cast<unsigned int>(tp.text_capacity),
+			.decimals		 = decimals,
+			.value_increment = increment,
+			.min			 = min,
+			.max			 = max,
+			.type			 = type,
+			.is_slider		 = is_slider,
+		};
+
+		if (is_slider)
+		{
+			const id w2 = new_widget();
+			{
+				pos_props& pp = _builder->widget_get_pos_props(w2);
+				pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_y_relative;
+				pp.pos.y	  = 0.0f;
+				pp.pos.x	  = 0.0f;
+
+				size_props& sz = _builder->widget_get_size_props(w2);
+				sz.flags	   = size_flags::sf_x_relative | size_flags::sf_y_relative;
+				sz.size.x	   = math::clamp(math::remap(val, min, max, 0.0f, 1.0f), 0.0f, 1.0f);
+				sz.size.y	   = 1.0f;
+
+				widget_gfx& gfx = _builder->widget_get_gfx(w2);
+				gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_rounding;
+				gfx.color		= editor_theme::get().col_accent_dim;
+
+				rounding_props& rp = _builder->widget_get_rounding(w2);
+				rp.rounding		   = editor_theme::get().frame_rounding;
+				rp.segments		   = 8;
+			}
+
+			tf.sliding_widget = w2;
+		}
+
+		_text_fields.push_back(tf);
 
 		pop_stack();
 		return {w, txt};
@@ -1402,86 +1482,6 @@ namespace SFG
 			.text_widget = txt,
 		};
 		_resources.push_back(r);
-
-		return w;
-	}
-
-	vekt::id gui_builder::add_slider(float val, float min, float max, size_t buffer_capacity)
-	{
-		const id w = new_widget(true);
-		{
-			pos_props& pp = _builder->widget_get_pos_props(w);
-			pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_y_relative | pos_flags::pf_y_anchor_center;
-			pp.pos.y	  = 0.5f;
-			pp.pos.x	  = 0.0f;
-
-			size_props& sz = _builder->widget_get_size_props(w);
-			sz.flags	   = size_flags::sf_x_relative | size_flags::sf_y_abs;
-			sz.size.x	   = 1.0f;
-			sz.size.y	   = editor_theme::get().item_height;
-
-			widget_gfx& gfx = _builder->widget_get_gfx(w);
-			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_stroke | gfx_flags::gfx_has_rounding;
-			gfx.color		= editor_theme::get().col_frame_bg;
-
-			stroke_props& st = _builder->widget_get_stroke(w);
-			st.thickness	 = editor_theme::get().frame_thickness;
-			st.color		 = editor_theme::get().col_frame_outline;
-
-			rounding_props& rp = _builder->widget_get_rounding(w);
-			rp.rounding		   = editor_theme::get().frame_rounding;
-			rp.segments		   = 8;
-
-			hover_callback& hb = _builder->widget_get_hover_callbacks(w);
-			hb.receive_mouse   = 1;
-
-			mouse_callback& mc = _builder->widget_get_mouse_callbacks(w);
-			mc.on_drag		   = on_slider_drag;
-
-			widget_user_data& ud = _builder->widget_get_user_data(w);
-			ud.ptr				 = this;
-		}
-
-		const id txt = add_label("0.00000", buffer_capacity);
-		{
-			pos_props& pp = _builder->widget_get_pos_props(txt);
-			pp.pos.x	  = 0.5f;
-			pp.flags |= pos_flags::pf_x_anchor_center;
-			_builder->widget_append_text(txt, val);
-		}
-
-		const id w2 = new_widget();
-		{
-			pos_props& pp = _builder->widget_get_pos_props(w2);
-			pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_y_relative;
-			pp.pos.y	  = 0.0f;
-			pp.pos.x	  = 0.0f;
-
-			size_props& sz = _builder->widget_get_size_props(w2);
-			sz.flags	   = size_flags::sf_x_relative | size_flags::sf_y_relative;
-			sz.size.x	   = math::clamp(math::remap(val, min, max, 0.0f, 1.0f), 0.0f, 1.0f);
-			sz.size.y	   = 1.0f;
-
-			widget_gfx& gfx = _builder->widget_get_gfx(w2);
-			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_rounding;
-			gfx.color		= editor_theme::get().col_accent_second;
-
-			rounding_props& rp = _builder->widget_get_rounding(w2);
-			rp.rounding		   = editor_theme::get().frame_rounding;
-			rp.segments		   = 8;
-		}
-
-		pop_stack();
-
-		const gui_slider s = {
-			.min		   = min,
-			.max		   = max,
-			.value		   = val,
-			.widget		   = w,
-			.slider_widget = w2,
-			.text_widget   = txt,
-		};
-		_sliders.push_back(s);
 
 		return w;
 	}

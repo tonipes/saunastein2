@@ -25,11 +25,17 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "physical_material.hpp"
+#include "reflection/type_reflection.hpp"
 #include "physical_material_raw.hpp"
 #include "world/world.hpp"
+#include "reflection/reflection.hpp"
 
 namespace SFG
 {
+	void physical_material::reflect()
+	{
+		reflection::get().register_meta(type_id<physical_material>::value, 0, "stkphymat");
+	}
 	physical_material::~physical_material()
 	{
 		SFG_ASSERT(!_flags.is_set(physical_material::flags::created));

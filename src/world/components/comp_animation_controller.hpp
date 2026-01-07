@@ -73,5 +73,5 @@ namespace SFG
 		pool_handle16	 _state_machine = {};
 	};
 
-	REFLECT_COMPONENT(comp_animation_controller);
+	REFLECT_TYPE(comp_animation_controller);
 }

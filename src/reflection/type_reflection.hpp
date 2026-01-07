@@ -38,7 +38,7 @@ namespace SFG
 	};
 
 	// clang-format off
-#define REFLECT_TYPE(T, TAG)			\
+#define REFLECT_TYPE(T)			\
 template <> struct call_ref<T>                              \
 	{                                                          \
 		call_ref() { T::reflect();} \
@@ -47,21 +47,9 @@ template <> struct type_id<T>                              \
 	{                                                          \
 		static constexpr std::string_view name = #T;          \
 		static constexpr string_id		  value = fnv1a(name); \
-		static constexpr call_ref<T> cr = {}; \
+		static inline call_ref<T> cr = {}; \
 	}
 
-
-#define REFLECT_COMPONENT(T)			\
-template <> struct call_ref<T>                              \
-	{                                                          \
-		call_ref() { T::reflect();} \
-	};\
-template <> struct type_id<T>                              \
-	{                                                          \
-		static constexpr std::string_view name = #T;          \
-		static constexpr string_id		  value = fnv1a(name); \
-		static constexpr call_ref<T> cr = {}; \
-	}
 
 	/*
 	

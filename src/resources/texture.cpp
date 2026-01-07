@@ -25,6 +25,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "texture.hpp"
+#include "reflection/type_reflection.hpp"
 #include "texture_raw.hpp"
 #include "io/assert.hpp"
 #include "gfx/backend/backend.hpp"
@@ -32,9 +33,14 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "world/world.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"
 #include "gfx/event_stream/render_events_gfx.hpp"
+#include "reflection/reflection.hpp"
 
 namespace SFG
 {
+	void texture::reflect()
+	{
+		reflection::get().register_meta(type_id<texture>::value, 0, "stktexture");
+	}
 	texture::~texture()
 	{
 		SFG_ASSERT(!_flags.is_set(texture::flags::created));

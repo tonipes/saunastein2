@@ -31,6 +31,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "world/world.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"
 #include "gfx/event_stream/render_events_trait.hpp"
+#include "reflection/reflection.hpp"
 
 #ifdef SFG_TOOLMODE
 #include <vendor/nhlohmann/json.hpp>
@@ -39,12 +40,11 @@ using json = nlohmann::json;
 
 namespace SFG
 {
-
 	void comp_ambient::reflect()
 	{
-		meta& m = reflection::get().resolve(type_id<comp_ambient>::value);
+		meta& m = reflection::get().register_meta(type_id<comp_ambient>::value, 0, "component");
+		m.add_field<&comp_ambient::_base_color, comp_ambient>("color", reflected_field_type::rf_color, "");
 	}
-
 
 	void comp_ambient::on_add(world& w)
 	{

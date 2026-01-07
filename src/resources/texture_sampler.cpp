@@ -25,6 +25,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "texture_sampler.hpp"
+#include "reflection/type_reflection.hpp"
 #include "texture_sampler_raw.hpp"
 #include "math/math_common.hpp"
 #include "io/assert.hpp"
@@ -33,9 +34,14 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gfx/event_stream/render_event_stream.hpp"
 #include "gfx/event_stream/render_events_gfx.hpp"
 #include "world/world.hpp"
+#include "reflection/reflection.hpp"
 
 namespace SFG
 {
+    void texture_sampler::reflect()
+    {
+        reflection::get().register_meta(type_id<texture_sampler>::value, 0, "stksampler");
+    }
 	texture_sampler::texture_sampler()
 	{
 	}

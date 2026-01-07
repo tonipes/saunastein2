@@ -38,6 +38,7 @@ namespace SFG
 	class skin
 	{
 	public:
+		static void reflect();
 		// -----------------------------------------------------------------------------
 		// resource
 		// -----------------------------------------------------------------------------
@@ -68,6 +69,6 @@ namespace SFG
 		int16		   _root		 = -1;
 	};
 
-	REFLECT_TYPE(skin, "");
+	REFLECT_TYPE(skin);
 
 }

@@ -31,6 +31,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "world/world.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"
 #include "gfx/event_stream/render_events_trait.hpp"
+#include "reflection/reflection.hpp"
 
 #ifdef SFG_TOOLMODE
 #include <vendor/nhlohmann/json.hpp>
@@ -41,10 +42,10 @@ namespace SFG
 {
 	void comp_camera::reflect()
 	{
-		meta& m = reflection::get().resolve(type_id<comp_camera>::value);
-		m.add_field<&comp_camera::_near, comp_camera>("near", reflected_field_type::rf_float_clamped, "", 0.001f, 2000.0f);
-		m.add_field<&comp_camera::_near, comp_camera>("far", reflected_field_type::rf_float_clamped, "", 0.001f, 2000.0f);
-		m.add_field<&comp_camera::_near, comp_camera>("fov_degrees", reflected_field_type::rf_float_clamped, "", 0.0f, 180.0f);
+		meta& m = reflection::get().register_meta(type_id<comp_camera>::value, 0, "component");
+		m.add_field<&comp_camera::_near, comp_camera>("near", reflected_field_type::rf_float_clamped, "", 0.001f, 1000.0f);
+		m.add_field<&comp_camera::_far, comp_camera>("far", reflected_field_type::rf_float_clamped, "", 0.001f, 1000.0f);
+		m.add_field<&comp_camera::_fov_degrees, comp_camera>("fov_degrees", reflected_field_type::rf_float_clamped, "", 0.0f, 180.0f);
 	}
 
 	void comp_camera::set_values(world& w, float near_plane, float far_plane, float fov_degrees, std::initializer_list<float> cascades)

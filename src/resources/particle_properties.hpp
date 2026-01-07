@@ -43,6 +43,7 @@ namespace SFG
 	class particle_properties
 	{
 	public:
+		static void reflect();
 		enum flags : uint8
 		{
 			created = 1 << 0,
@@ -76,6 +77,6 @@ namespace SFG
 #endif
 	};
 
-	REFLECT_TYPE(particle_properties, "stkparticle");
+	REFLECT_TYPE(particle_properties);
 
 }

@@ -94,6 +94,6 @@ namespace SFG
 		float									  _fov_degrees = 45.0f;
 	};
 
-	REFLECT_COMPONENT(comp_camera);
+	REFLECT_TYPE(comp_camera);
 
 }

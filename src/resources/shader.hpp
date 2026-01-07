@@ -42,6 +42,7 @@ namespace SFG
 	class shader
 	{
 	public:
+		static void reflect();
 		enum flags
 		{
 			created = 1 << 0,
@@ -63,6 +64,6 @@ namespace SFG
 		bitmask<uint8> _flags = 0;
 	};
 
-	REFLECT_TYPE(shader, "stkshader");
+	REFLECT_TYPE(shader);
 
 }

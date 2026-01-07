@@ -86,5 +86,5 @@ namespace SFG
 		resource_handle	 _particle_resource = {};
 	};
 
-	REFLECT_COMPONENT(comp_particle_emitter);
+	REFLECT_TYPE(comp_particle_emitter);
 }

@@ -151,5 +151,5 @@ namespace SFG
 		bitmask<uint8>	   _flags					= 0;
 	};
 
-	REFLECT_COMPONENT(comp_physics);
+	REFLECT_TYPE(comp_physics);
 }

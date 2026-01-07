@@ -229,7 +229,7 @@ namespace SFG
 		uint8			 _cast_shadows		= 0;
 	};
 
-	REFLECT_COMPONENT(comp_dir_light);
-	REFLECT_COMPONENT(comp_spot_light);
-	REFLECT_COMPONENT(comp_point_light);
+	REFLECT_TYPE(comp_dir_light);
+	REFLECT_TYPE(comp_spot_light);
+	REFLECT_TYPE(comp_point_light);
 }

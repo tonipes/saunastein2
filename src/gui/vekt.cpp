@@ -465,6 +465,11 @@ namespace vekt
 		return _custom_passes[widget];
 	}
 
+	const widget_meta& builder::widget_get_meta(id widget)
+	{
+		return _metas[widget];
+	}
+
 	id builder::widget_get_child(id widget, unsigned int index)
 	{
 		return _metas[widget].children[index];

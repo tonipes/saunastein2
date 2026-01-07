@@ -38,6 +38,7 @@ namespace SFG
     class anim_state_machine
     {
     public:
+        static void reflect();
         void create_from_loader(const anim_state_machine_raw& raw, world& w, resource_handle handle);
         void destroy(world& w, resource_handle handle);
 
@@ -47,6 +48,5 @@ namespace SFG
         pool_handle16 _machine = {};
     };
 
-    REFLECT_TYPE(anim_state_machine, "stkanimsm");
+    REFLECT_TYPE(anim_state_machine);
 }
-

@@ -47,6 +47,7 @@ namespace SFG
 	class font
 	{
 	public:
+		static void reflect();
 		enum flags : uint8
 		{
 			created = 1 << 0,
@@ -79,6 +80,6 @@ namespace SFG
 #endif
 	};
 
-	REFLECT_TYPE(font, "stkfont");
+	REFLECT_TYPE(font);
 
 }

@@ -32,6 +32,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "world/world.hpp"
 #include "gfx/event_stream/render_events_trait.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"
+#include "reflection/reflection.hpp"
 
 #ifdef SFG_TOOLMODE
 #include <vendor/nhlohmann/json.hpp>
@@ -43,17 +44,17 @@ namespace SFG
 
 	void comp_dir_light::reflect()
 	{
-		meta& m = reflection::get().resolve(type_id<comp_dir_light>::value);
+		meta& m = reflection::get().register_meta(type_id<comp_dir_light>::value, 0, "component");
 	}
 
 	void comp_spot_light::reflect()
 	{
-		meta& m = reflection::get().resolve(type_id<comp_spot_light>::value);
+		meta& m = reflection::get().register_meta(type_id<comp_spot_light>::value, 0, "component");
 	}
 
 	void comp_point_light::reflect()
 	{
-		meta& m = reflection::get().resolve(type_id<comp_point_light>::value);
+		meta& m = reflection::get().register_meta(type_id<comp_point_light>::value, 0, "component");
 	}
 
 	void comp_dir_light::on_add(world& w)
