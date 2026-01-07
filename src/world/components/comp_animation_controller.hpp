@@ -27,7 +27,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include "world/components/common_comps.hpp"
-#include "reflection/component_reflection.hpp"
+#include "reflection/type_reflection.hpp"
 #include "resources/common_resources.hpp"
 #include "memory/pool_handle.hpp"
 
@@ -71,5 +71,5 @@ namespace SFG
 		pool_handle16	 _state_machine = {};
 	};
 
-	REGISTER_TRAIT(comp_animation_controller);
+	REFLECT_COMPONENT(comp_animation_controller);
 }

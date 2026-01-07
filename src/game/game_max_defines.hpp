@@ -55,6 +55,7 @@ namespace SFG
 #define MAX_TEXTURE_MIPS			   10
 #define MAX_MATERIAL_TEXTURES		   8
 #define MAX_WORLD_PARTICLE_PROPERTIES  512
+#define MAX_WORLD_ANIM_STATE_MACHINES  512
 
 	// -----------------------------------------------------------------------------
 	// traits

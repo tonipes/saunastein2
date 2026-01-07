@@ -99,21 +99,22 @@ namespace SFG
 		vekt::id	   _root		= 0;
 		vekt::id	   _entity_area = 0;
 
-		vekt::id _prop_name		   = 0;
-		vekt::id _prop_handle	   = 0;
-		vekt::id _ctx_new_entity   = 0;
-		vekt::id _ctx_add_child	   = 0;
-		vekt::id _ctx_duplicate	   = 0;
-		vekt::id _ctx_delete	   = 0;
-		vekt::id _selected_pos_x   = 0;
-		vekt::id _selected_pos_y   = 0;
-		vekt::id _selected_pos_z   = 0;
-		vekt::id _selected_rot_x   = 0;
-		vekt::id _selected_rot_y   = 0;
-		vekt::id _selected_rot_z   = 0;
-		vekt::id _selected_scale_x = 0;
-		vekt::id _selected_scale_y = 0;
-		vekt::id _selected_scale_z = 0;
+		vekt::id _prop_name		   = NULL_WIDGET_ID;
+		vekt::id _prop_handle	   = NULL_WIDGET_ID;
+		vekt::id _ctx_new_entity   = NULL_WIDGET_ID;
+		vekt::id _ctx_add_child	   = NULL_WIDGET_ID;
+		vekt::id _ctx_duplicate	   = NULL_WIDGET_ID;
+		vekt::id _ctx_delete	   = NULL_WIDGET_ID;
+		vekt::id _selected_pos_x   = NULL_WIDGET_ID;
+		vekt::id _selected_pos_y   = NULL_WIDGET_ID;
+		vekt::id _selected_pos_z   = NULL_WIDGET_ID;
+		vekt::id _selected_rot_x   = NULL_WIDGET_ID;
+		vekt::id _selected_rot_y   = NULL_WIDGET_ID;
+		vekt::id _selected_rot_z   = NULL_WIDGET_ID;
+		vekt::id _selected_scale_x = NULL_WIDGET_ID;
+		vekt::id _selected_scale_y = NULL_WIDGET_ID;
+		vekt::id _selected_scale_z = NULL_WIDGET_ID;
+		vekt::id _components_area  = NULL_WIDGET_ID;
 
 		vector<entity_panel_meta> _entity_meta	 = {};
 		vector<vekt::id>		  _node_widgets	 = {};

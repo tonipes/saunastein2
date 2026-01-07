@@ -27,7 +27,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include "data/bitmask.hpp"
-#include "reflection/resource_reflection.hpp"
+#include "reflection/type_reflection.hpp"
 #include "resources/common_resources.hpp"
 #include "world/particles/common_particles.hpp"
 
@@ -76,6 +76,6 @@ namespace SFG
 #endif
 	};
 
-	REGISTER_RESOURCE(particle_properties, "stkparticle");
+	REFLECT_TYPE(particle_properties, "stkparticle");
 
 }

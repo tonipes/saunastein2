@@ -28,7 +28,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "world/components/common_comps.hpp"
 #include "game/game_max_defines.hpp"
-#include "reflection/component_reflection.hpp"
+#include "reflection/type_reflection.hpp"
 #include "data/static_vector.hpp"
 #include "math/color.hpp"
 #include "math/vector2ui16.hpp"
@@ -48,6 +48,11 @@ namespace SFG
 	class comp_dir_light
 	{
 	public:
+		static inline void reflect()
+		{
+			meta& m = reflection::get().resolve(type_id<comp_dir_light>::value);
+		}
+
 		// -----------------------------------------------------------------------------
 		// trait
 		// -----------------------------------------------------------------------------
@@ -223,7 +228,7 @@ namespace SFG
 		uint8			 _cast_shadows		= 0;
 	};
 
-	REGISTER_TRAIT(comp_dir_light);
-	REGISTER_TRAIT(comp_spot_light);
-	REGISTER_TRAIT(comp_point_light);
+	REFLECT_COMPONENT(comp_dir_light);
+	REFLECT_COMPONENT(comp_spot_light);
+	REFLECT_COMPONENT(comp_point_light);
 }

@@ -28,7 +28,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "data/bitmask.hpp"
 #include "data/ostream.hpp"
 #include "resources/common_resources.hpp"
-#include "reflection/resource_reflection.hpp"
+#include "reflection/type_reflection.hpp"
 
 #ifndef SFG_STRIP_DEBUG_NAMES
 #include "memory/chunk_handle.hpp"
@@ -90,6 +90,6 @@ namespace SFG
 #endif
 	};
 
-	REGISTER_RESOURCE(material, "stkmat");
+	REFLECT_TYPE(material, "stkmat");
 
 }

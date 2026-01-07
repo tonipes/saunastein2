@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -29,15 +29,130 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "data/vector.hpp"
 #include "data/string.hpp"
 #include "common/string_id.hpp"
+#include "common/type_id.hpp"
 #include "io/assert.hpp"
 #include "memory/malloc_allocator_map.hpp"
+#include "memory/malloc_allocator_stl.hpp"
 #include "memory/memory.hpp"
+
+#ifdef SFG_TOOLMODE
+#include "vendor/nhlohmann/json_fwd.hpp"
+#endif
 
 #pragma warning(push)
 #pragma warning(disable : 4541)
 
 namespace SFG
 {
+	class ostream;
+	class istream;
+
+	using malloc_string = std::basic_string<char, std::char_traits<char>, malloc_allocator_stl<char>>;
+
+	enum class reflected_field_type : uint8
+	{
+		rf_float = 0,
+		rf_int,
+		rf_float_clamped,
+		rf_int_clamped,
+		rf_vector2,
+		rf_vector3,
+		rf_vector4,
+		rf_color,
+		rf_resource,
+		rf_entity
+	};
+
+	class field_value
+	{
+	public:
+		field_value() {};
+		field_value(void* addr) : _ptr(addr) {};
+		template <typename T> T get_value()
+		{
+			return cast<T>();
+		}
+
+		template <typename T> void set_value(T t)
+		{
+			cast<T>() = t;
+		}
+
+		template <typename T> T cast()
+		{
+			return *static_cast<T*>(_ptr);
+		}
+
+		template <typename T> T& cast_ref()
+		{
+			return *static_cast<T*>(_ptr);
+		}
+
+		template <typename T> T* cast_ptr()
+		{
+			return static_cast<T*>(_ptr);
+		}
+
+		void* get_ptr() const
+		{
+			return _ptr;
+		}
+
+	private:
+		template <typename T, typename U> friend class field;
+		void* _ptr = nullptr;
+	};
+
+	class field_base
+	{
+	public:
+		field_base()		  = default;
+		virtual ~field_base() = default;
+
+		virtual void		serialize(ostream& stream, void* obj)	= 0;
+		virtual void		deserialize(istream& stream, void* obj) = 0;
+		virtual field_value value(void* obj)						= 0;
+		virtual size_t		get_type_size() const					= 0;
+
+		string_id			 _sid	  = 0;
+		malloc_string		 _title	  = "";
+		malloc_string		 _tooltip = "";
+		reflected_field_type _type	  = reflected_field_type::rf_float;
+		float				 _min	  = 0.0f;
+		float				 _max	  = 0.0f;
+	};
+
+	template <typename T, class C> class field : public field_base
+	{
+	public:
+		field()			 = default;
+		virtual ~field() = default;
+
+		virtual size_t get_type_size() const override
+		{
+			return sizeof(T);
+		}
+
+		inline virtual void serialize(ostream& stream, void* obj) override
+		{
+			field_value v = value(obj);
+			stream << v.get_value<T>();
+		}
+
+		inline virtual void deserialize(istream& stream, void* obj) override
+		{
+			field_value v = value(obj);
+		}
+
+		inline virtual field_value value(void* obj) override
+		{
+			field_value val;
+			val._ptr = &((static_cast<C*>(obj))->*(_var));
+			return val;
+		}
+
+		T _var = T();
+	};
 
 	struct reflection_function_base
 	{
@@ -69,6 +184,39 @@ namespace SFG
 	{
 	public:
 		typedef phmap::flat_hash_map<string_id, reflection_function_base*, phmap::priv::hash_default_hash<string_id>, phmap::priv::hash_default_eq<string_id>, malloc_allocator_map<string_id>> alloc_map;
+		typedef vector<field_base*, malloc_allocator_stl<field_base*>>																															field_vec;
+
+		template <auto DATA, typename Class> void add_field(const string& title, reflected_field_type type, const string& tooltip, float min, float max)
+		{
+			using ft = field<decltype(DATA), Class>;
+
+			void* mem	= SFG_ALIGNED_MALLOC(alignof(ft), sizeof(ft));
+			ft*	  f		= new (mem) ft();
+			f->_var		= DATA;
+			f->_sid		= TO_SID(title);
+			f->_type	= type;
+			f->_min		= min;
+			f->_max		= max;
+			f->_tooltip = tooltip;
+			f->_title	= title;
+			_fields.push_back(f);
+		}
+
+		template <auto DATA, typename Class> void add_field(const string& title, reflected_field_type type, const string& tooltip)
+		{
+			using ft = field<decltype(DATA), Class>;
+
+			void* mem	= SFG_ALIGNED_MALLOC(alignof(ft), sizeof(ft));
+			ft*	  f		= new (mem) ft();
+			f->_var		= DATA;
+			f->_sid		= TO_SID(title);
+			f->_type	= type;
+			f->_min		= 0.0f;
+			f->_max		= 0.0f;
+			f->_tooltip = tooltip;
+			f->_title	= title;
+			_fields.push_back(f);
+		}
 
 		template <typename RetVal, typename... Args, typename F> meta& add_function(string_id id, F&& f)
 		{
@@ -126,6 +274,11 @@ namespace SFG
 			return _type_index;
 		}
 
+		inline const field_vec& get_fields() const
+		{
+			return _fields;
+		}
+	
 	private:
 		friend class reflection;
 
@@ -136,13 +289,20 @@ namespace SFG
 				ptr->~reflection_function_base();
 				SFG_ALIGNED_FREE(ptr);
 			}
+
+			for (auto f : _fields)
+			{
+				SFG_ALIGNED_FREE(f);
+			}
 		}
 
 	private:
-		alloc_map _functions;
-		string_id _type_id	  = 0;
-		string_id _tag		  = 0;
-		uint32	  _type_index = 0;
+		alloc_map	  _functions;
+		field_vec	  _fields;
+		malloc_string _title	  = "";
+		string_id	  _type_id	  = 0;
+		string_id	  _tag		  = 0;
+		uint32		  _type_index = 0;
 	};
 
 	class reflection
@@ -195,6 +355,32 @@ namespace SFG
 	private:
 		alloc_map _metas;
 	};
+
+#define SFG_PP_CONCAT_INNER(a, b) a##b
+#define SFG_PP_CONCAT(a, b)		  SFG_PP_CONCAT_INNER(a, b)
+
+	/*
+#define REFLECT_FIELD(CLASSNAME, FIELDNAME, TITLE, FIELD_TYPE, TOOLTIP, MIN, MAX)                                                                                                                                                                                  \
+	struct reflected_field_##CLASSNAME##FIELDNAME                                                                                                                                                                                                                  \
+	{                                                                                                                                                                                                                                                              \
+		reflected_field_##CLASSNAME##FIELDNAME()                                                                                                                                                                                                                   \
+		{                                                                                                                                                                                                                                                          \
+			reflection::get().resolve(type_id<CLASSNAME>::value).add_field<&CLASSNAME::FIELDNAME, CLASSNAME>(TITLE##_hs, FIELD_TYPE, TITLE, TOOLTIP, MIN, MAX);                                                                                                    \
+		}                                                                                                                                                                                                                                                          \
+	};                                                                                                                                                                                                                                                             \
+	inline static reflected_field_##CLASSNAME##FIELDNAME SFG_PP_CONCAT(_ref_inst, __COUNTER__) = reflected_field_##CLASSNAME##FIELDNAME()
+	*/
+#define SFG_PROP_TYPE_float			SFG::reflected_field_type::rf_float
+#define SFG_PROP_TYPE_int			SFG::reflected_field_type::rf_int
+#define SFG_PROP_TYPE_float_limited SFG::reflected_field_type::rf_float_clamped
+#define SFG_PROP_TYPE_int_limited	SFG::reflected_field_type::rf_int_clamped
+#define SFG_PROP_TYPE_vector2		SFG::reflected_field_type::rf_vector2
+#define SFG_PROP_TYPE_vector3		SFG::reflected_field_type::rf_vector3
+#define SFG_PROP_TYPE_vector4		SFG::reflected_field_type::rf_vector4
+#define SFG_PROP_TYPE_color			SFG::reflected_field_type::rf_color
+#define SFG_PROP_TYPE_resource		SFG::reflected_field_type::rf_resource
+#define SFG_PROP_TYPE_entity		SFG::reflected_field_type::rf_entity
+
 };
 
 #pragma warning(pop)

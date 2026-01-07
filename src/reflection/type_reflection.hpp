@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -41,13 +41,43 @@ namespace SFG
 			reflection::get().register_meta(type, 0, tag);
 		}
 	};
+
 	// clang-format off
-#define REGISTER_RESOURCE(T, TAG)           \
+#define REFLECT_TYPE(T, TAG)           \
 	template <> struct type_id<T>                              \
 	{                                                          \
 		static constexpr std::string_view name	= #T;          \
 		static constexpr string_id		  value = fnv1a(name); \
 		static inline ref_register<T>  reflection = ref_register<T>(value, TAG); \
 	}
+
+	template<typename T> struct call_ref
+	{
+
+	};
+
+#define REFLECT_COMPONENT(T)			\
+template <> struct call_ref<T>                              \
+	{                                                          \
+		call_ref() { T::reflect();} \
+	};\
+template <> struct type_id<T>                              \
+	{                                                          \
+		static constexpr std::string_view name = #T;          \
+		static constexpr string_id		  value = fnv1a(name); \
+		static inline ref_register<T>  reflection = ref_register<T>(value, "component"); \
+	}
+
+	/*
+	
+	template <> struct type_id<T>                              \
+	{                                                          \
+		static constexpr std::string_view name = #T;          \
+		static constexpr string_id		  value = fnv1a(name); \
+		static inline ref_register<T>  reflection = ref_register<T>(value, "component"); \
+		static inline call_ref<T> ref_c = {};
+	}
+	*/
+
 	// clang-format on
 }

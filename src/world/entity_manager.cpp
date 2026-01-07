@@ -418,25 +418,24 @@ namespace SFG
 		if (_entities->is_valid(fam.parent))
 			add_child(fam.parent, clone);
 
-		//component_manager&			cm	= _world.get_comp_manager();
-		//const entity_comp_register& reg = _comp_registers->get(source.index);
-		//for (const entity_comp& c : reg.comps)
+		// component_manager&			cm	= _world.get_comp_manager();
+		// const entity_comp_register& reg = _comp_registers->get(source.index);
+		// for (const entity_comp& c : reg.comps)
 		//{
 		//	ostream out;
 		//	cm.save_component_to_stream(c.comp_type, out, c.comp_handle);
 		//	istream in(out.get_raw(), out.get_size());
 		//	cm.add_component_from_stream(c.comp_type, in, clone);
 		//	out.destroy();
-		//}
+		// }
 
 		const bitmask<uint16> fl = _flags->get(source.index);
 		set_entity_visible(clone, !fl.is_set(entity_flags::entity_flags_invisible));
 
-		entity_meta& new_meta = _metas->get(clone.index);
+		entity_meta&	   new_meta = _metas->get(clone.index);
 		const entity_meta& src_meta = get_entity_meta(source);
 		if (src_meta.render_proxy_count != 0 && new_meta.render_proxy_count == 0)
 		{
-			
 		}
 		return clone;
 	}
@@ -719,6 +718,12 @@ namespace SFG
 		}
 
 		return {};
+	}
+
+	const entity_comp_register& entity_manager::get_component_register(world_handle entity) const
+	{
+		SFG_ASSERT(is_valid(entity));
+		return _comp_registers->get(entity);
 	}
 
 	/* ----------------                   ---------------- */

@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -27,7 +27,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include "world/components/common_comps.hpp"
-#include "reflection/component_reflection.hpp"
+#include "reflection/type_reflection.hpp"
 #include "game/game_max_defines.hpp"
 
 #ifdef SFG_TOOLMODE
@@ -43,6 +43,14 @@ namespace SFG
 	class comp_camera
 	{
 	public:
+		static inline void reflect()
+		{
+			meta& m = reflection::get().resolve(type_id<comp_camera>::value);
+			m.add_field<&comp_camera::_near, comp_camera>("near", reflected_field_type::rf_float_clamped, "", 0.001f, 2000.0f);
+			m.add_field<&comp_camera::_near, comp_camera>("far", reflected_field_type::rf_float_clamped, "", 0.001f, 2000.0f);
+			m.add_field<&comp_camera::_near, comp_camera>("fov_degrees", reflected_field_type::rf_float_clamped, "", 0.0f, 180.0f);
+		}
+
 		// -----------------------------------------------------------------------------
 		// trait
 		// -----------------------------------------------------------------------------
@@ -92,5 +100,6 @@ namespace SFG
 		float									  _fov_degrees = 45.0f;
 	};
 
-	REGISTER_TRAIT(comp_camera);
+	REFLECT_COMPONENT(comp_camera);
+
 }

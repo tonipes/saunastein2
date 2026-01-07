@@ -29,7 +29,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "animation_common.hpp"
 #include "memory/chunk_handle.hpp"
 #include "resources/common_resources.hpp"
-#include "reflection/resource_reflection.hpp"
+#include "reflection/type_reflection.hpp"
 
 namespace SFG
 {
@@ -125,5 +125,5 @@ namespace SFG
 		uint16		   _scale_count	   = 0;
 	};
 
-	REGISTER_RESOURCE(animation, "");
+	REFLECT_TYPE(animation, "");
 }

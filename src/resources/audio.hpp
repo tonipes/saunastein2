@@ -29,7 +29,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "resources/common_resources.hpp"
 #include "data/bitmask.hpp"
 #include "memory/chunk_handle.hpp"
-#include "reflection/resource_reflection.hpp"
+#include "reflection/type_reflection.hpp"
 
 struct ma_decoder;
 
@@ -76,5 +76,5 @@ namespace SFG
 		bitmask<uint8> _flags = 0;
 	};
 
-	REGISTER_RESOURCE(audio, "stkaud");
+	REFLECT_TYPE(audio, "stkaud");
 }

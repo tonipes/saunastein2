@@ -27,7 +27,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include "resources/common_resources.hpp"
-#include "reflection/resource_reflection.hpp"
+#include "reflection/type_reflection.hpp"
 #include "data/bitmask.hpp"
 
 #ifndef SFG_STRIP_DEBUG_NAMES
@@ -63,6 +63,6 @@ namespace SFG
 		bitmask<uint8> _flags = 0;
 	};
 
-	REGISTER_RESOURCE(shader, "stkshader");
+	REFLECT_TYPE(shader, "stkshader");
 
 }

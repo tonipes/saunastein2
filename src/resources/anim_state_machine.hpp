@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -26,22 +26,27 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include "common/size_definitions.hpp"
-#include "common/string_id.hpp"
-#include "common/type_id.hpp"
-#include "data/string_view.hpp"
+#include "resources/common_resources.hpp"
+#include "reflection/type_reflection.hpp"
+#include "memory/pool_handle.hpp"
 
 namespace SFG
 {
-	template <typename T> struct type_id;
+    struct anim_state_machine_raw;
+    class world;
 
-	// clang-format off
-#define REGISTER_TRAIT(T)           \
-	template <> struct type_id<T>                              \
-	{                                                          \
-		static constexpr std::string_view name	= #T;          \
-		static constexpr string_id		  value = fnv1a(name); \
-	}
-	// clang-format on
+    class anim_state_machine
+    {
+    public:
+        void create_from_loader(const anim_state_machine_raw& raw, world& w, resource_handle handle);
+        void destroy(world& w, resource_handle handle);
 
+        inline pool_handle16 get_machine_handle() const { return _machine; }
+
+    private:
+        pool_handle16 _machine = {};
+    };
+
+    REFLECT_TYPE(anim_state_machine, "stkanimsm");
 }
+

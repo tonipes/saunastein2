@@ -28,7 +28,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "memory/chunk_handle.hpp"
 #include "resources/common_resources.hpp"
-#include "reflection/resource_reflection.hpp"
+#include "reflection/type_reflection.hpp"
 
 namespace SFG
 {
@@ -68,6 +68,6 @@ namespace SFG
 		int16		   _root		 = -1;
 	};
 
-	REGISTER_RESOURCE(skin, "");
+	REFLECT_TYPE(skin, "");
 
 }

@@ -71,26 +71,27 @@ namespace SFG
 		// entity api
 		// -----------------------------------------------------------------------------
 
-		world_handle		  create_entity(const char* name = "entity");
-		world_handle		  find_entity(const char* name);
-		world_handle		  find_entity(world_handle parent, const char* name);
-		void				  destroy_entity(world_handle handle);
-		world_handle		  clone_entity(world_handle source);
-		void				  add_child(world_handle parent, world_handle child);
-		void				  remove_child(world_handle parent, world_handle child);
-		void				  remove_from_parent(world_handle entity);
-		world_handle		  get_child_by_index(world_handle parent, uint32 index);
-		const aabb&			  get_entity_aabb(world_handle entity);
-		const entity_meta&	  get_entity_meta(world_handle entity) const;
-		const entity_family&  get_entity_family(world_handle entity) const;
-		const bitmask<uint16> get_entity_flags(world_handle entity) const;
-		void				  set_entity_name(world_handle entity, const char* name);
-		void				  add_render_proxy(world_handle entity);
-		void				  remove_render_proxy(world_handle entity);
-		void				  set_entity_visible(world_handle entity, bool is_visible);
-		void				  remove_all_entity_components(world_handle entity);
-		world_handle		  get_valid_handle_by_index(world_id id);
-		world_handle		  get_entity_component(string_id comp_type, world_handle entity);
+		world_handle				create_entity(const char* name = "entity");
+		world_handle				find_entity(const char* name);
+		world_handle				find_entity(world_handle parent, const char* name);
+		void						destroy_entity(world_handle handle);
+		world_handle				clone_entity(world_handle source);
+		void						add_child(world_handle parent, world_handle child);
+		void						remove_child(world_handle parent, world_handle child);
+		void						remove_from_parent(world_handle entity);
+		world_handle				get_child_by_index(world_handle parent, uint32 index);
+		const aabb&					get_entity_aabb(world_handle entity);
+		const entity_meta&			get_entity_meta(world_handle entity) const;
+		const entity_family&		get_entity_family(world_handle entity) const;
+		const bitmask<uint16>		get_entity_flags(world_handle entity) const;
+		void						set_entity_name(world_handle entity, const char* name);
+		void						add_render_proxy(world_handle entity);
+		void						remove_render_proxy(world_handle entity);
+		void						set_entity_visible(world_handle entity, bool is_visible);
+		void						remove_all_entity_components(world_handle entity);
+		world_handle				get_valid_handle_by_index(world_id id);
+		world_handle				get_entity_component(string_id comp_type, world_handle entity);
+		const entity_comp_register& get_component_register(world_handle entity) const;
 
 		inline bool is_valid(world_handle entity) const
 		{

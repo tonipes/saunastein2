@@ -45,6 +45,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "input/input_mappings.hpp"
 #include "app/app.hpp"
 
+#include "reflection/reflection.hpp"
 namespace SFG
 {
 
@@ -91,10 +92,7 @@ namespace SFG
 		_gui_builder.end_area();
 
 		_gui_builder.add_title("components");
-		_gui_builder.begin_area(true);
-		_gui_builder.add_property_row_checkbox("check", false);
-		_gui_builder.add_property_row_resource("res", "stkshader", "assets/engine/hebele/yeah.stkshader", 1024);
-		_gui_builder.add_property_row_slider("slider", 12, 0.0f, 1.0f, 0.2f);
+		_components_area = _gui_builder.begin_area(true);
 		_gui_builder.end_area();
 
 		_builder->widget_add_child(_builder->get_root(), _root);
@@ -266,7 +264,6 @@ namespace SFG
 			gfx.flags			  = vekt::gfx_flags::gfx_is_rect | vekt::gfx_flags::gfx_has_rounding | vekt::gfx_flags::gfx_has_stroke | vekt::gfx_flags::gfx_focusable;
 			gfx.color			  = selected ? editor_theme::get().col_accent_second_dim : (vector4());
 
-
 			vekt::stroke_props& sp = _builder->widget_get_stroke(row_inner);
 			sp.thickness		   = editor_theme::get().frame_thickness;
 			sp.color			   = vector4(0.0f, 0.0f, 0.0f, 0.0f);
@@ -421,6 +418,28 @@ namespace SFG
 		{
 			vekt::widget_gfx& gfx = _builder->widget_get_gfx(it->widget);
 			gfx.color			  = editor_theme::get().col_accent_second_dim;
+		}
+
+		if (_selected_entity.is_null())
+			return;
+
+		world&						w  = editor::get().get_app().get_world();
+		entity_manager&				em = w.get_entity_manager();
+		component_manager&			cm = w.get_comp_manager();
+		const entity_comp_register& cr = em.get_component_register(h);
+		for (const entity_comp& c : cr.comps)
+		{
+			const meta&			   m	  = reflection::get().resolve(c.comp_type);
+			const meta::field_vec& fields = m.get_fields();
+			for (const field_base* f : fields)
+			{
+				if (f->_type == reflected_field_type::rf_float_clamped)
+				{
+					_gui_builder.push_stack(_components_area);
+					_gui_builder.add_property_row_slider(f->_title.c_str(), 0, f->_min, f->_max, 0.0f);
+					_gui_builder.pop_stack();
+				}
+			}
 		}
 	}
 

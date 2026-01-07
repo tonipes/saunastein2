@@ -28,7 +28,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "data/bitmask.hpp"
 #include "resources/common_resources.hpp"
-#include "reflection/resource_reflection.hpp"
+#include "reflection/type_reflection.hpp"
 #include "physics/physics_material_settings.hpp"
 
 #ifndef SFG_STRIP_DEBUG_NAMES
@@ -75,6 +75,6 @@ namespace SFG
 		bitmask<uint8>			   _flags	 = 0;
 	};
 
-	REGISTER_RESOURCE(physical_material, "stkphymat");
+	REFLECT_TYPE(physical_material, "stkphymat");
 
 }

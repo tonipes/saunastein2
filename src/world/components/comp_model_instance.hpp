@@ -27,7 +27,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include "world/components/common_comps.hpp"
-#include "reflection/component_reflection.hpp"
+#include "reflection/type_reflection.hpp"
 #include "resources/common_resources.hpp"
 #include "memory/chunk_handle.hpp"
 #include "data/vector.hpp"
@@ -105,5 +105,5 @@ namespace SFG
 		uint32			_root_entities_count   = 0;
 	};
 
-	REGISTER_TRAIT(comp_model_instance);
+	REFLECT_COMPONENT(comp_model_instance);
 }

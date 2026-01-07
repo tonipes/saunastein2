@@ -28,7 +28,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "common_resources.hpp"
 #include "data/bitmask.hpp"
-#include "reflection/resource_reflection.hpp"
+#include "reflection/type_reflection.hpp"
 
 #ifndef SFG_STRIP_DEBUG_NAMES
 #include "memory/chunk_handle.hpp"
@@ -59,5 +59,5 @@ namespace SFG
 		bitmask<uint8> _flags		   = 0;
 	};
 
-	REGISTER_RESOURCE(texture, "stktexture");
+	REFLECT_TYPE(texture, "stktexture");
 }
