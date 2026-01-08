@@ -1672,6 +1672,16 @@ namespace SFG
 		}
 	}
 
+	void gui_builder::set_checkbox_value(vekt::id id, unsigned char value)
+	{
+		auto it = std::find_if(_checkboxes.begin(), _checkboxes.end(), [id](const gui_checkbox& cb) -> bool { return cb.widget == id; });
+		if (it != _checkboxes.end())
+		{
+			it->state = value;
+			_builder->widget_set_visible(it->text_widget, value);
+		}
+	}
+
 	gui_builder::id_pair gui_builder::add_text_field(const char* text, size_t buffer_capacity, gui_text_field_type type, unsigned int decimals, float increment, float min, float max, float val, unsigned char is_slider, unsigned int sub_index)
 	{
 		const id w = new_widget(true);

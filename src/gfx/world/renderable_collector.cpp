@@ -74,8 +74,7 @@ namespace SFG
 
 			if (proxy_model.materials.size == 0)
 				continue;
-
-			SFG_ASSERT(buffer_index != UINT32_MAX && mesh_instance._assigned_bone_index != UINT32_MAX);
+			SFG_ASSERT(buffer_index != UINT32_MAX && (mesh_instance.skin == NULL_RESOURCE_ID || mesh_instance._assigned_bone_index != UINT32_MAX));
 
 			const resource_id* materials = aux.get<resource_id>(proxy_model.materials);
 

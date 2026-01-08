@@ -238,6 +238,7 @@ namespace SFG
 		void	 set_text_field_text(vekt::id id, const char* text, bool skip_if_focused);
 		void	 set_text_field_value(vekt::id id, float f, bool skip_if_focused, bool is_int = false);
 		void	 text_field_edit_complete(gui_text_field& tf);
+		void	 set_checkbox_value(vekt::id id, unsigned char value);
 
 		// -----------------------------------------------------------------------------
 		// accessors

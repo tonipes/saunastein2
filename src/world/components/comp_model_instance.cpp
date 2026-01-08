@@ -75,14 +75,18 @@ namespace SFG
 		component_manager& cm  = w.get_comp_manager();
 		chunk_allocator32& aux = cm.get_aux();
 
+		/*
 		if (_skin_entities.size != 0)
 		{
 			const world_handle* skin_entities_ptr = aux.get<world_handle>(_skin_entities);
 			for (uint16 i = 0; i < _skin_entities_count; i++)
 			{
-				em.remove_render_proxy(skin_entities_ptr[i]);
+				const world_handle se = skin_entities_ptr[i];
+				if (em.is_valid(se)) // can be removed prior if model instance is being removed via deleting the entity.
+					em.remove_render_proxy(se);
 			}
 		}
+		*/
 
 		if (_root_entities.size != 0)
 			aux.free(_root_entities);

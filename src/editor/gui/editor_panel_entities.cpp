@@ -60,6 +60,7 @@ namespace SFG
 		_gui_builder.callbacks.callback_ud			  = this;
 		_gui_builder.callbacks.on_input_field_changed = on_input_field_changed;
 		_gui_builder.callbacks.on_mouse				  = on_mouse;
+		_gui_builder.callbacks.on_checkbox_changed	  = on_checkbox;
 		_root										  = _gui_builder.get_root();
 
 		_gui_builder.add_title("entities");
@@ -73,6 +74,7 @@ namespace SFG
 		// Properties section
 		_gui_builder.add_title("properties");
 		_gui_builder.begin_area(false);
+		_prop_vis						 = _gui_builder.add_property_row_checkbox("visible", 0).second;
 		_prop_name						 = _gui_builder.add_property_row_text_field("name", "-", 256).second;
 		_prop_handle					 = _gui_builder.add_property_row_label("handle:", "{-, -}", 16).second;
 		const gui_builder::id_quat pos	 = _gui_builder.add_property_row_vector3("position", "0.0", 16, 3, 0.1f);
@@ -134,7 +136,7 @@ namespace SFG
 
 		const char* name_txt = selected.is_null() ? "-" : em.get_entity_meta(selected).name;
 		_gui_builder.set_text_field_text(_prop_name, name_txt, true);
-
+		_gui_builder.set_checkbox_value(_prop_vis, selected.is_null() ? 0 : !em.get_entity_flags(selected).is_set(entity_flags::entity_flags_invisible));
 		// Handle
 		{
 			const char* handle_txt = alloc.allocate_reserve(32);
@@ -242,7 +244,7 @@ namespace SFG
 			const entity_family& fam = em.get_entity_family(h);
 			if (fam.parent.is_null())
 			{
-				const vekt::id root = build_entity_node(w, h, 0);
+				build_entity_node(w, h, 0);
 			}
 		}
 
@@ -363,7 +365,7 @@ namespace SFG
 			tp.font				 = editor_theme::get().font_default;
 			_builder->widget_update_text(txt);
 		}
-		_node_bindings.push_back({row, row_inner, e});
+		_node_bindings.push_back({row, row_inner, txt, e});
 		_root_entity_widgets.push_back(row);
 
 		const entity_family& fam = em.get_entity_family(e);
@@ -502,7 +504,15 @@ namespace SFG
 		if (widget == self->_prop_name)
 		{
 			em.set_entity_name(self->_selected_entity, txt);
-			// TODO: UPDATE ENTITY NAME
+			auto it = std::find_if(self->_node_bindings.begin(), self->_node_bindings.end(), [self](const node_binding& b) -> bool { return b.handle == self->_selected_entity; });
+			if (it != self->_node_bindings.end())
+			{
+				b->widget_get_text(it->text).text = em.get_entity_meta(self->_selected_entity).name;
+				b->widget_update_text(it->text);
+			}
+		}
+		else if (widget == self->_prop_vis)
+		{
 		}
 		else if (widget == self->_selected_pos_x)
 		{
@@ -539,6 +549,17 @@ namespace SFG
 		else if (widget == self->_selected_scale_z)
 		{
 			em.set_entity_scale(self->_selected_entity, vector3(scale.x, scale.y, value));
+		}
+	}
+
+	void editor_panel_entities::on_checkbox(void* callback_ud, vekt::builder* b, vekt::id id, unsigned char value)
+	{
+		editor_panel_entities* self = static_cast<editor_panel_entities*>(callback_ud);
+		if (id == self->_prop_vis)
+		{
+			world&			w  = editor::get().get_app().get_world();
+			entity_manager& em = w.get_entity_manager();
+			em.set_entity_visible(self->_selected_entity, value);
 		}
 	}
 

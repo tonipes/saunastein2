@@ -66,6 +66,7 @@ namespace SFG
 
 	private:
 		static void						on_input_field_changed(void* callback_ud, vekt::builder* b, vekt::id id, const char* txt, float value);
+		static void						on_checkbox(void* callback_ud, vekt::builder* b, vekt::id id, unsigned char value);
 		static vekt::input_event_result on_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase);
 		static vekt::input_event_result on_key(vekt::builder* b, vekt::id widget, const vekt::key_event& ev);
 		static void						on_drag(vekt::builder* b, vekt::id widget, float mp_x, float mp_y, float delta_x, float delta_y, unsigned int button);
@@ -91,6 +92,7 @@ namespace SFG
 		{
 			vekt::id	 root_row  = NULL_WIDGET_ID;
 			vekt::id	 inner_row = NULL_WIDGET_ID;
+			vekt::id	 text	   = NULL_WIDGET_ID;
 			world_handle handle	   = {};
 		};
 
@@ -114,6 +116,7 @@ namespace SFG
 		vekt::id	   _entity_area = 0;
 
 		vekt::id _prop_name		   = NULL_WIDGET_ID;
+		vekt::id _prop_vis		   = NULL_WIDGET_ID;
 		vekt::id _prop_handle	   = NULL_WIDGET_ID;
 		vekt::id _ctx_new_entity   = NULL_WIDGET_ID;
 		vekt::id _ctx_add_child	   = NULL_WIDGET_ID;

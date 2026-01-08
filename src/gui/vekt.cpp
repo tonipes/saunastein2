@@ -624,15 +624,12 @@ namespace vekt
 		}
 
 		_pressed_widget = widget;
-		_press_scroll = 0.0f;
+		_press_scroll	= 0.0f;
 		if (_pressed_widget != NULL_WIDGET_ID)
 		{
 			_hover_callbacks[_pressed_widget].is_pressing = 1;
-			_press_scroll = _pos_properties[_pressed_widget].scroll_offset;
+			_press_scroll								  = _pos_properties[_pressed_widget].scroll_offset;
 		}
-
-		V_LOG("pressed %d", widget);
-
 	}
 
 	unsigned int builder::count_total_children(id widget_id) const
@@ -1437,7 +1434,7 @@ namespace vekt
 				const float ratio = math::clamp(math::remap(mouse.y, bgn, end, 0.0f, 1.0f), 0.0f, 1.0f);
 				pp.scroll_offset -= delta.y;
 				const float diff_y = mouse.y - _press_pos.y;
-				//pp.scroll_offset = _press_scroll - diff_y;
+				// pp.scroll_offset = _press_scroll - diff_y;
 			}
 			if (mc.on_drag)
 				mc.on_drag(this, _pressed_widget, _mouse_position.x, _mouse_position.y, delta.x, delta.y, _pressed_button);

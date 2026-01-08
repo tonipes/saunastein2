@@ -700,6 +700,8 @@ namespace SFG
 	{
 		SFG_ASSERT(is_valid(entity));
 		_flags->get(entity.index).set(entity_flags::entity_flags_invisible, !is_visible);
+		const render_event_entity_visibility ev = {.visible = is_visible};
+		_world.get_render_stream().add_event({.index = entity.index, .event_type = render_event_type::update_entity_visibility}, ev);
 	}
 
 	void entity_manager::remove_all_entity_components(world_handle entity)
