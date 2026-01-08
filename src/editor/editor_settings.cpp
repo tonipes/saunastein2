@@ -75,9 +75,9 @@ namespace SFG
 			// init defaults
 			save(last_path.c_str());
 		}
-		_last_path	   = last_path;
-		_editor_folder = file_system::get_user_directory() + "/stakeforge/";
-		_resource_cache  = editor_settings::get()._editor_folder + "_resource_cache/";
+		_last_path		= last_path;
+		_editor_folder	= file_system::get_user_directory() + "/stakeforge/";
+		_resource_cache = editor_settings::get()._editor_folder + "_resource_cache/";
 		if (!file_system::exists(_resource_cache.c_str()))
 			file_system::create_directory(_resource_cache.c_str());
 
@@ -211,6 +211,17 @@ namespace SFG
 
 		SFG_ERR("failed while writing json! {0}", path);
 		return false;
+	}
+
+	bool editor_settings::is_in_work_directory(const string& path) const
+	{
+		const size_t found = path.find(working_dir);
+		return found != string::npos;
+	}
+
+	string editor_settings::get_relative(const string& path) const
+	{
+		return path.substr(working_dir.size(), path.size() - working_dir.size());
 	}
 
 }

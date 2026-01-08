@@ -1021,6 +1021,7 @@ namespace SFG
 				.color_entity_index			   = vector4(light.base_color.x, light.base_color.y, light.base_color.z, proxy_entity._assigned_index),
 				.intensity_range			   = vector4(light.intensity, light.range, 0.0f, 0.0f),
 				.shadow_res_map_and_data_index = vector4(light.shadow_res.x, light.shadow_res.y, static_cast<float>(light.shadow_texture_gpu_index[frame_index]), static_cast<float>(first_shadow_index)),
+				.near_plane					   = near_plane,
 				.far_plane					   = far_plane,
 			};
 
@@ -1048,7 +1049,8 @@ namespace SFG
 			if (res == frustum_result::outside)
 				continue;
 
-			const float cos_outer  = math::cos(light.outer_cone);
+			const float cos_outer  = math::cos(light.outer_cone * DEG_2_RAD);
+			const float cos_inner  = math::cos(light.inner_cone * DEG_2_RAD);
 			const float near_plane = light.near_plane;
 
 			int32 shadow_data_index = -1;
@@ -1087,7 +1089,7 @@ namespace SFG
 
 			slights[spots_count] = {
 				.color_entity_index			   = vector4(light.base_color.x, light.base_color.y, light.base_color.z, proxy_entity._assigned_index),
-				.intensity_range_inner_outer   = vector4(light.intensity, light.range, math::cos(light.inner_cone), cos_outer),
+				.intensity_range_inner_outer   = vector4(light.intensity, light.range, cos_inner, cos_outer),
 				.shadow_res_map_and_data_index = vector4(light.shadow_res.x, light.shadow_res.y, static_cast<float>(light.shadow_texture_gpu_index[frame_index]), static_cast<float>(shadow_data_index)),
 			};
 			spots_count++;

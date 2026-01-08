@@ -40,7 +40,6 @@ namespace SFG
 	// -----------------------------------------------------------------------------
 
 #define MAX_WORLD_RESOURCES_AUX_MEMORY 1024 * 1024 * 32
-#define MAX_WORLD_MODEL_INSTANCES	   1024
 #define MAX_WORLD_TEXTURES			   32
 #define MAX_WORLD_MODELS			   32
 #define MAX_WORLD_MESHES			   256

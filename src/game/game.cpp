@@ -257,7 +257,7 @@ namespace SFG
 			const chunk_handle32	  skin_entities				= comp_mesh.get_skin_entities();
 
 			animation_graph&	ag					 = w.get_animation_graph();
-			const pool_handle16 state_machine_handle = comp_anim.get_state_machine();
+			const pool_handle16 state_machine_handle = comp_anim.get_runtime_machine();
 
 			animation_state_machine& sm = ag.get_state_machine(state_machine_handle);
 			sm.joint_entities			= comp_mesh.get_skin_entities();

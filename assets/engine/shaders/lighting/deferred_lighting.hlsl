@@ -219,7 +219,7 @@ float4 PSMain(vs_output IN) : SV_TARGET
             float4x4 light_space = sd.light_space_matrix;
             float2 shadow_resolution = light.shadow_resolution_map_and_data_index.xy;
 
-            shadow_vis = sample_shadow_cube(shadow_map, smp_shadow, light_space, light_pos, world_pos, N, L, shadow_resolution, rp_data.near_plane,light.far_plane);
+            shadow_vis = sample_shadow_cube(shadow_map, smp_shadow, light_space, light_pos, world_pos, N, L, shadow_resolution, light.near_plane,light.far_plane);
         }
 
         lighting += calculate_pbr(V, N, L, albedo, ao, roughness, metallic, radiance * shadow_vis);

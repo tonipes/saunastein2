@@ -134,6 +134,7 @@ namespace SFG
 		_comp_manager.init();
 		_anim_graph.init();
 		_time_manager.init();
+
 	}
 
 	void world::uninit()
@@ -149,7 +150,6 @@ namespace SFG
 
 	void world::unload()
 	{
-
 	}
 
 	void world::create_from_loader(world_raw& raw)

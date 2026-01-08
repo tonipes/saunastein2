@@ -479,6 +479,14 @@ namespace vekt
 		{
 			return to_low + (val - from_low) * (to_high - to_low) / (from_high - from_low);
 		}
+		static inline float clamp(float f, float min, float max)
+		{
+			if (f > max)
+				f = max;
+			else if (f < min)
+				f = min;
+			return f;
+		}
 	};
 
 #define VEKT_VEC2 SFG::vector2
@@ -1149,6 +1157,7 @@ namespace vekt
 		size_props&			widget_get_size_props(id widget_id);
 		scroll_props&		widget_get_scroll_props(id widget_id);
 		pos_props&			widget_get_pos_props(id widget_id);
+		void				widget_set_scroll_offset(id widget_id, float offset);
 		VEKT_VEC4			widget_get_clip(id widget_id) const;
 		widget_gfx&			widget_get_gfx(id widget);
 		stroke_props&		widget_get_stroke(id widget);
@@ -1207,7 +1216,7 @@ namespace vekt
 		void				deallocate(id w);
 		void				clear_text_cache();
 		void				set_focus(id widget, bool from_nav);
-		void				set_pressing(id widget, unsigned int button);
+		void				set_pressing(id widget, unsigned int button, const VEKT_VEC2& press_pos);
 
 		// Widgets
 		void widget_add_debug_wrap(id widget);
@@ -1271,13 +1280,6 @@ namespace vekt
 
 		// Immediate helpers
 		void generate_circle_path(vector<VEKT_VEC2>& out_path, const VEKT_VEC2& center, float radius, unsigned int segments);
-
-		inline void set_pressing(id widget, unsigned char pressing)
-		{
-			if (widget == NULL_WIDGET_ID)
-				return;
-			_hover_callbacks[widget].is_pressing = pressing;
-		}
 
 	private:
 		struct clip_info
@@ -1351,20 +1353,21 @@ namespace vekt
 		vertex*					 _text_cache_vertex_buffer = nullptr;
 		index*					 _text_cache_index_buffer  = nullptr;
 		VEKT_VEC2				 _mouse_position		   = {};
-
-		size_t		 _total_sz				  = 0;
-		unsigned int _vertex_count_per_buffer = 0;
-		unsigned int _index_count_per_buffer  = 0;
-		unsigned int _buffer_count			  = 0;
-		unsigned int _buffer_counter		  = 0;
-		unsigned int _text_cache_vertex_count = 0;
-		unsigned int _text_cache_vertex_size  = 0;
-		unsigned int _text_cache_index_count  = 0;
-		unsigned int _text_cache_index_size	  = 0;
-		id			 _root					  = NULL_WIDGET_ID;
-		id			 _pressed_widget		  = NULL_WIDGET_ID;
-		id			 _focused_widget		  = NULL_WIDGET_ID;
-		unsigned int _pressed_button		  = 0;
+		size_t					 _total_sz				   = 0;
+		unsigned int			 _vertex_count_per_buffer  = 0;
+		unsigned int			 _index_count_per_buffer   = 0;
+		unsigned int			 _buffer_count			   = 0;
+		unsigned int			 _buffer_counter		   = 0;
+		unsigned int			 _text_cache_vertex_count  = 0;
+		unsigned int			 _text_cache_vertex_size   = 0;
+		unsigned int			 _text_cache_index_count   = 0;
+		unsigned int			 _text_cache_index_size	   = 0;
+		id						 _root					   = NULL_WIDGET_ID;
+		id						 _pressed_widget		   = NULL_WIDGET_ID;
+		id						 _focused_widget		   = NULL_WIDGET_ID;
+		VEKT_VEC2				 _press_pos				   = VEKT_VEC2();
+		float					 _press_scroll			   = 0.0f;
+		unsigned int			 _pressed_button		   = 0;
 	};
 
 	////////////////////////////////////////////////////////////////////////////////

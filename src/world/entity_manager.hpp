@@ -191,6 +191,19 @@ namespace SFG
 			return _camera_comp;
 		}
 
+#ifdef SFG_TOOLMODE
+
+		inline uint8 get_hierarchy_dirty() const
+		{
+			return _hierarchy_dirty;
+		}
+
+		inline void set_hierarchy_dirty(uint8 d)
+		{
+			_hierarchy_dirty = d;
+		}
+
+#endif
 	private:
 		friend class component_manager;
 
@@ -223,6 +236,10 @@ namespace SFG
 
 		world_handle _camera_entity = {};
 		world_handle _camera_comp	= {};
+
+#ifdef SFG_TOOLMODE
+		uint8 _hierarchy_dirty = 0;
+#endif
 	};
 
 }

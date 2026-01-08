@@ -31,6 +31,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "common/string_id.hpp"
 #include "common/type_id.hpp"
 #include "io/assert.hpp"
+#include "reflection/common_reflection.hpp"
 #include "memory/malloc_allocator_map.hpp"
 #include "memory/malloc_allocator_stl.hpp"
 #include "memory/memory.hpp"
@@ -48,20 +49,6 @@ namespace SFG
 	class istream;
 
 	using malloc_string = std::basic_string<char, std::char_traits<char>, malloc_allocator_stl<char>>;
-
-	enum class reflected_field_type : uint8
-	{
-		rf_float = 0,
-		rf_int,
-		rf_float_clamped,
-		rf_int_clamped,
-		rf_vector2,
-		rf_vector3,
-		rf_vector4,
-		rf_color,
-		rf_resource,
-		rf_entity
-	};
 
 	class field_value
 	{
@@ -114,12 +101,13 @@ namespace SFG
 		virtual field_value value(void* obj)						= 0;
 		virtual size_t		get_type_size() const					= 0;
 
-		string_id			 _sid	  = 0;
-		malloc_string		 _title	  = "";
-		malloc_string		 _tooltip = "";
-		reflected_field_type _type	  = reflected_field_type::rf_float;
-		float				 _min	  = 0.0f;
-		float				 _max	  = 0.0f;
+		string_id			 _sid		  = 0;
+		string_id			 _sub_type_id = 0;
+		malloc_string		 _title		  = "";
+		malloc_string		 _tooltip	  = "";
+		reflected_field_type _type		  = reflected_field_type::rf_float;
+		float				 _min		  = 0.0f;
+		float				 _max		  = 0.0f;
 	};
 
 	template <typename T, class C> class field : public field_base
@@ -186,35 +174,37 @@ namespace SFG
 		typedef phmap::flat_hash_map<string_id, reflection_function_base*, phmap::priv::hash_default_hash<string_id>, phmap::priv::hash_default_eq<string_id>, malloc_allocator_map<string_id>> alloc_map;
 		typedef vector<field_base*, malloc_allocator_stl<field_base*>>																															field_vec;
 
-		template <auto DATA, typename Class> void add_field(const string& title, reflected_field_type type, const string& tooltip, float min, float max)
+		template <auto DATA, typename Class> void add_field(const string& title, reflected_field_type type, const string& tooltip, float min, float max, string_id sub_type_id = 0)
 		{
 			using ft = field<decltype(DATA), Class>;
 
-			void* mem	= SFG_ALIGNED_MALLOC(alignof(ft), sizeof(ft));
-			ft*	  f		= new (mem) ft();
-			f->_var		= DATA;
-			f->_sid		= TO_SID(title);
-			f->_type	= type;
-			f->_min		= min;
-			f->_max		= max;
-			f->_tooltip = tooltip;
-			f->_title	= title;
+			void* mem		= SFG_ALIGNED_MALLOC(alignof(ft), sizeof(ft));
+			ft*	  f			= new (mem) ft();
+			f->_var			= DATA;
+			f->_sid			= TO_SID(title);
+			f->_type		= type;
+			f->_min			= min;
+			f->_max			= max;
+			f->_sub_type_id = sub_type_id;
+			f->_tooltip		= tooltip;
+			f->_title		= title;
 			_fields.push_back(f);
 		}
 
-		template <auto DATA, typename Class> void add_field(const string& title, reflected_field_type type, const string& tooltip)
+		template <auto DATA, typename Class> void add_field(const string& title, reflected_field_type type, const string& tooltip, string_id sub_type_id = 0)
 		{
 			using ft = field<decltype(DATA), Class>;
 
-			void* mem	= SFG_ALIGNED_MALLOC(alignof(ft), sizeof(ft));
-			ft*	  f		= new (mem) ft();
-			f->_var		= DATA;
-			f->_sid		= TO_SID(title);
-			f->_type	= type;
-			f->_min		= 0.0f;
-			f->_max		= 0.0f;
-			f->_tooltip = tooltip;
-			f->_title	= title;
+			void* mem		= SFG_ALIGNED_MALLOC(alignof(ft), sizeof(ft));
+			ft*	  f			= new (mem) ft();
+			f->_var			= DATA;
+			f->_sid			= TO_SID(title);
+			f->_type		= type;
+			f->_min			= 0.0f;
+			f->_max			= 0.0f;
+			f->_sub_type_id = sub_type_id;
+			f->_tooltip		= tooltip;
+			f->_title		= title;
 			_fields.push_back(f);
 		}
 
@@ -269,6 +259,11 @@ namespace SFG
 			return _tag;
 		}
 
+		inline const malloc_string& get_tag_str() const
+		{
+			return _tag_str;
+		}
+
 		inline uint32 get_type_index() const
 		{
 			return _type_index;
@@ -278,7 +273,17 @@ namespace SFG
 		{
 			return _fields;
 		}
-	
+
+		inline void set_title(const char* t)
+		{
+			_title = t;
+		}
+
+		inline const malloc_string& get_title() const
+		{
+			return _title;
+		}
+
 	private:
 		friend class reflection;
 
@@ -300,6 +305,7 @@ namespace SFG
 		alloc_map	  _functions;
 		field_vec	  _fields;
 		malloc_string _title	  = "";
+		malloc_string _tag_str	  = "";
 		string_id	  _type_id	  = 0;
 		string_id	  _tag		  = 0;
 		uint32		  _type_index = 0;
@@ -329,6 +335,7 @@ namespace SFG
 			meta& m		  = _metas[id];
 			m._type_id	  = id;
 			m._tag		  = TO_SID(tag);
+			m._tag_str	  = tag;
 			m._type_index = index;
 			return m;
 		}
@@ -370,16 +377,6 @@ namespace SFG
 	};                                                                                                                                                                                                                                                             \
 	inline static reflected_field_##CLASSNAME##FIELDNAME SFG_PP_CONCAT(_ref_inst, __COUNTER__) = reflected_field_##CLASSNAME##FIELDNAME()
 	*/
-#define SFG_PROP_TYPE_float			SFG::reflected_field_type::rf_float
-#define SFG_PROP_TYPE_int			SFG::reflected_field_type::rf_int
-#define SFG_PROP_TYPE_float_limited SFG::reflected_field_type::rf_float_clamped
-#define SFG_PROP_TYPE_int_limited	SFG::reflected_field_type::rf_int_clamped
-#define SFG_PROP_TYPE_vector2		SFG::reflected_field_type::rf_vector2
-#define SFG_PROP_TYPE_vector3		SFG::reflected_field_type::rf_vector3
-#define SFG_PROP_TYPE_vector4		SFG::reflected_field_type::rf_vector4
-#define SFG_PROP_TYPE_color			SFG::reflected_field_type::rf_color
-#define SFG_PROP_TYPE_resource		SFG::reflected_field_type::rf_resource
-#define SFG_PROP_TYPE_entity		SFG::reflected_field_type::rf_entity
 
 };
 

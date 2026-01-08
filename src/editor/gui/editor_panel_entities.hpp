@@ -47,16 +47,12 @@ namespace SFG
 		void draw(world& w, const struct vector2ui16& window_size);
 		void set_selected(world_handle h);
 
-		inline void set_tree_dirty()
-		{
-			_tree_dirty = true;
-		}
-
 		void drop_drag(world_handle target);
 		void kill_drag();
 
 		inline void kill_context()
 		{
+			_add_component_buttons.resize(0);
 			_ctx_new_entity = NULL_WIDGET_ID;
 			_ctx_add_child	= NULL_WIDGET_ID;
 			_ctx_duplicate	= NULL_WIDGET_ID;
@@ -77,20 +73,38 @@ namespace SFG
 		static void						on_tree_item_hover_end(vekt::builder* b, vekt::id widget);
 		static void						on_focus_gained(vekt::builder* b, vekt::id widget, bool from_nav);
 
-		void rebuild_tree(class world& w);
-		void build_entity_node(class world& w, world_handle e, unsigned int depth);
-		bool is_ancestor_of(world_handle ancestor, world_handle node);
+		void	 clear_component_view();
+		void	 build_component_view();
+		void	 rebuild_tree(class world& w);
+		vekt::id build_entity_node(class world& w, world_handle e, unsigned int depth);
+		bool	 is_ancestor_of(world_handle ancestor, world_handle node);
+		void	 set_collapse(world_handle h, uint8 collapsed);
+		void	 toggle_collapse(world_handle h);
 
 	private:
 		struct entity_panel_meta
 		{
-			unsigned char collapsed = 0;
+			unsigned char collapsed = 1;
 		};
 
 		struct node_binding
 		{
-			vekt::id	 widget;
+			vekt::id	 root_row  = NULL_WIDGET_ID;
+			vekt::id	 inner_row = NULL_WIDGET_ID;
+			world_handle handle	   = {};
+		};
+
+		struct comp_remove_button
+		{
 			world_handle handle;
+			vekt::id	 button;
+			string_id	 comp_type;
+		};
+
+		struct add_comp_button
+		{
+			vekt::id  button = NULL_WIDGET_ID;
+			string_id type	 = 0;
 		};
 
 	private:
@@ -115,15 +129,17 @@ namespace SFG
 		vekt::id _selected_scale_y = NULL_WIDGET_ID;
 		vekt::id _selected_scale_z = NULL_WIDGET_ID;
 		vekt::id _components_area  = NULL_WIDGET_ID;
+		vekt::id _add_component	   = NULL_WIDGET_ID;
 
-		vector<vekt::id>		  _component_properties = {};
-		vector<entity_panel_meta> _entity_meta			= {};
-		vector<vekt::id>		  _node_widgets			= {};
-		vector<node_binding>	  _node_bindings		= {};
+		vector<add_comp_button>	   _add_component_buttons = {};
+		vector<vekt::id>		   _component_properties  = {};
+		vector<entity_panel_meta>  _entity_meta			  = {};
+		vector<vekt::id>		   _root_entity_widgets	  = {};
+		vector<node_binding>	   _node_bindings		  = {};
+		vector<comp_remove_button> _comp_remove_buttons	  = {};
 
 		const char* _text_icon_dd			= nullptr;
 		const char* _text_icon_dd_collapsed = nullptr;
-		bool		_tree_dirty				= true;
 
 		vekt::id _drag_src_widget = 0;
 		bool	 _is_payload_on	  = false;

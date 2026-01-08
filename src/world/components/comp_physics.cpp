@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -30,6 +30,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "data/istream.hpp"
 #include "world/world.hpp"
 #include "reflection/reflection.hpp"
+#include "resources/physical_material.hpp"
 
 #include <Jolt/Jolt.h>
 #include <Jolt/Physics/Body/Body.h>
@@ -40,8 +41,22 @@ namespace SFG
 	void comp_physics::reflect()
 	{
 		meta& m = reflection::get().register_meta(type_id<comp_physics>::value, 0, "component");
-	}
+		m.set_title("physics");
+		m.add_field<&comp_physics::_body_type, comp_physics>("body_type", reflected_field_type::rf_enum, "", 0.0f, 2.0f);
+		m.add_field<&comp_physics::_shape_type, comp_physics>("shape_type", reflected_field_type::rf_enum, "", 0.0f, 4.0f);
+		m.add_field<&comp_physics::_extent_or_height_radius, comp_physics>("extents", reflected_field_type::rf_vector3, "");
+		m.add_field<&comp_physics::_material_handle, comp_physics>("material", reflected_field_type::rf_resource, "", type_id<physical_material>::value);
 
+		m.add_function<void, const reflected_field_changed_params&>("on_reflected_changed"_hs, [](const reflected_field_changed_params& params) {
+			comp_physics* c		   = static_cast<comp_physics*>(params.object_ptr);
+			const bool	  had_body = (c->_body != nullptr);
+
+			if (had_body)
+				c->destroy_body(params.w);
+
+			c->create_body(params.w);
+		});
+	}
 
 	void comp_physics::on_add(world& w)
 	{
@@ -74,6 +89,9 @@ namespace SFG
 
 		physics_world& phy_world = w.get_physics_world();
 
+		if (_shape_type == physics_shape_type::box || _shape_type == physics_shape_type::plane)
+		{
+		}
 		entity_manager& em	  = w.get_entity_manager();
 		const vector3	pos	  = em.get_entity_position_abs(_header.entity);
 		const vector3	scale = em.get_entity_scale_abs(_header.entity);

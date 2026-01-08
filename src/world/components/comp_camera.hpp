@@ -65,6 +65,7 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 
 		void set_values(world& w, float near_plane, float far_plane, float fov_degrees, std::initializer_list<float> cascades = {0.01f, 0.075f, 0.12f, 0.25f});
+		void set_values(world& w, float near_plane, float far_plane, float fov_degrees, const static_vector<float, MAX_SHADOW_CASCADES>& cascades);
 		void set_main(world& w);
 
 		inline float get_near() const

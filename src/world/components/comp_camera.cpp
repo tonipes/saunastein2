@@ -43,12 +43,42 @@ namespace SFG
 	void comp_camera::reflect()
 	{
 		meta& m = reflection::get().register_meta(type_id<comp_camera>::value, 0, "component");
+		m.set_title("camera");
 		m.add_field<&comp_camera::_near, comp_camera>("near", reflected_field_type::rf_float_clamped, "", 0.001f, 1000.0f);
 		m.add_field<&comp_camera::_far, comp_camera>("far", reflected_field_type::rf_float_clamped, "", 0.001f, 1000.0f);
 		m.add_field<&comp_camera::_fov_degrees, comp_camera>("fov_degrees", reflected_field_type::rf_float_clamped, "", 0.0f, 180.0f);
+
+		m.add_function<void, const reflected_field_changed_params&>("on_reflected_changed"_hs, [](const reflected_field_changed_params& params) {
+			comp_camera* c = static_cast<comp_camera*>(params.object_ptr);
+			SFG_TRACE("reflection invoked, {0} {1} {2}", c->_near, c->_far, c->_fov_degrees);
+			c->set_values(params.w, c->_near, c->_far, c->_fov_degrees, c->_cascades);
+		});
 	}
 
 	void comp_camera::set_values(world& w, float near_plane, float far_plane, float fov_degrees, std::initializer_list<float> cascades)
+	{
+		_near		 = near_plane;
+		_far		 = far_plane;
+		_fov_degrees = fov_degrees;
+		_cascades	 = cascades;
+
+		const render_event_camera ev = {
+			.cascades	  = _cascades,
+			.entity_index = _header.entity.index,
+			.near_plane	  = _near,
+			.far_plane	  = _far,
+			.fov_degrees  = _fov_degrees,
+		};
+
+		w.get_render_stream().add_event(
+			{
+				.index		= _header.own_handle.index,
+				.event_type = render_event_type::update_camera,
+			},
+			ev);
+	}
+
+	void comp_camera::set_values(world& w, float near_plane, float far_plane, float fov_degrees, const static_vector<float, MAX_SHADOW_CASCADES>& cascades)
 	{
 		_near		 = near_plane;
 		_far		 = far_plane;

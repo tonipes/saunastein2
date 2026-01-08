@@ -51,11 +51,13 @@ namespace SFG
 			return e;
 		}
 
-		bool init();
-		void init_window_layout(window& wnd);
-		void uninit();
-		bool load(const char* path);
-		bool save(const char* path);
+		bool   init();
+		void   init_window_layout(window& wnd);
+		void   uninit();
+		bool   load(const char* path);
+		bool   save(const char* path);
+		bool   is_in_work_directory(const string& path) const;
+		string get_relative(const string& path) const;
 
 		inline bool save_last()
 		{

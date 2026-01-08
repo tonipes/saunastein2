@@ -52,6 +52,14 @@ namespace SFG
 	void comp_model_instance::reflect()
 	{
 		meta& m = reflection::get().register_meta(type_id<comp_model_instance>::value, 0, "component");
+		m.set_title("model_instance");
+		m.add_field<&comp_model_instance::_target_model, comp_model_instance>("target_model", reflected_field_type::rf_resource, "", type_id<model>::value);
+
+		m.add_function<void, const reflected_field_changed_params&>("on_reflected_changed"_hs, [](const reflected_field_changed_params& params) {
+			comp_model_instance* c = static_cast<comp_model_instance*>(params.object_ptr);
+			if (params.field_title == "target_model"_hs)
+				c->instantiate_model_to_world(params.w, c->_target_model);
+		});
 	}
 
 	void comp_model_instance::on_add(world& w)

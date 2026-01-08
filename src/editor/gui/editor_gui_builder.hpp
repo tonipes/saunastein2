@@ -30,6 +30,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "math/vector4.hpp"
 #include "data/vector.hpp"
 #include "data/string.hpp"
+#include "common/string_id.hpp"
+#include "reflection/common_reflection.hpp"
 
 namespace vekt
 {
@@ -56,7 +58,7 @@ namespace SFG
 
 		typedef void (*input_field_fn)(void* callback_ud, vekt::builder* b, vekt::id id, const char* txt, float value);
 		typedef void (*checkbox_fn)(void* callback_ud, vekt::builder* b, vekt::id id, unsigned char value);
-		typedef bool (*resource_fn)(void* callback_ud, vekt::builder* b, vekt::id id, const string& value);
+		typedef void (*resource_fn)(void* callback_ud, vekt::builder* b, vekt::id id, const string& value);
 
 		struct gui_builder_callbacks
 		{
@@ -82,6 +84,23 @@ namespace SFG
 			vekt::id third;
 		};
 
+		struct id_quat
+		{
+			vekt::id first;
+			vekt::id second;
+			vekt::id third;
+			vekt::id fourth;
+		};
+
+		struct id_penth
+		{
+			vekt::id first;
+			vekt::id second;
+			vekt::id third;
+			vekt::id fourth;
+			vekt::id fifth;
+		};
+
 		struct gui_text_field
 		{
 			const char*			buffer			= nullptr;
@@ -93,6 +112,7 @@ namespace SFG
 			unsigned int		caret_end_pos	= 0;
 			unsigned int		buffer_capacity = 0;
 			unsigned int		decimals		= 0;
+			unsigned int		sub_index		= 0;
 			float				value			= 0.0f;
 			float				value_increment = 0.0f;
 			float				min				= 0.0f;
@@ -120,6 +140,7 @@ namespace SFG
 		struct gui_resource
 		{
 			const char* extension	= nullptr;
+			string_id	type		= 0;
 			vekt::id	widget		= 0;
 			vekt::id	text_widget = 0;
 		};
@@ -132,6 +153,14 @@ namespace SFG
 			vekt::id widget		   = 0;
 			vekt::id slider_widget = 0;
 			vekt::id text_widget   = 0;
+		};
+
+		struct reflected_property
+		{
+			void*		obj	   = nullptr;
+			string_id	type   = 0;
+			field_base* field  = nullptr;
+			vekt::id	widget = 0;
 		};
 
 		gui_builder_callbacks callbacks = {};
@@ -157,17 +186,21 @@ namespace SFG
 		// properties
 		// -----------------------------------------------------------------------------
 
+		vekt::id add_reflected_field(field_base* field, string_id type_id, void* object_ptr);
+
 		id_pair	 add_property_row_label(const char* label, const char* label2, size_t buffer_capacity = 0);
 		vekt::id add_property_single_label(const char* label, size_t buffer_capacity = 0);
 		id_pair	 add_property_single_button(const char* label, size_t buffer_capacity = 0);
 		vekt::id add_property_single_hyperlink(const char* label, size_t buffer_capacity = 0);
 		id_pair	 add_property_row_checkbox(const char* label, bool initial_state);
-		id_pair	 add_property_row_resource(const char* label, const char* extension, const char* initial_resource, size_t buffer_capacity = 0);
-		id_pair	 add_property_row_slider(const char* label, size_t buffer_capacity = 0, float min = 0.0f, float max = 0.0f, float val = 0.0f);
+		id_pair	 add_property_row_resource(const char* label, const char* extension, const char* initial_resource, string_id type_id, size_t buffer_capacity = 0);
+		id_pair	 add_property_row_slider(const char* label, size_t buffer_capacity = 0, float min = 0.0f, float max = 0.0f, float val = 0.0f, bool is_int = false);
 
 		// property row variants for fields
-		id_pair	 add_property_row_text_field(const char* label, const char* text, size_t buffer_capacity = 0, gui_text_field_type type = gui_text_field_type::text_only, unsigned int decimals = 0, float increment = 0.0f);
-		id_trip	 add_property_row_vector3(const char* label, const char* text, size_t buffer_capacity = 0, unsigned int decimals = 3, float increment = 0.1f);
+		id_trip	 add_property_row_text_field(const char* label, const char* text, size_t buffer_capacity = 0, gui_text_field_type type = gui_text_field_type::text_only, unsigned int decimals = 0, float increment = 0.0f);
+		id_trip	 add_property_row_vector2(const char* label, const char* text, size_t buffer_capacity = 0, unsigned int decimals = 3, float increment = 0.1f);
+		id_quat	 add_property_row_vector3(const char* label, const char* text, size_t buffer_capacity = 0, unsigned int decimals = 3, float increment = 0.1f);
+		id_penth add_property_row_vector4(const char* label, const char* text, size_t buffer_capacity = 0, unsigned int decimals = 3, float increment = 0.1f);
 		vekt::id add_property_row();
 		vekt::id add_row_cell(float size);
 		vekt::id add_row_cell_seperator();
@@ -176,14 +209,24 @@ namespace SFG
 		// raw items
 		// -----------------------------------------------------------------------------
 
+		vekt::id add_sub_title(const char* title);
+		id_pair	 add_component_title(const char* title);
 		vekt::id add_title(const char* title);
 		vekt::id add_label(const char* label, size_t buffer_capacity = 0);
 		vekt::id add_hyperlink(const char* label, size_t buffer_capacity = 0);
 		id_pair	 add_button(const char* title, size_t buffer_capacity = 0);
-		id_pair	 add_text_field(
-			 const char* text, size_t buffer_capacity = 0, gui_text_field_type type = gui_text_field_type::text_only, unsigned int decimals = 0, float increment = 0.0f, float min = 0.0f, float max = 0.0f, float val = 0.0f, unsigned char is_slider = 0);
+		id_pair	 add_text_field(const char*			text,
+								size_t				buffer_capacity = 0,
+								gui_text_field_type type			= gui_text_field_type::text_only,
+								unsigned int		decimals		= 0,
+								float				increment		= 0.0f,
+								float				min				= 0.0f,
+								float				max				= 0.0f,
+								float				val				= 0.0f,
+								unsigned char		is_slider		= 0,
+								unsigned int		sub_index		= 0);
 		vekt::id add_checkbox(bool initial_state);
-		vekt::id add_resource(const char* res, const char* extension, size_t buffer_capacity = 0);
+		vekt::id add_resource(const char* res, const char* extension, string_id type_id, size_t buffer_capacity = 0);
 		// vekt::id add_slider(float val, float min, float max, size_t buffer_capacity = 0);
 
 		// -----------------------------------------------------------------------------
@@ -193,7 +236,7 @@ namespace SFG
 		vekt::id set_fill_x(vekt::id id);
 		void	 set_text_field_text(gui_text_field& tf, const char* text);
 		void	 set_text_field_text(vekt::id id, const char* text, bool skip_if_focused);
-		void	 set_text_field_value(vekt::id id, float f, bool skip_if_focused);
+		void	 set_text_field_value(vekt::id id, float f, bool skip_if_focused, bool is_int = false);
 		void	 text_field_edit_complete(gui_text_field& tf);
 
 		// -----------------------------------------------------------------------------
@@ -222,18 +265,20 @@ namespace SFG
 		void	 push_stack(vekt::id s);
 
 	private:
+		void invoke_reflection(vekt::id widget, void* data_params, unsigned int sub_index = 0);
 		void remove_impl(vekt::id id);
 
 	private:
 		static constexpr unsigned int STACK_SIZE = 512;
 
-		vekt::builder*		   _builder			  = nullptr;
-		vector<gui_text_field> _text_fields		  = {};
-		vector<gui_checkbox>   _checkboxes		  = {};
-		vector<gui_resource>   _resources		  = {};
-		vekt::id			   _stack[STACK_SIZE] = {NULL_WIDGET_ID};
-		vekt::id			   _root			  = NULL_WIDGET_ID;
-		vekt::id			   _stack_ptr		  = 0;
+		vekt::builder*			   _builder			  = nullptr;
+		vector<gui_text_field>	   _text_fields		  = {};
+		vector<gui_checkbox>	   _checkboxes		  = {};
+		vector<gui_resource>	   _resources		  = {};
+		vector<reflected_property> _reflected		  = {};
+		vekt::id				   _stack[STACK_SIZE] = {NULL_WIDGET_ID};
+		vekt::id				   _root			  = NULL_WIDGET_ID;
+		vekt::id				   _stack_ptr		  = 0;
 	};
 
 }

@@ -65,6 +65,8 @@ namespace SFG
 		j["col_accent_dim"]			   = t.col_accent_dim;
 		j["col_accent_second"]		   = t.col_accent_second;
 		j["col_accent_second_dim"]	   = t.col_accent_second_dim;
+		j["col_accent_third"]		   = t.col_accent_third;
+		j["col_accent_third_dim"]	   = t.col_accent_third_dim;
 		j["col_highlight"]			   = t.col_highlight;
 		j["col_highlight_transparent"] = t.col_highlight_transparent;
 		j["col_scroll_bar"]			   = t.col_scroll_bar;
@@ -115,6 +117,8 @@ namespace SFG
 		s.col_accent_dim			= j.value<vector4>("col_accent_dim", vector4::zero);
 		s.col_accent_second			= j.value<vector4>("col_accent_second", vector4::zero);
 		s.col_accent_second_dim		= j.value<vector4>("col_accent_second_dim", vector4::zero);
+		s.col_accent_third_dim		= j.value<vector4>("col_accent_third_dim", vector4::zero);
+		s.col_accent_third			= j.value<vector4>("col_accent_third", vector4::zero);
 		s.col_highlight				= j.value<vector4>("col_highlight", vector4::zero);
 		s.col_highlight_transparent = j.value<vector4>("col_highlight_transparent", vector4::zero);
 		s.col_scroll_bar			= j.value<vector4>("col_scroll_bar", vector4::zero);
@@ -142,6 +146,8 @@ namespace SFG
 		col_accent_dim		  = color::from255(91.0f, 0.0f, 72.0f, 225.0f).srgb_to_linear().to_vector();
 		col_accent_second	  = color::from255(7, 131, 214, 255.0f).srgb_to_linear().to_vector();
 		col_accent_second_dim = color::from255(7, 131, 214, 150.0f).srgb_to_linear().to_vector();
+		col_accent_third	  = color::from255(255.0f, 102.0f, 0.0f, 255.0f).srgb_to_linear().to_vector();
+		col_accent_third_dim  = color::from255(255.0f, 102.0f, 0.0f, 150.0f).srgb_to_linear().to_vector();
 		col_title_line_start  = color::from255(91.0f, 0.0f, 72.0f, 0.0f).srgb_to_linear().to_vector();
 		col_title_line_end	  = color::from255(151.0f, 0.0f, 119.0f, 255.0f).srgb_to_linear().to_vector();
 		col_hyperlink		  = color::from255(7, 131, 214, 255.0f).srgb_to_linear().to_vector();

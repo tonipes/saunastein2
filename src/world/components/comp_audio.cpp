@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -40,6 +40,20 @@ namespace SFG
 	void comp_audio::reflect()
 	{
 		meta& m = reflection::get().register_meta(type_id<comp_audio>::value, 0, "component");
+		m.set_title("audio");
+		m.add_field<&comp_audio::_audio_resource, comp_audio>("resource", reflected_field_type::rf_resource, "", type_id<audio>::value);
+		m.add_field<&comp_audio::_volume, comp_audio>("volume", reflected_field_type::rf_float_clamped, "", 0.0f, 1.0f);
+		m.add_field<&comp_audio::_is_looping, comp_audio>("looping", reflected_field_type::rf_bool, "");
+
+		m.add_function<void, const reflected_field_changed_params&>("on_reflected_changed"_hs, [](const reflected_field_changed_params& params) {
+			comp_audio* c = static_cast<comp_audio*>(params.object_ptr);
+			if (params.field_title == "resource"_hs)
+				c->set_audio(params.w, c->_audio_resource);
+			else if (params.field_title == "volume"_hs)
+				c->set_volume(params.w, c->_volume);
+			else if (params.field_title == "looping"_hs)
+				c->set_looping(params.w, c->_is_looping);
+		});
 	}
 
 	void comp_audio::on_add(world& w)
@@ -77,7 +91,8 @@ namespace SFG
 
 	void comp_audio::play(world& w)
 	{
-		SFG_ASSERT(!_audio_resource.is_null());
+		if (_audio_resource.is_null())
+			return;
 
 		component_manager& cm  = w.get_comp_manager();
 		chunk_allocator32& aux = cm.get_aux();
@@ -88,8 +103,8 @@ namespace SFG
 
 	void comp_audio::stop(world& w)
 	{
-		SFG_ASSERT(!_audio_resource.is_null());
-
+		if (_audio_resource.is_null())
+			return;
 		component_manager& cm  = w.get_comp_manager();
 		chunk_allocator32& aux = cm.get_aux();
 		ma_sound*		   snd = aux.get<ma_sound>(_ma_sound);
@@ -98,8 +113,8 @@ namespace SFG
 
 	void comp_audio::reset(world& w)
 	{
-		SFG_ASSERT(!_audio_resource.is_null());
-
+		if (_audio_resource.is_null())
+			return;
 		component_manager& cm  = w.get_comp_manager();
 		chunk_allocator32& aux = cm.get_aux();
 		ma_sound*		   snd = aux.get<ma_sound>(_ma_sound);
@@ -110,28 +125,28 @@ namespace SFG
 	{
 		_volume = volume;
 
-		if (!_audio_resource.is_null())
-		{
-			component_manager& cm  = w.get_comp_manager();
-			chunk_allocator32& aux = cm.get_aux();
-			ma_sound*		   snd = aux.get<ma_sound>(_ma_sound);
+		if (_audio_resource.is_null())
+			return;
 
-			ma_sound_set_volume(snd, volume);
-		}
+		component_manager& cm  = w.get_comp_manager();
+		chunk_allocator32& aux = cm.get_aux();
+		ma_sound*		   snd = aux.get<ma_sound>(_ma_sound);
+
+		ma_sound_set_volume(snd, volume);
 	}
 
 	void comp_audio::set_looping(world& w, uint8 looping)
 	{
 		_is_looping = looping;
 
-		if (!_audio_resource.is_null())
-		{
-			component_manager& cm  = w.get_comp_manager();
-			chunk_allocator32& aux = cm.get_aux();
-			ma_sound*		   snd = aux.get<ma_sound>(_ma_sound);
+		if (_audio_resource.is_null())
+			return;
 
-			ma_sound_set_looping(snd, _is_looping);
-		}
+		component_manager& cm  = w.get_comp_manager();
+		chunk_allocator32& aux = cm.get_aux();
+		ma_sound*		   snd = aux.get<ma_sound>(_ma_sound);
+
+		ma_sound_set_looping(snd, _is_looping);
 	}
 
 	void comp_audio::set_audio(world& w, resource_handle handle)
@@ -148,7 +163,10 @@ namespace SFG
 		}
 
 		_audio_resource = handle;
-		audio& aud		= rm.get_resource<audio>(_audio_resource);
+		if (_audio_resource.is_null())
+			return;
+
+		audio& aud = rm.get_resource<audio>(_audio_resource);
 
 		ma_engine*		sound_engine = w.get_audio_manager().get_engine();
 		const ma_uint32 flags		 = aud.get_flags().is_set(audio::flags::is_streaming) ? MA_SOUND_FLAG_STREAM : 0;

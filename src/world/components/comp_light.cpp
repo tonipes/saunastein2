@@ -45,16 +45,66 @@ namespace SFG
 	void comp_dir_light::reflect()
 	{
 		meta& m = reflection::get().register_meta(type_id<comp_dir_light>::value, 0, "component");
+		m.set_title("dir_light");
+		m.add_field<&comp_dir_light::_base_color, comp_dir_light>("color", reflected_field_type::rf_color, "");
+		m.add_field<&comp_dir_light::_intensity, comp_dir_light>("intensity", reflected_field_type::rf_float, "");
+		m.add_field<&comp_dir_light::_cast_shadows, comp_dir_light>("cast_shadows", reflected_field_type::rf_bool, "");
+		m.add_field<&comp_dir_light::_shadow_resolution, comp_dir_light>("shadow_res", reflected_field_type::rf_vector2ui16, "");
+		m.add_field<&comp_dir_light::_max_cascades, comp_dir_light>("max_cascades", reflected_field_type::rf_uint8_clamped, "", 1.0f, static_cast<float>(MAX_SHADOW_CASCADES));
+
+		m.add_function<void, const reflected_field_changed_params&>("on_reflected_changed"_hs, [](const reflected_field_changed_params& params) {
+			comp_dir_light* c = static_cast<comp_dir_light*>(params.object_ptr);
+
+			c->_max_cascades = math::clamp(c->_max_cascades, (uint8)0, (uint8)MAX_SHADOW_CASCADES);
+			if (params.field_title == "color"_hs || params.field_title == "intensity"_hs)
+				c->set_values(params.w, c->_base_color, c->_intensity);
+			else
+				c->set_shadow_values(params.w, c->_cast_shadows, c->_max_cascades, c->_shadow_resolution);
+		});
 	}
 
 	void comp_spot_light::reflect()
 	{
 		meta& m = reflection::get().register_meta(type_id<comp_spot_light>::value, 0, "component");
+		m.set_title("spot_light");
+		m.add_field<&comp_spot_light::_base_color, comp_spot_light>("color", reflected_field_type::rf_color, "");
+		m.add_field<&comp_spot_light::_range, comp_spot_light>("range", reflected_field_type::rf_float, "");
+		m.add_field<&comp_spot_light::_intensity, comp_spot_light>("intensity", reflected_field_type::rf_float, "");
+		m.add_field<&comp_spot_light::_inner_cone, comp_spot_light>("inner_cone", reflected_field_type::rf_float_clamped, "", 0.0f, 90.0f);
+		m.add_field<&comp_spot_light::_outer_cone, comp_spot_light>("outer_cone", reflected_field_type::rf_float_clamped, "", 0.0f, 180.0f);
+		m.add_field<&comp_spot_light::_cast_shadows, comp_spot_light>("cast_shadows", reflected_field_type::rf_bool, "");
+		m.add_field<&comp_spot_light::_near_plane, comp_spot_light>("near_plane", reflected_field_type::rf_float_clamped, "", 0.01f, 25.0f);
+		m.add_field<&comp_spot_light::_shadow_resolution, comp_spot_light>("shadow_res", reflected_field_type::rf_vector2ui16, "");
+
+		m.add_function<void, const reflected_field_changed_params&>("on_reflected_changed"_hs, [](const reflected_field_changed_params& params) {
+			comp_spot_light* c = static_cast<comp_spot_light*>(params.object_ptr);
+
+			if (params.field_title == "color"_hs || params.field_title == "intensity"_hs || params.field_title == "inner_cone"_hs || params.field_title == "outer_cone"_hs)
+				c->set_values(params.w, c->_base_color, c->_range, c->_intensity, c->_inner_cone, c->_outer_cone);
+			else
+				c->set_shadow_values(params.w, c->_cast_shadows, c->_near_plane, c->_shadow_resolution);
+		});
 	}
 
 	void comp_point_light::reflect()
 	{
 		meta& m = reflection::get().register_meta(type_id<comp_point_light>::value, 0, "component");
+		m.set_title("point_light");
+		m.add_field<&comp_point_light::_base_color, comp_point_light>("color", reflected_field_type::rf_color, "");
+		m.add_field<&comp_point_light::_range, comp_point_light>("range", reflected_field_type::rf_float, "");
+		m.add_field<&comp_point_light::_intensity, comp_point_light>("intensity", reflected_field_type::rf_float, "");
+		m.add_field<&comp_point_light::_cast_shadows, comp_point_light>("cast_shadows", reflected_field_type::rf_bool, "");
+		m.add_field<&comp_point_light::_near_plane, comp_point_light>("near_plane", reflected_field_type::rf_float_clamped, "", 0.01f, 25.0f);
+		m.add_field<&comp_point_light::_shadow_resolution, comp_point_light>("shadow_res", reflected_field_type::rf_vector2ui16, "");
+
+		m.add_function<void, const reflected_field_changed_params&>("on_reflected_changed"_hs, [](const reflected_field_changed_params& params) {
+			comp_point_light* c = static_cast<comp_point_light*>(params.object_ptr);
+
+			if (params.field_title == "color"_hs || params.field_title == "intensity"_hs || params.field_title == "range"_hs)
+				c->set_values(params.w, c->_base_color, c->_range, c->_intensity);
+			else
+				c->set_shadow_values(params.w, c->_cast_shadows, c->_near_plane, c->_shadow_resolution);
+		});
 	}
 
 	void comp_dir_light::on_add(world& w)

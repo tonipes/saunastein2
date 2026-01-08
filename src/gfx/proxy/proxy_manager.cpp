@@ -355,6 +355,11 @@ namespace SFG
 
 			_peak_canvases = math::max(_peak_canvases, index);
 		}
+		else if (type == render_event_type::create_entity)
+		{
+			render_proxy_entity& proxy = get_entity(index);
+			proxy.status			   = render_proxy_status::rps_active;
+		}
 		else if (type == render_event_type::remove_entity)
 		{
 			render_proxy_entity& proxy = get_entity(index);
@@ -556,7 +561,8 @@ namespace SFG
 			if (proxy.status != render_proxy_status::rps_active)
 				_count_dir_lights++;
 
-			const vector2ui16 pre_res = proxy.shadow_res;
+			const vector2ui16 pre_res	  = proxy.shadow_res;
+			const uint8		  pre_cascade = proxy.cascade_levels;
 
 			proxy.status		 = render_proxy_status::rps_active;
 			proxy.entity		 = ev.entity_index;
@@ -571,6 +577,7 @@ namespace SFG
 				vector<view_desc> views;
 
 				const uint8 cascade_size = ev.max_cascades;
+
 				for (uint8 i = 0; i < cascade_size; i++)
 				{
 					views.push_back({
@@ -580,6 +587,7 @@ namespace SFG
 					});
 				}
 
+				SFG_TRACE("update dir light cascade count {0}", (uint32)cascade_size);
 				views.push_back({
 					.type			= view_type::sampled,
 					.base_arr_level = 0,
@@ -623,7 +631,7 @@ namespace SFG
 				{
 					create_shadow_texture();
 				}
-				else if (proxy.shadow_res != pre_res)
+				else if (proxy.shadow_res != pre_res || proxy.cascade_levels != pre_cascade)
 				{
 					kill_shadow_texture();
 					create_shadow_texture();
@@ -1075,6 +1083,13 @@ namespace SFG
 		{
 			render_proxy_model& proxy = get_model(index);
 			destroy_model(proxy);
+
+			for (uint32 i = 0; i < get_peak_mesh_instances(); i++)
+			{
+				render_proxy_mesh_instance& mi = get_mesh_instance(i);
+				if (mi.model == index)
+					mi.model = NULL_RESOURCE_ID;
+			}
 		}
 		else if (type == render_event_type::create_skin)
 		{
@@ -1101,6 +1116,13 @@ namespace SFG
 		{
 			render_proxy_skin& proxy = get_skin(index);
 			destroy_skin(proxy);
+
+			for (uint32 i = 0; i < get_peak_mesh_instances(); i++)
+			{
+				render_proxy_mesh_instance& mi = get_mesh_instance(i);
+				if (mi.skin == index)
+					mi.skin = NULL_RESOURCE_ID;
+			}
 		}
 		else if (type == render_event_type::create_mesh)
 		{
@@ -1215,6 +1237,13 @@ namespace SFG
 		{
 			render_proxy_mesh& proxy = get_mesh(index);
 			destroy_mesh(proxy);
+
+			for (uint32 i = 0; i < get_peak_mesh_instances(); i++)
+			{
+				render_proxy_mesh_instance& mi = get_mesh_instance(i);
+				if (mi.mesh == index)
+					mi.mesh = NULL_RESOURCE_ID;
+			}
 		}
 		else if (type == render_event_type::particle_emitter)
 		{

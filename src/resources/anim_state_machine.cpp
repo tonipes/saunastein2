@@ -42,116 +42,13 @@ namespace SFG
 	{
 		reflection::get().register_meta(type_id<anim_state_machine>::value, 0, "stkanim");
 	}
+
 	void anim_state_machine::create_from_loader(const anim_state_machine_raw& raw, world& w, resource_handle handle)
 	{
-		animation_graph&  ag = w.get_animation_graph();
-		resource_manager& rm = w.get_resource_manager();
-
-		_machine = ag.add_state_machine();
-
-		struct pair_str_param
-		{
-			string		  name;
-			pool_handle16 handle;
-		};
-		vector<pair_str_param> param_map;
-		param_map.reserve(raw.parameters.size());
-
-		for (const auto& p : raw.parameters)
-		{
-			const pool_handle16 ph = ag.add_parameter(_machine, p.value);
-			param_map.push_back({p.name, ph});
-		}
-
-		auto find_param = [&param_map](const string& name) -> pool_handle16 {
-			if (name.empty())
-				return pool_handle16();
-			for (const auto& pr : param_map)
-				if (pr.name == name)
-					return pr.handle;
-			return {};
-		};
-
-		struct pair_str_state
-		{
-			string		  name;
-			pool_handle16 handle;
-		};
-		vector<pair_str_state> state_map;
-		state_map.reserve(raw.states.size());
-
-		pool_handle16 default_initial = {};
-
-		for (const auto& s : raw.states)
-		{
-			uint8 flags = 0;
-			if (s.is_looping)
-				flags |= animation_state_flags_is_looping;
-			if (s.blend_type == 1)
-				flags |= animation_state_flags_is_1d;
-			else if (s.blend_type == 2)
-				flags |= animation_state_flags_is_2d;
-
-			const pool_handle16 px = find_param(s.blend_param_x);
-			const pool_handle16 py = find_param(s.blend_param_y);
-
-			const pool_handle16 st = ag.add_state(_machine, {}, px, py, s.duration, flags);
-
-			// set speed
-			animation_state& stref = ag.get_state(st);
-			stref.speed			   = s.speed;
-
-			for (const auto& smp : s.samples)
-			{
-				const resource_handle ah = rm.get_resource_handle_by_hash_if_exists<animation>(smp.animation_sid);
-				if (!ah.is_null() && rm.is_valid<animation>(ah))
-					ag.add_state_sample(st, ah, smp.blend_point);
-			}
-
-			if (s.duration <= 0.0f && !s.samples.empty())
-			{
-				const resource_handle ah0 = rm.get_resource_handle_by_hash_if_exists<animation>(s.samples[0].animation_sid);
-				if (!ah0.is_null())
-					stref.duration = rm.get_resource<animation>(ah0).get_duration();
-			}
-
-			if (default_initial.is_null())
-				default_initial = st;
-			state_map.push_back({s.name, st});
-		}
-
-		auto find_state = [&state_map](const string& name) -> pool_handle16 {
-			if (name.empty())
-				return pool_handle16();
-			for (const auto& st : state_map)
-				if (st.name == name)
-					return st.handle;
-			return {};
-		};
-
-		for (const auto& t : raw.transitions)
-		{
-			const pool_handle16 from = find_state(t.from_state);
-			const pool_handle16 to	 = find_state(t.to_state);
-			const pool_handle16 pr	 = find_param(t.parameter);
-			if (!from.is_null() && !to.is_null())
-			{
-				ag.add_transition(from, to, pr, t.duration, t.target, t.compare, t.priority);
-			}
-		}
-
-		pool_handle16 initial = find_state(raw.initial_state);
-		if (initial.is_null())
-			initial = default_initial;
-		if (!initial.is_null())
-			ag.set_machine_active_state(_machine, initial);
+		_raw = raw;
 	}
 
 	void anim_state_machine::destroy(world& w, resource_handle handle)
 	{
-		if (_machine.is_null())
-			return;
-		w.get_animation_graph().remove_state_machine(_machine);
-		_machine = {};
 	}
 }

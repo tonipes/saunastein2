@@ -71,6 +71,9 @@ namespace SFG
 
 	void entity_manager::init()
 	{
+#ifdef SFG_TOOLMODE
+		_hierarchy_dirty = 1;
+#endif
 	}
 
 	void entity_manager::calculate_abs_transform(world_id e)
@@ -369,7 +372,10 @@ namespace SFG
 
 		entity_meta& meta = _metas->get(handle.index);
 		meta.name		  = _world.get_text_allocator().allocate(name);
-		SFG_TRACE("created entity {0} {1}", handle.index, name);
+
+#ifdef SFG_TOOLMODE
+		_hierarchy_dirty = 1;
+#endif
 		return handle;
 	}
 
@@ -492,6 +498,10 @@ namespace SFG
 		remove_all_entity_components(entity);
 		reset_entity_data(entity);
 		_entities->remove(entity);
+
+#ifdef SFG_TOOLMODE
+		_hierarchy_dirty = 1;
+#endif
 	}
 
 	const aabb& entity_manager::get_entity_aabb(world_handle entity)
@@ -549,6 +559,10 @@ namespace SFG
 			fam_found_last_child.next_sibling	= child_to_add;
 			fam_child.prev_sibling				= last_child;
 		}
+
+#ifdef SFG_TOOLMODE
+		_hierarchy_dirty = 1;
+#endif
 	}
 
 	void entity_manager::remove_child(world_handle parent, world_handle child_to_remove)
@@ -606,6 +620,10 @@ namespace SFG
 		const entity_family& family = _families->get(entity.index);
 		SFG_ASSERT(_entities->is_valid(family.parent));
 		remove_child(family.parent, entity);
+
+#ifdef SFG_TOOLMODE
+		_hierarchy_dirty = 1;
+#endif
 	}
 
 	world_handle entity_manager::get_child_by_index(world_handle entity, uint32 index)
@@ -659,7 +677,7 @@ namespace SFG
 		meta.render_proxy_count++;
 		_flags->get(entity.index).set(entity_flags::entity_flags_is_render_proxy);
 
-		_world.get_render_stream().add_entity_transform_event(entity.index, get_entity_matrix_abs(entity), get_entity_rotation_abs(entity));
+		_world.get_render_stream().add_event({.index = entity.index, .event_type = render_event_type::create_entity});
 	}
 
 	void entity_manager::remove_render_proxy(world_handle entity)
@@ -674,9 +692,8 @@ namespace SFG
 		{
 			_proxy_entities->remove(entity);
 			_flags->get(entity.index).remove(entity_flags::entity_flags_is_render_proxy);
+			_world.get_render_stream().add_event({.index = entity.index, .event_type = render_event_type::remove_entity});
 		}
-
-		_world.get_render_stream().add_event({.index = entity.index, .event_type = render_event_type::remove_entity});
 	}
 
 	void entity_manager::set_entity_visible(world_handle entity, bool is_visible)

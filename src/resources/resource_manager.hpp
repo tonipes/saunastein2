@@ -89,6 +89,14 @@ namespace SFG
 		// Iteration
 		virtual void for_each(void* ctx, view_result (*fn)(void* ctx, void* elem)) noexcept							 = 0;
 		virtual void for_each_handle(void* ctx, view_result (*fn)(void* ctx, const resource_handle&)) const noexcept = 0;
+
+	protected:
+		friend class resource_manager;
+
+		hash_map<string_id, resource_handle> _by_hashes;
+#ifdef SFG_TOOLMODE
+		hash_map<string_id, string> _paths_by_hashes;
+#endif
 	};
 
 	// -----------------------------------------------------------------------------
@@ -311,8 +319,7 @@ namespace SFG
 		}
 
 	private:
-		pool_type							 _resources;
-		hash_map<string_id, resource_handle> _by_hashes;
+		pool_type _resources;
 	};
 
 	// -----------------------------------------------------------------------------
@@ -455,6 +462,10 @@ namespace SFG
 		{
 			return _default_gui_sdf_mat;
 		}
+
+#ifdef SFG_TOOLMODE
+		const string& get_loaded_path_by_handle(string_id type, resource_handle h) const;
+#endif
 
 		// -----------------------------------------------------------------------------
 		// iteration

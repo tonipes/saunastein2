@@ -136,7 +136,6 @@ namespace SFG
 	{
 		ZoneScoped;
 
-	
 		const int8 xidx = _xform_latest.load(std::memory_order_acquire);
 		if (xidx >= 0)
 		{
@@ -152,7 +151,6 @@ namespace SFG
 				write.rotation			   = e.rot;
 				write.model				   = e.model;
 				write.normal			   = e.model.to_linear3x3().inversed().transposed();
-				write.status			   = render_proxy_status::rps_active;
 			}
 
 			out_size = ped.peak_size;
@@ -162,7 +160,6 @@ namespace SFG
 			_xform_in_use.store(-1, std::memory_order_release);
 		}
 
-		
 		const int8 idx = _latest.load(std::memory_order_acquire);
 		if (idx < 0)
 			return;

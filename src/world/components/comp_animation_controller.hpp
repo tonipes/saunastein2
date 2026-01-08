@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -52,6 +52,12 @@ namespace SFG
 		void deserialize(istream& stream, world& w);
 
 		// -----------------------------------------------------------------------------
+		// impl
+		// -----------------------------------------------------------------------------
+
+		void set_machine_resource(world& w, resource_handle h);
+
+		// -----------------------------------------------------------------------------
 		// accessors
 		// -----------------------------------------------------------------------------
 
@@ -60,17 +66,18 @@ namespace SFG
 			return _header;
 		}
 
-		inline pool_handle16 get_state_machine() const
+		inline resource_handle get_runtime_machine() const
 		{
-			return _state_machine;
+			return _runtime_machine;
 		}
 
 	private:
 		template <typename T, int> friend class comp_cache;
 
 	private:
-		component_header _header		= {};
-		pool_handle16	 _state_machine = {};
+		component_header _header		   = {};
+		resource_handle	 _resource_machine = {};
+		pool_handle16	 _runtime_machine  = {};
 	};
 
 	REFLECT_TYPE(comp_animation_controller);

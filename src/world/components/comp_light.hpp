@@ -92,7 +92,7 @@ namespace SFG
 		vector2ui16		 _shadow_resolution = vector2ui16(256, 256);
 		float			 _intensity			= 0.0f;
 		uint8			 _cast_shadows		= 0;
-		uint8			 _max_cascades		= 0;
+		uint8			 _max_cascades		= 1;
 	};
 
 	class comp_spot_light

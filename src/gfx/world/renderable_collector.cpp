@@ -49,7 +49,7 @@ namespace SFG
 		for (uint32 i = 0; i < mesh_instances_peak; i++)
 		{
 			const render_proxy_mesh_instance& mesh_instance = mesh_instances.get(i);
-			if (mesh_instance.model == NULL_RESOURCE_ID)
+			if (mesh_instance.model == NULL_RESOURCE_ID || mesh_instance.mesh == NULL_RESOURCE_ID)
 				continue;
 
 			const render_proxy_entity& proxy_entity = entities.get(mesh_instance.entity);

@@ -27,6 +27,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "editor_gui_builder.hpp "
 #include "io/log.hpp"
 #include "io/assert.hpp"
+#include "io/file_system.hpp"
+
 #include "data/string_util.hpp"
 #include "data/vector_util.hpp"
 #include "data/char_util.hpp"
@@ -37,10 +39,17 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "common/system_info.hpp"
 #include "input/input_mappings.hpp"
 #include "gui/vekt.hpp"
-#include "editor/editor.hpp"
-#include "editor/editor_theme.hpp"
+
 #include "gui/icon_defs.hpp"
 
+#include "editor/editor.hpp"
+#include "editor/editor_theme.hpp"
+#include "editor/editor_settings.hpp"
+
+#include "app/app.hpp"
+#include "world/world.hpp"
+
+#include "reflection/reflection.hpp"
 #include "platform/window.hpp"
 #include "platform/process.hpp"
 
@@ -213,6 +222,9 @@ namespace SFG
 				it->value			= it->min + (it->max - it->min) * ratio;
 				it->value			= math::clamp(it->value, it->min, it->max);
 
+				if (it->is_slider == 2)
+					it->value = static_cast<uint32>(it->value);
+
 				size_props& sz = b->widget_get_size_props(it->sliding_widget);
 				sz.size.x	   = ratio;
 			}
@@ -222,6 +234,11 @@ namespace SFG
 			}
 
 			gb->text_field_edit_complete(*it);
+
+			if (it->type == gui_text_field_type::text_only)
+				gb->invoke_reflection(it->widget, (void*)it->buffer, it->sub_index);
+			else if (it->type == gui_text_field_type::number)
+				gb->invoke_reflection(it->widget, &it->value, it->sub_index);
 
 			if (gb->callbacks.on_input_field_changed)
 				gb->callbacks.on_input_field_changed(gb->callbacks.callback_ud, gb->_builder, widget, it->buffer, it->value);
@@ -255,7 +272,8 @@ namespace SFG
 	{
 		gui_builder* gb = static_cast<gui_builder*>(b->widget_get_user_data(widget).ptr);
 		auto		 it = vector_util::find_if(gb->_text_fields, [widget](const gui_text_field& tf) -> bool { return tf.widget == widget; });
-		SFG_ASSERT(it != gb->_text_fields.end());
+		if (it == gb->_text_fields.end())
+			return;
 		gb->text_field_edit_complete(*it);
 	}
 
@@ -504,6 +522,11 @@ namespace SFG
 				size_props& sz = b->widget_get_size_props(tf.sliding_widget);
 				sz.size.x	   = math::remap(tf.value, tf.min, tf.max, 0.0f, 1.0f);
 			}
+
+			if (it->type == gui_text_field_type::text_only)
+				gb->invoke_reflection(it->widget, (void*)it->buffer, it->sub_index);
+			else if (it->type == gui_text_field_type::number)
+				gb->invoke_reflection(it->widget, &it->value, it->sub_index);
 		}
 
 		return vekt::input_event_result::handled;
@@ -521,6 +544,8 @@ namespace SFG
 		it->state ^= 1;
 		b->widget_set_visible(it->text_widget, it->state);
 
+		bool data = it->state;
+		gb->invoke_reflection(it->widget, &data);
 		if (gb->callbacks.on_checkbox_changed)
 			gb->callbacks.on_checkbox_changed(gb->callbacks.callback_ud, b, widget, it->state);
 
@@ -534,17 +559,33 @@ namespace SFG
 
 		gui_builder* gb = static_cast<gui_builder*>(b->widget_get_user_data(widget).ptr);
 
-		if (!gb->callbacks.on_resource_changed)
-			return vekt::input_event_result::not_handled;
-
 		auto it = vector_util::find_if(gb->_resources, [widget](const gui_resource& r) -> bool { return r.widget == widget; });
 		SFG_ASSERT(it != gb->_resources.end());
 
-		const string file = process::select_file("select", it->extension);
-		if (gb->callbacks.on_resource_changed(gb->callbacks.callback_ud, b, widget, file))
+		string file = process::select_file("select", it->extension);
+		file_system::fix_path(file);
+
+		if (!editor_settings::get().is_in_work_directory(file))
 		{
-			b->widget_set_text(it->text_widget, file.c_str());
+			SFG_ERR("resource selected must be inside project directory!");
+			return vekt::input_event_result::handled;
 		}
+
+		resource_manager& rm	   = editor::get().get_app().get_world().get_resource_manager();
+		const string	  relative = editor_settings::get().get_relative(file);
+		const string_id	  hash	   = TO_SID(relative);
+		resource_handle	  h		   = rm.get_resource_handle_by_hash_if_exists(it->type, hash);
+
+		if (h.is_null())
+		{
+			rm.load_resources({relative}, false, editor_settings::get().working_dir.c_str());
+			h = rm.get_resource_handle_by_hash(it->type, hash);
+		}
+		gb->invoke_reflection(it->widget, &h);
+
+		if (gb->callbacks.on_resource_changed)
+			gb->callbacks.on_resource_changed(gb->callbacks.callback_ud, b, widget, file);
+		b->widget_set_text(it->text_widget, file.c_str());
 
 		return vekt::input_event_result::handled;
 	}
@@ -559,6 +600,7 @@ namespace SFG
 		_text_fields.reserve(256);
 		_checkboxes.reserve(256);
 		_resources.reserve(256);
+		_reflected.reserve(256);
 
 		const id w = _builder->allocate();
 
@@ -595,11 +637,61 @@ namespace SFG
 		_root = NULL_WIDGET_ID;
 	}
 
+	void gui_builder::invoke_reflection(vekt::id widget, void* data_ptr, unsigned int sub_index)
+	{
+		auto ref = vector_util::find_if(_reflected, [widget](const reflected_property& rf) -> bool { return widget == rf.widget; });
+		if (ref != _reflected.end())
+		{
+			meta& m = reflection::get().resolve(ref->type);
+
+			// update underlying value
+			const reflected_field_type ft  = ref->field->_type;
+			void*					   ptr = ref->field->value(ref->obj).cast_ptr<void>();
+
+			if (ft == reflected_field_type::rf_vector2 || ft == reflected_field_type::rf_vector3 || ft == reflected_field_type::rf_vector4 || ft == reflected_field_type::rf_color)
+				SFG_MEMCPY((uint8*)ptr + sizeof(float) * sub_index, data_ptr, sizeof(float));
+			else if (ft == reflected_field_type::rf_vector2ui16)
+			{
+				const float	 f	 = *reinterpret_cast<float*>(data_ptr);
+				const uint16 u16 = static_cast<uint16>(f);
+				SFG_MEMCPY((uint8*)ptr + sizeof(uint16) * sub_index, &u16, sizeof(uint16));
+			}
+			else if (ft == reflected_field_type::rf_string)
+			{
+				string* str = reinterpret_cast<string*>(ptr);
+				*str		= (const char*)data_ptr;
+			}
+			else if (ft == reflected_field_type::rf_bool || ft == reflected_field_type::rf_uint8 || ft == reflected_field_type::rf_uint8_clamped)
+			{
+				const float	 f	= *reinterpret_cast<float*>(data_ptr);
+				const uint16 u8 = static_cast<uint16>(f);
+				SFG_MEMCPY(ptr, &u8, sizeof(uint8));
+			}
+			else
+				SFG_MEMCPY(ptr, data_ptr, ref->field->get_type_size());
+
+			if (m.has_function("on_reflected_changed"_hs))
+			{
+				const reflected_field_changed_params params = {
+					.w			 = editor::get().get_app().get_world(),
+					.object_ptr	 = ref->obj,
+					.data_ptr	 = data_ptr,
+					.field_title = TO_SID(ref->field->_title),
+				};
+				m.invoke_function<void, const reflected_field_changed_params&>("on_reflected_changed"_hs, params);
+			}
+		}
+	}
+
 	void gui_builder::remove_impl(vekt::id id)
 	{
 		auto it_res = std::find_if(_resources.begin(), _resources.end(), [id](const gui_resource& it) -> bool { return it.widget == id; });
 		auto it_txt = std::find_if(_text_fields.begin(), _text_fields.end(), [id](const gui_text_field& it) -> bool { return it.widget == id; });
 		auto it_c	= std::find_if(_checkboxes.begin(), _checkboxes.end(), [id](const gui_checkbox& it) -> bool { return it.widget == id; });
+		auto it_r	= std::find_if(_reflected.begin(), _reflected.end(), [id](const reflected_property& it) -> bool { return it.widget == id; });
+
+		if (it_r != _reflected.end())
+			_reflected.erase(it_r);
 
 		if (it_res != _resources.end())
 			_resources.erase(it_res);
@@ -773,7 +865,7 @@ namespace SFG
 		return {row, w};
 	}
 
-	gui_builder::id_pair gui_builder::add_property_row_resource(const char* label, const char* extension, const char* initial_resource, size_t buffer_capacity)
+	gui_builder::id_pair gui_builder::add_property_row_resource(const char* label, const char* extension, const char* initial_resource, string_id type_id, size_t buffer_capacity)
 	{
 		const id row = add_property_row();
 
@@ -784,14 +876,14 @@ namespace SFG
 		add_row_cell_seperator();
 
 		add_row_cell(0.0f);
-		const id w = add_resource(initial_resource, extension, buffer_capacity);
+		const id w = add_resource(initial_resource, extension, type_id, buffer_capacity);
 		pop_stack();
 
 		pop_stack();
 		return {row, w};
 	}
 
-	gui_builder::id_pair gui_builder::add_property_row_slider(const char* label, size_t buffer_capacity, float min, float max, float val)
+	gui_builder::id_pair gui_builder::add_property_row_slider(const char* label, size_t buffer_capacity, float min, float max, float val, bool is_int)
 	{
 		const id row = add_property_row();
 
@@ -802,12 +894,180 @@ namespace SFG
 		add_row_cell_seperator();
 
 		add_row_cell(0.0f);
-		const id w = add_text_field("0.000", buffer_capacity, gui_text_field_type::number, 3, 0, min, max, val, 1).first;
-		set_text_field_value(w, val, false);
+		const id w = add_text_field("0.000", buffer_capacity, gui_text_field_type::number, is_int ? 0 : 3, 0, min, max, val, is_int ? 2 : 1).first;
+		set_text_field_value(w, val, false, is_int);
 		pop_stack();
 
 		pop_stack();
 		return {row, w};
+	}
+
+	vekt::id gui_builder::add_reflected_field(field_base* field, string_id type_id, void* object_ptr)
+	{
+
+		const char*				   title		 = field->_title.c_str();
+		const char*				   tooltip		 = field->_tooltip.c_str();
+		const float				   min			 = field->_min;
+		const float				   max			 = field->_max;
+		const reflected_field_type type			 = field->_type;
+		const string_id			   field_type_id = field->_sub_type_id;
+
+		if (type == reflected_field_type::rf_bool)
+		{
+			const bool	  val = field->value(object_ptr).cast<bool>();
+			const id_pair ids = add_property_row_checkbox(title, val);
+
+			_reflected.push_back({.obj = object_ptr, .type = type_id, .field = field, .widget = ids.second});
+			return ids.first;
+		}
+		else if (type == reflected_field_type::rf_uint8)
+		{
+			const uint8	  val = field->value(object_ptr).cast<uint8>();
+			const id_pair ids = add_property_row_slider(title, 16, 0, 255, val, true);
+			_reflected.push_back({.obj = object_ptr, .type = type_id, .field = field, .widget = ids.second});
+			return ids.first;
+		}
+		else if (type == reflected_field_type::rf_uint8_clamped)
+		{
+			const uint8	  val = field->value(object_ptr).cast<uint8>();
+			const id_pair ids = add_property_row_slider(title, 16, field->_min, field->_max, val, true);
+			_reflected.push_back({.obj = object_ptr, .type = type_id, .field = field, .widget = ids.second});
+			return ids.first;
+		}
+		else if (type == reflected_field_type::rf_float)
+		{
+			const float	  val = field->value(object_ptr).cast<float>();
+			const id_trip ids = add_property_row_text_field(title, "", 16, gui_text_field_type::number, 3, 0.1f);
+
+			set_text_field_value(ids.second, val, false);
+			_reflected.push_back({.obj = object_ptr, .type = type_id, .field = field, .widget = ids.second});
+			return ids.first;
+		}
+		else if (type == reflected_field_type::rf_int)
+		{
+			const float	  val = field->value(object_ptr).cast<float>();
+			const id_trip p	  = add_property_row_text_field(title, "", 16, gui_text_field_type::number, 0, 1);
+
+			set_text_field_value(p.second, val, false, true);
+			_reflected.push_back({.obj = object_ptr, .type = type_id, .field = field, .widget = p.second});
+			return p.first;
+		}
+		else if (type == reflected_field_type::rf_float_clamped)
+		{
+			const float	  val = field->value(object_ptr).cast<float>();
+			const id_pair p	  = add_property_row_slider(title, 16, min, max, val);
+
+			_reflected.push_back({.obj = object_ptr, .type = type_id, .field = field, .widget = p.second});
+			return p.first;
+		}
+		else if (type == reflected_field_type::rf_int_clamped)
+		{
+			const float	  val = field->value(object_ptr).cast<float>();
+			const id_pair p	  = add_property_row_slider(title, 16, min, max, val, true);
+			_reflected.push_back({.obj = object_ptr, .type = type_id, .field = field, .widget = p.second});
+			return p.first;
+		}
+		else if (type == reflected_field_type::rf_vector2)
+		{
+			const vector2 val = field->value(object_ptr).cast<vector2>();
+			const id_trip ids = add_property_row_vector2(title, "", 16, 3, 0.1f);
+			set_text_field_value(ids.second, val.x, false);
+			set_text_field_value(ids.third, val.y, false);
+			_reflected.push_back({.obj = object_ptr, .type = type_id, .field = field, .widget = ids.second});
+			_reflected.push_back({.obj = object_ptr, .type = type_id, .field = field, .widget = ids.third});
+			return ids.first;
+		}
+		else if (type == reflected_field_type::rf_vector2ui16)
+		{
+			const vector2ui16 val = field->value(object_ptr).cast<vector2ui16>();
+			const id_trip	  ids = add_property_row_vector2(title, "", 16, 0, 1.0f);
+			set_text_field_value(ids.second, val.x, false, true);
+			set_text_field_value(ids.third, val.y, false, true);
+			_reflected.push_back({.obj = object_ptr, .type = type_id, .field = field, .widget = ids.second});
+			_reflected.push_back({.obj = object_ptr, .type = type_id, .field = field, .widget = ids.third});
+			return ids.first;
+		}
+		else if (type == reflected_field_type::rf_vector3)
+		{
+			const vector3 val = field->value(object_ptr).cast<vector3>();
+			const id_quat ids = add_property_row_vector3(title, "", 16, 3, 0.1f);
+			set_text_field_value(ids.second, val.x, false);
+			set_text_field_value(ids.third, val.y, false);
+			set_text_field_value(ids.fourth, val.z, false);
+			_reflected.push_back({.obj = object_ptr, .type = type_id, .field = field, .widget = ids.second});
+			_reflected.push_back({.obj = object_ptr, .type = type_id, .field = field, .widget = ids.third});
+			_reflected.push_back({.obj = object_ptr, .type = type_id, .field = field, .widget = ids.fourth});
+			return ids.first;
+		}
+		else if (type == reflected_field_type::rf_vector4)
+		{
+			const vector4  val = field->value(object_ptr).cast<vector4>();
+			const id_penth ids = add_property_row_vector4(title, "", 16, 3, 0.1f);
+			set_text_field_value(ids.second, val.x, false);
+			set_text_field_value(ids.third, val.y, false);
+			set_text_field_value(ids.fourth, val.z, false);
+			set_text_field_value(ids.fifth, val.w, false);
+			_reflected.push_back({.obj = object_ptr, .type = type_id, .field = field, .widget = ids.second});
+			_reflected.push_back({.obj = object_ptr, .type = type_id, .field = field, .widget = ids.third});
+			_reflected.push_back({.obj = object_ptr, .type = type_id, .field = field, .widget = ids.fourth});
+			_reflected.push_back({.obj = object_ptr, .type = type_id, .field = field, .widget = ids.fifth});
+			return ids.first;
+		}
+		else if (type == reflected_field_type::rf_color)
+		{
+			const color	   val = field->value(object_ptr).cast<color>();
+			const id_penth ids = add_property_row_vector4(title, "", 16, 3, 0.1f);
+			set_text_field_value(ids.second, val.x, false);
+			set_text_field_value(ids.third, val.y, false);
+			set_text_field_value(ids.fourth, val.z, false);
+			set_text_field_value(ids.fifth, val.w, false);
+			_reflected.push_back({.obj = object_ptr, .type = type_id, .field = field, .widget = ids.second});
+			_reflected.push_back({.obj = object_ptr, .type = type_id, .field = field, .widget = ids.third});
+			_reflected.push_back({.obj = object_ptr, .type = type_id, .field = field, .widget = ids.fourth});
+			_reflected.push_back({.obj = object_ptr, .type = type_id, .field = field, .widget = ids.fifth});
+			return ids.first;
+		}
+		else if (type == reflected_field_type::rf_enum)
+		{
+			const uint8	  val = field->value(object_ptr).cast<uint8>();
+			const id_pair ids = add_property_row_slider(title, 16, 0, field->_max, val, true);
+			_reflected.push_back({.obj = object_ptr, .type = type_id, .field = field, .widget = ids.second});
+			return ids.first;
+		}
+		else if (type == reflected_field_type::rf_resource)
+		{
+			const resource_handle h			= field->value(object_ptr).cast<resource_handle>();
+			const char*			  extension = reflection::get().resolve(field_type_id).get_tag_str().c_str();
+			if (extension == nullptr)
+			{
+				SFG_ASSERT(false);
+			}
+
+			id_pair ids = {};
+
+			if (h.is_null())
+			{
+				ids = add_property_row_resource(title, extension, "no_resource", field->_sub_type_id, 512);
+			}
+			else
+			{
+				world&			  wrld		   = editor::get().get_app().get_world();
+				resource_manager& rm		   = wrld.get_resource_manager();
+				void*			  resource_ptr = rm.get_resource(field_type_id, h);
+				const string&	  path		   = rm.get_loaded_path_by_handle(field_type_id, h);
+				ids							   = add_property_row_resource(title, extension, path.c_str(), field->_sub_type_id, 512);
+			}
+
+			_reflected.push_back({.obj = object_ptr, .type = type_id, .field = field, .widget = ids.second});
+			return ids.first;
+		}
+		else if (type == reflected_field_type::rf_entity)
+		{
+		}
+
+		SFG_ASSERT(false);
+
+		return 0;
 	}
 
 	gui_builder::id_pair gui_builder::add_property_row_label(const char* label, const char* text, size_t buffer_capacity)
@@ -829,7 +1089,7 @@ namespace SFG
 		return {id0, id1};
 	}
 
-	gui_builder::id_pair gui_builder::add_property_row_text_field(const char* label, const char* text, size_t buffer_capacity, gui_text_field_type type, unsigned int decimals, float increment)
+	gui_builder::id_trip gui_builder::add_property_row_text_field(const char* label, const char* text, size_t buffer_capacity, gui_text_field_type type, unsigned int decimals, float increment)
 	{
 		const id row = add_property_row();
 
@@ -843,10 +1103,10 @@ namespace SFG
 		const id_pair field = add_text_field(text, buffer_capacity, type, decimals, increment);
 		pop_stack();
 		pop_stack();
-		return field;
+		return {row, field.first, field.second};
 	}
 
-	gui_builder::id_trip gui_builder::add_property_row_vector3(const char* label, const char* text, size_t buffer_capacity, unsigned int decimals, float increment)
+	gui_builder::id_trip gui_builder::add_property_row_vector2(const char* label, const char* text, size_t buffer_capacity, unsigned int decimals, float increment)
 	{
 		const id row = add_property_row();
 
@@ -857,18 +1117,70 @@ namespace SFG
 		add_row_cell_seperator();
 
 		add_row_cell(0.0f);
-		const id_pair x = add_text_field(text, buffer_capacity, gui_text_field_type::number, decimals, increment);
+		const id_pair x = add_text_field(text, buffer_capacity, gui_text_field_type::number, decimals, increment, 0.0f, 0.0f, 0.0f, 0, 0);
 		pop_stack();
 
 		add_row_cell(0.0f);
-		const id_pair y = add_text_field(text, buffer_capacity, gui_text_field_type::number, decimals, increment);
+		const id_pair y = add_text_field(text, buffer_capacity, gui_text_field_type::number, decimals, increment, 0.0f, 0.0f, 0.0f, 0, 1);
+		pop_stack();
+
+		pop_stack();
+		return {row, x.first, y.first};
+	}
+
+	gui_builder::id_quat gui_builder::add_property_row_vector3(const char* label, const char* text, size_t buffer_capacity, unsigned int decimals, float increment)
+	{
+		const id row = add_property_row();
+
+		add_row_cell(editor_theme::get().property_cell_div);
+		add_label(label);
+		pop_stack();
+
+		add_row_cell_seperator();
+
+		add_row_cell(0.0f);
+		const id_pair x = add_text_field(text, buffer_capacity, gui_text_field_type::number, decimals, increment, 0.0f, 0.0f, 0.0f, 0, 0);
 		pop_stack();
 
 		add_row_cell(0.0f);
-		const id_pair z = add_text_field(text, buffer_capacity, gui_text_field_type::number, decimals, increment);
+		const id_pair y = add_text_field(text, buffer_capacity, gui_text_field_type::number, decimals, increment, 0.0f, 0.0f, 0.0f, 0, 1);
+		pop_stack();
+
+		add_row_cell(0.0f);
+		const id_pair z = add_text_field(text, buffer_capacity, gui_text_field_type::number, decimals, increment, 0.0f, 0.0f, 0.0f, 0, 2);
 		pop_stack();
 		pop_stack();
-		return {x.first, y.first, z.first};
+		return {row, x.first, y.first, z.first};
+	}
+
+	gui_builder::id_penth gui_builder::add_property_row_vector4(const char* label, const char* text, size_t buffer_capacity, unsigned int decimals, float increment)
+	{
+		const id row = add_property_row();
+
+		add_row_cell(editor_theme::get().property_cell_div);
+		add_label(label);
+		pop_stack();
+
+		add_row_cell_seperator();
+
+		add_row_cell(0.0f);
+		const id_pair x = add_text_field(text, buffer_capacity, gui_text_field_type::number, decimals, increment, 0.0f, 0.0f, 0.0f, 0, 0);
+		pop_stack();
+
+		add_row_cell(0.0f);
+		const id_pair y = add_text_field(text, buffer_capacity, gui_text_field_type::number, decimals, increment, 0.0f, 0.0f, 0.0f, 0, 1);
+		pop_stack();
+
+		add_row_cell(0.0f);
+		const id_pair z = add_text_field(text, buffer_capacity, gui_text_field_type::number, decimals, increment, 0.0f, 0.0f, 0.0f, 0, 2);
+		pop_stack();
+
+		add_row_cell(0.0f);
+		const id_pair w = add_text_field(text, buffer_capacity, gui_text_field_type::number, decimals, increment, 0.0f, 0.0f, 0.0f, 0, 3);
+		pop_stack();
+
+		pop_stack();
+		return {row, x.first, y.first, z.first, w.first};
 	}
 
 	// -----------------------------------------------------------------------------
@@ -948,6 +1260,156 @@ namespace SFG
 	// -----------------------------------------------------------------------------
 	// single items
 	// -----------------------------------------------------------------------------
+
+	vekt::id gui_builder::add_sub_title(const char* title)
+	{
+		const id w = new_widget();
+		{
+			pos_props& pp = _builder->widget_get_pos_props(w);
+			pp.flags	  = pos_flags::pf_child_pos_column | pos_flags::pf_x_relative;
+			pp.pos.x	  = 0.0f;
+
+			size_props& sz = _builder->widget_get_size_props(w);
+			sz.spacing	   = editor_theme::get().item_spacing * 0.75f;
+			sz.flags	   = size_flags::sf_x_relative | size_flags::sf_y_total_children;
+			sz.size.x	   = 1.0f;
+		}
+
+		const id line = _builder->allocate();
+		{
+			widget_gfx& gfx = _builder->widget_get_gfx(line);
+			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_second_color;
+			gfx.color		= editor_theme::get().col_title_line_end;
+
+			second_color_props& sc = _builder->widget_get_second_color(line);
+			sc.color			   = editor_theme::get().col_title_line_start;
+
+			pos_props& pp = _builder->widget_get_pos_props(line);
+			pp.flags	  = pos_flags::pf_x_relative;
+			pp.pos.x	  = 0.0f;
+
+			size_props& sz = _builder->widget_get_size_props(line);
+			sz.size		   = VEKT_VEC2(editor_theme::get().title_line_width, editor_theme::get().title_line_height);
+			sz.flags	   = size_flags::sf_x_relative | size_flags::sf_y_abs;
+		}
+
+		const id txt = _builder->allocate();
+		{
+			widget_gfx& gfx = _builder->widget_get_gfx(txt);
+			gfx.flags		= gfx_flags::gfx_is_text;
+			gfx.color		= editor_theme::get().col_title;
+
+			pos_props& pp = _builder->widget_get_pos_props(txt);
+			pp.flags	  = pos_flags::pf_x_relative;
+			pp.pos.x	  = 0.0f;
+
+			text_props& tp = _builder->widget_get_text(txt);
+			tp.font		   = editor_theme::get().font_default;
+			_builder->widget_set_text(txt, title);
+		}
+
+		_builder->widget_add_child(w, txt);
+		_builder->widget_add_child(w, line);
+		return w;
+	}
+
+	gui_builder::id_pair gui_builder::add_component_title(const char* title)
+	{
+		const id w = new_widget();
+		{
+			pos_props& pp = _builder->widget_get_pos_props(w);
+			pp.flags	  = pos_flags::pf_child_pos_column | pos_flags::pf_x_relative;
+			pp.pos.x	  = 0.0f;
+
+			size_props& sz = _builder->widget_get_size_props(w);
+			sz.spacing	   = editor_theme::get().item_spacing * 0.75f;
+			sz.flags	   = size_flags::sf_x_relative | size_flags::sf_y_total_children;
+			sz.size.x	   = 1.0f;
+		}
+
+		const id line = _builder->allocate();
+		{
+			widget_gfx& gfx = _builder->widget_get_gfx(line);
+			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_second_color;
+			gfx.color		= editor_theme::get().col_accent_second;
+
+			second_color_props& sc = _builder->widget_get_second_color(line);
+			sc.color			   = editor_theme::get().col_accent_second;
+			sc.color.w			   = 0.0f;
+
+			pos_props& pp = _builder->widget_get_pos_props(line);
+			pp.flags	  = pos_flags::pf_x_relative;
+			pp.pos.x	  = 0.0f;
+
+			size_props& sz = _builder->widget_get_size_props(line);
+			sz.size		   = VEKT_VEC2(editor_theme::get().title_line_width, editor_theme::get().title_line_height * 0.5f);
+			sz.flags	   = size_flags::sf_x_relative | size_flags::sf_y_abs;
+		}
+
+		const id txt_wrap = _builder->allocate();
+		{
+			pos_props& pp = _builder->widget_get_pos_props(txt_wrap);
+			pp.flags	  = pos_flags::pf_x_relative;
+			pp.pos.x	  = 0.0f;
+
+			size_props& sz	 = _builder->widget_get_size_props(txt_wrap);
+			sz.size.x		 = 1.0f;
+			sz.flags		 = size_flags::sf_x_relative | size_flags::sf_y_max_children;
+			sz.child_margins = {0.0f, 0.0f, 0.0f, editor_theme::get().outer_margin};
+		}
+
+		const id txt = _builder->allocate();
+		{
+			widget_gfx& gfx = _builder->widget_get_gfx(txt);
+			gfx.flags		= gfx_flags::gfx_is_text;
+			gfx.color		= editor_theme::get().col_accent_second;
+
+			pos_props& pp = _builder->widget_get_pos_props(txt);
+			pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_y_relative | pos_flags::pf_y_anchor_center;
+			pp.pos.x	  = 0.0f;
+			pp.pos.y	  = 0.5f;
+
+			text_props& tp = _builder->widget_get_text(txt);
+			tp.font		   = editor_theme::get().font_default;
+			_builder->widget_set_text(txt, title);
+		}
+
+		const id icon = _builder->allocate();
+		{
+			widget_gfx& gfx = _builder->widget_get_gfx(icon);
+			gfx.flags		= gfx_flags::gfx_is_text | gfx_flags::gfx_has_hover_color | gfx_flags::gfx_has_press_color;
+			gfx.color		= editor_theme::get().col_accent_second_dim;
+
+			pos_props& pp = _builder->widget_get_pos_props(icon);
+			pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_x_anchor_end | pos_flags::pf_y_relative | pos_flags::pf_y_anchor_center;
+			pp.pos.x	  = 1.0f;
+			pp.pos.y	  = 0.5f;
+
+			text_props& tp = _builder->widget_get_text(icon);
+			tp.font		   = editor_theme::get().font_icons;
+			tp.scale	   = 0.75f;
+			_builder->widget_set_text(icon, ICON_CROSS);
+			input_color_props& icp = _builder->widget_get_input_colors(icon);
+			icp.hovered_color	   = editor_theme::get().col_accent_second;
+			icp.pressed_color	   = editor_theme::get().col_accent_second_dim;
+
+			hover_callback& hb = _builder->widget_get_hover_callbacks(icon);
+			hb.receive_mouse   = 1;
+
+			mouse_callback& mc = _builder->widget_get_mouse_callbacks(icon);
+			mc.on_mouse		   = callbacks.on_mouse;
+
+			widget_user_data& ud = _builder->widget_get_user_data(icon);
+			ud.ptr				 = callbacks.user_data;
+		}
+
+		_builder->widget_add_child(w, txt_wrap);
+		_builder->widget_add_child(w, line);
+		_builder->widget_add_child(txt_wrap, txt);
+		_builder->widget_add_child(txt_wrap, icon);
+
+		return {w, icon};
+	}
 
 	id gui_builder::add_title(const char* title)
 	{
@@ -1169,7 +1631,7 @@ namespace SFG
 		set_text_field_text(*it, text);
 	}
 
-	void gui_builder::set_text_field_value(vekt::id id, float f, bool skip_if_focused)
+	void gui_builder::set_text_field_value(vekt::id id, float f, bool skip_if_focused, bool is_int)
 	{
 		auto it = vector_util::find_if(_text_fields, [id](const gui_text_field& tf) -> bool { return tf.widget == id; });
 		SFG_ASSERT(it != _text_fields.end());
@@ -1180,7 +1642,15 @@ namespace SFG
 		it->value = f;
 
 		char* cur = (char*)it->buffer;
-		char_util::append_double(cur, cur + it->buffer_capacity, f, 3.0f);
+		if (is_int)
+		{
+			const int32 i = static_cast<int32>(f);
+			char_util::append_i32(cur, cur + it->buffer_capacity, i);
+		}
+		else
+		{
+			char_util::append_double(cur, cur + it->buffer_capacity, f, 3.0f);
+		}
 		size_t diff		= cur - it->buffer;
 		it->buffer_size = static_cast<unsigned int>(diff);
 
@@ -1190,27 +1660,19 @@ namespace SFG
 			size_props& sz = _builder->widget_get_size_props(it->sliding_widget);
 			sz.size.x	   = math::remap(it->value, it->min, it->max, 0.0f, 1.0f);
 		}
+
+		_builder->widget_update_text(it->text_widget);
 	}
 
 	void gui_builder::text_field_edit_complete(gui_text_field& tf)
 	{
 		if (tf.type == gui_text_field_type::number)
 		{
-			if (tf.decimals == 0)
-			{
-				const int val = static_cast<int>(tf.value);
-				set_text_field_text(tf, std::to_string(val).c_str());
-			}
-			else
-			{
-				int written = string_util::append_float(tf.value, (char*)tf.buffer, 16, tf.decimals, true);
-				_builder->widget_update_text(tf.text_widget);
-				tf.buffer_size = tf.caret_pos = tf.caret_end_pos = written;
-			}
+			set_text_field_value(tf.widget, tf.value, false, tf.decimals == 0);
 		}
 	}
 
-	gui_builder::id_pair gui_builder::add_text_field(const char* text, size_t buffer_capacity, gui_text_field_type type, unsigned int decimals, float increment, float min, float max, float val, unsigned char is_slider)
+	gui_builder::id_pair gui_builder::add_text_field(const char* text, size_t buffer_capacity, gui_text_field_type type, unsigned int decimals, float increment, float min, float max, float val, unsigned char is_slider, unsigned int sub_index)
 	{
 		const id w = new_widget(true);
 		{
@@ -1286,6 +1748,7 @@ namespace SFG
 			.buffer_size	 = text == nullptr ? 0 : static_cast<uint32>(strlen(text)),
 			.buffer_capacity = static_cast<unsigned int>(tp.text_capacity),
 			.decimals		 = decimals,
+			.sub_index		 = sub_index,
 			.value_increment = increment,
 			.min			 = min,
 			.max			 = max,
@@ -1429,7 +1892,7 @@ namespace SFG
 		return w;
 	}
 
-	vekt::id gui_builder::add_resource(const char* res, const char* extension, size_t buffer_capacity)
+	vekt::id gui_builder::add_resource(const char* res, const char* extension, string_id type_id, size_t buffer_capacity)
 	{
 		const id w = new_widget(true);
 		{
@@ -1478,6 +1941,7 @@ namespace SFG
 
 		const gui_resource r = {
 			.extension	 = editor::get().get_text_allocator().allocate(extension),
+			.type		 = type_id,
 			.widget		 = w,
 			.text_widget = txt,
 		};

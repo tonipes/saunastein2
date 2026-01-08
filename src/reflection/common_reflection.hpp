@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -26,8 +26,48 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 #include "common/size_definitions.hpp"
-
+#include "common/string_id.hpp"
 namespace SFG
 {
+	enum class reflected_field_type : uint8
+	{
+		rf_float = 0,
+		rf_int,
+		rf_float_clamped,
+		rf_int_clamped,
+		rf_vector2,
+		rf_vector3,
+		rf_vector4,
+		rf_vector2ui16,
+		rf_color,
+		rf_resource,
+		rf_entity,
+		rf_bool,
+		rf_uint8,
+		rf_uint8_clamped,
+		rf_string,
+		rf_enum,
+	};
 
+#define SFG_PROP_TYPE_float			SFG::reflected_field_type::rf_float
+#define SFG_PROP_TYPE_int			SFG::reflected_field_type::rf_int
+#define SFG_PROP_TYPE_float_limited SFG::reflected_field_type::rf_float_clamped
+#define SFG_PROP_TYPE_int_limited	SFG::reflected_field_type::rf_int_clamped
+#define SFG_PROP_TYPE_vector2		SFG::reflected_field_type::rf_vector2
+#define SFG_PROP_TYPE_vector3		SFG::reflected_field_type::rf_vector3
+#define SFG_PROP_TYPE_vector4		SFG::reflected_field_type::rf_vector4
+#define SFG_PROP_TYPE_color			SFG::reflected_field_type::rf_color
+#define SFG_PROP_TYPE_resource		SFG::reflected_field_type::rf_resource
+#define SFG_PROP_TYPE_entity		SFG::reflected_field_type::rf_entity
+
+	class field_base;
+	class world;
+
+	struct reflected_field_changed_params
+	{
+		world&	  w;
+		void*	  object_ptr  = nullptr;
+		void*	  data_ptr	  = nullptr;
+		string_id field_title = 0;
+	};
 };

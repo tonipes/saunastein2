@@ -280,7 +280,7 @@ namespace SFG
 		}
 		else if (ev.type == window_event_type::mouse)
 		{
-			
+
 			if (_gui_controller.on_mouse_event(ev))
 				return true;
 		}
@@ -306,8 +306,6 @@ namespace SFG
 			}
 		}
 
-		if (ev.type == window_event_type::mouse)
-			SFG_TRACE("event going to camera {0}", (uint32)ev.sub_type);
 		return _camera_controller.on_window_event(ev);
 	}
 
@@ -323,7 +321,7 @@ namespace SFG
 		string file = path;
 		file_system::fix_path(file);
 
-		if (file.find(wd.c_str()) != 0)
+		if (!editor_settings::get().is_in_work_directory(file))
 		{
 			SFG_ERR("file should be in project directory.");
 			return;
@@ -340,7 +338,6 @@ namespace SFG
 		if (ext.compare("stkworld") == 0)
 		{
 			load_level(relative.c_str());
-			_gui_controller.set_entities_tree_dirty();
 			return;
 		}
 
@@ -367,7 +364,6 @@ namespace SFG
 			const world_handle	 inst	= cm.add_component<comp_model_instance>(entity);
 			comp_model_instance& mi		= cm.get_component<comp_model_instance>(inst);
 			mi.instantiate_model_to_world(w, handle);
-			_gui_controller.set_entities_tree_dirty();
 			_gui_controller.get_entities()->set_selected(entity);
 
 			return;
@@ -387,7 +383,7 @@ namespace SFG
 		file_system::fix_path(file);
 
 		const string& work_dir = editor_settings::get().working_dir;
-		if (file.find(work_dir.c_str()) != 0)
+		if (!editor_settings::get().is_in_work_directory(file))
 		{
 			SFG_ERR("level should be in project directory.");
 			return;

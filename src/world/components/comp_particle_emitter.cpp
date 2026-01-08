@@ -32,12 +32,24 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gfx/event_stream/render_event_stream.hpp"
 #include "gfx/event_stream/render_events_trait.hpp"
 #include "reflection/reflection.hpp"
+#include "resources/particle_properties.hpp"
+#include "resources/material.hpp"
 
 namespace SFG
 {
 	void comp_particle_emitter::reflect()
 	{
 		meta& m = reflection::get().register_meta(type_id<comp_particle_emitter>::value, 0, "component");
+		m.set_title("particle_emitter");
+		m.add_field<&comp_particle_emitter::_particle_resource, comp_particle_emitter>(
+			"particle", reflected_field_type::rf_resource, "", type_id<particle_properties>::value);
+		m.add_field<&comp_particle_emitter::_material, comp_particle_emitter>(
+			"material", reflected_field_type::rf_resource, "", type_id<material>::value);
+
+		m.add_function<void, const reflected_field_changed_params&>("on_reflected_changed"_hs, [](const reflected_field_changed_params& params) {
+			comp_particle_emitter* c = static_cast<comp_particle_emitter*>(params.object_ptr);
+			c->set_values(params.w, c->_particle_resource, c->_material);
+		});
 	}
 
 	void comp_particle_emitter::on_add(world& w)

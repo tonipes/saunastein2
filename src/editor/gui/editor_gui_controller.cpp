@@ -247,12 +247,6 @@ namespace SFG
 		b->widget_get_gfx(widget).color = {};
 	}
 
-	void editor_gui_controller::set_entities_tree_dirty()
-	{
-		if (_panel_entities)
-			_panel_entities->set_tree_dirty();
-	}
-
 	bool editor_gui_controller::on_mouse_event(const window_event& ev)
 	{
 		if (ev.type == window_event_type::mouse)

@@ -54,6 +54,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "world/components/comp_particle_emitter.hpp"
 #include "world/world.hpp"
 #include "platform/time.hpp"
+#include "editor/editor.hpp"
 #endif
 
 #include <algorithm>
@@ -385,6 +386,9 @@ namespace SFG
 				if (handle.is_null())
 					continue;
 
+				// store by hash-path
+				get_storage(type).cache_ptr->_paths_by_hashes[hash] = p;
+
 				delete_loader(type, loader);
 				resolved_loaders[i] = nullptr;
 
@@ -504,13 +508,14 @@ namespace SFG
 			}
 
 			component_manager& cm			   = rm->_world.get_comp_manager();
-			auto&			   model_instances = cm.underlying_pool<comp_cache<comp_model_instance, MAX_WORLD_MODEL_INSTANCES>, comp_model_instance>();
+			auto&			   model_instances = cm.underlying_pool<comp_cache<comp_model_instance, MAX_WORLD_COMP_MODEL_INSTANCES>, comp_model_instance>();
 			for (comp_model_instance& mi : model_instances)
 			{
 				if (mi.get_model() != prev_handle)
 					continue;
 				mi.instantiate_model_to_world(rm->_world, w.base_handle);
 			}
+
 		}
 		else if (w.type_id == type_id<particle_properties>::value)
 		{
@@ -574,6 +579,11 @@ namespace SFG
 	{
 		const cache_storage& stg = get_storage(type);
 		return stg.cache_ptr->get_hash(handle);
+	}
+
+	const string& resource_manager::get_loaded_path_by_handle(string_id type, resource_handle h) const
+	{
+		return get_storage(type).cache_ptr->_paths_by_hashes.at(get_resource_hash(type, h));
 	}
 
 	void* resource_manager::load_from_file(string_id type, const char* relative_file, const char* base_path) const

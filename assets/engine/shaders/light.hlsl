@@ -34,6 +34,7 @@ struct gpu_point_light
     float4 color_entity_index;
     float4 intensity_range;
     float4 shadow_resolution_map_and_data_index;    // xy res, z map index, w data index
+    float near_plane;
     float far_plane;
 };
 

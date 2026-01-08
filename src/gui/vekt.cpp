@@ -478,7 +478,8 @@ namespace vekt
 	void builder::widget_update_text(id widget)
 	{
 		widget_gfx& gfx = _gfxs[widget];
-		gfx.flags		= gfx_is_text;
+		gfx.flags &= ~gfx_is_rect;
+		gfx.flags |= gfx_is_text;
 
 		size_props& sz = _size_properties[widget];
 		sz.flags	   = sf_x_abs | sf_y_abs;
@@ -490,9 +491,17 @@ namespace vekt
 	void builder::widget_set_visible(id widget, bool is_visible)
 	{
 		if (is_visible)
+		{
 			_gfxs[widget].flags &= ~gfx_invisible;
+			// _size_properties[widget].flags &= ~size_flags::sf_invisible;
+			// _pos_properties[widget].flags &= ~pos_flags::pf_invisible;
+		}
 		else
+		{
 			_gfxs[widget].flags |= gfx_invisible;
+			// _size_properties[widget].flags |= size_flags::sf_invisible;
+			// _pos_properties[widget].flags |= pos_flags::pf_invisible;
+		}
 	}
 
 	bool builder::widget_get_visible(id widget) const
@@ -523,7 +532,7 @@ namespace vekt
 		text_props& tp = _texts[w];
 
 		if (w == _pressed_widget)
-			set_pressing(NULL_WIDGET_ID, _pressed_button);
+			set_pressing(NULL_WIDGET_ID, _pressed_button, {});
 		if (w == _focused_widget)
 			set_focus(NULL_WIDGET_ID, false);
 
@@ -604,8 +613,9 @@ namespace vekt
 		}
 	}
 
-	void builder::set_pressing(id widget, unsigned int button)
+	void builder::set_pressing(id widget, unsigned int button, const VEKT_VEC2& press_pos)
 	{
+		_press_pos		= press_pos;
 		_pressed_button = button;
 
 		if (_pressed_widget != NULL_WIDGET_ID)
@@ -614,8 +624,15 @@ namespace vekt
 		}
 
 		_pressed_widget = widget;
+		_press_scroll = 0.0f;
 		if (_pressed_widget != NULL_WIDGET_ID)
+		{
 			_hover_callbacks[_pressed_widget].is_pressing = 1;
+			_press_scroll = _pos_properties[_pressed_widget].scroll_offset;
+		}
+
+		V_LOG("pressed %d", widget);
+
 	}
 
 	unsigned int builder::count_total_children(id widget_id) const
@@ -1095,10 +1112,6 @@ namespace vekt
 				continue;
 			}
 
-			if (widget == 154)
-			{
-				int a = 5;
-			}
 			const VEKT_VEC2& pos		  = _pos_results[widget].pos;
 			const VEKT_VEC2& size		  = _size_results[widget].size;
 			const VEKT_VEC4	 widget_clip  = VEKT_VEC4(pos.x, pos.y, size.x, size.y);
@@ -1198,11 +1211,11 @@ namespace vekt
 			}
 			else if (gfx.flags & gfx_is_text)
 			{
-				add_text(_texts[widget], gfx.color, pos, size, gfx.draw_order, gfx.user_data);
+				add_text(_texts[widget], start_color, pos, size, gfx.draw_order, gfx.user_data);
 			}
 			else if (gfx.flags & gfx_is_text_cached)
 			{
-				add_text_cached(_texts[widget], gfx.color, pos, size, gfx.draw_order, gfx.user_data);
+				add_text_cached(_texts[widget], start_color, pos, size, gfx.draw_order, gfx.user_data);
 			}
 
 			if (has_clip)
@@ -1377,6 +1390,11 @@ namespace vekt
 		return _pos_properties[widget_id];
 	}
 
+	void builder::widget_set_scroll_offset(id widget_id, float offset)
+	{
+		_pos_properties[widget_id].scroll_offset = offset;
+	}
+
 	void builder::on_mouse_move(const VEKT_VEC2& mouse)
 	{
 		const VEKT_VEC2 delta = mouse - _mouse_position;
@@ -1411,8 +1429,15 @@ namespace vekt
 			scroll_props& sc = _scroll_properties[_pressed_widget];
 			if (sc.scroll_parent != NULL_WIDGET_ID)
 			{
-				pos_props& pp = _pos_properties[sc.scroll_parent];
+				pos_props&	pp	= _pos_properties[sc.scroll_parent];
+				size_props& sz	= _size_properties[sc.scroll_parent];
+				const float bgn = pp.pos.y;
+				const float end = pp.pos.y + sz.size.y;
+
+				const float ratio = math::clamp(math::remap(mouse.y, bgn, end, 0.0f, 1.0f), 0.0f, 1.0f);
 				pp.scroll_offset -= delta.y;
+				const float diff_y = mouse.y - _press_pos.y;
+				//pp.scroll_offset = _press_scroll - diff_y;
 			}
 			if (mc.on_drag)
 				mc.on_drag(this, _pressed_widget, _mouse_position.x, _mouse_position.y, delta.x, delta.y, _pressed_button);
@@ -1459,17 +1484,17 @@ namespace vekt
 			if (pressed_widget == NULL_WIDGET_ID)
 			{
 				set_focus(NULL_WIDGET_ID, false);
-				set_pressing(NULL_WIDGET_ID, static_cast<unsigned int>(ev.button));
+				set_pressing(NULL_WIDGET_ID, static_cast<unsigned int>(ev.button), {});
 			}
 			else
 			{
 				set_focus(pressed_widget, false);
-				set_pressing(pressed_widget, static_cast<unsigned int>(ev.button));
+				set_pressing(pressed_widget, static_cast<unsigned int>(ev.button), ev.position);
 			}
 		}
 		else if (ev.type == input_event_type::released)
 		{
-			set_pressing(NULL_WIDGET_ID, static_cast<unsigned int>(ev.button));
+			set_pressing(NULL_WIDGET_ID, static_cast<unsigned int>(ev.button), {});
 		}
 
 		return ret_res;

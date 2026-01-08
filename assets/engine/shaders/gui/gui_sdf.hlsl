@@ -87,5 +87,5 @@ float4 PSMain(VSOutput IN) : SV_TARGET
 	
 	float distance = txt_atlas.SampleLevel(sampler_base, IN.uv, 0).x;
 	float alpha = smoothstep(rp_data.sdf_thickness - rp_data.sdf_softness, rp_data.sdf_thickness + rp_data.sdf_softness, distance);
-	return float4(IN.color.xyz, alpha);
+	return float4(IN.color.xyz * IN.color.w, alpha);
 }
