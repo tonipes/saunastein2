@@ -179,25 +179,6 @@ namespace SFG
 #endif
 	}
 
-	void render_event_model::serialize(ostream& stream) const
-	{
-		stream << meshes;
-		stream << materials;
-
-#ifndef SFG_STRIP_DEBUG_NAMES
-		stream << name;
-#endif
-	}
-
-	void render_event_model::deserialize(istream& stream)
-	{
-		stream >> meshes;
-		stream >> materials;
-
-#ifndef SFG_STRIP_DEBUG_NAMES
-		stream >> name;
-#endif
-	}
 
 	void render_event_resource_reloaded::serialize(ostream& stream) const
 	{
@@ -209,16 +190,6 @@ namespace SFG
 	{
 		stream >> prev_id;
 		stream >> new_id;
-	}
-
-	void render_event_model_update_materials::serialize(ostream& stream) const
-	{
-		stream << materials;
-	}
-
-	void render_event_model_update_materials::deserialize(istream& stream)
-	{
-		stream >> materials;
 	}
 
 	void render_event_vertex_index_buffer::serialize(ostream& stream) const

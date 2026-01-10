@@ -66,12 +66,8 @@ namespace SFG
 		// accessors
 		// -----------------------------------------------------------------------------
 
-		void set_mesh(world& w, resource_handle model, resource_handle mesh, resource_handle skin, world_handle* skin_node_entities, uint16 skin_node_entity_count);
-
-		inline resource_handle get_model() const
-		{
-			return _target_model;
-		}
+		void set_mesh(world& w, resource_handle mesh, resource_handle skin, resource_handle* materials, uint16 materials_count, world_handle* skin_node_entities, uint16 skin_node_entity_count);
+		void set_material(world& w, resource_handle material, uint32 index);
 
 		inline resource_handle get_mesh() const
 		{
@@ -83,14 +79,24 @@ namespace SFG
 			return _header;
 		}
 
-		inline chunk_handle32 get_skin_entities() const
+		inline const vector<resource_handle>& get_materials() const
+		{
+			return _materials;
+		}
+
+		inline uint16 get_materials_count() const
+		{
+			return static_cast<uint16>(_materials.size());
+		}
+
+		inline const vector<world_handle>& get_skin_entities() const
 		{
 			return _skin_entities;
 		}
 
 		inline uint16 get_skin_entities_count() const
 		{
-			return _skin_entities_count;
+			return static_cast<uint16>(_skin_entities.size());
 		}
 
 	private:
@@ -100,12 +106,11 @@ namespace SFG
 		void fill_refs(resource_manager& res, string_id target, string_id target_mesh);
 
 	private:
-		component_header _header			  = {};
-		resource_handle	 _target_model		  = {};
-		resource_handle	 _target_mesh		  = {};
-		resource_handle	 _target_skin		  = {};
-		chunk_handle32	 _skin_entities		  = {};
-		uint16			 _skin_entities_count = 0;
+		component_header		_header		   = {};
+		resource_handle			_target_mesh   = {};
+		resource_handle			_target_skin   = {};
+		vector<resource_handle> _materials	   = {};
+		vector<world_handle>	_skin_entities = {};
 	};
 
 	REFLECT_TYPE(comp_mesh_instance);

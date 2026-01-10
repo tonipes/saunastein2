@@ -26,6 +26,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "editor_panel_entities.hpp"
 #include "editor/editor_theme.hpp"
+#include "editor/editor_settings.hpp"
 
 #include "io/log.hpp"
 
@@ -33,6 +34,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "world/entity_manager.hpp"
 
 #include "platform/window.hpp"
+#include "platform/process.hpp"
 
 #include "math/math.hpp"
 #include "math/vector2ui16.hpp"
@@ -46,6 +48,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "app/app.hpp"
 
 #include "reflection/reflection.hpp"
+
+#include "resources/entity_template_raw.hpp"
 namespace SFG
 {
 
@@ -95,8 +99,13 @@ namespace SFG
 		_gui_builder.end_area();
 
 		_gui_builder.add_title("components");
-		_components_area = _gui_builder.begin_area(true);
-		_add_component	 = _gui_builder.add_property_single_button("add_component").first;
+		_components_parent = _gui_builder.begin_area(true);
+
+		_gui_builder.add_property_row();
+		_add_component = _gui_builder.set_fill_x(_gui_builder.add_button("add_component").first);
+		_save_template = _gui_builder.set_fill_x(_gui_builder.add_button("save_as_template").first);
+		_gui_builder.pop_stack();
+
 		_gui_builder.end_area();
 
 		_builder->widget_add_child(_builder->get_root(), _root);
@@ -105,7 +114,6 @@ namespace SFG
 		_entity_meta.resize(MAX_ENTITIES);
 		_node_bindings.reserve(512);
 		_root_entity_widgets.reserve(512);
-		_component_properties.reserve(512);
 		_comp_remove_buttons.reserve(512);
 		_add_component_buttons.reserve(512);
 
@@ -193,14 +201,18 @@ namespace SFG
 
 	void editor_panel_entities::clear_component_view()
 	{
-		for (vekt::id c : _component_properties)
-			_gui_builder.deallocate(c);
+		// for (vekt::id c : _component_properties)
+		//	_gui_builder.deallocate(c);
+		if (_components_area != NULL_WIDGET_ID)
+			_gui_builder.deallocate(_components_area);
+		_components_area = NULL_WIDGET_ID;
+
 		_comp_remove_buttons.resize(0);
-		_component_properties.resize(0);
 	}
 	void editor_panel_entities::build_component_view()
 	{
-		_gui_builder.push_stack(_components_area);
+		_gui_builder.push_stack(_components_parent);
+		_components_area = _gui_builder.begin_area(false);
 
 		world&						w  = editor::get().get_app().get_world();
 		entity_manager&				em = w.get_entity_manager();
@@ -211,16 +223,15 @@ namespace SFG
 			const meta&				   m	  = reflection::get().resolve(c.comp_type);
 			const meta::field_vec&	   fields = m.get_fields();
 			const gui_builder::id_pair pair	  = _gui_builder.add_component_title(m.get_title().c_str());
-			_component_properties.push_back(pair.first);
 			_comp_remove_buttons.push_back({c.comp_handle, pair.second, c.comp_type});
 
 			for (field_base* f : fields)
 			{
-				const vekt::id w = _gui_builder.add_reflected_field(f, c.comp_type, cm.get_component(c.comp_type, c.comp_handle));
-				_component_properties.push_back(w);
+				_gui_builder.add_reflected_field(f, c.comp_type, cm.get_component(c.comp_type, c.comp_handle));
 			}
 		}
 
+		_gui_builder.end_area();
 		_gui_builder.pop_stack();
 	}
 
@@ -258,6 +269,9 @@ namespace SFG
 		}
 
 		_builder->widget_set_scroll_offset(_entity_area, old_scroll);
+
+		if (!em.is_valid(_selected_entity))
+			set_selected({});
 	}
 
 	vekt::id editor_panel_entities::build_entity_node(world& w, world_handle e, unsigned int depth)
@@ -555,7 +569,7 @@ namespace SFG
 	void editor_panel_entities::on_checkbox(void* callback_ud, vekt::builder* b, vekt::id id, unsigned char value)
 	{
 		editor_panel_entities* self = static_cast<editor_panel_entities*>(callback_ud);
-		if (id == self->_prop_vis)
+		if (!self->_selected_entity.is_null() && id == self->_prop_vis)
 		{
 			world&			w  = editor::get().get_app().get_world();
 			entity_manager& em = w.get_entity_manager();
@@ -583,6 +597,13 @@ namespace SFG
 					return vekt::input_event_result::handled;
 				}
 			}
+		}
+
+		if (ev.type == vekt::input_event_type::pressed && widget == self->_save_template && !self->_selected_entity.is_null())
+		{
+			world&		 w	  = editor::get().get_app().get_world();
+			const string file = process::save_file("save entity file", ".stkent");
+			entity_template_raw::save_to_file(file.c_str(), w, {self->_selected_entity});
 		}
 
 		if (ev.type == vekt::input_event_type::pressed && widget == self->_add_component && !self->_selected_entity.is_null())

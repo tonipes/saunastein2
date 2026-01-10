@@ -548,28 +548,30 @@ namespace vekt
 		for (id c : meta.children)
 			deallocate_impl(c);
 
-		_metas[w]			= widget_meta{};
-		_size_properties[w] = size_props{};
-		_pos_properties[w]	= pos_props{};
-		_size_results[w]	= size_result{};
-		_pos_results[w]		= pos_result{};
-		_gfxs[w]			= widget_gfx{};
-		_strokes[w]			= stroke_props{};
-		_second_colors[w]	= second_color_props{};
-		_roundings[w]		= rounding_props{};
-		_aa_props[w]		= aa_props{};
-		_texts[w]			= text_props{};
-		_hover_callbacks[w] = hover_callback{};
-		_mouse_callbacks[w] = mouse_callback{};
-		_key_callbacks[w]	= key_callback{};
-		_custom_passes[w]	= custom_passes{};
+		_user_datas[w]			   = widget_user_data();
+		_input_color_properties[w] = input_color_props();
+		_scroll_properties[w]	   = scroll_props();
+		_metas[w]				   = widget_meta{};
+		_size_properties[w]		   = size_props{};
+		_pos_properties[w]		   = pos_props{};
+		_size_results[w]		   = size_result{};
+		_pos_results[w]			   = pos_result{};
+		_gfxs[w]				   = widget_gfx{};
+		_strokes[w]				   = stroke_props{};
+		_second_colors[w]		   = second_color_props{};
+		_roundings[w]			   = rounding_props{};
+		_aa_props[w]			   = aa_props{};
+		_texts[w]				   = text_props{};
+		_hover_callbacks[w]		   = hover_callback{};
+		_mouse_callbacks[w]		   = mouse_callback{};
+		_key_callbacks[w]		   = key_callback{};
+		_custom_passes[w]		   = custom_passes{};
 
 		_free_list.push_back(w);
 	}
 
 	void builder::deallocate(id w)
 	{
-
 		widget_meta& meta = _metas[w];
 
 		if (meta.parent != NULL_WIDGET_ID)
@@ -702,7 +704,7 @@ namespace vekt
 		// restore hover states
 		calculate_sizes();
 		calculate_positions();
-		on_mouse_move(_mouse_position);
+		on_mouse_move(_mouse_position, false);
 	}
 
 	void builder::calculate_sizes()
@@ -1392,7 +1394,7 @@ namespace vekt
 		_pos_properties[widget_id].scroll_offset = offset;
 	}
 
-	void builder::on_mouse_move(const VEKT_VEC2& mouse)
+	void builder::on_mouse_move(const VEKT_VEC2& mouse, bool send_events)
 	{
 		const VEKT_VEC2 delta = mouse - _mouse_position;
 		_mouse_position		  = mouse;
@@ -1407,11 +1409,11 @@ namespace vekt
 
 			hover_callback& hover_state = _hover_callbacks[widget];
 
-			if (!hovered && hover_state.is_hovered && hover_state.on_hover_end)
+			if (send_events && !hovered && hover_state.is_hovered && hover_state.on_hover_end)
 			{
 				hover_state.on_hover_end(this, widget);
 			}
-			if (hovered && !hover_state.is_hovered && hover_state.on_hover_begin)
+			if (send_events && hovered && !hover_state.is_hovered && hover_state.on_hover_begin)
 			{
 				hover_state.on_hover_begin(this, widget);
 			}

@@ -134,13 +134,16 @@ namespace SFG
 			return _created_lights;
 		}
 
+		inline chunk_handle32 get_name() const
+		{
+			return _name;
+		}
+
 	private:
 #ifdef SFG_TOOLMODE
 		friend struct model_raw;
 #endif
-#ifndef SFG_STRIP_DEBUG_NAMES
 		chunk_handle32 _name;
-#endif
 		chunk_handle32 _nodes;
 		chunk_handle32 _created_meshes;
 		chunk_handle32 _created_skins;

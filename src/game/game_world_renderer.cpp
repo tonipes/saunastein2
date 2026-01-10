@@ -866,7 +866,7 @@ namespace SFG
 		for (uint32 i = 0; i < meshes_peak; i++)
 		{
 			render_proxy_mesh_instance& mi = meshes.get(i);
-			if (mi.model == NULL_RESOURCE_ID)
+			if (mi.mesh == NULL_RESOURCE_ID)
 				continue;
 
 			// early out if entity or skin is invalid.

@@ -24,58 +24,33 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISE
 OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#pragma once
-
-#include "common/size_definitions.hpp"
+#include "entity_template.hpp"
+#include "entity_template_raw.hpp"
+#include "memory/chunk_allocator.hpp"
+#include "world/world.hpp"
+#include "resources/resource_manager.hpp"
+#include "reflection/reflection.hpp"
 
 namespace SFG
 {
-	enum class render_event_type : uint8
+	void entity_template::reflect()
 	{
-		create_texture = 0,
-		create_sampler,
-		create_material,
-		create_mesh,
-		create_shader,
-		create_skin,
-		particle_res,
-		destroy_texture,
-		destroy_sampler,
-		destroy_material,
-		destroy_mesh,
-		destroy_shader,
-		destroy_skin,
-		destroy_particle_res,
-		update_material_sampler,
-		update_material_textures,
-		update_material_data,
-		update_mesh_instance,
-		update_mesh_instance_material,
-		remove_mesh_instance,
-		create_entity,
-		remove_entity,
-		update_entity_visibility,
-		set_main_camera,
-		update_camera,
-		remove_camera,
-		reload_shader,
-		reload_material,
-		update_ambient,
-		update_dir_light,
-		update_point_light,
-		update_spot_light,
-		remove_ambient,
-		remove_dir_light,
-		remove_point_light,
-		remove_spot_light,
-		create_canvas,
-		destroy_canvas,
-		canvas_add_draw,
-		canvas_reset_draws,
-		canvas_update,
-		particle_emitter,
-		remove_particle_emitter,
-		reset_particle_emitter,
-	};
+		reflection::get().register_meta(type_id<entity_template>::value, 0, "stkent");
+	}
+
+	entity_template::~entity_template()
+	{
+	}
+
+	void entity_template::create_from_loader(entity_template_raw& raw, world& w, resource_handle handle)
+	{
+		_raw = raw;
+	}
+
+	void entity_template::destroy(world& w, resource_handle handle)
+	{
+		if (_raw.component_buffer.get_size() != 0)
+			_raw.component_buffer.destroy();
+	}
 
 }

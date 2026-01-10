@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -28,6 +28,10 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "math.hpp"
 #include "data/ostream.hpp"
 #include "data/istream.hpp"
+
+#ifdef SFG_TOOLMODE
+#include "vendor/nhlohmann/json.hpp"
+#endif
 
 namespace SFG
 {
@@ -317,6 +321,21 @@ namespace SFG
 	void quat::deserialize(istream& stream)
 	{
 		stream >> x >> y >> z >> w;
+	}
+
+	void to_json(nlohmann::json& j, const quat& q)
+	{
+		j = nlohmann::json::array({q.x, q.y, q.z, q.w});
+	}
+
+	void from_json(const nlohmann::json& j, quat& q)
+	{
+		if (!j.is_array() || j.size() < 4)
+			throw std::runtime_error("quat json err");
+		q.x = j.at(0).get<float>();
+		q.y = j.at(1).get<float>();
+		q.z = j.at(2).get<float>();
+		q.w = j.at(3).get<float>();
 	}
 
 }

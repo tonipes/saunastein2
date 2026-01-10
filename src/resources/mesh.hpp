@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -75,6 +75,16 @@ namespace SFG
 			return _sid;
 		}
 
+		inline chunk_handle32 get_material_indices() const
+		{
+			return _material_indices;
+		}
+
+		inline uint16 get_material_count() const
+		{
+			return _material_count;
+		}
+
 	private:
 		friend class model;
 
@@ -84,9 +94,11 @@ namespace SFG
 #ifndef SFG_STRIP_DEBUG_NAMES
 		chunk_handle32 _name;
 #endif
-		uint16		   _node_index = 0;
-		int16		   _skin_index = 0;
-		bitmask<uint8> _flags	   = 0;
+		chunk_handle32 _material_indices = {};
+		uint16		   _material_count	 = 0;
+		uint16		   _node_index		 = 0;
+		int16		   _skin_index		 = 0;
+		bitmask<uint8> _flags			 = 0;
 	};
 
 	REFLECT_TYPE(mesh);

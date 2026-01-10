@@ -61,10 +61,8 @@ namespace SFG
 		resource_manager&	 rm		= w.get_resource_manager();
 		chunk_allocator32&	 alloc	= rm.get_aux();
 
-#ifndef SFG_STRIP_DEBUG_NAMES
 		if (!raw.name.empty())
 			_name = alloc.allocate_text(raw.name);
-#endif
 
 		_total_aabb = raw.total_aabb;
 
@@ -89,8 +87,6 @@ namespace SFG
 			}
 		}
 
-		render_event_model ev = {};
-
 		if (mesh_count != 0)
 		{
 			_created_meshes				= alloc.allocate<resource_handle>(mesh_count);
@@ -102,9 +98,10 @@ namespace SFG
 				const resource_handle sub_handle  = rm.add_resource<mesh>(loaded_mesh.sid);
 				meshes_ptr[i]					  = sub_handle;
 
-				ev.meshes.push_back(sub_handle.index);
 				mesh& m = rm.get_resource<mesh>(sub_handle);
 				m.create_from_loader(loaded_mesh, w, sub_handle);
+
+				rm.store_relative_path(type_id<mesh>::value, sub_handle, loaded_mesh.name);
 			}
 		}
 
@@ -120,6 +117,7 @@ namespace SFG
 				skins_ptr[i]					  = sub_handle;
 				skin& created					  = rm.get_resource<skin>(sub_handle);
 				created.create_from_loader(loaded_skin, w, sub_handle);
+				rm.store_relative_path(type_id<skin>::value, sub_handle, loaded_skin.name);
 			}
 		}
 
@@ -135,6 +133,7 @@ namespace SFG
 				anims_ptr[i]					  = sub_handle;
 				animation& created				  = rm.get_resource<animation>(sub_handle);
 				created.create_from_loader(loaded_anim, w, sub_handle);
+				rm.store_relative_path(type_id<animation>::value, sub_handle, loaded_anim.name);
 			}
 		}
 
@@ -150,6 +149,7 @@ namespace SFG
 				ptr[i]							 = sub_handle;
 				texture& created				 = rm.get_resource<texture>(sub_handle);
 				created.create_from_loader(loaded, w, sub_handle);
+				rm.store_relative_path(type_id<texture>::value, sub_handle, loaded.name);
 			}
 		}
 
@@ -164,10 +164,11 @@ namespace SFG
 				const resource_handle sub_handle = rm.add_resource<material>(loaded.sid);
 				ptr[i]							 = sub_handle;
 
-				ev.materials.push_back(sub_handle.index);
 				material& created = rm.get_resource<material>(sub_handle);
 
 				created.create_from_loader(loaded, w, sub_handle);
+				rm.store_relative_path(type_id<material>::value, sub_handle, loaded.name);
+
 				loaded.destroy();
 			}
 		}
@@ -183,17 +184,6 @@ namespace SFG
 				ptr[i]					= raw.loaded_lights[i];
 			}
 		}
-
-#ifndef SFG_STRIP_DEBUG_NAMES
-		ev.name = raw.name;
-#endif
-
-		stream.add_event(
-			{
-				.index		= handle.index,
-				.event_type = render_event_type::create_model,
-			},
-			ev);
 
 		_skins_count	 = skins_count;
 		_anims_count	 = anims_count;
@@ -214,11 +204,9 @@ namespace SFG
 		resource_manager&	 rm		= w.get_resource_manager();
 		chunk_allocator32&	 alloc	= rm.get_aux();
 
-#ifndef SFG_STRIP_DEBUG_NAMES
 		if (_name.size != 0)
 			alloc.free(_name);
 		_name = {};
-#endif
 
 		if (_nodes.size != 0)
 		{
@@ -323,11 +311,6 @@ namespace SFG
 			alloc.free(_created_lights);
 		}
 
-		stream.add_event({
-			.index		= handle.index,
-			.event_type = render_event_type::destroy_model,
-		});
-
 		_created_textures  = {};
 		_created_materials = {};
 		_created_meshes	   = {};
@@ -336,4 +319,5 @@ namespace SFG
 		_created_anims	   = {};
 		_created_lights	   = {};
 	}
+
 }

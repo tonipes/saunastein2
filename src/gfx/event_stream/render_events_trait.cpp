@@ -33,18 +33,18 @@ namespace SFG
 	void render_event_mesh_instance::serialize(ostream& stream) const
 	{
 		stream << entity_index;
-		stream << model;
 		stream << mesh;
 		stream << skin;
+		stream << materials;
 		stream << skin_node_entities;
 	}
 
 	void render_event_mesh_instance::deserialize(istream& stream)
 	{
 		stream >> entity_index;
-		stream >> model;
 		stream >> mesh;
 		stream >> skin;
+		stream >> materials;
 		stream >> skin_node_entities;
 	}
 
@@ -217,6 +217,18 @@ namespace SFG
 		stream >> material;
 		stream >> particle_res;
 		stream >> entity;
+	}
+
+	void render_event_mesh_instance_material::serialize(ostream& stream) const
+	{
+		stream << material;
+		stream << index;
+	}
+
+	void render_event_mesh_instance_material::deserialize(istream& stream)
+	{
+		stream >> material;
+		stream >> index;
 	}
 
 }

@@ -55,7 +55,6 @@ namespace SFG
 		_shaders			= new shaders_type();
 		_meshes				= new meshes_type();
 		_skins				= new skins_type();
-		_models				= new models_type();
 		_entities			= new entity_type();
 		_mesh_instances		= new mesh_instances_type();
 		_cameras			= new cameras_type();
@@ -78,7 +77,6 @@ namespace SFG
 		delete _shaders;
 		delete _meshes;
 		delete _skins;
-		delete _models;
 		delete _entities;
 		delete _mesh_instances;
 		delete _cameras;
@@ -101,7 +99,6 @@ namespace SFG
 		_shaders->reset();
 		_meshes->reset();
 		_skins->reset();
-		_models->reset();
 		_entities->reset();
 		_mesh_instances->reset();
 		_cameras->reset();
@@ -708,6 +705,18 @@ namespace SFG
 			proxy.status = render_proxy_status::rps_active;
 			proxy		 = {};
 		}
+		else if (type == render_event_type::update_mesh_instance_material)
+		{
+			render_event_mesh_instance_material ev = {};
+			ev.deserialize(stream);
+			_peak_mesh_instances			  = math::max(_peak_mesh_instances, index);
+			render_proxy_mesh_instance& proxy = get_mesh_instance(index);
+			if (proxy.materials_count > ev.index)
+			{
+				resource_id* ptr = _aux_memory.get<resource_id>(proxy.materials);
+				ptr[index]		 = ev.material;
+			}
+		}
 		else if (type == render_event_type::update_mesh_instance)
 		{
 			render_event_mesh_instance ev = {};
@@ -716,31 +725,38 @@ namespace SFG
 
 			render_proxy_mesh_instance& proxy = get_mesh_instance(index);
 
-			proxy.entity = ev.entity_index;
-			proxy.mesh	 = ev.mesh;
-			proxy.model	 = ev.model;
-			proxy.skin	 = ev.skin;
+			proxy.entity			  = ev.entity_index;
+			proxy.mesh				  = ev.mesh;
+			proxy.skin				  = ev.skin;
+			proxy.materials_count	  = static_cast<uint16>(ev.materials.size());
+			proxy.skin_entities_count = static_cast<uint16>(ev.skin_node_entities.size());
 
-			if (proxy.skin_entities.size != 0)
+			if (proxy.materials_count != 0)
 			{
-				_aux_memory.free(proxy.skin_entities);
+				resource_id* out = nullptr;
+				proxy.materials	 = _aux_memory.allocate<resource_id>(proxy.materials_count, out);
+				for (uint16 i = 0; i < proxy.materials_count; i++)
+					out[i] = ev.materials[i];
 			}
 
-			if (!ev.skin_node_entities.empty())
+			if (proxy.skin_entities_count != 0)
 			{
-				proxy.skin_entities_count = static_cast<uint16>(ev.skin_node_entities.size());
-				proxy.skin_entities		  = _aux_memory.allocate<world_id>(proxy.skin_entities_count);
-				world_id* ptr			  = _aux_memory.get<world_id>(proxy.skin_entities);
+				world_id* out		= nullptr;
+				proxy.skin_entities = _aux_memory.allocate<world_id>(proxy.skin_entities_count, out);
 				for (uint16 i = 0; i < proxy.skin_entities_count; i++)
 				{
-					ptr[i] = ev.skin_node_entities[i];
+					out[i] = ev.skin_node_entities[i];
 				}
 			}
 		}
 		else if (type == render_event_type::remove_mesh_instance)
 		{
 			render_proxy_mesh_instance& proxy = get_mesh_instance(index);
-			proxy							  = {};
+			if (proxy.materials.size != 0)
+				_aux_memory.free(proxy.materials);
+			if (proxy.skin_entities.size != 0)
+				_aux_memory.free(proxy.skin_entities);
+			proxy = {};
 		}
 		else if (type == render_event_type::update_camera)
 		{
@@ -1029,68 +1045,6 @@ namespace SFG
 			render_proxy_material& proxy = get_material(index);
 			destroy_material(proxy);
 		}
-		else if (type == render_event_type::create_model)
-		{
-			render_proxy_model& proxy = get_model(index);
-			render_event_model	ev	  = {};
-			ev.deserialize(stream);
-
-			proxy.material_count = static_cast<uint32>(ev.materials.size());
-			proxy.mesh_count	 = static_cast<uint32>(ev.meshes.size());
-
-			if (proxy.mesh_count != 0)
-			{
-				proxy.meshes		= _aux_memory.allocate<resource_id>(proxy.mesh_count);
-				resource_id* meshes = _aux_memory.get<resource_id>(proxy.meshes);
-				for (uint32 i = 0; i < proxy.mesh_count; i++)
-					meshes[i] = ev.meshes[i];
-			}
-
-			if (proxy.material_count != 0)
-			{
-				proxy.materials	  = _aux_memory.allocate<resource_id>(proxy.material_count);
-				resource_id* mats = _aux_memory.get<resource_id>(proxy.materials);
-				for (uint32 i = 0; i < proxy.material_count; i++)
-					mats[i] = ev.materials[i];
-			}
-		}
-		else if (type == render_event_type::update_model_materials)
-		{
-			render_proxy_model&					proxy = get_model(index);
-			render_event_model_update_materials ev	  = {};
-			ev.deserialize(stream);
-
-			const uint32 sz = static_cast<uint32>(ev.materials.size());
-
-			if (sz != proxy.material_count)
-			{
-				if (proxy.materials.size != 0)
-					_aux_memory.free(proxy.materials);
-				proxy.materials = {};
-			}
-
-			proxy.material_count = sz;
-
-			if (proxy.material_count != 0)
-			{
-				proxy.materials	  = _aux_memory.allocate<resource_id>(proxy.material_count);
-				resource_id* mats = _aux_memory.get<resource_id>(proxy.materials);
-				for (uint32 i = 0; i < proxy.material_count; i++)
-					mats[i] = ev.materials[i];
-			}
-		}
-		else if (type == render_event_type::destroy_model)
-		{
-			render_proxy_model& proxy = get_model(index);
-			destroy_model(proxy);
-
-			for (uint32 i = 0; i < get_peak_mesh_instances(); i++)
-			{
-				render_proxy_mesh_instance& mi = get_mesh_instance(i);
-				if (mi.model == index)
-					mi.model = NULL_RESOURCE_ID;
-			}
-		}
 		else if (type == render_event_type::create_skin)
 		{
 			render_event_skin ev = {};
@@ -1319,16 +1273,6 @@ namespace SFG
 
 		if (proxy.primitives.size != 0)
 			_aux_memory.free(proxy.primitives);
-		proxy = {};
-	}
-
-	void proxy_manager::destroy_model(render_proxy_model& proxy)
-	{
-		if (proxy.materials.size != 0)
-			_aux_memory.free(proxy.materials);
-
-		if (proxy.meshes.size != 0)
-			_aux_memory.free(proxy.meshes);
 		proxy = {};
 	}
 

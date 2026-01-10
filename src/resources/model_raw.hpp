@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -65,6 +65,7 @@ namespace SFG
 		void save_to_cache(const char* cache_folder_path, const char* resource_directory_path, const char* extension) const;
 		void get_dependencies(vector<string>& out_deps) const;
 		bool import_gtlf(const char* file, const char* relative_path, bool import_materials, bool import_textures);
+		void get_sub_resources(vector<string>& out_res) const {};
 #endif
 	};
 }

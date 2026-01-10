@@ -1185,7 +1185,7 @@ namespace vekt
 		void				widget_update_text(id widget);
 		void				widget_set_visible(id widget, bool is_visible);
 		bool				widget_get_visible(id widget) const;
-		void				on_mouse_move(const VEKT_VEC2& mouse);
+		void				on_mouse_move(const VEKT_VEC2& mouse, bool send_events = true);
 		input_event_result	on_mouse_event(const mouse_event& ev);
 		input_event_result	on_mouse_wheel_event(const mouse_wheel_event& ev);
 		input_event_result	on_key_event(const key_event& ev);

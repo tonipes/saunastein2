@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -113,18 +113,17 @@ namespace SFG
 
 	void to_json(nlohmann::json& j, const color& c)
 	{
-		j["x"] = c.x;
-		j["y"] = c.y;
-		j["z"] = c.z;
-		j["w"] = c.w;
+		j = nlohmann::json::array({c.x, c.y, c.z, c.w});
 	}
 
 	void from_json(const nlohmann::json& j, color& c)
 	{
-		c.x = j.value<float>("x", 0.0f);
-		c.y = j.value<float>("y", 0.0f);
-		c.z = j.value<float>("z", 0.0f);
-		c.w = j.value<float>("w", 0.0f);
+		if (!j.is_array() || j.size() < 4)
+			throw std::runtime_error("color json err");
+		c.x = j.at(0).get<float>();
+		c.y = j.at(1).get<float>();
+		c.z = j.at(2).get<float>();
+		c.w = j.at(3).get<float>();
 	}
 #endif
 

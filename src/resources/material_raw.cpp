@@ -169,17 +169,17 @@ namespace SFG
 					float val = param.get<float>();
 					material_data << val;
 				}
-				else if (param.is_object() && param.contains("x") && param.contains("y") && param.contains("z") && param.contains("w") && param.size() == 4)
+				else if (param.is_array() && param.size() == 4)
 				{
 					vector4 val = param.get<vector4>();
 					material_data << val;
 				}
-				else if (param.is_object() && param.contains("x") && param.contains("y") && param.contains("z") && param.size() == 3)
+				else if (param.is_array() && param.size() == 3)
 				{
 					vector3 val = param.get<vector3>();
 					material_data << val;
 				}
-				else if (param.is_object() && param.contains("x") && param.contains("y") && param.size() == 2)
+				else if (param.is_array() && param.size() == 2)
 				{
 					vector2 val = param.get<vector2>();
 					material_data << val;
@@ -253,6 +253,12 @@ namespace SFG
 		serialization::save_to_file(data_cache_path.c_str(), out_stream);
 
 		out_stream.destroy();
+	}
+	void material_raw::get_sub_resources(vector<string>& out_res) const
+	{
+		out_res.push_back(shader_path);
+		for (const string& txt : textures_path)
+			out_res.push_back(txt);
 	}
 #endif
 }

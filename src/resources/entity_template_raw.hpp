@@ -26,45 +26,62 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include "common/size_definitions.hpp"
-#include "data/vector.hpp"
 #include "common/string_id.hpp"
+#include "data/vector.hpp"
 #include "data/string.hpp"
-#include "math/aabb.hpp"
-#include "primitive_raw.hpp"
+#include "math/vector3.hpp"
+#include "math/quat.hpp"
+#include "data/ostream.hpp"
+#include "world/world_constants.hpp"
 
 namespace SFG
 {
 	class ostream;
 	class istream;
+	class world;
 
-	struct mesh_raw
+	struct entity_template_entity_raw
 	{
-		string						  name		 = "";
-		string_id					  sid		 = 0;
-		uint16						  node_index = 0;
-		int16						  skin_index = -1;
-		aabb						  local_aabb = {};
-		vector<primitive_static_raw>  primitives_static;
-		vector<primitive_skinned_raw> primitives_skinned;
-		vector<int16>				  materials;
+		string	name		 = "";
+		quat	rotation	 = quat::identity;
+		vector3 position	 = vector3::zero;
+		vector3 scale		 = vector3::one;
+		int32	parent		 = -1;
+		int32	first_child	 = -1;
+		int32	next_sibling = -1;
+		uint8	visible		 = 0;
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);
-
-		void save_to_cache(const char* cache_folder_path, const char* resource_directory_path, const char* extension) const
-		{
-		}
-		bool load_from_file(const char* relative_file, const char* base_path)
-		{
-			return false;
-		};
-
-		bool load_from_cache(const char* cache_folder_path, const char* relative_path, const char* extension)
-		{
-			return false;
-		}
-		void get_dependencies(vector<string>& out_deps) const {};
-		void get_sub_resources(vector<string>& out_res) const {};
 	};
+
+#ifdef SFG_TOOLMODE
+	void to_json(nlohmann::json& j, const entity_template_entity_raw& r);
+	void from_json(const nlohmann::json& j, entity_template_entity_raw& r);
+#endif
+
+	struct entity_template_raw
+	{
+		string							   name = "";
+		vector<entity_template_entity_raw> entities;
+		vector<string>					   resources;
+		ostream							   component_buffer;
+
+		void serialize(ostream& stream) const;
+		void deserialize(istream& stream);
+		void destroy();
+
+#ifdef SFG_TOOLMODE
+		static void save_to_file(const char* file, world& w, const vector<world_handle>& handles);
+		static void save_to_json(nlohmann::json& out, world& w, const vector<world_handle>& handles);
+		static void load_from_json(const nlohmann::json& in, entity_template_raw& r);
+
+		bool load_from_file(const char* relative_file, const char* base_path);
+		bool load_from_cache(const char* cache_folder_path, const char* relative_path, const char* extension);
+		void save_to_cache(const char* cache_folder_path, const char* resource_directory_path, const char* extension) const;
+		void get_dependencies(vector<string>& out_deps) const {};
+		void get_sub_resources(vector<string>& out_res) const;
+#endif
+	};
+
 }

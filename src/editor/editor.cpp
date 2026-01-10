@@ -46,9 +46,10 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 // resources
 #include "resources/resource_manager.hpp"
 #include "resources/model.hpp"
+#include "resources/entity_template.hpp"
+#include "resources/entity_template_raw.hpp"
 
 // components
-#include "world/components/comp_model_instance.hpp"
 
 // gui
 #include "gui/vekt.hpp"
@@ -119,7 +120,7 @@ namespace SFG
 			.index_buffer_sz			 = IDX_SZ,
 			.text_cache_vertex_buffer_sz = 1024 * 1024 * 2,
 			.text_cache_index_buffer_sz	 = 1024 * 1024 * 4,
-			.buffer_count				 = 24,
+			.buffer_count				 = 64,
 		});
 
 		// font
@@ -341,6 +342,27 @@ namespace SFG
 			return;
 		}
 
+		if (ext.compare("stkent") == 0)
+		{
+			const string_id sid	   = TO_SID(relative);
+			resource_handle handle = rm.get_resource_handle_by_hash_if_exists<entity_template>(sid);
+
+			if (handle.is_null())
+			{
+				rm.load_resources({relative}, false, wd.c_str());
+				handle = rm.get_resource_handle_by_hash<entity_template>(sid);
+			}
+
+			if (handle.is_null())
+			{
+				SFG_ERR("something went wrong loading resource: {0}", relative.c_str());
+				return;
+			}
+
+			em.instantiate_template(handle);
+			return;
+		}
+
 		if (ext.compare("stkmodel") == 0)
 		{
 			const string_id sid = TO_SID(relative);
@@ -359,12 +381,8 @@ namespace SFG
 				return;
 			}
 
-			const string		 name	= file_system::get_filename_from_path(relative);
-			const world_handle	 entity = em.create_entity(name.c_str());
-			const world_handle	 inst	= cm.add_component<comp_model_instance>(entity);
-			comp_model_instance& mi		= cm.get_component<comp_model_instance>(inst);
-			mi.instantiate_model_to_world(w, handle);
-			_gui_controller.get_entities()->set_selected(entity);
+			const string name = file_system::get_filename_from_path(relative);
+			_gui_controller.get_entities()->set_selected(em.instantiate_model(handle));
 
 			return;
 		}

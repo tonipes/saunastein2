@@ -147,27 +147,6 @@ namespace SFG
 		void deserialize(istream& stream);
 	};
 
-	struct render_event_model
-	{
-#ifndef SFG_STRIP_DEBUG_NAMES
-		string name = "";
-#endif
-
-		vector<resource_id> meshes;
-		vector<resource_id> materials;
-
-		void serialize(ostream& stream) const;
-		void deserialize(istream& stream);
-	};
-
-	struct render_event_model_update_materials
-	{
-		vector<resource_id> materials;
-
-		void serialize(ostream& stream) const;
-		void deserialize(istream& stream);
-	};
-
 	struct render_event_mesh
 	{
 #ifndef SFG_STRIP_DEBUG_NAMES

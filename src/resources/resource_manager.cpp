@@ -50,7 +50,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "resources/material.hpp"
 #include "gfx/event_stream/render_events_gfx.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"
-#include "world/components/comp_model_instance.hpp"
 #include "world/components/comp_particle_emitter.hpp"
 #include "world/world.hpp"
 #include "platform/time.hpp"
@@ -387,8 +386,7 @@ namespace SFG
 					continue;
 
 				// store by hash-path
-				get_storage(type).cache_ptr->_paths_by_hashes[hash] = p;
-
+				store_relative_path(type, handle, p);
 				delete_loader(type, loader);
 				resolved_loaders[i] = nullptr;
 
@@ -421,6 +419,7 @@ namespace SFG
 	void resource_manager::on_watched_resource_modified(const char* path, uint64 last_modified, uint16 id, void* user_data)
 	{
 		resource_manager* rm = static_cast<resource_manager*>(user_data);
+		entity_manager&	  em = rm->_world.get_entity_manager();
 
 		SFG_ASSERT(id < rm->_watched_resources.size());
 		resource_watch& w = rm->_watched_resources[id];
@@ -507,15 +506,7 @@ namespace SFG
 				}
 			}
 
-			component_manager& cm			   = rm->_world.get_comp_manager();
-			auto&			   model_instances = cm.underlying_pool<comp_cache<comp_model_instance, MAX_WORLD_COMP_MODEL_INSTANCES>, comp_model_instance>();
-			for (comp_model_instance& mi : model_instances)
-			{
-				if (mi.get_model() != prev_handle)
-					continue;
-				mi.instantiate_model_to_world(rm->_world, w.base_handle);
-			}
-
+			em.reload_instantiated_model(prev_handle, new_handle);
 		}
 		else if (w.type_id == type_id<particle_properties>::value)
 		{
@@ -649,6 +640,12 @@ namespace SFG
 	{
 		const cache_storage& stg = get_storage(type);
 		return stg.cache_ptr->is_valid(handle);
+	}
+
+	void resource_manager::store_relative_path(string_id type, resource_handle handle, const string& p)
+	{
+		const string_id hash								= get_resource_hash(type, handle);
+		get_storage(type).cache_ptr->_paths_by_hashes[hash] = p;
 	}
 
 	const resource_manager::cache_storage& resource_manager::get_storage(string_id type) const

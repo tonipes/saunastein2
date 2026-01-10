@@ -1,0 +1,486 @@
+{
+    "components": [
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 1,
+            "material": 1,
+            "material0": "assets/ground/ground.stkmodel/GroundPlane",
+            "mesh": "assets/ground/ground.stkmodel/Plane.001",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 2,
+            "material": 1,
+            "material0": "assets/ground/ground.stkmodel/Cube",
+            "mesh": "assets/ground/ground.stkmodel/Cube.002",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 3,
+            "material": 1,
+            "material0": "assets/ground/ground.stkmodel/Monkey",
+            "mesh": "assets/ground/ground.stkmodel/Suzanne.001",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "cast_shadows": 0,
+            "color": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "comp_type": 11258474854588496451,
+            "entity": 4,
+            "intensity": 5.0,
+            "max_cascades": 1
+        },
+        {
+            "cast_shadows": 248,
+            "color": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "comp_type": 444826457028991798,
+            "entity": 5,
+            "intensity": 455.0,
+            "near_plane": 0.10000000149011612,
+            "range": 211.0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 6,
+            "material": 1,
+            "material0": "assets/ground/ground.stkmodel/Metal",
+            "mesh": "assets/ground/ground.stkmodel/Cone",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 7,
+            "material": 1,
+            "material0": "assets/ground/ground.stkmodel/Wall2",
+            "mesh": "assets/ground/ground.stkmodel/Cube.001",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 8,
+            "material": 1,
+            "material0": "assets/ground/ground.stkmodel/Wall",
+            "mesh": "assets/ground/ground.stkmodel/Cube.003",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 9,
+            "material": 1,
+            "material0": "assets/ground/ground.stkmodel/Wood2",
+            "mesh": "assets/ground/ground.stkmodel/Cube.004",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 10,
+            "material": 1,
+            "material0": "assets/ground/ground.stkmodel/Wood",
+            "mesh": "assets/ground/ground.stkmodel/Cube.005",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 11,
+            "material": 1,
+            "material0": "assets/ground/ground.stkmodel/Wood",
+            "mesh": "assets/ground/ground.stkmodel/Cube.006",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 12,
+            "material": 1,
+            "material0": "assets/ground/ground.stkmodel/Wood",
+            "mesh": "assets/ground/ground.stkmodel/Cube.007",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 13,
+            "material": 1,
+            "material0": "assets/ground/ground.stkmodel/Metal",
+            "mesh": "assets/ground/ground.stkmodel/Cone.001",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 14,
+            "material": 1,
+            "material0": "assets/ground/ground.stkmodel/Metal",
+            "mesh": "assets/ground/ground.stkmodel/Cone.002",
+            "skin": "",
+            "skin_entities": 0
+        }
+    ],
+    "entities": [
+        {
+            "first_child": 1,
+            "name": "assets/ground/ground.stkmodel",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Plane",
+            "next_sibling": 2,
+            "parent": 0,
+            "pos": [
+                -0.5,
+                -5.899996757507324,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                256.0,
+                256.0,
+                256.0
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 3,
+            "name": "Cube",
+            "next_sibling": 4,
+            "parent": 0,
+            "pos": [
+                0.0,
+                1.1595330238342285,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Suzanne",
+            "next_sibling": -1,
+            "parent": 2,
+            "pos": [
+                0.0,
+                -0.0628957748413086,
+                0.4270210266113281
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                0.4915589392185211,
+                0.4915589392185211,
+                0.4915589392185211
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Sun",
+            "next_sibling": 5,
+            "parent": 0,
+            "pos": [
+                -0.3984586000442505,
+                4.215418338775635,
+                -2.693404197692871
+            ],
+            "rot": [
+                0.9358254075050354,
+                0.018605997785925865,
+                -0.049065060913562775,
+                -0.3485359847545624
+            ],
+            "scale": [
+                0.6661596894264221,
+                0.6661596298217773,
+                0.6661596298217773
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Cube.001",
+            "next_sibling": 6,
+            "parent": 0,
+            "pos": [
+                4.3003010749816895,
+                2.563901424407959,
+                1.4564416408538818
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                0.5,
+                2.0,
+                0.5
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Cone",
+            "next_sibling": 7,
+            "parent": 0,
+            "pos": [
+                -6.656060218811035,
+                4.193444728851318,
+                -2.516151189804077
+            ],
+            "rot": [
+                -0.10585066676139832,
+                0.0551021434366703,
+                0.8806726336479187,
+                0.458448588848114
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Cube.002",
+            "next_sibling": 8,
+            "parent": 0,
+            "pos": [
+                0.6568679809570313,
+                1.3768982887268066,
+                9.3059663772583
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                4.0,
+                1.399999976158142,
+                0.5
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Cube.003",
+            "next_sibling": 9,
+            "parent": 0,
+            "pos": [
+                -0.5237793922424316,
+                1.6294772624969482,
+                -7.494353294372559
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                1.0,
+                -7.549790126404332e-08
+            ],
+            "scale": [
+                2.1645889282226563,
+                1.661454200744629,
+                0.2724432945251465
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 10,
+            "name": "Cube.004",
+            "next_sibling": 13,
+            "parent": 0,
+            "pos": [
+                -7.111746311187744,
+                2.773085832595825,
+                1.4564416408538818
+            ],
+            "rot": [
+                0.027567798271775246,
+                -0.1876961886882782,
+                -0.1426766812801361,
+                0.9714183211326599
+            ],
+            "scale": [
+                0.11602384597063065,
+                2.784572124481201,
+                0.11602382361888885
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Cube.005",
+            "next_sibling": 11,
+            "parent": 9,
+            "pos": [
+                8.736100196838379,
+                0.7536364197731018,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                -0.7071065902709961,
+                0.7071069478988647
+            ],
+            "scale": [
+                0.060319893062114716,
+                7.908500671386719,
+                0.6261193752288818
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Cube.006",
+            "next_sibling": 12,
+            "parent": 9,
+            "pos": [
+                8.736101150512695,
+                0.5699867606163025,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                -0.7071065902709961,
+                0.7071069478988647
+            ],
+            "scale": [
+                0.060319893062114716,
+                7.908500671386719,
+                0.6261193752288818
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Cube.007",
+            "next_sibling": -1,
+            "parent": 9,
+            "pos": [
+                8.736101150512695,
+                0.3891335725784302,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                -0.7071065902709961,
+                0.7071069478988647
+            ],
+            "scale": [
+                0.060319893062114716,
+                7.908500671386719,
+                0.6261193752288818
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "ConeByWall",
+            "next_sibling": 14,
+            "parent": 0,
+            "pos": [
+                -0.871484100818634,
+                1.8211156129837036,
+                7.239675521850586
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "ConeByWall.001",
+            "next_sibling": -1,
+            "parent": 0,
+            "pos": [
+                -0.871484100818634,
+                1.8211156129837036,
+                -6.050562858581543
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                0.46197593212127686,
+                0.46197593212127686,
+                0.46197593212127686
+            ],
+            "visible": 1
+        }
+    ]
+}

@@ -51,10 +51,11 @@ namespace SFG
 		chunk_handle32 skin_entities		= {};
 		uint32		   _assigned_bone_index = 0;
 		world_id	   entity				= 0;
-		resource_id	   model				= NULL_RESOURCE_ID;
+		chunk_handle32 materials			= {};
 		resource_id	   mesh					= NULL_RESOURCE_ID;
 		resource_id	   skin					= NULL_RESOURCE_ID;
 		uint16		   skin_entities_count	= 0;
+		uint16		   materials_count		= 0;
 	};
 
 	struct render_proxy_camera

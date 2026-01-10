@@ -56,6 +56,11 @@ namespace SFG
 
 			c->create_body(params.w);
 		});
+
+		m.add_function<void, void*, world&>("on_reflect_load"_hs, [](void* obj, world& w) {
+			comp_physics* c = static_cast<comp_physics*>(obj);
+			
+		});
 	}
 
 	void comp_physics::on_add(world& w)

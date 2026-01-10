@@ -38,19 +38,24 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 using json = nlohmann::json;
 #endif
 
-	namespace SFG
+namespace SFG
 {
-		void comp_ambient::reflect()
-		{
-			meta& m = reflection::get().register_meta(type_id<comp_ambient>::value, 0, "component");
-			m.set_title("ambient");
-			m.add_field<&comp_ambient::_base_color, comp_ambient>("color", reflected_field_type::rf_color, "");
+	void comp_ambient::reflect()
+	{
+		meta& m = reflection::get().register_meta(type_id<comp_ambient>::value, 0, "component");
+		m.set_title("ambient");
+		m.add_field<&comp_ambient::_base_color, comp_ambient>("color", reflected_field_type::rf_color, "");
 
-			m.add_function<void, const reflected_field_changed_params&>("on_reflected_changed"_hs, [](const reflected_field_changed_params& params) {
-				comp_ambient* c = static_cast<comp_ambient*>(params.object_ptr);
-				c->set_values(params.w, c->_base_color);
-			});
-		}
+		m.add_function<void, const reflected_field_changed_params&>("on_reflected_changed"_hs, [](const reflected_field_changed_params& params) {
+			comp_ambient* c = static_cast<comp_ambient*>(params.object_ptr);
+			c->set_values(params.w, c->_base_color);
+		});
+
+		m.add_function<void, void*, world&>("on_reflect_load"_hs, [](void* obj, world& w) {
+			comp_ambient* c = static_cast<comp_ambient*>(obj);
+			c->set_values(w, c->_base_color);
+		});
+	}
 
 	void comp_ambient::on_add(world& w)
 	{

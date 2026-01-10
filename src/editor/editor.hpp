@@ -50,7 +50,6 @@ namespace SFG
 	struct window_event;
 	struct vector2ui16;
 	class app;
-	class comp_model_instance;
 	class texture_queue;
 	class proxy_manager;
 

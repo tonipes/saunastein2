@@ -44,11 +44,20 @@ namespace SFG
 
 	struct render_event_mesh_instance
 	{
-		vector<world_id> skin_node_entities;
-		world_id		 entity_index = 0;
-		resource_id		 model		  = 0;
-		resource_id		 mesh		  = 0;
-		resource_id		 skin		  = 0;
+		vector<world_id>	skin_node_entities;
+		vector<resource_id> materials;
+		world_id			entity_index = 0;
+		resource_id			mesh		 = 0;
+		resource_id			skin		 = 0;
+
+		void serialize(ostream& stream) const;
+		void deserialize(istream& stream);
+	};
+
+	struct render_event_mesh_instance_material
+	{
+		resource_id material = NULL_RESOURCE_ID;
+		uint32		index	 = 0;
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);

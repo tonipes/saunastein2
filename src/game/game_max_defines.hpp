@@ -55,6 +55,7 @@ namespace SFG
 #define MAX_MATERIAL_TEXTURES		   8
 #define MAX_WORLD_PARTICLE_PROPERTIES  512
 #define MAX_WORLD_ANIM_STATE_MACHINES  512
+#define MAX_WORLD_ENTITY_TEMPLATES     512
 
 	// -----------------------------------------------------------------------------
 	// traits
@@ -66,7 +67,6 @@ namespace SFG
 #define MAX_WORLD_COMP_POINT_LIGHTS		 128
 #define MAX_WORLD_COMP_SPOT_LIGHTS		 128
 #define MAX_WORLD_COMP_MESH_INSTANCES	 1024 * 10
-#define MAX_WORLD_COMP_MODEL_INSTANCES	 1024 * 10
 #define MAX_WORLD_COMP_AMBIENT			 1
 #define MAX_WORLD_COMP_PHYSICS			 1000
 #define MAX_WORLD_COMP_AUDIO			 256

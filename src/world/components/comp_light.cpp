@@ -50,7 +50,7 @@ namespace SFG
 		m.add_field<&comp_dir_light::_intensity, comp_dir_light>("intensity", reflected_field_type::rf_float, "");
 		m.add_field<&comp_dir_light::_cast_shadows, comp_dir_light>("cast_shadows", reflected_field_type::rf_bool, "");
 		m.add_field<&comp_dir_light::_shadow_resolution, comp_dir_light>("shadow_res", reflected_field_type::rf_vector2ui16, "");
-		m.add_field<&comp_dir_light::_max_cascades, comp_dir_light>("max_cascades", reflected_field_type::rf_uint8_clamped, "", 1.0f, static_cast<float>(MAX_SHADOW_CASCADES));
+		m.add_field<&comp_dir_light::_max_cascades, comp_dir_light>("max_cascades", reflected_field_type::rf_uint8, "", 1.0f, static_cast<float>(MAX_SHADOW_CASCADES));
 
 		m.add_function<void, const reflected_field_changed_params&>("on_reflected_changed"_hs, [](const reflected_field_changed_params& params) {
 			comp_dir_light* c = static_cast<comp_dir_light*>(params.object_ptr);
@@ -61,6 +61,12 @@ namespace SFG
 			else
 				c->set_shadow_values(params.w, c->_cast_shadows, c->_max_cascades, c->_shadow_resolution);
 		});
+
+		m.add_function<void, void*, world&>("on_reflect_load"_hs, [](void* obj, world& w) {
+			comp_dir_light* c = static_cast<comp_dir_light*>(obj);
+			c->set_values(w, c->_base_color, c->_intensity);
+			c->set_shadow_values(w, c->_cast_shadows, c->_max_cascades, c->_shadow_resolution);
+		});
 	}
 
 	void comp_spot_light::reflect()
@@ -70,10 +76,10 @@ namespace SFG
 		m.add_field<&comp_spot_light::_base_color, comp_spot_light>("color", reflected_field_type::rf_color, "");
 		m.add_field<&comp_spot_light::_range, comp_spot_light>("range", reflected_field_type::rf_float, "");
 		m.add_field<&comp_spot_light::_intensity, comp_spot_light>("intensity", reflected_field_type::rf_float, "");
-		m.add_field<&comp_spot_light::_inner_cone, comp_spot_light>("inner_cone", reflected_field_type::rf_float_clamped, "", 0.0f, 90.0f);
-		m.add_field<&comp_spot_light::_outer_cone, comp_spot_light>("outer_cone", reflected_field_type::rf_float_clamped, "", 0.0f, 180.0f);
+		m.add_field<&comp_spot_light::_inner_cone, comp_spot_light>("inner_cone", reflected_field_type::rf_float, "", 0.0f, 90.0f);
+		m.add_field<&comp_spot_light::_outer_cone, comp_spot_light>("outer_cone", reflected_field_type::rf_float, "", 0.0f, 180.0f);
 		m.add_field<&comp_spot_light::_cast_shadows, comp_spot_light>("cast_shadows", reflected_field_type::rf_bool, "");
-		m.add_field<&comp_spot_light::_near_plane, comp_spot_light>("near_plane", reflected_field_type::rf_float_clamped, "", 0.01f, 25.0f);
+		m.add_field<&comp_spot_light::_near_plane, comp_spot_light>("near_plane", reflected_field_type::rf_float, "", 0.01f, 25.0f);
 		m.add_field<&comp_spot_light::_shadow_resolution, comp_spot_light>("shadow_res", reflected_field_type::rf_vector2ui16, "");
 
 		m.add_function<void, const reflected_field_changed_params&>("on_reflected_changed"_hs, [](const reflected_field_changed_params& params) {
@@ -83,6 +89,12 @@ namespace SFG
 				c->set_values(params.w, c->_base_color, c->_range, c->_intensity, c->_inner_cone, c->_outer_cone);
 			else
 				c->set_shadow_values(params.w, c->_cast_shadows, c->_near_plane, c->_shadow_resolution);
+		});
+
+		m.add_function<void, void*, world&>("on_reflect_load"_hs, [](void* obj, world& w) {
+			comp_spot_light* c = static_cast<comp_spot_light*>(obj);
+			c->set_values(w, c->_base_color, c->_range, c->_intensity, c->_inner_cone, c->_outer_cone);
+			c->set_shadow_values(w, c->_cast_shadows, c->_near_plane, c->_shadow_resolution);
 		});
 	}
 
@@ -94,7 +106,7 @@ namespace SFG
 		m.add_field<&comp_point_light::_range, comp_point_light>("range", reflected_field_type::rf_float, "");
 		m.add_field<&comp_point_light::_intensity, comp_point_light>("intensity", reflected_field_type::rf_float, "");
 		m.add_field<&comp_point_light::_cast_shadows, comp_point_light>("cast_shadows", reflected_field_type::rf_bool, "");
-		m.add_field<&comp_point_light::_near_plane, comp_point_light>("near_plane", reflected_field_type::rf_float_clamped, "", 0.01f, 25.0f);
+		m.add_field<&comp_point_light::_near_plane, comp_point_light>("near_plane", reflected_field_type::rf_float, "", 0.01f, 25.0f);
 		m.add_field<&comp_point_light::_shadow_resolution, comp_point_light>("shadow_res", reflected_field_type::rf_vector2ui16, "");
 
 		m.add_function<void, const reflected_field_changed_params&>("on_reflected_changed"_hs, [](const reflected_field_changed_params& params) {
@@ -104,6 +116,12 @@ namespace SFG
 				c->set_values(params.w, c->_base_color, c->_range, c->_intensity);
 			else
 				c->set_shadow_values(params.w, c->_cast_shadows, c->_near_plane, c->_shadow_resolution);
+		});
+
+		m.add_function<void, void*, world&>("on_reflect_load"_hs, [](void* obj, world& w) {
+			comp_point_light* c = static_cast<comp_point_light*>(obj);
+			c->set_values(w, c->_base_color, c->_range, c->_intensity);
+			c->set_shadow_values(w, c->_cast_shadows, c->_near_plane, c->_shadow_resolution);
 		});
 	}
 

@@ -178,6 +178,94 @@ namespace SFG
 		return result;
 	}
 
+	string process::save_file(const char* title, const char* extension)
+	{
+		string result;
+
+		IFileDialog* dialog = nullptr;
+		HRESULT		 hr		= CoCreateInstance(CLSID_FileSaveDialog, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&dialog));
+		if (FAILED(hr) || dialog == nullptr)
+			return result;
+
+		// Title (UTF-8 -> UTF-16)
+		if (title && title[0] != '\0')
+		{
+			int wlen = MultiByteToWideChar(CP_UTF8, 0, title, -1, nullptr, 0);
+			if (wlen > 0)
+			{
+				std::wstring titleW;
+				titleW.resize((size_t)wlen - 1);
+				MultiByteToWideChar(CP_UTF8, 0, title, -1, titleW.data(), wlen);
+				dialog->SetTitle(titleW.c_str());
+			}
+		}
+
+		// Options
+		DWORD options = 0;
+		if (SUCCEEDED(dialog->GetOptions(&options)))
+		{
+			// FOS_FORCEFILESYSTEM ensures SIGDN_FILESYSPATH returns a real filesystem path.
+			// FOS_PATHMUSTEXIST prevents choosing a non-existent folder.
+			dialog->SetOptions(options | FOS_FORCEFILESYSTEM | FOS_PATHMUSTEXIST | FOS_OVERWRITEPROMPT);
+		}
+
+		// Extension filter (expects e.g. "png" or ".png")
+		COMDLG_FILTERSPEC filter[1] = {};
+		std::wstring	  extW;
+		std::wstring	  patternW;
+		std::wstring	  labelW;
+
+		if (extension && extension[0] != '\0')
+		{
+			// normalize to "png" (no dot)
+			const char* ext = extension;
+			if (ext[0] == '.')
+				++ext;
+
+			// UTF-8 -> UTF-16
+			int extLenW = MultiByteToWideChar(CP_UTF8, 0, ext, -1, nullptr, 0);
+			if (extLenW > 0)
+			{
+				extW.resize((size_t)extLenW - 1);
+				MultiByteToWideChar(CP_UTF8, 0, ext, -1, extW.data(), extLenW);
+
+				labelW	 = L"*." + extW;
+				patternW = L"*." + extW;
+
+				filter[0].pszName = labelW.c_str();	  // shown in UI
+				filter[0].pszSpec = patternW.c_str(); // actual filter
+				dialog->SetFileTypes(1, filter);
+				dialog->SetFileTypeIndex(1);
+				dialog->SetDefaultExtension(extW.c_str());
+			}
+		}
+
+		hr = dialog->Show(nullptr);
+		if (SUCCEEDED(hr))
+		{
+			IShellItem* item = nullptr;
+			if (SUCCEEDED(dialog->GetResult(&item)) && item != nullptr)
+			{
+				PWSTR pathW = nullptr;
+				if (SUCCEEDED(item->GetDisplayName(SIGDN_FILESYSPATH, &pathW)) && pathW != nullptr)
+				{
+					// UTF-16 -> UTF-8
+					int needed = WideCharToMultiByte(CP_UTF8, 0, pathW, -1, nullptr, 0, nullptr, nullptr);
+					if (needed > 0)
+					{
+						result.resize((size_t)needed - 1);
+						WideCharToMultiByte(CP_UTF8, 0, pathW, -1, result.data(), needed, nullptr, nullptr);
+					}
+					CoTaskMemFree(pathW);
+				}
+				item->Release();
+			}
+		}
+
+		dialog->Release();
+		return result;
+	}
+
 	string process::get_clipboard()
 	{
 		if (!OpenClipboard(nullptr))

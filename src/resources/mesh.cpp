@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -64,6 +64,18 @@ namespace SFG
 		_skin_index = raw.skin_index;
 		_sid		= raw.sid;
 
+		const size_t m_size = raw.materials.size();
+		_material_count		= static_cast<uint16>(m_size);
+		if (m_size != 0)
+		{
+			_material_indices = alloc.allocate<int16>(raw.materials.size());
+			int16* idx		  = alloc.get<int16>(_material_indices);
+			for (uint32 i = 0; i < m_size; i++)
+			{
+				idx[i] = raw.materials[i];
+			}
+		}
+
 		render_event_mesh ev  = {};
 		ev.primitives_static  = raw.primitives_static;
 		ev.primitives_skinned = raw.primitives_skinned;
@@ -79,7 +91,6 @@ namespace SFG
 				.event_type = render_event_type::create_mesh,
 			},
 			ev);
-
 	}
 
 	void mesh::destroy(world& w, resource_handle handle)
@@ -98,6 +109,10 @@ namespace SFG
 			alloc.free(_name);
 		_name = {};
 #endif
+
+		if (_material_indices.size != 0)
+			alloc.free(_material_indices);
+		_material_indices = {};
 
 		stream.add_event({
 			.index		= static_cast<uint32>(handle.index),

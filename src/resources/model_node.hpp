@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -42,12 +42,10 @@ namespace SFG
 		void create_from_loader(const model_node_raw& raw, world& w, resource_handle handle);
 		void destroy(world& w, resource_handle handle);
 
-#ifndef SFG_STRIP_DEBUG_NAMES
 		inline chunk_handle32 get_name() const
 		{
 			return _name;
 		}
-#endif
 
 		inline int16 get_parent_index() const
 		{
@@ -75,13 +73,11 @@ namespace SFG
 		}
 
 	private:
-#ifndef SFG_STRIP_DEBUG_NAMES
 		chunk_handle32 _name;
-#endif
-		int16	  _parent_index = -1;
-		int16	  _light_index	= -1;
-		int16	  _mesh_index	= -1;
-		int16	  _skin_index	= -1;
-		matrix4x3 _local_matrix = {};
+		int16		   _parent_index = -1;
+		int16		   _light_index	 = -1;
+		int16		   _mesh_index	 = -1;
+		int16		   _skin_index	 = -1;
+		matrix4x3	   _local_matrix = {};
 	};
 }

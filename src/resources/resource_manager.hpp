@@ -376,6 +376,7 @@ namespace SFG
 		resource_handle add_resource(string_id type, string_id hash);
 		void			remove_resource(string_id type, resource_handle handle);
 		bool			is_valid(string_id type, resource_handle handle) const;
+		void			store_relative_path(string_id type, resource_handle handle, const string& p);
 
 		template <typename T> inline resource_handle add_resource(string_id hash)
 		{

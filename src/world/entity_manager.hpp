@@ -27,6 +27,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 #include "common_world.hpp"
 #include "common_entity.hpp"
+#include "data/vector.hpp"
 #include "memory/static_array.hpp"
 #include "memory/pool_allocator_gen.hpp"
 #include "memory/chunk_allocator.hpp"
@@ -35,6 +36,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "math/quat.hpp"
 #include "game/game_max_defines.hpp"
 #include "common/type_id.hpp"
+#include "resources/common_resources.hpp"
 
 namespace SFG
 {
@@ -92,6 +94,23 @@ namespace SFG
 		world_handle				get_valid_handle_by_index(world_id id);
 		world_handle				get_entity_component(string_id comp_type, world_handle entity);
 		const entity_comp_register& get_component_register(world_handle entity) const;
+
+		// -----------------------------------------------------------------------------
+		// util
+		// -----------------------------------------------------------------------------
+
+		world_handle instantiate_model(resource_handle model_handle);
+		world_handle instantiate_template(resource_handle template_handle);
+
+#ifdef SFG_TOOLMODE
+		void reload_instantiated_model(resource_handle old, resource_handle new_h);
+#endif
+
+		// -----------------------------------------------------------------------------
+		// templates
+		// -----------------------------------------------------------------------------
+
+		// world_handle spawn_template(resource_handle templ, const vector3& pos, const quat& rot, const vector3& scale);
 
 		inline bool is_valid(world_handle entity) const
 		{
@@ -218,19 +237,27 @@ namespace SFG
 		void reset_entity_data(world_handle handle);
 
 	private:
+#ifdef SFG_TOOLMODE
+		struct instantiated_model
+		{
+			world_handle	root = {};
+			resource_handle res	 = {};
+		};
+#endif
 		world& _world;
 
-		pool_allocator_gen<world_id, world_id, MAX_ENTITIES>* _entities			 = {};
-		static_array<entity_meta, MAX_ENTITIES>*			  _metas			 = {};
-		static_array<entity_family, MAX_ENTITIES>*			  _families			 = {};
-		static_array<aabb, MAX_ENTITIES>*					  _aabbs			 = {};
-		static_array<entity_comp_register, MAX_ENTITIES>*	  _comp_registers	 = {};
-		static_array<entity_transform, MAX_ENTITIES>*		  _local_transforms	 = {};
-		static_array<bitmask<uint16>, MAX_ENTITIES>*		  _flags			 = {};
-		static_array<matrix4x3, MAX_ENTITIES>*				  _abs_matrices		 = {};
-		static_array<matrix4x3, MAX_ENTITIES>*				  _prev_abs_matrices = {};
-		static_array<quat, MAX_ENTITIES>*					  _abs_rots			 = {};
-		static_array<quat, MAX_ENTITIES>*					  _prev_abs_rots	 = {};
+		pool_allocator_gen<world_id, world_id, MAX_ENTITIES>* _entities			   = {};
+		static_array<entity_meta, MAX_ENTITIES>*			  _metas			   = {};
+		static_array<entity_family, MAX_ENTITIES>*			  _families			   = {};
+		static_array<aabb, MAX_ENTITIES>*					  _aabbs			   = {};
+		static_array<entity_comp_register, MAX_ENTITIES>*	  _comp_registers	   = {};
+		static_array<entity_transform, MAX_ENTITIES>*		  _local_transforms	   = {};
+		static_array<bitmask<uint16>, MAX_ENTITIES>*		  _flags			   = {};
+		static_array<matrix4x3, MAX_ENTITIES>*				  _abs_matrices		   = {};
+		static_array<matrix4x3, MAX_ENTITIES>*				  _prev_abs_matrices   = {};
+		static_array<quat, MAX_ENTITIES>*					  _abs_rots			   = {};
+		static_array<quat, MAX_ENTITIES>*					  _prev_abs_rots	   = {};
+		vector<instantiated_model>							  _instantiated_models = {};
 
 		static_vector<world_handle, MAX_ENTITIES>* _proxy_entities = {};
 

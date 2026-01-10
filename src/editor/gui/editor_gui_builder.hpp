@@ -157,10 +157,11 @@ namespace SFG
 
 		struct reflected_property
 		{
-			void*		obj	   = nullptr;
-			string_id	type   = 0;
-			field_base* field  = nullptr;
-			vekt::id	widget = 0;
+			void*		 obj		= nullptr;
+			string_id	 type		= 0;
+			field_base*	 field		= nullptr;
+			vekt::id	 widget		= 0;
+			unsigned int list_index = 0;
 		};
 
 		gui_builder_callbacks callbacks = {};
@@ -179,7 +180,7 @@ namespace SFG
 		void deallocate_children(vekt::id id);
 		void deallocate(vekt::id id);
 
-		vekt::id begin_area(bool fill = true);
+		vekt::id begin_area(bool fill = true, bool sub_area = false);
 		void	 end_area();
 
 		// -----------------------------------------------------------------------------

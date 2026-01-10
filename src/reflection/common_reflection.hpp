@@ -33,8 +33,7 @@ namespace SFG
 	{
 		rf_float = 0,
 		rf_int,
-		rf_float_clamped,
-		rf_int_clamped,
+		rf_uint,
 		rf_vector2,
 		rf_vector3,
 		rf_vector4,
@@ -44,7 +43,6 @@ namespace SFG
 		rf_entity,
 		rf_bool,
 		rf_uint8,
-		rf_uint8_clamped,
 		rf_string,
 		rf_enum,
 	};
@@ -69,5 +67,6 @@ namespace SFG
 		void*	  object_ptr  = nullptr;
 		void*	  data_ptr	  = nullptr;
 		string_id field_title = 0;
+		uint32	  list_index  = 0;
 	};
 };

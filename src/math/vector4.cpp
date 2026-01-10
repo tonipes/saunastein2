@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -156,18 +156,17 @@ namespace SFG
 #ifdef SFG_TOOLMODE
 	void to_json(nlohmann::json& j, const vector4& v)
 	{
-		j["x"] = v.x;
-		j["y"] = v.y;
-		j["z"] = v.z;
-		j["w"] = v.w;
+		j = nlohmann::json::array({v.x, v.y, v.z, v.w});
 	}
 
 	void from_json(const nlohmann::json& j, vector4& v)
 	{
-		v.x = j.value<float>("x", 0.0f);
-		v.y = j.value<float>("y", 0.0f);
-		v.z = j.value<float>("z", 0.0f);
-		v.w = j.value<float>("w", 0.0f);
+		if (!j.is_array() || j.size() < 4)
+			throw std::runtime_error("vector4 json err");
+		v.x = j.at(0).get<float>();
+		v.y = j.at(1).get<float>();
+		v.z = j.at(2).get<float>();
+		v.w = j.at(3).get<float>();
 	}
 
 #endif

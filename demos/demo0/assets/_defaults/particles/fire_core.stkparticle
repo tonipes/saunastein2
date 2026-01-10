@@ -8,17 +8,17 @@
     "max_lifetime": 1
   },
   "pos": {
-    "min_start": { "x": -0.1, "y": 0.0, "z": -0.2 },
-    "max_start": { "x": 0.1, "y": 0.2, "z": 0.2 },
+    "min_start": [-0.1, 0.0, -0.2],
+    "max_start": [0.1, 0.2, 0.2],
     "cone_radius": 0.04
   },
   "velocity": {
-    "min_start": { "x": -0.4, "y": 0.8, "z": -0.05 },
-    "max_start": { "x": 0.4, "y": 0.8, "z": 0.05 },
-    "min_mid": { "x": -0.0, "y": 0.0, "z": -0.0 },
-    "max_mid": { "x": 0.0, "y": 0.0, "z": 0.0 },
-    "min_end": { "x": -0.0, "y": -0.0, "z": -0.0 },
-    "max_end": { "x": 0.0, "y": 0.0, "z": 0.0 },
+    "min_start": [-0.4, 0.8, -0.05],
+    "max_start": [0.4, 0.8, 0.05],
+    "min_mid": [-0.0, 0.0, -0.0],
+    "max_mid": [0.0, 0.0, 0.0],
+    "min_end": [-0.0, -0.0, -0.0],
+    "max_end": [0.0, 0.0, 0.0],
     "integrate_point": 0.0,
     "is_local": false
   },
@@ -39,10 +39,10 @@
     "integrate_point": 0.3
   },
   "color": {
-    "min_start": { "x": 0.8, "y": 0.3, "z": 0.2 },
-    "max_start": { "x": 1.0, "y": 0.4, "z": 0.2},
-    "mid_color": { "x": 0.8, "y": 0.6, "z": 0.2 },
-    "end_color": { "x": 0.0, "y": 0.0, "z": 0.0},
+    "min_start": [0.8, 0.3, 0.2],
+    "max_start": [1.0, 0.4, 0.2],
+    "mid_color": [0.8, 0.6, 0.2],
+    "end_color": [0.0, 0.0, 0.0],
     "integrate_point_color": 0.5,
     "min_start_opacity": 0.5,
     "max_start_opacity": 0.5,

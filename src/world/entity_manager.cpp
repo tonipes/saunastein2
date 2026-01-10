@@ -26,13 +26,35 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "entity_manager.hpp"
 #include "world/world.hpp"
+
+// data
+#include "data/ostream.hpp"
+#include "data/istream.hpp"
+
+// gfx
 #include "gfx/event_stream/render_event_common.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"
 #include "gfx/event_stream/render_events_entity.hpp"
+
+// components
+#include "world/components/comp_mesh_instance.hpp"
+#include "world/components/comp_light.hpp"
+
+// resources
+#include "resources/resource_manager.hpp"
+#include "resources/entity_template.hpp"
+#include "resources/model.hpp"
+#include "resources/light_raw.hpp"
+#include "resources/model_node.hpp"
+#include "resources/skin.hpp"
+#include "resources/common_skin.hpp"
+#include "resources/mesh.hpp"
+
+// misc
 #include "math/math.hpp"
-#include "data/ostream.hpp"
-#include "data/istream.hpp"
 #include "game/app_defines.hpp"
+#include "reflection/reflection.hpp"
+
 #include <tracy/Tracy.hpp>
 
 namespace SFG
@@ -51,6 +73,10 @@ namespace SFG
 		_abs_rots		   = new static_array<quat, MAX_ENTITIES>();
 		_prev_abs_rots	   = new static_array<quat, MAX_ENTITIES>();
 		_proxy_entities	   = new static_vector<world_handle, MAX_ENTITIES>();
+
+#ifdef SFG_TOOLMODE
+		_instantiated_models.reserve(512);
+#endif
 	}
 
 	entity_manager::~entity_manager()
@@ -717,7 +743,43 @@ namespace SFG
 
 		reg.comps.resize(0);
 	}
+	/*
+	world_handle entity_manager::spawn_template(resource_handle templ, const vector3& pos, const quat& rot, const vector3& scale)
+	{
+		resource_manager& rm = _world.get_resource_manager();
+		SFG_ASSERT(rm.is_valid<entity_template>(templ));
+		entity_template&		   t   = rm.get_resource<entity_template>(templ);
+		const entity_template_raw& raw = t.get_raw();
 
+		static_vector<world_handle, 1024> created = {};
+
+		component_manager& cm = _world.get_comp_manager();
+
+		uint32 i = 0;
+		for (const entity_template_entity_raw& r : raw.entities)
+		{
+			const world_handle h = create_entity(r.name.c_str());
+
+			// add components
+
+			for (const entity_template_component_raw& c : r.components)
+			{
+			}
+			// transformation
+			set_entity_position(h, r.position);
+			set_entity_rotation(h, r.rotation);
+			set_entity_scale(h, r.scale);
+
+			// set vis
+			set_entity_visible(h, r.visible);
+
+			created[i] = h;
+			i++;
+		}
+
+		return {};
+	}
+	*/
 	world_handle entity_manager::get_valid_handle_by_index(world_id id)
 	{
 		const world_id gen = _entities->get_generation(id);
@@ -745,6 +807,387 @@ namespace SFG
 		const entity_comp_register& reg = _comp_registers->get(entity.index);
 		return reg;
 	}
+
+	world_handle entity_manager::instantiate_model(resource_handle model_handle)
+	{
+		resource_manager&  rm = _world.get_resource_manager();
+		component_manager& cm = _world.get_comp_manager();
+
+		const model&	   mdl	   = rm.get_resource<model>(model_handle);
+		chunk_allocator32& cm_aux  = cm.get_aux();
+		chunk_allocator32& res_aux = rm.get_aux();
+
+		const chunk_handle32 meshes		  = mdl.get_created_meshes();
+		const chunk_handle32 nodes		  = mdl.get_created_nodes();
+		const uint16		 meshes_count = mdl.get_mesh_count();
+		const uint16		 nodes_count  = mdl.get_node_count();
+
+		if (nodes_count == 0 || meshes_count == 0)
+			return {};
+
+		char*		 mdl_name = res_aux.get<char>(mdl.get_name());
+		world_handle root	  = create_entity(mdl_name);
+
+		model_node*		 ptr_nodes		   = res_aux.get<model_node>(nodes);
+		resource_handle* ptr_meshes_handle = res_aux.get<resource_handle>(meshes);
+
+		// -----------------------------------------------------------------------------
+		// entity per node, store roots seperately.
+		// -----------------------------------------------------------------------------
+
+		vector<world_handle> created_node_entities;
+		vector<world_handle> root_entities;
+		for (uint16 i = 0; i < nodes_count; i++)
+		{
+			model_node&		   node = ptr_nodes[i];
+			const char*		   name = reinterpret_cast<const char*>(res_aux.get(node.get_name().head));
+			const world_handle e	= create_entity(name);
+			created_node_entities.push_back(e);
+
+			if (node.get_parent_index() == -1)
+				root_entities.push_back(e);
+
+			vector3 out_pos	  = vector3::zero;
+			quat	out_rot	  = quat::identity;
+			vector3 out_scale = vector3::zero;
+			node.get_local_matrix().decompose(out_pos, out_rot, out_scale);
+			set_entity_position(created_node_entities[i], out_pos);
+			set_entity_rotation(created_node_entities[i], out_rot);
+			set_entity_scale(created_node_entities[i], out_scale);
+		}
+
+		// -----------------------------------------------------------------------------
+		// make sure any bone entities are proxied.
+		// -----------------------------------------------------------------------------
+
+		const chunk_handle32   skins	   = mdl.get_created_skins();
+		const uint16		   skins_count = mdl.get_skin_count();
+		const resource_handle* skins_ptr   = skins_count == 0 ? nullptr : res_aux.get<resource_handle>(skins);
+		vector<world_handle>   skin_entities;
+		for (uint16 i = 0; i < skins_count; i++)
+		{
+			const skin&			 sk			  = rm.get_resource<skin>(skins_ptr[i]);
+			const chunk_handle32 joints		  = sk.get_joints();
+			const uint16		 joints_count = sk.get_joints_count();
+			const skin_joint*	 joints_ptr	  = res_aux.get<skin_joint>(joints);
+			for (uint16 j = 0; j < joints_count; j++)
+			{
+				const uint16 idx = joints_ptr[j].model_node_index;
+				skin_entities.push_back(created_node_entities[idx]);
+				add_render_proxy(created_node_entities[idx]);
+			}
+		}
+
+		// -----------------------------------------------------------------------------
+		// parent-child relationships
+		// -----------------------------------------------------------------------------
+
+		for (uint16 i = 0; i < nodes_count; i++)
+		{
+			model_node& node = ptr_nodes[i];
+			if (node.get_parent_index() != -1)
+				add_child(created_node_entities[node.get_parent_index()], created_node_entities[i]);
+		}
+
+		// -----------------------------------------------------------------------------
+		// add components, e.g. lights, mesh instances etc.
+		// -----------------------------------------------------------------------------
+
+		const uint16 lights_count = mdl.get_light_count();
+		light_raw*	 lights_ptr	  = nullptr;
+		if (lights_count != 0)
+			lights_ptr = res_aux.get<light_raw>(mdl.get_created_lights());
+
+		resource_handle* model_materials = nullptr;
+		const uint16	 model_mat_count = mdl.get_material_count();
+		if (model_mat_count != 0)
+		{
+			model_materials = res_aux.get<resource_handle>(mdl.get_created_materials());
+		}
+		vector<resource_handle> mi_materials;
+
+		for (uint16 i = 0; i < nodes_count; i++)
+		{
+			model_node&		   node		   = ptr_nodes[i];
+			const world_handle entity	   = created_node_entities[i];
+			const int16		   light_index = node.get_light_index();
+			if (lights_ptr && light_index != -1)
+			{
+				SFG_ASSERT(light_index < static_cast<int16>(lights_count));
+				light_raw& lr = lights_ptr[light_index];
+
+				if (lr.type == light_raw_type::point)
+				{
+					const world_handle light_handle = cm.add_component<comp_point_light>(entity);
+					comp_point_light&  comp_light	= cm.get_component<comp_point_light>(light_handle);
+					comp_light.set_values(_world, lr.base_color, lr.range, lr.intensity);
+				}
+				else if (lr.type == light_raw_type::spot)
+				{
+					const world_handle light_handle = cm.add_component<comp_spot_light>(entity);
+					comp_spot_light&   comp_light	= cm.get_component<comp_spot_light>(light_handle);
+					comp_light.set_values(_world, lr.base_color, lr.range, lr.intensity, lr.inner_cone, lr.outer_cone);
+				}
+				else if (lr.type == light_raw_type::sun)
+				{
+					const world_handle light_handle = cm.add_component<comp_dir_light>(entity);
+					comp_dir_light&	   comp_light	= cm.get_component<comp_dir_light>(light_handle);
+					comp_light.set_values(_world, lr.base_color, lr.intensity);
+				}
+			}
+
+			if (node.get_mesh_index() == -1)
+				continue;
+
+			resource_handle skin_handle = {};
+			const int16		skin_index	= node.get_skin_index();
+
+			if (skin_index != -1)
+			{
+				const resource_handle* model_skins = res_aux.get<resource_handle>(mdl.get_created_skins());
+				SFG_ASSERT(mdl.get_skin_count() != 0);
+				skin_handle = model_skins[skin_index];
+			}
+
+			mi_materials.resize(0);
+
+			const resource_handle& mesh_handle = ptr_meshes_handle[node.get_mesh_index()];
+			const mesh&			   m		   = rm.get_resource<mesh>(mesh_handle);
+
+			const uint16 mesh_mat_indices_count = m.get_material_count();
+
+			if (mesh_mat_indices_count != 0)
+			{
+				uint16* mesh_mat_indices = res_aux.get<uint16>(m.get_material_indices());
+				for (uint16 i = 0; i < mesh_mat_indices_count; i++)
+				{
+					const uint16 mat_index = mesh_mat_indices[i];
+					SFG_ASSERT(mat_index < mdl.get_material_count());
+					mi_materials.push_back(model_materials[mat_index]);
+				}
+			}
+
+			const world_handle	comp_handle = cm.add_component<comp_mesh_instance>(entity);
+			comp_mesh_instance& mi			= cm.get_component<comp_mesh_instance>(comp_handle);
+			mi.set_mesh(_world, mesh_handle, skin_handle, mi_materials.data(), static_cast<uint32>(mi_materials.size()), skin_index != -1 ? created_node_entities.data() : nullptr, skin_index != -1 ? static_cast<uint32>(created_node_entities.size()) : 0);
+		}
+
+		for (world_handle r : root_entities)
+		{
+			add_child(root, r);
+		}
+
+#ifdef SFG_TOOLMODE
+		_instantiated_models.push_back({.root = root, .res = model_handle});
+#endif
+		return root;
+	}
+
+	world_handle entity_manager::instantiate_template(resource_handle template_handle)
+	{
+		resource_manager&  rm = _world.get_resource_manager();
+		component_manager& cm = _world.get_comp_manager();
+
+		const entity_template&	   et  = rm.get_resource<entity_template>(template_handle);
+		const entity_template_raw& raw = et.get_raw();
+
+		static_vector<world_handle, 1024> created;
+
+		const uint32 sz = static_cast<uint32>(raw.entities.size());
+		created.resize(raw.entities.size());
+		for (uint32 i = 0; i < sz; i++)
+		{
+			const entity_template_entity_raw& r = raw.entities[i];
+			const world_handle				  h = create_entity(r.name.c_str());
+			set_entity_position(h, r.position);
+			set_entity_rotation(h, r.rotation);
+			set_entity_scale(h, r.scale);
+			set_entity_visible(h, r.visible);
+			created[i] = h;
+		}
+
+		for (uint32 i = 0; i < sz; i++)
+		{
+			const entity_template_entity_raw& r = raw.entities[i];
+			if (r.parent != -1)
+			{
+				add_child(created[r.parent], created[i]);
+			}
+		}
+
+		istream stream(raw.component_buffer.get_raw(), raw.component_buffer.get_size());
+		while (!stream.is_eof())
+		{
+			string_id comp_type	  = 0;
+			uint32	  e_index	  = 0;
+			uint32	  fields_size = 0;
+			stream >> comp_type;
+			stream >> e_index;
+			stream >> fields_size;
+
+			const world_handle entity_handle = created[e_index];
+			const world_handle comp_handle	 = cm.add_component(comp_type, entity_handle);
+			void*			   comp_ptr		 = cm.get_component(comp_type, comp_handle);
+
+			meta&		comp_meta  = reflection::get().resolve(comp_type);
+			const auto& ref_fields = comp_meta.get_fields();
+
+			for (uint32 j = 0; j < fields_size; j++)
+			{
+				string_id			 title_sid = 0;
+				reflected_field_type ft		   = reflected_field_type::rf_float;
+				stream >> title_sid;
+				stream >> ft;
+				field_base* target_field = nullptr;
+
+				auto it = std::find_if(ref_fields.begin(), ref_fields.end(), [title_sid](field_base* fb) -> bool { return fb->_sid == title_sid; });
+				if (it != ref_fields.end())
+					target_field = *it;
+
+				if (ft == reflected_field_type::rf_float)
+				{
+					float val = 0.0f;
+					stream >> val;
+					if (target_field)
+						target_field->value(comp_ptr).cast_ref<float>() = val;
+				}
+				else if (ft == reflected_field_type::rf_int)
+				{
+					int32 val = 0.0f;
+					stream >> val;
+					if (target_field)
+						target_field->value(comp_ptr).cast_ref<int32>() = val;
+				}
+				else if (ft == reflected_field_type::rf_uint)
+				{
+					uint32 val = 0;
+					stream >> val;
+					if (target_field)
+						target_field->value(comp_ptr).cast_ref<uint32>() = val;
+				}
+				else if (ft == reflected_field_type::rf_vector2)
+				{
+					vector2 val = vector2::zero;
+					stream >> val;
+					if (target_field)
+						target_field->value(comp_ptr).cast_ref<vector2>() = val;
+				}
+				else if (ft == reflected_field_type::rf_vector3)
+				{
+					vector3 val = vector3::zero;
+					stream >> val;
+					if (target_field)
+						target_field->value(comp_ptr).cast_ref<vector3>() = val;
+				}
+				else if (ft == reflected_field_type::rf_vector4)
+				{
+					vector4 val = vector4::zero;
+					stream >> val;
+					if (target_field)
+						target_field->value(comp_ptr).cast_ref<vector4>() = val;
+				}
+				else if (ft == reflected_field_type::rf_color)
+				{
+					color val = color::white;
+					stream >> val;
+					if (target_field)
+						target_field->value(comp_ptr).cast_ref<color>() = val;
+				}
+				else if (ft == reflected_field_type::rf_string)
+				{
+					string val = "";
+					stream >> val;
+					if (target_field)
+						target_field->value(comp_ptr).cast_ref<string>() = val;
+				}
+				else if (ft == reflected_field_type::rf_uint8 || ft == reflected_field_type::rf_bool || ft == reflected_field_type::rf_enum)
+				{
+					uint8 val = 0;
+					stream >> val;
+					if (target_field)
+						target_field->value(comp_ptr).cast_ref<uint8>() = val;
+				}
+				else if (ft == reflected_field_type::rf_resource)
+				{
+					string_id sub_type = 0;
+					uint32	  count	   = 0;
+					stream >> sub_type;
+					stream >> count;
+
+					for (uint32 i = 0; i < count; i++)
+					{
+						string val = "";
+						stream >> val;
+
+						if (target_field)
+						{
+							if (target_field->_is_list)
+							{
+								vector<resource_handle>& v = target_field->value(comp_ptr).cast_ref<vector<resource_handle>>();
+								v.push_back(val.empty() ? resource_handle() : rm.get_resource_handle_by_hash(sub_type, TO_SID(val)));
+							}
+							else
+								target_field->value(comp_ptr).cast_ref<resource_handle>() = val.empty() ? resource_handle() : rm.get_resource_handle_by_hash(sub_type, TO_SID(val));
+						}
+					}
+				}
+				else if (ft == reflected_field_type::rf_entity)
+				{
+					uint32 count = 0;
+					stream >> count;
+
+					for (uint32 i = 0; i < count; i++)
+					{
+						int32 val = -1;
+						stream >> val;
+
+						if (target_field)
+						{
+							if (target_field->_is_list)
+							{
+								vector<world_handle>& v = target_field->value(comp_ptr).cast_ref<vector<world_handle>>();
+								v.push_back(val == -1 ? world_handle() : created[val]);
+							}
+							else
+								target_field->value(comp_ptr).cast_ref<world_handle>() = val == -1 ? world_handle() : created[val];
+						}
+					}
+				}
+			}
+
+			if (comp_meta.has_function("on_reflect_load"_hs))
+				comp_meta.invoke_function<void, void*, world&>("on_reflect_load"_hs, comp_ptr, _world);
+		}
+
+		return world_handle();
+	}
+
+#ifdef SFG_TOOLMODE
+
+	void entity_manager::reload_instantiated_model(resource_handle old, resource_handle new_h)
+	{
+		auto it = std::find_if(_instantiated_models.begin(), _instantiated_models.end(), [old](const instantiated_model& i) -> bool { return old == i.res; });
+		if (it == _instantiated_models.end())
+			return;
+
+		const vector3&	   p	  = get_entity_position(it->root);
+		const quat&		   q	  = get_entity_rotation(it->root);
+		const vector3&	   s	  = get_entity_scale(it->root);
+		const world_handle parent = get_entity_family(it->root).parent;
+
+		destroy_entity(it->root);
+
+		it->root = instantiate_model(new_h);
+		it->res	 = new_h;
+
+		if (!parent.is_null())
+			add_child(parent, it->root);
+
+		set_entity_position(it->root, p);
+		set_entity_rotation(it->root, q);
+		set_entity_scale(it->root, s);
+	}
+#endif
 
 	/* ----------------                   ---------------- */
 	/* ---------------- entity transforms ---------------- */

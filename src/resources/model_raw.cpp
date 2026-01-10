@@ -113,8 +113,6 @@ namespace SFG
 							size_t						num_vertices,
 							size_t						start_vertices,
 							size_t						start_indices) {
-			prim.material_index = tprim.material < 0 ? 0 : static_cast<uint16>(tprim.material);
-
 			for (size_t j = 0; j < num_vertices; ++j)
 			{
 				const size_t stride					  = vertex_bv.byteStride == 0 ? sizeof(float) * 3 : vertex_bv.byteStride;
@@ -306,17 +304,25 @@ namespace SFG
 		const size_t all_meshes_sz = model.meshes.size();
 		loaded_meshes.resize(all_meshes_sz);
 
+		uint32 empty_mesh_name_ctr = 0;
+		auto   get_empty_mesh_name = [&]() -> string {
+			  const string str = "empty_mesh_" + std::to_string(empty_mesh_name_ctr);
+			  empty_mesh_name_ctr++;
+			  return str;
+		};
 		for (size_t i = 0; i < all_meshes_sz; i++)
 		{
-			const tinygltf::Mesh& tmesh = model.meshes[i];
-			mesh_raw&			  mesh	= loaded_meshes[i];
-			mesh.name					= tmesh.name;
-			const string	hash_path	= string(relative_path) + "/" + mesh.name;
-			const string_id hash		= TO_SID(hash_path);
-			mesh.sid					= hash;
+			const tinygltf::Mesh& tmesh		= model.meshes[i];
+			mesh_raw&			  mesh		= loaded_meshes[i];
+			const string		  hash_path = string(relative_path) + "/" + (tmesh.name.empty() ? get_empty_mesh_name() : tmesh.name);
+			mesh.name						= hash_path;
+			const string_id hash			= TO_SID(hash_path);
+			mesh.sid						= hash;
 
 			for (const tinygltf::Primitive& tprim : tmesh.primitives)
 			{
+				mesh.materials.push_back(tprim.material);
+
 				const tinygltf::Accessor&	vertex_accessor	   = model.accessors[tprim.attributes.find("POSITION")->second];
 				const tinygltf::BufferView& vertex_buffer_view = model.bufferViews[vertex_accessor.bufferView];
 				const tinygltf::Buffer&		vertex_buffer	   = model.buffers[vertex_buffer_view.buffer];
@@ -397,6 +403,10 @@ namespace SFG
 					}
 
 					fill_prim(prim, model, tprim, vertex_accessor, vertex_buffer_view, vertex_buffer, num_vertices, start_vertex, start_index);
+
+					const int16 prim_mat_idx = vector_util::index_of(mesh.materials, static_cast<int16>(tprim.material));
+					SFG_ASSERT(prim_mat_idx != -1);
+					prim.material_index = static_cast<uint16>(prim_mat_idx);
 					continue;
 				}
 				const uint16 mat   = tprim.material < 0 ? 0 : static_cast<uint16>(tprim.material);
@@ -410,6 +420,9 @@ namespace SFG
 				prim.vertices.resize(start_vertex + num_vertices);
 
 				fill_prim(prim, model, tprim, vertex_accessor, vertex_buffer_view, vertex_buffer, num_vertices, start_vertex, start_index);
+				const int16 prim_mat_idx = vector_util::index_of(mesh.materials, static_cast<int16>(tprim.material));
+				SFG_ASSERT(prim_mat_idx != -1);
+				prim.material_index = static_cast<uint16>(prim_mat_idx);
 			}
 		}
 

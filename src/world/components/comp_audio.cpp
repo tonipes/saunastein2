@@ -42,7 +42,7 @@ namespace SFG
 		meta& m = reflection::get().register_meta(type_id<comp_audio>::value, 0, "component");
 		m.set_title("audio");
 		m.add_field<&comp_audio::_audio_resource, comp_audio>("resource", reflected_field_type::rf_resource, "", type_id<audio>::value);
-		m.add_field<&comp_audio::_volume, comp_audio>("volume", reflected_field_type::rf_float_clamped, "", 0.0f, 1.0f);
+		m.add_field<&comp_audio::_volume, comp_audio>("volume", reflected_field_type::rf_float, "", 0.0f, 1.0f);
 		m.add_field<&comp_audio::_is_looping, comp_audio>("looping", reflected_field_type::rf_bool, "");
 
 		m.add_function<void, const reflected_field_changed_params&>("on_reflected_changed"_hs, [](const reflected_field_changed_params& params) {
@@ -53,6 +53,13 @@ namespace SFG
 				c->set_volume(params.w, c->_volume);
 			else if (params.field_title == "looping"_hs)
 				c->set_looping(params.w, c->_is_looping);
+		});
+
+		m.add_function<void, void*, world&>("on_reflect_load"_hs, [](void* obj, world& w) {
+			comp_audio* c = static_cast<comp_audio*>(obj);
+			c->set_audio(w, c->_audio_resource);
+			c->set_volume(w, c->_volume);
+			c->set_looping(w, c->_is_looping);
 		});
 	}
 

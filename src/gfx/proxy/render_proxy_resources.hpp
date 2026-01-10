@@ -105,15 +105,6 @@ namespace SFG
 		uint16 material_index = 0;
 	};
 
-	struct render_proxy_model
-	{
-		chunk_handle32 meshes;
-		chunk_handle32 materials;
-		uint32		   mesh_count	  = 0;
-		uint32		   material_count = 0;
-		uint8		   status		  = render_proxy_status::rps_inactive;
-	};
-
 	struct render_proxy_mesh
 	{
 		buffer_cpu_gpu vertex_buffer = {};

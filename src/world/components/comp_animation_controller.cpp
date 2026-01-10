@@ -38,12 +38,16 @@ namespace SFG
 	{
 		meta& m = reflection::get().register_meta(type_id<comp_animation_controller>::value, 0, "component");
 		m.set_title("anim_controller");
-		m.add_field<&comp_animation_controller::_resource_machine, comp_animation_controller>(
-			"machine", reflected_field_type::rf_resource, "", type_id<anim_state_machine>::value);
+		m.add_field<&comp_animation_controller::_resource_machine, comp_animation_controller>("machine", reflected_field_type::rf_resource, "", type_id<anim_state_machine>::value);
 
 		m.add_function<void, const reflected_field_changed_params&>("on_reflected_changed"_hs, [](const reflected_field_changed_params& params) {
 			comp_animation_controller* c = static_cast<comp_animation_controller*>(params.object_ptr);
 			c->set_machine_resource(params.w, c->_resource_machine);
+		});
+
+		m.add_function<void, void*, world&>("on_reflect_load"_hs, [](void* obj, world& w) {
+			comp_animation_controller* c = static_cast<comp_animation_controller*>(obj);
+			c->set_machine_resource(w, c->_resource_machine);
 		});
 	}
 
@@ -79,7 +83,7 @@ namespace SFG
 		anim_state_machine&			  as  = rm.get_resource<anim_state_machine>(_resource_machine);
 		const anim_state_machine_raw& raw = as.get_raw();
 
-		animation_graph&  ag = w.get_animation_graph();
+		animation_graph& ag = w.get_animation_graph();
 
 		_runtime_machine									  = ag.add_state_machine();
 		anim_graph.get_state_machine(_runtime_machine).entity = _header.entity;

@@ -36,7 +36,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "resources/texture_sampler_raw.hpp"
 #include "resources/particle_properties.hpp"
 
-#include "world/components/comp_model_instance.hpp"
 #include "world/components/comp_mesh_instance.hpp"
 #include "world/components/comp_animation_controller.hpp"
 #include "world/components/comp_light.hpp"
@@ -141,7 +140,7 @@ namespace SFG
 			material&			  mat		 = rm.get_resource<material>(mat_handle);
 			mat.update_sampler(w, mat_handle, smp_handle);
 		}
-
+		/*
 		// ground
 		{
 			const resource_handle ground_handle = rm.get_resource_handle_by_hash<model>(TO_SIDC("assets/ground/ground.stkmodel"));
@@ -298,7 +297,7 @@ namespace SFG
 			}
 
 			em.set_entity_position(root, vector3(x, 0.0f, z));
-		}
+		}*/
 	}
 
 	void game::uninit()

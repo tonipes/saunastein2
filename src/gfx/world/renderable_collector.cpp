@@ -49,7 +49,7 @@ namespace SFG
 		for (uint32 i = 0; i < mesh_instances_peak; i++)
 		{
 			const render_proxy_mesh_instance& mesh_instance = mesh_instances.get(i);
-			if (mesh_instance.model == NULL_RESOURCE_ID || mesh_instance.mesh == NULL_RESOURCE_ID)
+			if (mesh_instance.mesh == NULL_RESOURCE_ID)
 				continue;
 
 			const render_proxy_entity& proxy_entity = entities.get(mesh_instance.entity);
@@ -67,22 +67,20 @@ namespace SFG
 			if (res == frustum_result::outside)
 				continue;
 
-			const uint32			  buffer_index = proxy_entity._assigned_index;
-			const render_proxy_model& proxy_model  = pm.get_model(mesh_instance.model);
+			const uint32				  buffer_index = proxy_entity._assigned_index;
+			const render_proxy_primitive* primitives   = aux.get<render_proxy_primitive>(proxy_mesh.primitives);
 
-			const render_proxy_primitive* primitives = aux.get<render_proxy_primitive>(proxy_mesh.primitives);
-
-			if (proxy_model.materials.size == 0)
-				continue;
 			SFG_ASSERT(buffer_index != UINT32_MAX && (mesh_instance.skin == NULL_RESOURCE_ID || mesh_instance._assigned_bone_index != UINT32_MAX));
 
-			const resource_id* materials = aux.get<resource_id>(proxy_model.materials);
+			resource_id* materials	  = pm.get_aux().get<resource_id>(mesh_instance.materials);
+			const uint16 mi_mat_count = mesh_instance.materials_count;
 
 			for (uint32 j = 0; j < proxy_mesh.primitive_count; j++)
 			{
-				const render_proxy_primitive& prim = primitives[j];
-
-				const resource_id mat = materials[prim.material_index];
+				const render_proxy_primitive& prim		= primitives[j];
+				const uint16				  mat_index = prim.material_index;
+				SFG_ASSERT(mat_index < mi_mat_count);
+				const resource_id mat = materials[mat_index];
 
 				out_objects.emplace_back(renderable_object{
 					.vertex_buffer	   = const_cast<buffer_cpu_gpu*>(&proxy_mesh.vertex_buffer),

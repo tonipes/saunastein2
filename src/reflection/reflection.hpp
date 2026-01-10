@@ -36,18 +36,11 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "memory/malloc_allocator_stl.hpp"
 #include "memory/memory.hpp"
 
-#ifdef SFG_TOOLMODE
-#include "vendor/nhlohmann/json_fwd.hpp"
-#endif
-
 #pragma warning(push)
 #pragma warning(disable : 4541)
 
 namespace SFG
 {
-	class ostream;
-	class istream;
-
 	using malloc_string = std::basic_string<char, std::char_traits<char>, malloc_allocator_stl<char>>;
 
 	class field_value
@@ -96,10 +89,8 @@ namespace SFG
 		field_base()		  = default;
 		virtual ~field_base() = default;
 
-		virtual void		serialize(ostream& stream, void* obj)	= 0;
-		virtual void		deserialize(istream& stream, void* obj) = 0;
-		virtual field_value value(void* obj)						= 0;
-		virtual size_t		get_type_size() const					= 0;
+		virtual field_value value(void* obj) const = 0;
+		virtual size_t		get_type_size() const  = 0;
 
 		string_id			 _sid		  = 0;
 		string_id			 _sub_type_id = 0;
@@ -108,6 +99,9 @@ namespace SFG
 		reflected_field_type _type		  = reflected_field_type::rf_float;
 		float				 _min		  = 0.0f;
 		float				 _max		  = 0.0f;
+		uint8				 _is_list	  = 0;
+		uint8				 _no_ui		  = 0;
+		uint8				 _clamped	  = 0;
 	};
 
 	template <typename T, class C> class field : public field_base
@@ -121,18 +115,7 @@ namespace SFG
 			return sizeof(T);
 		}
 
-		inline virtual void serialize(ostream& stream, void* obj) override
-		{
-			field_value v = value(obj);
-			stream << v.get_value<T>();
-		}
-
-		inline virtual void deserialize(istream& stream, void* obj) override
-		{
-			field_value v = value(obj);
-		}
-
-		inline virtual field_value value(void* obj) override
+		inline virtual field_value value(void* obj) const override
 		{
 			field_value val;
 			val._ptr = &((static_cast<C*>(obj))->*(_var));
@@ -174,7 +157,7 @@ namespace SFG
 		typedef phmap::flat_hash_map<string_id, reflection_function_base*, phmap::priv::hash_default_hash<string_id>, phmap::priv::hash_default_eq<string_id>, malloc_allocator_map<string_id>> alloc_map;
 		typedef vector<field_base*, malloc_allocator_stl<field_base*>>																															field_vec;
 
-		template <auto DATA, typename Class> void add_field(const string& title, reflected_field_type type, const string& tooltip, float min, float max, string_id sub_type_id = 0)
+		template <auto DATA, typename Class> void add_field(const string& title, reflected_field_type type, const string& tooltip, float min, float max, string_id sub_type_id = 0, uint8 is_list = 0, uint8 no_ui = 0)
 		{
 			using ft = field<decltype(DATA), Class>;
 
@@ -188,10 +171,13 @@ namespace SFG
 			f->_sub_type_id = sub_type_id;
 			f->_tooltip		= tooltip;
 			f->_title		= title;
+			f->_clamped		= 1;
+			f->_is_list		= is_list;
+			f->_no_ui		= no_ui;
 			_fields.push_back(f);
 		}
 
-		template <auto DATA, typename Class> void add_field(const string& title, reflected_field_type type, const string& tooltip, string_id sub_type_id = 0)
+		template <auto DATA, typename Class> void add_field(const string& title, reflected_field_type type, const string& tooltip, string_id sub_type_id = 0, uint8 is_list = 0, uint8 no_ui = 0)
 		{
 			using ft = field<decltype(DATA), Class>;
 
@@ -205,6 +191,8 @@ namespace SFG
 			f->_sub_type_id = sub_type_id;
 			f->_tooltip		= tooltip;
 			f->_title		= title;
+			f->_is_list		= is_list;
+			f->_no_ui		= no_ui;
 			_fields.push_back(f);
 		}
 

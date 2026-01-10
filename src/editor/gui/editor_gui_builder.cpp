@@ -562,6 +562,9 @@ namespace SFG
 		auto it = vector_util::find_if(gb->_resources, [widget](const gui_resource& r) -> bool { return r.widget == widget; });
 		SFG_ASSERT(it != gb->_resources.end());
 
+		if (it->extension == nullptr || strlen(it->extension) == 0)
+			return vekt::input_event_result::handled;
+
 		string file = process::select_file("select", it->extension);
 		file_system::fix_path(file);
 
@@ -661,11 +664,17 @@ namespace SFG
 				string* str = reinterpret_cast<string*>(ptr);
 				*str		= (const char*)data_ptr;
 			}
-			else if (ft == reflected_field_type::rf_bool || ft == reflected_field_type::rf_uint8 || ft == reflected_field_type::rf_uint8_clamped)
+			else if (ft == reflected_field_type::rf_bool || ft == reflected_field_type::rf_uint8)
 			{
 				const float	 f	= *reinterpret_cast<float*>(data_ptr);
 				const uint16 u8 = static_cast<uint16>(f);
 				SFG_MEMCPY(ptr, &u8, sizeof(uint8));
+			}
+			else if (ft == reflected_field_type::rf_resource && ref->field->_is_list)
+			{
+				vector<resource_handle>& v	 = ref->field->value(ref->obj).cast_ref<vector<resource_handle>>();
+				resource_handle			 res = *reinterpret_cast<resource_handle*>(data_ptr);
+				v[ref->list_index]			 = res;
 			}
 			else
 				SFG_MEMCPY(ptr, data_ptr, ref->field->get_type_size());
@@ -677,6 +686,7 @@ namespace SFG
 					.object_ptr	 = ref->obj,
 					.data_ptr	 = data_ptr,
 					.field_title = TO_SID(ref->field->_title),
+					.list_index	 = ref->list_index,
 				};
 				m.invoke_function<void, const reflected_field_changed_params&>("on_reflected_changed"_hs, params);
 			}
@@ -727,7 +737,7 @@ namespace SFG
 		_builder->deallocate(id);
 	}
 
-	id gui_builder::begin_area(bool fill)
+	id gui_builder::begin_area(bool fill, bool sub_area)
 	{
 		const id w = new_widget(true);
 		{
@@ -757,6 +767,13 @@ namespace SFG
 			rounding_props& rp = _builder->widget_get_rounding(w);
 			rp.rounding		   = editor_theme::get().area_rounding;
 			rp.segments		   = 16;
+
+			if (sub_area)
+			{
+				gfx.color			   = editor_theme::get().col_frame_bg;
+				sz.child_margins.left  = 0.0f;
+				sz.child_margins.right = 0.0f;
+			}
 		}
 
 		const id scroll_bg = new_widget(true);
@@ -905,12 +922,16 @@ namespace SFG
 	vekt::id gui_builder::add_reflected_field(field_base* field, string_id type_id, void* object_ptr)
 	{
 
+		if (field->_no_ui)
+			return 0;
+
 		const char*				   title		 = field->_title.c_str();
 		const char*				   tooltip		 = field->_tooltip.c_str();
 		const float				   min			 = field->_min;
 		const float				   max			 = field->_max;
 		const reflected_field_type type			 = field->_type;
 		const string_id			   field_type_id = field->_sub_type_id;
+		const uint8				   clamped		 = field->_clamped;
 
 		if (type == reflected_field_type::rf_bool)
 		{
@@ -923,50 +944,33 @@ namespace SFG
 		else if (type == reflected_field_type::rf_uint8)
 		{
 			const uint8	  val = field->value(object_ptr).cast<uint8>();
-			const id_pair ids = add_property_row_slider(title, 16, 0, 255, val, true);
-			_reflected.push_back({.obj = object_ptr, .type = type_id, .field = field, .widget = ids.second});
-			return ids.first;
-		}
-		else if (type == reflected_field_type::rf_uint8_clamped)
-		{
-			const uint8	  val = field->value(object_ptr).cast<uint8>();
-			const id_pair ids = add_property_row_slider(title, 16, field->_min, field->_max, val, true);
+			const id_pair ids = clamped ? add_property_row_slider(title, 16, 0, 255, val, true) : add_property_row_slider(title, 16, 0, 255, val, true);
 			_reflected.push_back({.obj = object_ptr, .type = type_id, .field = field, .widget = ids.second});
 			return ids.first;
 		}
 		else if (type == reflected_field_type::rf_float)
 		{
-			const float	  val = field->value(object_ptr).cast<float>();
-			const id_trip ids = add_property_row_text_field(title, "", 16, gui_text_field_type::number, 3, 0.1f);
+			const float val = field->value(object_ptr).cast<float>();
+			if (clamped)
+			{
+				const id_pair p = add_property_row_slider(title, 16, min, max, val);
+				_reflected.push_back({.obj = object_ptr, .type = type_id, .field = field, .widget = p.second});
+				return p.first;
+			}
 
+			const id_trip ids = add_property_row_text_field(title, "", 16, gui_text_field_type::number, 3, 0.1f);
 			set_text_field_value(ids.second, val, false);
 			_reflected.push_back({.obj = object_ptr, .type = type_id, .field = field, .widget = ids.second});
 			return ids.first;
 		}
-		else if (type == reflected_field_type::rf_int)
+		else if (type == reflected_field_type::rf_int || type == reflected_field_type::rf_uint)
 		{
 			const float	  val = field->value(object_ptr).cast<float>();
-			const id_trip p	  = add_property_row_text_field(title, "", 16, gui_text_field_type::number, 0, 1);
+			const id_pair p	  = clamped ? add_property_row_slider(title, 16, min, max, val, true) : add_property_row_slider(title, 16, 0, UINT32_MAX, val, true);
+			_reflected.push_back({.obj = object_ptr, .type = type_id, .field = field, .widget = p.second});
+			return p.first;
+		}
 
-			set_text_field_value(p.second, val, false, true);
-			_reflected.push_back({.obj = object_ptr, .type = type_id, .field = field, .widget = p.second});
-			return p.first;
-		}
-		else if (type == reflected_field_type::rf_float_clamped)
-		{
-			const float	  val = field->value(object_ptr).cast<float>();
-			const id_pair p	  = add_property_row_slider(title, 16, min, max, val);
-
-			_reflected.push_back({.obj = object_ptr, .type = type_id, .field = field, .widget = p.second});
-			return p.first;
-		}
-		else if (type == reflected_field_type::rf_int_clamped)
-		{
-			const float	  val = field->value(object_ptr).cast<float>();
-			const id_pair p	  = add_property_row_slider(title, 16, min, max, val, true);
-			_reflected.push_back({.obj = object_ptr, .type = type_id, .field = field, .widget = p.second});
-			return p.first;
-		}
 		else if (type == reflected_field_type::rf_vector2)
 		{
 			const vector2 val = field->value(object_ptr).cast<vector2>();
@@ -1036,33 +1040,60 @@ namespace SFG
 		}
 		else if (type == reflected_field_type::rf_resource)
 		{
-			const resource_handle h			= field->value(object_ptr).cast<resource_handle>();
-			const char*			  extension = reflection::get().resolve(field_type_id).get_tag_str().c_str();
-			if (extension == nullptr)
-			{
-				SFG_ASSERT(false);
-			}
+			const char* extension = reflection::get().resolve(field_type_id).get_tag_str().c_str();
 
-			id_pair ids = {};
-
-			if (h.is_null())
+			if (field->_is_list)
 			{
-				ids = add_property_row_resource(title, extension, "no_resource", field->_sub_type_id, 512);
+				vector<resource_handle>& v	= field->value(object_ptr).cast_ref<vector<resource_handle>>();
+				const uint32			 sz = static_cast<uint32>(v.size());
+
+				for (uint32 i = 0; i < sz; i++)
+				{
+					const resource_handle h	 = v[i];
+					vekt::id			  pp = NULL_WIDGET_ID;
+
+					if (h.is_null())
+					{
+						pp = add_property_row_resource(title, extension, "no_resource", field->_sub_type_id, 512).second;
+					}
+					else
+					{
+						world&			  wrld		   = editor::get().get_app().get_world();
+						resource_manager& rm		   = wrld.get_resource_manager();
+						void*			  resource_ptr = rm.get_resource(field_type_id, h);
+						const string&	  path		   = rm.get_loaded_path_by_handle(field_type_id, h);
+						pp							   = add_property_row_resource(title, extension, path.c_str(), field->_sub_type_id, 512).second;
+					}
+
+					_reflected.push_back({.obj = object_ptr, .type = type_id, .field = field, .widget = pp, .list_index = i});
+				}
+				return 0;
 			}
 			else
 			{
-				world&			  wrld		   = editor::get().get_app().get_world();
-				resource_manager& rm		   = wrld.get_resource_manager();
-				void*			  resource_ptr = rm.get_resource(field_type_id, h);
-				const string&	  path		   = rm.get_loaded_path_by_handle(field_type_id, h);
-				ids							   = add_property_row_resource(title, extension, path.c_str(), field->_sub_type_id, 512);
-			}
+				id_pair ids = {};
 
-			_reflected.push_back({.obj = object_ptr, .type = type_id, .field = field, .widget = ids.second});
-			return ids.first;
+				const resource_handle h = field->value(object_ptr).cast<resource_handle>();
+
+				if (h.is_null())
+				{
+					ids = add_property_row_resource(title, extension, "no_resource", field->_sub_type_id, 512);
+				}
+				else
+				{
+					world&			  wrld		   = editor::get().get_app().get_world();
+					resource_manager& rm		   = wrld.get_resource_manager();
+					void*			  resource_ptr = rm.get_resource(field_type_id, h);
+					const string&	  path		   = rm.get_loaded_path_by_handle(field_type_id, h);
+					ids							   = add_property_row_resource(title, extension, path.c_str(), field->_sub_type_id, 512);
+				}
+				_reflected.push_back({.obj = object_ptr, .type = type_id, .field = field, .widget = ids.second});
+				return ids.first;
+			}
 		}
 		else if (type == reflected_field_type::rf_entity)
 		{
+			return 0;
 		}
 
 		SFG_ASSERT(false);
@@ -1915,10 +1946,10 @@ namespace SFG
 			sz.flags		 = size_flags::sf_x_relative | size_flags::sf_y_abs;
 			sz.size.x		 = 1.0f;
 			sz.size.y		 = editor_theme::get().item_height;
-			sz.child_margins = {0.0f, 0.0f, editor_theme::get().inner_margin * 0.25f, editor_theme::get().inner_margin * 0.25f};
+			sz.child_margins = {0.0f, 0.0f, editor_theme::get().inner_margin, editor_theme::get().inner_margin * 0.25f};
 
 			widget_gfx& gfx = _builder->widget_get_gfx(w);
-			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_stroke | gfx_flags::gfx_has_rounding | gfx_flags::gfx_has_hover_color | gfx_flags::gfx_has_press_color;
+			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_stroke | gfx_flags::gfx_has_rounding | gfx_flags::gfx_has_hover_color | gfx_flags::gfx_has_press_color | gfx_clip_children;
 			gfx.color		= editor_theme::get().col_frame_bg;
 
 			stroke_props& st = _builder->widget_get_stroke(w);
