@@ -56,6 +56,13 @@ namespace SFG
 		m.add_function<void, void*, world&>("on_reflect_load"_hs, [](void* obj, world& w) {
 			comp_mesh_instance* c = static_cast<comp_mesh_instance*>(obj);
 			c->set_mesh(w, c->_target_mesh, c->_target_skin, c->_materials.data(), static_cast<uint16>(c->_materials.size()), c->_skin_entities.data(), static_cast<uint16>(c->_skin_entities.size()));
+
+			entity_manager& em = w.get_entity_manager();
+			for (world_handle skin_entity : c->_skin_entities)
+			{
+				em.add_render_proxy(skin_entity);
+			}
+
 		});
 
 		m.add_function<void, const reflected_field_changed_params&>("on_reflected_changed"_hs, [](const reflected_field_changed_params& params) {
