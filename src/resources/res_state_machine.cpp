@@ -24,9 +24,9 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISE
 OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "anim_state_machine.hpp"
+#include "res_state_machine.hpp"
+#include "res_state_machine_raw.hpp"
 #include "reflection/type_reflection.hpp"
-#include "anim_state_machine_raw.hpp"
 
 #include "world/world.hpp"
 #include "resources/resource_manager.hpp"
@@ -38,17 +38,17 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace SFG
 {
-	void anim_state_machine::reflect()
+	void res_state_machine::reflect()
 	{
-		reflection::get().register_meta(type_id<anim_state_machine>::value, 0, "stkanim");
+		reflection::get().register_meta(type_id<res_state_machine>::value, 0, "stkanim");
 	}
 
-	void anim_state_machine::create_from_loader(const anim_state_machine_raw& raw, world& w, resource_handle handle)
+	void res_state_machine::create_from_loader(const res_state_machine_raw& raw, world& w, resource_handle handle)
 	{
 		_raw = raw;
 	}
 
-	void anim_state_machine::destroy(world& w, resource_handle handle)
+	void res_state_machine::destroy(world& w, resource_handle handle)
 	{
 	}
 }

@@ -30,7 +30,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "data/istream.hpp"
 #include "world/world.hpp"
 #include "reflection/reflection.hpp"
-#include "resources/anim_state_machine.hpp"
+#include "resources/res_state_machine.hpp"
 #include "resources/animation.hpp"
 namespace SFG
 {
@@ -38,7 +38,8 @@ namespace SFG
 	{
 		meta& m = reflection::get().register_meta(type_id<comp_animation_controller>::value, 0, "component");
 		m.set_title("anim_controller");
-		m.add_field<&comp_animation_controller::_resource_machine, comp_animation_controller>("machine", reflected_field_type::rf_resource, "", type_id<anim_state_machine>::value);
+		m.add_field<&comp_animation_controller::_resource_machine, comp_animation_controller>("machine", reflected_field_type::rf_resource, "", type_id<res_state_machine>::value);
+		m.add_field<&comp_animation_controller::_skin_entities, comp_animation_controller>("skin_entities", reflected_field_type::rf_entity, "", (string_id)0, 1, 1);
 
 		m.add_function<void, const reflected_field_changed_params&>("on_reflected_changed"_hs, [](const reflected_field_changed_params& params) {
 			comp_animation_controller* c = static_cast<comp_animation_controller*>(params.object_ptr);
@@ -47,12 +48,13 @@ namespace SFG
 
 		m.add_function<void, void*, world&>("on_reflect_load"_hs, [](void* obj, world& w) {
 			comp_animation_controller* c = static_cast<comp_animation_controller*>(obj);
+			c->set_skin_entities(w, c->_skin_entities.data(), static_cast<uint16>(c->_skin_entities.size()));
 			c->set_machine_resource(w, c->_resource_machine);
 		});
 
 		m.add_function<void, void*, vector<resource_handle_and_type>&>("gather_resources"_hs, [](void* obj, vector<resource_handle_and_type>& h) {
 			comp_animation_controller* c = static_cast<comp_animation_controller*>(obj);
-			h.push_back({.handle = c->_resource_machine, .type_id = type_id<anim_state_machine>::value});
+			h.push_back({.handle = c->_resource_machine, .type_id = type_id<res_state_machine>::value});
 		});
 	}
 
@@ -62,6 +64,19 @@ namespace SFG
 
 	void comp_animation_controller::on_remove(world& w)
 	{
+		if (!_machine_runtime.is_null())
+		{
+			animation_graph& anim_graph = w.get_animation_graph();
+			anim_graph.remove_state_machine(_machine_runtime);
+			_machine_runtime = {};
+		}
+
+		if (_skin_entities_ch.size != 0)
+		{
+			chunk_allocator32& aux = w.get_comp_manager().get_aux();
+			aux.free(_skin_entities_ch);
+			_skin_entities_ch = {};
+		}
 	}
 
 	void comp_animation_controller::serialize(ostream& stream, world& w) const
@@ -72,123 +87,60 @@ namespace SFG
 	{
 	}
 
+	void comp_animation_controller::set_skin_entities(world& w, world_handle* skin_entities, uint16 skin_entities_count)
+	{
+		chunk_allocator32& aux = w.get_comp_manager().get_aux();
+
+		if (_skin_entities_ch.size != 0)
+		{
+			aux.free(_skin_entities_ch);
+			_skin_entities_ch = {};
+		}
+
+		_skin_entities.resize(skin_entities_count);
+		if (skin_entities_count > 0)
+		{
+			world_handle* out = nullptr;
+			_skin_entities_ch = aux.allocate<world_handle>(skin_entities_count, out);
+			for (uint16 i = 0; i < skin_entities_count; i++)
+			{
+				out[i]			  = skin_entities[i];
+				_skin_entities[i] = skin_entities[i];
+			}
+		}
+
+		if (!_machine_runtime.is_null())
+		{
+			animation_graph&		 anim_graph = w.get_animation_graph();
+			animation_state_machine& runtime_sm = anim_graph.get_state_machine(_machine_runtime);
+			runtime_sm.joint_entities			= _skin_entities_ch;
+			runtime_sm.joint_entities_count		= static_cast<uint16>(_skin_entities.size());
+		}
+	}
+
 	void comp_animation_controller::set_machine_resource(world& w, resource_handle h)
 	{
-		_resource_machine = h;
-
 		animation_graph& anim_graph = w.get_animation_graph();
 
-		if (!_runtime_machine.is_null())
+		if (!_machine_runtime.is_null())
 		{
-			anim_graph.remove_state_machine(_runtime_machine);
-			_runtime_machine = {};
+			anim_graph.remove_state_machine(_machine_runtime);
+			_machine_runtime = {};
 		}
 
-		resource_manager&			  rm  = w.get_resource_manager();
-		anim_state_machine&			  as  = rm.get_resource<anim_state_machine>(_resource_machine);
-		const anim_state_machine_raw& raw = as.get_raw();
+		_resource_machine = h;
+		if (_resource_machine.is_null())
+			return;
 
-		animation_graph& ag = w.get_animation_graph();
+		resource_manager&			 rm			= w.get_resource_manager();
+		res_state_machine&			 res_sm		= rm.get_resource<res_state_machine>(_resource_machine);
+		const res_state_machine_raw& res_sm_raw = res_sm.get_raw();
 
-		_runtime_machine									  = ag.add_state_machine();
-		anim_graph.get_state_machine(_runtime_machine).entity = _header.entity;
-
-		struct pair_str_param
-		{
-			string		  name;
-			pool_handle16 handle;
-		};
-		vector<pair_str_param> param_map;
-		param_map.reserve(raw.parameters.size());
-
-		for (const auto& p : raw.parameters)
-		{
-			const pool_handle16 ph = ag.add_parameter(_runtime_machine, p.value);
-			param_map.push_back({p.name, ph});
-		}
-
-		auto find_param = [&param_map](const string& name) -> pool_handle16 {
-			if (name.empty())
-				return pool_handle16();
-			for (const auto& pr : param_map)
-				if (pr.name == name)
-					return pr.handle;
-			return {};
-		};
-
-		struct pair_str_state
-		{
-			string		  name;
-			pool_handle16 handle;
-		};
-		vector<pair_str_state> state_map;
-		state_map.reserve(raw.states.size());
-
-		pool_handle16 default_initial = {};
-
-		for (const auto& s : raw.states)
-		{
-			uint8 flags = 0;
-			if (s.is_looping)
-				flags |= animation_state_flags_is_looping;
-			if (s.blend_type == 1)
-				flags |= animation_state_flags_is_1d;
-			else if (s.blend_type == 2)
-				flags |= animation_state_flags_is_2d;
-
-			const pool_handle16 px = find_param(s.blend_param_x);
-			const pool_handle16 py = find_param(s.blend_param_y);
-
-			const pool_handle16 st = ag.add_state(_runtime_machine, {}, px, py, s.duration, flags);
-
-			// set speed
-			animation_state& stref = ag.get_state(st);
-			stref.speed			   = s.speed;
-
-			for (const auto& smp : s.samples)
-			{
-				const resource_handle ah = rm.get_resource_handle_by_hash_if_exists<animation>(smp.animation_sid);
-				if (!ah.is_null() && rm.is_valid<animation>(ah))
-					ag.add_state_sample(st, ah, smp.blend_point);
-			}
-
-			if (s.duration <= 0.0f && !s.samples.empty())
-			{
-				const resource_handle ah0 = rm.get_resource_handle_by_hash_if_exists<animation>(s.samples[0].animation_sid);
-				if (!ah0.is_null())
-					stref.duration = rm.get_resource<animation>(ah0).get_duration();
-			}
-
-			if (default_initial.is_null())
-				default_initial = st;
-			state_map.push_back({s.name, st});
-		}
-
-		auto find_state = [&state_map](const string& name) -> pool_handle16 {
-			if (name.empty())
-				return pool_handle16();
-			for (const auto& st : state_map)
-				if (st.name == name)
-					return st.handle;
-			return {};
-		};
-
-		for (const auto& t : raw.transitions)
-		{
-			const pool_handle16 from = find_state(t.from_state);
-			const pool_handle16 to	 = find_state(t.to_state);
-			const pool_handle16 pr	 = find_param(t.parameter);
-			if (!from.is_null() && !to.is_null())
-			{
-				ag.add_transition(from, to, pr, t.duration, t.target, t.compare, t.priority);
-			}
-		}
-
-		pool_handle16 initial = find_state(raw.initial_state);
-		if (initial.is_null())
-			initial = default_initial;
-		if (!initial.is_null())
-			ag.set_machine_active_state(_runtime_machine, initial);
+		_machine_runtime					= anim_graph.create_state_machine_from_raw(w, res_sm_raw);
+		animation_state_machine& runtime_sm = anim_graph.get_state_machine(_machine_runtime);
+		runtime_sm.entity					= _header.entity;
+		runtime_sm.joint_entities			= _skin_entities_ch;
+		runtime_sm.joint_entities_count		= static_cast<uint16>(_skin_entities.size());
 	}
 
 }

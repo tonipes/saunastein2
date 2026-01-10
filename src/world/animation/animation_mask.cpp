@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -43,8 +43,8 @@ namespace SFG
 
 		for (uint16 i = 0; i < sk.get_joints_count(); i++)
 		{
-			const skin_joint& j					  = joints_ptr[i];
-			_joints[j.model_node_index].is_masked = 1;
+			const skin_joint& j					 = joints_ptr[i];
+			joints[j.model_node_index].is_masked = 1;
 		}
 	}
 
@@ -62,7 +62,7 @@ namespace SFG
 
 			if (j.name_hash == hash)
 			{
-				_joints[j.model_node_index].is_masked = 1;
+				joints[j.model_node_index].is_masked = 1;
 				break;
 			}
 		}

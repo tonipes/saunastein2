@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -41,11 +41,13 @@ namespace SFG
 
 	struct animation_parameter
 	{
+		string_id	  sid		  = 0;
 		pool_handle16 _next_param = {};
 		float		  value		  = 0.0f;
 	};
 
 	class world;
+	class res_state_machine_raw;
 
 	class animation_graph
 	{
@@ -74,15 +76,19 @@ namespace SFG
 		// state/transition/parameter management
 		// -----------------------------------------------------------------------------
 
+		pool_handle16			 create_state_machine_from_raw(world& w, const res_state_machine_raw& r);
 		pool_handle16			 add_state_machine();
-		pool_handle16			 add_state(pool_handle16 state_machine_handle);
-		pool_handle16			 add_state(pool_handle16 state_machine_handle, pool_handle16 mask, pool_handle16 blend_param_x, pool_handle16 blend_param_y, float duration, uint8 flags);
+		pool_handle16			 add_state(pool_handle16 state_machine_handle, const char* name);
+		pool_handle16			 get_state_handle(pool_handle16 state_machine_handle, const char* name);
+		pool_handle16			 add_state(pool_handle16 state_machine_handle, const char* name, pool_handle16 mask, pool_handle16 blend_param_x, pool_handle16 blend_param_y, float duration, uint8 flags);
 		pool_handle16			 add_state_sample(pool_handle16 state_handle, resource_handle animation, const vector2& blend_point);
 		pool_handle16			 add_state_sample(pool_handle16 state_handle);
-		pool_handle16			 add_parameter(pool_handle16 state_machine_handle, float val = 0.0f);
+		pool_handle16			 add_parameter(pool_handle16 state_machine_handle, const char* name, float val = 0.0f);
+		pool_handle16			 get_parameter_handle(pool_handle16 state_machine_handle, const char* name);
 		pool_handle16			 add_transition(pool_handle16 from_state_handle, pool_handle16 to_state_handle);
 		pool_handle16			 add_transition(pool_handle16 from_state_handle, pool_handle16 to_state_handle, pool_handle16 param_handle, float duration, float target_value, animation_transition_compare compare, uint8 priority);
-		pool_handle16			 add_mask();
+		pool_handle16			 add_mask(const char* name);
+		pool_handle16			 get_mask_handle(const char* name);
 		void					 remove_state_machine(pool_handle16 handle);
 		void					 remove_mask(pool_handle16 handle);
 		animation_state&		 get_state(pool_handle16 handle);

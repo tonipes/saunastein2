@@ -30,6 +30,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "reflection/type_reflection.hpp"
 #include "resources/common_resources.hpp"
 #include "memory/pool_handle.hpp"
+#include "memory/chunk_handle.hpp"
+#include "data/vector.hpp"
 
 namespace SFG
 {
@@ -55,6 +57,7 @@ namespace SFG
 		// impl
 		// -----------------------------------------------------------------------------
 
+		void set_skin_entities(world& w, world_handle* skin_entities, uint16 skin_entities_count);
 		void set_machine_resource(world& w, resource_handle h);
 
 		// -----------------------------------------------------------------------------
@@ -68,16 +71,18 @@ namespace SFG
 
 		inline resource_handle get_runtime_machine() const
 		{
-			return _runtime_machine;
+			return _machine_runtime;
 		}
 
 	private:
 		template <typename T, int> friend class comp_cache;
 
 	private:
-		component_header _header		   = {};
-		resource_handle	 _resource_machine = {};
-		pool_handle16	 _runtime_machine  = {};
+		component_header	 _header		   = {};
+		resource_handle		 _resource_machine = {};
+		chunk_handle32		 _skin_entities_ch = {};
+		pool_handle16		 _machine_runtime  = {};
+		vector<world_handle> _skin_entities	   = {};
 	};
 
 	REFLECT_TYPE(comp_animation_controller);

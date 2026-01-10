@@ -45,8 +45,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "resources/mesh_raw.hpp"
 #include "resources/animation.hpp"
 #include "resources/animation_raw.hpp"
-#include "resources/anim_state_machine.hpp"
-#include "resources/anim_state_machine_raw.hpp"
+#include "resources/res_state_machine.hpp"
+#include "resources/res_state_machine_raw.hpp"
 #include "resources/audio.hpp"
 #include "resources/audio_raw.hpp"
 #include "resources/font.hpp"
@@ -94,7 +94,7 @@ namespace SFG
 		_resource_manager.register_cache<shader, shader_raw, MAX_WORLD_SHADERS, 0>();
 		_resource_manager.register_cache<physical_material, physical_material_raw, MAX_WORLD_PHYSICAL_MATERIALS, 0>();
 		_resource_manager.register_cache<particle_properties, particle_properties_raw, MAX_WORLD_PARTICLE_PROPERTIES, 0>();
-		_resource_manager.register_cache<anim_state_machine, anim_state_machine_raw, MAX_WORLD_ANIM_STATE_MACHINES, 1>();
+		_resource_manager.register_cache<res_state_machine, res_state_machine_raw, MAX_WORLD_ANIM_STATE_MACHINES, 1>();
         _resource_manager.register_cache<entity_template, entity_template_raw, MAX_WORLD_ENTITY_TEMPLATES, 0>();
 
 		// trait registry

@@ -31,13 +31,14 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "math/vector2.hpp"
 #include "common/string_id.hpp"
 #include "world/animation/animation_transition.hpp"
+#include <cstdint>
 
 namespace SFG
 {
 	class ostream;
 	class istream;
 
-	struct anim_sm_parameter_raw
+	struct res_state_machine_parameter_raw
 	{
 		string name	 = "";
 		float  value = 0.0f;
@@ -46,32 +47,34 @@ namespace SFG
 		void deserialize(istream& stream);
 	};
 
-	struct anim_sm_state_sample_raw
+	struct res_state_machine_sample_raw
 	{
-		string_id animation_sid = 0;
+		string_id animation_sid	 = 0;
+		string	  animation_str	 = "";
 		string	  base_model_str = "";
-		vector2	  blend_point	= vector2::zero;
+		vector2	  blend_point	 = vector2::zero;
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);
 	};
 
-	struct anim_sm_state_raw
+	struct res_state_machine_state_raw
 	{
-		string							 name		   = "";
-		float							 duration	   = 0.0f;
-		float							 speed		   = 1.0f;
-		uint8							 is_looping	   = 1;
-		uint8							 blend_type	   = 1;
-		string							 blend_param_x = "";
-		string							 blend_param_y = "";
-		vector<anim_sm_state_sample_raw> samples;
+		string								 name		   = "";
+		string								 mask		   = "";
+		float								 duration	   = 0.0f;
+		float								 speed		   = 1.0f;
+		uint8								 is_looping	   = 1;
+		uint8								 blend_type	   = 1;
+		string								 blend_param_x = "";
+		string								 blend_param_y = "";
+		vector<res_state_machine_sample_raw> samples;
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);
 	};
 
-	struct anim_sm_transition_raw
+	struct res_state_machine_transition_raw
 	{
 		string						 from_state = "";
 		string						 to_state	= "";
@@ -85,13 +88,19 @@ namespace SFG
 		void deserialize(istream& stream);
 	};
 
-	struct anim_state_machine_raw
+	struct res_state_machine_mask_raw
 	{
-		string						   name			 = "";
-		string						   initial_state = "";
-		vector<anim_sm_parameter_raw>  parameters;
-		vector<anim_sm_state_raw>	   states;
-		vector<anim_sm_transition_raw> transitions;
+		string name = "";
+	};
+
+	struct res_state_machine_raw
+	{
+		string									 name		   = "";
+		string									 initial_state = "";
+		vector<res_state_machine_parameter_raw>	 parameters;
+		vector<res_state_machine_state_raw>		 states;
+		vector<res_state_machine_transition_raw> transitions;
+		vector<res_state_machine_mask_raw>		 masks;
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);

@@ -38,6 +38,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // components
 #include "world/components/comp_mesh_instance.hpp"
+#include "world/components/comp_animation_controller.hpp"
 #include "world/components/comp_light.hpp"
 
 // resources
@@ -965,6 +966,13 @@ namespace SFG
 					SFG_ASSERT(mat_index < mdl.get_material_count());
 					mi_materials.push_back(model_materials[mat_index]);
 				}
+			}
+
+			if (!skin_handle.is_null())
+			{
+				const world_handle		   comp_handle = cm.add_component<comp_animation_controller>(entity);
+				comp_animation_controller& ac		   = cm.get_component<comp_animation_controller>(comp_handle);
+				ac.set_skin_entities(_world, created_node_entities.data(), static_cast<uint16>(created_node_entities.size()));
 			}
 
 			const world_handle	comp_handle = cm.add_component<comp_mesh_instance>(entity);

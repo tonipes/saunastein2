@@ -51,7 +51,7 @@ namespace SFG
 		m.add_field<&comp_mesh_instance::_target_mesh, comp_mesh_instance>("mesh", reflected_field_type::rf_resource, "", type_id<mesh>::value);
 		m.add_field<&comp_mesh_instance::_target_skin, comp_mesh_instance>("skin", reflected_field_type::rf_resource, "", type_id<skin>::value);
 		m.add_field<&comp_mesh_instance::_materials, comp_mesh_instance>("material", reflected_field_type::rf_resource, "", type_id<material>::value, 1);
-		m.add_field<&comp_mesh_instance::_skin_entities, comp_mesh_instance>("skin_entities", reflected_field_type::rf_entity, "", type_id<material>::value, 1, 1);
+		m.add_field<&comp_mesh_instance::_skin_entities, comp_mesh_instance>("skin_entities", reflected_field_type::rf_entity, "", (string_id)0, 1, 1);
 
 		m.add_function<void, void*, world&>("on_reflect_load"_hs, [](void* obj, world& w) {
 			comp_mesh_instance* c = static_cast<comp_mesh_instance*>(obj);
@@ -60,9 +60,11 @@ namespace SFG
 			entity_manager& em = w.get_entity_manager();
 			for (world_handle skin_entity : c->_skin_entities)
 			{
+				if (!em.is_valid(skin_entity))
+					continue;
+
 				em.add_render_proxy(skin_entity);
 			}
-
 		});
 
 		m.add_function<void, const reflected_field_changed_params&>("on_reflected_changed"_hs, [](const reflected_field_changed_params& params) {

@@ -29,27 +29,27 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "resources/common_resources.hpp"
 #include "reflection/type_reflection.hpp"
 #include "memory/pool_handle.hpp"
-#include "anim_state_machine_raw.hpp"
+#include "res_state_machine_raw.hpp"
 
 namespace SFG
 {
 	class world;
 
-	class anim_state_machine
+	class res_state_machine
 	{
 	public:
 		static void reflect();
-		void		create_from_loader(const anim_state_machine_raw& raw, world& w, resource_handle handle);
+		void		create_from_loader(const res_state_machine_raw& raw, world& w, resource_handle handle);
 		void		destroy(world& w, resource_handle handle);
 
-		inline const anim_state_machine_raw& get_raw() const
+		inline const res_state_machine_raw& get_raw() const
 		{
 			return _raw;
 		}
 
 	private:
-		anim_state_machine_raw _raw = {};
+		res_state_machine_raw _raw = {};
 	};
 
-	REFLECT_TYPE(anim_state_machine);
+	REFLECT_TYPE(res_state_machine);
 }

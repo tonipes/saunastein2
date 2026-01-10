@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -30,6 +30,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "world/world.hpp"
 #include "world/components/comp_camera.hpp"
 #include "io/log.hpp"
+#include "resources/animation.hpp"
+#include "resources/res_state_machine_raw.hpp"
 #include <tracy/Tracy.hpp>
 
 namespace SFG
@@ -199,17 +201,108 @@ namespace SFG
 	// state/transition/parameter management
 	// -----------------------------------------------------------------------------
 
+	pool_handle16 animation_graph::create_state_machine_from_raw(world& w, const res_state_machine_raw& r)
+	{
+		resource_manager& rm = w.get_resource_manager();
+
+		const pool_handle16 sm = add_state_machine();
+
+		for (const res_state_machine_parameter_raw& pr : r.parameters)
+		{
+			add_parameter(sm, pr.name.c_str(), pr.value);
+		}
+
+		for (const res_state_machine_mask_raw& sm : r.masks)
+		{
+			add_mask(sm.name.c_str());
+		}
+
+		for (const res_state_machine_state_raw& sr : r.states)
+		{
+			const pool_handle h		= add_state(sm, sr.name.c_str());
+			animation_state&  state = get_state(h);
+			state.speed				= sr.speed;
+			state.duration			= sr.duration;
+			state.flags.set(animation_state_flags_is_2d, sr.blend_type == 2);
+			state.flags.set(animation_state_flags_is_1d, sr.blend_type == 1);
+			state.flags.set(animation_state_flags_is_looping, sr.is_looping);
+			state.blend_weight_param_x = get_parameter_handle(sm, sr.name.c_str());
+			state.blend_weight_param_y = get_parameter_handle(sm, sr.name.c_str());
+			state.mask				   = get_mask_handle(sr.mask.c_str());
+
+			const uint8 zero_dur = math::almost_equal(state.duration, 0.0f);
+
+			for (const res_state_machine_sample_raw& sample : sr.samples)
+			{
+				const resource_handle ah = rm.get_resource_handle_by_hash<animation>(sample.animation_sid);
+				add_state_sample(h, ah, sample.blend_point);
+
+				if (zero_dur)
+				{
+					const animation& a		  = rm.get_resource<animation>(ah);
+					const float		 anim_dur = a.get_duration();
+					state.duration			  = math::max(state.duration, anim_dur);
+				}
+			}
+		}
+
+		for (const res_state_machine_transition_raw& tr : r.transitions)
+		{
+			const pool_handle16	  h = add_transition(get_state_handle(sm, tr.from_state.c_str()), get_state_handle(sm, tr.to_state.c_str()));
+			animation_transition& t = get_transition(h);
+			t.target_value			= tr.target;
+			t.priority				= tr.priority;
+			t.duration				= tr.duration;
+			t.compare				= tr.compare;
+			t.parameter				= get_parameter_handle(sm, tr.parameter.c_str());
+		}
+
+		animation_state_machine& mac = get_state_machine(sm);
+		mac.active_state			 = get_state_handle(sm, r.initial_state.c_str());
+		return sm;
+	}
+
 	pool_handle16 animation_graph::add_state_machine()
 	{
 		return _machines->add();
 	}
 
-	pool_handle16 animation_graph::add_state(pool_handle16 state_machine_handle)
+	pool_handle16 animation_graph::get_state_handle(pool_handle16 state_machine_handle, const char* name)
 	{
-		return add_state(state_machine_handle, {}, {}, {}, 1.0f, animation_state_flags_is_looping);
+		animation_state_machine& machine = _machines->get(state_machine_handle);
+
+		if (machine._first_state.is_null())
+		{
+			return {};
+		}
+
+		pool_handle16	next = machine._first_state;
+		const string_id sid	 = TO_SID(name);
+		while (true)
+		{
+			animation_state& target = _states->get(next);
+			if (target.sid == sid)
+				return next;
+
+			const pool_handle16 h = target._next_state;
+			if (!h.is_null())
+			{
+				next = h;
+				continue;
+			}
+
+			break;
+		}
+
+		return {};
 	}
 
-	pool_handle16 animation_graph::add_state(pool_handle16 state_machine_handle, pool_handle16 mask, pool_handle16 blend_param_x, pool_handle16 blend_param_y, float duration, uint8 flags)
+	pool_handle16 animation_graph::add_state(pool_handle16 state_machine_handle, const char* name)
+	{
+		return add_state(state_machine_handle, name, {}, {}, {}, 1.0f, animation_state_flags_is_looping);
+	}
+
+	pool_handle16 animation_graph::add_state(pool_handle16 state_machine_handle, const char* name, pool_handle16 mask, pool_handle16 blend_param_x, pool_handle16 blend_param_y, float duration, uint8 flags)
 	{
 		const pool_handle16 new_state = _states->add();
 
@@ -243,7 +336,7 @@ namespace SFG
 		state.mask				   = mask;
 		state.duration			   = duration;
 		state.flags				   = flags;
-
+		state.sid				   = TO_SID(name);
 		return new_state;
 	}
 
@@ -287,7 +380,7 @@ namespace SFG
 		return add_state_sample(state_handle, {}, {});
 	}
 
-	pool_handle16 animation_graph::add_parameter(pool_handle16 state_machine_handle, float val)
+	pool_handle16 animation_graph::add_parameter(pool_handle16 state_machine_handle, const char* name, float val)
 	{
 		const pool_handle16 new_param = _params->add();
 
@@ -315,8 +408,35 @@ namespace SFG
 
 		animation_parameter& p = get_parameter(new_param);
 		p.value				   = val;
+		p.sid				   = TO_SID(name);
 
 		return new_param;
+	}
+
+	pool_handle16 animation_graph::get_parameter_handle(pool_handle16 state_machine_handle, const char* name)
+	{
+		animation_state_machine& machine = _machines->get(state_machine_handle);
+		if (machine._first_parameter.is_null())
+			return {};
+
+		const string_id sid	 = TO_SID(name);
+		pool_handle16	next = machine._first_parameter;
+		while (true)
+		{
+			animation_parameter& target = _params->get(next);
+			if (target.sid == sid)
+				return next;
+
+			const pool_handle16 h = target._next_param;
+			if (!h.is_null())
+			{
+				next = h;
+				continue;
+			}
+			break;
+		}
+
+		return {};
 	}
 
 	pool_handle16 animation_graph::add_transition(pool_handle16 state_handle, pool_handle16 to_state_handle)
@@ -364,9 +484,33 @@ namespace SFG
 		return transition;
 	}
 
-	pool_handle16 animation_graph::add_mask()
+	pool_handle16 animation_graph::add_mask(const char* name)
 	{
-		return _masks->add();
+		const string_id sid = TO_SID(name);
+		for (auto it = _masks->handles_begin(); it != _masks->handles_end(); ++it)
+		{
+			const pool_handle16	  h = *it;
+			const animation_mask& m = get_mask(h);
+			if (m.sid == sid)
+				return h;
+		}
+		const pool_handle16 m  = _masks->add();
+		animation_mask&		nm = get_mask(m);
+		nm.sid				   = sid;
+		return m;
+	}
+
+	pool_handle16 animation_graph::get_mask_handle(const char* name)
+	{
+		const string_id sid = TO_SID(name);
+		for (auto it = _masks->handles_begin(); it != _masks->handles_end(); ++it)
+		{
+			const pool_handle16	  h = *it;
+			const animation_mask& m = get_mask(h);
+			if (m.sid == sid)
+				return h;
+		}
+		return {};
 	}
 
 	void animation_graph::remove_state_machine(pool_handle16 handle)
@@ -482,7 +626,9 @@ namespace SFG
 		entity_manager&	   em  = w.get_entity_manager();
 		chunk_allocator32& aux = w.get_comp_manager().get_aux();
 
-		const uint16  sz			 = m.joint_entities_count;
+		if (m.joint_entities.size == 0)
+			return;
+
 		world_handle* entity_handles = aux.get<world_handle>(m.joint_entities);
 
 		const uint16	  count = pose.get_joint_count();
@@ -495,6 +641,8 @@ namespace SFG
 				continue;
 
 			const world_handle entity = entity_handles[i];
+			if (!em.is_valid(entity))
+				continue;
 
 			if (jp.flags.is_set(joint_pose_flags::has_position))
 				em.set_entity_position(entity, jp.pos);
