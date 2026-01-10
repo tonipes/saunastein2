@@ -82,7 +82,7 @@ namespace SFG
 		_prop_name						 = _gui_builder.add_property_row_text_field("name", "-", 256).second;
 		_prop_handle					 = _gui_builder.add_property_row_label("handle:", "{-, -}", 16).second;
 		const gui_builder::id_quat pos	 = _gui_builder.add_property_row_vector3("position", "0.0", 16, 3, 0.1f);
-		const gui_builder::id_quat rot	 = _gui_builder.add_property_row_vector3("rotation", "0.0", 16, 3, 0.1f);
+		const gui_builder::id_quat rot	 = _gui_builder.add_property_row_vector3("rotation", "0.0", 16, 3, 1.0f);
 		const gui_builder::id_quat scale = _gui_builder.add_property_row_vector3("scale", "1.0", 16, 3, 0.1f);
 		_selected_pos_x					 = pos.second;
 		_selected_pos_y					 = pos.third;
@@ -247,6 +247,9 @@ namespace SFG
 		_root_entity_widgets.resize(0);
 		_node_bindings.resize(0);
 
+		_drag_source	 = {};
+		_drag_src_widget = NULL_WIDGET_ID;
+
 		entity_manager& em = w.get_entity_manager();
 		// Build from roots
 		for (auto it = em.get_entities()->handles_begin(); it != em.get_entities()->handles_end(); ++it)
@@ -329,13 +332,16 @@ namespace SFG
 
 			vekt::hover_callback& hb = _builder->widget_get_hover_callbacks(row_inner);
 			hb.receive_mouse		 = 1;
-			hb.on_hover_begin		 = on_tree_item_hover_begin;
+			hb.on_hover_move		 = on_tree_item_hover_move;
 			hb.on_hover_end			 = on_tree_item_hover_end;
 			hb.on_focus_gained		 = on_focus_gained;
 
+			vekt::input_color_props& c = _builder->widget_get_input_colors(row_inner);
+			c.focus_color			   = {};
+
 			vekt::mouse_callback& mc = _builder->widget_get_mouse_callbacks(row_inner);
 			mc.on_mouse				 = on_mouse;
-			mc.on_drag				 = on_drag;
+			mc.on_drag				 = on_tree_item_drag;
 
 			vekt::key_callback& kb = _builder->widget_get_key_callbacks(row_inner);
 			kb.on_key			   = on_key;
@@ -456,6 +462,7 @@ namespace SFG
 			em.set_entity_rotation_abs(src, rot);
 			em.set_entity_scale_abs(src, scale);
 		}
+		SFG_TRACE("drop drag");
 		_is_payload_on = false;
 		_drag_source   = {};
 	}
@@ -464,6 +471,7 @@ namespace SFG
 	{
 		_is_payload_on	 = false;
 		_drag_src_widget = {};
+		SFG_TRACE("drag killed");
 	}
 
 	void editor_panel_entities::set_selected(world_handle h)
@@ -764,8 +772,9 @@ namespace SFG
 		if (ev.type == vekt::input_event_type::pressed)
 		{
 			self->set_selected(clicked);
-			self->_drag_source = clicked;
-			self->_drag_y	   = ev.position.y;
+			self->_drag_source	   = clicked;
+			self->_drag_src_widget = widget;
+			self->_drag_y		   = ev.position.y;
 			return vekt::input_event_result::handled;
 		}
 
@@ -809,11 +818,17 @@ namespace SFG
 		return vekt::input_event_result::not_handled;
 	}
 
-	void editor_panel_entities::on_drag(vekt::builder* b, vekt::id widget, float mp_x, float mp_y, float delta_x, float delta_y, unsigned int button)
+	void editor_panel_entities::on_tree_item_drag(vekt::builder* b, vekt::id widget, float mp_x, float mp_y, float delta_x, float delta_y, unsigned int button)
 	{
 		editor_panel_entities* self = static_cast<editor_panel_entities*>(b->widget_get_user_data(widget).ptr);
-		return;
-		if (!b->widget_get_hover_callbacks(widget).is_hovered && !self->_drag_source.is_null())
+	}
+
+	void editor_panel_entities::on_tree_item_hover_end(vekt::builder* b, vekt::id widget)
+	{
+		editor_panel_entities* self		   = static_cast<editor_panel_entities*>(b->widget_get_user_data(widget).ptr);
+		b->widget_get_stroke(widget).color = {};
+
+		if (self->_drag_src_widget == widget && !self->_is_payload_on && !self->_drag_source.is_null() && b->widget_get_hover_callbacks(self->_drag_src_widget).is_pressing)
 		{
 			const char* name = editor::get().get_app().get_world().get_entity_manager().get_entity_meta(self->_drag_source).name;
 			editor::get().get_gui_controller().enable_payload(name);
@@ -821,16 +836,13 @@ namespace SFG
 		}
 	}
 
-	void editor_panel_entities::on_tree_item_hover_begin(vekt::builder* b, vekt::id widget)
+	void editor_panel_entities::on_tree_item_hover_move(vekt::builder* b, vekt::id widget)
 	{
 		editor_panel_entities* self = static_cast<editor_panel_entities*>(b->widget_get_user_data(widget).ptr);
 		if (self->_is_payload_on && widget != self->_drag_src_widget)
+		{
 			b->widget_get_stroke(widget).color = editor_theme::get().col_highlight;
-	}
-
-	void editor_panel_entities::on_tree_item_hover_end(vekt::builder* b, vekt::id widget)
-	{
-		b->widget_get_stroke(widget).color = {};
+		}
 	}
 
 	void editor_panel_entities::on_focus_gained(vekt::builder* b, vekt::id widget, bool from_nav)

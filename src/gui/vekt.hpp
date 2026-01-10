@@ -966,6 +966,7 @@ namespace vekt
 	struct hover_callback
 	{
 		widget_func		on_hover_begin	= nullptr;
+		widget_func		on_hover_move	= nullptr;
 		widget_func		on_hover_end	= nullptr;
 		widget_func		on_focus_lost	= nullptr;
 		focus_gain_func on_focus_gained = nullptr;
@@ -1027,6 +1028,7 @@ namespace vekt
 	{
 		id	  scroll_parent = NULL_WIDGET_ID;
 		float scroll_ratio	= 0.0f;
+		float _max_scroll	= 0.0f;
 	};
 
 	struct custom_passes
@@ -1365,8 +1367,7 @@ namespace vekt
 		id						 _root					   = NULL_WIDGET_ID;
 		id						 _pressed_widget		   = NULL_WIDGET_ID;
 		id						 _focused_widget		   = NULL_WIDGET_ID;
-		VEKT_VEC2				 _press_pos				   = VEKT_VEC2();
-		float					 _press_scroll			   = 0.0f;
+		VEKT_VEC2				 _press_relative_pos	   = VEKT_VEC2();
 		unsigned int			 _pressed_button		   = 0;
 	};
 

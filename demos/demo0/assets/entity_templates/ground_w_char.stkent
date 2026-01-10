@@ -1,0 +1,1988 @@
+{
+    "components": [
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 2,
+            "material": 1,
+            "material0": "assets/ground/ground.stkmodel/GroundPlane",
+            "mesh": "assets/ground/ground.stkmodel/Plane.001",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 3,
+            "material": 1,
+            "material0": "assets/ground/ground.stkmodel/Cube",
+            "mesh": "assets/ground/ground.stkmodel/Cube.002",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 4,
+            "material": 1,
+            "material0": "assets/ground/ground.stkmodel/Monkey",
+            "mesh": "assets/ground/ground.stkmodel/Suzanne.001",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "cast_shadows": 0,
+            "color": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "comp_type": 11258474854588496451,
+            "entity": 5,
+            "intensity": 5.0,
+            "max_cascades": 1
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 6,
+            "material": 1,
+            "material0": "assets/ground/ground.stkmodel/Metal",
+            "mesh": "assets/ground/ground.stkmodel/Cube",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 7,
+            "material": 1,
+            "material0": "assets/ground/ground.stkmodel/Metal",
+            "mesh": "assets/ground/ground.stkmodel/Cone",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 8,
+            "material": 1,
+            "material0": "assets/ground/ground.stkmodel/Wall2",
+            "mesh": "assets/ground/ground.stkmodel/Cube.001",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 9,
+            "material": 1,
+            "material0": "assets/ground/ground.stkmodel/Wall",
+            "mesh": "assets/ground/ground.stkmodel/Cube.003",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 10,
+            "material": 1,
+            "material0": "assets/ground/ground.stkmodel/Wood2",
+            "mesh": "assets/ground/ground.stkmodel/Cube.004",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 11,
+            "material": 1,
+            "material0": "assets/ground/ground.stkmodel/Wood",
+            "mesh": "assets/ground/ground.stkmodel/Cube.005",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 12,
+            "material": 1,
+            "material0": "assets/ground/ground.stkmodel/Wood",
+            "mesh": "assets/ground/ground.stkmodel/Cube.006",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 13,
+            "material": 1,
+            "material0": "assets/ground/ground.stkmodel/Wood",
+            "mesh": "assets/ground/ground.stkmodel/Cube.007",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 14,
+            "material": 1,
+            "material0": "assets/ground/ground.stkmodel/Metal",
+            "mesh": "assets/ground/ground.stkmodel/Cone.001",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 15,
+            "material": 1,
+            "material0": "assets/ground/ground.stkmodel/Metal",
+            "mesh": "assets/ground/ground.stkmodel/Cone.002",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 14356981188726125758,
+            "entity": 71,
+            "machine": "assets/character/idle_state_machine.stkanim",
+            "skin_entities": 55,
+            "skin_entities0": 24,
+            "skin_entities1": 23,
+            "skin_entities10": 35,
+            "skin_entities11": 40,
+            "skin_entities12": 39,
+            "skin_entities13": 38,
+            "skin_entities14": 43,
+            "skin_entities15": 42,
+            "skin_entities16": 41,
+            "skin_entities17": 28,
+            "skin_entities18": 27,
+            "skin_entities19": 26,
+            "skin_entities2": 31,
+            "skin_entities20": 25,
+            "skin_entities21": 50,
+            "skin_entities22": 49,
+            "skin_entities23": 48,
+            "skin_entities24": 53,
+            "skin_entities25": 52,
+            "skin_entities26": 51,
+            "skin_entities27": 56,
+            "skin_entities28": 55,
+            "skin_entities29": 54,
+            "skin_entities3": 30,
+            "skin_entities30": 59,
+            "skin_entities31": 58,
+            "skin_entities32": 57,
+            "skin_entities33": 62,
+            "skin_entities34": 61,
+            "skin_entities35": 60,
+            "skin_entities36": 47,
+            "skin_entities37": 46,
+            "skin_entities38": 45,
+            "skin_entities39": 44,
+            "skin_entities4": 29,
+            "skin_entities40": 22,
+            "skin_entities41": 21,
+            "skin_entities42": 20,
+            "skin_entities43": 66,
+            "skin_entities44": 65,
+            "skin_entities45": 64,
+            "skin_entities46": 63,
+            "skin_entities47": 70,
+            "skin_entities48": 69,
+            "skin_entities49": 68,
+            "skin_entities5": 34,
+            "skin_entities50": 67,
+            "skin_entities51": 19,
+            "skin_entities52": 18,
+            "skin_entities53": 71,
+            "skin_entities54": 17,
+            "skin_entities6": 33,
+            "skin_entities7": 32,
+            "skin_entities8": 37,
+            "skin_entities9": 36
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 71,
+            "material": 2,
+            "material0": "assets/character/character.stkmodel/M_Main",
+            "material1": "assets/character/character.stkmodel/M_Joints",
+            "mesh": "assets/character/character.stkmodel/Mannequin",
+            "skin": "assets/character/character.stkmodel/Rig",
+            "skin_entities": 55,
+            "skin_entities0": 24,
+            "skin_entities1": 23,
+            "skin_entities10": 35,
+            "skin_entities11": 40,
+            "skin_entities12": 39,
+            "skin_entities13": 38,
+            "skin_entities14": 43,
+            "skin_entities15": 42,
+            "skin_entities16": 41,
+            "skin_entities17": 28,
+            "skin_entities18": 27,
+            "skin_entities19": 26,
+            "skin_entities2": 31,
+            "skin_entities20": 25,
+            "skin_entities21": 50,
+            "skin_entities22": 49,
+            "skin_entities23": 48,
+            "skin_entities24": 53,
+            "skin_entities25": 52,
+            "skin_entities26": 51,
+            "skin_entities27": 56,
+            "skin_entities28": 55,
+            "skin_entities29": 54,
+            "skin_entities3": 30,
+            "skin_entities30": 59,
+            "skin_entities31": 58,
+            "skin_entities32": 57,
+            "skin_entities33": 62,
+            "skin_entities34": 61,
+            "skin_entities35": 60,
+            "skin_entities36": 47,
+            "skin_entities37": 46,
+            "skin_entities38": 45,
+            "skin_entities39": 44,
+            "skin_entities4": 29,
+            "skin_entities40": 22,
+            "skin_entities41": 21,
+            "skin_entities42": 20,
+            "skin_entities43": 66,
+            "skin_entities44": 65,
+            "skin_entities45": 64,
+            "skin_entities46": 63,
+            "skin_entities47": 70,
+            "skin_entities48": 69,
+            "skin_entities49": 68,
+            "skin_entities5": 34,
+            "skin_entities50": 67,
+            "skin_entities51": 19,
+            "skin_entities52": 18,
+            "skin_entities53": 71,
+            "skin_entities54": 17,
+            "skin_entities6": 33,
+            "skin_entities7": 32,
+            "skin_entities8": 37,
+            "skin_entities9": 36
+        },
+        {
+            "cast_shadows": 0,
+            "color": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "comp_type": 444826457028991798,
+            "entity": 72,
+            "intensity": 255.0,
+            "near_plane": 0.0,
+            "range": 15.0
+        }
+    ],
+    "entities": [
+        {
+            "first_child": 1,
+            "name": "new_entity",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 2,
+            "name": "assets/ground/ground.stkmodel",
+            "next_sibling": 16,
+            "parent": 0,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Plane",
+            "next_sibling": 3,
+            "parent": 1,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                256.0,
+                256.0,
+                256.0
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 4,
+            "name": "Cube",
+            "next_sibling": 5,
+            "parent": 1,
+            "pos": [
+                0.0,
+                1.1595330238342285,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Suzanne",
+            "next_sibling": -1,
+            "parent": 3,
+            "pos": [
+                0.0,
+                -0.0628957748413086,
+                0.4270210266113281
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                0.4915589392185211,
+                0.4915589392185211,
+                0.4915589392185211
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Sun",
+            "next_sibling": 6,
+            "parent": 1,
+            "pos": [
+                -0.3984586000442505,
+                4.215418338775635,
+                -2.693404197692871
+            ],
+            "rot": [
+                0.9358254075050354,
+                0.018605997785925865,
+                -0.049065060913562775,
+                -0.3485359847545624
+            ],
+            "scale": [
+                0.6661596894264221,
+                0.6661596298217773,
+                0.6661596298217773
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Cube.001",
+            "next_sibling": 7,
+            "parent": 1,
+            "pos": [
+                6.50029993057251,
+                1.9639015197753906,
+                1.4564416408538818
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                0.5,
+                2.0,
+                0.5
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Cone",
+            "next_sibling": 8,
+            "parent": 1,
+            "pos": [
+                -6.656060218811035,
+                0.9934462308883667,
+                -2.516151189804077
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Cube.002",
+            "next_sibling": 9,
+            "parent": 1,
+            "pos": [
+                0.6568679809570313,
+                1.3768982887268066,
+                9.3059663772583
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                4.0,
+                1.399999976158142,
+                0.5
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Cube.003",
+            "next_sibling": 10,
+            "parent": 1,
+            "pos": [
+                -0.5237793922424316,
+                1.6294772624969482,
+                -7.494353294372559
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                1.0,
+                -7.549790126404332e-08
+            ],
+            "scale": [
+                2.1645889282226563,
+                1.661454200744629,
+                0.2724432945251465
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 11,
+            "name": "Cube.004",
+            "next_sibling": 14,
+            "parent": 1,
+            "pos": [
+                -7.111746311187744,
+                2.773085832595825,
+                1.4564416408538818
+            ],
+            "rot": [
+                0.027567798271775246,
+                -0.1876961886882782,
+                -0.1426766812801361,
+                0.9714183211326599
+            ],
+            "scale": [
+                0.11602384597063065,
+                2.784572124481201,
+                0.11602382361888885
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Cube.005",
+            "next_sibling": 12,
+            "parent": 10,
+            "pos": [
+                8.736100196838379,
+                0.7536364197731018,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                -0.7071065902709961,
+                0.7071069478988647
+            ],
+            "scale": [
+                0.060319893062114716,
+                7.908500671386719,
+                0.6261193752288818
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Cube.006",
+            "next_sibling": 13,
+            "parent": 10,
+            "pos": [
+                8.736101150512695,
+                0.5699867606163025,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                -0.7071065902709961,
+                0.7071069478988647
+            ],
+            "scale": [
+                0.060319893062114716,
+                7.908500671386719,
+                0.6261193752288818
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Cube.007",
+            "next_sibling": -1,
+            "parent": 10,
+            "pos": [
+                8.736101150512695,
+                0.3891335725784302,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                -0.7071065902709961,
+                0.7071069478988647
+            ],
+            "scale": [
+                0.060319893062114716,
+                7.908500671386719,
+                0.6261193752288818
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "ConeByWall",
+            "next_sibling": 15,
+            "parent": 1,
+            "pos": [
+                -0.871484100818634,
+                1.8211156129837036,
+                7.239675521850586
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "ConeByWall.001",
+            "next_sibling": -1,
+            "parent": 1,
+            "pos": [
+                -0.871484100818634,
+                1.8211156129837036,
+                -6.050562858581543
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                0.46197593212127686,
+                0.46197593212127686,
+                0.46197593212127686
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 17,
+            "name": "assets/character/character.stkmodel",
+            "next_sibling": -1,
+            "parent": 0,
+            "pos": [
+                0.0,
+                0.10000013560056686,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.21643970906734467,
+                0.0,
+                0.9762960076332092
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 18,
+            "name": "Rig",
+            "next_sibling": 72,
+            "parent": 16,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 19,
+            "name": "root",
+            "next_sibling": 71,
+            "parent": 17,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                -0.7071067094802856,
+                0.0,
+                0.0,
+                0.7071068286895752
+            ],
+            "scale": [
+                1.0,
+                0.9999999403953552,
+                0.9999999403953552
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 20,
+            "name": "DEF-hips",
+            "next_sibling": -1,
+            "parent": 18,
+            "pos": [
+                -0.00024136634601745754,
+                0.08713582903146744,
+                0.8708725571632385
+            ],
+            "rot": [
+                0.7590379118919373,
+                -0.08865801990032196,
+                -0.0748271718621254,
+                0.6406263709068298
+            ],
+            "scale": [
+                1.0,
+                0.9999998807907104,
+                0.9999999403953552
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 21,
+            "name": "DEF-spine.001",
+            "next_sibling": 63,
+            "parent": 19,
+            "pos": [
+                1.6347452280740526e-09,
+                0.1381763517856598,
+                3.492666067472783e-08
+            ],
+            "rot": [
+                -0.06470268964767456,
+                1.1510218200783129e-07,
+                -8.210141899667178e-09,
+                0.9979045987129211
+            ],
+            "scale": [
+                1.0,
+                0.9999999403953552,
+                0.9999999403953552
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 22,
+            "name": "DEF-spine.002",
+            "next_sibling": -1,
+            "parent": 20,
+            "pos": [
+                3.920467561702168e-10,
+                0.12403470277786255,
+                1.2133932969504713e-08
+            ],
+            "rot": [
+                -0.03412434086203575,
+                0.00011270741379121318,
+                0.00012650950520765036,
+                0.9994176030158997
+            ],
+            "scale": [
+                1.0,
+                0.9999999403953552,
+                1.0000001192092896
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 23,
+            "name": "DEF-spine.003",
+            "next_sibling": -1,
+            "parent": 21,
+            "pos": [
+                -9.708972514843595e-10,
+                0.1412716507911682,
+                -6.077513603486295e-09
+            ],
+            "rot": [
+                0.12904852628707886,
+                0.000307058566249907,
+                0.0004035908496007323,
+                0.99163818359375
+            ],
+            "scale": [
+                0.9999997615814209,
+                0.9999998211860657,
+                0.9999998807907104
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 24,
+            "name": "DEF-neck",
+            "next_sibling": 25,
+            "parent": 22,
+            "pos": [
+                1.225611434563234e-08,
+                0.17289075255393982,
+                1.054601561634172e-08
+            ],
+            "rot": [
+                0.024760540574789047,
+                -0.00023363744548987597,
+                -0.00024514063261449337,
+                0.9996933341026306
+            ],
+            "scale": [
+                0.9999997615814209,
+                1.0,
+                0.9999999403953552
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "DEF-head",
+            "next_sibling": -1,
+            "parent": 23,
+            "pos": [
+                -7.755539321863125e-09,
+                0.08258678764104843,
+                2.736169335548766e-08
+            ],
+            "rot": [
+                -0.029417729005217552,
+                0.09604508429765701,
+                0.0012275833869352937,
+                0.9949414730072021
+            ],
+            "scale": [
+                1.0,
+                0.9999998807907104,
+                0.9999997615814209
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 26,
+            "name": "DEF-shoulder.L",
+            "next_sibling": 44,
+            "parent": 22,
+            "pos": [
+                0.018800003454089165,
+                0.1405533254146576,
+                0.08089505881071091
+            ],
+            "rot": [
+                -0.609870433807373,
+                -0.3663861155509949,
+                -0.4007874131202698,
+                0.5772249698638916
+            ],
+            "scale": [
+                0.9999998807907104,
+                0.9999999403953552,
+                0.9999997615814209
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 27,
+            "name": "DEF-upper_arm.L",
+            "next_sibling": -1,
+            "parent": 25,
+            "pos": [
+                -0.03007231280207634,
+                0.21858170628547668,
+                -0.01696816086769104
+            ],
+            "rot": [
+                -0.25643467903137207,
+                0.6699223518371582,
+                -0.518149733543396,
+                0.4657963514328003
+            ],
+            "scale": [
+                0.9999999403953552,
+                1.0000003576278687,
+                0.9999998211860657
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 28,
+            "name": "DEF-forearm.L",
+            "next_sibling": -1,
+            "parent": 26,
+            "pos": [
+                -3.1304047354296927e-08,
+                0.27444031834602356,
+                -1.2678716743153018e-08
+            ],
+            "rot": [
+                0.2474105954170227,
+                0.010262173600494862,
+                0.004944201093167067,
+                0.9688438177108765
+            ],
+            "scale": [
+                0.9999997615814209,
+                0.9999998807907104,
+                0.9999999403953552
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 29,
+            "name": "DEF-hand.L",
+            "next_sibling": -1,
+            "parent": 27,
+            "pos": [
+                1.3547528965318634e-07,
+                0.2726403772830963,
+                5.980348660727941e-09
+            ],
+            "rot": [
+                0.10600875318050385,
+                0.0063757398165762424,
+                -0.025674525648355484,
+                0.994013249874115
+            ],
+            "scale": [
+                1.0,
+                0.9999999403953552,
+                1.0000001192092896
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 30,
+            "name": "DEF-f_index.01.L",
+            "next_sibling": 32,
+            "parent": 28,
+            "pos": [
+                0.001999946078285575,
+                0.11989997327327728,
+                0.03090006299316883
+            ],
+            "rot": [
+                0.4451906085014343,
+                0.5493689179420471,
+                -0.44519391655921936,
+                0.5493646264076233
+            ],
+            "scale": [
+                1.000000238418579,
+                0.9999997615814209,
+                1.000000238418579
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 31,
+            "name": "DEF-f_index.02.L",
+            "next_sibling": -1,
+            "parent": 29,
+            "pos": [
+                2.5907093359478495e-08,
+                0.04070001095533371,
+                5.5896400397159596e-08
+            ],
+            "rot": [
+                0.6233416199684143,
+                -1.2692355255694565e-07,
+                6.735801605373126e-08,
+                0.7819496989250183
+            ],
+            "scale": [
+                0.9999999403953552,
+                1.0,
+                1.0000001192092896
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "DEF-f_index.03.L",
+            "next_sibling": -1,
+            "parent": 30,
+            "pos": [
+                2.5912575196684884e-08,
+                0.03479995205998421,
+                -3.083721367147518e-08
+            ],
+            "rot": [
+                0.6233416199684143,
+                -1.4555949690020498e-07,
+                1.7423056419829663e-07,
+                0.7819496393203735
+            ],
+            "scale": [
+                0.9999999403953552,
+                0.9999998807907104,
+                0.9999999403953552
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 33,
+            "name": "DEF-f_middle.01.L",
+            "next_sibling": 35,
+            "parent": 28,
+            "pos": [
+                -0.00040014091064222157,
+                0.1215999498963356,
+                0.00520004378631711
+            ],
+            "rot": [
+                0.4320901930332184,
+                0.5386996865272522,
+                -0.4580463767051697,
+                0.5597270131111145
+            ],
+            "scale": [
+                0.9999999403953552,
+                0.9999997019767761,
+                1.0
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 34,
+            "name": "DEF-f_middle.02.L",
+            "next_sibling": -1,
+            "parent": 32,
+            "pos": [
+                2.3797550596782457e-08,
+                0.042347442358732224,
+                -2.701462165077828e-08
+            ],
+            "rot": [
+                0.623340904712677,
+                0.0009432973456569016,
+                0.0011834526667371392,
+                0.7819486856460571
+            ],
+            "scale": [
+                0.9999998807907104,
+                1.000000238418579,
+                1.0000001192092896
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "DEF-f_middle.03.L",
+            "next_sibling": -1,
+            "parent": 33,
+            "pos": [
+                3.715184249131198e-08,
+                0.03393309935927391,
+                -6.219590886757942e-08
+            ],
+            "rot": [
+                0.62334144115448,
+                -0.0007041295757517219,
+                -0.000883399392478168,
+                0.7819490432739258
+            ],
+            "scale": [
+                0.9999999403953552,
+                1.0000001192092896,
+                0.9999999403953552
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 36,
+            "name": "DEF-f_pinky.01.L",
+            "next_sibling": 38,
+            "parent": 28,
+            "pos": [
+                0.0015999460592865944,
+                0.10769997537136078,
+                -0.04079996421933174
+            ],
+            "rot": [
+                0.5040568709373474,
+                0.5115414261817932,
+                -0.43515175580978394,
+                0.5430424213409424
+            ],
+            "scale": [
+                0.9999999403953552,
+                1.0000001192092896,
+                1.0
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 37,
+            "name": "DEF-f_pinky.02.L",
+            "next_sibling": -1,
+            "parent": 35,
+            "pos": [
+                -5.4693749973466765e-08,
+                0.040290575474500656,
+                5.801587121823104e-08
+            ],
+            "rot": [
+                0.6231630444526672,
+                -0.02006126567721367,
+                0.014925649389624596,
+                0.7816922068595886
+            ],
+            "scale": [
+                0.9999998807907104,
+                0.9999999403953552,
+                1.0
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "DEF-f_pinky.03.L",
+            "next_sibling": -1,
+            "parent": 36,
+            "pos": [
+                3.437939355421804e-08,
+                0.027665311470627785,
+                9.55046459694131e-08
+            ],
+            "rot": [
+                0.6233417391777039,
+                0.0003798656980507076,
+                0.0004764460027217865,
+                0.7819492816925049
+            ],
+            "scale": [
+                0.9999999403953552,
+                1.0,
+                1.0
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 39,
+            "name": "DEF-f_ring.01.L",
+            "next_sibling": 41,
+            "parent": 28,
+            "pos": [
+                -0.00010010639380197972,
+                0.11909990012645721,
+                -0.01709994673728943
+            ],
+            "rot": [
+                0.43533962965011597,
+                0.541356086730957,
+                -0.45490384101867676,
+                0.5572032332420349
+            ],
+            "scale": [
+                0.9999999403953552,
+                0.9999997019767761,
+                1.0
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 40,
+            "name": "DEF-f_ring.02.L",
+            "next_sibling": -1,
+            "parent": 38,
+            "pos": [
+                1.1935156862818985e-08,
+                0.03932497277855873,
+                -5.225279764431434e-08
+            ],
+            "rot": [
+                0.6233417987823486,
+                7.530358288931893e-06,
+                9.525008863420226e-06,
+                0.781949520111084
+            ],
+            "scale": [
+                1.0,
+                1.0000001192092896,
+                0.9999999403953552
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "DEF-f_ring.03.L",
+            "next_sibling": -1,
+            "parent": 39,
+            "pos": [
+                -1.2835087659368583e-08,
+                0.030919592827558517,
+                9.287646207667422e-08
+            ],
+            "rot": [
+                0.6233411431312561,
+                -0.0006652454030700028,
+                -0.00083434913540259,
+                0.7819492816925049
+            ],
+            "scale": [
+                1.0000001192092896,
+                0.9999999403953552,
+                1.000000238418579
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 42,
+            "name": "DEF-thumb.01.L",
+            "next_sibling": -1,
+            "parent": 28,
+            "pos": [
+                0.022800032049417496,
+                0.02730000950396061,
+                0.033600062131881714
+            ],
+            "rot": [
+                0.2908388078212738,
+                0.9496490955352783,
+                0.11458349227905273,
+                0.021216969937086105
+            ],
+            "scale": [
+                0.9999998211860657,
+                0.9999995827674866,
+                0.9999997019767761
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 43,
+            "name": "DEF-thumb.02.L",
+            "next_sibling": -1,
+            "parent": 41,
+            "pos": [
+                5.208072550999532e-08,
+                0.04302993416786194,
+                -3.841868334575338e-08
+            ],
+            "rot": [
+                0.2193901538848877,
+                0.023802561685442924,
+                -0.005304797552525997,
+                0.9753323793411255
+            ],
+            "scale": [
+                0.9999999403953552,
+                1.0,
+                1.0
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "DEF-thumb.03.L",
+            "next_sibling": -1,
+            "parent": 42,
+            "pos": [
+                3.947448590224667e-08,
+                0.04907803609967232,
+                9.335013650968449e-09
+            ],
+            "rot": [
+                0.687388002872467,
+                -0.00030977142159827054,
+                -0.00044537856592796743,
+                0.7262902855873108
+            ],
+            "scale": [
+                0.9999999403953552,
+                0.9999999403953552,
+                1.0000001192092896
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 45,
+            "name": "DEF-shoulder.R",
+            "next_sibling": -1,
+            "parent": 22,
+            "pos": [
+                -0.01879998669028282,
+                0.14055339992046356,
+                0.0808950811624527
+            ],
+            "rot": [
+                -0.6461402177810669,
+                0.3048487901687622,
+                0.33481642603874207,
+                0.6143842935562134
+            ],
+            "scale": [
+                0.9999998211860657,
+                0.9999998807907104,
+                0.9999996423721313
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 46,
+            "name": "DEF-upper_arm.R",
+            "next_sibling": -1,
+            "parent": 44,
+            "pos": [
+                0.030072350054979324,
+                0.2185816913843155,
+                -0.016968626528978348
+            ],
+            "rot": [
+                -0.2892862856388092,
+                -0.6777948141098022,
+                0.4811282455921173,
+                0.4747876524925232
+            ],
+            "scale": [
+                1.0,
+                0.9999999403953552,
+                1.0
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 47,
+            "name": "DEF-forearm.R",
+            "next_sibling": -1,
+            "parent": 45,
+            "pos": [
+                2.7465349106137182e-08,
+                0.27444010972976685,
+                -8.610824409061024e-08
+            ],
+            "rot": [
+                0.36786097288131714,
+                -0.1445239782333374,
+                0.057992637157440186,
+                0.916748583316803
+            ],
+            "scale": [
+                1.0,
+                1.000000238418579,
+                1.0000001192092896
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 48,
+            "name": "DEF-hand.R",
+            "next_sibling": -1,
+            "parent": 46,
+            "pos": [
+                3.3415631151001435e-08,
+                0.272640585899353,
+                6.086636972213455e-08
+            ],
+            "rot": [
+                0.11670902371406555,
+                0.002916620811447501,
+                0.04477860406041145,
+                0.9921519160270691
+            ],
+            "scale": [
+                1.0000001192092896,
+                0.9999997019767761,
+                0.9999999403953552
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 49,
+            "name": "DEF-f_index.01.R",
+            "next_sibling": 51,
+            "parent": 47,
+            "pos": [
+                -0.0019999586511403322,
+                0.11989989131689072,
+                0.030899949371814728
+            ],
+            "rot": [
+                0.4451906085014343,
+                -0.5493689775466919,
+                0.4451940357685089,
+                0.5493645668029785
+            ],
+            "scale": [
+                1.0,
+                0.9999998807907104,
+                1.0000001192092896
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 50,
+            "name": "DEF-f_index.02.R",
+            "next_sibling": -1,
+            "parent": 48,
+            "pos": [
+                3.1949376477768965e-08,
+                0.04070008173584938,
+                7.070247676210784e-08
+            ],
+            "rot": [
+                0.6233416199684143,
+                3.0256498462222225e-07,
+                -1.8474688090464042e-07,
+                0.7819496393203735
+            ],
+            "scale": [
+                1.0000001192092896,
+                1.0000001192092896,
+                1.0
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "DEF-f_index.03.R",
+            "next_sibling": -1,
+            "parent": 49,
+            "pos": [
+                -2.8962748643834857e-08,
+                0.03480003774166107,
+                2.6548804044068675e-08
+            ],
+            "rot": [
+                0.62334144115448,
+                1.9385866778520722e-07,
+                3.3807658894602355e-08,
+                0.7819497585296631
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 52,
+            "name": "DEF-f_middle.01.R",
+            "next_sibling": 54,
+            "parent": 47,
+            "pos": [
+                0.0004001408233307302,
+                0.12159990519285202,
+                0.005199993494898081
+            ],
+            "rot": [
+                0.4320901036262512,
+                -0.5386996865272522,
+                0.4580466151237488,
+                0.559726893901825
+            ],
+            "scale": [
+                0.9999999403953552,
+                0.9999997615814209,
+                1.000000238418579
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 53,
+            "name": "DEF-f_middle.02.R",
+            "next_sibling": -1,
+            "parent": 51,
+            "pos": [
+                -4.02486222128573e-08,
+                0.04234747588634491,
+                2.2063169069497235e-08
+            ],
+            "rot": [
+                0.6233407855033875,
+                -0.0009434247040189803,
+                -0.0011835164623335004,
+                0.7819489240646362
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "DEF-f_middle.03.R",
+            "next_sibling": -1,
+            "parent": 52,
+            "pos": [
+                5.046153717103152e-09,
+                0.033933091908693314,
+                -4.165070066619592e-09
+            ],
+            "rot": [
+                0.6233417987823486,
+                0.0007041263161227107,
+                0.0008833064348436892,
+                0.7819486856460571
+            ],
+            "scale": [
+                1.0,
+                0.9999999403953552,
+                1.0
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 55,
+            "name": "DEF-f_pinky.01.R",
+            "next_sibling": 57,
+            "parent": 47,
+            "pos": [
+                -0.0015998989110812545,
+                0.1076999381184578,
+                -0.040800001472234726
+            ],
+            "rot": [
+                0.5040573477745056,
+                -0.5115412473678589,
+                0.43515169620513916,
+                0.5430421829223633
+            ],
+            "scale": [
+                1.0,
+                1.0000001192092896,
+                1.0000001192092896
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 56,
+            "name": "DEF-f_pinky.02.R",
+            "next_sibling": -1,
+            "parent": 54,
+            "pos": [
+                2.8505823479463288e-08,
+                0.0402904711663723,
+                2.1442875919319704e-08
+            ],
+            "rot": [
+                0.623163104057312,
+                0.020061517134308815,
+                -0.014925461262464523,
+                0.7816920876502991
+            ],
+            "scale": [
+                0.9999999403953552,
+                0.9999998211860657,
+                1.000000238418579
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "DEF-f_pinky.03.R",
+            "next_sibling": -1,
+            "parent": 55,
+            "pos": [
+                -5.431331828731345e-09,
+                0.02766537107527256,
+                -6.233875637917663e-10
+            ],
+            "rot": [
+                0.6233417987823486,
+                -0.00037991354474797845,
+                -0.00047647091560065746,
+                0.7819492816925049
+            ],
+            "scale": [
+                1.0000001192092896,
+                1.0,
+                1.000000238418579
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 58,
+            "name": "DEF-f_ring.01.R",
+            "next_sibling": 60,
+            "parent": 47,
+            "pos": [
+                0.0001000861739157699,
+                0.11910000443458557,
+                -0.017100036144256592
+            ],
+            "rot": [
+                0.4353397786617279,
+                -0.5413559675216675,
+                0.45490407943725586,
+                0.5572031736373901
+            ],
+            "scale": [
+                0.9999998807907104,
+                0.9999995231628418,
+                1.0
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 59,
+            "name": "DEF-f_ring.02.R",
+            "next_sibling": -1,
+            "parent": 57,
+            "pos": [
+                7.268270429960921e-09,
+                0.03932497650384903,
+                1.652130521279105e-08
+            ],
+            "rot": [
+                0.6233413219451904,
+                -7.6030855780118145e-06,
+                -9.469586075283587e-06,
+                0.7819498777389526
+            ],
+            "scale": [
+                0.9999998807907104,
+                1.0,
+                1.0
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "DEF-f_ring.03.R",
+            "next_sibling": -1,
+            "parent": 58,
+            "pos": [
+                2.1583883125231296e-08,
+                0.030919509008526802,
+                -1.8527295253534248e-08
+            ],
+            "rot": [
+                0.6233416199684143,
+                0.0006649927818216383,
+                0.0008344334200955927,
+                0.7819489240646362
+            ],
+            "scale": [
+                1.0,
+                0.9999997019767761,
+                0.9999998807907104
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 61,
+            "name": "DEF-thumb.01.R",
+            "next_sibling": -1,
+            "parent": 47,
+            "pos": [
+                -0.022799979895353317,
+                0.02730000950396061,
+                0.03359992429614067
+            ],
+            "rot": [
+                0.2908378839492798,
+                -0.9496492743492126,
+                -0.114583820104599,
+                0.021217316389083862
+            ],
+            "scale": [
+                0.9999998807907104,
+                0.9999997019767761,
+                0.9999998211860657
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 62,
+            "name": "DEF-thumb.02.R",
+            "next_sibling": -1,
+            "parent": 60,
+            "pos": [
+                3.8412686365063564e-08,
+                0.04303000494837761,
+                2.7288368897870896e-08
+            ],
+            "rot": [
+                0.21939033269882202,
+                -0.023802654817700386,
+                0.005304479971528053,
+                0.9753323793411255
+            ],
+            "scale": [
+                1.0,
+                0.9999997615814209,
+                1.0000001192092896
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "DEF-thumb.03.R",
+            "next_sibling": -1,
+            "parent": 61,
+            "pos": [
+                5.726768037561669e-08,
+                0.049078140407800674,
+                2.841183643909062e-08
+            ],
+            "rot": [
+                0.6873881220817566,
+                0.00030910028726793826,
+                0.00044457733747549355,
+                0.7262901663780212
+            ],
+            "scale": [
+                0.9999998807907104,
+                0.9999997615814209,
+                0.9999998211860657
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 64,
+            "name": "DEF-thigh.L",
+            "next_sibling": 67,
+            "parent": 19,
+            "pos": [
+                0.08900001645088196,
+                0.02777099795639515,
+                0.046023812144994736
+            ],
+            "rot": [
+                0.9573913216590881,
+                0.11802884191274643,
+                -0.014552631415426731,
+                0.26317161321640015
+            ],
+            "scale": [
+                1.0,
+                1.0000001192092896,
+                1.0000011920928955
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 65,
+            "name": "DEF-shin.L",
+            "next_sibling": -1,
+            "parent": 63,
+            "pos": [
+                4.029892863854911e-09,
+                0.40030986070632935,
+                1.5358239124907413e-08
+            ],
+            "rot": [
+                0.21800124645233154,
+                -0.1095035970211029,
+                0.0246135126799345,
+                0.9694733619689941
+            ],
+            "scale": [
+                0.9999999403953552,
+                0.9999999403953552,
+                1.0
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 66,
+            "name": "DEF-foot.L",
+            "next_sibling": -1,
+            "parent": 64,
+            "pos": [
+                3.6082461463138316e-09,
+                0.4294798672199249,
+                1.69295333307673e-09
+            ],
+            "rot": [
+                -0.5085954070091248,
+                0.021916670724749565,
+                0.09552730619907379,
+                0.8554092645645142
+            ],
+            "scale": [
+                0.9999999403953552,
+                0.9999998211860657,
+                0.9999999403953552
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "DEF-toe.L",
+            "next_sibling": -1,
+            "parent": 65,
+            "pos": [
+                -1.559025264441516e-08,
+                0.1733008474111557,
+                -1.3970258727624696e-08
+            ],
+            "rot": [
+                0.0001371364196529612,
+                -0.9643067121505737,
+                0.2647874653339386,
+                0.0004995389608666301
+            ],
+            "scale": [
+                0.9999998211860657,
+                1.0000003576278687,
+                0.9999998211860657
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 68,
+            "name": "DEF-thigh.R",
+            "next_sibling": -1,
+            "parent": 19,
+            "pos": [
+                -0.08899997919797897,
+                0.027770979329943657,
+                0.04602381959557533
+            ],
+            "rot": [
+                0.990532398223877,
+                -0.1313040554523468,
+                0.01618947833776474,
+                0.03664398938417435
+            ],
+            "scale": [
+                1.0,
+                1.0000001192092896,
+                1.000001311302185
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 69,
+            "name": "DEF-shin.R",
+            "next_sibling": -1,
+            "parent": 67,
+            "pos": [
+                1.44673020230357e-08,
+                0.4003097116947174,
+                5.013150783383935e-09
+            ],
+            "rot": [
+                0.16713885962963104,
+                0.3514023423194885,
+                -0.06392185389995575,
+                0.9189640879631042
+            ],
+            "scale": [
+                0.9999999403953552,
+                0.9999999403953552,
+                0.9999999403953552
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": 70,
+            "name": "DEF-foot.R",
+            "next_sibling": -1,
+            "parent": 68,
+            "pos": [
+                -6.2630123309759256e-09,
+                0.4294798970222473,
+                -3.433149942111413e-08
+            ],
+            "rot": [
+                -0.6017633676528931,
+                -0.05433449149131775,
+                -0.1611510068178177,
+                0.7803582549095154
+            ],
+            "scale": [
+                1.0,
+                0.9999999403953552,
+                0.9999999403953552
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "DEF-toe.R",
+            "next_sibling": -1,
+            "parent": 69,
+            "pos": [
+                1.4195089548252326e-09,
+                0.1733008623123169,
+                -3.207897059098741e-09
+            ],
+            "rot": [
+                0.00013707616017200053,
+                -0.9643067121505737,
+                0.2647874355316162,
+                0.0004995225463062525
+            ],
+            "scale": [
+                0.9999998807907104,
+                1.0,
+                0.9999997615814209
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Mannequin",
+            "next_sibling": -1,
+            "parent": 17,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "new_entity",
+            "next_sibling": -1,
+            "parent": 16,
+            "pos": [
+                0.8000000715255737,
+                1.0000001192092896,
+                0.29999998211860657
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "visible": 1
+        }
+    ],
+    "resources": [
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/character/idle_state_machine.stkanim",
+        "assets/character/character.stkmodel",
+        "assets/character/character.stkmodel",
+        "assets/character/character.stkmodel",
+        "assets/character/character.stkmodel"
+    ]
+}

@@ -113,8 +113,8 @@ namespace SFG
 		_builder->set_callback_user_data(this);
 		_builder->set_on_allocate_text(on_vekt_allocate_text);
 		_builder->set_on_deallocate_text(on_vekt_deallocate_text);
-		constexpr size_t VTX_SZ = 1024 * 1024 * 4;
-		constexpr size_t IDX_SZ = 1024 * 1024 * 4;
+		constexpr size_t VTX_SZ = 1024 * 1024 * 12;
+		constexpr size_t IDX_SZ = 1024 * 1024 * 8;
 		_builder->init({
 			.vertex_buffer_sz			 = VTX_SZ,
 			.index_buffer_sz			 = IDX_SZ,

@@ -69,9 +69,9 @@ namespace SFG
 		static void						on_checkbox(void* callback_ud, vekt::builder* b, vekt::id id, unsigned char value);
 		static vekt::input_event_result on_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase);
 		static vekt::input_event_result on_key(vekt::builder* b, vekt::id widget, const vekt::key_event& ev);
-		static void						on_drag(vekt::builder* b, vekt::id widget, float mp_x, float mp_y, float delta_x, float delta_y, unsigned int button);
-		static void						on_tree_item_hover_begin(vekt::builder* b, vekt::id widget);
+		static void						on_tree_item_drag(vekt::builder* b, vekt::id widget, float mp_x, float mp_y, float delta_x, float delta_y, unsigned int button);
 		static void						on_tree_item_hover_end(vekt::builder* b, vekt::id widget);
+		static void						on_tree_item_hover_move(vekt::builder* b, vekt::id widget);
 		static void						on_focus_gained(vekt::builder* b, vekt::id widget, bool from_nav);
 
 		void	 clear_component_view();

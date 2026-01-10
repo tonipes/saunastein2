@@ -617,7 +617,6 @@ namespace vekt
 
 	void builder::set_pressing(id widget, unsigned int button, const VEKT_VEC2& press_pos)
 	{
-		_press_pos		= press_pos;
 		_pressed_button = button;
 
 		if (_pressed_widget != NULL_WIDGET_ID)
@@ -626,11 +625,10 @@ namespace vekt
 		}
 
 		_pressed_widget = widget;
-		_press_scroll	= 0.0f;
 		if (_pressed_widget != NULL_WIDGET_ID)
 		{
 			_hover_callbacks[_pressed_widget].is_pressing = 1;
-			_press_scroll								  = _pos_properties[_pressed_widget].scroll_offset;
+			_press_relative_pos							  = press_pos - _pos_results[_pressed_widget].pos;
 		}
 	}
 
@@ -982,8 +980,7 @@ namespace vekt
 
 			if (pp.scroll_offset > 0)
 				pp.scroll_offset = 0;
-
-			sc.scroll_ratio = (pp.scroll_offset / -diff);
+			sc._max_scroll = diff;
 		}
 	}
 
@@ -1419,26 +1416,38 @@ namespace vekt
 			}
 
 			hover_state.is_hovered = hovered;
+			if (send_events && hover_state.is_hovered && hover_state.on_hover_move)
+				hover_state.on_hover_move(this, widget);
 		}
 
 		if (_pressed_widget != NULL_WIDGET_ID)
 		{
-			mouse_callback& mc = _mouse_callbacks[_pressed_widget];
 
-			scroll_props& sc = _scroll_properties[_pressed_widget];
+			scroll_props& sc	   = _scroll_properties[_pressed_widget];
+			size_result&  thumb_sr = _size_results[_pressed_widget];
+
 			if (sc.scroll_parent != NULL_WIDGET_ID)
 			{
-				pos_props&	pp	= _pos_properties[sc.scroll_parent];
-				size_props& sz	= _size_properties[sc.scroll_parent];
-				const float bgn = pp.pos.y;
-				const float end = pp.pos.y + sz.size.y;
+				pos_result&	 track_pr = _pos_results[sc.scroll_parent];
+				size_result& track_sr = _size_results[sc.scroll_parent];
 
-				const float ratio = math::clamp(math::remap(mouse.y, bgn, end, 0.0f, 1.0f), 0.0f, 1.0f);
-				pp.scroll_offset -= delta.y;
-				const float diff_y = mouse.y - _press_pos.y;
-				// pp.scroll_offset = _press_scroll - diff_y;
+				const float track_top	 = track_pr.pos.y;
+				const float track_height = track_sr.size.y;
+				const float thumb_h		 = thumb_sr.size.y;
+				const float travel		 = math::max(0.0f, track_height - thumb_h);
+				const float grab_y		 = _press_relative_pos.y;
+				float		thumb_top	 = mouse.y - grab_y;
+				thumb_top				 = math::clamp(thumb_top, track_top, track_top + travel);
+
+				const float ratio	  = (travel > 0.0f) ? ((thumb_top - track_top) / travel) : 0.0f;
+				pos_props&	parent_pp = _pos_properties[sc.scroll_parent];
+
+				parent_pp.scroll_offset = -ratio * sc._max_scroll;
+				sc.scroll_ratio			= ratio;
 			}
-			if (mc.on_drag)
+
+			mouse_callback& mc = _mouse_callbacks[_pressed_widget];
+			if (mc.on_drag && send_events)
 				mc.on_drag(this, _pressed_widget, _mouse_position.x, _mouse_position.y, delta.x, delta.y, _pressed_button);
 		}
 	}
