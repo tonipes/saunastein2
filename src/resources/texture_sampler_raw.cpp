@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -84,9 +84,11 @@ namespace SFG
 
 	bool texture_sampler_raw::load_from_cache(const char* cache_folder_path, const char* relative_path, const char* extension)
 	{
-		const string sid_str		 = std::to_string(TO_SID(relative_path));
-		const string meta_cache_path = cache_folder_path + sid_str + "_meta" + extension;
-		const string data_cache_path = cache_folder_path + sid_str + "_data" + extension;
+		const string sid_str  = std::to_string(TO_SID(relative_path));
+		const string relative = file_system::get_filename_from_path(relative_path);
+
+		const string meta_cache_path = cache_folder_path + relative + "-" + sid_str + "_meta" + extension;
+		const string data_cache_path = cache_folder_path + relative + "-" + sid_str + "_data" + extension;
 
 		if (!file_system::exists(meta_cache_path.c_str()))
 			return false;
@@ -119,9 +121,10 @@ namespace SFG
 		const string sid_str			= std::to_string(TO_SID(name));
 		const string file_path			= resource_directory_path + name;
 		const uint64 file_last_modified = file_system::get_last_modified_ticks(file_path);
+		const string relative			= file_system::get_filename_from_path(name);
 
-		const string meta_cache_path = cache_folder_path + sid_str + "_meta" + extension;
-		const string data_cache_path = cache_folder_path + sid_str + "_data" + extension;
+		const string meta_cache_path = cache_folder_path + relative + "-" + sid_str + "_meta" + extension;
+		const string data_cache_path = cache_folder_path + relative + "-" + sid_str + "_data" + extension;
 
 		ostream out_stream;
 		out_stream << file_path;
