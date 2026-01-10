@@ -41,18 +41,13 @@
             "max_cascades": 1
         },
         {
-            "cast_shadows": 248,
-            "color": [
-                1.0,
-                1.0,
-                1.0,
-                1.0
-            ],
-            "comp_type": 444826457028991798,
+            "comp_type": 12829486272651206750,
             "entity": 5,
-            "intensity": 455.0,
-            "near_plane": 0.10000000149011612,
-            "range": 211.0
+            "material": 1,
+            "material0": "assets/ground/ground.stkmodel/Metal",
+            "mesh": "assets/ground/ground.stkmodel/Cube",
+            "skin": "",
+            "skin_entities": 0
         },
         {
             "comp_type": 12829486272651206750,
@@ -166,8 +161,8 @@
             "next_sibling": 2,
             "parent": 0,
             "pos": [
-                -0.5,
-                -5.899996757507324,
+                0.0,
+                0.0,
                 0.0
             ],
             "rot": [
@@ -258,8 +253,8 @@
             "next_sibling": 6,
             "parent": 0,
             "pos": [
-                4.3003010749816895,
-                2.563901424407959,
+                6.50029993057251,
+                1.9639015197753906,
                 1.4564416408538818
             ],
             "rot": [
@@ -282,14 +277,14 @@
             "parent": 0,
             "pos": [
                 -6.656060218811035,
-                4.193444728851318,
+                0.9934462308883667,
                 -2.516151189804077
             ],
             "rot": [
-                -0.10585066676139832,
-                0.0551021434366703,
-                0.8806726336479187,
-                0.458448588848114
+                0.0,
+                0.0,
+                0.0,
+                1.0
             ],
             "scale": [
                 1.0,
@@ -482,5 +477,33 @@
             ],
             "visible": 1
         }
+    ],
+    "resources": [
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel",
+        "assets/ground/ground.stkmodel"
     ]
 }

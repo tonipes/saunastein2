@@ -50,6 +50,8 @@ namespace SFG
 
 		stream << shader;
 		stream << textures;
+		stream << shader_path;
+		stream << textures_path;
 		stream << pass_mode;
 		stream << name;
 		stream << sid;
@@ -71,6 +73,8 @@ namespace SFG
 
 		stream >> shader;
 		stream >> textures;
+		stream >> shader_path;
+		stream >> textures_path;
 		stream >> pass_mode;
 		stream >> name;
 		stream >> sid;

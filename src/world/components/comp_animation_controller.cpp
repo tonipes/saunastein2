@@ -49,6 +49,11 @@ namespace SFG
 			comp_animation_controller* c = static_cast<comp_animation_controller*>(obj);
 			c->set_machine_resource(w, c->_resource_machine);
 		});
+
+		m.add_function<void, void*, vector<resource_handle_and_type>&>("gather_resources"_hs, [](void* obj, vector<resource_handle_and_type>& h) {
+			comp_animation_controller* c = static_cast<comp_animation_controller*>(obj);
+			h.push_back({.handle = c->_resource_machine, .type_id = type_id<anim_state_machine>::value});
+		});
 	}
 
 	void comp_animation_controller::on_add(world& w)

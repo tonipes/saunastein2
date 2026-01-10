@@ -358,8 +358,9 @@ namespace SFG
 				continue;
 
 			const resource_id particle_res = p.particle_res_id;
+			const resource_id material_res = p.material;
 
-			if (particle_res == NULL_RESOURCE_ID)
+			if (particle_res == NULL_RESOURCE_ID || material_res == NULL_RESOURCE_ID)
 				continue;
 
 			const render_proxy_particle_resource& res = pm.get_particle(particle_res);
@@ -368,7 +369,7 @@ namespace SFG
 			emit_count = 0;
 			emit_dead  = false;
 
-			const render_proxy_material_runtime& mat	= pm.get_material_runtime(p.material);
+			const render_proxy_material_runtime& mat	= pm.get_material_runtime(material_res);
 			const render_proxy_shader&			 shader = pm.get_shader(mat.shader_handle);
 			SFG_ASSERT(shader.status == render_proxy_status::rps_active);
 

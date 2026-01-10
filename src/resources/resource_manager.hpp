@@ -69,12 +69,13 @@ namespace SFG
 		virtual void  get_dependencies(const void* loader, vector<string>& out_deps) const																 = 0;
 
 		// Lifecycle
-		virtual resource_handle add_from_loader(void* loader, world& w, string_id hash) = 0;
-		virtual void			delete_loader(void* loader) const						= 0;
-		virtual void			destroy(resource_handle handle, world& w)				= 0;
-		virtual resource_handle add(string_id hash)										= 0;
-		virtual void			remove(resource_handle handle)							= 0;
-		virtual void			reset(world& w)											= 0;
+		virtual resource_handle add_from_loader(void* loader, world& w, string_id hash)				   = 0;
+		virtual void			get_loader_sub_resources(void* loader, vector<string>& out_subs) const = 0;
+		virtual void			delete_loader(void* loader) const									   = 0;
+		virtual void			destroy(resource_handle handle, world& w)							   = 0;
+		virtual resource_handle add(string_id hash)													   = 0;
+		virtual void			remove(resource_handle handle)										   = 0;
+		virtual void			reset(world& w)														   = 0;
 
 		// Accessors
 		virtual void*			get_ptr(resource_handle h)						   = 0;
@@ -171,6 +172,12 @@ namespace SFG
 			Loader&			lref   = *(lp);
 			res.create_from_loader(lref, w, handle);
 			return handle;
+		}
+
+		void get_loader_sub_resources(void* loader, vector<string>& out_subs) const override
+		{
+			Loader* lp = static_cast<Loader*>(loader);
+			lp->get_sub_resources(out_subs);
 		}
 
 		void delete_loader(void* loader) const override
@@ -521,6 +528,7 @@ namespace SFG
 		void			save_to_stream(string_id type, const void* loader, ostream& stream) const;
 		void			get_dependencies(string_id type, const void* loader, vector<string>& out_dependencies) const;
 		resource_handle add_from_loader(string_id type, void* loader, uint32 priority, string_id hash) const;
+		void			get_loader_sub_resources(string_id type, void* loader, vector<string>& out_subs) const;
 		void			delete_loader(string_id type, void* loader) const;
 		void			destroy(string_id type, resource_handle h);
 

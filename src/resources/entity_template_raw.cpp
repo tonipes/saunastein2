@@ -100,6 +100,7 @@ namespace SFG
 	void entity_template_raw::serialize(ostream& stream) const
 	{
 		stream << entities;
+		stream << resources;
 		const uint32 sz = static_cast<uint32>(component_buffer.get_size());
 		stream << sz;
 		stream.write_raw(component_buffer.get_raw(), sz);
@@ -108,6 +109,7 @@ namespace SFG
 	void entity_template_raw::deserialize(istream& stream)
 	{
 		stream >> entities;
+		stream >> resources;
 		uint32 sz = 0;
 		stream >> sz;
 		if (sz > 0)
@@ -162,17 +164,21 @@ namespace SFG
 
 		j["entities"]	= json::array();
 		j["components"] = json::array();
+		j["resources"]	= json::array();
 
 		json& je = j["entities"];
 		json& jc = j["components"];
 
+		vector<resource_handle_and_type> resources		= {};
+		vector<string>					 resource_paths = {};
+
 		for (size_t i = 0; i < order.size(); i++)
 		{
-			const world_handle h	= order[i];
-			const entity_meta& meta = em.get_entity_meta(h);
+			const world_handle h		= order[i];
+			const entity_meta& entity_m = em.get_entity_meta(h);
 
 			entity_template_entity_raw er = {};
-			er.name						  = meta.name;
+			er.name						  = entity_m.name;
 			er.position					  = em.get_entity_position(h);
 			er.scale					  = em.get_entity_scale(h);
 			er.rotation					  = em.get_entity_rotation(h);
@@ -213,8 +219,31 @@ namespace SFG
 				comp_json["comp_type"] = c.comp_type;
 				comp_json["entity"]	   = i;
 
-				void*		ptr	   = cm.get_component(c.comp_type, c.comp_handle);
-				const auto& fields = reflection::get().resolve(c.comp_type).get_fields();
+				void*		ptr		  = cm.get_component(c.comp_type, c.comp_handle);
+				meta&		comp_meta = reflection::get().resolve(c.comp_type);
+				const auto& fields	  = comp_meta.get_fields();
+
+				if (comp_meta.has_function("gather_resources"_hs))
+				{
+					resources.resize(0);
+					comp_meta.invoke_function<void, void*, vector<resource_handle_and_type>&>("gather_resources"_hs, ptr, resources);
+
+					for (const resource_handle_and_type& ht : resources)
+					{
+						if (ht.handle.is_null())
+							continue;
+
+						const string path  = rm.get_loaded_path_by_handle(ht.type_id, ht.handle);
+						const size_t dot   = path.find(".");
+						const size_t slash = path.find_last_of("/");
+						if (slash > dot)
+						{
+							resource_paths.push_back(path.substr(0, slash));
+						}
+						else
+							resource_paths.push_back(path);
+					}
+				}
 
 				for (field_base* f : fields)
 				{
@@ -325,12 +354,17 @@ namespace SFG
 				jc.push_back(comp_json);
 			}
 		}
+
+		json& jr = j["resources"];
+		for (const string& p : resource_paths)
+			jr.push_back(p);
 	}
 
 	void entity_template_raw::load_from_json(const nlohmann::json& json_data, entity_template_raw& r)
 	{
 		r.entities.clear();
-		r.entities = json_data.value<vector<entity_template_entity_raw>>("entities", {});
+		r.entities	= json_data.value<vector<entity_template_entity_raw>>("entities", {});
+		r.resources = json_data.value<vector<string>>("resources", {});
 
 		if (r.component_buffer.get_size() != 0)
 			r.component_buffer.destroy();

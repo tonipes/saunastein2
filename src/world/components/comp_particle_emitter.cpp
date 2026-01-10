@@ -53,6 +53,12 @@ namespace SFG
 			comp_particle_emitter* c = static_cast<comp_particle_emitter*>(obj);
 			c->set_values(w, c->_particle_resource, c->_material);
 		});
+
+		m.add_function<void, void*, vector<resource_handle_and_type>&>("gather_resources"_hs, [](void* obj, vector<resource_handle_and_type>& h) {
+			comp_particle_emitter* c = static_cast<comp_particle_emitter*>(obj);
+			h.push_back({.handle = c->_particle_resource, .type_id = type_id<particle_properties>::value});
+			h.push_back({.handle = c->_material, .type_id = type_id<material>::value});
+		});
 	}
 
 	void comp_particle_emitter::on_add(world& w)
@@ -86,8 +92,8 @@ namespace SFG
 	{
 		const render_event_particle_emitter ev = {
 			.entity		  = _header.entity.index,
-			.particle_res = particle_res.index,
-			.material	  = material.index,
+			.particle_res = particle_res.is_null() ? NULL_RESOURCE_ID : particle_res.index,
+			.material	  = material.is_null() ? NULL_RESOURCE_ID : material.index,
 		};
 		_material		   = material;
 		_particle_resource = particle_res;

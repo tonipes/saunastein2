@@ -61,6 +61,11 @@ namespace SFG
 			c->set_volume(w, c->_volume);
 			c->set_looping(w, c->_is_looping);
 		});
+
+		m.add_function<void, void*, vector<resource_handle_and_type>&>("gather_resources"_hs, [](void* obj, vector<resource_handle_and_type>& h) {
+			comp_audio* c = static_cast<comp_audio*>(obj);
+			h.push_back({.handle = c->_audio_resource, .type_id = type_id<audio>::value});
+		});
 	}
 
 	void comp_audio::on_add(world& w)

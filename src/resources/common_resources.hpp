@@ -68,6 +68,12 @@ namespace SFG
 	typedef pool_handle16 resource_handle;
 	typedef uint16		  resource_id;
 
+	struct resource_handle_and_type
+	{
+		resource_handle handle	= {};
+		string_id		type_id = 0;
+	};
+
 #define NULL_RESOURCE_ID std::numeric_limits<resource_id>::max()
 
 	enum material_flags : uint32

@@ -1,0 +1,65 @@
+{
+    "components": [
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 1,
+            "material": 1,
+            "material0": "assets/cube/cube.stkmodel/CubeMaterial",
+            "mesh": "assets/cube/cube.stkmodel/Cube.001",
+            "skin": "",
+            "skin_entities": 0
+        }
+    ],
+    "entities": [
+        {
+            "first_child": 1,
+            "name": "assets/cube/cube.stkmodel",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Cube",
+            "next_sibling": -1,
+            "parent": 0,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "visible": 1
+        }
+    ],
+    "resources": [
+        "assets/cube/cube.stkmodel",
+        "assets/cube/cube.stkmodel"
+    ]
+}

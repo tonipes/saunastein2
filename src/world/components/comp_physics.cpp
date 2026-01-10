@@ -57,9 +57,11 @@ namespace SFG
 			c->create_body(params.w);
 		});
 
-		m.add_function<void, void*, world&>("on_reflect_load"_hs, [](void* obj, world& w) {
+		m.add_function<void, void*, world&>("on_reflect_load"_hs, [](void* obj, world& w) { comp_physics* c = static_cast<comp_physics*>(obj); });
+
+		m.add_function<void, void*, vector<resource_handle_and_type>&>("gather_resources"_hs, [](void* obj, vector<resource_handle_and_type>& h) {
 			comp_physics* c = static_cast<comp_physics*>(obj);
-			
+			h.push_back({.handle = c->_material_handle, .type_id = type_id<physical_material>::value});
 		});
 	}
 

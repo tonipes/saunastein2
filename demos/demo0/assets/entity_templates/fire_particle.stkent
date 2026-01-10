@@ -1,0 +1,39 @@
+{
+    "components": [
+        {
+            "comp_type": 1084153302536849766,
+            "entity": 0,
+            "material": "assets/_defaults/materials/particle_additive.stkmat",
+            "particle": "assets/_defaults/particles/fire_core.stkparticle"
+        }
+    ],
+    "entities": [
+        {
+            "first_child": -1,
+            "name": "new_entity",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "visible": 1
+        }
+    ],
+    "resources": [
+        "assets/_defaults/particles/fire_core.stkparticle",
+        "assets/_defaults/materials/particle_additive.stkmat"
+    ]
+}

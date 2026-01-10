@@ -66,6 +66,15 @@ namespace SFG
 				c->set_material(params.w, h, params.list_index);
 			}
 		});
+
+		m.add_function<void, void*, vector<resource_handle_and_type>&>("gather_resources"_hs, [](void* obj, vector<resource_handle_and_type>& h) {
+			comp_mesh_instance* c = static_cast<comp_mesh_instance*>(obj);
+			h.push_back({.handle = c->_target_mesh, .type_id = type_id<mesh>::value});
+			h.push_back({.handle = c->_target_skin, .type_id = type_id<skin>::value});
+
+			for (const resource_handle handle : c->_materials)
+				h.push_back({.handle = handle, .type_id = type_id<material>::value});
+		});
 	}
 
 	void comp_mesh_instance::on_add(world& w)

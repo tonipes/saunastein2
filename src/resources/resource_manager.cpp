@@ -310,16 +310,30 @@ namespace SFG
 
 	void resource_manager::load_resources(const vector<string>& relative_paths, bool skip_cache, const char* root_directory)
 	{
-		const uint32	  size		  = static_cast<uint32>(relative_paths.size());
-		const string	  working_dir = root_directory == nullptr ? editor_settings::get().working_dir : (root_directory);
-		vector<void*>	  resolved_loaders(relative_paths.size());
-		vector<string_id> resolved_types(relative_paths.size());
+		vector<string> filtered_relative_paths = {};
+		filtered_relative_paths.reserve(relative_paths.size());
 
-		vector<int> indices(relative_paths.size());
+		for (const string& p : relative_paths)
+		{
+			if (p.empty())
+				continue;
+
+			auto it = std::find_if(filtered_relative_paths.begin(), filtered_relative_paths.end(), [&](const string& str) -> bool { return str.compare(p) == 0; });
+			if (it == filtered_relative_paths.end())
+				filtered_relative_paths.push_back(p);
+		}
+
+		const uint32 size		 = static_cast<uint32>(filtered_relative_paths.size());
+		const string working_dir = root_directory == nullptr ? editor_settings::get().working_dir : (root_directory);
+
+		vector<void*>	  resolved_loaders(filtered_relative_paths.size());
+		vector<string_id> resolved_types(filtered_relative_paths.size());
+
+		vector<int> indices(filtered_relative_paths.size());
 		std::iota(indices.begin(), indices.end(), 0);
 
 		std::for_each(std::execution::par, indices.begin(), indices.end(), [&](int& i) {
-			const string&	path = relative_paths.at(i);
+			const string&	path = filtered_relative_paths.at(i);
 			const string_id sid	 = TO_SID(path);
 
 			const size_t dot = path.find_last_of(".");
@@ -343,6 +357,10 @@ namespace SFG
 			void*			loader	  = nullptr;
 			const string&	cache_dir = editor_settings::get().cache_dir;
 
+			const resource_handle h = get_resource_handle_by_hash_if_exists(type, TO_SID(path));
+			if (!h.is_null())
+				return;
+
 			if (!skip_cache)
 			{
 				loader = load_from_cache(type, cache_dir.c_str(), path.c_str(), ".stkcache");
@@ -363,16 +381,26 @@ namespace SFG
 		const uint32   max_passes = _max_load_priority + 1;
 		vector<string> dependencies;
 
+		vector<string> out_subs = {};
+
 		for (uint32 pass = 0; pass < max_passes; pass++)
 		{
 			for (uint32 i = 0; i < size; i++)
 			{
-				const string&	p	   = relative_paths[i];
+				const string&	p	   = filtered_relative_paths[i];
 				const string_id type   = resolved_types[i];
 				void*			loader = resolved_loaders[i];
 
 				if (loader == nullptr)
 					continue;
+
+				const cache_storage& stg = get_storage(type);
+				if (pass != stg.load_priority)
+					continue;
+
+				out_subs.resize(0);
+				get_loader_sub_resources(type, loader, out_subs);
+				load_resources(out_subs, skip_cache, root_directory);
 
 				const string_id hash = TO_SID(p);
 
@@ -381,7 +409,6 @@ namespace SFG
 
 				resource_handle handle = {};
 				handle				   = add_from_loader(type, loader, pass, hash);
-
 				if (handle.is_null())
 					continue;
 
@@ -622,6 +649,12 @@ namespace SFG
 		if (priority != stg.load_priority)
 			return {};
 		return stg.cache_ptr->add_from_loader(loader, _world, hash);
+	}
+
+	void resource_manager::get_loader_sub_resources(string_id type, void* loader, vector<string>& out_subs) const
+	{
+		const cache_storage& stg = get_storage(type);
+		return stg.cache_ptr->get_loader_sub_resources(loader, out_subs);
 	}
 
 	void resource_manager::delete_loader(string_id type, void* loader) const
