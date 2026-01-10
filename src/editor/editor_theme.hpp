@@ -85,6 +85,7 @@ namespace SFG
 		vector4 col_area_bg				  = vector4();
 		vector4 col_root				  = vector4();
 		vector4 col_button				  = vector4();
+		vector4 col_button_silent		  = vector4();
 		vector4 col_button_hover		  = vector4();
 		vector4 col_button_press		  = vector4();
 		vector4 col_frame_outline		  = vector4();

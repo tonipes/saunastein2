@@ -770,60 +770,63 @@ namespace SFG
 
 			if (sub_area)
 			{
-				gfx.color			   = editor_theme::get().col_frame_bg;
+				gfx.color			   = vector4();
 				sz.child_margins.left  = 0.0f;
 				sz.child_margins.right = 0.0f;
 			}
 		}
 
-		const id scroll_bg = new_widget(true);
+		if (!sub_area)
 		{
-			pos_props& pp = _builder->widget_get_pos_props(scroll_bg);
-			pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_y_relative | pos_flags::pf_x_anchor_end | pos_flags::pf_overlay;
-			pp.pos		  = VEKT_VEC2(1.0f, 0.0f);
+			const id scroll_bg = new_widget(true);
+			{
+				pos_props& pp = _builder->widget_get_pos_props(scroll_bg);
+				pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_y_relative | pos_flags::pf_x_anchor_end | pos_flags::pf_overlay;
+				pp.pos		  = VEKT_VEC2(1.0f, 0.0f);
 
-			size_props& sz = _builder->widget_get_size_props(scroll_bg);
-			sz.flags	   = size_flags::sf_x_abs | size_flags::sf_y_relative;
-			sz.size.x	   = editor_theme::get().scroll_thickness;
-			sz.size.y	   = 1.0f;
+				size_props& sz = _builder->widget_get_size_props(scroll_bg);
+				sz.flags	   = size_flags::sf_x_abs | size_flags::sf_y_relative;
+				sz.size.x	   = editor_theme::get().scroll_thickness;
+				sz.size.y	   = 1.0f;
 
-			widget_gfx& gfx = _builder->widget_get_gfx(scroll_bg);
-			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_rounding;
-			gfx.color		= editor_theme::get().col_scroll_bar_bg;
+				widget_gfx& gfx = _builder->widget_get_gfx(scroll_bg);
+				gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_rounding;
+				gfx.color		= editor_theme::get().col_scroll_bar_bg;
 
-			rounding_props& rp = _builder->widget_get_rounding(scroll_bg);
-			rp.segments		   = 16;
-			rp.rounding		   = editor_theme::get().scroll_rounding;
+				rounding_props& rp = _builder->widget_get_rounding(scroll_bg);
+				rp.segments		   = 16;
+				rp.rounding		   = editor_theme::get().scroll_rounding;
+			}
+
+			const id scroll = new_widget();
+			{
+				pos_props& pp = _builder->widget_get_pos_props(scroll);
+				pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_y_relative;
+				pp.pos		  = VEKT_VEC2(0.0f, 0.0f);
+
+				size_props& sz = _builder->widget_get_size_props(scroll);
+				sz.flags	   = size_flags::sf_x_relative;
+				sz.size.x	   = 1.0f;
+
+				scroll_props& sc = _builder->widget_get_scroll_props(scroll);
+				sc.scroll_parent = w;
+
+				widget_gfx& gfx = _builder->widget_get_gfx(scroll);
+				gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_rounding;
+				gfx.color		= editor_theme::get().col_scroll_bar;
+
+				rounding_props& rp = _builder->widget_get_rounding(scroll);
+				rp.segments		   = 16;
+				rp.rounding		   = editor_theme::get().scroll_rounding;
+
+				hover_callback& hb = _builder->widget_get_hover_callbacks(scroll);
+				hb.on_hover_begin  = on_hover_begin_hand_c;
+				hb.on_hover_end	   = on_hover_end_hand_c;
+				hb.receive_mouse   = 1;
+			}
+
+			pop_stack();
 		}
-
-		const id scroll = new_widget();
-		{
-			pos_props& pp = _builder->widget_get_pos_props(scroll);
-			pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_y_relative;
-			pp.pos		  = VEKT_VEC2(0.0f, 0.0f);
-
-			size_props& sz = _builder->widget_get_size_props(scroll);
-			sz.flags	   = size_flags::sf_x_relative;
-			sz.size.x	   = 1.0f;
-
-			scroll_props& sc = _builder->widget_get_scroll_props(scroll);
-			sc.scroll_parent = w;
-
-			widget_gfx& gfx = _builder->widget_get_gfx(scroll);
-			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_rounding;
-			gfx.color		= editor_theme::get().col_scroll_bar;
-
-			rounding_props& rp = _builder->widget_get_rounding(scroll);
-			rp.segments		   = 16;
-			rp.rounding		   = editor_theme::get().scroll_rounding;
-
-			hover_callback& hb = _builder->widget_get_hover_callbacks(scroll);
-			hb.on_hover_begin  = on_hover_begin_hand_c;
-			hb.on_hover_end	   = on_hover_end_hand_c;
-			hb.receive_mouse   = 1;
-		}
-
-		pop_stack();
 
 		return w;
 	}
@@ -1710,6 +1713,26 @@ namespace SFG
 		{
 			it->state = value;
 			_builder->widget_set_visible(it->text_widget, value);
+		}
+	}
+
+	void gui_builder::set_widget_enabled(vekt::id w, uint8 enabled, const vector4& enabled_col, const vector4& disabled_col)
+	{
+		widget_gfx& gfx = _builder->widget_get_gfx(w);
+		gfx.color		= enabled ? enabled_col : disabled_col;
+
+		_builder->widget_get_hover_callbacks(w).receive_mouse = enabled;
+		_builder->widget_get_hover_callbacks(w).disable_hover = enabled == 0;
+
+		const widget_meta& m = _builder->widget_get_meta(w);
+		if (m.children.empty())
+			return;
+
+		const id txt = m.children[0];
+		{
+			widget_gfx& gfx = _builder->widget_get_gfx(txt);
+			if (gfx.flags & gfx_flags::gfx_is_text)
+				gfx.color = enabled ? editor_theme::get().col_text : editor_theme::get().col_text_dim;
 		}
 	}
 

@@ -809,9 +809,10 @@ namespace vekt
 
 	struct input_color_props
 	{
-		VEKT_VEC4 hovered_color = VEKT_VEC4(1, 1, 1, 1);
-		VEKT_VEC4 pressed_color = VEKT_VEC4(1, 1, 1, 1);
-		VEKT_VEC4 focus_color	= VEKT_VEC4(1, 1, 1, 1);
+		VEKT_VEC4 hovered_color	 = VEKT_VEC4(1, 1, 1, 1);
+		VEKT_VEC4 pressed_color	 = VEKT_VEC4(1, 1, 1, 1);
+		VEKT_VEC4 focus_color	 = VEKT_VEC4(1, 1, 1, 1);
+		VEKT_VEC4 disabled_color = VEKT_VEC4(1, 1, 1, 1);
 	};
 
 	struct rounding_props
@@ -972,6 +973,7 @@ namespace vekt
 		focus_gain_func on_focus_gained = nullptr;
 		unsigned char	is_hovered		= 0;
 		unsigned char	receive_mouse	= 0;
+		unsigned char	disable_hover	= 0;
 		unsigned char	is_pressing		= 0;
 		unsigned char	is_focused		= 0;
 	};

@@ -119,6 +119,8 @@ namespace SFG
 
 		_text_icon_dd_collapsed = editor::get().get_text_allocator().allocate(ICON_DD_RIGHT);
 		_text_icon_dd			= editor::get().get_text_allocator().allocate(ICON_DD_DOWN);
+
+		set_selected_controls();
 	}
 
 	void editor_panel_entities::uninit()
@@ -212,7 +214,7 @@ namespace SFG
 	void editor_panel_entities::build_component_view()
 	{
 		_gui_builder.push_stack(_components_parent);
-		_components_area = _gui_builder.begin_area(false);
+		_components_area = _gui_builder.begin_area(false, true);
 
 		world&						w  = editor::get().get_app().get_world();
 		entity_manager&				em = w.get_entity_manager();
@@ -493,7 +495,9 @@ namespace SFG
 
 		// select new
 		_selected_entity = h;
-		auto it			 = std::find_if(_node_bindings.begin(), _node_bindings.end(), [h](const node_binding& nb) -> bool { return h == nb.handle; });
+		set_selected_controls();
+
+		auto it = std::find_if(_node_bindings.begin(), _node_bindings.end(), [h](const node_binding& nb) -> bool { return h == nb.handle; });
 		if (it != _node_bindings.end())
 		{
 			vekt::widget_gfx& gfx = _builder->widget_get_gfx(it->inner_row);
@@ -506,6 +510,24 @@ namespace SFG
 			return;
 
 		build_component_view();
+	}
+
+	void editor_panel_entities::set_selected_controls()
+	{
+		_gui_builder.set_widget_enabled(_add_component, !_selected_entity.is_null(), editor_theme::get().col_button, editor_theme::get().col_button_silent);
+		_gui_builder.set_widget_enabled(_save_template, !_selected_entity.is_null(), editor_theme::get().col_button, editor_theme::get().col_button_silent);
+		_gui_builder.set_widget_enabled(_prop_name, !_selected_entity.is_null(), editor_theme::get().col_frame_bg, editor_theme::get().col_button_silent);
+		_gui_builder.set_widget_enabled(_selected_pos_x, !_selected_entity.is_null(), editor_theme::get().col_frame_bg, editor_theme::get().col_button_silent);
+		_gui_builder.set_widget_enabled(_selected_pos_y, !_selected_entity.is_null(), editor_theme::get().col_frame_bg, editor_theme::get().col_button_silent);
+		_gui_builder.set_widget_enabled(_selected_pos_z, !_selected_entity.is_null(), editor_theme::get().col_frame_bg, editor_theme::get().col_button_silent);
+		_gui_builder.set_widget_enabled(_selected_rot_x, !_selected_entity.is_null(), editor_theme::get().col_frame_bg, editor_theme::get().col_button_silent);
+		_gui_builder.set_widget_enabled(_selected_rot_y, !_selected_entity.is_null(), editor_theme::get().col_frame_bg, editor_theme::get().col_button_silent);
+		_gui_builder.set_widget_enabled(_selected_rot_z, !_selected_entity.is_null(), editor_theme::get().col_frame_bg, editor_theme::get().col_button_silent);
+		_gui_builder.set_widget_enabled(_selected_scale_x, !_selected_entity.is_null(), editor_theme::get().col_frame_bg, editor_theme::get().col_button_silent);
+		_gui_builder.set_widget_enabled(_selected_scale_y, !_selected_entity.is_null(), editor_theme::get().col_frame_bg, editor_theme::get().col_button_silent);
+		_gui_builder.set_widget_enabled(_selected_scale_z, !_selected_entity.is_null(), editor_theme::get().col_frame_bg, editor_theme::get().col_button_silent);
+		_gui_builder.set_widget_enabled(_prop_vis, !_selected_entity.is_null(), editor_theme::get().col_frame_bg, editor_theme::get().col_button_silent);
+		_gui_builder.set_widget_enabled(_prop_handle, !_selected_entity.is_null(), editor_theme::get().col_text, editor_theme::get().col_button_silent);
 	}
 
 	void editor_panel_entities::on_input_field_changed(void* callback_ud, vekt::builder* b, vekt::id widget, const char* txt, float value)

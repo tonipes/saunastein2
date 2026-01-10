@@ -78,6 +78,7 @@ namespace SFG
 		j["col_area_bg"]			   = t.col_area_bg;
 		j["col_root"]				   = t.col_root;
 		j["col_button"]				   = t.col_button;
+		j["col_button_silent"]		   = t.col_button_silent;
 		j["col_button_hover"]		   = t.col_button_hover;
 		j["col_button_press"]		   = t.col_button_press;
 		j["col_frame_outline"]		   = t.col_frame_outline;
@@ -130,6 +131,7 @@ namespace SFG
 		s.col_area_bg				= j.value<vector4>("col_area_bg", vector4::zero);
 		s.col_root					= j.value<vector4>("col_root", vector4::zero);
 		s.col_button				= j.value<vector4>("col_button", vector4::zero);
+		s.col_button_silent			= j.value<vector4>("col_button_silent", vector4::zero);
 		s.col_button_hover			= j.value<vector4>("col_button_hover", vector4::zero);
 		s.col_button_press			= j.value<vector4>("col_button_press", vector4::zero);
 		s.col_frame_outline			= j.value<vector4>("col_frame_outline", vector4::zero);
@@ -165,7 +167,8 @@ namespace SFG
 
 		col_scroll_bar			 = col_accent;
 		col_scroll_bar_bg		 = col_frame_bg;
-		col_button				 = col_root;
+		col_button				 = color::from255(28, 28, 28, 255).srgb_to_linear().to_vector();
+		col_button_silent		 = color::from255(28, 28, 28, 125).srgb_to_linear().to_vector();
 		col_button_hover		 = col_accent_second;
 		col_button_press		 = col_accent_second_dim;
 		col_frame_outline		 = color::from255(60, 60, 60, 255).srgb_to_linear().to_vector();

@@ -46,6 +46,7 @@ namespace SFG
 		void uninit();
 		void draw(world& w, const struct vector2ui16& window_size);
 		void set_selected(world_handle h);
+		void set_selected_controls();
 
 		void drop_drag(world_handle target);
 		void kill_drag();

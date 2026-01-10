@@ -1406,6 +1406,9 @@ namespace vekt
 
 			hover_callback& hover_state = _hover_callbacks[widget];
 
+			if (hover_state.disable_hover)
+				continue;
+
 			if (send_events && !hovered && hover_state.is_hovered && hover_state.on_hover_end)
 			{
 				hover_state.on_hover_end(this, widget);
@@ -1422,7 +1425,6 @@ namespace vekt
 
 		if (_pressed_widget != NULL_WIDGET_ID)
 		{
-
 			scroll_props& sc	   = _scroll_properties[_pressed_widget];
 			size_result&  thumb_sr = _size_results[_pressed_widget];
 
