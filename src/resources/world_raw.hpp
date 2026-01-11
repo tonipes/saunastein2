@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -29,6 +29,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "common/size_definitions.hpp"
 #include "gfx/common/descriptions.hpp"
 #include "data/vector.hpp"
+#include "resources/entity_template_raw.hpp"
 
 namespace SFG
 {
@@ -38,15 +39,18 @@ namespace SFG
 
 	struct world_raw
 	{
-		vector<string> resources;
 
+		~world_raw();
+
+		void destroy();
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);
 
 #ifdef SFG_TOOLMODE
 		bool load_from_file(const char* relative_file, const char* base_path);
-		void save_to_file(const char* file, world& w);
-		void fetch_from_world(world& w);
+		bool save_to_file(const char* file, world& w);
 #endif
+
+		entity_template_raw entities_raw = {};
 	};
 }

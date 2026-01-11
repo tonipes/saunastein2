@@ -29,6 +29,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "world/common_world.hpp"
 #include "resources/common_resources.hpp"
 
+#include "data/string.hpp"
 #include "editor_camera.hpp"
 #include "editor/gfx/editor_renderer.hpp"
 #include "memory/bump_text_allocator.hpp"
@@ -55,6 +56,7 @@ namespace SFG
 
 	class editor
 	{
+	private:
 	public:
 		struct render_params
 		{
@@ -97,6 +99,12 @@ namespace SFG
 		void load_level_prompt();
 		void load_level(const char* relative_path);
 		void save_lavel();
+		void new_level();
+
+		inline const string& get_loaded_level() const
+		{
+			return _loaded_level;
+		}
 
 		// -----------------------------------------------------------------------------
 		// accessors
@@ -166,6 +174,9 @@ namespace SFG
 		vekt::font*			_font_main	  = nullptr;
 		vekt::font*			_font_title	  = nullptr;
 		vekt::font*			_font_icons	  = nullptr;
+
+		// level
+		string _loaded_level = "";
 
 		static editor* s_instance;
 	};

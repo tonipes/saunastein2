@@ -95,7 +95,7 @@ namespace SFG
 		_resource_manager.register_cache<physical_material, physical_material_raw, MAX_WORLD_PHYSICAL_MATERIALS, 0>();
 		_resource_manager.register_cache<particle_properties, particle_properties_raw, MAX_WORLD_PARTICLE_PROPERTIES, 0>();
 		_resource_manager.register_cache<res_state_machine, res_state_machine_raw, MAX_WORLD_ANIM_STATE_MACHINES, 1>();
-        _resource_manager.register_cache<entity_template, entity_template_raw, MAX_WORLD_ENTITY_TEMPLATES, 0>();
+		_resource_manager.register_cache<entity_template, entity_template_raw, MAX_WORLD_ENTITY_TEMPLATES, 0>();
 
 		// trait registry
 		_comp_manager.register_cache<comp_camera, MAX_WORLD_COMP_CAMERAS>();
@@ -135,7 +135,6 @@ namespace SFG
 		_comp_manager.init();
 		_anim_graph.init();
 		_time_manager.init();
-
 	}
 
 	void world::uninit()
@@ -157,7 +156,10 @@ namespace SFG
 	{
 		uninit();
 		init();
-		_resource_manager.load_resources(raw.resources);
+
+		const entity_template_raw& tr = raw.entities_raw;
+		_resource_manager.load_resources(tr.resources);
+		_entity_manager.instantiate_template(tr);
 	}
 
 	void world::tick(const vector2ui16& res, float dt)

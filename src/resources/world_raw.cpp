@@ -41,14 +41,27 @@ using json = nlohmann::json;
 
 namespace SFG
 {
+	world_raw::~world_raw()
+	{
+		SFG_ASSERT(entities_raw.component_buffer.get_size() == 0);
+	}
+
 	void world_raw::serialize(ostream& stream) const
 	{
-		stream << resources;
+		entities_raw.serialize(stream);
 	}
 
 	void world_raw::deserialize(istream& stream)
 	{
-		stream >> resources;
+		entities_raw.deserialize(stream);
+	}
+
+	void world_raw::destroy()
+	{
+		entities_raw.entities.resize(0);
+		entities_raw.resources.resize(0);
+		if (entities_raw.component_buffer.get_size() != 0)
+			entities_raw.component_buffer.destroy();
 	}
 
 #ifdef SFG_TOOLMODE
@@ -65,19 +78,12 @@ namespace SFG
 		{
 			std::ifstream f(target_path);
 			json		  json_data = json::parse(f);
+
+			destroy();
+
+			entity_template_raw::load_from_json(json_data, entities_raw);
+
 			f.close();
-
-			resources = json_data.value<vector<string>>("resources", {});
-
-			for (const string& res : resources)
-			{
-				const string source = editor_settings::get().working_dir + res;
-				if (!file_system::exists(source.c_str()))
-				{
-					SFG_ERR("File don't exist! {0}", source.c_str());
-					return false;
-				}
-			}
 		}
 		catch (std::exception e)
 		{
@@ -89,21 +95,34 @@ namespace SFG
 		return true;
 	}
 
-	void world_raw::save_to_file(const char* path, world& w)
+	bool world_raw::save_to_file(const char* path, world& w)
 	{
-		json j		   = {};
-		j["resources"] = resources;
+		entity_manager& em		 = w.get_entity_manager();
+		const auto&		entities = em.get_entities();
+
+		vector<world_handle> to_serialize;
+
+		for (auto it = entities->handles_begin(); it != entities->handles_end(); ++it)
+		{
+			const world_handle	 handle = *it;
+			const entity_family& f		= em.get_entity_family(handle);
+			if (!f.parent.is_null())
+				continue;
+
+			to_serialize.push_back(handle);
+		}
+
+		json j = {};
+		entity_template_raw::save_to_json(j, w, to_serialize);
 
 		std::ofstream file(path);
 		if (file.is_open())
 		{
 			file << j.dump(4);
 			file.close();
+			return true;
 		}
-	}
-
-	void world_raw::fetch_from_world(world& w)
-	{
+		return false;
 	}
 
 #endif

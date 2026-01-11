@@ -144,6 +144,9 @@ namespace SFG
 		world_handle		 child = f.first_child;
 		while (!child.is_null())
 		{
+			if (em.get_entity_flags(h).is_set(entity_flags::entity_flags_no_save))
+				continue;
+
 			collect_entities(em, child, out);
 			const entity_family& cf = em.get_entity_family(child);
 			child					= cf.next_sibling;
@@ -176,6 +179,9 @@ namespace SFG
 
 		for (world_handle h : handles)
 		{
+			if (em.get_entity_flags(h).is_set(entity_flags::entity_flags_no_save))
+				continue;
+
 			collect_entities(em, h, order);
 		}
 

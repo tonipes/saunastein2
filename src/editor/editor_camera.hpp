@@ -29,6 +29,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "world/common_world.hpp"
 #include "math/vector2.hpp"
 #include "math/vector3.hpp"
+#include "math/quat.hpp"
 #include "world/world_constants.hpp"
 #include <array>
 
@@ -79,6 +80,9 @@ namespace SFG
 
 		world_handle _entity	   = {};
 		world_handle _camera_trait = {};
+
+		vector3 _last_pos = vector3::zero;
+		quat	_last_rot = quat::identity;
 
 		vector3 _direction_input	= vector3::zero;
 		vector2 _mouse_delta		= vector2::zero;

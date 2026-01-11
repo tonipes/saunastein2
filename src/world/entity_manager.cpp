@@ -560,6 +560,12 @@ namespace SFG
 		meta.name = _world.get_text_allocator().allocate(name);
 	}
 
+	void entity_manager::set_entity_transient(world_handle entity, bool is_transient)
+	{
+		SFG_ASSERT(_entities->is_valid(entity));
+		_flags->get(entity.index).set(entity_flags::entity_flags_no_save, is_transient);
+	}
+
 	void entity_manager::add_child(world_handle parent, world_handle child_to_add)
 	{
 		SFG_ASSERT(_entities->is_valid(parent));
@@ -1019,13 +1025,10 @@ namespace SFG
 		return root;
 	}
 
-	world_handle entity_manager::instantiate_template(resource_handle template_handle)
+	world_handle entity_manager::instantiate_template(const entity_template_raw& raw)
 	{
 		resource_manager&  rm = _world.get_resource_manager();
 		component_manager& cm = _world.get_comp_manager();
-
-		const entity_template&	   et  = rm.get_resource<entity_template>(template_handle);
-		const entity_template_raw& raw = et.get_raw();
 
 		static_vector<world_handle, 1024> created;
 
@@ -1213,6 +1216,17 @@ namespace SFG
 		}
 
 		const world_handle root = created.empty() ? world_handle() : created[0];
+		return root;
+	}
+
+	world_handle entity_manager::instantiate_template(resource_handle template_handle)
+	{
+		resource_manager&  rm = _world.get_resource_manager();
+		component_manager& cm = _world.get_comp_manager();
+
+		const entity_template&	   et	= rm.get_resource<entity_template>(template_handle);
+		const entity_template_raw& raw	= et.get_raw();
+		const world_handle		   root = instantiate_template(raw);
 
 		if (!root.is_null())
 			set_entity_template(root, template_handle);

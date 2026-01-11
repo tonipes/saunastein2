@@ -59,13 +59,14 @@ namespace SFG
 
 		_entity		  = em.create_entity("editor_camera");
 		_camera_trait = cm.add_component<comp_camera>(_entity);
+		em.set_entity_transient(_entity, true);
 
 		comp_camera& cam_trait = cm.get_component<comp_camera>(_camera_trait);
 		cam_trait.set_values(w, 0.01f, 250.0f, 60.0f, {0.01f, 0.04f, 0.125f});
 		cam_trait.set_main(w);
 
-		em.set_entity_position(_entity, vector3(0.0f, 2, -5));
-		em.set_entity_rotation(_entity, quat::from_euler(0, 0, 0));
+		em.set_entity_position(_entity, _last_pos);
+		em.set_entity_rotation(_entity, _last_rot);
 
 		const quat& rot = em.get_entity_rotation(_entity);
 
@@ -83,6 +84,9 @@ namespace SFG
 		world&			   w  = *_world;
 		entity_manager&	   em = w.get_entity_manager();
 		component_manager& tm = w.get_comp_manager();
+
+		_last_pos = em.get_entity_position(_entity);
+		_last_rot = em.get_entity_rotation(_entity);
 
 		em.destroy_entity(_entity);
 		_entity		  = {};
@@ -135,7 +139,7 @@ namespace SFG
 
 			if (button == input_code::key_e && ev.sub_type == window_event_sub_type::press)
 				_direction_input.y += 1.0f;
-			else if (button == input_code::key_e && ev.sub_type == window_event_sub_type::release  && _direction_input.y > 0.1f)
+			else if (button == input_code::key_e && ev.sub_type == window_event_sub_type::release && _direction_input.y > 0.1f)
 				_direction_input.y -= 1.0f;
 			if (button == input_code::key_q && ev.sub_type == window_event_sub_type::press)
 				_direction_input.y -= 1.0f;

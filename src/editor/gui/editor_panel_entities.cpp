@@ -272,9 +272,11 @@ namespace SFG
 		// Build from roots
 		for (auto it = em.get_entities()->handles_begin(); it != em.get_entities()->handles_end(); ++it)
 		{
-			world_handle		 h	 = *it;
-			const entity_family& fam = em.get_entity_family(h);
-			if (fam.parent.is_null())
+			world_handle		 h			  = *it;
+			const entity_family& fam		  = em.get_entity_family(h);
+			const bool			 is_transient = em.get_entity_flags(h).is_set(entity_flags::entity_flags_no_save);
+
+			if (fam.parent.is_null() && !is_transient)
 			{
 				build_entity_node(w, h, 0);
 			}
@@ -480,10 +482,12 @@ namespace SFG
 		world_handle src = _drag_source;
 		world_handle dst = target;
 
-		if (!(src == dst) && !is_ancestor_of(src, dst))
+		world&			world		= editor::get().get_app().get_world();
+		entity_manager& em			= world.get_entity_manager();
+		const bool		is_template = em.get_entity_flags(dst).is_set(entity_flags::entity_flags_template);
+
+		if (!(src == dst) && !is_ancestor_of(src, dst) && !is_template)
 		{
-			world&			world = editor::get().get_app().get_world();
-			entity_manager& em	  = world.get_entity_manager();
 
 			const vector3 pos	= em.get_entity_position_abs(src);
 			const quat	  rot	= em.get_entity_rotation_abs(src);
@@ -499,7 +503,6 @@ namespace SFG
 			em.set_entity_rotation_abs(src, rot);
 			em.set_entity_scale_abs(src, scale);
 		}
-		SFG_TRACE("drop drag");
 		_is_payload_on = false;
 		_drag_source   = {};
 	}
@@ -508,7 +511,6 @@ namespace SFG
 	{
 		_is_payload_on	 = false;
 		_drag_src_widget = {};
-		SFG_TRACE("drag killed");
 	}
 
 	void editor_panel_entities::set_selected(world_handle h)

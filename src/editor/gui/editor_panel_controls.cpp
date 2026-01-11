@@ -156,7 +156,7 @@ namespace SFG
 			_builder->widget_append_text(_render, " ms");
 
 			_builder->widget_append_text_start(_loaded_level);
-			_builder->widget_append_text(_loaded_level, editor_settings::get().last_world_relative.c_str());
+			_builder->widget_append_text(_loaded_level, editor::get().get_loaded_level().c_str());
 
 			_builder->widget_append_text_start(_draw_calls);
 			_builder->widget_append_text(_draw_calls, stat_dc);
@@ -226,6 +226,24 @@ namespace SFG
 				process::open_url("https://github.com/inanevin/stakeforge");
 				return vekt::input_event_result::handled;
 			}
+		}
+
+		if (widget == ptr->_button_new_level)
+		{
+			editor::get().new_level();
+			return vekt::input_event_result::handled;
+		}
+
+		if (widget == ptr->_button_load_level)
+		{
+			editor::get().load_level_prompt();
+			return vekt::input_event_result::handled;
+		}
+
+		if (widget == ptr->_button_save_level)
+		{
+			editor::get().save_lavel();
+			return vekt::input_event_result::handled;
 		}
 
 		return vekt::input_event_result::not_handled;

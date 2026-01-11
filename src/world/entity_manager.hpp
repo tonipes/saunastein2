@@ -41,6 +41,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace SFG
 {
 	class world;
+	struct entity_template_raw;
 
 	struct entity_transform
 	{
@@ -88,6 +89,7 @@ namespace SFG
 		const entity_family&		get_entity_family(world_handle entity) const;
 		const bitmask<uint16>		get_entity_flags(world_handle entity) const;
 		void						set_entity_name(world_handle entity, const char* name);
+		void						set_entity_transient(world_handle entity, bool is_transient);
 		void						add_render_proxy(world_handle entity);
 		void						remove_render_proxy(world_handle entity);
 		void						set_entity_visible(world_handle entity, bool is_visible);
@@ -102,6 +104,7 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 
 		world_handle instantiate_model(resource_handle model_handle);
+		world_handle instantiate_template(const entity_template_raw& er);
 		world_handle instantiate_template(resource_handle template_handle);
 
 #ifdef SFG_TOOLMODE

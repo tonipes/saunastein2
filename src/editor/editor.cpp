@@ -58,6 +58,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // misc
 #include "serialization/serialization.hpp"
+#include "data/char_util.hpp"
 #include "io/file_system.hpp"
 #include "input/input_mappings.hpp"
 #include "math/math.hpp"
@@ -169,30 +170,18 @@ namespace SFG
 		_app.get_world().init();
 		_camera_controller.activate();
 
-		// if (!editor_settings::get().last_world_relative.empty())
-		//{
-		//	const string last_world = editor_settings::get().working_dir + editor_settings::get().last_world_relative;
-		//
-		//	if (file_system::exists(last_world.c_str()))
-		//		load_level(editor_settings::get().last_world_relative.c_str());
-		//	else
-		//	{
-		//		_app.get_world().init();
-		//		_camera_controller.activate();
-		//	}
-		// }
-		// else
-		//{
-		//	_app.get_world().init();
-		//	_camera_controller.activate();
-		// }
+		if (!editor_settings::get().last_world_relative.empty())
+		{
+			const string last_world = editor_settings::get().working_dir + editor_settings::get().last_world_relative;
+			if (file_system::exists(last_world.c_str()))
+				load_level(editor_settings::get().last_world_relative.c_str());
+		}
 
 		// -----------------------------------------------------------------------------
 		// gui
 		// -----------------------------------------------------------------------------
 		_bump_text_allocator.init(1024 * 512);
 		_text_allocator.init(1024 * 1024);
-
 		_gui_controller.init(_builder);
 	}
 
@@ -419,18 +408,59 @@ namespace SFG
 		raw.load_from_file(relative_path, editor_settings::get().working_dir.c_str());
 
 		_camera_controller.deactivate();
-
 		world& w = _app.get_world();
 		w.create_from_loader(raw);
-
 		_camera_controller.activate();
 
+		_loaded_level							   = relative_path;
 		editor_settings::get().last_world_relative = relative_path;
 		editor_settings::get().save_last();
+		raw.destroy();
 	}
 
 	void editor::save_lavel()
 	{
+		// if the last saved path doesn't exists refetch it.
+		string target_path = editor_settings::get().working_dir + _loaded_level;
+		if (!file_system::exists(target_path.c_str()) || file_system::is_directory(target_path.c_str()))
+		{
+			string path = process::save_file("save level", "stkworld");
+			if (path.empty())
+				return;
+			file_system::fix_path(path);
+
+			if (!editor_settings::get().is_in_work_directory(path))
+			{
+				SFG_ERR("save path must be inside working directory: {0}", path.c_str());
+				return;
+			}
+			target_path = path;
+		}
+
+		// save to target
+		world_raw raw = {};
+		raw.save_to_file(target_path.c_str(), _app.get_world());
+		raw.destroy();
+
+		// assign both editor settings and runtime loaded level
+		_loaded_level							   = editor_settings::get().get_relative(target_path);
+		editor_settings::get().last_world_relative = _loaded_level;
+		editor_settings::get().save_last();
+	}
+
+	void editor::new_level()
+	{
+		// check for prompt later.
+		if (!_loaded_level.empty())
+		{
+		}
+
+		world_raw raw{};
+		_camera_controller.deactivate();
+		world& w = _app.get_world();
+		w.create_from_loader(raw);
+		_camera_controller.activate();
+		_loaded_level = "";
 	}
 
 	const char* editor::on_vekt_allocate_text(void* ud, size_t sz)
