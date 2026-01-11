@@ -25,6 +25,14 @@ This time I'm focusing on developing extremely-fast, performance oriented engine
 running 1.42 ms median cpu time calculating 1024 characters with total of 50K+ bones :v:
 </div>
 
+
+<div align="center">
+
+![Alt](docs/stk.png)
+screenshot for funsies
+
+</div>
+
 ## At the moment we have:
 
 - ok first of all a lot of stuff is missing, couple compremises here and there that will be fixed, but;
