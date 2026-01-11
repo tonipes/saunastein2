@@ -664,10 +664,14 @@ namespace SFG
 				string* str = reinterpret_cast<string*>(ptr);
 				*str		= (const char*)data_ptr;
 			}
-			else if (ft == reflected_field_type::rf_bool || ft == reflected_field_type::rf_uint8)
+			else if (ft == reflected_field_type::rf_bool)
 			{
-				const float	 f	= *reinterpret_cast<float*>(data_ptr);
-				const uint16 u8 = static_cast<uint16>(f);
+				const bool b = *reinterpret_cast<uint8*>(data_ptr);
+				SFG_MEMCPY(ptr, &b, sizeof(bool));
+			}
+			else if (ft == reflected_field_type::rf_uint8)
+			{
+				const uint8 u8 = *reinterpret_cast<uint8*>(data_ptr);
 				SFG_MEMCPY(ptr, &u8, sizeof(uint8));
 			}
 			else if (ft == reflected_field_type::rf_resource && ref->field->_is_list)

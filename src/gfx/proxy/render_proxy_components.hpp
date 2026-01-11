@@ -84,7 +84,7 @@ namespace SFG
 		gfx_id				shadow_texture_gpu_index[BACK_BUFFER_COUNT] = {NULL_GFX_ID};
 		float				intensity									= 0;
 		world_id			entity										= 0;
-		uint8				cast_shadows								= 0;
+		bool				cast_shadows								= false;
 		uint8				cascade_levels								= 0;
 		render_proxy_status status										= render_proxy_status::rps_inactive;
 	};
@@ -99,7 +99,7 @@ namespace SFG
 		float				intensity									= 0;
 		float				near_plane									= 0.1f;
 		world_id			entity										= 0;
-		uint8				cast_shadows								= 0;
+		bool				cast_shadows								= false;
 		render_proxy_status status										= render_proxy_status::rps_inactive;
 	};
 
@@ -115,7 +115,7 @@ namespace SFG
 		float				outer_cone									= 0.0f;
 		float				near_plane									= 0.1f;
 		world_id			entity										= 0;
-		uint8				cast_shadows								= 0;
+		bool				cast_shadows								= false;
 		render_proxy_status status										= render_proxy_status::rps_inactive;
 	};
 

@@ -141,7 +141,7 @@ namespace SFG
 		_renderer = new renderer(*_main_window, *_world, _render_stream, nullptr);
 #endif
 
-		_game_resolution = vector2ui16(1920, 1080);
+		_game_resolution = vector2ui16(3840, 2160);
 
 		if (!_renderer->init(_game_resolution))
 		{

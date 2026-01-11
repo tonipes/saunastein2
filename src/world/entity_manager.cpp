@@ -1220,6 +1220,9 @@ namespace SFG
 		if (it == _instantiated_models.end())
 			return;
 
+		if (!is_valid(it->root))
+			return;
+
 		const vector3&	   p	  = get_entity_position(it->root);
 		const quat&		   q	  = get_entity_rotation(it->root);
 		const vector3&	   s	  = get_entity_scale(it->root);

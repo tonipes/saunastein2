@@ -123,9 +123,9 @@ float4 PSMain(vs_output IN) : SV_TARGET
         float3 viewDir = normalize(worldPosOnRay - camPos);  // world-space view direction
 
         // --- Simple vertical gradient in screen-space (sunrise-ish) ---
-        float3 bottomColor = float3(0.98, 0.60, 0.35); // orange near horizon
-        float3 midColor    = float3(0.95, 0.75, 0.55); // peach
-        float3 topColor    = float3(0.06, 0.10, 0.25); // deep blue
+        float3 bottomColor = float3(0.2, 0.1, 0.2); // orange near horizon
+        float3 midColor    = float3(0.1, 0.1, 0.2); // peach
+        float3 topColor    = float3(0.2, 0.10, 0.1); // deep blue
 
         // uv.y: 0 = top, 1 = bottom
         float t = saturate(1.0 - uv.y); // 0 bottom, 1 top

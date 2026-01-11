@@ -92,7 +92,7 @@ namespace SFG
 		float		range			  = 0.0f;
 		float		intensity		  = 0.0f;
 		float		near_plane		  = 0.1f;
-		uint8		cast_shadows	  = 0;
+		bool		cast_shadows	  = false;
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);

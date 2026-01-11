@@ -140,9 +140,9 @@ namespace SFG
 			_builder->widget_append_text(_game_res, game_size.y, 0);
 
 			_builder->widget_append_text_start(_window_res);
-			_builder->widget_append_text(_window_res, wsx, 0);
+			_builder->widget_append_text(_window_res, window_size.x, 0);
 			_builder->widget_append_text(_window_res, "x");
-			_builder->widget_append_text(_window_res, wsy, 0);
+			_builder->widget_append_text(_window_res, window_size.y, 0);
 
 			_builder->widget_append_text_start(_fps);
 			_builder->widget_append_text(_fps, stat_fps);

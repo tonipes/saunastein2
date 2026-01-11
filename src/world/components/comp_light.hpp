@@ -91,7 +91,7 @@ namespace SFG
 		color			 _base_color		= color::white;
 		vector2ui16		 _shadow_resolution = vector2ui16(256, 256);
 		float			 _intensity			= 0.0f;
-		uint8			 _cast_shadows		= 0;
+		bool			 _cast_shadows		= false;
 		uint8			 _max_cascades		= 1;
 	};
 
@@ -165,7 +165,7 @@ namespace SFG
 		float			 _inner_cone		= 0.0f;
 		float			 _outer_cone		= 0.0f;
 		float			 _near_plane		= 0.0f;
-		uint8			 _cast_shadows		= 0;
+		bool			 _cast_shadows		= false;
 	};
 
 	class comp_point_light
@@ -226,7 +226,7 @@ namespace SFG
 		float			 _range				= 0.0f;
 		float			 _intensity			= 0.0f;
 		float			 _near_plane		= 0.0f;
-		uint8			 _cast_shadows		= 0;
+		bool			 _cast_shadows		= false;
 	};
 
 	REFLECT_TYPE(comp_dir_light);
