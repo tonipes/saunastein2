@@ -991,7 +991,7 @@ namespace SFG
 				for (uint8 j = 0; j < 6; j++)
 				{
 					const matrix4x4 light_view		 = matrix4x4::look_at(pos, pos + dirs[j], fws[j]);
-					const matrix4x4 light_projection = matrix4x4::perspective(90.5f, light_aspect, near_plane, far_plane);
+					const matrix4x4 light_projection = matrix4x4::perspective(90 + near_plane, light_aspect, near_plane, far_plane);
 
 					const gpu_shadow_data sh = {
 						.light_space_matrix = light_projection * light_view,

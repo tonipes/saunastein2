@@ -404,6 +404,14 @@ namespace SFG
 			proxy.cast_shadows		  = ev.cast_shadows;
 			proxy.shadow_res		  = ev.shadow_resolution;
 
+			if (proxy.shadow_res.x < 16)
+				proxy.shadow_res.x = 16;
+			if (proxy.shadow_res.y < 16)
+				proxy.shadow_res.y = 16;
+
+			if (proxy.near_plane < 0.001f)
+				proxy.near_plane = 0.001f;
+
 			auto create_shadow_texture = [&]() {
 				// create textures
 				vector<view_desc> views;
@@ -485,6 +493,9 @@ namespace SFG
 			proxy.cast_shadows		  = ev.cast_shadows;
 			proxy.shadow_res		  = ev.shadow_resolution;
 
+			if (proxy.near_plane < 0.001f)
+				proxy.near_plane = 0.001f;
+
 			auto create_shadow_texture = [&]() {
 				// create textures
 				vector<view_desc> views;
@@ -503,6 +514,11 @@ namespace SFG
 					.level_count	= 1,
 					.is_cubemap		= 1,
 				});
+
+				if (proxy.shadow_res.x < 16)
+					proxy.shadow_res.x = 16;
+				if (proxy.shadow_res.y < 16)
+					proxy.shadow_res.y = 16;
 
 				for (uint8 i = 0; i < BACK_BUFFER_COUNT; i++)
 				{
@@ -569,6 +585,11 @@ namespace SFG
 			proxy.cast_shadows	 = ev.cast_shadows;
 			proxy.shadow_res	 = ev.shadow_resolution;
 			proxy.cascade_levels = ev.max_cascades;
+
+			if (proxy.shadow_res.x < 16)
+				proxy.shadow_res.x = 16;
+			if (proxy.shadow_res.y < 16)
+				proxy.shadow_res.y = 16;
 
 			auto create_shadow_texture = [&]() {
 				// create textures

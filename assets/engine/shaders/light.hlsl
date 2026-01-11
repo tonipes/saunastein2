@@ -265,8 +265,6 @@ float sample_shadow_cube(TextureCube shadow_map,
     float  receiver_bias = g_depth_bias_base + slope_bias(NoL) * max(texel.x, texel.y);
 
     float  cmp = depth01 - receiver_bias * 0.1;
-    
-    // 1-tap compare; PCF for cubes needs angular offsets (see note below)
     return shadow_map.SampleCmpLevelZero(smp, dir, cmp);
 }
 
