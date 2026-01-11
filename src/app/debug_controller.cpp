@@ -1342,7 +1342,7 @@ namespace SFG
 				.size			= vector2ui16(size.x, size.y / 2),
 				.flags			= texture_flags::tf_sampled | texture_flags::tf_is_2d | texture_flags::tf_render_target,
 				.views			= {{.type = view_type::render_target}, {.type = view_type::sampled}},
-				.clear_values	= {0.0f, 0.0f, 0.0f, 1.0f},
+				.clear_values	= {0.0f, 0.0f, 0.0f, 0.0f},
 				.debug_name		= "console_rt",
 			});
 
@@ -1351,7 +1351,7 @@ namespace SFG
 				.size			= vector2ui16(size.x, size.y / 2),
 				.flags			= texture_flags::tf_sampled | texture_flags::tf_is_2d | texture_flags::tf_render_target,
 				.views			= {{.type = view_type::render_target}, {.type = view_type::sampled}},
-				.clear_values	= {0.0f, 0.0f, 0.0f, 1.0f},
+				.clear_values	= {0.0f, 0.0f, 0.0f, 0.0f},
 				.debug_name		= "debug_rt",
 			});
 

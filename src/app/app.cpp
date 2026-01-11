@@ -328,15 +328,15 @@ namespace SFG
 			const float dtt = static_cast<float>(static_cast<double>(delta_micro) * 1e-6);
 
 #ifdef SFG_TOOLMODE
-			_editor->pre_world_tick(ws, dt_seconds);
+			_editor->pre_world_tick(dtt);
 #else
-			_game->pre_world_tick(ws, dt_seconds);
+			_game->pre_world_tick(dtt);
 #endif
 
 			_world->tick(ws, dtt);
 
 #ifdef SFG_TOOLMODE
-			_editor->post_world_tick(ws, dt_seconds);
+			_editor->post_world_tick(dtt);
 #else
 			_game->post_world_tick(ws, dt_seconds);
 #endif

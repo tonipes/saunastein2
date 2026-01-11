@@ -237,7 +237,7 @@
         {
             "first_child": -1,
             "name": "light",
-            "next_sibling": 8,
+            "next_sibling": -1,
             "parent": 0,
             "pos": [
                 0.0,
@@ -257,34 +257,9 @@
             ],
             "template": "",
             "visible": 1
-        },
-        {
-            "first_child": -1,
-            "name": "character",
-            "next_sibling": -1,
-            "parent": 0,
-            "pos": [
-                -0.6000000238418579,
-                0.10000000149011612,
-                6.7999958992004395
-            ],
-            "rot": [
-                0.0,
-                0.0,
-                0.0,
-                1.0
-            ],
-            "scale": [
-                1.5,
-                1.5,
-                1.5
-            ],
-            "template": "assets/entity_templates/character.stkent",
-            "visible": 1
         }
     ],
     "resources": [
-        "assets/map/map.stkmodel",
-        "assets/entity_templates/character.stkent"
+        "assets/map/map.stkmodel"
     ]
 }

@@ -29,6 +29,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "data/ostream.hpp"
 #include "data/istream.hpp"
 #include "data/hash_map.hpp"
+#include "math/vector2ui16.hpp"
 
 #ifdef SFG_TOOLMODE
 #include "reflection/reflection.hpp"
@@ -318,6 +319,11 @@ namespace SFG
 						const vector2 val			 = f->value(ptr).cast<vector2>();
 						comp_json[f->_title.c_str()] = val;
 					}
+					else if (ft == reflected_field_type::rf_vector2ui16)
+					{
+						const vector2ui16 val		 = f->value(ptr).cast<vector2ui16>();
+						comp_json[f->_title.c_str()] = val;
+					}
 					else if (ft == reflected_field_type::rf_vector3)
 					{
 						const vector3 val			 = f->value(ptr).cast<vector3>();
@@ -452,6 +458,11 @@ namespace SFG
 					else if (ft == reflected_field_type::rf_vector2)
 					{
 						const vector2 val = c.value<vector2>(f->_title.c_str(), vector2::zero);
+						r.component_buffer << val;
+					}
+					else if (ft == reflected_field_type::rf_vector2ui16)
+					{
+						const vector2ui16 val = c.value<vector2ui16>(f->_title.c_str(), vector2ui16());
 						r.component_buffer << val;
 					}
 					else if (ft == reflected_field_type::rf_vector3)

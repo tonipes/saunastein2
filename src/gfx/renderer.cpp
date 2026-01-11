@@ -90,7 +90,7 @@ namespace SFG
 		gfx_backend* backend = gfx_backend::get();
 
 		// swapchain
-		_swapchain_flags = swapchain_flags::sf_allow_tearing;
+		_swapchain_flags = swapchain_flags::sf_vsync_every_v_blank;
 		_base_size		 = _main_window.get_size();
 		_world_size		 = game_resolution;
 

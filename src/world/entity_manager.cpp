@@ -279,7 +279,7 @@ namespace SFG
 			quat&	   abs_rot = rots.get(index);
 
 #if !(FIXED_FRAMERATE_ENABLED && FIXED_FRAMERATE_USE_INTERPOLATION)
-			stream.add_entity_transform_event(handle_index, abs_mat, abs_rot);
+			stream.add_entity_transform_event(index, abs_mat, abs_rot);
 #endif
 		}
 	}
@@ -1117,6 +1117,13 @@ namespace SFG
 					stream >> val;
 					if (target_field)
 						target_field->value(comp_ptr).cast_ref<vector2>() = val;
+				}
+				else if (ft == reflected_field_type::rf_vector2ui16)
+				{
+					vector2ui16 val = vector2ui16();
+					stream >> val;
+					if (target_field)
+						target_field->value(comp_ptr).cast_ref<vector2ui16>() = val;
 				}
 				else if (ft == reflected_field_type::rf_vector3)
 				{
