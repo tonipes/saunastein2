@@ -3,7 +3,7 @@
     "entities": [
         {
             "first_child": -1,
-            "name": "assets/map/map.stkmodel",
+            "name": "new_entity",
             "next_sibling": -1,
             "parent": -1,
             "pos": [
@@ -22,11 +22,9 @@
                 1.0,
                 1.0
             ],
-            "template": "assets/entity_templates/map.stkent",
+            "template": "",
             "visible": 1
         }
     ],
-    "resources": [
-        "assets/entity_templates/map.stkent"
-    ]
+    "resources": []
 }

@@ -484,7 +484,7 @@ namespace SFG
 
 		world&			world		= editor::get().get_app().get_world();
 		entity_manager& em			= world.get_entity_manager();
-		const bool		is_template = em.get_entity_flags(dst).is_set(entity_flags::entity_flags_template);
+		const bool		is_template = dst.is_null() ? false : em.get_entity_flags(dst).is_set(entity_flags::entity_flags_template);
 
 		if (!(src == dst) && !is_ancestor_of(src, dst) && !is_template)
 		{

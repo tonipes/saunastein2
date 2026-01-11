@@ -81,7 +81,7 @@ namespace SFG
 		// level
 		_gui_builder.add_title("level");
 		_gui_builder.begin_area();
-		_loaded_level = _gui_builder.add_property_row_label("level:", "none", 256).second;
+		_loaded_level = _gui_builder.add_property_row_label("world:", "none", 256).second;
 		// _gui_builder.add_property_row_text_field("lol", "yamate");
 		// _gui_builder.add_property_row_text_field("bduudfy", "yeah");
 		_gui_builder.add_property_row();
@@ -91,9 +91,9 @@ namespace SFG
 		_gui_builder.pop_stack();
 
 		_gui_builder.add_property_row();
-		_button_new_level  = _gui_builder.set_fill_x(_gui_builder.add_button("new_level").first);
-		_button_save_level = _gui_builder.set_fill_x(_gui_builder.add_button("save_level").first);
-		_button_load_level = _gui_builder.set_fill_x(_gui_builder.add_button("load_level").first);
+		_button_new_level  = _gui_builder.set_fill_x(_gui_builder.add_button("new_world").first);
+		_button_save_level = _gui_builder.set_fill_x(_gui_builder.add_button("save_world").first);
+		_button_load_level = _gui_builder.set_fill_x(_gui_builder.add_button("load_world").first);
 		_gui_builder.pop_stack();
 		_gui_builder.end_area();
 

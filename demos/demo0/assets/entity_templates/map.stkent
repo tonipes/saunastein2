@@ -45,30 +45,12 @@
             "mesh": "assets/map/map.stkmodel/defaultMaterial.002",
             "skin": "",
             "skin_entities": 0
-        },
-        {
-            "cast_shadows": 1,
-            "color": [
-                1.7000004053115845,
-                1.4000003337860107,
-                1.0,
-                1.0
-            ],
-            "comp_type": 444826457028991798,
-            "entity": 7,
-            "intensity": 215.0,
-            "near_plane": 0.10000000149011612,
-            "range": 25.0,
-            "shadow_res": [
-                1024,
-                1024
-            ]
         }
     ],
     "entities": [
         {
             "first_child": 1,
-            "name": "map",
+            "name": "assets/map/map.stkmodel",
             "next_sibling": -1,
             "parent": -1,
             "pos": [
@@ -236,37 +218,13 @@
         },
         {
             "first_child": -1,
-            "name": "light",
-            "next_sibling": 8,
-            "parent": 0,
-            "pos": [
-                0.0,
-                3.599998950958252,
-                8.799997329711914
-            ],
-            "rot": [
-                0.0,
-                0.0,
-                0.0,
-                1.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": -1,
-            "name": "character",
+            "name": "assets/character/character.stkmodel",
             "next_sibling": -1,
             "parent": 0,
             "pos": [
-                -0.6000000238418579,
-                0.10000000149011612,
-                6.7999958992004395
+                1.0000001192092896,
+                0.0,
+                7.499995231628418
             ],
             "rot": [
                 0.0,
@@ -275,9 +233,9 @@
                 1.0
             ],
             "scale": [
-                1.5,
-                1.5,
-                1.5
+                2.0,
+                2.0,
+                2.0
             ],
             "template": "assets/entity_templates/character.stkent",
             "visible": 1
