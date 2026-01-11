@@ -33,6 +33,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "math/quat.hpp"
 #include "data/ostream.hpp"
 #include "world/world_constants.hpp"
+#include "resources/common_resources.hpp"
 
 namespace SFG
 {
@@ -42,14 +43,15 @@ namespace SFG
 
 	struct entity_template_entity_raw
 	{
-		string	name		 = "";
-		quat	rotation	 = quat::identity;
-		vector3 position	 = vector3::zero;
-		vector3 scale		 = vector3::one;
-		int32	parent		 = -1;
-		int32	first_child	 = -1;
-		int32	next_sibling = -1;
-		uint8	visible		 = 0;
+		string	name			   = "";
+		string	template_reference = "";
+		quat	rotation		   = quat::identity;
+		vector3 position		   = vector3::zero;
+		vector3 scale			   = vector3::one;
+		int32	parent			   = -1;
+		int32	first_child		   = -1;
+		int32	next_sibling	   = -1;
+		uint8	visible			   = 0;
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);
@@ -59,6 +61,8 @@ namespace SFG
 	void to_json(nlohmann::json& j, const entity_template_entity_raw& r);
 	void from_json(const nlohmann::json& j, entity_template_entity_raw& r);
 #endif
+
+	class entity_manager;
 
 	struct entity_template_raw
 	{
@@ -72,6 +76,7 @@ namespace SFG
 		void destroy();
 
 #ifdef SFG_TOOLMODE
+		static void collect_entities(entity_manager& em, world_handle h, vector<world_handle>& out);
 		static void save_to_file(const char* file, world& w, const vector<world_handle>& handles);
 		static void save_to_json(nlohmann::json& out, world& w, const vector<world_handle>& handles);
 		static void load_from_json(const nlohmann::json& in, entity_template_raw& r);

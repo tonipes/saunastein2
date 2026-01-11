@@ -37,7 +37,8 @@ namespace SFG
 {
 	enum render_proxy_entity_flags : uint8
 	{
-		render_proxy_entity_invisible = 1 << 0,
+		render_proxy_entity_invisible	= 1 << 0,
+		render_proxy_entity_is_template = 1 << 1,
 	};
 
 	struct render_proxy_entity

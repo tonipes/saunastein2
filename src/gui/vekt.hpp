@@ -1221,6 +1221,7 @@ namespace vekt
 		void				clear_text_cache();
 		void				set_focus(id widget, bool from_nav);
 		void				set_pressing(id widget, unsigned int button, const VEKT_VEC2& press_pos);
+		void				build_hierarchy();
 
 		// Widgets
 		void widget_add_debug_wrap(id widget);
@@ -1264,7 +1265,6 @@ namespace vekt
 	private:
 		unsigned int count_total_children(id widget_id) const;
 		void		 populate_hierarchy(id current_widget_id, unsigned int depth);
-		void		 build_hierarchy();
 		void		 calculate_sizes();
 		void		 calculate_positions();
 		void		 calculate_draw();

@@ -37,9 +37,10 @@ namespace SFG
 	class ostream;
 	class istream;
 
-	struct render_event_entity_visibility
+	struct render_event_entity_flags
 	{
-		uint8 visible = 0;
+		uint8 is_visible  = 0;
+		uint8 is_template = 0;
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);

@@ -27,29 +27,38 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "editor_panel_entities.hpp"
 #include "editor/editor_theme.hpp"
 #include "editor/editor_settings.hpp"
+#include "editor/editor.hpp"
 
+// io
+#include "io/file_system.hpp"
 #include "io/log.hpp"
 
+// world
 #include "world/world.hpp"
 #include "world/entity_manager.hpp"
 
+// platform
 #include "platform/window.hpp"
 #include "platform/process.hpp"
 
+// resources
+#include "resources/entity_template.hpp"
+#include "resources/entity_template_raw.hpp"
+
+// math
 #include "math/math.hpp"
 #include "math/vector2ui16.hpp"
-#include "editor/editor.hpp"
-#include "gui/vekt.hpp"
-#include "memory/bump_text_allocator.hpp"
 #include "math/vector3.hpp"
 #include "math/quat.hpp"
+
+// misc
+#include "gui/vekt.hpp"
+#include "memory/bump_text_allocator.hpp"
 #include "gui/icon_defs.hpp"
 #include "input/input_mappings.hpp"
 #include "app/app.hpp"
-
 #include "reflection/reflection.hpp"
 
-#include "resources/entity_template_raw.hpp"
 namespace SFG
 {
 
@@ -102,8 +111,9 @@ namespace SFG
 		_components_parent = _gui_builder.begin_area(true);
 
 		_gui_builder.add_property_row();
-		_add_component = _gui_builder.set_fill_x(_gui_builder.add_button("add_component").first);
-		_save_template = _gui_builder.set_fill_x(_gui_builder.add_button("save_as_template").first);
+		_add_component	 = _gui_builder.set_fill_x(_gui_builder.add_button("add_component").first);
+		_save_template	 = _gui_builder.set_fill_x(_gui_builder.add_button("save_as_template").first);
+		_unlock_template = _gui_builder.set_fill_x(_gui_builder.add_button("unlock_template").first);
 		_gui_builder.pop_stack();
 
 		_gui_builder.end_area();
@@ -119,6 +129,7 @@ namespace SFG
 
 		_text_icon_dd_collapsed = editor::get().get_text_allocator().allocate(ICON_DD_RIGHT);
 		_text_icon_dd			= editor::get().get_text_allocator().allocate(ICON_DD_DOWN);
+		_text_icon_template		= editor::get().get_text_allocator().allocate(ICON_HAMMER);
 
 		set_selected_controls();
 	}
@@ -126,6 +137,8 @@ namespace SFG
 	void editor_panel_entities::uninit()
 	{
 		editor::get().get_text_allocator().deallocate(_text_icon_dd);
+		editor::get().get_text_allocator().deallocate(_text_icon_dd_collapsed);
+		editor::get().get_text_allocator().deallocate(_text_icon_template);
 		_gui_builder.uninit();
 	}
 
@@ -213,11 +226,14 @@ namespace SFG
 	}
 	void editor_panel_entities::build_component_view()
 	{
+		world&			w  = editor::get().get_app().get_world();
+		entity_manager& em = w.get_entity_manager();
+		if (em.get_entity_flags(_selected_entity).is_set(entity_flags::entity_flags_template))
+			return;
+
 		_gui_builder.push_stack(_components_parent);
 		_components_area = _gui_builder.begin_area(false, true);
 
-		world&						w  = editor::get().get_app().get_world();
-		entity_manager&				em = w.get_entity_manager();
 		component_manager&			cm = w.get_comp_manager();
 		const entity_comp_register& cr = em.get_component_register(_selected_entity);
 		for (const entity_comp& c : cr.comps)
@@ -281,9 +297,13 @@ namespace SFG
 
 	vekt::id editor_panel_entities::build_entity_node(world& w, world_handle e, unsigned int depth)
 	{
-		entity_manager& em			 = w.get_entity_manager();
-		const uint8		is_collapsed = _entity_meta[e.index].collapsed;
-		const bool		selected	 = _selected_entity == e;
+		entity_manager& em			= w.get_entity_manager();
+		const uint8		is_template = em.get_entity_flags(e).is_set(entity_flags::entity_flags_template);
+		const uint8		selected	= _selected_entity == e;
+		if (is_template)
+			_entity_meta[e.index].collapsed = true;
+
+		const uint8 is_collapsed = _entity_meta[e.index].collapsed;
 
 		// Row container
 		const vekt::id row = _builder->allocate();
@@ -351,20 +371,34 @@ namespace SFG
 			_builder->widget_get_user_data(row_inner).ptr = this;
 		}
 
-		const vekt::id icon = _builder->allocate();
+		const vekt::id icon_wrap = _builder->allocate();
 		{
-			_builder->widget_add_child(row_inner, icon);
+			_builder->widget_add_child(row_inner, icon_wrap);
 
-			vekt::widget_gfx& gfx = _builder->widget_get_gfx(icon);
-			gfx.flags			  = vekt::gfx_flags::gfx_is_text;
-			gfx.color			  = editor_theme::get().col_text;
-
-			vekt::pos_props& pp = _builder->widget_get_pos_props(icon);
+			vekt::pos_props& pp = _builder->widget_get_pos_props(icon_wrap);
 			pp.flags			= vekt::pos_flags::pf_y_relative | vekt::pos_flags::pf_y_anchor_center;
 			pp.pos.y			= 0.5f;
 
+			vekt::size_props& sz = _builder->widget_get_size_props(icon_wrap);
+			sz.flags			 = vekt::size_flags::sf_y_relative | vekt::size_flags::sf_x_copy_y;
+			sz.size.y			 = 1.0f;
+		}
+
+		const vekt::id icon = _builder->allocate();
+		{
+			_builder->widget_add_child(icon_wrap, icon);
+
+			vekt::widget_gfx& gfx = _builder->widget_get_gfx(icon);
+			gfx.flags			  = vekt::gfx_flags::gfx_is_text;
+			gfx.color			  = is_template ? editor_theme::get().col_accent_third : editor_theme::get().col_text;
+
+			vekt::pos_props& pp = _builder->widget_get_pos_props(icon);
+			pp.flags			= vekt::pos_flags::pf_y_relative | vekt::pos_flags::pf_x_relative | vekt::pos_flags::pf_y_anchor_center | vekt::pos_flags::pf_x_anchor_center;
+			pp.pos.y			= 0.5f;
+			pp.pos.x			= 0.5f;
+
 			vekt::text_props& tp = _builder->widget_get_text(icon);
-			tp.text				 = is_collapsed ? _text_icon_dd_collapsed : _text_icon_dd;
+			tp.text				 = is_template ? _text_icon_template : (is_collapsed ? _text_icon_dd_collapsed : _text_icon_dd);
 			tp.font				 = editor_theme::get().font_icons;
 			tp.scale			 = 0.7f;
 			_builder->widget_update_text(icon);
@@ -376,7 +410,7 @@ namespace SFG
 
 			vekt::widget_gfx& gfx = _builder->widget_get_gfx(txt);
 			gfx.flags			  = vekt::gfx_flags::gfx_is_text;
-			gfx.color			  = editor_theme::get().col_text;
+			gfx.color			  = is_template ? editor_theme::get().col_accent_third : editor_theme::get().col_text;
 
 			vekt::pos_props& pp = _builder->widget_get_pos_props(txt);
 			pp.flags			= vekt::pos_flags::pf_y_relative | vekt::pos_flags::pf_y_anchor_center;
@@ -393,6 +427,7 @@ namespace SFG
 		const entity_family& fam = em.get_entity_family(e);
 		world_handle		 ch	 = fam.first_child;
 
+		if (!is_template)
 		{
 			_builder->widget_set_visible(icon, !ch.is_null());
 		}
@@ -514,9 +549,15 @@ namespace SFG
 
 	void editor_panel_entities::set_selected_controls()
 	{
-		_gui_builder.set_widget_enabled(_add_component, !_selected_entity.is_null(), editor_theme::get().col_button, editor_theme::get().col_button_silent);
-		_gui_builder.set_widget_enabled(_save_template, !_selected_entity.is_null(), editor_theme::get().col_button, editor_theme::get().col_button_silent);
-		_gui_builder.set_widget_enabled(_prop_name, !_selected_entity.is_null(), editor_theme::get().col_frame_bg, editor_theme::get().col_button_silent);
+		bool is_template = 0;
+		if (!_selected_entity.is_null())
+			is_template = editor::get().get_app().get_world().get_entity_manager().get_entity_flags(_selected_entity).is_set(entity_flags::entity_flags_template);
+		const bool template_disabled = _selected_entity.is_null() || is_template;
+
+		_gui_builder.set_widget_enabled(_unlock_template, is_template, editor_theme::get().col_button, editor_theme::get().col_button_silent);
+		_gui_builder.set_widget_enabled(_add_component, !template_disabled, editor_theme::get().col_button, editor_theme::get().col_button_silent);
+		_gui_builder.set_widget_enabled(_save_template, !template_disabled, editor_theme::get().col_button, editor_theme::get().col_button_silent);
+		_gui_builder.set_widget_enabled(_prop_name, !template_disabled, editor_theme::get().col_frame_bg, editor_theme::get().col_button_silent);
 		_gui_builder.set_widget_enabled(_selected_pos_x, !_selected_entity.is_null(), editor_theme::get().col_frame_bg, editor_theme::get().col_button_silent);
 		_gui_builder.set_widget_enabled(_selected_pos_y, !_selected_entity.is_null(), editor_theme::get().col_frame_bg, editor_theme::get().col_button_silent);
 		_gui_builder.set_widget_enabled(_selected_pos_z, !_selected_entity.is_null(), editor_theme::get().col_frame_bg, editor_theme::get().col_button_silent);
@@ -528,6 +569,7 @@ namespace SFG
 		_gui_builder.set_widget_enabled(_selected_scale_z, !_selected_entity.is_null(), editor_theme::get().col_frame_bg, editor_theme::get().col_button_silent);
 		_gui_builder.set_widget_enabled(_prop_vis, !_selected_entity.is_null(), editor_theme::get().col_frame_bg, editor_theme::get().col_button_silent);
 		_gui_builder.set_widget_enabled(_prop_handle, !_selected_entity.is_null(), editor_theme::get().col_text, editor_theme::get().col_button_silent);
+		_builder->build_hierarchy();
 	}
 
 	void editor_panel_entities::on_input_field_changed(void* callback_ud, vekt::builder* b, vekt::id widget, const char* txt, float value)
@@ -634,6 +676,31 @@ namespace SFG
 			world&		 w	  = editor::get().get_app().get_world();
 			const string file = process::save_file("save entity file", ".stkent");
 			entity_template_raw::save_to_file(file.c_str(), w, {self->_selected_entity});
+
+			string relative = editor_settings::get().get_relative(file);
+			file_system::fix_path(relative);
+			w.get_resource_manager().load_resources({relative});
+
+			const resource_handle h = w.get_resource_manager().get_resource_handle_by_hash<entity_template>(TO_SID(relative));
+			w.get_entity_manager().set_entity_template(self->_selected_entity, h);
+
+			self->_entity_meta[self->_selected_entity.index].collapsed = true;
+			self->set_selected_controls();
+			self->clear_component_view();
+			self->build_component_view();
+			self->rebuild_tree(w);
+			return vekt::input_event_result::handled;
+		}
+
+		if (ev.type == vekt::input_event_type::pressed && widget == self->_unlock_template && !self->_selected_entity.is_null())
+		{
+			world& w = editor::get().get_app().get_world();
+			w.get_entity_manager().set_entity_template(self->_selected_entity, {});
+			self->set_selected_controls();
+			self->clear_component_view();
+			self->build_component_view();
+			self->rebuild_tree(w);
+			return vekt::input_event_result::handled;
 		}
 
 		if (ev.type == vekt::input_event_type::pressed && widget == self->_add_component && !self->_selected_entity.is_null())
@@ -786,7 +853,9 @@ namespace SFG
 
 		if (ev.type == vekt::input_event_type::repeated)
 		{
-			self->toggle_collapse(clicked);
+			const uint8 is_template = editor::get().get_app().get_world().get_entity_manager().get_entity_flags(clicked).is_set(entity_flags::entity_flags_template);
+			if (!is_template)
+				self->toggle_collapse(clicked);
 			self->set_selected(clicked);
 			return vekt::input_event_result::handled;
 		}

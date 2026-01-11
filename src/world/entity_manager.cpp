@@ -62,18 +62,19 @@ namespace SFG
 {
 	entity_manager::entity_manager(world& w) : _world(w)
 	{
-		_entities		   = new pool_allocator_gen<world_id, world_id, MAX_ENTITIES>();
-		_metas			   = new static_array<entity_meta, MAX_ENTITIES>();
-		_families		   = new static_array<entity_family, MAX_ENTITIES>();
-		_aabbs			   = new static_array<aabb, MAX_ENTITIES>();
-		_comp_registers	   = new static_array<entity_comp_register, MAX_ENTITIES>();
-		_local_transforms  = new static_array<entity_transform, MAX_ENTITIES>();
-		_flags			   = new static_array<bitmask<uint16>, MAX_ENTITIES>();
-		_abs_matrices	   = new static_array<matrix4x3, MAX_ENTITIES>();
-		_prev_abs_matrices = new static_array<matrix4x3, MAX_ENTITIES>();
-		_abs_rots		   = new static_array<quat, MAX_ENTITIES>();
-		_prev_abs_rots	   = new static_array<quat, MAX_ENTITIES>();
-		_proxy_entities	   = new static_vector<world_handle, MAX_ENTITIES>();
+		_entities			 = new pool_allocator_gen<world_id, world_id, MAX_ENTITIES>();
+		_template_references = new static_array<resource_handle, MAX_ENTITIES>();
+		_metas				 = new static_array<entity_meta, MAX_ENTITIES>();
+		_families			 = new static_array<entity_family, MAX_ENTITIES>();
+		_aabbs				 = new static_array<aabb, MAX_ENTITIES>();
+		_comp_registers		 = new static_array<entity_comp_register, MAX_ENTITIES>();
+		_local_transforms	 = new static_array<entity_transform, MAX_ENTITIES>();
+		_flags				 = new static_array<bitmask<uint16>, MAX_ENTITIES>();
+		_abs_matrices		 = new static_array<matrix4x3, MAX_ENTITIES>();
+		_prev_abs_matrices	 = new static_array<matrix4x3, MAX_ENTITIES>();
+		_abs_rots			 = new static_array<quat, MAX_ENTITIES>();
+		_prev_abs_rots		 = new static_array<quat, MAX_ENTITIES>();
+		_proxy_entities		 = new static_vector<world_handle, MAX_ENTITIES>();
 
 #ifdef SFG_TOOLMODE
 		_instantiated_models.reserve(512);
@@ -84,6 +85,7 @@ namespace SFG
 	{
 		delete _entities;
 		delete _metas;
+		delete _template_references;
 		delete _families;
 		delete _aabbs;
 		delete _comp_registers;
@@ -348,6 +350,7 @@ namespace SFG
 	void entity_manager::reset_all_entity_data()
 	{
 		_entities->reset();
+		_template_references->reset();
 		_aabbs->reset();
 		_metas->reset();
 		_families->reset();
@@ -374,6 +377,7 @@ namespace SFG
 		for (const entity_comp& t : copied_comps)
 			cm.remove_component(t.comp_type, handle, t.comp_handle);
 
+		_template_references->reset(id);
 		_aabbs->reset(id);
 		_metas->reset(id);
 		_families->reset(id);
@@ -387,6 +391,17 @@ namespace SFG
 
 		// whatever makes entity proxy is assumed to clean already.
 		// _proxy_entities->remove(handle);
+	}
+
+	void entity_manager::update_entity_flags_to_render(world_handle handle)
+	{
+		const bitmask<uint16>&			flags = get_entity_flags(handle);
+		const render_event_entity_flags ev	  = {
+			   .is_visible	= !flags.is_set(entity_flags::entity_flags_invisible),
+			   .is_template = flags.is_set(entity_flags::entity_flags_template),
+		   };
+
+		_world.get_render_stream().add_event({.index = handle.index, .event_type = render_event_type::update_entity_flags}, ev);
 	}
 
 	world_handle entity_manager::create_entity(const char* name)
@@ -425,7 +440,7 @@ namespace SFG
 
 		const entity_family& f = _families->get(parent.index);
 		world_handle		 h = {};
-		visit_children(parent, [&](world_handle c) {
+		visit_children_deep(parent, [&](world_handle c) {
 			const entity_meta& m = get_entity_meta(c);
 			if (strcmp(m.name, name) == 0)
 			{
@@ -681,6 +696,12 @@ namespace SFG
 		return _metas->get(entity.index);
 	}
 
+	const resource_handle& entity_manager::get_entity_template_ref(world_handle entity) const
+	{
+		SFG_ASSERT(_entities->is_valid(entity));
+		return _template_references->get(entity.index);
+	}
+
 	const entity_family& entity_manager::get_entity_family(world_handle entity) const
 	{
 		SFG_ASSERT(_entities->is_valid(entity));
@@ -727,8 +748,15 @@ namespace SFG
 	{
 		SFG_ASSERT(is_valid(entity));
 		_flags->get(entity.index).set(entity_flags::entity_flags_invisible, !is_visible);
-		const render_event_entity_visibility ev = {.visible = is_visible};
-		_world.get_render_stream().add_event({.index = entity.index, .event_type = render_event_type::update_entity_visibility}, ev);
+		update_entity_flags_to_render(entity);
+	}
+
+	void entity_manager::set_entity_template(world_handle entity, resource_handle template_ref)
+	{
+		SFG_ASSERT(is_valid(entity));
+		_flags->get(entity.index).set(entity_flags::entity_flags_template, !template_ref.is_null());
+		update_entity_flags_to_render(entity);
+		_template_references->get(entity.index) = template_ref;
 	}
 
 	void entity_manager::remove_all_entity_components(world_handle entity)
@@ -1006,12 +1034,22 @@ namespace SFG
 		for (uint32 i = 0; i < sz; i++)
 		{
 			const entity_template_entity_raw& r = raw.entities[i];
-			const world_handle				  h = create_entity(r.name.c_str());
-			set_entity_position(h, r.position);
-			set_entity_rotation(h, r.rotation);
-			set_entity_scale(h, r.scale);
-			set_entity_visible(h, r.visible);
-			created[i] = h;
+
+			const string& template_ref	 = r.template_reference;
+			world_handle  created_handle = {};
+			if (!template_ref.empty())
+			{
+				const resource_handle tmp_handle = rm.get_resource_handle_by_hash<entity_template>(TO_SID(r.template_reference));
+				created_handle					 = instantiate_template(tmp_handle);
+			}
+			else
+				created_handle = create_entity(r.name.c_str());
+
+			set_entity_position(created_handle, r.position);
+			set_entity_rotation(created_handle, r.rotation);
+			set_entity_scale(created_handle, r.scale);
+			set_entity_visible(created_handle, r.visible);
+			created[i] = created_handle;
 		}
 
 		for (uint32 i = 0; i < sz; i++)
@@ -1167,7 +1205,11 @@ namespace SFG
 				comp_meta.invoke_function<void, void*, world&>("on_reflect_load"_hs, comp_ptr, _world);
 		}
 
-		return world_handle();
+		const world_handle root = created.empty() ? world_handle() : created[0];
+
+		if (!root.is_null())
+			set_entity_template(root, template_handle);
+		return root;
 	}
 
 #ifdef SFG_TOOLMODE

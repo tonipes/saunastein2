@@ -31,13 +31,14 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace SFG
 {
 
-	void render_event_entity_visibility::serialize(ostream& stream) const
+	void render_event_entity_flags::serialize(ostream& stream) const
 	{
-		stream << visible;
+		stream << is_template;
+		stream << is_visible;
 	}
-
-	void render_event_entity_visibility::deserialize(istream& stream)
+	void render_event_entity_flags::deserialize(istream& stream)
 	{
-		stream >> visible;
+		stream >> is_template;
+		stream >> is_visible;
 	}
 }

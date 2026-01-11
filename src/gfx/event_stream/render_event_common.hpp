@@ -54,7 +54,7 @@ namespace SFG
 		remove_mesh_instance,
 		create_entity,
 		remove_entity,
-		update_entity_visibility,
+		update_entity_flags,
 		set_main_camera,
 		update_camera,
 		remove_camera,

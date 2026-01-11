@@ -25,6 +25,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "entity_template_raw.hpp"
+#include "entity_template.hpp"
 #include "data/ostream.hpp"
 #include "data/istream.hpp"
 #include "data/hash_map.hpp"
@@ -56,6 +57,7 @@ namespace SFG
 		stream << first_child;
 		stream << next_sibling;
 		stream << visible;
+		stream << template_reference;
 	}
 
 	void entity_template_entity_raw::deserialize(istream& stream)
@@ -68,6 +70,7 @@ namespace SFG
 		stream >> first_child;
 		stream >> next_sibling;
 		stream >> visible;
+		stream >> template_reference;
 	}
 
 #ifdef SFG_TOOLMODE
@@ -78,6 +81,7 @@ namespace SFG
 		j["rot"]		  = r.rotation;
 		j["scale"]		  = r.scale;
 		j["visible"]	  = r.visible;
+		j["template"]	  = r.template_reference;
 		j["parent"]		  = r.parent;
 		j["first_child"]  = r.first_child;
 		j["next_sibling"] = r.next_sibling;
@@ -85,14 +89,15 @@ namespace SFG
 
 	void from_json(const nlohmann::json& j, entity_template_entity_raw& r)
 	{
-		r.name		   = j.value<string>("name", "");
-		r.position	   = j.value<vector3>("pos", vector3::zero);
-		r.rotation	   = j.value<quat>("rot", quat::identity);
-		r.scale		   = j.value<vector3>("scale", vector3::one);
-		r.visible	   = j.value<uint8>("visible", 1);
-		r.parent	   = j.value<int32>("parent", -1);
-		r.first_child  = j.value<int32>("first_child", -1);
-		r.next_sibling = j.value<int32>("next_sibling", -1);
+		r.name				 = j.value<string>("name", "");
+		r.position			 = j.value<vector3>("pos", vector3::zero);
+		r.rotation			 = j.value<quat>("rot", quat::identity);
+		r.scale				 = j.value<vector3>("scale", vector3::one);
+		r.visible			 = j.value<uint8>("visible", 1);
+		r.template_reference = j.value<string>("template", "");
+		r.parent			 = j.value<int32>("parent", -1);
+		r.first_child		 = j.value<int32>("first_child", -1);
+		r.next_sibling		 = j.value<int32>("next_sibling", -1);
 	}
 
 #endif
@@ -126,6 +131,24 @@ namespace SFG
 			component_buffer.destroy();
 	}
 
+	void entity_template_raw::collect_entities(entity_manager& em, world_handle h, vector<world_handle>& out)
+	{
+		out.push_back(h);
+
+		const resource_handle tmp = em.get_entity_template_ref(h);
+		if (!tmp.is_null())
+			return;
+
+		const entity_family& f	   = em.get_entity_family(h);
+		world_handle		 child = f.first_child;
+		while (!child.is_null())
+		{
+			collect_entities(em, child, out);
+			const entity_family& cf = em.get_entity_family(child);
+			child					= cf.next_sibling;
+		}
+	}
+
 #ifdef SFG_TOOLMODE
 
 	void entity_template_raw::save_to_file(const char* path, world& w, const vector<world_handle>& handles)
@@ -149,12 +172,10 @@ namespace SFG
 
 		vector<world_handle> order;
 		order.reserve(512);
-		auto collect = [&](world_handle h) { order.push_back(h); };
 
 		for (world_handle h : handles)
 		{
-			collect(h);
-			em.visit_children(h, collect);
+			collect_entities(em, h, order);
 		}
 
 		hash_map<uint32, int32> index_by_world;
@@ -172,6 +193,11 @@ namespace SFG
 		vector<resource_handle_and_type> resources		= {};
 		vector<string>					 resource_paths = {};
 
+		string path			= "";
+		string path_to_push = "";
+		path.reserve(512);
+		path_to_push.reserve(512);
+
 		for (size_t i = 0; i < order.size(); i++)
 		{
 			const world_handle h		= order[i];
@@ -186,6 +212,15 @@ namespace SFG
 			er.first_child				  = -1;
 			er.next_sibling				  = -1;
 			er.visible					  = !em.get_entity_flags(h).is_set(entity_flags::entity_flags_invisible);
+
+			const resource_handle tmp = em.get_entity_template_ref(h);
+			if (!tmp.is_null())
+			{
+				er.template_reference = rm.get_loaded_path_by_handle(type_id<entity_template>::value, tmp);
+				auto it				  = std::find_if(resource_paths.begin(), resource_paths.end(), [&](const string& str) -> bool { return str.compare(er.template_reference) == 0; });
+				if (it == resource_paths.end())
+					resource_paths.push_back(er.template_reference);
+			}
 
 			const entity_family& fam = em.get_entity_family(h);
 
@@ -210,6 +245,11 @@ namespace SFG
 
 			je.push_back(er);
 
+			if (!tmp.is_null())
+			{
+				continue;
+			}
+
 			const entity_comp_register& reg = em.get_component_register(h);
 
 			for (const entity_comp& c : reg.comps)
@@ -233,15 +273,19 @@ namespace SFG
 						if (ht.handle.is_null())
 							continue;
 
-						const string path  = rm.get_loaded_path_by_handle(ht.type_id, ht.handle);
+						path		 = rm.get_loaded_path_by_handle(ht.type_id, ht.handle);
+						path_to_push = "";
+
 						const size_t dot   = path.find(".");
 						const size_t slash = path.find_last_of("/");
 						if (slash > dot)
-						{
-							resource_paths.push_back(path.substr(0, slash));
-						}
+							path_to_push = path.substr(0, slash);
 						else
-							resource_paths.push_back(path);
+							path_to_push = path;
+
+						auto it = std::find_if(resource_paths.begin(), resource_paths.end(), [&](const string& str) -> bool { return str.compare(path_to_push) == 0; });
+						if (it == resource_paths.end())
+							resource_paths.push_back(path_to_push);
 					}
 				}
 
@@ -357,7 +401,9 @@ namespace SFG
 
 		json& jr = j["resources"];
 		for (const string& p : resource_paths)
+		{
 			jr.push_back(p);
+		}
 	}
 
 	void entity_template_raw::load_from_json(const nlohmann::json& json_data, entity_template_raw& r)

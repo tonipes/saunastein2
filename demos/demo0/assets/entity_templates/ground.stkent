@@ -153,6 +153,7 @@
                 1.0,
                 1.0
             ],
+            "template": "",
             "visible": 1
         },
         {
@@ -176,6 +177,7 @@
                 256.0,
                 256.0
             ],
+            "template": "",
             "visible": 1
         },
         {
@@ -199,6 +201,7 @@
                 1.0,
                 1.0
             ],
+            "template": "",
             "visible": 1
         },
         {
@@ -222,6 +225,7 @@
                 0.4915589392185211,
                 0.4915589392185211
             ],
+            "template": "",
             "visible": 1
         },
         {
@@ -245,6 +249,7 @@
                 0.6661596298217773,
                 0.6661596298217773
             ],
+            "template": "",
             "visible": 1
         },
         {
@@ -268,6 +273,7 @@
                 2.0,
                 0.5
             ],
+            "template": "",
             "visible": 1
         },
         {
@@ -291,6 +297,7 @@
                 1.0,
                 1.0
             ],
+            "template": "",
             "visible": 1
         },
         {
@@ -314,6 +321,7 @@
                 1.399999976158142,
                 0.5
             ],
+            "template": "",
             "visible": 1
         },
         {
@@ -337,6 +345,7 @@
                 1.661454200744629,
                 0.2724432945251465
             ],
+            "template": "",
             "visible": 1
         },
         {
@@ -360,6 +369,7 @@
                 2.784572124481201,
                 0.11602382361888885
             ],
+            "template": "",
             "visible": 1
         },
         {
@@ -383,6 +393,7 @@
                 7.908500671386719,
                 0.6261193752288818
             ],
+            "template": "",
             "visible": 1
         },
         {
@@ -406,6 +417,7 @@
                 7.908500671386719,
                 0.6261193752288818
             ],
+            "template": "",
             "visible": 1
         },
         {
@@ -429,6 +441,7 @@
                 7.908500671386719,
                 0.6261193752288818
             ],
+            "template": "",
             "visible": 1
         },
         {
@@ -452,12 +465,13 @@
                 1.0,
                 1.0
             ],
+            "template": "",
             "visible": 1
         },
         {
             "first_child": -1,
             "name": "ConeByWall.001",
-            "next_sibling": -1,
+            "next_sibling": 15,
             "parent": 0,
             "pos": [
                 -0.871484100818634,
@@ -475,35 +489,36 @@
                 0.46197593212127686,
                 0.46197593212127686
             ],
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "root",
+            "next_sibling": -1,
+            "parent": 0,
+            "pos": [
+                3.099999189376831,
+                2.799999475479126,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "template": "assets/entity_templates/light_root.stkent",
             "visible": 1
         }
     ],
     "resources": [
         "assets/ground/ground.stkmodel",
-        "assets/ground/ground.stkmodel",
-        "assets/ground/ground.stkmodel",
-        "assets/ground/ground.stkmodel",
-        "assets/ground/ground.stkmodel",
-        "assets/ground/ground.stkmodel",
-        "assets/ground/ground.stkmodel",
-        "assets/ground/ground.stkmodel",
-        "assets/ground/ground.stkmodel",
-        "assets/ground/ground.stkmodel",
-        "assets/ground/ground.stkmodel",
-        "assets/ground/ground.stkmodel",
-        "assets/ground/ground.stkmodel",
-        "assets/ground/ground.stkmodel",
-        "assets/ground/ground.stkmodel",
-        "assets/ground/ground.stkmodel",
-        "assets/ground/ground.stkmodel",
-        "assets/ground/ground.stkmodel",
-        "assets/ground/ground.stkmodel",
-        "assets/ground/ground.stkmodel",
-        "assets/ground/ground.stkmodel",
-        "assets/ground/ground.stkmodel",
-        "assets/ground/ground.stkmodel",
-        "assets/ground/ground.stkmodel",
-        "assets/ground/ground.stkmodel",
-        "assets/ground/ground.stkmodel"
+        "assets/entity_templates/light_root.stkent"
     ]
 }

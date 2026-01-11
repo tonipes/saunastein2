@@ -86,7 +86,7 @@ namespace SFG
 	private:
 		struct entity_panel_meta
 		{
-			unsigned char collapsed = 1;
+			bool collapsed = true;
 		};
 
 		struct node_binding
@@ -135,6 +135,7 @@ namespace SFG
 		vekt::id _components_parent = NULL_WIDGET_ID;
 		vekt::id _components_area	= NULL_WIDGET_ID;
 		vekt::id _add_component		= NULL_WIDGET_ID;
+		vekt::id _unlock_template	= NULL_WIDGET_ID;
 		vekt::id _save_template		= NULL_WIDGET_ID;
 
 		vector<add_comp_button>	   _add_component_buttons = {};
@@ -145,6 +146,7 @@ namespace SFG
 
 		const char* _text_icon_dd			= nullptr;
 		const char* _text_icon_dd_collapsed = nullptr;
+		const char* _text_icon_template		= nullptr;
 
 		vekt::id _drag_src_widget = 0;
 		bool	 _is_payload_on	  = false;

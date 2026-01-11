@@ -240,7 +240,7 @@ namespace SFG
 		void	 set_text_field_value(vekt::id id, float f, bool skip_if_focused, bool is_int = false);
 		void	 text_field_edit_complete(gui_text_field& tf);
 		void	 set_checkbox_value(vekt::id id, unsigned char value);
-		void	 set_widget_enabled(vekt::id id, uint8 enabled, const vector4& enabled_col, const vector4& disabled_col);
+		void	 set_widget_enabled(vekt::id id, bool enabled, const vector4& enabled_col, const vector4& disabled_col);
 
 		// -----------------------------------------------------------------------------
 		// accessors

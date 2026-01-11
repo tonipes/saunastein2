@@ -84,12 +84,14 @@ namespace SFG
 		world_handle				get_child_by_index(world_handle parent, uint32 index);
 		const aabb&					get_entity_aabb(world_handle entity);
 		const entity_meta&			get_entity_meta(world_handle entity) const;
+		const resource_handle&		get_entity_template_ref(world_handle entity) const;
 		const entity_family&		get_entity_family(world_handle entity) const;
 		const bitmask<uint16>		get_entity_flags(world_handle entity) const;
 		void						set_entity_name(world_handle entity, const char* name);
 		void						add_render_proxy(world_handle entity);
 		void						remove_render_proxy(world_handle entity);
 		void						set_entity_visible(world_handle entity, bool is_visible);
+		void						set_entity_template(world_handle entity, resource_handle template_ref);
 		void						remove_all_entity_components(world_handle entity);
 		world_handle				get_valid_handle_by_index(world_id id);
 		world_handle				get_entity_component(string_id comp_type, world_handle entity);
@@ -117,7 +119,7 @@ namespace SFG
 			return _entities->is_valid(entity);
 		}
 
-		template <typename VisitFunc> void visit_children(world_handle parent, VisitFunc f)
+		template <typename VisitFunc> void visit_children_deep(world_handle parent, VisitFunc f)
 		{
 			const entity_family& fam	= get_entity_family(parent);
 			world_handle		 entity = fam.first_child;
@@ -126,6 +128,18 @@ namespace SFG
 			{
 				f(entity);
 				visit_children(entity, f);
+				entity = get_entity_family(entity).next_sibling;
+			}
+		}
+
+		template <typename VisitFunc> void visit_children(world_handle parent, VisitFunc f)
+		{
+			const entity_family& fam	= get_entity_family(parent);
+			world_handle		 entity = fam.first_child;
+
+			while (!entity.is_null())
+			{
+				f(entity);
 				entity = get_entity_family(entity).next_sibling;
 			}
 		}
@@ -235,6 +249,7 @@ namespace SFG
 		void on_component_removed(world_handle entity, world_handle comp_handle, string_id comp_type);
 		void reset_all_entity_data();
 		void reset_entity_data(world_handle handle);
+		void update_entity_flags_to_render(world_handle handle);
 
 	private:
 #ifdef SFG_TOOLMODE
@@ -247,6 +262,7 @@ namespace SFG
 		world& _world;
 
 		pool_allocator_gen<world_id, world_id, MAX_ENTITIES>* _entities			   = {};
+		static_array<resource_handle, MAX_ENTITIES>*		  _template_references = {};
 		static_array<entity_meta, MAX_ENTITIES>*			  _metas			   = {};
 		static_array<entity_family, MAX_ENTITIES>*			  _families			   = {};
 		static_array<aabb, MAX_ENTITIES>*					  _aabbs			   = {};

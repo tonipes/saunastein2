@@ -362,13 +362,14 @@ namespace SFG
 			render_proxy_entity& proxy = get_entity(index);
 			proxy.status			   = render_proxy_status::rps_inactive;
 		}
-		else if (type == render_event_type::update_entity_visibility)
+		else if (type == render_event_type::update_entity_flags)
 		{
-			render_event_entity_visibility ev = {};
+			render_event_entity_flags ev = {};
 			ev.deserialize(stream);
 			render_proxy_entity& proxy = get_entity(index);
 			proxy.status			   = render_proxy_status::rps_active;
-			proxy.flags.set(render_proxy_entity_flags::render_proxy_entity_invisible, !ev.visible);
+			proxy.flags.set(render_proxy_entity_flags::render_proxy_entity_invisible, !ev.is_visible);
+			proxy.flags.set(render_proxy_entity_flags::render_proxy_entity_is_template, ev.is_template);
 		}
 		else if (type == render_event_type::update_ambient)
 		{

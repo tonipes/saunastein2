@@ -624,6 +624,13 @@ namespace vekt
 			_hover_callbacks[_pressed_widget].is_pressing = 0;
 		}
 
+		if (widget != NULL_WIDGET_ID)
+		{
+			hover_callback& hb = _hover_callbacks[widget];
+			if (!hb.receive_mouse || hb.disable_hover)
+				return;
+		}
+
 		_pressed_widget = widget;
 		if (_pressed_widget != NULL_WIDGET_ID)
 		{
@@ -654,10 +661,32 @@ namespace vekt
 		bool			   pushed	   = false;
 
 		scroll_props& sc = _scroll_properties[current_widget_id];
+
+		hover_callback& hb			  = _hover_callbacks[current_widget_id];
+		const bool		receive_mouse = hb.receive_mouse;
+		const bool		disable_hover = hb.disable_hover;
+		const bool		is_hovered	  = hb.is_hovered;
+		const bool		is_pressing	  = hb.is_pressing;
+
+		if (!receive_mouse)
+		{
+			hb.is_pressing = 0;
+		}
+
+		if (disable_hover)
+		{
+			hb.is_hovered  = 0;
+			hb.is_pressing = 0;
+		}
+
 		if (sc.scroll_parent != NULL_WIDGET_ID)
 			_depth_first_scrolls.push_back(current_widget_id);
-		if (_hover_callbacks[current_widget_id].receive_mouse)
+
+		if (receive_mouse)
 			_depth_first_mouse_widgets.push_back(current_widget_id);
+
+		if (current_widget_id == _pressed_widget && (!receive_mouse || disable_hover))
+			set_pressing(NULL_WIDGET_ID, _pressed_button, {});
 
 		if (_gfxs[current_widget_id].flags & gfx_flags::gfx_focusable)
 			_depth_first_focusables.push_back(current_widget_id);

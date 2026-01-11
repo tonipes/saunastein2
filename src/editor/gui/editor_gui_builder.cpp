@@ -1504,6 +1504,7 @@ namespace SFG
 		widget_gfx& gfx = _builder->widget_get_gfx(w);
 		gfx.flags		= gfx_flags::gfx_is_text;
 		gfx.color		= editor_theme::get().col_text;
+		gfx.draw_order	= 1;
 
 		pos_props& pp = _builder->widget_get_pos_props(w);
 		pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_y_relative | pos_flags::pf_y_anchor_center;
@@ -1716,13 +1717,13 @@ namespace SFG
 		}
 	}
 
-	void gui_builder::set_widget_enabled(vekt::id w, uint8 enabled, const vector4& enabled_col, const vector4& disabled_col)
+	void gui_builder::set_widget_enabled(vekt::id w, bool enabled, const vector4& enabled_col, const vector4& disabled_col)
 	{
 		widget_gfx& gfx = _builder->widget_get_gfx(w);
 		gfx.color		= enabled ? enabled_col : disabled_col;
 
 		_builder->widget_get_hover_callbacks(w).receive_mouse = enabled;
-		_builder->widget_get_hover_callbacks(w).disable_hover = enabled == 0;
+		_builder->widget_get_hover_callbacks(w).disable_hover = enabled == false;
 
 		const widget_meta& m = _builder->widget_get_meta(w);
 		if (m.children.empty())
@@ -1936,6 +1937,7 @@ namespace SFG
 			widget_gfx& gfx = _builder->widget_get_gfx(txt);
 			gfx.flags		= gfx_flags::gfx_is_text;
 			gfx.color		= editor_theme::get().col_accent_second;
+			gfx.draw_order	= 1;
 
 			pos_props& pp = _builder->widget_get_pos_props(txt);
 			pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_y_relative | pos_flags::pf_x_anchor_center | pos_flags::pf_y_anchor_center;
