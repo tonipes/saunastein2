@@ -52,20 +52,20 @@ namespace SFG
 		_gui_builder.callbacks.on_mouse	 = on_mouse;
 		_gui_builder.callbacks.user_data = this;
 
-		_widget = _gui_builder.get_root();
+		_widget				 = _gui_builder.get_root();
+		vekt::size_props& sz = _builder->widget_get_size_props(_widget);
+		sz.flags &= ~vekt::size_flags::sf_y_abs;
+		sz.flags |= vekt::size_flags::sf_y_total_children;
 
 		const string vstr = "stakeforge_engine v." + std::to_string(SFG_MAJOR) + "." + std::to_string(SFG_MINOR) + "." + string(SFG_BUILD);
 
 		// general
-		_gui_builder.add_title("general");
+		_gui_builder.add_title("info");
 		_gui_builder.begin_area(false);
 		_gui_builder.add_property_single_label(vstr.c_str());
 		_hyperlink = _gui_builder.add_property_single_hyperlink("github");
-		_gui_builder.end_area();
 
 		// stats
-		_gui_builder.add_title("stats");
-		_gui_builder.begin_area();
 		_game_res	= _gui_builder.add_property_row_label("game_res:", "fetching...", 12).second;
 		_window_res = _gui_builder.add_property_row_label("window_res:", "fetching...", 12).second;
 		_fps		= _gui_builder.add_property_row_label("fps:", "fetching...", 12).second;
@@ -76,11 +76,8 @@ namespace SFG
 		_vram_txt	= _gui_builder.add_property_row_label("vram_texture:", "fetching...", 12).second;
 		_vram_res	= _gui_builder.add_property_row_label("vram_buffer:", "fetching...", 12).second;
 		_draw_calls = _gui_builder.add_property_row_label("draw_calls:", "fetching...", 12).second;
-		_gui_builder.end_area();
 
 		// level
-		_gui_builder.add_title("level");
-		_gui_builder.begin_area();
 		_loaded_project = _gui_builder.add_property_row_label("project:", editor_settings::get().working_dir.c_str(), 1024).second;
 		_loaded_level	= _gui_builder.add_property_row_label("world:", editor::get().get_loaded_level().c_str(), 1024).second;
 
@@ -111,7 +108,7 @@ namespace SFG
 	{
 		const float wsx = 700.0f;
 		const float wsy = 1200.0f;
-		_builder->widget_set_pos_abs(_widget, vector2(window_size.x - wsx, 50));
+		_builder->widget_set_pos_abs(_widget, vector2(window_size.x - wsx, 28));
 		_builder->widget_set_size_abs(_widget, vector2(700, 1200));
 
 		static float stat_fetch_time = 0.0f;
@@ -166,7 +163,7 @@ namespace SFG
 			_builder->widget_append_text_start(_draw_calls);
 			_builder->widget_append_text(_draw_calls, stat_dc);
 		}
-		 
+
 		if (mem_fetch_time > 6000)
 		{
 #ifdef SFG_ENABLE_MEMORY_TRACER

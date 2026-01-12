@@ -603,6 +603,7 @@ namespace SFG
 		_text_fields.reserve(256);
 		_checkboxes.reserve(256);
 		_resources.reserve(256);
+		_dropdowns.reserve(128);
 		_reflected.reserve(256);
 
 		const id w = _builder->allocate();
@@ -633,7 +634,14 @@ namespace SFG
 			editor::get().get_text_allocator().deallocate(r.extension);
 		}
 
+		for (const gui_dropdown& d : _dropdowns)
+		{
+			for (const char* it : d.items)
+				editor::get().get_text_allocator().deallocate(it);
+		}
+
 		_resources.resize(0);
+		_dropdowns.resize(0);
 		_checkboxes.resize(0);
 		_text_fields.resize(0);
 		_builder->deallocate(_root);
@@ -702,6 +710,7 @@ namespace SFG
 		auto it_res = std::find_if(_resources.begin(), _resources.end(), [id](const gui_resource& it) -> bool { return it.widget == id; });
 		auto it_txt = std::find_if(_text_fields.begin(), _text_fields.end(), [id](const gui_text_field& it) -> bool { return it.widget == id; });
 		auto it_c	= std::find_if(_checkboxes.begin(), _checkboxes.end(), [id](const gui_checkbox& it) -> bool { return it.widget == id; });
+		auto it_dd	= std::find_if(_dropdowns.begin(), _dropdowns.end(), [id](const gui_dropdown& it) -> bool { return it.widget == id; });
 		auto it_r	= std::find_if(_reflected.begin(), _reflected.end(), [id](const reflected_property& it) -> bool { return it.widget == id; });
 
 		if (it_r != _reflected.end())
@@ -709,6 +718,13 @@ namespace SFG
 
 		if (it_res != _resources.end())
 			_resources.erase(it_res);
+
+		if (it_dd != _dropdowns.end())
+		{
+			for (const char* s : it_dd->items)
+				editor::get().get_text_allocator().deallocate(s);
+			_dropdowns.erase(it_dd);
+		}
 
 		if (it_txt != _text_fields.end())
 			_text_fields.erase(it_txt);
@@ -907,6 +923,24 @@ namespace SFG
 		return {row, w};
 	}
 
+	gui_builder::id_pair gui_builder::add_property_row_dropdown(const char* label, const char* initial_text, size_t buffer_capacity)
+	{
+		const id row = add_property_row();
+
+		add_row_cell(editor_theme::get().property_cell_div);
+		add_label(label);
+		pop_stack();
+
+		add_row_cell_seperator();
+
+		add_row_cell(0.0f);
+		const id w = add_dropdown(initial_text, buffer_capacity);
+		pop_stack();
+
+		pop_stack();
+		return {row, w};
+	}
+
 	gui_builder::id_pair gui_builder::add_property_row_slider(const char* label, size_t buffer_capacity, float min, float max, float val, bool is_int)
 	{
 		const id row = add_property_row();
@@ -951,7 +985,7 @@ namespace SFG
 		else if (type == reflected_field_type::rf_uint8)
 		{
 			const uint8	  val = field->value(object_ptr).cast<uint8>();
-			const id_pair ids = clamped ? add_property_row_slider(title, 16, 0, 255, val, true) : add_property_row_slider(title, 16, 0, 255, val, true);
+			const id_pair ids = clamped ? add_property_row_slider(title, 16, min, max, val, true) : add_property_row_slider(title, 16, 0, 255, val, true);
 			_reflected.push_back({.obj = object_ptr, .type = type_id, .field = field, .widget = ids.second});
 			return ids.first;
 		}
@@ -1040,9 +1074,14 @@ namespace SFG
 		}
 		else if (type == reflected_field_type::rf_enum)
 		{
-			const uint8	  val = field->value(object_ptr).cast<uint8>();
-			const id_pair ids = add_property_row_slider(title, 16, 0, field->_max, val, true);
-			_reflected.push_back({.obj = object_ptr, .type = type_id, .field = field, .widget = ids.second});
+			const uint8 val = field->value(object_ptr).cast<uint8>();
+			SFG_ASSERT(field->_enum_list.size() > val);
+
+			const id_pair ids = add_property_row_dropdown(title, "", 256);
+
+			for (const malloc_string& str : field->_enum_list)
+				add_dropdown_item(ids.second, str.c_str());
+
 			return ids.first;
 		}
 		else if (type == reflected_field_type::rf_resource)
@@ -2018,6 +2057,129 @@ namespace SFG
 		_resources.push_back(r);
 
 		return w;
+	}
+
+	vekt::id gui_builder::add_dropdown(const char* initial_text, size_t buffer_capacity)
+	{
+		const id w = new_widget(true);
+		{
+			pos_props& pp = _builder->widget_get_pos_props(w);
+			pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_y_relative | pos_flags::pf_y_anchor_center;
+			pp.pos.y	  = 0.5f;
+			pp.pos.x	  = 0.0f;
+
+			size_props& sz	 = _builder->widget_get_size_props(w);
+			sz.flags		 = size_flags::sf_x_relative | size_flags::sf_y_abs;
+			sz.size.x		 = 1.0f;
+			sz.size.y		 = editor_theme::get().item_height;
+			sz.child_margins = {0.0f, 0.0f, editor_theme::get().inner_margin, editor_theme::get().inner_margin * 0.25f};
+
+			widget_gfx& gfx = _builder->widget_get_gfx(w);
+			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_stroke | gfx_flags::gfx_has_rounding | gfx_flags::gfx_has_hover_color | gfx_flags::gfx_has_press_color | gfx_clip_children;
+			gfx.color		= editor_theme::get().col_frame_bg;
+
+			stroke_props& st = _builder->widget_get_stroke(w);
+			st.thickness	 = editor_theme::get().frame_thickness;
+			st.color		 = editor_theme::get().col_frame_outline;
+
+			rounding_props& rp = _builder->widget_get_rounding(w);
+			rp.rounding		   = editor_theme::get().frame_rounding;
+			rp.segments		   = 8;
+
+			input_color_props& icp = _builder->widget_get_input_colors(w);
+			icp.pressed_color	   = editor_theme::get().col_button_press;
+			icp.hovered_color	   = editor_theme::get().col_button_hover;
+
+			hover_callback& hb = _builder->widget_get_hover_callbacks(w);
+			hb.receive_mouse   = 1;
+
+			mouse_callback& mc = _builder->widget_get_mouse_callbacks(w);
+			mc.on_mouse		   = on_dropdown_mouse;
+
+			widget_user_data& ud = _builder->widget_get_user_data(w);
+			ud.ptr				 = this;
+		}
+
+		const id txt = add_label(initial_text, buffer_capacity);
+		{
+		}
+
+		pop_stack();
+
+		gui_dropdown d = {};
+		d.widget	   = w;
+		d.text_widget  = txt;
+		_dropdowns.push_back(d);
+
+		return w;
+	}
+
+	void gui_builder::add_dropdown_item(vekt::id dropdown_widget, const char* label)
+	{
+		auto it = std::find_if(_dropdowns.begin(), _dropdowns.end(), [dropdown_widget](const gui_dropdown& d) { return d.widget == dropdown_widget; });
+		SFG_ASSERT(it != _dropdowns.end());
+
+		const char* stored = editor::get().get_text_allocator().allocate(label);
+		it->items.push_back(stored);
+
+		// If no text set, set to first item
+		if (it->items.size() == 1)
+		{
+			_builder->widget_set_text(it->text_widget, stored);
+		}
+	}
+
+	vekt::input_event_result gui_builder::on_dropdown_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase)
+	{
+		if (ev.type != vekt::input_event_type::pressed || ev.button != static_cast<uint16>(input_code::mouse_0))
+			return vekt::input_event_result::not_handled;
+
+		gui_builder* gb = static_cast<gui_builder*>(b->widget_get_user_data(widget).ptr);
+		auto		 it = std::find_if(gb->_dropdowns.begin(), gb->_dropdowns.end(), [widget](const gui_dropdown& d) { return d.widget == widget; });
+		SFG_ASSERT(it != gb->_dropdowns.end());
+
+		gb->_dropdown_ctx_bindings.resize(0);
+
+		editor::get().get_gui_controller().begin_context_menu(ev.position.x, ev.position.y);
+		for (unsigned int i = 0; i < it->items.size(); ++i)
+		{
+			const char*			  item_label = it->items[i];
+			const vekt::id		  btn		 = editor::get().get_gui_controller().add_context_menu_item(item_label);
+			vekt::mouse_callback& cb		 = b->widget_get_mouse_callbacks(btn);
+			cb.on_mouse						 = on_dropdown_item_mouse;
+			vekt::widget_user_data& ud		 = b->widget_get_user_data(btn);
+			ud.ptr							 = gb;
+
+			gb->_dropdown_ctx_bindings.push_back({.item_widget = btn, .dropdown_widget = widget, .index = i});
+		}
+		editor::get().get_gui_controller().end_context_menu();
+
+		return vekt::input_event_result::handled;
+	}
+
+	vekt::input_event_result gui_builder::on_dropdown_item_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase)
+	{
+		if (ev.type != vekt::input_event_type::pressed || ev.button != static_cast<uint16>(input_code::mouse_0))
+			return vekt::input_event_result::not_handled;
+
+		gui_builder* gb = static_cast<gui_builder*>(b->widget_get_user_data(widget).ptr);
+		auto		 it = std::find_if(gb->_dropdown_ctx_bindings.begin(), gb->_dropdown_ctx_bindings.end(), [widget](const dropdown_ctx_binding& d) { return d.item_widget == widget; });
+		if (it == gb->_dropdown_ctx_bindings.end())
+			return vekt::input_event_result::not_handled;
+
+		// Update visible text
+		auto it_dd = std::find_if(gb->_dropdowns.begin(), gb->_dropdowns.end(), [it](const gui_dropdown& d) { return d.widget == it->dropdown_widget; });
+		if (it_dd != gb->_dropdowns.end())
+		{
+			const unsigned int idx = it->index;
+			if (idx < it_dd->items.size())
+				b->widget_set_text(it_dd->text_widget, it_dd->items[idx]);
+		}
+
+		if (gb->callbacks.on_dropdown_item)
+			gb->callbacks.on_dropdown_item(gb->callbacks.callback_ud, b, it->dropdown_widget, it->index);
+
+		return vekt::input_event_result::handled;
 	}
 
 };

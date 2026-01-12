@@ -1428,6 +1428,9 @@ namespace vekt
 		_mouse_position		  = mouse;
 
 		const unsigned int sz = _depth_first_widgets.size();
+
+		vekt::id last_hovered = NULL_WIDGET_ID;
+
 		for (unsigned int i = 0; i < sz; i++)
 		{
 			const id widget = _depth_first_widgets[i];
@@ -1444,14 +1447,26 @@ namespace vekt
 			{
 				hover_state.on_hover_end(this, widget);
 			}
-			if (send_events && hovered && !hover_state.is_hovered && hover_state.on_hover_begin)
+
+			if (!hovered)
+				hover_state.is_hovered = false;
+
+			if (hovered)
+				last_hovered = widget;
+		}
+
+		if (last_hovered != NULL_WIDGET_ID)
+		{
+			hover_callback& hover_state = _hover_callbacks[last_hovered];
+
+			if (send_events && !hover_state.is_hovered && hover_state.on_hover_begin)
 			{
-				hover_state.on_hover_begin(this, widget);
+				hover_state.on_hover_begin(this, last_hovered);
 			}
 
-			hover_state.is_hovered = hovered;
+			hover_state.is_hovered = true;
 			if (send_events && hover_state.is_hovered && hover_state.on_hover_move)
-				hover_state.on_hover_move(this, widget);
+				hover_state.on_hover_move(this, last_hovered);
 		}
 
 		if (_pressed_widget != NULL_WIDGET_ID)

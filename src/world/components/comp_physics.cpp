@@ -42,8 +42,8 @@ namespace SFG
 	{
 		meta& m = reflection::get().register_meta(type_id<comp_physics>::value, 0, "component");
 		m.set_title("physics");
-		m.add_field<&comp_physics::_body_type, comp_physics>("body_type", reflected_field_type::rf_enum, "", 0.0f, 2.0f);
-		m.add_field<&comp_physics::_shape_type, comp_physics>("shape_type", reflected_field_type::rf_enum, "", 0.0f, 4.0f);
+		m.add_field<&comp_physics::_body_type, comp_physics>("body_type", reflected_field_type::rf_enum, "", 0.0f, 2.0f)->_enum_list   = {"static", "kinematic", "dynamic"};
+		m.add_field<&comp_physics::_shape_type, comp_physics>("shape_type", reflected_field_type::rf_enum, "", 0.0f, 4.0f)->_enum_list = {"sphere", "box", "capsule", "cylinder", "plane", "mesh"};
 		m.add_field<&comp_physics::_extent_or_height_radius, comp_physics>("extents", reflected_field_type::rf_vector3, "");
 		m.add_field<&comp_physics::_material_handle, comp_physics>("material", reflected_field_type::rf_resource, "", type_id<physical_material>::value);
 

@@ -144,8 +144,8 @@ namespace SFG
 
 	void editor_panel_entities::draw(world& w, const vector2ui16& window_size)
 	{
-		_builder->widget_set_pos_abs(_root, vector2(0, 50));
-		_builder->widget_set_size_abs(_root, vector2(window_size.x * 0.2f, window_size.y - 50));
+		_builder->widget_set_pos_abs(_root, vector2(0, 28));
+		_builder->widget_set_size_abs(_root, vector2(window_size.x * 0.2f, window_size.y - 28));
 
 		entity_manager& em = w.get_entity_manager();
 		if (em.get_hierarchy_dirty())

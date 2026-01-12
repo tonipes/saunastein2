@@ -9,7 +9,7 @@
       "blend": "none",
       "samples": [
         {
-          "animation": "assets/character/character.stkmodel/Idle_Loop"
+          "animation": "assets/character/character.stkmodel/Walk_Loop"
         }
       ]
     }

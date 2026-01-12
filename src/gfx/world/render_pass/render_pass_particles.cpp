@@ -377,7 +377,7 @@ namespace SFG
 			SFG_ASSERT(target_shader != NULL_GFX_ID);
 
 			_draw_stream.add_command({
-				.system_index		  = _num_systems,
+				.system_index		  = num_emitters,
 				.material_index		  = mat.gpu_index_buffers[frame_index],
 				.texture_buffer_index = mat.gpu_index_texture_buffers[frame_index],
 				.pipeline_hw		  = target_shader,
@@ -1029,7 +1029,7 @@ namespace SFG
 
 		if (_num_systems != 0)
 		{
-			_draw_stream.draw(cmd_buffer, hw_render_indirect, _indirect_sig_draw, sizeof(indirect_render));
+			_draw_stream.draw(cmd_buffer, hw_render_indirect, _indirect_sig_draw, sizeof(indirect_render), MAX_WORLD_PARTICLES_PER_EMITTER);
 		}
 
 		backend->cmd_end_render_pass(cmd_buffer, {});

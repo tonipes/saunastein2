@@ -258,7 +258,7 @@ namespace SFG
 			return draw_stream_bound_state_pipeline::make_sort_key(a.pipeline_hw) < draw_stream_bound_state_pipeline::make_sort_key(b.pipeline_hw);
 		});
 	}
-	void draw_stream_particle::draw(gfx_id cmd_buffer, gfx_id indirect_buffer, gfx_id indirect_signature, uint32 indirect_buffer_size)
+	void draw_stream_particle::draw(gfx_id cmd_buffer, gfx_id indirect_buffer, gfx_id indirect_signature, uint32 indirect_buffer_size, uint32 max_instances_per_system)
 	{
 		ZoneScoped;
 
@@ -275,6 +275,8 @@ namespace SFG
 				backend->cmd_bind_pipeline(cmd_buffer, {.pipeline = draw.pipeline_hw});
 
 			const uint32 mat_constants[2] = {draw.material_index, draw.texture_buffer_index};
+			const uint32 rp_constant	  = draw.system_index * max_instances_per_system;
+			backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)&rp_constant, .offset = constant_index_rp_constant2, .count = 1, .param_index = rpi_constants});
 			backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)mat_constants, .offset = constant_index_mat_constant0, .count = 2, .param_index = rpi_constants});
 
 			backend->cmd_execute_indirect(cmd_buffer,

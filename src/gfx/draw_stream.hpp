@@ -221,7 +221,7 @@ namespace SFG
 	public:
 		void prepare(bump_allocator& alloc, size_t max_commands);
 		void build();
-		void draw(gfx_id command_buffer, gfx_id indirect_buffer, gfx_id indirect_signature, uint32 indirect_buffer_size);
+		void draw(gfx_id command_buffer, gfx_id indirect_buffer, gfx_id indirect_signature, uint32 indirect_buffer_size, uint32 max_instances_per_system);
 		void add_command(const draw_command_particle& cmd);
 
 	private:

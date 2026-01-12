@@ -59,6 +59,7 @@ namespace SFG
 		typedef void (*input_field_fn)(void* callback_ud, vekt::builder* b, vekt::id id, const char* txt, float value);
 		typedef void (*checkbox_fn)(void* callback_ud, vekt::builder* b, vekt::id id, unsigned char value);
 		typedef void (*resource_fn)(void* callback_ud, vekt::builder* b, vekt::id id, const string& value);
+		typedef void (*dropdown_fn)(void* callback_ud, vekt::builder* b, vekt::id dropdown_widget, unsigned int index);
 
 		struct gui_builder_callbacks
 		{
@@ -69,6 +70,7 @@ namespace SFG
 			input_field_fn	 on_input_field_changed = nullptr;
 			checkbox_fn		 on_checkbox_changed	= nullptr;
 			resource_fn		 on_resource_changed	= nullptr;
+			dropdown_fn		 on_dropdown_item		= nullptr;
 		};
 
 		struct id_pair
@@ -155,6 +157,13 @@ namespace SFG
 			vekt::id text_widget   = 0;
 		};
 
+		struct gui_dropdown
+		{
+			vekt::id		 widget		 = 0;
+			vekt::id		 text_widget = 0;
+			vector<const char*> items;
+		};
+
 		struct reflected_property
 		{
 			void*		 obj		= nullptr;
@@ -196,6 +205,7 @@ namespace SFG
 		id_pair	 add_property_row_checkbox(const char* label, bool initial_state);
 		id_pair	 add_property_row_resource(const char* label, const char* extension, const char* initial_resource, string_id type_id, size_t buffer_capacity = 0);
 		id_pair	 add_property_row_slider(const char* label, size_t buffer_capacity = 0, float min = 0.0f, float max = 0.0f, float val = 0.0f, bool is_int = false);
+		id_pair	 add_property_row_dropdown(const char* label, const char* initial_text = "", size_t buffer_capacity = 0);
 
 		// property row variants for fields
 		id_trip	 add_property_row_text_field(const char* label, const char* text, size_t buffer_capacity = 0, gui_text_field_type type = gui_text_field_type::text_only, unsigned int decimals = 0, float increment = 0.0f);
@@ -228,6 +238,8 @@ namespace SFG
 								unsigned int		sub_index		= 0);
 		vekt::id add_checkbox(bool initial_state);
 		vekt::id add_resource(const char* res, const char* extension, string_id type_id, size_t buffer_capacity = 0);
+		vekt::id add_dropdown(const char* initial_text = "", size_t buffer_capacity = 0);
+		void	 add_dropdown_item(vekt::id dropdown_widget, const char* label);
 		// vekt::id add_slider(float val, float min, float max, size_t buffer_capacity = 0);
 
 		// -----------------------------------------------------------------------------
@@ -261,6 +273,8 @@ namespace SFG
 		static void						on_context_item_hover_end(vekt::builder* b, vekt::id widget);
 		static vekt::input_event_result on_checkbox_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase);
 		static vekt::input_event_result on_resource_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase);
+		static vekt::input_event_result on_dropdown_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase);
+		static vekt::input_event_result on_dropdown_item_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase);
 
 		vekt::id new_widget(bool push_to_stack = false);
 		vekt::id pop_stack();
@@ -278,6 +292,15 @@ namespace SFG
 		vector<gui_text_field>	   _text_fields		  = {};
 		vector<gui_checkbox>	   _checkboxes		  = {};
 		vector<gui_resource>	   _resources		  = {};
+		vector<gui_dropdown>	   _dropdowns		  = {};
+
+		struct dropdown_ctx_binding
+		{
+			vekt::id		 item_widget = 0;
+			vekt::id		 dropdown_widget = 0;
+			unsigned int index			= 0;
+		};
+		vector<dropdown_ctx_binding> _dropdown_ctx_bindings = {};
 		vector<reflected_property> _reflected		  = {};
 		vekt::id				   _stack[STACK_SIZE] = {NULL_WIDGET_ID};
 		vekt::id				   _root			  = NULL_WIDGET_ID;

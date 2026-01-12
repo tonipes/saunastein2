@@ -148,7 +148,7 @@ namespace SFG
 		ev.intensity			  = _intensity;
 		ev.cast_shadows			  = _cast_shadows;
 		ev.shadow_resolution	  = _shadow_resolution;
-		ev.max_cascades			  = _max_cascades;
+		ev.max_cascades			  = 6;
 
 		w.get_render_stream().add_event(
 			{

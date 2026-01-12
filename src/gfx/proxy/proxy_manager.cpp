@@ -1226,12 +1226,13 @@ namespace SFG
 			render_proxy_particle_emitter& proxy = _emitters->get(index);
 			render_event_particle_emitter  ev	 = {};
 			ev.deserialize(stream);
-			proxy.material		  = ev.material;
-			proxy.entity		  = ev.entity;
-			proxy.particle_res_id = ev.particle_res;
-			proxy.status		  = render_proxy_status::rps_active;
-			proxy.last_emitted	  = 0.0f;
-			proxy.current_life	  = 0.0f;
+			proxy.material			= ev.material;
+			proxy.entity			= ev.entity;
+			proxy.particle_res_id	= ev.particle_res;
+			proxy.status			= render_proxy_status::rps_active;
+			proxy.last_emitted		= 0.0f;
+			proxy.current_life		= 0.0f;
+			_peak_particle_emitters = math::max(_peak_particle_emitters, index);
 		}
 		else if (type == render_event_type::remove_particle_emitter)
 		{
