@@ -677,6 +677,9 @@ namespace SFG
 		{
 			world&		 w	  = editor::get().get_app().get_world();
 			const string file = process::save_file("save entity file", ".stkent");
+			if(file.empty())
+					return vekt::input_event_result::handled;
+
 			entity_template_raw::save_to_file(file.c_str(), w, {self->_selected_entity});
 
 			string relative = editor_settings::get().get_relative(file);

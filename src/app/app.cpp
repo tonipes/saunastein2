@@ -89,8 +89,10 @@ namespace SFG
 			return init_status::window_failed;
 		}
 		_main_window->set_event_callback(on_window_event, this);
-		editor_settings::get().init_window_layout(*_main_window);
 
+#ifdef SFG_TOOLMODE
+		editor_settings::get().init_window_layout(*_main_window);
+#endif
 		// backend
 		gfx_backend::s_instance = new gfx_backend();
 		gfx_backend* backend	= gfx_backend::get();

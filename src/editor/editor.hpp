@@ -100,6 +100,7 @@ namespace SFG
 		void load_level(const char* relative_path);
 		void save_lavel();
 		void new_level();
+		void new_project(const char* dir);
 
 		inline const string& get_loaded_level() const
 		{

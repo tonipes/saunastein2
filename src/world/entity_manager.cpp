@@ -452,7 +452,7 @@ namespace SFG
 		return h;
 	}
 
-	world_handle entity_manager::clone_entity(world_handle source)
+	world_handle entity_manager::clone_entity(world_handle source, world_handle target_parent)
 	{
 		SFG_ASSERT(_entities->is_valid(source));
 
@@ -462,29 +462,74 @@ namespace SFG
 		const entity_transform& src_tr		= _local_transforms->get(source.index);
 		_local_transforms->get(clone.index) = src_tr;
 
-		const entity_family& fam = _families->get(source.index);
-		if (_entities->is_valid(fam.parent))
-			add_child(fam.parent, clone);
+		const entity_family& source_family = _families->get(source.index);
+		if (target_parent.is_null())
+		{
+			if (_entities->is_valid(source_family.parent))
+				add_child(source_family.parent, clone);
+		}
+		else
+			add_child(target_parent, clone);
 
-		// component_manager&			cm	= _world.get_comp_manager();
-		// const entity_comp_register& reg = _comp_registers->get(source.index);
-		// for (const entity_comp& c : reg.comps)
-		//{
-		//	ostream out;
-		//	cm.save_component_to_stream(c.comp_type, out, c.comp_handle);
-		//	istream in(out.get_raw(), out.get_size());
-		//	cm.add_component_from_stream(c.comp_type, in, clone);
-		//	out.destroy();
-		// }
+		component_manager&			cm	= _world.get_comp_manager();
+		const entity_comp_register& reg = _comp_registers->get(source.index);
+		for (const entity_comp& c : reg.comps)
+		{
+			void*			   source_ptr = cm.get_component(c.comp_type, c.comp_handle);
+			const world_handle new_comp	  = cm.add_component(c.comp_type, clone);
+			void*			   dst_ptr	  = cm.get_component(c.comp_type, new_comp);
+
+			meta& m = reflection::get().resolve(c.comp_type);
+
+			const auto& fields = m.get_fields();
+			for (field_base* f : fields)
+			{
+				void* val  = f->value(source_ptr).get_ptr();
+				void* dest = f->value(dst_ptr).get_ptr();
+
+				if (f->_is_list)
+				{
+					if (f->_type == reflected_field_type::rf_resource)
+					{
+						vector<resource_handle>& src_v = f->value(source_ptr).cast_ref<vector<resource_handle>>();
+						vector<resource_handle>& dst_v = f->value(dst_ptr).cast_ref<vector<resource_handle>>();
+						dst_v						   = src_v;
+					}
+					else if (f->_type == reflected_field_type::rf_entity)
+					{
+						vector<world_handle>& src_v = f->value(source_ptr).cast_ref<vector<world_handle>>();
+						vector<world_handle>& dst_v = f->value(dst_ptr).cast_ref<vector<world_handle>>();
+						dst_v						= src_v;
+					}
+					else
+					{
+						SFG_ASSERT(false);
+					}
+				}
+				else if (f->_type == reflected_field_type::rf_string)
+				{
+					string& src_string = f->value(source_ptr).cast_ref<string>();
+					string& dst_string = f->value(dst_ptr).cast_ref<string>();
+					dst_string		   = src_string;
+				}
+				else
+					SFG_MEMCPY(dest, val, f->get_type_size());
+
+				m.invoke_function<void, void*, world&>("on_reflect_load"_hs, dst_ptr, _world);
+			}
+		}
 
 		const bitmask<uint16> fl = _flags->get(source.index);
 		set_entity_visible(clone, !fl.is_set(entity_flags::entity_flags_invisible));
+		set_entity_template(clone, get_entity_template_ref(source));
 
-		entity_meta&	   new_meta = _metas->get(clone.index);
-		const entity_meta& src_meta = get_entity_meta(source);
-		if (src_meta.render_proxy_count != 0 && new_meta.render_proxy_count == 0)
+		world_handle source_child = source_family.first_child;
+		while (!source_child.is_null())
 		{
+			clone_entity(source_child, clone);
+			source_child = _families->get(source_child.index).next_sibling;
 		}
+
 		return clone;
 	}
 

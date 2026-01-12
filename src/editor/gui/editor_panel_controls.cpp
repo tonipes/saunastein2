@@ -81,7 +81,9 @@ namespace SFG
 		// level
 		_gui_builder.add_title("level");
 		_gui_builder.begin_area();
-		_loaded_level = _gui_builder.add_property_row_label("world:", "none", 256).second;
+		_loaded_project = _gui_builder.add_property_row_label("project:", editor_settings::get().working_dir.c_str(), 1024).second;
+		_loaded_level	= _gui_builder.add_property_row_label("world:", editor::get().get_loaded_level().c_str(), 1024).second;
+
 		// _gui_builder.add_property_row_text_field("lol", "yamate");
 		// _gui_builder.add_property_row_text_field("bduudfy", "yeah");
 		_gui_builder.add_property_row();
@@ -155,13 +157,16 @@ namespace SFG
 			_builder->widget_append_text(_render, stat_render_thread);
 			_builder->widget_append_text(_render, " ms");
 
+			_builder->widget_append_text_start(_loaded_project);
+			_builder->widget_append_text(_loaded_project, editor_settings::get().working_dir.c_str());
+
 			_builder->widget_append_text_start(_loaded_level);
 			_builder->widget_append_text(_loaded_level, editor::get().get_loaded_level().c_str());
 
 			_builder->widget_append_text_start(_draw_calls);
 			_builder->widget_append_text(_draw_calls, stat_dc);
 		}
-
+		 
 		if (mem_fetch_time > 6000)
 		{
 #ifdef SFG_ENABLE_MEMORY_TRACER
@@ -226,6 +231,20 @@ namespace SFG
 				process::open_url("https://github.com/inanevin/stakeforge");
 				return vekt::input_event_result::handled;
 			}
+		}
+
+		if (widget == ptr->_button_new_project)
+		{
+			const string dir = process::select_folder("select project directory");
+			if (!dir.empty())
+				editor::get().new_project(dir.c_str());
+			return vekt::input_event_result::handled;
+		}
+
+		if (widget == ptr->_button_open_project_dir)
+		{
+			process::open_directory(editor_settings::get().working_dir.c_str());
+			return vekt::input_event_result::handled;
 		}
 
 		if (widget == ptr->_button_new_level)

@@ -209,7 +209,14 @@ namespace SFG
 			{
 				if (it->second == handle)
 				{
+#ifdef SFG_TOOLMODE
+					auto it2 = _paths_by_hashes.find(it->first);
+					if (it2 != _paths_by_hashes.end())
+						_paths_by_hashes.erase(it2);
+#endif
+
 					_by_hashes.erase(it);
+
 					break;
 				}
 			}

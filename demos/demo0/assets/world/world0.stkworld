@@ -3,30 +3,30 @@
     "entities": [
         {
             "first_child": -1,
-            "name": "assets/map/map.stkmodel",
+            "name": "assets/character/character.stkmodel",
             "next_sibling": -1,
             "parent": -1,
             "pos": [
-                0.0,
-                0.0,
-                0.0
+                1.0000001192092896,
+                1.4000002145767212,
+                7.699995040893555
             ],
             "rot": [
+                -0.07845912873744965,
                 0.0,
                 0.0,
-                0.0,
-                1.0
+                0.9969173073768616
             ],
             "scale": [
-                1.0,
-                1.0,
-                1.0
+                2.0,
+                2.0,
+                2.0
             ],
-            "template": "assets/entity_templates/map.stkent",
+            "template": "assets/entity_templates/character.stkent",
             "visible": 1
         }
     ],
     "resources": [
-        "assets/entity_templates/map.stkent"
+        "assets/entity_templates/character.stkent"
     ]
 }

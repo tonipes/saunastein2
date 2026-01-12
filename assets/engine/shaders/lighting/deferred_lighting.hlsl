@@ -91,6 +91,7 @@ vs_output VSMain(uint vertexID : SV_VertexID)
 //------------------------------------------------------------------------------
 float4 PSMain(vs_output IN) : SV_TARGET
 {
+    
     render_pass_data rp_data = sfg_get_cbv<render_pass_data>(sfg_rp_constant0);
     StructuredBuffer<gpu_entity> entity_buffer = sfg_get_ssbo<gpu_entity>(sfg_rp_constant1);
     StructuredBuffer<gpu_point_light> point_light_buffer = sfg_get_ssbo<gpu_point_light>(sfg_rp_constant2);

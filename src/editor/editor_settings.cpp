@@ -52,7 +52,7 @@ namespace SFG
 		s.last_world_relative = j.value<string>("last_world", "");
 		s.working_dir		  = j.value<string>("working_dir", "");
 		s.cache_dir			  = j.value<string>("cache_dir", "");
-		s.window_size		  = j.value<vector2>("window_size", vector2::zero);
+		s.window_size		  = j.value<vector2>("window_size", vector2(1920, 1080));
 		s.window_pos		  = j.value<vector2>("window_pos", vector2(-1, -1));
 	}
 
@@ -85,7 +85,7 @@ namespace SFG
 		{
 			if (!file_system::exists(cache_dir.c_str()))
 			{
-				cache_dir = working_dir + "_stakeforge_cache/";
+				cache_dir = working_dir + "/_stakeforge_cache/";
 				file_system::create_directory(cache_dir.c_str());
 				save_last();
 			}

@@ -43,7 +43,7 @@ namespace SFG
 		string	_editor_folder		= "";
 		string	_resource_cache		= "";
 		vector2 window_pos			= vector2::zero;
-		vector2 window_size			= vector2::zero;
+		vector2 window_size			= vector2(1024, 1024);
 
 		static editor_settings& get()
 		{

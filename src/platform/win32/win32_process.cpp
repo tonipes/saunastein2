@@ -385,6 +385,17 @@ namespace SFG
 		ShellExecute(0, "open", url, NULL, NULL, SW_SHOWNORMAL);
 	}
 
+	bool process::open_directory(const char* dir)
+	{
+		if (!dir || !*dir)
+			return false;
+
+		// Opens the folder in Explorer
+		HINSTANCE r = ShellExecuteA(nullptr, "open", dir, nullptr, nullptr, SW_SHOWNORMAL);
+
+		return (reinterpret_cast<INT_PTR>(r) > 32);
+	}
+
 	void process::message_box(const char* msg)
 	{
 		MessageBox(nullptr, msg, "Huh?", MB_OK | MB_ICONERROR);

@@ -302,7 +302,7 @@ namespace SFG
 		_pass_ssao.prepare(_main_camera_view, _base_size, frame_index);
 		_pass_bloom.prepare(frame_index);
 		_pass_post.prepare(frame_index, _base_size);
-		_pass_particles.prepare(frame_index, _proxy_manager, _main_camera_view);
+		// _pass_particles.prepare(frame_index, _proxy_manager, _main_camera_view);
 
 #ifdef JPH_DEBUG_RENDERER
 		_pass_physics_debug.prepare(_main_camera_view, _base_size, frame_index);
@@ -570,7 +570,7 @@ namespace SFG
 		tt.push_back({run_shadows, (void*)&common_data});
 		tt.push_back({run_opaque, (void*)&common_data});
 		tt.push_back({run_ssao, (void*)&common_data});
-		tt.push_back({run_particles_compute, (void*)&common_data});
+		//tt.push_back({run_particles_compute, (void*)&common_data});
 
 #ifdef OBJECT_ID_PASS
 		tt.push_back({run_obj_id, (void*)&common_data});
@@ -587,7 +587,7 @@ namespace SFG
 		backend->queue_signal(queue_gfx, &sem_ssao, &sem_ssao_val0, 1);
 
 		// kick off particle compute immediately.
-		backend->submit_commands(queue_compute, &cmd_particles_compute, 1);
+		// backend->submit_commands(queue_compute, &cmd_particles_compute, 1);
 
 #ifdef OBJECT_ID_PASS
 		// object-id pass & outline (no dependencies besides depth)
@@ -602,7 +602,7 @@ namespace SFG
 #endif
 		tt.push_back({run_lighting, (void*)&common_data});
 		tt.push_back({run_forward, (void*)&common_data});
-		tt.push_back({run_particles_render, (void*)&common_data});
+		// tt.push_back({run_particles_render, (void*)&common_data});
 
 		std::for_each(std::execution::par, tt.begin(), tt.end(), [](auto&& task) { task(); });
 
@@ -614,7 +614,7 @@ namespace SFG
 		// submit lighting + forward + particles + debugs, waits for ssao (and particles compute)
 		backend->queue_wait(queue_gfx, &sem_ssao, &sem_ssao_val1, 1);
 		backend->submit_commands(queue_gfx, &cmd_lighting, 1);
-		backend->submit_commands(queue_gfx, &cmd_particles, 1);
+	//	backend->submit_commands(queue_gfx, &cmd_particles, 1);
 		backend->submit_commands(queue_gfx, &cmd_forward, 1);
 
 #ifdef JPH_DEBUG_RENDERER

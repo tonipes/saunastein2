@@ -448,6 +448,23 @@ namespace SFG
 		editor_settings::get().save_last();
 	}
 
+	void editor::new_project(const char* dir)
+	{
+		world& w = _app.get_world();
+
+		_camera_controller.deactivate();
+		w.uninit();
+
+		editor_settings::get().working_dir = string(dir) + "/";
+		file_system::fix_path(editor_settings::get().working_dir);
+		editor_settings::get().last_world_relative = "";
+		editor_settings::get().save_last();
+
+		_loaded_level = "";
+		w.init();
+		_camera_controller.activate();
+	}
+
 	void editor::new_level()
 	{
 		// check for prompt later.

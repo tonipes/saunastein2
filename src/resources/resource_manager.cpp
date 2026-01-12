@@ -48,6 +48,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "resources/mesh.hpp"
 #include "resources/shader.hpp"
 #include "resources/material.hpp"
+#include "resources/entity_template.hpp"
 #include "gfx/event_stream/render_events_gfx.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"
 #include "world/components/comp_particle_emitter.hpp"
@@ -492,6 +493,7 @@ namespace SFG
 		for (uint32 pass = 0; pass < max_passes; pass++)
 		{
 			new_handle = rm->add_from_loader(w.type_id, loader, pass, TO_SID(w.path));
+			rm->store_relative_path(w.type_id, new_handle, w.path);
 
 			if (!new_handle.is_null())
 			{
@@ -503,7 +505,18 @@ namespace SFG
 		SFG_ASSERT(!new_handle.is_null());
 		w.base_handle = new_handle;
 
-		if (w.type_id == type_id<shader>::value)
+		if (w.type_id == type_id<entity_template>::value)
+		{
+			const auto& entities = em.get_entities();
+			for (auto it = entities->handles_begin(); it != entities->handles_end(); ++it)
+			{
+				const world_handle	  eh		   = *it;
+				const resource_handle existing_ref = em.get_entity_template_ref(eh);
+				if (existing_ref == prev_handle)
+					em.set_entity_template(eh, new_handle);
+			}
+		}
+		else if (w.type_id == type_id<shader>::value)
 		{
 			const render_event_resource_reloaded ev = {
 				.prev_id = prev_handle.index,

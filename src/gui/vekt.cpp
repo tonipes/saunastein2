@@ -326,6 +326,8 @@ namespace vekt
 	{
 		text_props& tp = _texts[widget];
 		tp.append_ctr  = 0;
+		char c		   = '\0';
+		MEMCPY((void*)tp.text, &c, 1);
 	}
 
 	void builder::widget_append_text(id widget, float f, int precision, size_t default_cap)

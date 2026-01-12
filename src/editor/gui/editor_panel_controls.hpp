@@ -63,6 +63,7 @@ namespace SFG
 		vekt::id	   _game_res				= NULL_WIDGET_ID;
 		vekt::id	   _window_res				= NULL_WIDGET_ID;
 		vekt::id	   _draw_calls				= NULL_WIDGET_ID;
+		vekt::id	   _loaded_project			= NULL_WIDGET_ID;
 		vekt::id	   _loaded_level			= NULL_WIDGET_ID;
 		vekt::id	   _button_new_level		= NULL_WIDGET_ID;
 		vekt::id	   _button_load_level		= NULL_WIDGET_ID;

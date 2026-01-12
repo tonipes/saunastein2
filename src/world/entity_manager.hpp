@@ -78,7 +78,7 @@ namespace SFG
 		world_handle				find_entity(const char* name);
 		world_handle				find_entity(world_handle parent, const char* name);
 		void						destroy_entity(world_handle handle);
-		world_handle				clone_entity(world_handle source);
+		world_handle				clone_entity(world_handle source, world_handle target_parent = {});
 		void						add_child(world_handle parent, world_handle child);
 		void						remove_child(world_handle parent, world_handle child);
 		void						remove_from_parent(world_handle entity);
