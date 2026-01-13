@@ -100,15 +100,15 @@ namespace SFG
 			return _dpi_scale * DEBUG_FONT_SIZE;
 		}
 
-		float get_field_height()
-		{
-			return INPUT_FIELD_HEIGHT;
-		}
-
 		float get_spacing()
 		{
 			return CONSOLE_SPACING;
 		}
+	}
+
+	float debug_controller::get_field_height()
+	{
+		return INPUT_FIELD_HEIGHT;
 	}
 
 	void debug_controller::build_console()

@@ -84,6 +84,8 @@ namespace SFG
 		// accessors
 		// -----------------------------------------------------------------------------
 
+		static float get_field_height();
+
 		inline uint32 get_output_gpu_index(uint8 frame_index) const
 		{
 			return _pfd[frame_index].rt_fullscreen_index;

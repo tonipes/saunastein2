@@ -42,14 +42,26 @@ namespace SFG
 	class editor_panel_entities
 	{
 	public:
+		// -----------------------------------------------------------------------------
+		// lifecycle
+		// -----------------------------------------------------------------------------
+
 		void init(vekt::builder* b);
 		void uninit();
 		void draw(world& w, const struct vector2ui16& window_size);
+
+		// -----------------------------------------------------------------------------
+		// impl
+		// -----------------------------------------------------------------------------
+
 		void set_selected(world_handle h);
 		void set_selected_controls();
-
 		void drop_drag(world_handle target);
 		void kill_drag();
+
+		// -----------------------------------------------------------------------------
+		// accessors
+		// -----------------------------------------------------------------------------
 
 		inline void kill_context()
 		{
@@ -66,6 +78,11 @@ namespace SFG
 		}
 
 	private:
+
+		// -----------------------------------------------------------------------------
+		// callbacks
+		// -----------------------------------------------------------------------------
+
 		static void						on_input_field_changed(void* callback_ud, vekt::builder* b, vekt::id id, const char* txt, float value);
 		static void						on_checkbox(void* callback_ud, vekt::builder* b, vekt::id id, unsigned char value);
 		static vekt::input_event_result on_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase);
@@ -74,6 +91,10 @@ namespace SFG
 		static void						on_tree_item_hover_end(vekt::builder* b, vekt::id widget);
 		static void						on_tree_item_hover_move(vekt::builder* b, vekt::id widget);
 		static void						on_focus_gained(vekt::builder* b, vekt::id widget, bool from_nav);
+
+		// -----------------------------------------------------------------------------
+		// impl
+		// -----------------------------------------------------------------------------
 
 		void	 clear_component_view();
 		void	 build_component_view();

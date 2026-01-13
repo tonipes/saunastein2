@@ -36,11 +36,11 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace vekt
 {
 	struct font;
+	class builder;
 }
 
 namespace SFG
 {
-	class builder;
 	class font;
 
 	enum class gui_text_field_type : unsigned char
@@ -159,8 +159,8 @@ namespace SFG
 
 		struct gui_dropdown
 		{
-			vekt::id		 widget		 = 0;
-			vekt::id		 text_widget = 0;
+			vekt::id			widget		= 0;
+			vekt::id			text_widget = 0;
 			vector<const char*> items;
 		};
 
@@ -288,23 +288,23 @@ namespace SFG
 	private:
 		static constexpr unsigned int STACK_SIZE = 512;
 
-		vekt::builder*			   _builder			  = nullptr;
-		vector<gui_text_field>	   _text_fields		  = {};
-		vector<gui_checkbox>	   _checkboxes		  = {};
-		vector<gui_resource>	   _resources		  = {};
-		vector<gui_dropdown>	   _dropdowns		  = {};
+		vekt::builder*		   _builder		= nullptr;
+		vector<gui_text_field> _text_fields = {};
+		vector<gui_checkbox>   _checkboxes	= {};
+		vector<gui_resource>   _resources	= {};
+		vector<gui_dropdown>   _dropdowns	= {};
 
 		struct dropdown_ctx_binding
 		{
-			vekt::id		 item_widget = 0;
-			vekt::id		 dropdown_widget = 0;
-			unsigned int index			= 0;
+			vekt::id	 item_widget	 = 0;
+			vekt::id	 dropdown_widget = 0;
+			unsigned int index			 = 0;
 		};
 		vector<dropdown_ctx_binding> _dropdown_ctx_bindings = {};
-		vector<reflected_property> _reflected		  = {};
-		vekt::id				   _stack[STACK_SIZE] = {NULL_WIDGET_ID};
-		vekt::id				   _root			  = NULL_WIDGET_ID;
-		vekt::id				   _stack_ptr		  = 0;
+		vector<reflected_property>	 _reflected				= {};
+		vekt::id					 _stack[STACK_SIZE]		= {NULL_WIDGET_ID};
+		vekt::id					 _root					= NULL_WIDGET_ID;
+		vekt::id					 _stack_ptr				= 0;
 	};
 
 }

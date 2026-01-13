@@ -81,6 +81,9 @@ namespace SFG
 
 			destroy();
 
+			tool_cam_pos = json_data.value<vector3>("tool_cam_pos", vector3::zero);
+			tool_cam_rot = json_data.value<quat>("tool_cam_rot", quat::identity);
+
 			entity_template_raw::load_from_json(json_data, entities_raw);
 
 			f.close();
@@ -112,7 +115,10 @@ namespace SFG
 			to_serialize.push_back(handle);
 		}
 
-		json j = {};
+		json j			  = {};
+		j["tool_cam_pos"] = w.get_tool_camera_pos();
+		j["tool_cam_rot"] = w.get_tool_camera_rot();
+
 		entity_template_raw::save_to_json(j, w, to_serialize);
 
 		std::ofstream file(path);

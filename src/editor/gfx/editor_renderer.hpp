@@ -42,7 +42,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // misc
 #include "memory/bump_allocator.hpp"
-#include "gfx/imgui_renderer.hpp"
 
 namespace vekt
 {
@@ -71,6 +70,7 @@ namespace SFG
 			vector2ui16		size;
 			gfx_id			global_layout;
 			gfx_id			global_group;
+			gpu_index		world_rt_index;
 		};
 
 		// -----------------------------------------------------------------------------
@@ -102,11 +102,12 @@ namespace SFG
 		struct gui_draw_call
 		{
 			vector4ui16 scissors		= vector4ui16::zero;
+			uint32		atlas_gpu_index = 0;
+			gfx_id		shader			= 0;
 			uint16		start_vtx		= 0;
 			uint16		start_idx		= 0;
 			uint16		index_count		= 0;
-			gfx_id		shader			= 0;
-			uint32		atlas_gpu_index = 0;
+			bool		world_rt		= false;
 		};
 
 		struct per_frame_data
@@ -153,6 +154,7 @@ namespace SFG
 			gfx_id gui_default = {};
 			gfx_id gui_text	   = {};
 			gfx_id gui_sdf	   = {};
+			gfx_id gui_texture = {};
 		};
 
 		struct gfx_data
@@ -179,8 +181,6 @@ namespace SFG
 		gfx_data	   _gfx_data			   = {};
 		per_frame_data _pfd[BACK_BUFFER_COUNT] = {};
 		gui_draw_call  _gui_draw_calls[64]	   = {};
-
-		imgui_renderer _imgui = {};
 
 		static constexpr uint32 SNAPSHOTS_SIZE = 3;
 		// GUI snapshot mailbox (lock-free)

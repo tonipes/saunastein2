@@ -23,38 +23,4 @@ OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGEN
 OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-
-#pragma once
-
-#include "common/size_definitions.hpp"
-#include "gfx/common/descriptions.hpp"
-#include "data/vector.hpp"
-#include "resources/entity_template_raw.hpp"
-#include "math/vector3.hpp"
-#include "math/quat.hpp"
-
-namespace SFG
-{
-	class ostream;
-	class istream;
-	class world;
-
-	struct world_raw
-	{
-
-		~world_raw();
-
-		void destroy();
-		void serialize(ostream& stream) const;
-		void deserialize(istream& stream);
-
-#ifdef SFG_TOOLMODE
-		bool load_from_file(const char* relative_file, const char* base_path);
-		bool save_to_file(const char* file, world& w);
-#endif
-
-		vector3				tool_cam_pos = vector3::zero;
-		quat				tool_cam_rot = quat::identity;
-		entity_template_raw entities_raw = {};
-	};
-}
+#include "editor_gui_user_data.hpp"

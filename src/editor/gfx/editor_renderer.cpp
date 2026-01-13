@@ -25,6 +25,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "editor_renderer.hpp"
+#include "editor/gui/editor_gui_user_data.hpp"
 #include "data/vector_util.hpp"
 
 // math
@@ -59,6 +60,7 @@ namespace SFG
 		_shaders.gui_default = engine_shaders::get().get_shader(engine_shader_type::engine_shader_type_gui_default).get_hw();
 		_shaders.gui_sdf	 = engine_shaders::get().get_shader(engine_shader_type::engine_shader_type_gui_sdf).get_hw();
 		_shaders.gui_text	 = engine_shaders::get().get_shader(engine_shader_type::engine_shader_type_gui_text).get_hw();
+		_shaders.gui_texture = engine_shaders::get().get_shader(engine_shader_type::engine_shader_type_gui_texture).get_hw();
 
 #ifdef SFG_TOOLMODE
 		engine_shaders::get().add_reload_listener([this](engine_shader_type type, shader_direct& sh) {
@@ -75,6 +77,12 @@ namespace SFG
 			if (type == engine_shader_type::engine_shader_type_gui_sdf)
 			{
 				_shaders.gui_sdf = sh.get_hw();
+				return;
+			}
+
+			if (type == engine_shader_type::engine_shader_type_gui_texture)
+			{
+				_shaders.gui_texture = sh.get_hw();
 				return;
 			}
 		});
@@ -330,6 +338,11 @@ namespace SFG
 				last_atlas_constant = dc.atlas_gpu_index;
 			}
 
+			if (dc.world_rt)
+			{
+				backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)&p.world_rt_index, .offset = constant_index_mat_constant0, .count = 1, .param_index = rpi_constants});
+			}
+
 			backend->cmd_draw_indexed_instanced(cmd_buffer,
 												{
 													.index_count_per_instance = dc.index_count,
@@ -410,6 +423,7 @@ namespace SFG
 	{
 		ZoneScoped;
 
+		void*				  user_data		   = buffer.user_data;
 		const vekt::id		  font			   = buffer.font_id;
 		const vekt::id		  atlas			   = buffer.atlas_id;
 		const vekt::font_type font_type		   = buffer.font_type;
@@ -422,6 +436,7 @@ namespace SFG
 		const gfx_id sdf_shader		= _shaders.gui_sdf;
 		const gfx_id text_shader	= _shaders.gui_text;
 		const gfx_id default_shader = _shaders.gui_default;
+		const gfx_id texture_shader = _shaders.gui_texture;
 
 		per_frame_data& pfd			= _pfd[frame_index];
 		const uint32	vtx_counter = pfd.counter_vtx;
@@ -476,6 +491,15 @@ namespace SFG
 			}
 
 			SFG_ASSERT(found);
+		}
+		else if (user_data != nullptr)
+		{
+			editor_gui_user_data* ud = reinterpret_cast<editor_gui_user_data*>(user_data);
+			if (ud->type == editor_gui_user_data_type::world_rt)
+			{
+				dc.shader	= texture_shader;
+				dc.world_rt = true;
+			}
 		}
 		else
 		{

@@ -29,7 +29,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "input/input_common.hpp"
 #include "input/input_mappings.hpp"
 #include "math/math.hpp"
-#include "imgui.h"
 #include <windowsx.h>
 #include <hidusage.h>
 #include <shellscalingapi.h>
@@ -123,10 +122,6 @@ namespace SFG
 		window* wnd = reinterpret_cast<window*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
 		if (!wnd)
 			return DefWindowProcA(hwnd, msg, wParam, lParam);
-
-		extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-		if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wParam, lParam))
-			return true;
 
 		switch (msg)
 		{

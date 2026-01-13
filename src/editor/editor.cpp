@@ -232,6 +232,10 @@ namespace SFG
 		world&			   w  = _app.get_world();
 		const vector2ui16& ws = _app.get_main_window().get_size();
 
+		const vector2	  wvs = _gui_controller.get_world_size();
+		const vector2ui16 gs  = vector2ui16(wvs.x, wvs.y);
+		_app.set_game_resolution(gs);
+
 		_bump_text_allocator.reset();
 
 		_gui_controller.tick(w, ws);
@@ -248,12 +252,13 @@ namespace SFG
 
 		_renderer.prepare(p.pm, p.cmd_buffer, p.frame_index);
 		_renderer.render({
-			.cmd_buffer	   = p.cmd_buffer,
-			.frame_index   = p.frame_index,
-			.alloc		   = p.alloc,
-			.size		   = p.size,
-			.global_layout = p.global_layout,
-			.global_group  = p.global_group,
+			.cmd_buffer		= p.cmd_buffer,
+			.frame_index	= p.frame_index,
+			.alloc			= p.alloc,
+			.size			= p.size,
+			.global_layout	= p.global_layout,
+			.global_group	= p.global_group,
+			.world_rt_index = p.world_rt_index,
 		});
 	}
 

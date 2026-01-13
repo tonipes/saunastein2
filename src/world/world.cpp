@@ -157,6 +157,11 @@ namespace SFG
 		uninit();
 		init();
 
+#ifdef SFG_TOOLMODE
+		_tool_camera_pos = raw.tool_cam_pos;
+		_tool_camera_rot = raw.tool_cam_rot;
+#endif
+
 		const entity_template_raw& tr = raw.entities_raw;
 		_resource_manager.load_resources(tr.resources);
 		_entity_manager.instantiate_template(tr);

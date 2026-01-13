@@ -25,6 +25,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "editor_camera.hpp"
+#include "editor/editor_settings.hpp"
 
 #include "platform/window_common.hpp"
 #include "platform/window.hpp"
@@ -65,8 +66,8 @@ namespace SFG
 		cam_trait.set_values(w, 0.01f, 250.0f, 60.0f, {0.01f, 0.04f, 0.125f});
 		cam_trait.set_main(w);
 
-		em.set_entity_position(_entity, _last_pos);
-		em.set_entity_rotation(_entity, _last_rot);
+		em.set_entity_position(_entity, w.get_tool_camera_pos());
+		em.set_entity_rotation(_entity, w.get_tool_camera_rot());
 
 		const quat& rot = em.get_entity_rotation(_entity);
 
@@ -84,9 +85,6 @@ namespace SFG
 		world&			   w  = *_world;
 		entity_manager&	   em = w.get_entity_manager();
 		component_manager& tm = w.get_comp_manager();
-
-		_last_pos = em.get_entity_position(_entity);
-		_last_rot = em.get_entity_rotation(_entity);
 
 		em.destroy_entity(_entity);
 		_entity		  = {};
@@ -216,6 +214,7 @@ namespace SFG
 		entity_manager& manager = _world->get_entity_manager();
 		const quat		new_rot = quat::from_euler(_pitch_degrees, _yaw_degrees, 0.0f);
 		manager.set_entity_rotation(_entity, new_rot);
+		_world->set_tool_camera_rot(new_rot);
 
 		_mouse_delta = vector2::zero;
 	}
@@ -237,5 +236,7 @@ namespace SFG
 		const vector3& pos		= manager.get_entity_position(_entity);
 		const vector3  position = pos + (move_dir * (_current_move_speed * dt_seconds));
 		manager.set_entity_position(_entity, position);
+
+		_world->set_tool_camera_pos(position);
 	}
 }

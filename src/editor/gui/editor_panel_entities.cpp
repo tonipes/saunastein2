@@ -68,13 +68,13 @@ namespace SFG
 
 		// gui_builder now uses editor_theme directly for styles and fonts.
 		_gui_builder.init(b);
+		_root = _gui_builder.get_root();
 
 		_gui_builder.callbacks.user_data			  = this;
 		_gui_builder.callbacks.callback_ud			  = this;
 		_gui_builder.callbacks.on_input_field_changed = on_input_field_changed;
 		_gui_builder.callbacks.on_mouse				  = on_mouse;
 		_gui_builder.callbacks.on_checkbox_changed	  = on_checkbox;
-		_root										  = _gui_builder.get_root();
 
 		_gui_builder.add_title("entities");
 		_entity_area													 = _gui_builder.begin_area(true);
@@ -118,8 +118,6 @@ namespace SFG
 
 		_gui_builder.end_area();
 
-		_builder->widget_add_child(_builder->get_root(), _root);
-
 		// Reserve per-entity meta storage
 		_entity_meta.resize(MAX_ENTITIES);
 		_node_bindings.reserve(512);
@@ -144,9 +142,6 @@ namespace SFG
 
 	void editor_panel_entities::draw(world& w, const vector2ui16& window_size)
 	{
-		_builder->widget_set_pos_abs(_root, vector2(0, 28));
-		_builder->widget_set_size_abs(_root, vector2(window_size.x * 0.2f, window_size.y - 28));
-
 		entity_manager& em = w.get_entity_manager();
 		if (em.get_hierarchy_dirty())
 		{
@@ -677,8 +672,8 @@ namespace SFG
 		{
 			world&		 w	  = editor::get().get_app().get_world();
 			const string file = process::save_file("save entity file", ".stkent");
-			if(file.empty())
-					return vekt::input_event_result::handled;
+			if (file.empty())
+				return vekt::input_event_result::handled;
 
 			entity_template_raw::save_to_file(file.c_str(), w, {self->_selected_entity});
 

@@ -32,7 +32,7 @@ namespace vekt
 	typedef unsigned short index;
 #define NULL_WIDGET_ID 0xffffffffui32
 
-	struct builder;
+	class builder;
 	struct mouse_event;
 	struct mouse_wheel_event;
 	struct key_event;

@@ -81,9 +81,6 @@ namespace SFG
 		world_handle _entity	   = {};
 		world_handle _camera_trait = {};
 
-		vector3 _last_pos = vector3::zero;
-		quat	_last_rot = quat::identity;
-
 		vector3 _direction_input	= vector3::zero;
 		vector2 _mouse_delta		= vector2::zero;
 		float	_yaw_degrees		= 0.0f;

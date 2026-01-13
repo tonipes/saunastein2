@@ -25,6 +25,10 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #pragma once
 
+#include "gui/vekt_defines.hpp"
+#include "editor/gui/editor_gui_builder.hpp"
+#include "editor/gui/editor_gui_user_data.hpp"
+
 namespace SFG
 {
 	struct vector2ui16;
@@ -32,9 +36,34 @@ namespace SFG
 	class editor_panels_world_view
 	{
 	public:
-		void init();
+		// -----------------------------------------------------------------------------
+		// lifecycle
+		// -----------------------------------------------------------------------------
+
+		void init(vekt::builder* b);
 		void uninit();
 		void draw(const vector2ui16& window_size);
+
+		// -----------------------------------------------------------------------------
+		// impl
+		// -----------------------------------------------------------------------------
+
 		bool consume_committed_size(vector2ui16& out_size);
+
+		// -----------------------------------------------------------------------------
+		// accessors
+		// -----------------------------------------------------------------------------
+
+		inline vekt::id get_root() const
+		{
+			return _root;
+		}
+
+	private:
+		gui_builder	   _gui_builder = {};
+		vekt::builder* _builder		= nullptr;
+		vekt::id	   _root		= NULL_WIDGET_ID;
+
+		editor_gui_user_data _user_data = {};
 	};
 }

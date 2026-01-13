@@ -28,6 +28,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "world/world_constants.hpp"
 #include "math/vector2ui16.hpp"
+#include "math/vector2.hpp"
 #include "gui/vekt_defines.hpp"
 #include "platform/window_common.hpp"
 
@@ -61,7 +62,8 @@ namespace SFG
 		// impl
 		// -----------------------------------------------------------------------------
 
-		bool on_mouse_event(const window_event& ev);
+		bool	on_mouse_event(const window_event& ev);
+		vector2 get_world_size();
 
 		// -----------------------------------------------------------------------------
 		// gui
@@ -70,9 +72,8 @@ namespace SFG
 		vekt::id begin_context_menu(float abs_x, float abs_y);
 		vekt::id add_context_menu_item(const char* label);
 		void	 end_context_menu();
-
-		void enable_payload(const char* text);
-		void disable_payload();
+		void	 enable_payload(const char* text);
+		void	 disable_payload();
 
 		// -----------------------------------------------------------------------------
 		// accessors
@@ -91,6 +92,9 @@ namespace SFG
 	private:
 		static void on_context_item_hover_begin(vekt::builder* b, vekt::id widget);
 		static void on_context_item_hover_end(vekt::builder* b, vekt::id widget);
+		static void on_separator_drag(vekt::builder* b, vekt::id widget, float mp_x, float mp_y, float delta_x, float delta_y, unsigned int button);
+		static void on_separator_hover_begin(vekt::builder* b, vekt::id widget);
+		static void on_separator_hover_end(vekt::builder* b, vekt::id widget);
 
 	private:
 		vekt::builder*			   _builder			   = nullptr;
@@ -107,5 +111,10 @@ namespace SFG
 		vekt::id _payload		 = NULL_WIDGET_ID;
 		vekt::id _payload_text	 = NULL_WIDGET_ID;
 		uint8	 _payload_active = 0;
+
+		// Layout root (row) and children
+		vekt::id _layout_root	   = NULL_WIDGET_ID;
+		vekt::id _layout_separator = NULL_WIDGET_ID;
+		float	 _split_px		   = 320.0f;
 	};
 }

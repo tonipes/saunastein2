@@ -155,6 +155,28 @@ namespace SFG
 			return _time_manager;
 		}
 
+#ifdef SFG_TOOLMODE
+
+		inline void set_tool_camera_pos(const vector3& p)
+		{
+			_tool_camera_pos = p;
+		}
+
+		inline void set_tool_camera_rot(const quat& q)
+		{
+			_tool_camera_rot = q;
+		}
+
+		inline const vector3& get_tool_camera_pos() const
+		{
+			return _tool_camera_pos;
+		}
+
+		inline const quat& get_tool_camera_rot() const
+		{
+			return _tool_camera_rot;
+		}
+#endif
 	private:
 		// -----------------------------------------------------------------------------
 		// vekt
@@ -187,5 +209,10 @@ namespace SFG
 
 		bitmask<uint8> _flags	  = 0;
 		play_mode	   _play_mode = play_mode::none;
+
+#ifdef SFG_TOOLMODE
+		vector3 _tool_camera_pos = vector3::zero;
+		quat	_tool_camera_rot = quat::identity;
+#endif
 	};
 }

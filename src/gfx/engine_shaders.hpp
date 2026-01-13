@@ -41,6 +41,7 @@ namespace SFG
 		engine_shader_type_gui_default,
 		engine_shader_type_gui_sdf,
 		engine_shader_type_gui_text,
+		engine_shader_type_gui_texture,
 		engine_shader_type_renderer_swapchain,
 		engine_shader_type_world_lighting,
 		engine_shader_type_hbao,

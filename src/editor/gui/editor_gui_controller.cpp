@@ -34,16 +34,21 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "editor/editor.hpp"
 #include "editor/editor_theme.hpp"
 
+#include "app/debug_controller.hpp"
 #include "data/char_util.hpp"
 #include "common/system_info.hpp"
 #include "app/app.hpp"
 #include "platform/window.hpp"
+#include "math/math.hpp"
+#include "input/input_mappings.hpp"
 
 #include "gui/vekt.hpp"
 
 namespace SFG
 {
 #define MAX_PAYLOAD_SIZE 128
+	static constexpr float SEPARATOR_WIDTH	  = 4.0f;
+	static constexpr float ENTITIES_MIN_WIDTH = 160.0f;
 
 	void editor_gui_controller::init(vekt::builder* b)
 	{
@@ -51,18 +56,91 @@ namespace SFG
 
 		// Construct panels
 		_gui_world_overlays = new editor_gui_world_overlays();
-		_panel_controls		= new editor_panel_controls();
-		_panel_entities		= new editor_panel_entities();
-		_panel_properties	= new editor_panel_properties();
-		_panel_world_view	= new editor_panels_world_view();
-		_panels_docking		= new editor_panels_docking();
+		// _panel_controls		= new editor_panel_controls();
+		_panel_entities	  = new editor_panel_entities();
+		_panel_properties = new editor_panel_properties();
+		_panel_world_view = new editor_panels_world_view();
+		_panels_docking	  = new editor_panels_docking();
 
 		_gui_world_overlays->init(_builder);
-		_panel_controls->init(_builder);
-		_panel_entities->init(_builder);
+		// if (_panel_controls) _panel_controls->init(_builder);
 		_panel_properties->init();
-		_panel_world_view->init();
 		_panels_docking->init();
+
+		_layout_root = _builder->allocate();
+		{
+			vekt::pos_props& pp = _builder->widget_get_pos_props(_layout_root);
+			pp.flags			= vekt::pos_flags::pf_x_abs | vekt::pos_flags::pf_y_abs | vekt::pos_flags::pf_child_pos_row;
+
+			vekt::size_props& sz = _builder->widget_get_size_props(_layout_root);
+			sz.flags			 = vekt::size_flags::sf_x_abs | vekt::size_flags::sf_y_abs;
+			sz.child_margins	 = {0.0f, 0.0f, 0.0f, 0.0f};
+			sz.spacing			 = 0.0f;
+
+			vekt::widget_gfx& gfx = _builder->widget_get_gfx(_layout_root);
+			// gfx.flags			  = vekt::gfx_flags::gfx_is_rect;
+			// gfx.color			  = vector4(1, 0, 0, 1);
+
+			_builder->widget_add_child(_builder->get_root(), _layout_root);
+		}
+
+		_panel_entities->init(_builder);
+		{
+			const vekt::id ent_root = _panel_entities->get_root();
+
+			vekt::pos_props& pp = _builder->widget_get_pos_props(ent_root);
+			pp.flags			= vekt::pos_flags::pf_y_relative | vekt::pos_flags::pf_child_pos_column;
+			pp.pos.y			= 0.0f;
+
+			vekt::size_props& sz = _builder->widget_get_size_props(ent_root);
+			sz.flags			 = vekt::size_flags::sf_x_abs | vekt::size_flags::sf_y_relative;
+			sz.size.x			 = _split_px;
+			sz.size.y			 = 1.0f;
+
+			_builder->widget_add_child(_layout_root, ent_root);
+		}
+
+		// Vertical separator
+		_layout_separator = _builder->allocate();
+		{
+			_builder->widget_add_child(_layout_root, _layout_separator);
+
+			vekt::pos_props& pp = _builder->widget_get_pos_props(_layout_separator);
+			pp.flags			= vekt::pos_flags::pf_y_relative | vekt::pos_flags::pf_y_anchor_center;
+			pp.pos.y			= 0.5f;
+
+			vekt::size_props& sz = _builder->widget_get_size_props(_layout_separator);
+			sz.flags			 = vekt::size_flags::sf_x_abs | vekt::size_flags::sf_y_relative;
+			sz.size.x			 = SEPARATOR_WIDTH;
+			sz.size.y			 = 1.0f;
+
+			vekt::widget_gfx& gfx = _builder->widget_get_gfx(_layout_separator);
+			gfx.flags			  = vekt::gfx_flags::gfx_is_rect;
+			gfx.color			  = editor_theme::get().col_frame_outline;
+
+			vekt::hover_callback& hb = _builder->widget_get_hover_callbacks(_layout_separator);
+			hb.receive_mouse		 = 1;
+			hb.on_hover_begin		 = on_separator_hover_begin;
+			hb.on_hover_end			 = on_separator_hover_end;
+
+			vekt::mouse_callback& mc							  = _builder->widget_get_mouse_callbacks(_layout_separator);
+			mc.on_drag											  = on_separator_drag;
+			_builder->widget_get_user_data(_layout_separator).ptr = this;
+		}
+
+		_panel_world_view->init(_builder);
+		{
+			const vekt::id w_root = _panel_world_view->get_root();
+			_builder->widget_add_child(_layout_root, w_root);
+
+			vekt::pos_props& pp = _builder->widget_get_pos_props(w_root);
+			pp.flags			= vekt::pos_flags::pf_y_relative | vekt::pos_flags::pf_child_pos_column;
+			pp.pos.y			= 0.0f;
+
+			vekt::size_props& sz = _builder->widget_get_size_props(w_root);
+			sz.flags			 = vekt::size_flags::sf_x_fill | vekt::size_flags::sf_y_relative;
+			sz.size.y			 = 1.0f;
+		}
 
 		_payload = _builder->allocate();
 		{
@@ -107,9 +185,7 @@ namespace SFG
 		_builder->deallocate(_payload);
 		_payload = _payload_text = NULL_WIDGET_ID;
 
-		_panel_controls->uninit();
-		delete _panel_controls;
-		_panel_controls = nullptr;
+		// Controls are disabled.
 
 		_panel_entities->uninit();
 		delete _panel_entities;
@@ -142,7 +218,9 @@ namespace SFG
 			const vector2i16 mp = editor::get().get_app().get_main_window().get_mouse_position();
 			_builder->widget_set_pos_abs(_payload, vector2(mp.x + 20, mp.y + 20));
 		}
-		_panel_controls->draw(window_size);
+
+		_builder->widget_set_pos_abs(_layout_root, vector2(0.0f, debug_controller::get_field_height()));
+		_builder->widget_set_size_abs(_layout_root, vector2(static_cast<float>(window_size.x), static_cast<float>(window_size.y) - debug_controller::get_field_height()));
 		_panel_entities->draw(w, window_size);
 	}
 
@@ -264,6 +342,35 @@ namespace SFG
 		b->widget_get_gfx(widget).color = {};
 	}
 
+	void editor_gui_controller::on_separator_hover_begin(vekt::builder* b, vekt::id widget)
+	{
+		SFG::window::set_cursor_state(SFG::cursor_state::resize_hr);
+	}
+
+	void editor_gui_controller::on_separator_hover_end(vekt::builder* b, vekt::id widget)
+	{
+		SFG::window::set_cursor_state(SFG::cursor_state::arrow);
+	}
+
+	void editor_gui_controller::on_separator_drag(vekt::builder* b, vekt::id widget, float mp_x, float mp_y, float delta_x, float delta_y, unsigned int button)
+	{
+		if (button != static_cast<uint16>(input_code::mouse_0))
+			return;
+
+		editor_gui_controller* self = static_cast<editor_gui_controller*>(b->widget_get_user_data(widget).ptr);
+		if (!self)
+			return;
+
+		const vector2 layout_size = b->widget_get_size(self->_layout_root);
+		const float	  max_width	  = math::max(layout_size.x - 240.0f, ENTITIES_MIN_WIDTH);
+
+		self->_split_px = math::clamp(self->_split_px + delta_x, ENTITIES_MIN_WIDTH, max_width);
+
+		const vekt::id	  ent_root = self->_panel_entities->get_root();
+		vekt::size_props& ent_sz   = b->widget_get_size_props(ent_root);
+		ent_sz.size.x			   = self->_split_px;
+	}
+
 	bool editor_gui_controller::on_mouse_event(const window_event& ev)
 	{
 		if (ev.type == window_event_type::mouse)
@@ -293,5 +400,10 @@ namespace SFG
 		}
 
 		return false;
+	}
+
+	vector2 editor_gui_controller::get_world_size()
+	{
+		return _builder->widget_get_size(_panel_world_view->get_root());
 	}
 }

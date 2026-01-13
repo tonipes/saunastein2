@@ -26,19 +26,30 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "editor_panels_world_view.hpp"
 #include "math/vector2ui16.hpp"
-#include "imgui.h"
 #include "editor/editor.hpp"
 #include "gfx/backend/backend.hpp"
+#include "gui/vekt.hpp"
 
 namespace SFG
 {
-
-	void editor_panels_world_view::init()
+	void editor_panels_world_view::init(vekt::builder* b)
 	{
+		_builder = b;
+		_gui_builder.init(b);
+		_root = _gui_builder.get_root();
+
+		vekt::widget_gfx& gfx = _builder->widget_get_gfx(_root);
+		gfx.user_data		  = &_user_data;
+
+		_user_data.type = editor_gui_user_data_type::world_rt;
+
+		_gui_builder.callbacks.user_data   = this;
+		_gui_builder.callbacks.callback_ud = this;
 	}
 
 	void editor_panels_world_view::uninit()
 	{
+		_gui_builder.uninit();
 	}
 
 	void editor_panels_world_view::draw(const vector2ui16& window_size)

@@ -610,14 +610,13 @@ namespace SFG
 
 		// gfx
 		_builder->widget_get_gfx(w).color = editor_theme::get().col_root;
-		_builder->widget_get_gfx(w).flags = gfx_flags::gfx_is_rect | gfx_flags::gfx_has_rounding;
-		rounding_props& rp				  = _builder->widget_get_rounding(w);
-		rp.segments						  = 16;
-		rp.rounding						  = editor_theme::get().root_rounding;
+		_builder->widget_get_gfx(w).flags = gfx_flags::gfx_is_rect;
 
 		// positioning
-		_builder->widget_set_pos_abs(w, VEKT_VEC2());
-		_builder->widget_set_size_abs(w, VEKT_VEC2(100, 100));
+		vekt::size_props& sz = _builder->widget_get_size_props(w);
+		sz.flags			 = vekt::size_flags::sf_x_relative | vekt::size_flags::sf_y_relative;
+		sz.size.x			 = 1.0f;
+		sz.size.y			 = 1.0f;
 
 		// sizes
 		_builder->widget_get_size_props(w).spacing		 = editor_theme::get().root_spacing;

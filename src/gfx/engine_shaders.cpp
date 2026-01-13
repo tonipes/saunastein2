@@ -52,6 +52,7 @@ namespace SFG
 		paths.push_back("assets/engine/shaders/gui/gui_default.stkshader");
 		paths.push_back("assets/engine/shaders/gui/gui_sdf.stkshader");
 		paths.push_back("assets/engine/shaders/gui/gui_text.stkshader");
+		paths.push_back("assets/engine/shaders/gui/gui_texture.stkshader");
 		paths.push_back("assets/engine/shaders/swapchain/swapchain.stkshader");
 		paths.push_back("assets/engine/shaders/lighting/deferred_lighting.stkshader");
 		paths.push_back("assets/engine/shaders/ssao/hbao.stkshader");

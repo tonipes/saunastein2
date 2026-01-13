@@ -154,10 +154,6 @@ src/sfg_api.cpp
 src/sfg_api.cpp
 src/vendor/util/*.cpp
 src/vendor/miniaudio/*.c
-src/vendor/imgui/*.cpp
-src/vendor/imgui/misc/cpp/*.cpp
-src/vendor/imgui/backends/imgui_impl_win32.cpp
-src/vendor/imgui/backends/imgui_impl_dx12.cpp
 )
 
 file(GLOB HEADERS 
@@ -198,11 +194,6 @@ src/vendor/syoyo/*.h
 src/vendor/miniaudio/*.h
 src/vendor/um/*.h
 src/vendor/um/*.inl
-src/vendor/imgui/*.hpp
-src/vendor/imgui/misc/cpp/*.hpp
-src/vendor/imgui/misc/imgui_threaded_rendering.h
-src/vendor/imgui/backends/imgui_impl_win32.h
-src/vendor/imgui/backends/imgui_impl_dx12.h
 src/sfg_api.hpp
 )
 
@@ -293,7 +284,6 @@ include(${CMAKE_SOURCE_DIR}/utils/cmake/executable_settings.cmake)
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/src/)
 target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/deps/phmap/include)
 target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/deps/tracy-0.13.0/public)
-target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/src/vendor/imgui/)
 
 
 # ------------- DEPS -------------
