@@ -26,12 +26,18 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+#include "common/string_id.hpp"
+
 namespace SFG
 {
 
 	class gameplay
 	{
 	public:
+		void on_world_begin(string_id world_id);
+		void on_world_end();
+		void on_world_tick(float dt);
+
 	private:
 	};
 

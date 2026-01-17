@@ -1930,8 +1930,8 @@ namespace SFG
 			if (is_slider)
 			{
 				pp.flags |= pos_flags::pf_x_anchor_center;
-				gfx.draw_order = _draw_order + 1;
 			}
+			gfx.draw_order = _draw_order + 1;
 		}
 
 		text_props& tp = _builder->widget_get_text(txt);

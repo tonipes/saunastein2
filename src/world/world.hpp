@@ -78,8 +78,9 @@ namespace SFG
 
 		void init();
 		void uninit();
-		void unload();
-		void create_from_loader(world_raw& raw);
+		void init_preserve_resources();
+		void uninit_preserve_resources();
+		void create_from_loader(world_raw& raw, bool preserve_resources);
 		void tick(const vector2ui16& res, float dt);
 		void calculate_abs_transforms();
 		void interpolate(double interpolation);

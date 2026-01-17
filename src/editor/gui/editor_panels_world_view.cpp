@@ -273,6 +273,12 @@ namespace SFG
 			return vekt::input_event_result::handled;
 		}
 
+		if (widget == self->_btn_play)
+		{
+			editor::get().enter_playmode();
+			return vekt::input_event_result::handled;
+		}
+
 		if (widget == self->_btn_stats)
 		{
 			if (self->_stats_area != NULL_WIDGET_ID)

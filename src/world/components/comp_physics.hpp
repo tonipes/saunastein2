@@ -144,7 +144,7 @@ namespace SFG
 	private:
 		component_header   _header					= {};
 		JPH::Body*		   _body					= nullptr;
-		vector3			   _extent_or_height_radius = vector3::zero;
+		vector3			   _extent_or_height_radius = vector3(1, 1, 1);
 		resource_handle	   _material_handle			= {};
 		physics_body_type  _body_type				= physics_body_type::static_body;
 		physics_shape_type _shape_type				= physics_shape_type::box;

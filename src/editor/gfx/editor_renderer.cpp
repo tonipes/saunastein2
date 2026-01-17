@@ -153,9 +153,6 @@ namespace SFG
 		if (next == in_use)
 			next = (next + 1) % SNAPSHOTS_SIZE;
 
-		// const uint32 latest = _published_snapshot.load(std::memory_order_relaxed);
-		// if (next == latest) next = (next + 1) % SNAPSHOTS_SIZE;
-
 		_writer_slot = next;
 	}
 

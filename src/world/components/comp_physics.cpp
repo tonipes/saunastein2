@@ -29,6 +29,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "data/ostream.hpp"
 #include "data/istream.hpp"
 #include "world/world.hpp"
+#include "math/math.hpp"
 #include "reflection/reflection.hpp"
 #include "resources/physical_material.hpp"
 
@@ -57,7 +58,11 @@ namespace SFG
 			c->create_body(params.w);
 		});
 
-		m.add_function<void, void*, world&>("on_reflect_load"_hs, [](void* obj, world& w) { comp_physics* c = static_cast<comp_physics*>(obj); });
+		m.add_function<void, void*, world&>("on_reflect_load"_hs, [](void* obj, world& w) {
+			comp_physics* c = static_cast<comp_physics*>(obj);
+			if (c->_body == nullptr)
+				c->create_body(w);
+		});
 
 		m.add_function<void, void*, vector<resource_handle_and_type>&>("gather_resources"_hs, [](void* obj, vector<resource_handle_and_type>& h) {
 			comp_physics* c = static_cast<comp_physics*>(obj);
@@ -96,14 +101,15 @@ namespace SFG
 
 		physics_world& phy_world = w.get_physics_world();
 
-		if (_shape_type == physics_shape_type::box || _shape_type == physics_shape_type::plane)
-		{
-		}
+		const vector3 extent = vector3(math::almost_equal(_extent_or_height_radius.x, 0.0f) ? 1.0f : _extent_or_height_radius.x,
+									   math::almost_equal(_extent_or_height_radius.y, 0.0f) ? 1.0f : _extent_or_height_radius.y,
+									   math::almost_equal(_extent_or_height_radius.z, 0.0f) ? 1.0f : _extent_or_height_radius.z);
+
 		entity_manager& em	  = w.get_entity_manager();
 		const vector3	pos	  = em.get_entity_position_abs(_header.entity);
 		const vector3	scale = em.get_entity_scale_abs(_header.entity);
 		const quat		rot	  = em.get_entity_rotation_abs(_header.entity);
-		_body				  = phy_world.create_body(_body_type, _shape_type, _extent_or_height_radius, _material_handle, pos, rot, scale);
+		_body				  = phy_world.create_body(_body_type, _shape_type, extent, _material_handle, pos, rot, scale);
 	}
 
 	void comp_physics::destroy_body(world& w)

@@ -101,7 +101,7 @@ namespace SFG
 
 		world_raw raw = {};
 		// raw.load_from_file("assets/world/demo_world.stkworld", engine_data::get().get_working_dir().c_str());
-		_app.get_world().create_from_loader(raw);
+		_app.get_world().create_from_loader(raw, false);
 
 		_app.get_editor()->get_camera().activate();
 

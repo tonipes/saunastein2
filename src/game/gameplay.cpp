@@ -28,5 +28,15 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace SFG
 {
+	void gameplay::on_world_begin(string_id world_id)
+	{
+	}
+	
+	void gameplay::on_world_end()
+	{
+	}
 
+	void gameplay::on_world_tick(float dt)
+	{
+	}
 }

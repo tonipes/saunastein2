@@ -68,6 +68,11 @@ namespace SFG
 			_game = g;
 		}
 
+		inline world_handle get_entity() const
+		{
+			return _entity;
+		}
+
 	private:
 		void reset_runtime();
 		void update_rotation();

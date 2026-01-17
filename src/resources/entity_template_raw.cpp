@@ -43,6 +43,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "serialization/serialization.hpp"
 #include <fstream>
 #include <vendor/nhlohmann/json.hpp>
+#include "resources/entity_template_utils.hpp"
 using json = nlohmann::json;
 #endif
 
@@ -174,7 +175,6 @@ namespace SFG
 	void entity_template_raw::save_in_place(world& w, const vector<world_handle>& handles)
 	{
 		destroy();
-
 	}
 
 	void entity_template_raw::save_to_json(nlohmann::json& j, world& w, const vector<world_handle>& handles)
@@ -190,7 +190,6 @@ namespace SFG
 		{
 			if (em.get_entity_flags(h).is_set(entity_flags::entity_flags_no_save))
 				continue;
-
 			collect_entities(em, h, order);
 		}
 
@@ -206,218 +205,24 @@ namespace SFG
 		json& je = j["entities"];
 		json& jc = j["components"];
 
-		vector<resource_handle_and_type> resources		= {};
-		vector<string>					 resource_paths = {};
-
-		string path			= "";
-		string path_to_push = "";
-		path.reserve(512);
-		path_to_push.reserve(512);
+		vector<string> resource_paths = {};
 
 		for (size_t i = 0; i < order.size(); i++)
 		{
-			const world_handle h		= order[i];
-			const entity_meta& entity_m = em.get_entity_meta(h);
+			const world_handle h = order[i];
 
-			entity_template_entity_raw er = {};
-			er.name						  = entity_m.name;
-			er.position					  = em.get_entity_position(h);
-			er.scale					  = em.get_entity_scale(h);
-			er.rotation					  = em.get_entity_rotation(h);
-			er.parent					  = -1;
-			er.first_child				  = -1;
-			er.next_sibling				  = -1;
-			er.visible					  = !em.get_entity_flags(h).is_set(entity_flags::entity_flags_invisible);
-
-			const resource_handle tmp = em.get_entity_template_ref(h);
-			if (!tmp.is_null())
-			{
-				er.template_reference = rm.get_loaded_path_by_handle(type_id<entity_template>::value, tmp);
-				auto it				  = std::find_if(resource_paths.begin(), resource_paths.end(), [&](const string& str) -> bool { return str.compare(er.template_reference) == 0; });
-				if (it == resource_paths.end())
-					resource_paths.push_back(er.template_reference);
-			}
-
-			const entity_family& fam = em.get_entity_family(h);
-
-			if (!fam.parent.is_null())
-			{
-				auto it = index_by_world.find(fam.parent.index);
-				if (it != index_by_world.end())
-					er.parent = it->second;
-			}
-			if (!fam.first_child.is_null())
-			{
-				auto it = index_by_world.find(fam.first_child.index);
-				if (it != index_by_world.end())
-					er.first_child = it->second;
-			}
-			if (!fam.next_sibling.is_null())
-			{
-				auto it = index_by_world.find(fam.next_sibling.index);
-				if (it != index_by_world.end())
-					er.next_sibling = it->second;
-			}
-
+			entity_template_entity_raw er = entity_template_utils::entity_to_entity_template_entity_raw(h, em, rm, index_by_world);
 			je.push_back(er);
 
-			if (!tmp.is_null())
+			if (!er.template_reference.empty())
 			{
+				auto it = std::find_if(resource_paths.begin(), resource_paths.end(), [&](const string& str) -> bool { return str.compare(er.template_reference) == 0; });
+				if (it == resource_paths.end())
+					resource_paths.push_back(er.template_reference);
 				continue;
 			}
 
-			const entity_comp_register& reg = em.get_component_register(h);
-
-			for (const entity_comp& c : reg.comps)
-			{
-				json comp_json = {};
-
-				comp_json["comp_type"] = c.comp_type;
-				comp_json["entity"]	   = i;
-
-				void*		ptr		  = cm.get_component(c.comp_type, c.comp_handle);
-				meta&		comp_meta = reflection::get().resolve(c.comp_type);
-				const auto& fields	  = comp_meta.get_fields();
-
-				if (comp_meta.has_function("gather_resources"_hs))
-				{
-					resources.resize(0);
-					comp_meta.invoke_function<void, void*, vector<resource_handle_and_type>&>("gather_resources"_hs, ptr, resources);
-
-					for (const resource_handle_and_type& ht : resources)
-					{
-						if (ht.handle.is_null())
-							continue;
-
-						path		 = rm.get_loaded_path_by_handle(ht.type_id, ht.handle);
-						path_to_push = "";
-
-						const size_t dot   = path.find(".");
-						const size_t slash = path.find_last_of("/");
-						if (slash > dot)
-							path_to_push = path.substr(0, slash);
-						else
-							path_to_push = path;
-
-						auto it = std::find_if(resource_paths.begin(), resource_paths.end(), [&](const string& str) -> bool { return str.compare(path_to_push) == 0; });
-						if (it == resource_paths.end())
-							resource_paths.push_back(path_to_push);
-					}
-				}
-
-				for (field_base* f : fields)
-				{
-					const reflected_field_type ft = f->_type;
-
-					if (ft == reflected_field_type::rf_float)
-					{
-						const float val				 = f->value(ptr).cast<float>();
-						comp_json[f->_title.c_str()] = val;
-					}
-					else if (ft == reflected_field_type::rf_int)
-					{
-						const int32 val				 = f->value(ptr).cast<int32>();
-						comp_json[f->_title.c_str()] = val;
-					}
-					else if (ft == reflected_field_type::rf_uint)
-					{
-						const uint32 val			 = f->value(ptr).cast<uint32>();
-						comp_json[f->_title.c_str()] = val;
-					}
-					else if (ft == reflected_field_type::rf_bool || ft == reflected_field_type::rf_uint8 || ft == reflected_field_type::rf_enum)
-					{
-						const uint8 val				 = f->value(ptr).cast<uint8>();
-						comp_json[f->_title.c_str()] = val;
-					}
-					else if (ft == reflected_field_type::rf_vector2)
-					{
-						const vector2 val			 = f->value(ptr).cast<vector2>();
-						comp_json[f->_title.c_str()] = val;
-					}
-					else if (ft == reflected_field_type::rf_vector2ui16)
-					{
-						const vector2ui16 val		 = f->value(ptr).cast<vector2ui16>();
-						comp_json[f->_title.c_str()] = val;
-					}
-					else if (ft == reflected_field_type::rf_vector3)
-					{
-						const vector3 val			 = f->value(ptr).cast<vector3>();
-						comp_json[f->_title.c_str()] = val;
-					}
-					else if (ft == reflected_field_type::rf_vector4)
-					{
-						const vector4 val			 = f->value(ptr).cast<vector4>();
-						comp_json[f->_title.c_str()] = val;
-					}
-					else if (ft == reflected_field_type::rf_color)
-					{
-						const color val				 = f->value(ptr).cast<color>();
-						comp_json[f->_title.c_str()] = val;
-					}
-					else if (ft == reflected_field_type::rf_string)
-					{
-						const string val			 = f->value(ptr).cast<string>();
-						comp_json[f->_title.c_str()] = val;
-					}
-					else if (ft == reflected_field_type::rf_resource)
-					{
-						if (f->_is_list)
-						{
-							const vector<resource_handle>& v  = f->value(ptr).cast_ref<vector<resource_handle>>();
-							const uint32				   sz = static_cast<uint32>(v.size());
-							comp_json[f->_title.c_str()]	  = sz;
-
-							for (uint32 i = 0; i < v.size(); i++)
-							{
-								const string t = string(f->_title.c_str()) + std::to_string(i);
-
-								const resource_handle res_h = v[i];
-								if (!res_h.is_null())
-								{
-									const string& p		 = rm.get_loaded_path_by_handle(f->_sub_type_id, res_h);
-									comp_json[t.c_str()] = p;
-								}
-								else
-									comp_json[t.c_str()] = "";
-							}
-						}
-						else
-						{
-							const resource_handle res_h = f->value(ptr).cast<resource_handle>();
-							if (!res_h.is_null())
-							{
-								const string& p				 = rm.get_loaded_path_by_handle(f->_sub_type_id, res_h);
-								comp_json[f->_title.c_str()] = p;
-							}
-							else
-								comp_json[f->_title.c_str()] = "";
-						}
-					}
-					else if (ft == reflected_field_type::rf_entity)
-					{
-						if (f->_is_list)
-						{
-
-							const vector<world_handle>& v  = f->value(ptr).cast_ref<vector<world_handle>>();
-							const uint32				sz = static_cast<uint32>(v.size());
-							comp_json[f->_title.c_str()]   = sz;
-
-							for (uint32 i = 0; i < sz; i++)
-							{
-								const string t		 = string(f->_title.c_str()) + std::to_string(i);
-								comp_json[t.c_str()] = index_by_world[v[i].index];
-							}
-						}
-						else
-						{
-							const world_handle w		 = f->value(ptr).cast<world_handle>();
-							const int32		   index	 = index_by_world[w.index];
-							comp_json[f->_title.c_str()] = index;
-						}
-					}
-				}
-				jc.push_back(comp_json);
-			}
+			entity_template_utils::append_entity_components_as_json(jc, h, static_cast<uint32>(i), em, cm, rm, index_by_world, resource_paths);
 		}
 
 		json& jr = j["resources"];
@@ -429,128 +234,16 @@ namespace SFG
 
 	void entity_template_raw::load_from_json(const nlohmann::json& json_data, entity_template_raw& r)
 	{
-		r.entities.clear();
+		r.destroy();
 		r.entities	= json_data.value<vector<entity_template_entity_raw>>("entities", {});
 		r.resources = json_data.value<vector<string>>("resources", {});
-
-		if (r.component_buffer.get_size() != 0)
-			r.component_buffer.destroy();
 
 		const json& comps = json_data["components"];
 		if (comps.is_array())
 		{
 			for (const auto& c : comps)
 			{
-				const string_id comp_type	 = c.value<string_id>("comp_type", 0);
-				const uint32	entity_index = c.value<uint32>("entity", 0);
-				const auto&		fields		 = reflection::get().resolve(comp_type).get_fields();
-				const uint32	fields_size	 = static_cast<uint32>(fields.size());
-				r.component_buffer << comp_type;
-				r.component_buffer << entity_index;
-				r.component_buffer << fields_size;
-
-				for (field_base* f : fields)
-				{
-					const reflected_field_type ft = f->_type;
-					r.component_buffer << f->_sid;
-					r.component_buffer << ft;
-
-					if (ft == reflected_field_type::rf_float)
-					{
-						const float val = c.value<float>(f->_title.c_str(), 0.0f);
-						r.component_buffer << val;
-					}
-					else if (ft == reflected_field_type::rf_int)
-					{
-						const int32 val = c.value<int32>(f->_title.c_str(), 0.0f);
-						r.component_buffer << val;
-					}
-					else if (ft == reflected_field_type::rf_uint)
-					{
-						const uint32 val = c.value<uint32>(f->_title.c_str(), 0.0f);
-						r.component_buffer << val;
-					}
-					else if (ft == reflected_field_type::rf_vector2)
-					{
-						const vector2 val = c.value<vector2>(f->_title.c_str(), vector2::zero);
-						r.component_buffer << val;
-					}
-					else if (ft == reflected_field_type::rf_vector2ui16)
-					{
-						const vector2ui16 val = c.value<vector2ui16>(f->_title.c_str(), vector2ui16());
-						r.component_buffer << val;
-					}
-					else if (ft == reflected_field_type::rf_vector3)
-					{
-						const vector3 val = c.value<vector3>(f->_title.c_str(), vector3::zero);
-						r.component_buffer << val;
-					}
-					else if (ft == reflected_field_type::rf_vector4)
-					{
-						const vector4 val = c.value<vector4>(f->_title.c_str(), vector4::zero);
-						r.component_buffer << val;
-					}
-					else if (ft == reflected_field_type::rf_color)
-					{
-						const color val = c.value<color>(f->_title.c_str(), color::white);
-						r.component_buffer << val;
-					}
-					else if (ft == reflected_field_type::rf_bool || ft == reflected_field_type::rf_uint8 || ft == reflected_field_type::rf_enum)
-					{
-						const uint8 val = c.value<uint8>(f->_title.c_str(), 0);
-						r.component_buffer << val;
-					}
-					else if (ft == reflected_field_type::rf_string)
-					{
-						const string val = c.value<string>(f->_title.c_str(), "");
-						r.component_buffer << val;
-					}
-					else if (ft == reflected_field_type::rf_resource)
-					{
-						r.component_buffer << f->_sub_type_id;
-
-						if (f->_is_list)
-						{
-							const uint32 count = c.value<uint32>(f->_title.c_str(), 0);
-							r.component_buffer << count;
-
-							for (uint32 i = 0; i < count; i++)
-							{
-								const string t	 = std::string(f->_title.c_str()) + std::to_string(i);
-								const string val = c.value<string>(t.c_str(), "");
-								r.component_buffer << val;
-							}
-						}
-						else
-						{
-							const string val   = c.value<string>(f->_title.c_str(), "");
-							const uint32 count = 1;
-							r.component_buffer << count;
-							r.component_buffer << val;
-						}
-					}
-					else if (ft == reflected_field_type::rf_entity)
-					{
-						if (f->_is_list)
-						{
-							const uint32 count = c.value<uint32>(f->_title.c_str(), 0);
-							r.component_buffer << count;
-							for (uint32 i = 0; i < count; i++)
-							{
-								const string t	 = std::string(f->_title.c_str()) + std::to_string(i);
-								const int32	 val = c.value<int32>(t.c_str(), -1);
-								r.component_buffer << val;
-							}
-						}
-						else
-						{
-							const int32	 val   = c.value<int32>(f->_title.c_str(), -1);
-							const uint32 count = 1;
-							r.component_buffer << count;
-							r.component_buffer << val;
-						}
-					}
-				}
+				entity_template_utils::component_json_to_component_buffer(c, r.component_buffer);
 			}
 		}
 	}

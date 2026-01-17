@@ -85,6 +85,11 @@ namespace SFG
 			};
 		}
 
+		inline bool is_full() const
+		{
+			return _free_count == 0 && _head >= N;
+		}
+
 		void remove(pool_handle<SIZE_TYPE> handle)
 		{
 			SFG_ASSERT(is_valid(handle));

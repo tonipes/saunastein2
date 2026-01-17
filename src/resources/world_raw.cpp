@@ -34,6 +34,10 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "editor/editor_settings.hpp"
 #include "gui/vekt.hpp"
 #include "world/world.hpp"
+#include "world/entity_manager.hpp"
+#include "world/component_manager.hpp"
+#include "resources/entity_template_raw.hpp"
+#include "resources/entity_template_utils.hpp"
 #include <fstream>
 #include <vendor/nhlohmann/json.hpp>
 using json = nlohmann::json;
@@ -58,10 +62,7 @@ namespace SFG
 
 	void world_raw::destroy()
 	{
-		entities_raw.entities.resize(0);
-		entities_raw.resources.resize(0);
-		if (entities_raw.component_buffer.get_size() != 0)
-			entities_raw.component_buffer.destroy();
+		entities_raw.destroy();
 	}
 
 #ifdef SFG_TOOLMODE
@@ -134,6 +135,44 @@ namespace SFG
 
 	void world_raw::fill_from_world(world& w)
 	{
+		entity_manager&	   em = w.get_entity_manager();
+		component_manager& cm = w.get_comp_manager();
+		resource_manager&  rm = w.get_resource_manager();
+
+		destroy();
+
+		// top-level entities
+		vector<world_handle> roots;
+		{
+			const auto& entities = em.get_entities();
+			for (auto it = entities->handles_begin(); it != entities->handles_end(); ++it)
+			{
+				const world_handle	 h = *it;
+				const entity_family& f = em.get_entity_family(h);
+				if (f.parent.is_null())
+					roots.push_back(h);
+			}
+		}
+
+		vector<world_handle> order;
+		order.reserve(512);
+		for (world_handle h : roots)
+			entity_template_raw::collect_entities(em, h, order);
+
+		hash_map<uint32, int32> index_by_world;
+		index_by_world.reserve(order.size());
+		for (size_t i = 0; i < order.size(); ++i)
+			index_by_world[order[i].index] = static_cast<int32>(i);
+
+		for (size_t i = 0; i < order.size(); ++i)
+		{
+			const world_handle				 h	= order[i];
+			const entity_template_entity_raw er = entity_template_utils::entity_to_entity_template_entity_raw(h, em, rm, index_by_world);
+			entities_raw.entities.push_back(er);
+
+			if (er.template_reference.empty())
+				entity_template_utils::entity_components_to_component_buffer(h, static_cast<uint32>(i), em, cm, rm, index_by_world, entities_raw.component_buffer);
+		}
 	}
 
 #endif

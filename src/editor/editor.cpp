@@ -73,7 +73,10 @@ namespace SFG
 	{
 	}
 
-	editor::~editor() = default;
+	editor::~editor()
+	{
+		_playmode_backup.destroy();
+	}
 
 	editor* editor::s_instance = nullptr;
 	namespace
@@ -290,6 +293,13 @@ namespace SFG
 		}
 		else if (ev.type == window_event_type::key)
 		{
+			// Exit playmode on Escape press
+			if (_is_playmode && ev.button == input_code::key_escape && ev.sub_type == window_event_sub_type::press)
+			{
+				exit_playmode();
+				return true;
+			}
+
 			if (ev.button == input_code::key_tab && ev.sub_type == window_event_sub_type::press)
 			{
 				if (window::is_key_down(input_code::key_lshift))
@@ -423,7 +433,7 @@ namespace SFG
 
 		_camera_controller.deactivate();
 		world& w = _app.get_world();
-		w.create_from_loader(raw);
+		w.create_from_loader(raw, false);
 		_camera_controller.activate();
 
 		_loaded_level							   = relative_path;
@@ -489,9 +499,41 @@ namespace SFG
 		world_raw raw{};
 		_camera_controller.deactivate();
 		world& w = _app.get_world();
-		w.create_from_loader(raw);
+		w.create_from_loader(raw, false);
 		_camera_controller.activate();
 		_loaded_level = "";
+	}
+
+	void editor::enter_playmode()
+	{
+		if (_is_playmode)
+			return;
+
+		world&			   w		  = _app.get_world();
+		entity_manager&	   em		  = w.get_entity_manager();
+		const world_handle cam_entity = _camera_controller.get_entity();
+
+		_playmode_backup.destroy();
+		_playmode_backup.fill_from_world(w);
+		_playmode_backup.tool_cam_pos = em.get_entity_position(cam_entity);
+		_playmode_backup.tool_cam_rot = em.get_entity_rotation(cam_entity);
+
+		_camera_controller.deactivate();
+		w.set_playmode(play_mode::full);
+		_is_playmode = true;
+	}
+
+	void editor::exit_playmode()
+	{
+		if (!_is_playmode)
+			return;
+
+		world& w = _app.get_world();
+		w.create_from_loader(_playmode_backup, true);
+		w.set_playmode(play_mode::none);
+		_camera_controller.activate();
+		_is_playmode = false;
+		_playmode_backup.destroy();
 	}
 
 	const char* editor::on_vekt_allocate_text(void* ud, size_t sz)

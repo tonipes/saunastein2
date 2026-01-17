@@ -34,6 +34,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "editor/gfx/editor_renderer.hpp"
 #include "memory/bump_text_allocator.hpp"
 #include "memory/text_allocator.hpp"
+#include "resources/world_raw.hpp"
 
 // gui
 #include "gui/vekt_defines.hpp"
@@ -109,6 +110,13 @@ namespace SFG
 		void save_lavel();
 		void new_level();
 		void new_project(const char* dir);
+
+		// -----------------------------------------------------------------------------
+		// playmode
+		// -----------------------------------------------------------------------------
+
+		void enter_playmode();
+		void exit_playmode();
 
 		inline const string& get_loaded_level() const
 		{
@@ -186,6 +194,10 @@ namespace SFG
 
 		// level
 		string _loaded_level = "";
+
+		// playmode
+		bool	  _is_playmode	   = false;
+		world_raw _playmode_backup = {};
 
 		static editor* s_instance;
 	};

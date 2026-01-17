@@ -129,33 +129,47 @@ namespace SFG
 
 	void world::init()
 	{
-		_flags.set(world_flags_is_init);
+		init_preserve_resources();
 		_resource_manager.init();
+	}
+
+	void world::uninit()
+	{
+		uninit_preserve_resources();
+		_resource_manager.uninit();
+	}
+
+	void world::init_preserve_resources()
+	{
+		_flags.set(world_flags_is_init);
 		_entity_manager.init();
 		_comp_manager.init();
 		_anim_graph.init();
 		_time_manager.init();
 	}
 
-	void world::uninit()
+	void world::uninit_preserve_resources()
 	{
 		_comp_manager.uninit();
 		_entity_manager.uninit();
 		_time_manager.uninit();
-		_resource_manager.uninit();
 		_anim_graph.uninit();
 		_text_allocator.reset();
 		_flags.remove(world_flags_is_init);
 	}
 
-	void world::unload()
+	void world::create_from_loader(world_raw& raw, bool preserve_resources)
 	{
-	}
-
-	void world::create_from_loader(world_raw& raw)
-	{
-		uninit();
-		init();
+		if (preserve_resources)
+		{
+			uninit_preserve_resources();
+			init_preserve_resources();
+		}
+		else
+		{
+			uninit();
+			init();
+		}
 
 #ifdef SFG_TOOLMODE
 		_tool_camera_pos = raw.tool_cam_pos;
