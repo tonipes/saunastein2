@@ -782,10 +782,11 @@ namespace SFG
 			widget_gfx& gfx = _builder->widget_get_gfx(w);
 			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_rounding | gfx_flags::gfx_clip_children;
 			gfx.color		= editor_theme::get().col_area_bg;
+			gfx.draw_order	= _draw_order;
 
-			rounding_props& rp = _builder->widget_get_rounding(w);
-			rp.rounding		   = editor_theme::get().area_rounding;
-			rp.segments		   = 16;
+			// rounding_props& rp = _builder->widget_get_rounding(w);
+			// rp.rounding		   = editor_theme::get().area_rounding;
+			// rp.segments		   = 16;
 
 			if (sub_area)
 			{
@@ -1279,6 +1280,7 @@ namespace SFG
 			widget_gfx& gfx = _builder->widget_get_gfx(w);
 			gfx.flags		= gfx_flags::gfx_is_rect;
 			gfx.color		= editor_theme::get().col_accent;
+			gfx.draw_order	= _draw_order;
 		}
 
 		return w;
@@ -1302,6 +1304,7 @@ namespace SFG
 			// widget_gfx& gfx = _builder->widget_get_gfx(w);
 			// gfx.flags		= gfx_flags::gfx_is_rect;
 			// gfx.color		= editor_theme::get().col_accent;
+			// gfx.draw_order	= _draw_order;
 		};
 		return w;
 	}
@@ -1329,6 +1332,7 @@ namespace SFG
 			// widget_gfx& gfx = _builder->widget_get_gfx(w);
 			// gfx.flags		= gfx_flags::gfx_is_rect;
 			// gfx.color		= editor_theme::get().col_accent;
+			// gfx.draw_order	= _draw_order;
 		}
 		return w;
 	}
@@ -1356,6 +1360,7 @@ namespace SFG
 			widget_gfx& gfx = _builder->widget_get_gfx(line);
 			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_second_color;
 			gfx.color		= editor_theme::get().col_title_line_end;
+			gfx.draw_order	= _draw_order;
 
 			second_color_props& sc = _builder->widget_get_second_color(line);
 			sc.color			   = editor_theme::get().col_title_line_start;
@@ -1374,6 +1379,7 @@ namespace SFG
 			widget_gfx& gfx = _builder->widget_get_gfx(txt);
 			gfx.flags		= gfx_flags::gfx_is_text;
 			gfx.color		= editor_theme::get().col_title;
+			gfx.draw_order	= _draw_order;
 
 			pos_props& pp = _builder->widget_get_pos_props(txt);
 			pp.flags	  = pos_flags::pf_x_relative;
@@ -1408,6 +1414,7 @@ namespace SFG
 			widget_gfx& gfx = _builder->widget_get_gfx(line);
 			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_second_color;
 			gfx.color		= editor_theme::get().col_accent_second;
+			gfx.draw_order	= _draw_order;
 
 			second_color_props& sc = _builder->widget_get_second_color(line);
 			sc.color			   = editor_theme::get().col_accent_second;
@@ -1439,6 +1446,7 @@ namespace SFG
 			widget_gfx& gfx = _builder->widget_get_gfx(txt);
 			gfx.flags		= gfx_flags::gfx_is_text;
 			gfx.color		= editor_theme::get().col_accent_second;
+			gfx.draw_order	= _draw_order;
 
 			pos_props& pp = _builder->widget_get_pos_props(txt);
 			pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_y_relative | pos_flags::pf_y_anchor_center;
@@ -1506,6 +1514,7 @@ namespace SFG
 			widget_gfx& gfx = _builder->widget_get_gfx(line);
 			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_second_color;
 			gfx.color		= editor_theme::get().col_title_line_start;
+			gfx.draw_order	= _draw_order;
 
 			second_color_props& sc = _builder->widget_get_second_color(line);
 			sc.color			   = editor_theme::get().col_title_line_end;
@@ -1524,6 +1533,7 @@ namespace SFG
 			widget_gfx& gfx = _builder->widget_get_gfx(txt);
 			gfx.flags		= gfx_flags::gfx_is_text;
 			gfx.color		= editor_theme::get().col_title;
+			gfx.draw_order	= _draw_order;
 
 			pos_props& pp = _builder->widget_get_pos_props(txt);
 			pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_x_anchor_end;
@@ -1546,7 +1556,7 @@ namespace SFG
 		widget_gfx& gfx = _builder->widget_get_gfx(w);
 		gfx.flags		= gfx_flags::gfx_is_text;
 		gfx.color		= editor_theme::get().col_text;
-		gfx.draw_order	= 1;
+		gfx.draw_order	= _draw_order;
 
 		pos_props& pp = _builder->widget_get_pos_props(w);
 		pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_y_relative | pos_flags::pf_y_anchor_center;
@@ -1585,6 +1595,7 @@ namespace SFG
 			widget_gfx& gfx = _builder->widget_get_gfx(txt);
 			gfx.flags		= gfx_flags::gfx_is_text;
 			gfx.color		= editor_theme::get().col_hyperlink;
+			gfx.draw_order	= _draw_order;
 
 			pos_props& pp = _builder->widget_get_pos_props(txt);
 			pp.flags	  = pos_flags::pf_x_relative;
@@ -1600,6 +1611,7 @@ namespace SFG
 			widget_gfx& gfx = _builder->widget_get_gfx(line);
 			gfx.flags		= gfx_flags::gfx_is_rect;
 			gfx.color		= editor_theme::get().col_hyperlink;
+			gfx.draw_order	= _draw_order;
 
 			pos_props& pp = _builder->widget_get_pos_props(line);
 			pp.flags	  = pos_flags::pf_x_relative;
@@ -1632,6 +1644,7 @@ namespace SFG
 			widget_gfx& gfx = _builder->widget_get_gfx(w);
 			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_stroke | gfx_flags::gfx_has_rounding | gfx_flags::gfx_has_press_color | gfx_flags::gfx_has_hover_color;
 			gfx.color		= editor_theme::get().col_button;
+			gfx.draw_order	= _draw_order;
 
 			stroke_props& st = _builder->widget_get_stroke(w);
 			st.thickness	 = editor_theme::get().frame_thickness;
@@ -1658,6 +1671,80 @@ namespace SFG
 			pp.pos.x	  = 0.5f;
 			pp.pos.y	  = 0.5f;
 		}
+
+		pop_stack();
+		return {w, txt};
+	}
+
+	gui_builder::id_pair gui_builder::add_icon_button(const char* icon, size_t buffer_capacity, float size, bool is_row, vector4 color)
+	{
+		const id w = new_widget(true);
+		{
+			pos_props& pp = _builder->widget_get_pos_props(w);
+			// pp.flags	  = pos_flags::pf_y_relative | pos_flags::pf_x_relative;
+
+			if (is_row)
+			{
+				pp.flags = pos_flags::pf_y_relative | pos_flags::pf_y_anchor_center;
+				pp.pos.y = 0.5f;
+			}
+			else
+			{
+				pp.flags = pos_flags::pf_x_relative | pos_flags::pf_x_anchor_center;
+				pp.pos.x = 0.5f;
+			}
+
+			size_props& sz	   = _builder->widget_get_size_props(w);
+			sz.flags		   = size_flags::sf_y_max_children | size_flags::sf_x_copy_y;
+			const float margin = editor_theme::get().inner_margin * 0.5f;
+
+			sz.child_margins = {margin, margin, margin, margin};
+
+			widget_gfx& gfx = _builder->widget_get_gfx(w);
+			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_stroke | gfx_flags::gfx_has_rounding | gfx_flags::gfx_has_press_color | gfx_flags::gfx_has_hover_color;
+			gfx.color		= editor_theme::get().col_button;
+			gfx.draw_order	= _draw_order;
+
+			stroke_props& st = _builder->widget_get_stroke(w);
+			st.thickness	 = editor_theme::get().frame_thickness;
+			st.color		 = editor_theme::get().col_frame_outline;
+
+			rounding_props& rp = _builder->widget_get_rounding(w);
+			rp.rounding		   = editor_theme::get().frame_rounding;
+			rp.segments		   = 8;
+
+			input_color_props& icp = _builder->widget_get_input_colors(w);
+			icp.pressed_color	   = editor_theme::get().col_button_press;
+			icp.hovered_color	   = editor_theme::get().col_button_hover;
+
+			mouse_callback& mc = _builder->widget_get_mouse_callbacks(w);
+			mc.on_mouse		   = callbacks.on_mouse;
+
+			_builder->widget_get_hover_callbacks(w).receive_mouse = 1;
+		}
+
+		const id txt = _builder->allocate();
+		{
+			widget_gfx& gfx = _builder->widget_get_gfx(txt);
+			gfx.flags		= gfx_flags::gfx_is_text;
+			gfx.color		= math::almost_equal(color.w, 0.0f) ? editor_theme::get().col_text : color;
+			gfx.draw_order	= _draw_order + 1;
+
+			pos_props& pp = _builder->widget_get_pos_props(txt);
+			pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_y_relative | pos_flags::pf_x_anchor_center | pos_flags::pf_y_anchor_center;
+			pp.pos.x	  = 0.5f;
+			pp.pos.y	  = 0.5f;
+
+			text_props& tp = _builder->widget_get_text(txt);
+			tp.font		   = editor_theme::get().font_icons;
+			tp.scale	   = size;
+			_builder->widget_set_text(txt, icon, buffer_capacity);
+
+			widget_user_data& ud = _builder->widget_get_user_data(txt);
+			ud.ptr				 = callbacks.user_data;
+		}
+
+		_builder->widget_add_child(w, txt);
 
 		pop_stack();
 		return {w, txt};
@@ -1797,6 +1884,7 @@ namespace SFG
 			widget_gfx& gfx = _builder->widget_get_gfx(w);
 			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_stroke | gfx_flags::gfx_has_rounding | gfx_flags::gfx_custom_pass | gfx_flags::gfx_focusable;
 			gfx.color		= editor_theme::get().col_frame_bg;
+			gfx.draw_order	= _draw_order;
 
 			stroke_props& st = _builder->widget_get_stroke(w);
 			st.thickness	 = editor_theme::get().frame_thickness;
@@ -1842,7 +1930,7 @@ namespace SFG
 			if (is_slider)
 			{
 				pp.flags |= pos_flags::pf_x_anchor_center;
-				gfx.draw_order = 1;
+				gfx.draw_order = _draw_order + 1;
 			}
 		}
 
@@ -1949,6 +2037,7 @@ namespace SFG
 			widget_gfx& gfx = _builder->widget_get_gfx(w);
 			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_stroke | gfx_flags::gfx_has_rounding | gfx_flags::gfx_has_press_color | gfx_flags::gfx_has_hover_color;
 			gfx.color		= editor_theme::get().col_frame_bg;
+			gfx.draw_order	= _draw_order;
 
 			stroke_props& st = _builder->widget_get_stroke(w);
 			st.thickness	 = editor_theme::get().frame_thickness;
@@ -1979,7 +2068,7 @@ namespace SFG
 			widget_gfx& gfx = _builder->widget_get_gfx(txt);
 			gfx.flags		= gfx_flags::gfx_is_text;
 			gfx.color		= editor_theme::get().col_accent_second;
-			gfx.draw_order	= 1;
+			gfx.draw_order	= _draw_order + 1;
 
 			pos_props& pp = _builder->widget_get_pos_props(txt);
 			pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_y_relative | pos_flags::pf_x_anchor_center | pos_flags::pf_y_anchor_center;
@@ -2018,6 +2107,7 @@ namespace SFG
 			widget_gfx& gfx = _builder->widget_get_gfx(w);
 			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_stroke | gfx_flags::gfx_has_rounding | gfx_flags::gfx_has_hover_color | gfx_flags::gfx_has_press_color | gfx_clip_children;
 			gfx.color		= editor_theme::get().col_frame_bg;
+			gfx.draw_order	= _draw_order;
 
 			stroke_props& st = _builder->widget_get_stroke(w);
 			st.thickness	 = editor_theme::get().frame_thickness;
@@ -2076,6 +2166,7 @@ namespace SFG
 			widget_gfx& gfx = _builder->widget_get_gfx(w);
 			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_stroke | gfx_flags::gfx_has_rounding | gfx_flags::gfx_has_hover_color | gfx_flags::gfx_has_press_color | gfx_clip_children;
 			gfx.color		= editor_theme::get().col_frame_bg;
+			gfx.draw_order	= _draw_order;
 
 			stroke_props& st = _builder->widget_get_stroke(w);
 			st.thickness	 = editor_theme::get().frame_thickness;

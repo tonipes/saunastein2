@@ -34,5 +34,9 @@ namespace SFG
 #define ICON_CHECK		 "\u0042"
 #define ICON_CROSS		 "\u0057"
 #define ICON_HAMMER		 "\u0035"
+#define ICON_EYE		 "\u0025"
+#define ICON_FILE		 "\u0067"
+#define ICON_PLAY		 "\u002C"
+#define ICON_INFO		 "\u004D"
 
 }

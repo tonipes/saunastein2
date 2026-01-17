@@ -130,6 +130,24 @@ namespace SFG
 	{
 		if (component_buffer.get_size() != 0)
 			component_buffer.destroy();
+
+		entities.resize(0);
+		resources.resize(0);
+	}
+
+#ifdef SFG_TOOLMODE
+
+	void entity_template_raw::save_to_file(const char* path, world& w, const vector<world_handle>& handles)
+	{
+		json j = {};
+		save_to_json(j, w, handles);
+
+		std::ofstream file(path);
+		if (file.is_open())
+		{
+			file << j.dump(4);
+			file.close();
+		}
 	}
 
 	void entity_template_raw::collect_entities(entity_manager& em, world_handle h, vector<world_handle>& out)
@@ -153,19 +171,10 @@ namespace SFG
 		}
 	}
 
-#ifdef SFG_TOOLMODE
-
-	void entity_template_raw::save_to_file(const char* path, world& w, const vector<world_handle>& handles)
+	void entity_template_raw::save_in_place(world& w, const vector<world_handle>& handles)
 	{
-		json j = {};
-		save_to_json(j, w, handles);
+		destroy();
 
-		std::ofstream file(path);
-		if (file.is_open())
-		{
-			file << j.dump(4);
-			file.close();
-		}
 	}
 
 	void entity_template_raw::save_to_json(nlohmann::json& j, world& w, const vector<world_handle>& handles)

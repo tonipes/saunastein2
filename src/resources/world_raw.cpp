@@ -65,6 +65,7 @@ namespace SFG
 	}
 
 #ifdef SFG_TOOLMODE
+
 	bool world_raw::load_from_file(const char* relative_file, const char* base_path)
 	{
 		const string target_path = base_path + string(relative_file);
@@ -129,6 +130,10 @@ namespace SFG
 			return true;
 		}
 		return false;
+	}
+
+	void world_raw::fill_from_world(world& w)
+	{
 	}
 
 #endif

@@ -140,9 +140,9 @@ namespace SFG
 		const string default_font_str = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/VT323-Regular.ttf");
 		const string title_font_str	  = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/VT323-Regular.ttf");
 		const string icon_font_str	  = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/icons.ttf");
-		_font_main					  = _font_manager->load_font_from_file(default_font_str.c_str(), 14 * dpi_scale);
-		_font_title					  = _font_manager->load_font_from_file(title_font_str.c_str(), 18 * dpi_scale);
-		_font_icons					  = _font_manager->load_font_from_file(icon_font_str.c_str(), 14 * dpi_scale, 32, 128, vekt::font_type::sdf, 3, 128, 32);
+		_font_main					  = _font_manager->load_font_from_file(default_font_str.c_str(), 16 * dpi_scale);
+		_font_title					  = _font_manager->load_font_from_file(title_font_str.c_str(), 20 * dpi_scale);
+		_font_icons					  = _font_manager->load_font_from_file(icon_font_str.c_str(), 16 * dpi_scale, 32, 128, vekt::font_type::sdf, 3, 128, 32);
 
 		// -----------------------------------------------------------------------------
 		// editor pipeline
@@ -252,13 +252,22 @@ namespace SFG
 
 		_renderer.prepare(p.pm, p.cmd_buffer, p.frame_index);
 		_renderer.render({
-			.cmd_buffer		= p.cmd_buffer,
-			.frame_index	= p.frame_index,
-			.alloc			= p.alloc,
-			.size			= p.size,
-			.global_layout	= p.global_layout,
-			.global_group	= p.global_group,
-			.world_rt_index = p.world_rt_index,
+			.cmd_buffer		   = p.cmd_buffer,
+			.frame_index	   = p.frame_index,
+			.alloc			   = p.alloc,
+			.size			   = p.size,
+			.global_layout	   = p.global_layout,
+			.global_group	   = p.global_group,
+			.world_rt_index	   = p.world_rt_index,
+			.color_rt_index	   = p.color_rt_index,
+			.normals_rt_index  = p.normals_rt_index,
+			.orm_rt_index	   = p.orm_rt_index,
+			.emissive_rt_index = p.emissive_rt_index,
+			.lighting_rt_index = p.lighting_rt_index,
+			.ssao_rt_index	   = p.ssao_rt_index,
+			.bloom_rt_index	   = p.bloom_rt_index,
+			.depth_rt_index	   = p.depth_rt_index,
+
 		});
 	}
 

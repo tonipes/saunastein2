@@ -77,10 +77,9 @@ namespace SFG
 			sz.child_margins	 = {0.0f, 0.0f, 0.0f, 0.0f};
 			sz.spacing			 = 0.0f;
 
-			vekt::widget_gfx& gfx = _builder->widget_get_gfx(_layout_root);
-			// gfx.flags			  = vekt::gfx_flags::gfx_is_rect;
-			// gfx.color			  = vector4(1, 0, 0, 1);
-
+			// vekt::widget_gfx& gfx = _builder->widget_get_gfx(_layout_root);
+			//  gfx.flags			  = vekt::gfx_flags::gfx_is_rect;
+			//  gfx.color			  = vector4(1, 0, 0, 1);
 			_builder->widget_add_child(_builder->get_root(), _layout_root);
 		}
 
@@ -219,9 +218,21 @@ namespace SFG
 			_builder->widget_set_pos_abs(_payload, vector2(mp.x + 20, mp.y + 20));
 		}
 
+		if (_ctx_active != NULL_WIDGET_ID)
+		{
+			const vector2 ctx_size = _builder->widget_get_size(_ctx_active);
+			const vector2 ctx_pos  = _builder->widget_get_pos(_ctx_active);
+			if (ctx_pos.x + ctx_size.x > window_size.x)
+			{
+				vekt::pos_props& pp = _builder->widget_get_pos_props(_ctx_active);
+				pp.pos.x			= window_size.x - ctx_size.x - 50;
+			}
+		}
+
 		_builder->widget_set_pos_abs(_layout_root, vector2(0.0f, debug_controller::get_field_height()));
 		_builder->widget_set_size_abs(_layout_root, vector2(static_cast<float>(window_size.x), static_cast<float>(window_size.y) - debug_controller::get_field_height()));
 		_panel_entities->draw(w, window_size);
+		_panel_world_view->draw(window_size);
 	}
 
 	vekt::id editor_gui_controller::begin_context_menu(float abs_x, float abs_y)
@@ -274,7 +285,7 @@ namespace SFG
 			size_props& sz	 = _builder->widget_get_size_props(w);
 			sz.flags		 = size_flags::sf_x_abs | size_flags::sf_y_abs;
 			sz.size.y		 = theme.item_height;
-			sz.size.x		 = 200;
+			sz.size.x = theme.item_height * 10;
 			sz.child_margins = {0.0f, 0.0f, theme.inner_margin, theme.inner_margin};
 			sz.spacing		 = theme.row_spacing;
 

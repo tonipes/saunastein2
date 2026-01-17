@@ -32,11 +32,20 @@ namespace SFG
 {
 	enum class editor_gui_user_data_type : uint8
 	{
+		none,
 		world_rt,
+		colors_rt,
+		normals_rt,
+		emissive_rt,
+		orm_rt,
+		depth_rt,
+		lighting_rt,
+		ssao_rt,
+		bloom_rt,
 	};
 
 	struct editor_gui_user_data
 	{
-		editor_gui_user_data_type type = editor_gui_user_data_type::world_rt;
+		editor_gui_user_data_type type = editor_gui_user_data_type::none;
 	};
 }

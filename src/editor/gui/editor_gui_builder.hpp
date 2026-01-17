@@ -226,6 +226,7 @@ namespace SFG
 		vekt::id add_label(const char* label, size_t buffer_capacity = 0);
 		vekt::id add_hyperlink(const char* label, size_t buffer_capacity = 0);
 		id_pair	 add_button(const char* title, size_t buffer_capacity = 0);
+		id_pair	 add_icon_button(const char* icon, size_t buffer_capacity = 0, float size = 1.0f, bool is_row = false, vector4 color = vector4());
 		id_pair	 add_text_field(const char*			text,
 								size_t				buffer_capacity = 0,
 								gui_text_field_type type			= gui_text_field_type::text_only,
@@ -261,6 +262,11 @@ namespace SFG
 		inline vekt::id get_root() const
 		{
 			return _root;
+		}
+
+		inline void set_draw_order(unsigned int o)
+		{
+			_draw_order = o;
 		}
 
 		static vekt::input_event_result on_text_field_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase);
@@ -305,6 +311,8 @@ namespace SFG
 		vekt::id					 _stack[STACK_SIZE]		= {NULL_WIDGET_ID};
 		vekt::id					 _root					= NULL_WIDGET_ID;
 		vekt::id					 _stack_ptr				= 0;
+
+		unsigned int _draw_order = 0;
 	};
 
 }

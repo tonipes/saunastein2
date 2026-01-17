@@ -25,7 +25,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "editor_renderer.hpp"
-#include "editor/gui/editor_gui_user_data.hpp"
 #include "data/vector_util.hpp"
 
 // math
@@ -338,10 +337,29 @@ namespace SFG
 				last_atlas_constant = dc.atlas_gpu_index;
 			}
 
-			if (dc.world_rt)
-			{
-				backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)&p.world_rt_index, .offset = constant_index_mat_constant0, .count = 1, .param_index = rpi_constants});
-			}
+			gpu_index bd_texture = NULL_GPU_INDEX;
+
+			if (dc.ud_type == editor_gui_user_data_type::world_rt)
+				bd_texture = p.world_rt_index;
+			else if (dc.ud_type == editor_gui_user_data_type::colors_rt)
+				bd_texture = p.color_rt_index;
+			else if (dc.ud_type == editor_gui_user_data_type::normals_rt)
+				bd_texture = p.normals_rt_index;
+			else if (dc.ud_type == editor_gui_user_data_type::orm_rt)
+				bd_texture = p.orm_rt_index;
+			else if (dc.ud_type == editor_gui_user_data_type::emissive_rt)
+				bd_texture = p.emissive_rt_index;
+			else if (dc.ud_type == editor_gui_user_data_type::depth_rt)
+				bd_texture = p.depth_rt_index;
+			else if (dc.ud_type == editor_gui_user_data_type::lighting_rt)
+				bd_texture = p.lighting_rt_index;
+			else if (dc.ud_type == editor_gui_user_data_type::bloom_rt)
+				bd_texture = p.bloom_rt_index;
+			else if (dc.ud_type == editor_gui_user_data_type::ssao_rt)
+				bd_texture = p.ssao_rt_index;
+
+			if (bd_texture != NULL_GPU_INDEX)
+				backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)&bd_texture, .offset = constant_index_mat_constant0, .count = 1, .param_index = rpi_constants});
 
 			backend->cmd_draw_indexed_instanced(cmd_buffer,
 												{
@@ -495,10 +513,10 @@ namespace SFG
 		else if (user_data != nullptr)
 		{
 			editor_gui_user_data* ud = reinterpret_cast<editor_gui_user_data*>(user_data);
-			if (ud->type == editor_gui_user_data_type::world_rt)
+			if (ud->type >= editor_gui_user_data_type::world_rt && ud->type <= editor_gui_user_data_type::bloom_rt)
 			{
-				dc.shader	= texture_shader;
-				dc.world_rt = true;
+				dc.shader  = texture_shader;
+				dc.ud_type = ud->type;
 			}
 		}
 		else

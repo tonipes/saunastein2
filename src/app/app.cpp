@@ -398,6 +398,10 @@ namespace SFG
 	{
 		if (_game_resolution.x == size.x && _game_resolution.y == size.y)
 			return;
+
+		if (size.x > 8000 || size.y > 8000)
+			return;
+
 		_game_resolution = size;
 		join_render();
 		_renderer->on_world_resolution(_game_resolution);

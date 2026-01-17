@@ -51,6 +51,7 @@ namespace SFG
 #ifdef SFG_TOOLMODE
 		bool load_from_file(const char* relative_file, const char* base_path);
 		bool save_to_file(const char* file, world& w);
+		void fill_from_world(world& w);
 #endif
 
 		vector3				tool_cam_pos = vector3::zero;

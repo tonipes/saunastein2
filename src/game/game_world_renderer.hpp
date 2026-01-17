@@ -169,6 +169,46 @@ namespace SFG
 			return _pass_post.get_output_gpu_index(frame_index);
 		}
 
+		inline gpu_index get_albedo_gpu_index(uint8 frame_index)
+		{
+			return _pass_opaque.get_output_gpu_index(frame_index, 0);
+		}
+
+		inline gpu_index get_normal_gpu_index(uint8 frame_index)
+		{
+			return _pass_opaque.get_output_gpu_index(frame_index, 1);
+		}
+
+		inline gpu_index get_orm_gpu_index(uint8 frame_index)
+		{
+			return _pass_opaque.get_output_gpu_index(frame_index, 2);
+		}
+
+		inline gpu_index get_emissive_gpu_index(uint8 frame_index)
+		{
+			return _pass_opaque.get_output_gpu_index(frame_index, 3);
+		}
+
+		inline gpu_index get_lighting_gpu_index(uint8 frame_index)
+		{
+			return _pass_lighting.get_output_gpu_index(frame_index);
+		}
+
+		inline gpu_index get_ssao_gpu_index(uint8 frame_index)
+		{
+			return _pass_ssao.get_output_gpu_index(frame_index);
+		}
+
+		inline gpu_index get_bloom_gpu_index(uint8 frame_index)
+		{
+			return _pass_bloom.get_output_gpu_index(frame_index);
+		}
+
+		inline gpu_index get_depth_gpu_index(uint8 frame_index)
+		{
+			return _pass_pre_depth.get_output_gpu_index(frame_index);
+		}
+
 		inline const semaphore_data& get_final_semaphore(uint8 frame_index)
 		{
 			return _pfd[frame_index].semp_frame;

@@ -71,14 +71,13 @@ float4 PSMain(VSOutput IN) : SV_TARGET
 
 	Texture2D txt_render_target = sfg_get_texture<Texture2D>(sfg_object_constant0);
 	float2 screen_size = float2(float(sfg_object_constant1), float(sfg_object_constant2));
-
     // --- Barrel distortion ---
 	const float distortionAmount = 0.0065f;
 	const float baseAberration = 0.006; 
 	
 	float2 centeredUV = uv * 2.0f - 1.0f;
 	float r2 = dot(centeredUV, centeredUV);
-	centeredUV += centeredUV * r2 * distortionAmount;
+	centeredUV += centeredUV * r2 * float2(distortionAmount, 0.0);
 
     // --- Chromatic aberration (edge only) ---
 	float edgeFactor = saturate((r2 - 0.85));

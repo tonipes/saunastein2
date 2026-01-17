@@ -42,6 +42,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // misc
 #include "memory/bump_allocator.hpp"
+#include "editor/gui/editor_gui_user_data.hpp"
 
 namespace vekt
 {
@@ -71,6 +72,14 @@ namespace SFG
 			gfx_id			global_layout;
 			gfx_id			global_group;
 			gpu_index		world_rt_index;
+			gpu_index		color_rt_index;
+			gpu_index		normals_rt_index;
+			gpu_index		orm_rt_index;
+			gpu_index		emissive_rt_index;
+			gpu_index		lighting_rt_index;
+			gpu_index		ssao_rt_index;
+			gpu_index		bloom_rt_index;
+			gpu_index		depth_rt_index;
 		};
 
 		// -----------------------------------------------------------------------------
@@ -101,13 +110,13 @@ namespace SFG
 	private:
 		struct gui_draw_call
 		{
-			vector4ui16 scissors		= vector4ui16::zero;
-			uint32		atlas_gpu_index = 0;
-			gfx_id		shader			= 0;
-			uint16		start_vtx		= 0;
-			uint16		start_idx		= 0;
-			uint16		index_count		= 0;
-			bool		world_rt		= false;
+			vector4ui16				  scissors		  = vector4ui16::zero;
+			uint32					  atlas_gpu_index = 0;
+			gfx_id					  shader		  = 0;
+			uint16					  start_vtx		  = 0;
+			uint16					  start_idx		  = 0;
+			uint16					  index_count	  = 0;
+			editor_gui_user_data_type ud_type		  = editor_gui_user_data_type::none;
 		};
 
 		struct per_frame_data
@@ -183,6 +192,7 @@ namespace SFG
 		gui_draw_call  _gui_draw_calls[64]	   = {};
 
 		static constexpr uint32 SNAPSHOTS_SIZE = 3;
+
 		// GUI snapshot mailbox (lock-free)
 		vekt::snapshot* _snapshots			= nullptr;
 		atomic<uint32>	_published_snapshot = UINT32_MAX;

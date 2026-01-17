@@ -68,6 +68,14 @@ namespace SFG
 			gfx_id			global_layout;
 			gfx_id			global_group;
 			gpu_index		world_rt_index;
+			gpu_index		color_rt_index;
+			gpu_index		normals_rt_index;
+			gpu_index		orm_rt_index;
+			gpu_index		emissive_rt_index;
+			gpu_index		lighting_rt_index;
+			gpu_index		ssao_rt_index;
+			gpu_index		bloom_rt_index;
+			gpu_index		depth_rt_index;
 		};
 
 		explicit editor(app& game);

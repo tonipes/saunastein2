@@ -336,14 +336,22 @@ namespace SFG
 		const gpu_index rt_editor_index = _editor->get_render_output(frame_index);
 
 		_editor->render({
-			.pm			   = _proxy_manager,
-			.cmd_buffer	   = cmd_list,
-			.frame_index   = frame_index,
-			.alloc		   = alloc,
-			.size		   = size,
-			.global_layout = layout_global,
-			.global_group  = bg_global,
-			.world_rt_index = rt_world_index,
+			.pm				   = _proxy_manager,
+			.cmd_buffer		   = cmd_list,
+			.frame_index	   = frame_index,
+			.alloc			   = alloc,
+			.size			   = size,
+			.global_layout	   = layout_global,
+			.global_group	   = bg_global,
+			.world_rt_index	   = rt_world_index,
+			.color_rt_index	   = _world_renderer->get_albedo_gpu_index(frame_index),
+			.normals_rt_index  = _world_renderer->get_normal_gpu_index(frame_index),
+			.orm_rt_index	   = _world_renderer->get_orm_gpu_index(frame_index),
+			.emissive_rt_index = _world_renderer->get_emissive_gpu_index(frame_index),
+			.lighting_rt_index = _world_renderer->get_lighting_gpu_index(frame_index),
+			.ssao_rt_index	   = _world_renderer->get_ssao_gpu_index(frame_index),
+			.bloom_rt_index	   = _world_renderer->get_bloom_gpu_index(frame_index),
+			.depth_rt_index	   = _world_renderer->get_depth_gpu_index(frame_index),
 		});
 
 #endif
