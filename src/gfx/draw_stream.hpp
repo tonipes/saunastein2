@@ -105,6 +105,7 @@ namespace SFG
 		gfx_id pipeline_hw = NULL_GFX_ID;
 
 		uint16 vertex_size = 0;
+		uint8  idx_size	   = 0;
 	};
 
 	struct draw_command_particle

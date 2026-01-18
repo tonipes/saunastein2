@@ -45,6 +45,7 @@ namespace SFG
 		m.set_title("physics");
 		m.add_field<&comp_physics::_body_type, comp_physics>("body_type", reflected_field_type::rf_enum, "", 0.0f, 2.0f)->_enum_list   = {"static", "kinematic", "dynamic"};
 		m.add_field<&comp_physics::_shape_type, comp_physics>("shape_type", reflected_field_type::rf_enum, "", 0.0f, 4.0f)->_enum_list = {"sphere", "box", "capsule", "cylinder", "plane", "mesh"};
+		m.add_field<&comp_physics::_offset, comp_physics>("offset", reflected_field_type::rf_vector3, "");
 		m.add_field<&comp_physics::_extent_or_height_radius, comp_physics>("extents", reflected_field_type::rf_vector3, "");
 		m.add_field<&comp_physics::_material_handle, comp_physics>("material", reflected_field_type::rf_resource, "", type_id<physical_material>::value);
 
@@ -106,7 +107,7 @@ namespace SFG
 									   math::almost_equal(_extent_or_height_radius.z, 0.0f) ? 1.0f : _extent_or_height_radius.z);
 
 		entity_manager& em	  = w.get_entity_manager();
-		const vector3	pos	  = em.get_entity_position_abs(_header.entity);
+		const vector3	pos	  = em.get_entity_position_abs(_header.entity) + _offset;
 		const vector3	scale = em.get_entity_scale_abs(_header.entity);
 		const quat		rot	  = em.get_entity_rotation_abs(_header.entity);
 		_body				  = phy_world.create_body(_body_type, _shape_type, extent, _material_handle, pos, rot, scale);

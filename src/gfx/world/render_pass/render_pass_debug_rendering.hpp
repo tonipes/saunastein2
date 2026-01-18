@@ -59,7 +59,9 @@ namespace SFG
 			buffer_cpu_gpu vtx_buffer_line = {};
 			buffer_cpu_gpu vtx_buffer_tri  = {};
 			buffer_cpu_gpu vtx_buffer_gui  = {};
-			buffer_cpu_gpu idx_buffer	   = {};
+			buffer_cpu_gpu idx_buffer_line = {};
+			buffer_cpu_gpu idx_buffer_tri  = {};
+			buffer_cpu_gpu idx_buffer_gui  = {};
 		};
 
 	public:

@@ -99,16 +99,40 @@ namespace SFG
 					.debug_name = "debug_vtx",
 				});
 
-			pfd.idx_buffer.create(
+			pfd.idx_buffer_line.create(
 				{
-					.size		= world_debug_rendering::MAX_INDEX_COUNT * sizeof(primitive_index),
+					.size		= world_debug_rendering::MAX_INDEX_COUNT_LINE * sizeof(primitive_index),
 					.flags		= resource_flags::rf_cpu_visible,
-					.debug_name = "debug_idx",
+					.debug_name = "debug_idx_line",
 				},
 				{
-					.size		= world_debug_rendering::MAX_INDEX_COUNT * sizeof(primitive_index),
+					.size		= world_debug_rendering::MAX_INDEX_COUNT_LINE * sizeof(primitive_index),
 					.flags		= resource_flags::rf_index_buffer | resource_flags::rf_gpu_only,
-					.debug_name = "debug_idx",
+					.debug_name = "debug_idx_line",
+				});
+
+			pfd.idx_buffer_tri.create(
+				{
+					.size		= world_debug_rendering::MAX_INDEX_COUNT_TRI * sizeof(primitive_index),
+					.flags		= resource_flags::rf_cpu_visible,
+					.debug_name = "debug_idx_tri",
+				},
+				{
+					.size		= world_debug_rendering::MAX_INDEX_COUNT_TRI * sizeof(primitive_index),
+					.flags		= resource_flags::rf_index_buffer | resource_flags::rf_gpu_only,
+					.debug_name = "debug_idx_tri",
+				});
+
+			pfd.idx_buffer_gui.create(
+				{
+					.size		= world_debug_rendering::MAX_INDEX_COUNT_GUI * sizeof(vekt::index),
+					.flags		= resource_flags::rf_cpu_visible,
+					.debug_name = "debug_idx_gui",
+				},
+				{
+					.size		= world_debug_rendering::MAX_INDEX_COUNT_GUI * sizeof(vekt::index),
+					.flags		= resource_flags::rf_index_buffer | resource_flags::rf_gpu_only,
+					.debug_name = "debug_idx_gui",
 				});
 		}
 
@@ -154,7 +178,9 @@ namespace SFG
 			pfd.vtx_buffer_line.destroy();
 			pfd.vtx_buffer_tri.destroy();
 			pfd.vtx_buffer_gui.destroy();
-			pfd.idx_buffer.destroy();
+			pfd.idx_buffer_line.destroy();
+			pfd.idx_buffer_tri.destroy();
+			pfd.idx_buffer_gui.destroy();
 		}
 	}
 
@@ -193,9 +219,15 @@ namespace SFG
 		const uint32 vtx_count_gui	= snap->vtx_count_gui;
 		const uint32 vtx_count_line = snap->vtx_count_line;
 		const uint32 vtx_count_tri	= snap->vtx_count_tri;
-		const uint32 idx_count		= snap->idx_count;
+		const uint32 idx_count_line = snap->idx_count_line;
+		const uint32 idx_count_tri	= snap->idx_count_tri;
+		const uint32 idx_count_gui	= snap->idx_count_gui;
 
-		static_vector<barrier, 4> barriers;
+		SFG_ASSERT((vtx_count_gui == 0 && idx_count_gui == 0) || (vtx_count_gui != 0 && idx_count_gui != 0));
+		SFG_ASSERT((vtx_count_line == 0 && idx_count_line == 0) || (vtx_count_line != 0 && idx_count_line != 0));
+		SFG_ASSERT((vtx_count_tri == 0 && idx_count_tri == 0) || (vtx_count_tri != 0 && idx_count_tri != 0));
+
+		static_vector<barrier, 6> barriers;
 
 		// -----------------------------------------------------------------------------
 		// before copy
@@ -210,7 +242,29 @@ namespace SFG
 				.flags		 = barrier_flags::baf_is_resource,
 			});
 
+			barriers.push_back({
+				.from_states = resource_state::resource_state_index_buffer,
+				.to_states	 = resource_state::resource_state_copy_dest,
+				.resource	 = pfd.idx_buffer_gui.get_gpu(),
+				.flags		 = barrier_flags::baf_is_resource,
+			});
+
 			pfd.vtx_buffer_gui.buffer_data(0, snap->vertices_gui, sizeof(vertex_gui) * vtx_count_gui);
+			pfd.idx_buffer_gui.buffer_data(0, snap->indices_gui, sizeof(vekt::index) * idx_count_gui);
+
+			_draw_stream.add_command({
+				.start_index			 = 0,
+				.index_count			 = idx_count_gui,
+				.base_vertex			 = 0,
+				.material_constant_index = NULL_GPU_INDEX,
+				.texture_constant_index	 = NULL_GPU_INDEX,
+				.font_index				 = NULL_GPU_INDEX,
+				.vb_hw					 = pfd.vtx_buffer_gui.get_gpu(),
+				.ib_hw					 = pfd.idx_buffer_gui.get_gpu(),
+				.pipeline_hw			 = _shader_debug_gui_default,
+				.vertex_size			 = sizeof(vertex_gui),
+				.idx_size				 = sizeof(vekt::index),
+			});
 		}
 
 		if (vtx_count_line != 0)
@@ -222,7 +276,29 @@ namespace SFG
 				.flags		 = barrier_flags::baf_is_resource,
 			});
 
+			barriers.push_back({
+				.from_states = resource_state::resource_state_index_buffer,
+				.to_states	 = resource_state::resource_state_copy_dest,
+				.resource	 = pfd.idx_buffer_line.get_gpu(),
+				.flags		 = barrier_flags::baf_is_resource,
+			});
+
 			pfd.vtx_buffer_line.buffer_data(0, snap->vertices_line, sizeof(vertex_3d_line) * vtx_count_line);
+			pfd.idx_buffer_line.buffer_data(0, snap->indices_line, sizeof(primitive_index) * idx_count_line);
+
+			_draw_stream.add_command({
+				.start_index			 = 0,
+				.index_count			 = idx_count_line,
+				.base_vertex			 = 0,
+				.material_constant_index = NULL_GPU_INDEX,
+				.texture_constant_index	 = NULL_GPU_INDEX,
+				.font_index				 = NULL_GPU_INDEX,
+				.vb_hw					 = pfd.vtx_buffer_line.get_gpu(),
+				.ib_hw					 = pfd.idx_buffer_line.get_gpu(),
+				.pipeline_hw			 = _shader_debug_line,
+				.vertex_size			 = sizeof(vertex_3d_line),
+				.idx_size				 = sizeof(primitive_index),
+			});
 		}
 
 		if (vtx_count_tri != 0)
@@ -234,19 +310,29 @@ namespace SFG
 				.flags		 = barrier_flags::baf_is_resource,
 			});
 
-			pfd.vtx_buffer_tri.buffer_data(0, snap->vertices_tri, sizeof(vertex_simple) * vtx_count_tri);
-		}
-
-		if (idx_count != 0)
-		{
 			barriers.push_back({
 				.from_states = resource_state::resource_state_index_buffer,
 				.to_states	 = resource_state::resource_state_copy_dest,
-				.resource	 = pfd.idx_buffer.get_gpu(),
+				.resource	 = pfd.idx_buffer_tri.get_gpu(),
 				.flags		 = barrier_flags::baf_is_resource,
 			});
 
-			pfd.idx_buffer.buffer_data(0, snap->indices, sizeof(primitive_index) * idx_count);
+			pfd.vtx_buffer_tri.buffer_data(0, snap->vertices_tri, sizeof(vertex_simple) * vtx_count_tri);
+			pfd.idx_buffer_tri.buffer_data(0, snap->indices_tri, sizeof(primitive_index) * idx_count_tri);
+
+			_draw_stream.add_command({
+				.start_index			 = 0,
+				.index_count			 = idx_count_tri,
+				.base_vertex			 = 0,
+				.material_constant_index = NULL_GPU_INDEX,
+				.texture_constant_index	 = NULL_GPU_INDEX,
+				.font_index				 = NULL_GPU_INDEX,
+				.vb_hw					 = pfd.vtx_buffer_tri.get_gpu(),
+				.ib_hw					 = pfd.idx_buffer_tri.get_gpu(),
+				.pipeline_hw			 = _shader_debug_triangle,
+				.vertex_size			 = sizeof(vertex_simple),
+				.idx_size				 = sizeof(primitive_index),
+			});
 		}
 
 		// -----------------------------------------------------------------------------
@@ -276,7 +362,15 @@ namespace SFG
 				.flags		 = barrier_flags::baf_is_resource,
 			});
 
+			barriers.push_back({
+				.from_states = resource_state::resource_state_copy_dest,
+				.to_states	 = resource_state::resource_state_index_buffer,
+				.resource	 = pfd.idx_buffer_gui.get_gpu(),
+				.flags		 = barrier_flags::baf_is_resource,
+			});
+
 			pfd.vtx_buffer_gui.copy_region(cmd_buffer, 0, sizeof(vertex_gui) * vtx_count_gui);
+			pfd.idx_buffer_gui.copy_region(cmd_buffer, 0, sizeof(vekt::index) * idx_count_gui);
 		}
 
 		if (vtx_count_line != 0)
@@ -288,7 +382,15 @@ namespace SFG
 				.flags		 = barrier_flags::baf_is_resource,
 			});
 
+			barriers.push_back({
+				.from_states = resource_state::resource_state_copy_dest,
+				.to_states	 = resource_state::resource_state_index_buffer,
+				.resource	 = pfd.idx_buffer_line.get_gpu(),
+				.flags		 = barrier_flags::baf_is_resource,
+			});
+
 			pfd.vtx_buffer_line.copy_region(cmd_buffer, 0, sizeof(vertex_3d_line) * vtx_count_line);
+			pfd.idx_buffer_line.copy_region(cmd_buffer, 0, sizeof(primitive_index) * idx_count_line);
 		}
 
 		if (vtx_count_tri != 0)
@@ -300,19 +402,15 @@ namespace SFG
 				.flags		 = barrier_flags::baf_is_resource,
 			});
 
-			pfd.vtx_buffer_tri.copy_region(cmd_buffer, 0, sizeof(vertex_simple) * vtx_count_tri);
-		}
-
-		if (idx_count != 0)
-		{
 			barriers.push_back({
 				.from_states = resource_state::resource_state_copy_dest,
 				.to_states	 = resource_state::resource_state_index_buffer,
-				.resource	 = pfd.idx_buffer.get_gpu(),
+				.resource	 = pfd.idx_buffer_tri.get_gpu(),
 				.flags		 = barrier_flags::baf_is_resource,
 			});
 
-			pfd.idx_buffer.copy_region(cmd_buffer, 0, sizeof(primitive_index) * idx_count);
+			pfd.vtx_buffer_tri.copy_region(cmd_buffer, 0, sizeof(vertex_simple) * vtx_count_tri);
+			pfd.idx_buffer_tri.copy_region(cmd_buffer, 0, sizeof(primitive_index) * idx_count_tri);
 		}
 
 		// -----------------------------------------------------------------------------
@@ -331,56 +429,6 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 		// draw calls
 		// -----------------------------------------------------------------------------
-
-		const uint32 dc_count = snap->draw_call_count;
-		for (uint32 i = 0; i < dc_count; i++)
-		{
-			debug_draw_call& dc = snap->draw_calls[i];
-
-			gfx_id vertex_buffer_hw = pfd.vtx_buffer_line.get_gpu();
-			gfx_id pipeline			= _shader_debug_line;
-			uint16 vtx_size			= sizeof(vertex_3d_line);
-
-			if (dc.vtx_buffer_index == 1)
-			{
-				vertex_buffer_hw = pfd.vtx_buffer_tri.get_gpu();
-				pipeline		 = _shader_debug_triangle;
-				vtx_size		 = sizeof(vertex_simple);
-			}
-			else if (dc.vtx_buffer_index == 2)
-			{
-				vertex_buffer_hw = pfd.vtx_buffer_gui.get_gpu();
-				pipeline		 = _shader_debug_gui_default;
-				vtx_size		 = sizeof(vertex_gui);
-			}
-			else if (dc.vtx_buffer_index == 3)
-			{
-				vertex_buffer_hw = pfd.vtx_buffer_gui.get_gpu();
-				pipeline		 = _shader_debug_gui_text;
-				vtx_size		 = sizeof(vertex_gui);
-			}
-			else if (dc.vtx_buffer_index == 4)
-			{
-				vertex_buffer_hw = pfd.vtx_buffer_gui.get_gpu();
-				pipeline		 = _shader_debug_gui_sdf;
-				vtx_size		 = sizeof(vertex_gui);
-			}
-
-			const gfx_id index_buffer_hw = pfd.idx_buffer.get_gpu();
-
-			_draw_stream.add_command({
-				.start_index			 = dc.start_index,
-				.index_count			 = dc.index_count,
-				.base_vertex			 = dc.base_vertex,
-				.material_constant_index = NULL_GPU_INDEX,
-				.texture_constant_index	 = NULL_GPU_INDEX,
-				.font_index				 = NULL_GPU_INDEX,
-				.vb_hw					 = vertex_buffer_hw,
-				.ib_hw					 = index_buffer_hw,
-				.pipeline_hw			 = pipeline,
-				.vertex_size			 = vtx_size,
-			});
-		}
 
 		_draw_stream.build();
 	}

@@ -97,6 +97,11 @@ namespace SFG
 			return _extent_or_height_radius;
 		}
 
+		inline const vector3& get_offset() const
+		{
+			return _offset;
+		}
+
 		inline resource_handle get_material_handle() const
 		{
 			return _material_handle;
@@ -144,6 +149,7 @@ namespace SFG
 	private:
 		component_header   _header					= {};
 		JPH::Body*		   _body					= nullptr;
+		vector3			   _offset					= vector3::zero;
 		vector3			   _extent_or_height_radius = vector3(1, 1, 1);
 		resource_handle	   _material_handle			= {};
 		physics_body_type  _body_type				= physics_body_type::static_body;

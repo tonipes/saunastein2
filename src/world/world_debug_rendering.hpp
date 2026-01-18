@@ -57,31 +57,36 @@ namespace SFG
 	public:
 		struct snapshot
 		{
-			vertex_simple*	 vertices_tri	 = nullptr;
-			vertex_3d_line*	 vertices_line	 = nullptr;
-			vertex_gui*		 vertices_gui	 = nullptr;
-			primitive_index* indices		 = nullptr;
-			debug_draw_call* draw_calls		 = nullptr;
-			uint32			 vtx_count_line	 = 0;
-			uint32			 vtx_count_tri	 = 0;
-			uint32			 vtx_count_gui	 = 0;
-			uint32			 idx_count		 = 0;
-			uint32			 draw_call_count = 0;
+			vertex_simple*	 vertices_tri	= nullptr;
+			vertex_3d_line*	 vertices_line	= nullptr;
+			vertex_gui*		 vertices_gui	= nullptr;
+			primitive_index* indices_line	= nullptr;
+			primitive_index* indices_tri	= nullptr;
+			primitive_index* indices_gui	= nullptr;
+			uint32			 vtx_count_line = 0;
+			uint32			 vtx_count_tri	= 0;
+			uint32			 vtx_count_gui	= 0;
+			uint32			 idx_count_line = 0;
+			uint32			 idx_count_tri	= 0;
+			uint32			 idx_count_gui	= 0;
 
 			void reset()
 			{
-				vtx_count_line	= 0;
-				vtx_count_tri	= 0;
-				vtx_count_gui	= 0;
-				idx_count		= 0;
-				draw_call_count = 0;
+				vtx_count_line = 0;
+				vtx_count_tri  = 0;
+				vtx_count_gui  = 0;
+				idx_count_line = 0;
+				idx_count_tri  = 0;
+				idx_count_gui  = 0;
 			}
 		};
 
-		static constexpr size_t MAX_VERTEX_COUNT_LINE = 4000;
-		static constexpr size_t MAX_VERTEX_COUNT_TRI  = 12000;
-		static constexpr size_t MAX_VERTEX_COUNT_GUI  = 6000;
-		static constexpr size_t MAX_INDEX_COUNT		  = 32000;
+		static constexpr size_t MAX_VERTEX_COUNT_LINE = 32000;
+		static constexpr size_t MAX_VERTEX_COUNT_TRI  = 32000;
+		static constexpr size_t MAX_VERTEX_COUNT_GUI  = 32000;
+		static constexpr size_t MAX_INDEX_COUNT_TRI	  = 96000;
+		static constexpr size_t MAX_INDEX_COUNT_LINE  = 96000;
+		static constexpr size_t MAX_INDEX_COUNT_GUI	  = 96000;
 		static constexpr size_t MAX_DRAW_CALLS		  = 4096;
 
 		// -----------------------------------------------------------------------------
@@ -99,12 +104,20 @@ namespace SFG
 
 		void			draw_line(const vector3& p0, const vector3& p1, const color& col, float thickness);
 		void			draw_triangle(const vector3& p0, const vector3& p1, const vector3& p2, const color& col);
+		void			draw_box(const vector3& center, const vector3& half_extents, const color& col, float thickness);
+		void			draw_capsule(const vector3& center, float radius, float half_height, const color& col, float thickness, uint32 segments = 64);
+		void			draw_sphere(const vector3& center, float radius, const color& col, float thickness, uint32 segments = 64);
+		void			draw_oriented_hemisphere(const vector3& center, float radius, const vector3& direction, const color& col, float thickness, uint32 segments = 64);
+		void			draw_oriented_circle(const vector3& center, float radius, const vector3& direction, const color& col, float thickness, uint32 segments = 64);
+		void			draw_oriented_cone(const vector3& apex, const vector3& direction, float length, float radius, const color& col, float thickness, uint32 segments = 64);
 		void			draw_icon(const vector2& pos, const color& col);
 		void			draw_text(const vector2& pos, const color& col);
 		const snapshot* get_read_snapshot() const;
 
 	private:
-		void   add_indices(const primitive_index* data, uint32 count);
+		void   add_indices_line(const primitive_index* data, uint32 count);
+		void   add_indices_tri(const primitive_index* data, uint32 count);
+		void   add_indices_gui(const primitive_index* data, uint32 count);
 		uint32 add_vertex_line(const vertex_3d_line* data, uint32 count);
 		uint32 add_vertex_tri(const vertex_simple* data, uint32 count);
 		uint32 add_vertex_gui(const vertex_gui* data, uint32 count);

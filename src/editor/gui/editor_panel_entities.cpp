@@ -37,6 +37,12 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "world/world.hpp"
 #include "world/entity_manager.hpp"
 
+// comps
+#include "world/components/comp_physics.hpp"
+#include "world/components/comp_audio.hpp"
+#include "world/components/comp_camera.hpp"
+#include "world/components/comp_light.hpp"
+
 // platform
 #include "platform/window.hpp"
 #include "platform/process.hpp"
@@ -125,7 +131,7 @@ namespace SFG
 		_root_entity_widgets.reserve(512);
 		_comp_remove_buttons.reserve(512);
 		_add_component_buttons.reserve(512);
-
+		_selection_debug_draws.reserve(8);
 		_text_icon_dd_collapsed = editor::get().get_text_allocator().allocate(ICON_DD_RIGHT);
 		_text_icon_dd			= editor::get().get_text_allocator().allocate(ICON_DD_DOWN);
 		_text_icon_template		= editor::get().get_text_allocator().allocate(ICON_HAMMER);
@@ -143,9 +149,53 @@ namespace SFG
 
 	void editor_panel_entities::draw(world& w, const vector2ui16& window_size)
 	{
-		entity_manager& em = w.get_entity_manager();
+		entity_manager&	   em = w.get_entity_manager();
+		component_manager& cm = w.get_comp_manager();
 
-		w.get_debug_rendering().draw_line(vector3(0, 0, 0), vector3(0, 10, 0), color(1, 0, 0, 1), 1);
+		{
+			const float thickness = 0.5f;
+			const color col_phy	  = color::red;
+
+			world_debug_rendering& debug_rendering = w.get_debug_rendering();
+			const vector3		   selected_pos	   = _selected_entity.is_null() ? vector3::zero : em.get_entity_position(_selected_entity);
+
+			for (const selection_debug_draw& dd : _selection_debug_draws)
+			{
+				if (dd.type == debug_draw_type::physics)
+				{
+					const comp_physics&		 c	 = cm.get_component<comp_physics>(dd.component);
+					const physics_shape_type st	 = c.get_shape_type();
+					const vector3&			 val = c.get_extent_or_height_radius();
+
+					if (st == physics_shape_type::box)
+						debug_rendering.draw_box(selected_pos + c.get_offset(), val * 0.5f, color::red, thickness);
+					else if (st == physics_shape_type::capsule)
+						debug_rendering.draw_capsule(selected_pos + c.get_offset(), val.y, val.x, col_phy, thickness);
+					else if (st == physics_shape_type::cylinder)
+						debug_rendering.draw_capsule(selected_pos + c.get_offset(), val.y, val.x, col_phy, thickness);
+					else if (st == physics_shape_type::mesh)
+					{
+					}
+					else if (st == physics_shape_type::sphere)
+						debug_rendering.draw_sphere(selected_pos + c.get_offset(), val.x, col_phy, thickness);
+					else if (st == physics_shape_type::plane)
+					{
+					}
+				}
+				else if (dd.type == debug_draw_type::audio)
+				{
+				}
+				else if (dd.type == debug_draw_type::camera)
+				{
+				}
+				else if (dd.type == debug_draw_type::point_light)
+				{
+				}
+				else if (dd.type == debug_draw_type::spot_light)
+				{
+				}
+			}
+		}
 
 		if (em.get_hierarchy_dirty())
 		{
@@ -215,8 +265,8 @@ namespace SFG
 
 	void editor_panel_entities::clear_component_view()
 	{
-		// for (vekt::id c : _component_properties)
-		//	_gui_builder.deallocate(c);
+		_selection_debug_draws.resize(0);
+
 		if (_components_area != NULL_WIDGET_ID)
 			_gui_builder.deallocate(_components_area);
 		_components_area = NULL_WIDGET_ID;
@@ -245,6 +295,42 @@ namespace SFG
 			for (field_base* f : fields)
 			{
 				_gui_builder.add_reflected_field(f, c.comp_type, cm.get_component(c.comp_type, c.comp_handle));
+			}
+
+			if (c.comp_type == type_id<comp_physics>::value)
+			{
+				_selection_debug_draws.push_back({
+					.type	   = debug_draw_type::physics,
+					.component = c.comp_handle,
+				});
+			}
+			else if (c.comp_type == type_id<comp_audio>::value)
+			{
+				_selection_debug_draws.push_back({
+					.type	   = debug_draw_type::audio,
+					.component = c.comp_handle,
+				});
+			}
+			else if (c.comp_type == type_id<comp_camera>::value)
+			{
+				_selection_debug_draws.push_back({
+					.type	   = debug_draw_type::camera,
+					.component = c.comp_handle,
+				});
+			}
+			else if (c.comp_type == type_id<comp_point_light>::value)
+			{
+				_selection_debug_draws.push_back({
+					.type	   = debug_draw_type::point_light,
+					.component = c.comp_handle,
+				});
+			}
+			else if (c.comp_type == type_id<comp_spot_light>::value)
+			{
+				_selection_debug_draws.push_back({
+					.type	   = debug_draw_type::spot_light,
+					.component = c.comp_handle,
+				});
 			}
 		}
 

@@ -173,6 +173,7 @@ namespace SFG
 					.ib_hw					 = ib,
 					.pipeline_hw			 = pipeline,
 					.vertex_size			 = sizeof(vekt::vertex),
+					.idx_size				 = sizeof(vekt::index),
 				});
 			}
 		}

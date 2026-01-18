@@ -42,6 +42,14 @@ namespace SFG
 	class editor_panel_entities
 	{
 	public:
+		enum class debug_draw_type
+		{
+			physics,
+			point_light,
+			spot_light,
+			audio,
+			camera,
+		};
 		// -----------------------------------------------------------------------------
 		// lifecycle
 		// -----------------------------------------------------------------------------
@@ -78,7 +86,6 @@ namespace SFG
 		}
 
 	private:
-
 		// -----------------------------------------------------------------------------
 		// callbacks
 		// -----------------------------------------------------------------------------
@@ -131,6 +138,12 @@ namespace SFG
 			string_id type	 = 0;
 		};
 
+		struct selection_debug_draw
+		{
+			debug_draw_type type	  = debug_draw_type::physics;
+			world_handle	component = {};
+		};
+
 	private:
 		vekt::builder* _builder		= nullptr;
 		gui_builder	   _gui_builder = {};
@@ -159,11 +172,12 @@ namespace SFG
 		vekt::id _unlock_template	= NULL_WIDGET_ID;
 		vekt::id _save_template		= NULL_WIDGET_ID;
 
-		vector<add_comp_button>	   _add_component_buttons = {};
-		vector<entity_panel_meta>  _entity_meta			  = {};
-		vector<vekt::id>		   _root_entity_widgets	  = {};
-		vector<node_binding>	   _node_bindings		  = {};
-		vector<comp_remove_button> _comp_remove_buttons	  = {};
+		vector<add_comp_button>		 _add_component_buttons = {};
+		vector<entity_panel_meta>	 _entity_meta			= {};
+		vector<vekt::id>			 _root_entity_widgets	= {};
+		vector<node_binding>		 _node_bindings			= {};
+		vector<comp_remove_button>	 _comp_remove_buttons	= {};
+		vector<selection_debug_draw> _selection_debug_draws = {};
 
 		const char* _text_icon_dd			= nullptr;
 		const char* _text_icon_dd_collapsed = nullptr;
