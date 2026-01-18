@@ -180,14 +180,11 @@ namespace SFG
 		_pass_forward.init(size);
 		_pass_canvas_2d.init(size);
 		_pass_particles.init(bind_layout, bind_layout_compute);
+		_pass_debug_rendering.init(size, _world);
 
 #ifdef OBJECT_ID_PASS
 		_pass_object_id.init(size);
 		_pass_selection_outline.init(size);
-#endif
-
-#ifdef JPH_DEBUG_RENDERER
-		_pass_physics_debug.init(size);
 #endif
 	}
 
@@ -203,13 +200,11 @@ namespace SFG
 		_pass_forward.uninit();
 		_pass_canvas_2d.uninit();
 		_pass_particles.uninit();
+		_pass_debug_rendering.uninit();
 
 #ifdef OBJECT_ID_PASS
 		_pass_object_id.uninit();
 		_pass_selection_outline.uninit();
-#endif
-#ifdef JPH_DEBUG_RENDERER
-		_pass_physics_debug.uninit();
 #endif
 
 		gfx_backend* backend = gfx_backend::get();
@@ -234,10 +229,7 @@ namespace SFG
 	void game_world_renderer::tick()
 	{
 		ZoneScoped;
-
-#ifdef JPH_DEBUG_RENDERER
-		_pass_physics_debug.tick(_world);
-#endif
+		_pass_debug_rendering.tick();
 	}
 
 	void game_world_renderer::prepare(uint8 frame_index)
@@ -303,10 +295,7 @@ namespace SFG
 		_pass_bloom.prepare(frame_index);
 		_pass_post.prepare(frame_index, _base_size);
 		_pass_particles.prepare(frame_index, _proxy_manager, _main_camera_view);
-
-#ifdef JPH_DEBUG_RENDERER
-		_pass_physics_debug.prepare(_main_camera_view, _base_size, frame_index);
-#endif
+		_pass_debug_rendering.prepare(_main_camera_view, _base_size, frame_index);
 	}
 
 	void game_world_renderer::run_pre_depth(const void* context)
@@ -400,7 +389,7 @@ namespace SFG
 	void game_world_renderer::run_physics(const void* ctx)
 	{
 		const game_world_renderer::task_common* cmn = static_cast<const game_world_renderer::task_common*>(ctx);
-		cmn->rend->_pass_physics_debug.render({
+		cmn->rend->_pass_debug_rendering.render({
 			.frame_index   = cmn->frame_index,
 			.size		   = cmn->resolution,
 			.depth_texture = cmn->depth_texture,
@@ -513,10 +502,7 @@ namespace SFG
 		const gfx_id cmd_forward		   = _pass_forward.get_cmd_buffer(frame_index);
 		const gfx_id cmd_particles		   = _pass_particles.get_cmd_buffer(frame_index);
 		const gfx_id cmd_particles_compute = _pass_particles.get_cmd_buffer_compute(frame_index);
-
-#ifdef JPH_DEBUG_RENDERER
-		const gfx_id cmd_physics_debug = _pass_physics_debug.get_cmd_buffer(frame_index);
-#endif
+		const gfx_id cmd_debug			   = _pass_debug_rendering.get_cmd_buffer(frame_index);
 
 #ifdef OBJECT_ID_PASS
 		const gfx_id cmd_object_id = _pass_object_id.get_cmd_buffer(frame_index);
@@ -597,9 +583,7 @@ namespace SFG
 
 		tt.resize(0);
 
-#ifdef JPH_DEBUG_RENDERER
 		tt.push_back({run_physics, (void*)&common_data});
-#endif
 		tt.push_back({run_lighting, (void*)&common_data});
 		tt.push_back({run_forward, (void*)&common_data});
 		tt.push_back({run_particles_render, (void*)&common_data});
@@ -613,13 +597,8 @@ namespace SFG
 
 		// submit lighting + forward + particles + debugs, waits for ssao (and particles compute)
 		backend->queue_wait(queue_gfx, &sem_ssao, &sem_ssao_val1, 1);
-		backend->submit_commands(queue_gfx, &cmd_lighting, 1);
-		backend->submit_commands(queue_gfx, &cmd_particles, 1);
-		backend->submit_commands(queue_gfx, &cmd_forward, 1);
-
-#ifdef JPH_DEBUG_RENDERER
-		backend->submit_commands(queue_gfx, &cmd_physics_debug, 1);
-#endif
+		const gfx_id fw_commands[4] = {cmd_lighting, cmd_particles, cmd_forward, cmd_debug};
+		backend->submit_commands(queue_gfx, fw_commands, 4);
 		backend->queue_signal(queue_gfx, &sem_lighting, &sem_lighting_val0, 1);
 
 		tt.resize(0);

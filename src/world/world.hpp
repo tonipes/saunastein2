@@ -35,6 +35,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "world/component_manager.hpp"
 #include "world/common_world.hpp"
 #include "world/time_manager.hpp"
+#include "world/world_debug_rendering.hpp"
 
 #include "gui/vekt.hpp"
 #include "resources/resource_manager.hpp"
@@ -82,6 +83,8 @@ namespace SFG
 		void uninit_preserve_resources();
 		void create_from_loader(world_raw& raw, bool preserve_resources);
 		void tick(const vector2ui16& res, float dt);
+		void begin_debug_tick(const vector2ui16& res);
+		void end_debug_tick();
 		void calculate_abs_transforms();
 		void interpolate(double interpolation);
 		bool on_window_event(const window_event& ev, window* wnd);
@@ -100,6 +103,11 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 		// accessors
 		// -----------------------------------------------------------------------------
+
+		inline world_debug_rendering& get_debug_rendering()
+		{
+			return _debug_rendering;
+		}
 
 		inline physics_world& get_physics_world()
 		{
@@ -194,15 +202,16 @@ namespace SFG
 		static void on_atlas_destroyed(vekt::atlas* atlas, void* user_data);
 
 	private:
-		resource_manager   _resource_manager;
-		entity_manager	   _entity_manager;
-		physics_world	   _phy_world;
-		component_manager  _comp_manager;
-		text_allocator	   _text_allocator;
-		audio_manager	   _audio_manager = {};
-		animation_graph	   _anim_graph	  = {};
-		vekt::font_manager _vekt_fonts	  = {};
-		time_manager	   _time_manager  = {};
+		resource_manager	  _resource_manager;
+		entity_manager		  _entity_manager;
+		physics_world		  _phy_world;
+		component_manager	  _comp_manager;
+		text_allocator		  _text_allocator;
+		audio_manager		  _audio_manager   = {};
+		animation_graph		  _anim_graph	   = {};
+		vekt::font_manager	  _vekt_fonts	   = {};
+		time_manager		  _time_manager	   = {};
+		world_debug_rendering _debug_rendering = {};
 
 		vector<atlas_data>	 _vekt_atlases = {};
 		ma_engine*			 _sound_engine = nullptr;

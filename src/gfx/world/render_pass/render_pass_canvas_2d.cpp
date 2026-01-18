@@ -39,6 +39,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gfx/world/renderable.hpp"
 #include "gfx/world/renderable_collector.hpp"
 #include "gfx/engine_shaders.hpp"
+#include "gui/vekt.hpp"
 
 #include <tracy/Tracy.hpp>
 
@@ -171,6 +172,7 @@ namespace SFG
 					.vb_hw					 = vb,
 					.ib_hw					 = ib,
 					.pipeline_hw			 = pipeline,
+					.vertex_size			 = sizeof(vekt::vertex),
 				});
 			}
 		}

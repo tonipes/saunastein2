@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -28,25 +28,18 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #ifdef JPH_DEBUG_RENDERER
 
-#include "data/vector.hpp"
-#include "resources/vertex.hpp"
-#include "resources/common_resources.hpp"
-#include "gfx/buffer.hpp"
-#include "memory/double_buffered_swap.hpp"
-
+#include "common/size_definitions.hpp"
 #include <Jolt/Jolt.h>
 #include <Jolt/Renderer/DebugRenderer.h>
 
 namespace SFG
 {
+
+	class world;
+
 	class physics_debug_renderer : public JPH::DebugRenderer
 	{
 	public:
-		static constexpr size_t MAX_TRI_VERTICES_SIZE  = sizeof(vertex_simple) * 48000;
-		static constexpr size_t MAX_LINE_VERTICES_SIZE = sizeof(vertex_3d_line) * 4000;
-		static constexpr size_t MAX_TRI_INDICES_SIZE   = sizeof(uint32) * 48000;
-		static constexpr size_t MAX_LINE_INDICES_SIZE  = sizeof(uint32) * 12000;
-
 		physics_debug_renderer();
 		virtual ~physics_debug_renderer();
 
@@ -70,67 +63,12 @@ namespace SFG
 								  JPH::DebugRenderer::EDrawMode			 inDrawMode	  = JPH::DebugRenderer::EDrawMode::Solid) override;
 
 		// -----------------------------------------------------------------------------
-		// accessors
+		// impl
 		// -----------------------------------------------------------------------------
 
-		inline void reset()
-		{
-			_vertex_count_line = 0;
-			_vertex_count_tri  = 0;
-			_triangle_vertices.swap();
-			_triangle_indices.swap();
-			_line_vertices.swap();
-			_line_indices.swap();
-		}
-
-		inline void end()
-		{
-			_read_vertex_count_line.store(_vertex_count_line, std::memory_order_release);
-			_read_vertex_count_tri.store(_vertex_count_tri, std::memory_order_release);
-		}
-
-		inline const double_buffered_swap& get_triangle_vertices() const
-		{
-			return _triangle_vertices;
-		}
-
-		inline const double_buffered_swap& get_triangle_indices() const
-		{
-			return _triangle_indices;
-		}
-
-		inline const double_buffered_swap& get_line_vertices() const
-		{
-			return _line_vertices;
-		}
-
-		inline const double_buffered_swap& get_line_indices() const
-		{
-			return _line_indices;
-		}
-
-		inline uint32 get_vertex_count_triangle() const
-		{
-			return _read_vertex_count_tri.load(std::memory_order_acquire);
-		}
-
-		inline uint32 get_vertex_count_line() const
-		{
-			return _read_vertex_count_line.load(std::memory_order_acquire);
-		}
-
-		inline uint32 get_index_count_triangle() const
-		{
-			return _read_vertex_count_tri.load(std::memory_order_acquire);
-		}
-
-		inline uint32 get_index_count_line() const
-		{
-			return (_read_vertex_count_line.load(std::memory_order_acquire) / 4) * 6;
-		}
+		void draw(world& w);
 
 	private:
-		/// Implementation specific batch object
 		class BatchImpl : public JPH::RefTargetVirtual
 		{
 		public:
@@ -153,16 +91,7 @@ namespace SFG
 		};
 
 	private:
-		double_buffered_swap _triangle_vertices = {};
-		double_buffered_swap _triangle_indices	= {};
-		double_buffered_swap _line_vertices		= {};
-		double_buffered_swap _line_indices		= {};
-
-		uint32 _vertex_count_line = 0;
-		uint32 _vertex_count_tri  = 0;
-
-		atomic<uint32> _read_vertex_count_line = 0;
-		atomic<uint32> _read_vertex_count_tri  = 0;
+		world* _w = nullptr;
 	};
 }
 

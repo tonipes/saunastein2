@@ -28,22 +28,20 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "gfx/buffer.hpp"
 #include "gfx/common/gfx_constants.hpp"
-
 #include "math/matrix4x4.hpp"
-#include "math/vector2.hpp"
+#include "math/vector4.hpp"
+#include "gfx/buffer.hpp"
+#include "gfx/draw_stream.hpp"
+#include "memory/bump_allocator.hpp"
 
 namespace SFG
 {
-	struct view;
 	struct vector2ui16;
 	struct view;
-	struct renderable_object;
 	class physics_debug_renderer;
 	class world;
-	class proxy_manager;
-	class physics_world;
 
-	class render_pass_physics_debug
+	class render_pass_debug
 	{
 	private:
 		struct ubo
@@ -57,13 +55,11 @@ namespace SFG
 		struct per_frame_data
 		{
 			buffer_gpu	   ubo;
-			buffer_cpu_gpu triangle_vertices;
-			buffer_cpu_gpu line_vertices;
-			buffer_cpu_gpu triangle_indices;
-			buffer_cpu_gpu line_indices;
-			gfx_id		   cmd_buffer		   = 0;
-			uint32		   _triangle_idx_count = 0;
-			uint32		   _line_idx_count	   = 0;
+			gfx_id		   cmd_buffer	   = 0;
+			buffer_cpu_gpu vtx_buffer_line = {};
+			buffer_cpu_gpu vtx_buffer_tri  = {};
+			buffer_cpu_gpu vtx_buffer_gui  = {};
+			buffer_cpu_gpu idx_buffer	   = {};
 		};
 
 	public:
@@ -81,9 +77,9 @@ namespace SFG
 		// lifecycle
 		// -----------------------------------------------------------------------------
 
-		void init(const vector2ui16& sizes);
+		void init(const vector2ui16& sizes, world& w);
 		void uninit();
-		void tick(world& w);
+		void tick();
 
 		// -----------------------------------------------------------------------------
 		// rendering
@@ -102,9 +98,15 @@ namespace SFG
 		}
 
 	private:
+		world*					_world		 = nullptr;
+		physics_debug_renderer* _renderer	 = nullptr;
+		bump_allocator			_alloc		 = {};
+		draw_stream_gui			_draw_stream = {};
 		per_frame_data			_pfd[BACK_BUFFER_COUNT];
-		gfx_id					_shader_debug_default = {};
-		gfx_id					_shader_debug_line	  = {};
-		physics_debug_renderer* _renderer			  = nullptr;
+		gfx_id					_shader_debug_triangle	  = {};
+		gfx_id					_shader_debug_line		  = {};
+		gfx_id					_shader_debug_gui_default = {};
+		gfx_id					_shader_debug_gui_text	  = {};
+		gfx_id					_shader_debug_gui_sdf	  = {};
 	};
 }

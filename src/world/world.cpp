@@ -117,6 +117,8 @@ namespace SFG
 		_vekt_fonts.set_atlas_created_callback(on_atlas_created);
 		_vekt_fonts.set_atlas_updated_callback(on_atlas_updated);
 		_vekt_fonts.set_atlas_destroyed_callback(on_atlas_destroyed);
+
+		_debug_rendering.init();
 	};
 
 	world::~world()
@@ -125,6 +127,7 @@ namespace SFG
 		_text_allocator.uninit();
 		_phy_world.uninit();
 		_vekt_fonts.uninit();
+		_debug_rendering.uninit();
 	}
 
 	void world::init()
@@ -200,6 +203,16 @@ namespace SFG
 			cnv.draw(*this, res);
 			return comp_view_result::cont;
 		});
+	}
+
+	void world::begin_debug_tick(const vector2ui16& res)
+	{
+		_debug_rendering.begin_frame(res);
+	}
+
+	void world::end_debug_tick()
+	{
+		_debug_rendering.end_frame();
 	}
 
 	void world::calculate_abs_transforms()

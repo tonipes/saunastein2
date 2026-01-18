@@ -50,6 +50,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "math/vector2ui16.hpp"
 #include "math/vector3.hpp"
 #include "math/quat.hpp"
+#include "math/color.hpp"
 
 // misc
 #include "gui/vekt.hpp"
@@ -143,6 +144,9 @@ namespace SFG
 	void editor_panel_entities::draw(world& w, const vector2ui16& window_size)
 	{
 		entity_manager& em = w.get_entity_manager();
+
+		w.get_debug_rendering().draw_line(vector3(0, 0, 0), vector3(0, 10, 0), color(1, 0, 0, 1), 1);
+
 		if (em.get_hierarchy_dirty())
 		{
 			rebuild_tree(w);

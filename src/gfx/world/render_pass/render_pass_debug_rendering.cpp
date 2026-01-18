@@ -24,7 +24,7 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISE
 OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "render_pass_physics_debug.hpp"
+#include "render_pass_debug_rendering.hpp"
 #include "resources/vertex.hpp"
 #include "math/math.hpp"
 
@@ -40,17 +40,20 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gfx/world/renderable_collector.hpp"
 #include "gfx/engine_shaders.hpp"
 
+#include "resources/vertex.hpp"
+
 #include "world/world.hpp"
 #include "physics/physics_world.hpp"
 #include "physics/physics_debug_renderer.hpp"
-#include <Jolt/Physics/PhysicsSystem.h>
 #include <tracy/Tracy.hpp>
 
 namespace SFG
 {
-	void render_pass_physics_debug::init(const vector2ui16& size)
+	void render_pass_debug::init(const vector2ui16& size, world& w)
 	{
 		_renderer = new physics_debug_renderer();
+		_world	  = &w;
+		_alloc.init(PASS_ALLOC_SIZE_DEBUG_RENDERING, 8);
 
 		gfx_backend* backend = gfx_backend::get();
 
@@ -60,64 +63,66 @@ namespace SFG
 
 			pfd.cmd_buffer = backend->create_command_buffer({.type = command_type::graphics, .debug_name = "phy_debug_cmd"});
 			pfd.ubo.create({.size = sizeof(ubo), .flags = resource_flags::rf_constant_buffer | resource_flags::rf_cpu_visible, .debug_name = "phy_debug_ubo"});
-
-			pfd.triangle_vertices.create(
+			pfd.vtx_buffer_line.create(
 				{
-					.size		= physics_debug_renderer::MAX_TRI_VERTICES_SIZE,
+					.size		= world_debug_rendering::MAX_VERTEX_COUNT_LINE * sizeof(vertex_3d_line),
 					.flags		= resource_flags::rf_cpu_visible,
-					.debug_name = "phy_dbg_tri_vtx",
+					.debug_name = "debug_vtx",
 				},
 				{
-					.size		= physics_debug_renderer::MAX_TRI_VERTICES_SIZE,
-					.flags		= resource_flags::rf_gpu_only | resource_flags::rf_vertex_buffer,
-					.debug_name = "phy_dbg_tri_vtx",
+					.size		= world_debug_rendering::MAX_VERTEX_COUNT_LINE * sizeof(vertex_3d_line),
+					.flags		= resource_flags::rf_vertex_buffer | resource_flags::rf_gpu_only,
+					.debug_name = "debug_vtx",
 				});
 
-			pfd.line_vertices.create(
+			pfd.vtx_buffer_gui.create(
 				{
-					.size		= physics_debug_renderer::MAX_LINE_VERTICES_SIZE,
+					.size		= world_debug_rendering::MAX_VERTEX_COUNT_GUI * sizeof(vertex_gui),
 					.flags		= resource_flags::rf_cpu_visible,
-					.debug_name = "phy_dbg_tri_vtx",
+					.debug_name = "debug_vtx",
 				},
 				{
-					.size		= physics_debug_renderer::MAX_LINE_VERTICES_SIZE,
-					.flags		= resource_flags::rf_gpu_only | resource_flags::rf_vertex_buffer,
-					.debug_name = "phy_dbg_line_vtx",
+					.size		= world_debug_rendering::MAX_VERTEX_COUNT_GUI * sizeof(vertex_gui),
+					.flags		= resource_flags::rf_vertex_buffer | resource_flags::rf_gpu_only,
+					.debug_name = "debug_vtx",
 				});
 
-			pfd.triangle_indices.create(
+			pfd.vtx_buffer_tri.create(
 				{
-					.size		= physics_debug_renderer::MAX_TRI_INDICES_SIZE,
+					.size		= world_debug_rendering::MAX_VERTEX_COUNT_TRI * sizeof(vertex_simple),
 					.flags		= resource_flags::rf_cpu_visible,
-					.debug_name = "phy_dbg_tri_index",
+					.debug_name = "debug_vtx",
 				},
 				{
-					.size		= physics_debug_renderer::MAX_TRI_INDICES_SIZE,
-					.flags		= resource_flags::rf_gpu_only | resource_flags::rf_index_buffer,
-					.debug_name = "phy_dbg_tri_index",
+					.size		= world_debug_rendering::MAX_VERTEX_COUNT_TRI * sizeof(vertex_simple),
+					.flags		= resource_flags::rf_vertex_buffer | resource_flags::rf_gpu_only,
+					.debug_name = "debug_vtx",
 				});
 
-			pfd.line_indices.create(
+			pfd.idx_buffer.create(
 				{
-					.size		= physics_debug_renderer::MAX_LINE_INDICES_SIZE,
+					.size		= world_debug_rendering::MAX_INDEX_COUNT * sizeof(primitive_index),
 					.flags		= resource_flags::rf_cpu_visible,
-					.debug_name = "phy_dbg_line_index",
+					.debug_name = "debug_idx",
 				},
 				{
-					.size		= physics_debug_renderer::MAX_LINE_INDICES_SIZE,
-					.flags		= resource_flags::rf_gpu_only | resource_flags::rf_index_buffer,
-					.debug_name = "phy_dbg_line_index",
+					.size		= world_debug_rendering::MAX_INDEX_COUNT * sizeof(primitive_index),
+					.flags		= resource_flags::rf_index_buffer | resource_flags::rf_gpu_only,
+					.debug_name = "debug_idx",
 				});
 		}
 
-		_shader_debug_default = engine_shaders::get().get_shader(engine_shader_type::engine_shader_debug_default).get_hw();
-		_shader_debug_line	  = engine_shaders::get().get_shader(engine_shader_type::engine_shader_debug_line).get_hw();
+		_shader_debug_triangle	  = engine_shaders::get().get_shader(engine_shader_type::engine_shader_debug_default).get_hw();
+		_shader_debug_line		  = engine_shaders::get().get_shader(engine_shader_type::engine_shader_debug_line).get_hw();
+		_shader_debug_gui_default = 0;
+		_shader_debug_gui_text	  = 0;
+		_shader_debug_gui_sdf	  = 0;
 
 #ifdef SFG_TOOLMODE
 		engine_shaders::get().add_reload_listener([this](engine_shader_type type, shader_direct& sh) {
 			if (type == engine_shader_type::engine_shader_debug_default)
 			{
-				_shader_debug_default = sh.get_hw();
+				_shader_debug_triangle = sh.get_hw();
 				return;
 			}
 
@@ -130,9 +135,11 @@ namespace SFG
 #endif
 	}
 
-	void render_pass_physics_debug::uninit()
+	void render_pass_debug::uninit()
 	{
 		ZoneScoped;
+
+		_alloc.uninit();
 
 		delete _renderer;
 		_renderer = nullptr;
@@ -144,29 +151,24 @@ namespace SFG
 			per_frame_data& pfd = _pfd[i];
 			backend->destroy_command_buffer(pfd.cmd_buffer);
 			pfd.ubo.destroy();
-			pfd.triangle_vertices.destroy();
-			pfd.line_vertices.destroy();
-			pfd.triangle_indices.destroy();
-			pfd.line_indices.destroy();
+			pfd.vtx_buffer_line.destroy();
+			pfd.vtx_buffer_tri.destroy();
+			pfd.vtx_buffer_gui.destroy();
+			pfd.idx_buffer.destroy();
 		}
 	}
 
-	void render_pass_physics_debug::tick(world& w)
+	void render_pass_debug::tick()
 	{
-		_renderer->reset();
-
-		JPH::BodyManager::DrawSettings ds = {};
-		ds.mDrawShape					  = true;
-		ds.mDrawVelocity				  = true;
-
-		w.get_physics_world().get_system()->DrawBodies(ds, _renderer);
-
-		_renderer->end();
+		_renderer->draw(*_world);
 	}
 
-	void render_pass_physics_debug::prepare(const view& main_camera_view, const vector2ui16& resolution, uint8 frame_index)
+	void render_pass_debug::prepare(const view& main_camera_view, const vector2ui16& resolution, uint8 frame_index)
 	{
 		ZoneScoped;
+
+		_alloc.reset();
+		_draw_stream.prepare(_alloc, MAX_DRAW_CALLS_DEBUG_RENDERING);
 
 		gfx_backend*	backend	   = gfx_backend::get();
 		per_frame_data& pfd		   = _pfd[frame_index];
@@ -182,133 +184,215 @@ namespace SFG
 		};
 		pfd.ubo.buffer_data(0, &ubo_data, sizeof(ubo));
 
-		const double_buffered_swap& triangle_vertices = _renderer->get_triangle_vertices();
-		const double_buffered_swap& triangle_indices  = _renderer->get_triangle_indices();
-		const double_buffered_swap& line_vertices	  = _renderer->get_line_vertices();
-		const double_buffered_swap& line_indices	  = _renderer->get_line_indices();
+		world_debug_rendering&				   dbg_rnd = _world->get_debug_rendering();
+		const world_debug_rendering::snapshot* snap	   = dbg_rnd.get_read_snapshot();
 
-		const uint32 vtx_count_triangle = _renderer->get_vertex_count_triangle();
-		const uint32 vtx_count_line		= _renderer->get_vertex_count_line();
-		const uint32 idx_count_triangle = _renderer->get_index_count_triangle();
-		const uint32 idx_count_line		= _renderer->get_index_count_line();
+		if (snap == nullptr)
+			return;
 
-		pfd._triangle_idx_count = idx_count_triangle;
-		pfd._line_idx_count		= idx_count_line;
+		const uint32 vtx_count_gui	= snap->vtx_count_gui;
+		const uint32 vtx_count_line = snap->vtx_count_line;
+		const uint32 vtx_count_tri	= snap->vtx_count_tri;
+		const uint32 idx_count		= snap->idx_count;
 
 		static_vector<barrier, 4> barriers;
-		static_vector<barrier, 4> barriers_after;
 
-		if (vtx_count_triangle != 0)
+		// -----------------------------------------------------------------------------
+		// before copy
+		// -----------------------------------------------------------------------------
+
+		if (vtx_count_gui != 0)
 		{
-			triangle_vertices.read((void*)pfd.triangle_vertices.get_mapped(), vtx_count_triangle * sizeof(vertex_simple));
-			triangle_indices.read((void*)pfd.triangle_indices.get_mapped(), idx_count_triangle * sizeof(uint32));
-
 			barriers.push_back({
 				.from_states = resource_state::resource_state_vertex_cbv,
 				.to_states	 = resource_state::resource_state_copy_dest,
-				.resource	 = pfd.triangle_vertices.get_gpu(),
+				.resource	 = pfd.vtx_buffer_gui.get_gpu(),
 				.flags		 = barrier_flags::baf_is_resource,
 			});
 
-			barriers.push_back({
-				.from_states = resource_state::resource_state_index_buffer,
-				.to_states	 = resource_state::resource_state_copy_dest,
-				.resource	 = pfd.triangle_indices.get_gpu(),
-				.flags		 = barrier_flags::baf_is_resource,
-			});
-
-			barriers_after.push_back({
-				.from_states = resource_state::resource_state_copy_dest,
-				.to_states	 = resource_state::resource_state_vertex_cbv,
-				.resource	 = pfd.triangle_vertices.get_gpu(),
-				.flags		 = barrier_flags::baf_is_resource,
-			});
-
-			barriers_after.push_back({
-				.from_states = resource_state::resource_state_copy_dest,
-				.to_states	 = resource_state::resource_state_index_buffer,
-				.resource	 = pfd.triangle_indices.get_gpu(),
-				.flags		 = barrier_flags::baf_is_resource,
-			});
+			pfd.vtx_buffer_gui.buffer_data(0, snap->vertices_gui, sizeof(vertex_gui) * vtx_count_gui);
 		}
 
 		if (vtx_count_line != 0)
 		{
-			line_vertices.read((void*)pfd.line_vertices.get_mapped(), vtx_count_line * sizeof(vertex_3d_line));
-			line_indices.read((void*)pfd.line_indices.get_mapped(), idx_count_line * sizeof(uint32));
-
 			barriers.push_back({
 				.from_states = resource_state::resource_state_vertex_cbv,
 				.to_states	 = resource_state::resource_state_copy_dest,
-				.resource	 = pfd.line_vertices.get_gpu(),
+				.resource	 = pfd.vtx_buffer_line.get_gpu(),
 				.flags		 = barrier_flags::baf_is_resource,
 			});
 
+			pfd.vtx_buffer_line.buffer_data(0, snap->vertices_line, sizeof(vertex_3d_line) * vtx_count_line);
+		}
+
+		if (vtx_count_tri != 0)
+		{
+			barriers.push_back({
+				.from_states = resource_state::resource_state_vertex_cbv,
+				.to_states	 = resource_state::resource_state_copy_dest,
+				.resource	 = pfd.vtx_buffer_tri.get_gpu(),
+				.flags		 = barrier_flags::baf_is_resource,
+			});
+
+			pfd.vtx_buffer_tri.buffer_data(0, snap->vertices_tri, sizeof(vertex_simple) * vtx_count_tri);
+		}
+
+		if (idx_count != 0)
+		{
 			barriers.push_back({
 				.from_states = resource_state::resource_state_index_buffer,
 				.to_states	 = resource_state::resource_state_copy_dest,
-				.resource	 = pfd.line_indices.get_gpu(),
+				.resource	 = pfd.idx_buffer.get_gpu(),
 				.flags		 = barrier_flags::baf_is_resource,
 			});
 
-			barriers_after.push_back({
-				.from_states = resource_state::resource_state_copy_dest,
-				.to_states	 = resource_state::resource_state_vertex_cbv,
-				.resource	 = pfd.line_vertices.get_gpu(),
-				.flags		 = barrier_flags::baf_is_resource,
-			});
-
-			barriers_after.push_back({
-				.from_states = resource_state::resource_state_copy_dest,
-				.to_states	 = resource_state::resource_state_index_buffer,
-				.resource	 = pfd.line_indices.get_gpu(),
-				.flags		 = barrier_flags::baf_is_resource,
-			});
+			pfd.idx_buffer.buffer_data(0, snap->indices, sizeof(primitive_index) * idx_count);
 		}
 
-		if (vtx_count_triangle != 0 || vtx_count_line != 0)
+		// -----------------------------------------------------------------------------
+		// perform barräer
+		// -----------------------------------------------------------------------------
+
+		if (!barriers.empty())
 		{
 			backend->cmd_barrier(cmd_buffer,
 								 {
 									 .barriers		= barriers.data(),
 									 .barrier_count = static_cast<uint16>(barriers.size()),
 								 });
+		}
 
-			if (vtx_count_line != 0)
-			{
+		// -----------------------------------------------------------------------------
+		// copy and post barriers
+		// -----------------------------------------------------------------------------
 
-				pfd.line_vertices.copy_region(cmd_buffer, 0, sizeof(vertex_3d_line) * vtx_count_line);
-				pfd.line_indices.copy_region(cmd_buffer, 0, sizeof(uint32) * idx_count_line);
-			}
+		barriers.resize(0);
+		if (vtx_count_gui != 0)
+		{
+			barriers.push_back({
+				.from_states = resource_state::resource_state_copy_dest,
+				.to_states	 = resource_state::resource_state_vertex_cbv,
+				.resource	 = pfd.vtx_buffer_gui.get_gpu(),
+				.flags		 = barrier_flags::baf_is_resource,
+			});
 
-			if (vtx_count_triangle)
-			{
-				pfd.triangle_vertices.copy_region(cmd_buffer, 0, sizeof(vertex_simple) * vtx_count_triangle);
-				pfd.triangle_indices.copy_region(cmd_buffer, 0, sizeof(uint32) * idx_count_triangle);
-			}
+			pfd.vtx_buffer_gui.copy_region(cmd_buffer, 0, sizeof(vertex_gui) * vtx_count_gui);
+		}
 
+		if (vtx_count_line != 0)
+		{
+			barriers.push_back({
+				.from_states = resource_state::resource_state_copy_dest,
+				.to_states	 = resource_state::resource_state_vertex_cbv,
+				.resource	 = pfd.vtx_buffer_line.get_gpu(),
+				.flags		 = barrier_flags::baf_is_resource,
+			});
+
+			pfd.vtx_buffer_line.copy_region(cmd_buffer, 0, sizeof(vertex_3d_line) * vtx_count_line);
+		}
+
+		if (vtx_count_tri != 0)
+		{
+			barriers.push_back({
+				.from_states = resource_state::resource_state_copy_dest,
+				.to_states	 = resource_state::resource_state_vertex_cbv,
+				.resource	 = pfd.vtx_buffer_tri.get_gpu(),
+				.flags		 = barrier_flags::baf_is_resource,
+			});
+
+			pfd.vtx_buffer_tri.copy_region(cmd_buffer, 0, sizeof(vertex_simple) * vtx_count_tri);
+		}
+
+		if (idx_count != 0)
+		{
+			barriers.push_back({
+				.from_states = resource_state::resource_state_copy_dest,
+				.to_states	 = resource_state::resource_state_index_buffer,
+				.resource	 = pfd.idx_buffer.get_gpu(),
+				.flags		 = barrier_flags::baf_is_resource,
+			});
+
+			pfd.idx_buffer.copy_region(cmd_buffer, 0, sizeof(primitive_index) * idx_count);
+		}
+
+		// -----------------------------------------------------------------------------
+		// perform barräer
+		// -----------------------------------------------------------------------------
+
+		if (!barriers.empty())
+		{
 			backend->cmd_barrier(cmd_buffer,
 								 {
-									 .barriers		= barriers_after.data(),
-									 .barrier_count = static_cast<uint16>(barriers_after.size()),
+									 .barriers		= barriers.data(),
+									 .barrier_count = static_cast<uint16>(barriers.size()),
 								 });
 		}
+
+		// -----------------------------------------------------------------------------
+		// draw calls
+		// -----------------------------------------------------------------------------
+
+		const uint32 dc_count = snap->draw_call_count;
+		for (uint32 i = 0; i < dc_count; i++)
+		{
+			debug_draw_call& dc = snap->draw_calls[i];
+
+			gfx_id vertex_buffer_hw = pfd.vtx_buffer_line.get_gpu();
+			gfx_id pipeline			= _shader_debug_line;
+			uint16 vtx_size			= sizeof(vertex_3d_line);
+
+			if (dc.vtx_buffer_index == 1)
+			{
+				vertex_buffer_hw = pfd.vtx_buffer_tri.get_gpu();
+				pipeline		 = _shader_debug_triangle;
+				vtx_size		 = sizeof(vertex_simple);
+			}
+			else if (dc.vtx_buffer_index == 2)
+			{
+				vertex_buffer_hw = pfd.vtx_buffer_gui.get_gpu();
+				pipeline		 = _shader_debug_gui_default;
+				vtx_size		 = sizeof(vertex_gui);
+			}
+			else if (dc.vtx_buffer_index == 3)
+			{
+				vertex_buffer_hw = pfd.vtx_buffer_gui.get_gpu();
+				pipeline		 = _shader_debug_gui_text;
+				vtx_size		 = sizeof(vertex_gui);
+			}
+			else if (dc.vtx_buffer_index == 4)
+			{
+				vertex_buffer_hw = pfd.vtx_buffer_gui.get_gpu();
+				pipeline		 = _shader_debug_gui_sdf;
+				vtx_size		 = sizeof(vertex_gui);
+			}
+
+			const gfx_id index_buffer_hw = pfd.idx_buffer.get_gpu();
+
+			_draw_stream.add_command({
+				.start_index			 = dc.start_index,
+				.index_count			 = dc.index_count,
+				.base_vertex			 = dc.base_vertex,
+				.material_constant_index = NULL_GPU_INDEX,
+				.texture_constant_index	 = NULL_GPU_INDEX,
+				.font_index				 = NULL_GPU_INDEX,
+				.vb_hw					 = vertex_buffer_hw,
+				.ib_hw					 = index_buffer_hw,
+				.pipeline_hw			 = pipeline,
+				.vertex_size			 = vtx_size,
+			});
+		}
+
+		_draw_stream.build();
 	}
 
-	void render_pass_physics_debug::render(const render_params& p)
+	void render_pass_debug::render(const render_params& p)
 	{
 		gfx_backend*	backend			 = gfx_backend::get();
 		per_frame_data& pfd				 = _pfd[p.frame_index];
 		const gfx_id	texture			 = p.input_texture;
 		const gfx_id	depth			 = p.depth_texture;
 		const gfx_id	cmd_buffer		 = pfd.cmd_buffer;
-		const gfx_id	vtx_buffer_tri	 = pfd.triangle_vertices.get_gpu();
-		const gfx_id	idx_buffer_tri	 = pfd.triangle_indices.get_gpu();
-		const gfx_id	vtx_buffer_line	 = pfd.line_vertices.get_gpu();
-		const gfx_id	idx_buffer_line	 = pfd.line_indices.get_gpu();
 		const gpu_index gpu_index_rp_ubo = pfd.ubo.get_index();
-		const uint32	tri_idx_count	 = pfd._triangle_idx_count;
-		const uint32	line_idx_count	 = pfd._line_idx_count;
 
 		const render_pass_color_attachment att = {
 			.clear_color = vector4(0, 0, 0, 1.0f),
@@ -348,35 +432,7 @@ namespace SFG
 
 								  });
 
-		if (tri_idx_count != 0)
-		{
-			backend->cmd_bind_vertex_buffers(cmd_buffer, {.buffer = vtx_buffer_tri, .vertex_size = sizeof(vertex_simple)});
-			backend->cmd_bind_index_buffers(cmd_buffer, {.buffer = idx_buffer_tri, .index_size = sizeof(uint32)});
-			backend->cmd_bind_pipeline(cmd_buffer, {.pipeline = _shader_debug_default});
-			backend->cmd_draw_indexed_instanced(cmd_buffer,
-												{
-													.index_count_per_instance = tri_idx_count,
-													.instance_count			  = 1,
-													.start_index_location	  = 0,
-													.base_vertex_location	  = 0,
-													.start_instance_location  = 0,
-												});
-		}
-
-		if (line_idx_count != 0)
-		{
-			backend->cmd_bind_vertex_buffers(cmd_buffer, {.buffer = vtx_buffer_line, .vertex_size = sizeof(vertex_3d_line)});
-			backend->cmd_bind_index_buffers(cmd_buffer, {.buffer = idx_buffer_line, .index_size = sizeof(uint32)});
-			backend->cmd_bind_pipeline(cmd_buffer, {.pipeline = _shader_debug_line});
-			backend->cmd_draw_indexed_instanced(cmd_buffer,
-												{
-													.index_count_per_instance = line_idx_count,
-													.instance_count			  = 1,
-													.start_index_location	  = 0,
-													.base_vertex_location	  = 0,
-													.start_instance_location  = 0,
-												});
-		}
+		_draw_stream.draw_no_clip(cmd_buffer);
 
 		backend->cmd_end_render_pass(cmd_buffer, {});
 		END_DEBUG_EVENT(backend, cmd_buffer);

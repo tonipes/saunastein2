@@ -188,13 +188,13 @@ namespace SFG
 
 	void app::uninit()
 	{
+		// renderer
+		join_render();
+
 		// world
 		_world->uninit();
 		delete _world;
 		_world = nullptr;
-
-		// renderer
-		join_render();
 
 #ifdef SFG_TOOLMODE
 		_editor->uninit();
@@ -294,66 +294,84 @@ namespace SFG
 
 #if FIXED_FRAMERATE_ENABLED
 
-			const float dt_seconds = FIXED_FRAMERATE_S;
-			uint32		ticks	   = 0;
-			accumulator_ns += delta_micro * 1000;
-			while (accumulator_ns >= FIXED_FRAMERATE_NS && ticks < FIXED_FRAMERATE_MAX_TICKS)
+			// -----------------------------------------------------------------------------
+			// fixed frame rate
+			// -----------------------------------------------------------------------------
 			{
-				accumulator_ns -= FIXED_FRAMERATE_NS;
+				const float dt_seconds = FIXED_FRAMERATE_S;
+				uint32		ticks	   = 0;
+				accumulator_ns += delta_micro * 1000;
+				while (accumulator_ns >= FIXED_FRAMERATE_NS && ticks < FIXED_FRAMERATE_MAX_TICKS)
+				{
+					accumulator_ns -= FIXED_FRAMERATE_NS;
 
 #ifdef SFG_TOOLMODE
-				_editor->pre_world_tick(dt_seconds);
+					_editor->pre_world_tick(dt_seconds);
 #else
-				_game->pre_world_tick(dt_seconds);
+					_game->pre_world_tick(dt_seconds);
 #endif
-				_world->tick(ws, dt_seconds);
+					_world->tick(ws, dt_seconds);
 
 #ifdef SFG_TOOLMODE
-				_editor->post_world_tick(dt_seconds);
+					_editor->post_world_tick(dt_seconds);
 #else
-				_game->post_world_tick(dt_seconds);
+					_game->post_world_tick(dt_seconds);
 #endif
+					ticks++;
+				}
 
-				ticks++;
+				if (ticks != 0)
+					_world->calculate_abs_transforms();
+
+				// interpolation
+#if FIXED_FRAMERATE_USE_INTERPOLATION
+				const double interpolation = static_cast<double>(accumulator_ns) / FIXED_FRAMERATE_NS_D;
+				_world->interpolate(interpolation);
+#endif
 			}
 
-			if (ticks != 0)
+#else
+			// -----------------------------------------------------------------------------
+			// variable frame rate
+			// -----------------------------------------------------------------------------
+
+			{
+				const float dtt = static_cast<float>(static_cast<double>(delta_micro) * 1e-6);
+
+#ifdef SFG_TOOLMODE
+				_editor->pre_world_tick(dtt);
+#else
+				_game->pre_world_tick(dtt);
+#endif
+
+				_world->tick(ws, dtt);
+
+#ifdef SFG_TOOLMODE
+				_editor->post_world_tick(dtt);
+#else
+				_game->post_world_tick(ws, dt_seconds);
+#endif
 				_world->calculate_abs_transforms();
-
-			// interpolation
-#if FIXED_FRAMERATE_USE_INTERPOLATION
-			const double interpolation = static_cast<double>(accumulator_ns) / FIXED_FRAMERATE_NS_D;
-			_world->interpolate(interpolation);
+			}
 #endif
 
-#else
-			const float dtt = static_cast<float>(static_cast<double>(delta_micro) * 1e-6);
-
-#ifdef SFG_TOOLMODE
-			_editor->pre_world_tick(dtt);
-#else
-			_game->pre_world_tick(dtt);
-#endif
-
-			_world->tick(ws, dtt);
-
-#ifdef SFG_TOOLMODE
-			_editor->post_world_tick(dtt);
-#else
-			_game->post_world_tick(ws, dt_seconds);
-#endif
-			_world->calculate_abs_transforms();
-#endif
+			// -----------------------------------------------------------------------------
+			// post
+			// -----------------------------------------------------------------------------
 
 #ifdef SFG_TOOLMODE
 			engine_shaders::get().tick();
 #endif
+
+			_world->begin_debug_tick(ws);
 
 #ifdef SFG_TOOLMODE
 			_editor->tick();
 #else
 			_game->tick();
 #endif
+
+			_world->end_debug_tick();
 
 			// pipeline render events.
 			_render_stream.publish();

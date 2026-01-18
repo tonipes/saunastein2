@@ -103,6 +103,8 @@ namespace SFG
 		gfx_id vb_hw	   = NULL_GFX_ID;
 		gfx_id ib_hw	   = NULL_GFX_ID;
 		gfx_id pipeline_hw = NULL_GFX_ID;
+
+		uint16 vertex_size = 0;
 	};
 
 	struct draw_command_particle
@@ -208,6 +210,7 @@ namespace SFG
 		void prepare(bump_allocator& alloc, size_t max_commands);
 		void build();
 		void draw(gfx_id command_buffer);
+		void draw_no_clip(gfx_id command_buffer);
 		void add_command(const draw_command_gui& cmd);
 
 	private:

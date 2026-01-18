@@ -49,9 +49,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gfx/world/render_pass/render_pass_selection_outline.hpp"
 #endif
 
-#ifdef JPH_DEBUG_RENDERER
-#include "gfx/world/render_pass/render_pass_physics_debug.hpp"
-#endif
+#include "gfx/world/render_pass/render_pass_debug_rendering.hpp"
 
 #include "gfx/world/view.hpp"
 
@@ -257,7 +255,7 @@ namespace SFG
 		render_pass_particles	  _pass_particles = {};
 
 #ifdef JPH_DEBUG_RENDERER
-		render_pass_physics_debug _pass_physics_debug = {};
+		render_pass_debug _pass_debug_rendering = {};
 #endif
 
 #ifdef SFG_TOOLMODE

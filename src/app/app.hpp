@@ -137,7 +137,7 @@ namespace SFG
 		std::thread			_render_thread;
 		atomic<uint8>		_should_close;
 		atomic<uint8>		_render_joined;
-		bitmask<uint8>		_flags = 0;
+		bitmask<uint8>		_flags			 = 0;
 		vector2ui16			_game_resolution = {};
 	};
 }

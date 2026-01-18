@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -28,87 +28,36 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "physics_debug_renderer.hpp"
 #include "physics/physics_convert.hpp"
+#include "world/world.hpp"
+#include "math/color.hpp"
+
+#include <Jolt/Physics/PhysicsSystem.h>
 
 namespace SFG
 {
 	physics_debug_renderer::physics_debug_renderer()
 	{
-		_triangle_vertices.init(MAX_TRI_VERTICES_SIZE, alignof(vertex_simple));
-		_triangle_indices.init(MAX_TRI_INDICES_SIZE, alignof(uint32));
-		_line_vertices.init(MAX_LINE_VERTICES_SIZE, alignof(vertex_3d_line));
-		_line_indices.init(MAX_LINE_INDICES_SIZE, alignof(uint32));
-
 		JPH::DebugRenderer::Initialize();
 	}
 
 	physics_debug_renderer::~physics_debug_renderer()
 	{
-		_triangle_vertices.uninit();
-		_triangle_indices.uninit();
-		_line_vertices.uninit();
-		_line_indices.uninit();
 	}
 
 	void physics_debug_renderer::DrawLine(JPH::RVec3Arg inFrom, JPH::RVec3Arg inTo, JPH::ColorArg inColor)
 	{
+		SFG_ASSERT(_w != nullptr);
 
 		const vector3	from	  = from_jph_vec3(inFrom);
 		const vector3	to		  = from_jph_vec3(inTo);
 		constexpr float thickness = 0.25f;
-
-		const vertex_3d_line vertices[4] = {{
-												.pos	   = from,
-												.next_pos  = to,
-												.color	   = vector4(inColor.r, inColor.g, inColor.b, inColor.a) / 255.0f,
-												.direction = thickness,
-											},
-											{
-												.pos	   = from,
-												.next_pos  = to,
-												.color	   = vector4(inColor.r, inColor.g, inColor.b, inColor.a) / 255.0f,
-												.direction = -thickness,
-											},
-											{
-												.pos	   = to,
-												.next_pos  = from,
-												.color	   = vector4(inColor.r, inColor.g, inColor.b, inColor.a) / 255.0f,
-												.direction = thickness,
-											},
-											{
-												.pos	   = to,
-												.next_pos  = from,
-												.color	   = vector4(inColor.r, inColor.g, inColor.b, inColor.a) / 255.0f,
-												.direction = -thickness,
-											}};
-
-		const uint32 idx_begin	= _vertex_count_line;
-		const uint32 indices[6] = {idx_begin, idx_begin + 1, idx_begin + 2, idx_begin + 2, idx_begin + 3, idx_begin};
-
-		_line_vertices.write(vertices, static_cast<size_t>(_vertex_count_line) * sizeof(vertex_3d_line), sizeof(vertex_3d_line) * 4);
-		_line_indices.write(indices, (_vertex_count_line / 4) * 6 * sizeof(uint32), sizeof(uint32) * 6);
-		_vertex_count_line += 4;
+		_w->get_debug_rendering().draw_line(from, to, color::from255(inColor.r, inColor.g, inColor.b, inColor.a), thickness);
 	}
 
 	void physics_debug_renderer::DrawTriangle(JPH::RVec3Arg inV1, JPH::RVec3Arg inV2, JPH::RVec3Arg inV3, JPH::ColorArg inColor, JPH::DebugRenderer::ECastShadow inCastShadow)
 	{
-		const vertex_simple vertices[3] = {{
-											   .pos	  = from_jph_vec3(inV1),
-											   .color = vector4(inColor.r, inColor.g, inColor.b, inColor.a) / 255.0f,
-										   },
-										   {
-											   .pos	  = from_jph_vec3(inV2),
-											   .color = vector4(inColor.r, inColor.g, inColor.b, inColor.a) / 255.0f,
-										   },
-										   {
-											   .pos	  = from_jph_vec3(inV3),
-											   .color = vector4(inColor.r, inColor.g, inColor.b, inColor.a) / 255.0f,
-										   }};
-
-		const uint32 idx_begin	= _vertex_count_tri;
-		const uint32 indices[3] = {idx_begin, idx_begin + 1, idx_begin + 2};
-		_triangle_vertices.write(vertices, static_cast<size_t>(_vertex_count_tri) * sizeof(vertex_simple), sizeof(vertex_simple) * 3);
-		_triangle_indices.write(indices, idx_begin * sizeof(uint32), sizeof(uint32) * 3);
-		_vertex_count_tri += 3;
+		SFG_ASSERT(_w != nullptr);
+		_w->get_debug_rendering().draw_triangle(from_jph_vec3(inV1), from_jph_vec3(inV2), from_jph_vec3(inV3), color::from255(inColor.r, inColor.g, inColor.b, inColor.a));
 	}
 
 	void physics_debug_renderer::DrawText3D(JPH::RVec3Arg inPosition, const std::string_view& inString, JPH::ColorArg inColor, float inHeight)
@@ -178,6 +127,14 @@ namespace SFG
 				break;
 			}
 		}
+	}
+
+	void physics_debug_renderer::draw(world& w)
+	{
+		JPH::BodyManager::DrawSettings ds = {};
+		ds.mDrawShape					  = true;
+		ds.mDrawVelocity				  = true;
+		w.get_physics_world().get_system()->DrawBodies(ds, this);
 	}
 
 }
