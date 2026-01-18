@@ -43,7 +43,12 @@ namespace SFG
 		m.set_title("audio");
 		m.add_field<&comp_audio::_audio_resource, comp_audio>("resource", reflected_field_type::rf_resource, "", type_id<audio>::value);
 		m.add_field<&comp_audio::_volume, comp_audio>("volume", reflected_field_type::rf_float, "", 0.0f, 1.0f);
+		m.add_field<&comp_audio::_radius_min, comp_audio>("min_radius", reflected_field_type::rf_float, "");
+		m.add_field<&comp_audio::_radius_max, comp_audio>("max_radius", reflected_field_type::rf_float, "");
+		m.add_field<&comp_audio::_rolloff, comp_audio>("rolloff", reflected_field_type::rf_float, "", 0.0f, 1.0f);
+		m.add_field<&comp_audio::_attenuation, comp_audio>("attenuation_style", reflected_field_type::rf_enum, "")->_enum_list = {"none", "inverse", "linear", "exponential"};
 		m.add_field<&comp_audio::_is_looping, comp_audio>("looping", reflected_field_type::rf_bool, "");
+		m.add_field<&comp_audio::_play_on_start, comp_audio>("play_on_start", reflected_field_type::rf_bool, "");
 
 		m.add_function<void, const reflected_field_changed_params&>("on_reflected_changed"_hs, [](const reflected_field_changed_params& params) {
 			comp_audio* c = static_cast<comp_audio*>(params.object_ptr);
@@ -53,6 +58,8 @@ namespace SFG
 				c->set_volume(params.w, c->_volume);
 			else if (params.field_title == "looping"_hs)
 				c->set_looping(params.w, c->_is_looping);
+			else if (params.field_title == "attenuation"_hs || params.field_title == "rolloff"_hs || params.field_title == "min_radius"_hs || params.field_title == "max_radius"_hs)
+				c->set_attenuation_params(params.w, c->_attenuation, c->_radius_min, c->_radius_max, c->_rolloff);
 		});
 
 		m.add_function<void, void*, world&>("on_reflect_load"_hs, [](void* obj, world& w) {
@@ -60,6 +67,7 @@ namespace SFG
 			c->set_audio(w, c->_audio_resource);
 			c->set_volume(w, c->_volume);
 			c->set_looping(w, c->_is_looping);
+			c->set_attenuation_params(w, c->_attenuation, c->_radius_min, c->_radius_max, c->_rolloff);
 		});
 
 		m.add_function<void, void*, vector<resource_handle_and_type>&>("gather_resources"_hs, [](void* obj, vector<resource_handle_and_type>& h) {
@@ -193,9 +201,34 @@ namespace SFG
 		set_sound_params(w, snd);
 	}
 
+	void comp_audio::set_attenuation_params(world& w, sound_attenuation att, float min_radius, float max_radius, float rolloff)
+	{
+		_rolloff	 = rolloff;
+		_radius_min	 = min_radius;
+		_radius_max	 = max_radius;
+		_attenuation = att;
+
+		if (_audio_resource.is_null())
+			return;
+
+		component_manager& cm  = w.get_comp_manager();
+		chunk_allocator32& aux = cm.get_aux();
+		ma_sound*		   snd = aux.get<ma_sound>(_ma_sound);
+		ma_sound_set_spatialization_enabled(snd, _attenuation != sound_attenuation::none);
+		ma_sound_set_min_distance(snd, _radius_min);
+		ma_sound_set_max_distance(snd, _radius_max);
+		ma_sound_set_attenuation_model(snd, static_cast<ma_attenuation_model>(_attenuation));
+		ma_sound_set_rolloff(snd, _rolloff);
+	}
+
 	void comp_audio::set_sound_params(world& w, ma_sound* snd)
 	{
 		ma_sound_set_volume(snd, _volume);
 		ma_sound_set_looping(snd, _is_looping);
+		ma_sound_set_spatialization_enabled(snd, _attenuation != sound_attenuation::none);
+		ma_sound_set_min_distance(snd, _radius_min);
+		ma_sound_set_max_distance(snd, _radius_max);
+		ma_sound_set_attenuation_model(snd, static_cast<ma_attenuation_model>(_attenuation));
+		ma_sound_set_rolloff(snd, _rolloff);
 	}
 }

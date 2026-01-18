@@ -316,6 +316,25 @@ namespace SFG
 			_phy_world.init_simulation();
 		}
 
+		if (mode == play_mode::full)
+		{
+			_comp_manager.view<comp_audio>([&](comp_audio& ad) -> comp_view_result {
+				if (ad.is_play_on_start())
+				{
+					ad.play(*this);
+				}
+				return comp_view_result::cont;
+			});
+		}
+		else if (mode == play_mode::none && _play_mode == play_mode::full)
+		{
+			_comp_manager.view<comp_audio>([&](comp_audio& ad) -> comp_view_result {
+				ad.stop(*this);
+				ad.reset(*this);
+				return comp_view_result::cont;
+			});
+		}
+
 		_play_mode = mode;
 	}
 

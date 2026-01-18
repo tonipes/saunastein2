@@ -111,7 +111,7 @@ namespace SFG
 	bool audio_raw::load_from_cache(const char* cache_folder_path, const char* relative_path, const char* extension)
 	{
 		const string sid_str		 = std::to_string(TO_SID(relative_path));
-		const string relative		 = file_system::get_filename_from_path(relative);
+		const string relative		 = file_system::get_filename_from_path(relative_path);
 		const string meta_cache_path = cache_folder_path + relative + "-" + sid_str + "_meta" + extension;
 		const string data_cache_path = cache_folder_path + relative + "-" + sid_str + "_data" + extension;
 

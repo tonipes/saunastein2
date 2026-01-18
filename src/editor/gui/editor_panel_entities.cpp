@@ -159,7 +159,7 @@ namespace SFG
 		}
 
 		{
-			const float thickness	  = 0.4f;
+			const float thickness	  = 2.0f;
 			const color col_phy		  = color::red;
 			const color col_light	  = color::yellow;
 			const color col_light_alt = color::red;
@@ -179,7 +179,7 @@ namespace SFG
 
 					const vector3 orientation = selected_rot.get_up();
 					if (st == physics_shape_type::box)
-						debug_rendering.draw_box(selected_pos + c.get_offset(), val, orientation, color::red, thickness);
+						debug_rendering.draw_box(selected_pos + c.get_offset(), val, selected_rot.get_forward(), color::red, thickness);
 					else if (st == physics_shape_type::capsule)
 						debug_rendering.draw_capsule(selected_pos + c.get_offset(), val.x * vector2(selected_scale.x, selected_scale.z).magnitude(), val.y * 0.5f * selected_scale.y, orientation, col_phy, thickness);
 					else if (st == physics_shape_type::cylinder)
@@ -194,6 +194,12 @@ namespace SFG
 				}
 				else if (dd.type == debug_draw_type::audio)
 				{
+					const comp_audio& c = cm.get_component<comp_audio>(dd.component);
+					if (c.get_attenuation() != sound_attenuation::none)
+					{
+						debug_rendering.draw_sphere(selected_pos, c.get_radius_min(), col_light_alt, thickness);
+						debug_rendering.draw_sphere(selected_pos, c.get_radius_max(), col_light, thickness);
+					}
 				}
 				else if (dd.type == debug_draw_type::camera)
 				{

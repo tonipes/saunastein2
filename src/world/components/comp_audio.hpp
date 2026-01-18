@@ -39,6 +39,14 @@ namespace SFG
 	class istream;
 	class world;
 
+	enum class sound_attenuation : uint8
+	{
+		none,
+		inverse,
+		linear,
+		exponential,
+	};
+
 	class comp_audio
 	{
 	public:
@@ -63,6 +71,7 @@ namespace SFG
 		void set_volume(world& w, float volume);
 		void set_looping(world& w, uint8 looping);
 		void set_audio(world& w, resource_handle handle);
+		void set_attenuation_params(world& w, sound_attenuation att, float min_radius = 0.0f, float max_radius = 10.0f, float rolloff = 1.0f);
 
 		// -----------------------------------------------------------------------------
 		// accessors
@@ -73,6 +82,30 @@ namespace SFG
 			return _header;
 		}
 
+		inline bool is_play_on_start() const
+		{
+			return _play_on_start;
+		}
+
+		inline float get_radius_min() const
+		{
+			return _radius_min;
+		}
+
+		inline float get_radius_max() const
+		{
+			return _radius_max;
+		}
+
+		inline float get_rolloff() const
+		{
+			return _rolloff;
+		}
+		inline sound_attenuation get_attenuation() const
+		{
+			return _attenuation;
+		}
+
 	private:
 		void set_sound_params(world& w, ma_sound* snd);
 
@@ -80,11 +113,16 @@ namespace SFG
 		template <typename T, int> friend class comp_cache;
 
 	private:
-		component_header _header		 = {};
-		resource_handle	 _audio_resource = {};
-		chunk_handle32	 _ma_sound		 = {};
-		float			 _volume		 = 1.0f;
-		uint8			 _is_looping	 = 0;
+		component_header  _header		  = {};
+		resource_handle	  _audio_resource = {};
+		chunk_handle32	  _ma_sound		  = {};
+		float			  _rolloff		  = 0.0f;
+		float			  _radius_min	  = 0.0f;
+		float			  _radius_max	  = 10.0f;
+		float			  _volume		  = 1.0f;
+		sound_attenuation _attenuation	  = sound_attenuation::none;
+		bool			  _is_looping	  = true;
+		bool			  _play_on_start  = false;
 	};
 
 	REFLECT_TYPE(comp_audio);

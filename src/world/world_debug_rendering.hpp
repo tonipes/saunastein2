@@ -104,7 +104,7 @@ namespace SFG
 
 		void			draw_line(const vector3& p0, const vector3& p1, const color& col, float thickness);
 		void			draw_triangle(const vector3& p0, const vector3& p1, const vector3& p2, const color& col);
-		void			draw_box(const vector3& center, const vector3& half_extents, const vector3& orientation, const color& col, float thickness);
+		void			draw_box(const vector3& center, const vector3& half_extents, const vector3& forward, const color& col, float thickness);
 		void			draw_capsule(const vector3& center, float radius, float half_height, const vector3& direction, const color& col, float thickness, uint32 segments = 64);
 		void			draw_cylinder(const vector3& center, float radius, float half_height, const vector3& direction, const color& col, float thickness, uint32 segments = 64);
 		void			draw_sphere(const vector3& center, float radius, const color& col, float thickness, uint32 segments = 64);

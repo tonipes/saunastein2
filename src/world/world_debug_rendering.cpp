@@ -220,15 +220,17 @@ namespace SFG
 		// push_draw_call(1, start_idx, 3, base_vtx, static_cast<uint16>(sizeof(vertex_simple)));
 	}
 
-	void world_debug_rendering::draw_box(const vector3& center, const vector3& half_extents, const vector3& orientation, const color& col, float thickness)
+	void world_debug_rendering::draw_box(const vector3& center, const vector3& half_extents, const vector3& forward, const color& col, float thickness)
 	{
-		// 8 corners (oriented)
-		vector3 axis0, axis1, normal;
-		make_basis(orientation, axis0, axis1, normal);
+		const vector3 dir	 = normalized_or_up(forward);
+		const float	  dot_up = math::abs(vector3::dot(dir, vector3::up));
+		const vector3 ref	 = dot_up > 0.99f ? vector3::right : vector3::up;
+		const vector3 right	 = vector3::cross(ref, dir).normalized();
+		const vector3 up	 = vector3::cross(dir, right).normalized();
 
-		const vector3 x = axis0 * half_extents.x;
-		const vector3 y = normal * half_extents.y;
-		const vector3 z = axis1 * half_extents.z;
+		const vector3 x = right * half_extents.x;
+		const vector3 y = up * half_extents.y;
+		const vector3 z = dir * half_extents.z;
 
 		const vector3 c[8] = {
 			center - x - y - z, // 0
@@ -479,6 +481,11 @@ namespace SFG
 		const vector3 f1 = far_center - (axis0 * far_half_w) + (axis1 * far_half_h);
 		const vector3 f2 = far_center - (axis0 * far_half_w) - (axis1 * far_half_h);
 		const vector3 f3 = far_center + (axis0 * far_half_w) - (axis1 * far_half_h);
+
+		draw_line(origin, n1, col, thickness);
+		draw_line(origin, n2, col, thickness);
+		draw_line(origin, n3, col, thickness);
+		draw_line(origin, n0, col, thickness);
 
 		draw_line(n0, n1, col, thickness);
 		draw_line(n1, n2, col, thickness);
