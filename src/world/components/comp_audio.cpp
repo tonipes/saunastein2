@@ -45,10 +45,11 @@ namespace SFG
 		m.add_field<&comp_audio::_volume, comp_audio>("volume", reflected_field_type::rf_float, "", 0.0f, 1.0f);
 		m.add_field<&comp_audio::_radius_min, comp_audio>("min_radius", reflected_field_type::rf_float, "");
 		m.add_field<&comp_audio::_radius_max, comp_audio>("max_radius", reflected_field_type::rf_float, "");
-		m.add_field<&comp_audio::_rolloff, comp_audio>("rolloff", reflected_field_type::rf_float, "", 0.0f, 1.0f);
-		m.add_field<&comp_audio::_attenuation, comp_audio>("attenuation_style", reflected_field_type::rf_enum, "")->_enum_list = {"none", "inverse", "linear", "exponential"};
+		m.add_field<&comp_audio::_rolloff, comp_audio>("rolloff", reflected_field_type::rf_float, "");
+		m.add_field<&comp_audio::_attenuation, comp_audio>("attenuation", reflected_field_type::rf_enum, "")->_enum_list = {"none", "inverse", "linear", "exponential"};
 		m.add_field<&comp_audio::_is_looping, comp_audio>("looping", reflected_field_type::rf_bool, "");
 		m.add_field<&comp_audio::_play_on_start, comp_audio>("play_on_start", reflected_field_type::rf_bool, "");
+		m.add_control_button("test_play", "play this audio once");
 
 		m.add_function<void, const reflected_field_changed_params&>("on_reflected_changed"_hs, [](const reflected_field_changed_params& params) {
 			comp_audio* c = static_cast<comp_audio*>(params.object_ptr);
@@ -73,6 +74,12 @@ namespace SFG
 		m.add_function<void, void*, vector<resource_handle_and_type>&>("gather_resources"_hs, [](void* obj, vector<resource_handle_and_type>& h) {
 			comp_audio* c = static_cast<comp_audio*>(obj);
 			h.push_back({.handle = c->_audio_resource, .type_id = type_id<audio>::value});
+		});
+
+		m.add_function<void, const reflected_button_params&>("on_button"_hs, [](const reflected_button_params& params) {
+			comp_audio* c = static_cast<comp_audio*>(params.object_ptr);
+			if (params.button_id == "test_play"_hs)
+				c->toggle_play(params.w);
 		});
 	}
 
@@ -119,6 +126,21 @@ namespace SFG
 		ma_sound*		   snd = aux.get<ma_sound>(_ma_sound);
 
 		ma_sound_start(snd);
+	}
+
+	void comp_audio::toggle_play(world& w)
+	{
+		if (_audio_resource.is_null())
+			return;
+
+		component_manager& cm  = w.get_comp_manager();
+		chunk_allocator32& aux = cm.get_aux();
+		ma_sound*		   snd = aux.get<ma_sound>(_ma_sound);
+
+		if (ma_sound_is_playing(snd))
+			ma_sound_stop(snd);
+		else
+			ma_sound_start(snd);
 	}
 
 	void comp_audio::stop(world& w)
@@ -219,6 +241,17 @@ namespace SFG
 		ma_sound_set_max_distance(snd, _radius_max);
 		ma_sound_set_attenuation_model(snd, static_cast<ma_attenuation_model>(_attenuation));
 		ma_sound_set_rolloff(snd, _rolloff);
+	}
+
+	void comp_audio::set_audio_position(world& w, const vector3& p)
+	{
+		if (_audio_resource.is_null())
+			return;
+
+		component_manager& cm  = w.get_comp_manager();
+		chunk_allocator32& aux = cm.get_aux();
+		ma_sound*		   snd = aux.get<ma_sound>(_ma_sound);
+		ma_sound_set_position(snd, p.x, p.y, p.z);
 	}
 
 	void comp_audio::set_sound_params(world& w, ma_sound* snd)

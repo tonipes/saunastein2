@@ -72,6 +72,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "components/comp_animation_controller.hpp"
 #include "components/comp_particle_emitter.hpp"
 
+#include <vendor/miniaudio/miniaudio.h>
 #include <tracy/Tracy.hpp>
 
 namespace SFG
@@ -199,10 +200,23 @@ namespace SFG
 		if (_play_mode != play_mode::none)
 			_phy_world.simulate(dt);
 
-		_comp_manager.view<comp_canvas>([&](comp_canvas& cnv) -> comp_view_result {
-			cnv.draw(*this, res);
-			return comp_view_result::cont;
-		});
+		auto& canvases = _comp_manager.underlying_pool<comp_cache<comp_canvas, MAX_WORLD_COMP_CANVAS>, comp_canvas>();
+		for (comp_canvas& c : canvases)
+			c.draw(*this, res);
+
+		auto& audios = _comp_manager.underlying_pool<comp_cache<comp_audio, MAX_WORLD_COMP_AUDIO>, comp_audio>();
+		for (comp_audio& c : audios)
+		{
+			if (c.get_attenuation() != sound_attenuation::none)
+				c.set_audio_position(*this, _entity_manager.get_entity_position_abs(c.get_header().entity));
+		}
+
+		const world_handle mc = _entity_manager.get_main_camera_entity();
+		if (!mc.is_null())
+		{
+			const vector3 p = _entity_manager.get_entity_position_abs(mc);
+			ma_engine_listener_set_position(_audio_manager.get_engine(), 0, p.x, p.y, p.z);
+		}
 	}
 
 	void world::begin_debug_tick(const vector2ui16& res)
@@ -321,6 +335,7 @@ namespace SFG
 			_comp_manager.view<comp_audio>([&](comp_audio& ad) -> comp_view_result {
 				if (ad.is_play_on_start())
 				{
+					ad.reset(*this);
 					ad.play(*this);
 				}
 				return comp_view_result::cont;

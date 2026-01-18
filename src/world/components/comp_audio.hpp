@@ -38,6 +38,7 @@ namespace SFG
 	class ostream;
 	class istream;
 	class world;
+	class vector3;
 
 	enum class sound_attenuation : uint8
 	{
@@ -66,12 +67,14 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 
 		void play(world& w);
+		void toggle_play(world& w);
 		void stop(world& w);
 		void reset(world& w);
 		void set_volume(world& w, float volume);
 		void set_looping(world& w, uint8 looping);
 		void set_audio(world& w, resource_handle handle);
 		void set_attenuation_params(world& w, sound_attenuation att, float min_radius = 0.0f, float max_radius = 10.0f, float rolloff = 1.0f);
+		void set_audio_position(world& w, const vector3& p);
 
 		// -----------------------------------------------------------------------------
 		// accessors

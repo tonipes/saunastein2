@@ -605,6 +605,7 @@ namespace SFG
 		_resources.reserve(256);
 		_dropdowns.reserve(128);
 		_reflected.reserve(256);
+		_control_buttons.reserve(128);
 
 		const id w = _builder->allocate();
 
@@ -643,6 +644,8 @@ namespace SFG
 		_dropdowns.resize(0);
 		_checkboxes.resize(0);
 		_text_fields.resize(0);
+		_reflected.resize(0);
+		_control_buttons.resize(0);
 		_builder->deallocate(_root);
 		_root = NULL_WIDGET_ID;
 	}
@@ -704,6 +707,17 @@ namespace SFG
 		}
 	}
 
+	bool gui_builder::invoke_control_button(vekt::id widget)
+	{
+		auto it = vector_util::find_if(_control_buttons, [widget](const control_button_binding& b) -> bool { return b.widget == widget; });
+		if (it == _control_buttons.end())
+			return false;
+
+		if (callbacks.on_control_button)
+			callbacks.on_control_button(callbacks.callback_ud, it->obj, it->type, it->button_id);
+		return true;
+	}
+
 	void gui_builder::remove_impl(vekt::id id)
 	{
 		auto it_res = std::find_if(_resources.begin(), _resources.end(), [id](const gui_resource& it) -> bool { return it.widget == id; });
@@ -711,9 +725,13 @@ namespace SFG
 		auto it_c	= std::find_if(_checkboxes.begin(), _checkboxes.end(), [id](const gui_checkbox& it) -> bool { return it.widget == id; });
 		auto it_dd	= std::find_if(_dropdowns.begin(), _dropdowns.end(), [id](const gui_dropdown& it) -> bool { return it.widget == id; });
 		auto it_r	= std::find_if(_reflected.begin(), _reflected.end(), [id](const reflected_property& it) -> bool { return it.widget == id; });
+		auto it_b	= std::find_if(_control_buttons.begin(), _control_buttons.end(), [id](const control_button_binding& it) -> bool { return it.widget == id; });
 
 		if (it_r != _reflected.end())
 			_reflected.erase(it_r);
+
+		if (it_b != _control_buttons.end())
+			_control_buttons.erase(it_b);
 
 		if (it_res != _resources.end())
 			_resources.erase(it_res);
@@ -1146,6 +1164,13 @@ namespace SFG
 		SFG_ASSERT(false);
 
 		return 0;
+	}
+
+	vekt::id gui_builder::add_control_button(const char* title, string_id type_id, void* object_ptr, string_id button_id)
+	{
+		const id_pair ids = add_button(title);
+		_control_buttons.push_back({.obj = object_ptr, .type = type_id, .button_id = button_id, .widget = ids.first});
+		return ids.first;
 	}
 
 	gui_builder::id_pair gui_builder::add_property_row_label(const char* label, const char* text, size_t buffer_capacity)
@@ -1671,6 +1696,9 @@ namespace SFG
 			pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_y_relative | pos_flags::pf_x_anchor_center | pos_flags::pf_y_anchor_center;
 			pp.pos.x	  = 0.5f;
 			pp.pos.y	  = 0.5f;
+
+			widget_gfx& gfx = _builder->widget_get_gfx(txt);
+			gfx.draw_order	= _draw_order + 1;
 		}
 
 		pop_stack();

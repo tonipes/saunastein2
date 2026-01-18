@@ -219,7 +219,6 @@ namespace SFG
 		world_debug_rendering _debug_rendering = {};
 
 		vector<atlas_data>	 _vekt_atlases = {};
-		ma_engine*			 _sound_engine = nullptr;
 		render_event_stream& _render_stream;
 
 		bitmask<uint8> _flags	  = 0;

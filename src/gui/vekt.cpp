@@ -696,7 +696,7 @@ namespace vekt
 		for (id child : current.children)
 		{
 			size_props& sz = _size_properties[child];
-			if (!pushed && sz.flags & size_flags::sf_x_fill || sz.flags & size_flags::sf_y_fill)
+			if (!pushed && (sz.flags & size_flags::sf_x_fill || sz.flags & size_flags::sf_y_fill))
 			{
 				_depth_first_fill_parents.push_back(current_widget_id);
 				pushed = false;

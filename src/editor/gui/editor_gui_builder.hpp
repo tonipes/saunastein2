@@ -60,6 +60,7 @@ namespace SFG
 		typedef void (*checkbox_fn)(void* callback_ud, vekt::builder* b, vekt::id id, unsigned char value);
 		typedef void (*resource_fn)(void* callback_ud, vekt::builder* b, vekt::id id, const string& value);
 		typedef void (*dropdown_fn)(void* callback_ud, vekt::builder* b, vekt::id dropdown_widget, unsigned int index);
+		typedef void (*control_button_fn)(void* callback_ud, void* object_ptr, string_id type_id, string_id button_id);
 
 		struct gui_builder_callbacks
 		{
@@ -71,6 +72,7 @@ namespace SFG
 			checkbox_fn		 on_checkbox_changed	= nullptr;
 			resource_fn		 on_resource_changed	= nullptr;
 			dropdown_fn		 on_dropdown_item		= nullptr;
+			control_button_fn on_control_button		= nullptr;
 		};
 
 		struct id_pair
@@ -173,6 +175,14 @@ namespace SFG
 			unsigned int list_index = 0;
 		};
 
+		struct control_button_binding
+		{
+			void*	 obj		  = nullptr;
+			string_id type		  = 0;
+			string_id button_id	  = 0;
+			vekt::id	 widget		  = 0;
+		};
+
 		gui_builder_callbacks callbacks = {};
 
 		// -----------------------------------------------------------------------------
@@ -197,6 +207,7 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 
 		vekt::id add_reflected_field(field_base* field, string_id type_id, void* object_ptr);
+		vekt::id add_control_button(const char* title, string_id type_id, void* object_ptr, string_id button_id);
 
 		id_pair	 add_property_row_label(const char* label, const char* label2, size_t buffer_capacity = 0);
 		vekt::id add_property_single_label(const char* label, size_t buffer_capacity = 0);
@@ -254,6 +265,7 @@ namespace SFG
 		void	 text_field_edit_complete(gui_text_field& tf);
 		void	 set_checkbox_value(vekt::id id, unsigned char value);
 		void	 set_widget_enabled(vekt::id id, bool enabled, const vector4& enabled_col, const vector4& disabled_col);
+		bool	 invoke_control_button(vekt::id widget);
 
 		// -----------------------------------------------------------------------------
 		// accessors
@@ -308,6 +320,7 @@ namespace SFG
 		};
 		vector<dropdown_ctx_binding> _dropdown_ctx_bindings = {};
 		vector<reflected_property>	 _reflected				= {};
+		vector<control_button_binding> _control_buttons		= {};
 		vekt::id					 _stack[STACK_SIZE]		= {NULL_WIDGET_ID};
 		vekt::id					 _root					= NULL_WIDGET_ID;
 		vekt::id					 _stack_ptr				= 0;

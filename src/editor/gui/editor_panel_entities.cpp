@@ -82,6 +82,7 @@ namespace SFG
 		_gui_builder.callbacks.on_input_field_changed = on_input_field_changed;
 		_gui_builder.callbacks.on_mouse				  = on_mouse;
 		_gui_builder.callbacks.on_checkbox_changed	  = on_checkbox;
+		_gui_builder.callbacks.on_control_button	  = invoke_button;
 
 		_gui_builder.add_title("entities");
 		_entity_area													 = _gui_builder.begin_area(true);
@@ -304,15 +305,34 @@ namespace SFG
 		const entity_comp_register& cr = em.get_component_register(_selected_entity);
 		for (const entity_comp& c : cr.comps)
 		{
-			const meta&				   m	  = reflection::get().resolve(c.comp_type);
-			const meta::field_vec&	   fields = m.get_fields();
-			const gui_builder::id_pair pair	  = _gui_builder.add_component_title(m.get_title().c_str());
+			const meta&				   m		= reflection::get().resolve(c.comp_type);
+			const meta::field_vec&	   fields	= m.get_fields();
+			void*					   comp_ptr = cm.get_component(c.comp_type, c.comp_handle);
+			const gui_builder::id_pair pair		= _gui_builder.add_component_title(m.get_title().c_str());
 			_comp_remove_buttons.push_back({c.comp_handle, pair.second, c.comp_type});
 
 			for (field_base* f : fields)
 			{
-				_gui_builder.add_reflected_field(f, c.comp_type, cm.get_component(c.comp_type, c.comp_handle));
+				_gui_builder.add_reflected_field(f, c.comp_type, comp_ptr);
 			}
+
+			const meta::button_vec& controls = m.get_control_buttons();
+
+			if (!controls.empty())
+			{
+				const vekt::id id								  = _gui_builder.add_property_row();
+				_builder->widget_get_size_props(id).child_margins = {0.0f, 0.0f, editor_theme::get().inner_margin, editor_theme::get().outer_margin};
+			}
+
+			for (const control_button& button : controls)
+			{
+				_gui_builder.set_fill_x(_gui_builder.add_control_button(button.title.c_str(), c.comp_type, comp_ptr, button.sid));
+
+				_builder->build_hierarchy();
+			}
+
+			if (!controls.empty())
+				_gui_builder.pop_stack();
 
 			if (c.comp_type == type_id<comp_physics>::value)
 			{
@@ -753,9 +773,32 @@ namespace SFG
 		}
 	}
 
+	void editor_panel_entities::invoke_button(void* callback_ud, void* object_ptr, string_id type_id, string_id button_id)
+	{
+		if (object_ptr == nullptr || type_id == 0 || button_id == 0)
+			return;
+
+		meta& m = reflection::get().resolve(type_id);
+		if (!m.has_function("on_button"_hs))
+			return;
+
+		const reflected_button_params params = {
+			.w			= editor::get().get_app().get_world(),
+			.object_ptr = object_ptr,
+			.button_id	= button_id,
+		};
+		m.invoke_function<void, const reflected_button_params&>("on_button"_hs, params);
+	}
+
 	vekt::input_event_result editor_panel_entities::on_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase)
 	{
 		editor_panel_entities* self = static_cast<editor_panel_entities*>(b->widget_get_user_data(widget).ptr);
+
+		if (ev.type == vekt::input_event_type::pressed && ev.button == static_cast<uint16>(input_code::mouse_0))
+		{
+			if (self->_gui_builder.invoke_control_button(widget))
+				return vekt::input_event_result::handled;
+		}
 
 		if (ev.type == vekt::input_event_type::pressed && !self->_selected_entity.is_null() && !self->_add_component_buttons.empty())
 		{

@@ -154,11 +154,19 @@ namespace SFG
 		}
 	};
 
+	struct control_button
+	{
+		malloc_string title	  = "";
+		malloc_string tooltip = "";
+		string_id	  sid	  = 0;
+	};
+
 	class meta
 	{
 	public:
 		typedef phmap::flat_hash_map<string_id, reflection_function_base*, phmap::priv::hash_default_hash<string_id>, phmap::priv::hash_default_eq<string_id>, malloc_allocator_map<string_id>> alloc_map;
 		typedef vector<field_base*, malloc_allocator_stl<field_base*>>																															field_vec;
+		typedef vector<control_button, malloc_allocator_stl<control_button>>																													button_vec;
 
 		template <auto DATA, typename Class> field_base* add_field(const string& title, reflected_field_type type, const string& tooltip, float min, float max, string_id sub_type_id = 0, uint8 is_list = 0, uint8 no_ui = 0)
 		{
@@ -199,6 +207,11 @@ namespace SFG
 			f->_no_ui		= no_ui;
 			_fields.push_back(f);
 			return f;
+		}
+
+		void add_control_button(const string& title, const string& tooltip)
+		{
+			_control_buttons.push_back({.title = title.c_str(), .tooltip = tooltip.c_str(), .sid = TO_SID(title)});
 		}
 
 		template <typename RetVal, typename... Args, typename F> meta& add_function(string_id id, F&& f)
@@ -277,6 +290,11 @@ namespace SFG
 			return _title;
 		}
 
+		inline const button_vec& get_control_buttons() const
+		{
+			return _control_buttons;
+		}
+
 	private:
 		friend class reflection;
 
@@ -297,11 +315,12 @@ namespace SFG
 	private:
 		alloc_map	  _functions;
 		field_vec	  _fields;
-		malloc_string _title	  = "";
-		malloc_string _tag_str	  = "";
-		string_id	  _type_id	  = 0;
-		string_id	  _tag		  = 0;
-		uint32		  _type_index = 0;
+		button_vec	  _control_buttons = {};
+		malloc_string _title		   = "";
+		malloc_string _tag_str		   = "";
+		string_id	  _type_id		   = 0;
+		string_id	  _tag			   = 0;
+		uint32		  _type_index	   = 0;
 	};
 
 	class reflection
