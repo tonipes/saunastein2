@@ -40,6 +40,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "world/components/comp_mesh_instance.hpp"
 #include "world/components/comp_animation_controller.hpp"
 #include "world/components/comp_light.hpp"
+#include "world/components/comp_physics.hpp"
 
 // resources
 #include "resources/resource_manager.hpp"
@@ -57,6 +58,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "game/app_defines.hpp"
 #include "reflection/reflection.hpp"
 
+#include <Jolt/Jolt.h>
+#include <Jolt/Physics/Body/Body.h>
 #include <tracy/Tracy.hpp>
 
 namespace SFG
@@ -474,6 +477,10 @@ namespace SFG
 
 		component_manager&			cm	= _world.get_comp_manager();
 		const entity_comp_register& reg = _comp_registers->get(source.index);
+
+		const play_mode pm = _world.get_playmode();
+		physics_world&	pw = _world.get_physics_world();
+
 		for (const entity_comp& c : reg.comps)
 		{
 			void*			   source_ptr = cm.get_component(c.comp_type, c.comp_handle);
@@ -517,6 +524,12 @@ namespace SFG
 					SFG_MEMCPY(dest, val, f->get_type_size());
 
 				m.invoke_function<void, void*, world&>("on_reflect_load"_hs, dst_ptr, _world);
+			}
+
+			if (pm != play_mode::none && c.comp_type == type_id<comp_physics>::value)
+			{
+				comp_physics& phy = cm.get_component<comp_physics>(c.comp_handle);
+				pw.add_body_to_world(*phy.create_body(_world));
 			}
 		}
 
@@ -1112,6 +1125,31 @@ namespace SFG
 
 		istream stream(raw.component_buffer.get_raw(), raw.component_buffer.get_size());
 		entity_template_utils::fill_components_from_buffer(stream, created, cm, rm, _world);
+
+		// add physicals
+		if (_world.get_playmode() != play_mode::none)
+		{
+			component_manager& cm = _world.get_comp_manager();
+
+			static vector<JPH::BodyID> bodies;
+			bodies.resize(0);
+
+			for (world_handle h : created)
+			{
+				entity_comp_register& reg = _comp_registers->get(h.index);
+				for (const entity_comp& c : reg.comps)
+				{
+					if (c.comp_type != type_id<comp_physics>::value)
+						continue;
+
+					comp_physics& phy = cm.get_component<comp_physics>(c.comp_handle);
+					bodies.push_back(phy.create_body(_world)->GetID());
+				}
+			}
+
+			if (!bodies.empty())
+				_world.get_physics_world().add_bodies_to_world(bodies.data(), static_cast<uint32>(bodies.size()));
+		}
 
 		const world_handle root = created.empty() ? world_handle() : created[0];
 		return root;

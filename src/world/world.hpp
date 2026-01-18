@@ -104,6 +104,11 @@ namespace SFG
 		// accessors
 		// -----------------------------------------------------------------------------
 
+		inline play_mode get_playmode() const
+		{
+			return _play_mode;
+		}
+
 		inline world_debug_rendering& get_debug_rendering()
 		{
 			return _debug_rendering;
