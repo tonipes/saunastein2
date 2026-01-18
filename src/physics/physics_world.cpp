@@ -100,14 +100,13 @@ namespace SFG
 		_allocator	= new JPH::TempAllocatorImpl(10 * 1024 * 1024);
 		_job_system = new JPH::JobSystemThreadPool(JPH::cMaxPhysicsJobs, JPH::cMaxPhysicsBarriers, JPH::thread::hardware_concurrency() - 1);
 
-		set_gravity(vector3(0.0f, -9.81f, 0.0f));
-		_added_bodies.reserve(MAX_ENTITIES);
-
 		const uint32 cMaxBodies				= 1024;
 		const uint32 cNumBodyMutexes		= 0;
 		const uint32 cMaxBodyPairs			= 1024;
 		const uint32 cMaxContactConstraints = 1024;
 		_system->Init(cMaxBodies, cNumBodyMutexes, cMaxBodyPairs, cMaxContactConstraints, _bp_layer_interface, _object_bp_layer_filter, _layer_filter);
+		set_gravity(vector3(0.0f, -9.81f, 0.0f));
+		_added_bodies.reserve(MAX_ENTITIES);
 	}
 
 	void physics_world::uninit()
@@ -127,29 +126,17 @@ namespace SFG
 
 	void physics_world::init_simulation()
 	{
-
 		static vector<JPH::BodyID> reuse_body_ids;
 		reuse_body_ids.resize(0);
 
 		component_manager& cm = _game_world.get_comp_manager();
 		cm.view<comp_physics>([this](comp_physics& c) -> comp_view_result {
-			JPH::Body* body = c.get_body();
+			SFG_ASSERT(c.get_body() == nullptr);
 
-			if (body == nullptr)
-			{
-				c.create_body(_game_world);
-				body = c.get_body();
-			}
+			JPH::Body* body = c.create_body(_game_world);
 
-			bitmask<uint8>& flags = c.get_flags();
-
-			if (!flags.is_set(comp_physics::flags::comp_physics_flags_in_sim))
-			{
-				flags.set(comp_physics::flags::comp_physics_flags_in_sim);
-				reuse_body_ids.push_back(body->GetID());
-			}
-			// reuse_body_ids.push_back(body->GetID());
-
+			c.set_is_in_simulation(true);
+			reuse_body_ids.push_back(body->GetID());
 			return comp_view_result::cont;
 		});
 
@@ -161,14 +148,25 @@ namespace SFG
 
 	void physics_world::uninit_simulation()
 	{
-		JPH::BodyInterface& body_interface = _system->GetBodyInterface();
-
+		JPH::BodyInterface&		   body_interface = _system->GetBodyInterface();
 		static vector<JPH::BodyID> reuse_body_ids;
 		reuse_body_ids.resize(0);
-		for (uint32 id : _added_bodies)
-			reuse_body_ids.push_back(JPH::BodyID(id));
-		body_interface.RemoveBodies(reuse_body_ids.data(), static_cast<int32>(reuse_body_ids.size()));
-		_added_bodies.resize(0);
+
+		component_manager& cm = _game_world.get_comp_manager();
+		cm.view<comp_physics>([this](comp_physics& c) -> comp_view_result {
+			JPH::Body* body = c.get_body();
+			SFG_ASSERT(body != nullptr);
+			reuse_body_ids.push_back(body->GetID());
+			return comp_view_result::cont;
+		});
+
+		if (!reuse_body_ids.empty())
+			body_interface.RemoveBodies(reuse_body_ids.data(), static_cast<int32>(reuse_body_ids.size()));
+
+		cm.view<comp_physics>([this](comp_physics& c) -> comp_view_result {
+			c.destroy_body(_game_world);
+			return comp_view_result::cont;
+		});
 	}
 
 	void physics_world::simulate(float rate)
@@ -196,7 +194,7 @@ namespace SFG
 			SFG_ASSERT(body != nullptr);
 
 			const world_handle e_handle = trait.get_header().entity;
-			em.set_entity_position_abs(e_handle, from_jph_vec3(body->GetPosition()));
+			em.set_entity_position_abs(e_handle, from_jph_vec3(body->GetPosition()) - trait.get_offset());
 			em.set_entity_rotation_abs(e_handle, from_jph_quat(body->GetRotation()));
 			return comp_view_result::cont;
 		});
@@ -214,6 +212,7 @@ namespace SFG
 
 	void physics_world::add_body_to_world(const JPH::Body& body)
 	{
+		SFG_ASSERT(false);
 		JPH::BodyID jph_id = body.GetID();
 		add_bodies_to_world(&jph_id, 1);
 	}
@@ -221,7 +220,11 @@ namespace SFG
 	void physics_world::remove_body_from_world(const JPH::Body& body)
 	{
 		const uint32 body_id = body.GetID().GetIndexAndSequenceNumber();
-		_added_bodies.erase(std::find_if(_added_bodies.begin(), _added_bodies.end(), [body_id](uint32 id) -> bool { return id == body_id; }));
+		auto		 it		 = std::find_if(_added_bodies.begin(), _added_bodies.end(), [body_id](uint32 id) -> bool { return id == body_id; });
+		if (it == _added_bodies.end())
+			return;
+
+		_added_bodies.erase(it);
 		JPH::BodyInterface& body_interface = _system->GetBodyInterface();
 		body_interface.RemoveBody(body.GetID());
 	}

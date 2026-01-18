@@ -370,12 +370,12 @@ namespace SFG
 #else
 			_game->tick();
 #endif
+			_renderer->tick();
 
 			_world->end_debug_tick();
 
 			// pipeline render events.
 			_render_stream.publish();
-			_renderer->tick();
 			frame_info::s_frame.fetch_add(1);
 		}
 	}

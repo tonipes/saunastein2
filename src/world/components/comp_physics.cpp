@@ -50,19 +50,19 @@ namespace SFG
 		m.add_field<&comp_physics::_material_handle, comp_physics>("material", reflected_field_type::rf_resource, "", type_id<physical_material>::value);
 
 		m.add_function<void, const reflected_field_changed_params&>("on_reflected_changed"_hs, [](const reflected_field_changed_params& params) {
-			comp_physics* c		   = static_cast<comp_physics*>(params.object_ptr);
-			const bool	  had_body = (c->_body != nullptr);
-
-			if (had_body)
-				c->destroy_body(params.w);
-
-			c->create_body(params.w);
+			// comp_physics* c		   = static_cast<comp_physics*>(params.object_ptr);
+			// const bool	  had_body = (c->_body != nullptr);
+			//
+			// if (had_body)
+			// 	c->destroy_body(params.w);
+			//
+			// c->create_body(params.w);
 		});
 
 		m.add_function<void, void*, world&>("on_reflect_load"_hs, [](void* obj, world& w) {
-			comp_physics* c = static_cast<comp_physics*>(obj);
-			if (c->_body == nullptr)
-				c->create_body(w);
+			// comp_physics* c = static_cast<comp_physics*>(obj);
+			// if (c->_body == nullptr)
+			//	c->create_body(w);
 		});
 
 		m.add_function<void, void*, vector<resource_handle_and_type>&>("gather_resources"_hs, [](void* obj, vector<resource_handle_and_type>& h) {
@@ -96,7 +96,7 @@ namespace SFG
 	{
 	}
 
-	void comp_physics::create_body(world& w)
+	JPH::Body* comp_physics::create_body(world& w)
 	{
 		SFG_ASSERT(_body == nullptr);
 
@@ -111,6 +111,7 @@ namespace SFG
 		const vector3	scale = em.get_entity_scale_abs(_header.entity);
 		const quat		rot	  = em.get_entity_rotation_abs(_header.entity);
 		_body				  = phy_world.create_body(_body_type, _shape_type, extent, _material_handle, pos, rot, scale);
+		return _body;
 	}
 
 	void comp_physics::destroy_body(world& w)

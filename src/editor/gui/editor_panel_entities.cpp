@@ -152,6 +152,12 @@ namespace SFG
 		entity_manager&	   em = w.get_entity_manager();
 		component_manager& cm = w.get_comp_manager();
 
+		if (em.get_hierarchy_dirty())
+		{
+			rebuild_tree(w);
+			em.set_hierarchy_dirty(0);
+		}
+
 		{
 			const float thickness	  = 0.4f;
 			const color col_phy		  = color::red;
@@ -171,7 +177,7 @@ namespace SFG
 					const vector3&			 val = c.get_extent_or_height_radius();
 
 					if (st == physics_shape_type::box)
-						debug_rendering.draw_box(selected_pos + c.get_offset(), val * 0.5f, color::red, thickness);
+						debug_rendering.draw_box(selected_pos + c.get_offset(), val, color::red, thickness);
 					else if (st == physics_shape_type::capsule)
 						debug_rendering.draw_capsule(selected_pos + c.get_offset(), val.y, val.x, col_phy, thickness);
 					else if (st == physics_shape_type::cylinder)
@@ -202,12 +208,6 @@ namespace SFG
 					debug_rendering.draw_oriented_cone(selected_pos, selected_rot.get_forward(), c.get_range(), c.get_outer_cone(), col_light, thickness, 24);
 				}
 			}
-		}
-
-		if (em.get_hierarchy_dirty())
-		{
-			rebuild_tree(w);
-			em.set_hierarchy_dirty(0);
 		}
 
 		const world_handle	 selected = _selected_entity;

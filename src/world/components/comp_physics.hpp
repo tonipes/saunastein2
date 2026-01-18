@@ -67,8 +67,8 @@ namespace SFG
 		// impl
 		// -----------------------------------------------------------------------------
 
-		void create_body(world& w);
-		void destroy_body(world& w);
+		JPH::Body* create_body(world& w);
+		void	   destroy_body(world& w);
 
 		void add_to_simulation(world& w);
 		void remove_from_simulation(world& w);
@@ -141,6 +141,11 @@ namespace SFG
 		inline bitmask<uint8>& get_flags()
 		{
 			return _flags;
+		}
+
+		inline void set_is_in_simulation(bool is_in)
+		{
+			_flags.set(flags::comp_physics_flags_in_sim, is_in);
 		}
 
 	private:

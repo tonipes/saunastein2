@@ -532,9 +532,9 @@ namespace SFG
 			return;
 
 		world& w = _app.get_world();
+
 		_app.get_gameplay().on_world_end(w);
 		w.set_playmode(play_mode::none);
-
 		w.create_from_loader(_playmode_backup, true);
 
 		_camera_controller.activate();
