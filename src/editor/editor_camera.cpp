@@ -58,7 +58,8 @@ namespace SFG
 		entity_manager&	   em = w.get_entity_manager();
 		component_manager& cm = w.get_comp_manager();
 
-		_entity		  = em.create_entity("editor_camera");
+		_entity = em.create_entity("editor_camera");
+
 		_camera_trait = cm.add_component<comp_camera>(_entity);
 		em.set_entity_transient(_entity, true);
 

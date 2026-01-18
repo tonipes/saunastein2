@@ -157,6 +157,7 @@ namespace SFG
 			JPH::Body* body = c.get_body();
 			SFG_ASSERT(body != nullptr);
 			reuse_body_ids.push_back(body->GetID());
+			c.set_is_in_simulation(false);
 			return comp_view_result::cont;
 		});
 
@@ -270,7 +271,7 @@ namespace SFG
 		}
 		else if (shape == physics_shape_type::cylinder)
 		{
-			JPH::CylinderShapeSettings cylinderShapeSettings(extents_or_height_radius.x * 0.5f, extents_or_height_radius.y);
+			JPH::CylinderShapeSettings cylinderShapeSettings(extents_or_height_radius.x, extents_or_height_radius.y);
 			shape_ref = cylinderShapeSettings.Create().Get();
 		}
 		else if (shape == physics_shape_type::plane)

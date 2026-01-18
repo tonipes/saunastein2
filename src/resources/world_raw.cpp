@@ -147,9 +147,11 @@ namespace SFG
 			const auto& entities = em.get_entities();
 			for (auto it = entities->handles_begin(); it != entities->handles_end(); ++it)
 			{
-				const world_handle	 h = *it;
-				const entity_family& f = em.get_entity_family(h);
-				if (f.parent.is_null())
+				const world_handle	 h			  = *it;
+				const entity_family& f			  = em.get_entity_family(h);
+				const bool			 is_transient = em.get_entity_flags(h).is_set(entity_flags::entity_flags_no_save);
+
+				if (f.parent.is_null() && !is_transient)
 					roots.push_back(h);
 			}
 		}

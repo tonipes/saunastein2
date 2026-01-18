@@ -31,6 +31,7 @@ namespace SFG
 {
 	void gameplay::on_world_begin(world& w)
 	{
+		return;
 		entity_manager&	   em = w.get_entity_manager();
 		component_manager& cm = w.get_comp_manager();
 

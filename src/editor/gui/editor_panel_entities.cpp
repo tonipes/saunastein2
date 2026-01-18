@@ -179,14 +179,14 @@ namespace SFG
 					if (st == physics_shape_type::box)
 						debug_rendering.draw_box(selected_pos + c.get_offset(), val, color::red, thickness);
 					else if (st == physics_shape_type::capsule)
-						debug_rendering.draw_capsule(selected_pos + c.get_offset(), val.y, val.x, col_phy, thickness);
+						debug_rendering.draw_capsule(selected_pos + c.get_offset(), val.y, val.x * 0.5f, col_phy, thickness);
 					else if (st == physics_shape_type::cylinder)
-						debug_rendering.draw_capsule(selected_pos + c.get_offset(), val.y, val.x, col_phy, thickness);
+						debug_rendering.draw_capsule(selected_pos + c.get_offset(), val.y, val.x * 0.25f, col_phy, thickness);
 					else if (st == physics_shape_type::mesh)
 					{
 					}
 					else if (st == physics_shape_type::sphere)
-						debug_rendering.draw_sphere(selected_pos + c.get_offset(), val.x, col_phy, thickness);
+						debug_rendering.draw_sphere(selected_pos + c.get_offset(), val.x * 0.5f, col_phy, thickness);
 					else if (st == physics_shape_type::plane)
 						debug_rendering.draw_oriented_plane(selected_pos + c.get_offset(), val.x, val.z, vector3::up, col_phy, thickness);
 				}

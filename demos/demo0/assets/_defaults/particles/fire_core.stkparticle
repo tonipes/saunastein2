@@ -20,7 +20,7 @@
     "min_end": [-0.0, -0.0, -0.0],
     "max_end": [0.0, 0.0, 0.0],
     "integrate_point": 0.0,
-    "is_local": false
+    "is_local": true
   },
   "rotation": {
     "min_start_rotation": 0,

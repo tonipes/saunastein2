@@ -676,7 +676,7 @@ namespace SFG
 				const bool b = *reinterpret_cast<uint8*>(data_ptr);
 				SFG_MEMCPY(ptr, &b, sizeof(bool));
 			}
-			else if (ft == reflected_field_type::rf_uint8)
+			else if (ft == reflected_field_type::rf_uint8 || ft == reflected_field_type::rf_enum)
 			{
 				const uint8 u8 = *reinterpret_cast<uint8*>(data_ptr);
 				SFG_MEMCPY(ptr, &u8, sizeof(uint8));

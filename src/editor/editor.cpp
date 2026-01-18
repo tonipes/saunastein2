@@ -172,7 +172,6 @@ namespace SFG
 
 		_camera_controller.init(_app.get_world(), _app.get_main_window());
 		_app.get_world().init();
-		_camera_controller.activate();
 
 		if (!editor_settings::get().last_world_relative.empty())
 		{
@@ -535,9 +534,10 @@ namespace SFG
 
 		_app.get_gameplay().on_world_end(w);
 		w.set_playmode(play_mode::none);
-		w.create_from_loader(_playmode_backup, true);
 
+		w.create_from_loader(_playmode_backup, true);
 		_camera_controller.activate();
+
 		_is_playmode = false;
 		_playmode_backup.destroy();
 	}

@@ -529,6 +529,7 @@ namespace SFG
 			if (pm != play_mode::none && c.comp_type == type_id<comp_physics>::value)
 			{
 				comp_physics& phy = cm.get_component<comp_physics>(c.comp_handle);
+				phy.set_is_in_simulation(true);
 				pw.add_body_to_world(*phy.create_body(_world));
 			}
 		}
@@ -1143,6 +1144,7 @@ namespace SFG
 						continue;
 
 					comp_physics& phy = cm.get_component<comp_physics>(c.comp_handle);
+					phy.set_is_in_simulation(true);
 					bodies.push_back(phy.create_body(_world)->GetID());
 				}
 			}
