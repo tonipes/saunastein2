@@ -236,7 +236,7 @@ namespace SFG
 		body_interface.RemoveBodies(body_ids, static_cast<int>(count));
 	}
 
-	JPH::Body* physics_world::create_body(physics_body_type body_type, physics_shape_type shape, const vector3& extents_or_height_radius, resource_handle mat, const vector3& pos, const quat& rot, const vector3& scale)
+	JPH::Body* physics_world::create_body(physics_body_type body_type, physics_shape_type shape, const vector3& extents_or_rad_height, resource_handle mat, const vector3& pos, const quat& rot, const vector3& scale)
 	{
 		resource_manager& rm = _game_world.get_resource_manager();
 
@@ -256,28 +256,28 @@ namespace SFG
 
 		if (shape == physics_shape_type::box)
 		{
-			JPH::BoxShapeSettings boxShapeSettings(to_jph_vec3(extents_or_height_radius * scale));
+			JPH::BoxShapeSettings boxShapeSettings(to_jph_vec3(extents_or_rad_height * scale));
 			shape_ref = boxShapeSettings.Create().Get();
 		}
 		else if (shape == physics_shape_type::sphere)
 		{
-			JPH::SphereShapeSettings sphere(extents_or_height_radius.y);
+			JPH::SphereShapeSettings sphere(extents_or_rad_height.x * scale.magnitude());
 			shape_ref = sphere.Create().Get();
 		}
 		else if (shape == physics_shape_type::capsule)
 		{
-			JPH::CapsuleShapeSettings capsuleShapeSettings(extents_or_height_radius.x * 0.5f, extents_or_height_radius.y);
+			JPH::CapsuleShapeSettings capsuleShapeSettings(extents_or_rad_height.y * 0.5f * scale.y, extents_or_rad_height.x * vector2(scale.x, scale.z).magnitude());
 			shape_ref = capsuleShapeSettings.Create().Get();
 		}
 		else if (shape == physics_shape_type::cylinder)
 		{
-			JPH::CylinderShapeSettings cylinderShapeSettings(extents_or_height_radius.x, extents_or_height_radius.y);
+			JPH::CylinderShapeSettings cylinderShapeSettings(extents_or_rad_height.y * scale.y, extents_or_rad_height.x * vector2(scale.x, scale.z).magnitude());
 			shape_ref = cylinderShapeSettings.Create().Get();
 		}
 		else if (shape == physics_shape_type::plane)
 		{
 			JPH::Plane p = JPH::Plane(to_jph_vec3(rot.get_up()), 0.0f);
-			p			 = p.Scaled({extents_or_height_radius.x, 1.0f, extents_or_height_radius.z});
+			p			 = p.Scaled({extents_or_rad_height.x, 1.0f, extents_or_rad_height.z});
 			JPH::PlaneShapeSettings plane(p);
 			shape_ref = plane.Create().Get();
 		}

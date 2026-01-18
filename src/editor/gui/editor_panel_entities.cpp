@@ -167,6 +167,7 @@ namespace SFG
 			world_debug_rendering& debug_rendering = w.get_debug_rendering();
 			const vector3		   selected_pos	   = _selected_entity.is_null() ? vector3::zero : em.get_entity_position_abs(_selected_entity);
 			const quat			   selected_rot	   = _selected_entity.is_null() ? quat::identity : em.get_entity_rotation_abs(_selected_entity);
+			const vector3		   selected_scale  = _selected_entity.is_null() ? vector3::one : em.get_entity_scale_abs(_selected_entity);
 
 			for (const selection_debug_draw& dd : _selection_debug_draws)
 			{
@@ -174,27 +175,30 @@ namespace SFG
 				{
 					const comp_physics&		 c	 = cm.get_component<comp_physics>(dd.component);
 					const physics_shape_type st	 = c.get_shape_type();
-					const vector3&			 val = c.get_extent_or_height_radius();
+					const vector3&			 val = c.get_extent_or_rad_height();
 
+					const vector3 orientation = selected_rot.get_up();
 					if (st == physics_shape_type::box)
-						debug_rendering.draw_box(selected_pos + c.get_offset(), val, color::red, thickness);
+						debug_rendering.draw_box(selected_pos + c.get_offset(), val, orientation, color::red, thickness);
 					else if (st == physics_shape_type::capsule)
-						debug_rendering.draw_capsule(selected_pos + c.get_offset(), val.y, val.x * 0.5f, col_phy, thickness);
+						debug_rendering.draw_capsule(selected_pos + c.get_offset(), val.x * vector2(selected_scale.x, selected_scale.z).magnitude(), val.y * 0.5f * selected_scale.y, orientation, col_phy, thickness);
 					else if (st == physics_shape_type::cylinder)
-						debug_rendering.draw_capsule(selected_pos + c.get_offset(), val.y, val.x * 0.25f, col_phy, thickness);
+						debug_rendering.draw_cylinder(selected_pos + c.get_offset(), val.x * vector2(selected_scale.x, selected_scale.z).magnitude(), val.y * selected_scale.y, orientation, col_phy, thickness);
 					else if (st == physics_shape_type::mesh)
 					{
 					}
 					else if (st == physics_shape_type::sphere)
-						debug_rendering.draw_sphere(selected_pos + c.get_offset(), val.x * 0.5f, col_phy, thickness);
+						debug_rendering.draw_sphere(selected_pos + c.get_offset(), val.x * selected_scale.magnitude(), col_phy, thickness);
 					else if (st == physics_shape_type::plane)
-						debug_rendering.draw_oriented_plane(selected_pos + c.get_offset(), val.x, val.z, vector3::up, col_phy, thickness);
+						debug_rendering.draw_oriented_plane(selected_pos + c.get_offset(), val.x * selected_scale.x, val.z * selected_scale.z, vector3::up, col_phy, thickness);
 				}
 				else if (dd.type == debug_draw_type::audio)
 				{
 				}
 				else if (dd.type == debug_draw_type::camera)
 				{
+					const comp_camera& c = cm.get_component<comp_camera>(dd.component);
+					debug_rendering.draw_frustum(selected_pos, selected_rot.get_forward(), c.get_fov_degrees(), 1.0f, c.get_near(), c.get_far(), col_light, thickness);
 				}
 				else if (dd.type == debug_draw_type::point_light)
 				{

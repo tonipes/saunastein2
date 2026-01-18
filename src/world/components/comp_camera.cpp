@@ -50,7 +50,6 @@ namespace SFG
 
 		m.add_function<void, const reflected_field_changed_params&>("on_reflected_changed"_hs, [](const reflected_field_changed_params& params) {
 			comp_camera* c = static_cast<comp_camera*>(params.object_ptr);
-			SFG_TRACE("reflection invoked, {0} {1} {2}", c->_near, c->_far, c->_fov_degrees);
 			c->set_values(params.w, c->_near, c->_far, c->_fov_degrees, c->_cascades);
 		});
 

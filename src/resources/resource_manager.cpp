@@ -39,6 +39,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "resources/material_raw.hpp"
 #include "resources/particle_properties.hpp"
 #include "resources/particle_properties_raw.hpp"
+#include "resources/physical_material.hpp"
 
 #ifdef SFG_TOOLMODE
 #include "serialization/serialization.hpp"
@@ -52,6 +53,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gfx/event_stream/render_events_gfx.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"
 #include "world/components/comp_particle_emitter.hpp"
+#include "world/components/comp_physics.hpp"
 #include "world/world.hpp"
 #include "platform/time.hpp"
 #include "editor/editor.hpp"
@@ -558,6 +560,16 @@ namespace SFG
 				{
 					pe.set_values(rm->_world, new_handle, pe.get_material());
 				}
+			}
+		}
+		else if (w.type_id == type_id<physical_material>::value)
+		{
+			component_manager& cm				   = rm->_world.get_comp_manager();
+			auto&			   physical_components = cm.underlying_pool<comp_cache<comp_physics, MAX_WORLD_COMP_PHYSICS>, comp_physics>();
+			for (comp_physics& p : physical_components)
+			{
+				if (p.get_material_handle() == prev_handle)
+					p.set_material_handle(new_handle);
 			}
 		}
 		else

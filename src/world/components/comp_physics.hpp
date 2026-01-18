@@ -92,9 +92,9 @@ namespace SFG
 			return _shape_type;
 		}
 
-		inline const vector3& get_extent_or_height_radius() const
+		inline const vector3& get_extent_or_rad_height() const
 		{
-			return _extent_or_height_radius;
+			return _extent_or_rad_height;
 		}
 
 		inline const vector3& get_offset() const
@@ -124,13 +124,13 @@ namespace SFG
 
 		inline void set_extent(const vector3& ext)
 		{
-			_extent_or_height_radius = ext;
+			_extent_or_rad_height = ext;
 		}
 
 		inline void set_height_radius(float height, float radius)
 		{
-			_extent_or_height_radius.x = height;
-			_extent_or_height_radius.y = radius;
+			_extent_or_rad_height.x = height;
+			_extent_or_rad_height.y = radius;
 		}
 
 		inline void set_material_handle(resource_handle h)
@@ -152,14 +152,14 @@ namespace SFG
 		template <typename T, int> friend class comp_cache;
 
 	private:
-		component_header   _header					= {};
-		JPH::Body*		   _body					= nullptr;
-		vector3			   _offset					= vector3::zero;
-		vector3			   _extent_or_height_radius = vector3(1, 1, 1);
-		resource_handle	   _material_handle			= {};
-		physics_body_type  _body_type				= physics_body_type::static_body;
-		physics_shape_type _shape_type				= physics_shape_type::box;
-		bitmask<uint8>	   _flags					= 0;
+		component_header   _header				 = {};
+		JPH::Body*		   _body				 = nullptr;
+		vector3			   _offset				 = vector3::zero;
+		vector3			   _extent_or_rad_height = vector3(1, 1, 1);
+		resource_handle	   _material_handle		 = {};
+		physics_body_type  _body_type			 = physics_body_type::static_body;
+		physics_shape_type _shape_type			 = physics_shape_type::box;
+		bitmask<uint8>	   _flags				 = 0;
 	};
 
 	REFLECT_TYPE(comp_physics);

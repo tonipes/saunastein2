@@ -220,20 +220,25 @@ namespace SFG
 		// push_draw_call(1, start_idx, 3, base_vtx, static_cast<uint16>(sizeof(vertex_simple)));
 	}
 
-	void world_debug_rendering::draw_box(const vector3& center, const vector3& half_extents, const color& col, float thickness)
+	void world_debug_rendering::draw_box(const vector3& center, const vector3& half_extents, const vector3& orientation, const color& col, float thickness)
 	{
-		// 8 corners (axis-aligned)
-		const vector3 he = half_extents;
+		// 8 corners (oriented)
+		vector3 axis0, axis1, normal;
+		make_basis(orientation, axis0, axis1, normal);
+
+		const vector3 x = axis0 * half_extents.x;
+		const vector3 y = normal * half_extents.y;
+		const vector3 z = axis1 * half_extents.z;
 
 		const vector3 c[8] = {
-			center + vector3(-he.x, -he.y, -he.z), // 0
-			center + vector3(+he.x, -he.y, -he.z), // 1
-			center + vector3(+he.x, -he.y, +he.z), // 2
-			center + vector3(-he.x, -he.y, +he.z), // 3
-			center + vector3(-he.x, +he.y, -he.z), // 4
-			center + vector3(+he.x, +he.y, -he.z), // 5
-			center + vector3(+he.x, +he.y, +he.z), // 6
-			center + vector3(-he.x, +he.y, +he.z), // 7
+			center - x - y - z, // 0
+			center + x - y - z, // 1
+			center + x - y + z, // 2
+			center - x - y + z, // 3
+			center - x + y - z, // 4
+			center + x + y - z, // 5
+			center + x + y + z, // 6
+			center - x + y + z, // 7
 		};
 
 		// bottom rectangle
@@ -326,17 +331,17 @@ namespace SFG
 		draw_meridian((axis0 - axis1).normalized());
 	}
 
-	void world_debug_rendering::draw_capsule(const vector3& center, float radius, float half_height, const color& col, float thickness, uint32 segments)
+	void world_debug_rendering::draw_capsule(const vector3& center, float radius, float half_height, const vector3& direction, const color& col, float thickness, uint32 segments)
 	{
 		if (segments < 3)
 			segments = 3;
 
-		const vector3 up		 = vector3::up;
-		const vector3 top_center = center + up * half_height;
-		const vector3 bot_center = center - up * half_height;
+		const vector3 dir		 = normalized_or_up(direction);
+		const vector3 top_center = center + dir * half_height;
+		const vector3 bot_center = center - dir * half_height;
 
 		vector3 axis0, axis1, normal;
-		make_basis(up, axis0, axis1, normal);
+		make_basis(dir, axis0, axis1, normal);
 
 		const float two_pi = 2.0f * MATH_PI;
 		for (float t = 0.0f; t < two_pi; t += MATH_PI * 0.25f)
@@ -351,8 +356,37 @@ namespace SFG
 			draw_line(p_top, p_bot, col, thickness);
 		}
 
-		draw_oriented_hemisphere(top_center, radius, up, col, thickness, segments);
-		draw_oriented_hemisphere(bot_center, radius, -up, col, thickness, segments);
+		draw_oriented_hemisphere(top_center, radius, dir, col, thickness, segments);
+		draw_oriented_hemisphere(bot_center, radius, -dir, col, thickness, segments);
+	}
+
+	void world_debug_rendering::draw_cylinder(const vector3& center, float radius, float half_height, const vector3& direction, const color& col, float thickness, uint32 segments)
+	{
+		if (segments < 3)
+			segments = 3;
+
+		const vector3 dir		 = normalized_or_up(direction);
+		const vector3 top_center = center + dir * half_height;
+		const vector3 bot_center = center - dir * half_height;
+
+		vector3 axis0, axis1, normal;
+		make_basis(dir, axis0, axis1, normal);
+
+		draw_oriented_circle(top_center, radius, dir, col, thickness, segments);
+		draw_oriented_circle(bot_center, radius, dir, col, thickness, segments);
+
+		const float two_pi = 2.0f * MATH_PI;
+		for (float t = 0.0f; t < two_pi; t += MATH_PI * 0.25f)
+		{
+			const float ca = math::cos(t);
+			const float sa = math::sin(t);
+
+			const vector3 ring_offset = (axis0 * (ca * radius)) + (axis1 * (sa * radius));
+			const vector3 p_top		  = top_center + ring_offset;
+			const vector3 p_bot		  = bot_center + ring_offset;
+
+			draw_line(p_top, p_bot, col, thickness);
+		}
 	}
 
 	void world_debug_rendering::draw_oriented_cone(const vector3& apex, const vector3& direction, float length, float radius, const color& col, float thickness, uint32 segments)
@@ -395,8 +429,8 @@ namespace SFG
 
 		for (uint32 i = 0; i < segments; ++i)
 		{
-			const float t = static_cast<float>(i) / static_cast<float>(segments - 1);
-			const float v = math::lerp(-half_h, half_h, t);
+			const float	  t	 = static_cast<float>(i) / static_cast<float>(segments - 1);
+			const float	  v	 = math::lerp(-half_h, half_h, t);
 			const vector3 p0 = center + (axis1 * v) - (axis0 * half_w);
 			const vector3 p1 = center + (axis1 * v) + (axis0 * half_w);
 			draw_line(p0, p1, col, thickness);
@@ -404,8 +438,8 @@ namespace SFG
 
 		for (uint32 i = 0; i < segments; ++i)
 		{
-			const float t = static_cast<float>(i) / static_cast<float>(segments - 1);
-			const float v = math::lerp(-half_w, half_w, t);
+			const float	  t	 = static_cast<float>(i) / static_cast<float>(segments - 1);
+			const float	  v	 = math::lerp(-half_w, half_w, t);
 			const vector3 p0 = center + (axis0 * v) - (axis1 * half_h);
 			const vector3 p1 = center + (axis0 * v) + (axis1 * half_h);
 			draw_line(p0, p1, col, thickness);
@@ -422,19 +456,19 @@ namespace SFG
 			aspect_ratio = 1.0f;
 
 		const vector3 dir = normalized_or_up(direction);
-		vector3 axis0, axis1, normal;
+		vector3		  axis0, axis1, normal;
 		make_basis(dir, axis0, axis1, normal);
 
-		const float fov_rad = math::degrees_to_radians(fov_degrees);
+		const float fov_rad		 = math::degrees_to_radians(fov_degrees);
 		const float tan_half_fov = math::tan(0.5f * fov_rad);
 
 		const vector3 near_center = origin + dir * near_distance;
-		const vector3 far_center = origin + dir * far_distance;
+		const vector3 far_center  = origin + dir * far_distance;
 
 		const float near_half_h = near_distance * tan_half_fov;
 		const float near_half_w = near_half_h * aspect_ratio;
-		const float far_half_h = far_distance * tan_half_fov;
-		const float far_half_w = far_half_h * aspect_ratio;
+		const float far_half_h	= far_distance * tan_half_fov;
+		const float far_half_w	= far_half_h * aspect_ratio;
 
 		const vector3 n0 = near_center + (axis0 * near_half_w) + (axis1 * near_half_h);
 		const vector3 n1 = near_center - (axis0 * near_half_w) + (axis1 * near_half_h);

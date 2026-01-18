@@ -34,7 +34,7 @@ namespace SFG
 {
 	void physical_material::reflect()
 	{
-		reflection::get().register_meta(type_id<physical_material>::value, 0, "stkphymat");
+		reflection::get().register_meta(type_id<physical_material>::value, 0, "stkphy");
 	}
 	physical_material::~physical_material()
 	{

@@ -46,7 +46,7 @@ namespace SFG
 		m.add_field<&comp_physics::_body_type, comp_physics>("body_type", reflected_field_type::rf_enum, "", 0.0f, 2.0f)->_enum_list   = {"static", "kinematic", "dynamic"};
 		m.add_field<&comp_physics::_shape_type, comp_physics>("shape_type", reflected_field_type::rf_enum, "", 0.0f, 4.0f)->_enum_list = {"sphere", "box", "capsule", "cylinder", "plane", "mesh"};
 		m.add_field<&comp_physics::_offset, comp_physics>("offset", reflected_field_type::rf_vector3, "");
-		m.add_field<&comp_physics::_extent_or_height_radius, comp_physics>("extents", reflected_field_type::rf_vector3, "");
+		m.add_field<&comp_physics::_extent_or_rad_height, comp_physics>("extents", reflected_field_type::rf_vector3, "");
 		m.add_field<&comp_physics::_material_handle, comp_physics>("material", reflected_field_type::rf_resource, "", type_id<physical_material>::value);
 
 		m.add_function<void, const reflected_field_changed_params&>("on_reflected_changed"_hs, [](const reflected_field_changed_params& params) {
@@ -102,9 +102,9 @@ namespace SFG
 
 		physics_world& phy_world = w.get_physics_world();
 
-		const vector3 extent = vector3(math::almost_equal(_extent_or_height_radius.x, 0.0f) ? 1.0f : _extent_or_height_radius.x,
-									   math::almost_equal(_extent_or_height_radius.y, 0.0f) ? 1.0f : _extent_or_height_radius.y,
-									   math::almost_equal(_extent_or_height_radius.z, 0.0f) ? 1.0f : _extent_or_height_radius.z);
+		const vector3 extent = vector3(math::almost_equal(_extent_or_rad_height.x, 0.0f) ? 1.0f : _extent_or_rad_height.x,
+									   math::almost_equal(_extent_or_rad_height.y, 0.0f) ? 1.0f : _extent_or_rad_height.y,
+									   math::almost_equal(_extent_or_rad_height.z, 0.0f) ? 1.0f : _extent_or_rad_height.z);
 
 		entity_manager& em	  = w.get_entity_manager();
 		const vector3	pos	  = em.get_entity_position_abs(_header.entity) + _offset;
