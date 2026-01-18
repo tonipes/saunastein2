@@ -153,11 +153,14 @@ namespace SFG
 		component_manager& cm = w.get_comp_manager();
 
 		{
-			const float thickness = 0.5f;
-			const color col_phy	  = color::red;
+			const float thickness	  = 0.4f;
+			const color col_phy		  = color::red;
+			const color col_light	  = color::yellow;
+			const color col_light_alt = color::red;
 
 			world_debug_rendering& debug_rendering = w.get_debug_rendering();
-			const vector3		   selected_pos	   = _selected_entity.is_null() ? vector3::zero : em.get_entity_position(_selected_entity);
+			const vector3		   selected_pos	   = _selected_entity.is_null() ? vector3::zero : em.get_entity_position_abs(_selected_entity);
+			const quat			   selected_rot	   = _selected_entity.is_null() ? quat::identity : em.get_entity_rotation_abs(_selected_entity);
 
 			for (const selection_debug_draw& dd : _selection_debug_draws)
 			{
@@ -179,8 +182,7 @@ namespace SFG
 					else if (st == physics_shape_type::sphere)
 						debug_rendering.draw_sphere(selected_pos + c.get_offset(), val.x, col_phy, thickness);
 					else if (st == physics_shape_type::plane)
-					{
-					}
+						debug_rendering.draw_oriented_plane(selected_pos + c.get_offset(), val.x, val.z, vector3::up, col_phy, thickness);
 				}
 				else if (dd.type == debug_draw_type::audio)
 				{
@@ -190,9 +192,14 @@ namespace SFG
 				}
 				else if (dd.type == debug_draw_type::point_light)
 				{
+					const comp_point_light& c = cm.get_component<comp_point_light>(dd.component);
+					debug_rendering.draw_sphere(selected_pos, c.get_range(), col_light, thickness);
 				}
 				else if (dd.type == debug_draw_type::spot_light)
 				{
+					const comp_spot_light& c = cm.get_component<comp_spot_light>(dd.component);
+					debug_rendering.draw_oriented_cone(selected_pos, selected_rot.get_forward(), c.get_range(), c.get_inner_cone(), col_light_alt, thickness, 24);
+					debug_rendering.draw_oriented_cone(selected_pos, selected_rot.get_forward(), c.get_range(), c.get_outer_cone(), col_light, thickness, 24);
 				}
 			}
 		}

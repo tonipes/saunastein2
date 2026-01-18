@@ -62,6 +62,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "io/file_system.hpp"
 #include "input/input_mappings.hpp"
 #include "math/math.hpp"
+#include "game/gameplay.hpp"
 #include <regex>
 #include <tracy/Tracy.hpp>
 
@@ -520,6 +521,8 @@ namespace SFG
 
 		_camera_controller.deactivate();
 		w.set_playmode(play_mode::full);
+		_app.get_gameplay().on_world_begin(w);
+
 		_is_playmode = true;
 	}
 
@@ -529,8 +532,11 @@ namespace SFG
 			return;
 
 		world& w = _app.get_world();
-		w.create_from_loader(_playmode_backup, true);
+		_app.get_gameplay().on_world_end(w);
 		w.set_playmode(play_mode::none);
+
+		w.create_from_loader(_playmode_backup, true);
+
 		_camera_controller.activate();
 		_is_playmode = false;
 		_playmode_backup.destroy();

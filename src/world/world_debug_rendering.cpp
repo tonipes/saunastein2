@@ -339,7 +339,7 @@ namespace SFG
 		make_basis(up, axis0, axis1, normal);
 
 		const float two_pi = 2.0f * MATH_PI;
-		for(float t = 0.0f; t < two_pi; t += MATH_PI * 0.25f)
+		for (float t = 0.0f; t < two_pi; t += MATH_PI * 0.25f)
 		{
 			const float ca = math::cos(t);
 			const float sa = math::sin(t);
@@ -357,7 +357,6 @@ namespace SFG
 
 	void world_debug_rendering::draw_oriented_cone(const vector3& apex, const vector3& direction, float length, float radius, const color& col, float thickness, uint32 segments)
 	{
-
 		const vector3 dir		  = normalized_or_up(direction);
 		const vector3 base_center = apex + dir * length;
 
@@ -381,6 +380,86 @@ namespace SFG
 
 		draw_line(base_center + axis0 * radius, base_center - axis0 * radius, col, thickness);
 		draw_line(base_center + axis1 * radius, base_center - axis1 * radius, col, thickness);
+	}
+
+	void world_debug_rendering::draw_oriented_plane(const vector3& center, float width, float height, const vector3& orientation, const color& col, float thickness, uint32 segments)
+	{
+		if (segments < 2)
+			segments = 2;
+
+		vector3 axis0, axis1, normal;
+		make_basis(orientation, axis0, axis1, normal);
+
+		const float half_w = width * 0.5f;
+		const float half_h = height * 0.5f;
+
+		for (uint32 i = 0; i < segments; ++i)
+		{
+			const float t = static_cast<float>(i) / static_cast<float>(segments - 1);
+			const float v = math::lerp(-half_h, half_h, t);
+			const vector3 p0 = center + (axis1 * v) - (axis0 * half_w);
+			const vector3 p1 = center + (axis1 * v) + (axis0 * half_w);
+			draw_line(p0, p1, col, thickness);
+		}
+
+		for (uint32 i = 0; i < segments; ++i)
+		{
+			const float t = static_cast<float>(i) / static_cast<float>(segments - 1);
+			const float v = math::lerp(-half_w, half_w, t);
+			const vector3 p0 = center + (axis0 * v) - (axis1 * half_h);
+			const vector3 p1 = center + (axis0 * v) + (axis1 * half_h);
+			draw_line(p0, p1, col, thickness);
+		}
+	}
+
+	void world_debug_rendering::draw_frustum(const vector3& origin, const vector3& direction, float fov_degrees, float aspect_ratio, float near_distance, float far_distance, const color& col, float thickness)
+	{
+		if (far_distance <= near_distance)
+			return;
+		if (near_distance < 0.0f)
+			near_distance = 0.0f;
+		if (aspect_ratio <= 0.0f)
+			aspect_ratio = 1.0f;
+
+		const vector3 dir = normalized_or_up(direction);
+		vector3 axis0, axis1, normal;
+		make_basis(dir, axis0, axis1, normal);
+
+		const float fov_rad = math::degrees_to_radians(fov_degrees);
+		const float tan_half_fov = math::tan(0.5f * fov_rad);
+
+		const vector3 near_center = origin + dir * near_distance;
+		const vector3 far_center = origin + dir * far_distance;
+
+		const float near_half_h = near_distance * tan_half_fov;
+		const float near_half_w = near_half_h * aspect_ratio;
+		const float far_half_h = far_distance * tan_half_fov;
+		const float far_half_w = far_half_h * aspect_ratio;
+
+		const vector3 n0 = near_center + (axis0 * near_half_w) + (axis1 * near_half_h);
+		const vector3 n1 = near_center - (axis0 * near_half_w) + (axis1 * near_half_h);
+		const vector3 n2 = near_center - (axis0 * near_half_w) - (axis1 * near_half_h);
+		const vector3 n3 = near_center + (axis0 * near_half_w) - (axis1 * near_half_h);
+
+		const vector3 f0 = far_center + (axis0 * far_half_w) + (axis1 * far_half_h);
+		const vector3 f1 = far_center - (axis0 * far_half_w) + (axis1 * far_half_h);
+		const vector3 f2 = far_center - (axis0 * far_half_w) - (axis1 * far_half_h);
+		const vector3 f3 = far_center + (axis0 * far_half_w) - (axis1 * far_half_h);
+
+		draw_line(n0, n1, col, thickness);
+		draw_line(n1, n2, col, thickness);
+		draw_line(n2, n3, col, thickness);
+		draw_line(n3, n0, col, thickness);
+
+		draw_line(f0, f1, col, thickness);
+		draw_line(f1, f2, col, thickness);
+		draw_line(f2, f3, col, thickness);
+		draw_line(f3, f0, col, thickness);
+
+		draw_line(n0, f0, col, thickness);
+		draw_line(n1, f1, col, thickness);
+		draw_line(n2, f2, col, thickness);
+		draw_line(n3, f3, col, thickness);
 	}
 
 	void world_debug_rendering::draw_icon(const vector2&, const color& col)

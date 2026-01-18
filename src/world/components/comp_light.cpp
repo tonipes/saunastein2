@@ -77,7 +77,7 @@ namespace SFG
 		m.add_field<&comp_spot_light::_range, comp_spot_light>("range", reflected_field_type::rf_float, "");
 		m.add_field<&comp_spot_light::_intensity, comp_spot_light>("intensity", reflected_field_type::rf_float, "");
 		m.add_field<&comp_spot_light::_inner_cone, comp_spot_light>("inner_cone", reflected_field_type::rf_float, "", 0.0f, 90.0f);
-		m.add_field<&comp_spot_light::_outer_cone, comp_spot_light>("outer_cone", reflected_field_type::rf_float, "", 0.0f, 180.0f);
+		m.add_field<&comp_spot_light::_outer_cone, comp_spot_light>("outer_cone", reflected_field_type::rf_float, "", 0.0f, 90.0f);
 		m.add_field<&comp_spot_light::_cast_shadows, comp_spot_light>("cast_shadows", reflected_field_type::rf_bool, "");
 		m.add_field<&comp_spot_light::_near_plane, comp_spot_light>("near_plane", reflected_field_type::rf_float, "", 0.01f, 25.0f);
 		m.add_field<&comp_spot_light::_shadow_resolution, comp_spot_light>("shadow_res", reflected_field_type::rf_vector2ui16, "");

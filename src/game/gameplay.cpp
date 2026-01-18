@@ -25,18 +25,29 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "gameplay.hpp"
-
+#include "world/world.hpp"
+#include "world/components/comp_camera.hpp"
 namespace SFG
 {
-	void gameplay::on_world_begin(string_id world_id)
+	void gameplay::on_world_begin(world& w)
 	{
+		entity_manager&	   em = w.get_entity_manager();
+		component_manager& cm = w.get_comp_manager();
+
+		const world_handle cam_entity = em.create_entity("camera");
+		const world_handle cam_comp	  = cm.add_component<comp_camera>(cam_entity);
+		comp_camera&	   comp		  = cm.get_component<comp_camera>(cam_comp);
+		comp.set_main(w);
+		comp.set_values(w, 0.1, 500.0f, 90.0f);
+
+		em.set_entity_position(cam_entity, vector3(0, 2, 15));
 	}
-	
-	void gameplay::on_world_end()
+
+	void gameplay::on_world_end(world& w)
 	{
 	}
 
-	void gameplay::on_world_tick(float dt)
+	void gameplay::on_world_tick(world& w, float dt)
 	{
 	}
 }

@@ -110,6 +110,8 @@ namespace SFG
 		void			draw_oriented_hemisphere(const vector3& center, float radius, const vector3& direction, const color& col, float thickness, uint32 segments = 64);
 		void			draw_oriented_circle(const vector3& center, float radius, const vector3& direction, const color& col, float thickness, uint32 segments = 64);
 		void			draw_oriented_cone(const vector3& apex, const vector3& direction, float length, float radius, const color& col, float thickness, uint32 segments = 64);
+		void			draw_oriented_plane(const vector3& center, float width, float height, const vector3& orientation, const color& col, float thickness, uint32 segments = 8);
+		void			draw_frustum(const vector3& origin, const vector3& direction, float fov_degrees, float aspect_ratio, float near_distance, float far_distance, const color& col, float thickness);
 		void			draw_icon(const vector2& pos, const color& col);
 		void			draw_text(const vector2& pos, const color& col);
 		const snapshot* get_read_snapshot() const;

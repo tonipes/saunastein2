@@ -30,13 +30,14 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace SFG
 {
+	class world;
 
 	class gameplay
 	{
 	public:
-		void on_world_begin(string_id world_id);
-		void on_world_end();
-		void on_world_tick(float dt);
+		void on_world_begin(world& w);
+		void on_world_end(world& w);
+		void on_world_tick(world& w, float dt);
 
 	private:
 	};

@@ -1077,10 +1077,11 @@ namespace SFG
 			const uint8 val = field->value(object_ptr).cast<uint8>();
 			SFG_ASSERT(field->_enum_list.size() > val);
 
-			const id_pair ids = add_property_row_dropdown(title, "", 256);
+			const id_pair ids = add_property_row_dropdown(title, field->_enum_list[val].c_str(), 256);
 
 			for (const malloc_string& str : field->_enum_list)
 				add_dropdown_item(ids.second, str.c_str());
+			_reflected.push_back({.obj = object_ptr, .type = type_id, .field = field, .widget = ids.second});
 
 			return ids.first;
 		}
@@ -2215,7 +2216,7 @@ namespace SFG
 		// If no text set, set to first item
 		if (it->items.size() == 1)
 		{
-			_builder->widget_set_text(it->text_widget, stored);
+			// _builder->widget_set_text(it->text_widget, stored);
 		}
 	}
 
@@ -2265,6 +2266,8 @@ namespace SFG
 			if (idx < it_dd->items.size())
 				b->widget_set_text(it_dd->text_widget, it_dd->items[idx]);
 		}
+
+		gb->invoke_reflection(it->dropdown_widget, &it->index, 0);
 
 		if (gb->callbacks.on_dropdown_item)
 			gb->callbacks.on_dropdown_item(gb->callbacks.callback_ud, b, it->dropdown_widget, it->index);

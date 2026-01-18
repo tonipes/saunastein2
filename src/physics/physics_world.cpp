@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -132,22 +132,23 @@ namespace SFG
 		reuse_body_ids.resize(0);
 
 		component_manager& cm = _game_world.get_comp_manager();
-		cm.view<comp_physics>([this](comp_physics& trait) -> comp_view_result {
-			JPH::Body* body = trait.get_body();
+		cm.view<comp_physics>([this](comp_physics& c) -> comp_view_result {
+			JPH::Body* body = c.get_body();
 
 			if (body == nullptr)
 			{
-				trait.create_body(_game_world);
-				body = trait.get_body();
+				c.create_body(_game_world);
+				body = c.get_body();
 			}
 
-			bitmask<uint8>& flags = trait.get_flags();
+			bitmask<uint8>& flags = c.get_flags();
 
 			if (!flags.is_set(comp_physics::flags::comp_physics_flags_in_sim))
 			{
 				flags.set(comp_physics::flags::comp_physics_flags_in_sim);
 				reuse_body_ids.push_back(body->GetID());
 			}
+			// reuse_body_ids.push_back(body->GetID());
 
 			return comp_view_result::cont;
 		});
@@ -271,8 +272,14 @@ namespace SFG
 		}
 		else if (shape == physics_shape_type::plane)
 		{
-			JPH::PlaneShapeSettings plane(JPH::Plane(to_jph_vec3(rot.get_up()), 0.0f));
+			JPH::Plane p = JPH::Plane(to_jph_vec3(rot.get_up()), 0.0f);
+			p			 = p.Scaled({extents_or_height_radius.x, 1.0f, extents_or_height_radius.z});
+			JPH::PlaneShapeSettings plane(p);
 			shape_ref = plane.Create().Get();
+		}
+		else
+		{
+			SFG_ASSERT(false);
 		}
 
 		body_settings.mRestitution					= mat_settings.restitution;

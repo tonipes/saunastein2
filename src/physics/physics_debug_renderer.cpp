@@ -46,8 +46,6 @@ namespace SFG
 
 	void physics_debug_renderer::DrawLine(JPH::RVec3Arg inFrom, JPH::RVec3Arg inTo, JPH::ColorArg inColor)
 	{
-		SFG_ASSERT(_w != nullptr);
-
 		const vector3	from	  = from_jph_vec3(inFrom);
 		const vector3	to		  = from_jph_vec3(inTo);
 		constexpr float thickness = 0.25f;
@@ -56,7 +54,6 @@ namespace SFG
 
 	void physics_debug_renderer::DrawTriangle(JPH::RVec3Arg inV1, JPH::RVec3Arg inV2, JPH::RVec3Arg inV3, JPH::ColorArg inColor, JPH::DebugRenderer::ECastShadow inCastShadow)
 	{
-		SFG_ASSERT(_w != nullptr);
 		_w->get_debug_rendering().draw_triangle(from_jph_vec3(inV1), from_jph_vec3(inV2), from_jph_vec3(inV3), color::from255(inColor.r, inColor.g, inColor.b, inColor.a));
 	}
 
@@ -131,6 +128,7 @@ namespace SFG
 
 	void physics_debug_renderer::draw(world& w)
 	{
+		_w								  = &w;
 		JPH::BodyManager::DrawSettings ds = {};
 		ds.mDrawShape					  = true;
 		ds.mDrawVelocity				  = true;
