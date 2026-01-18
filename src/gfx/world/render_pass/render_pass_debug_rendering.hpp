@@ -40,16 +40,21 @@ namespace SFG
 	struct view;
 	class physics_debug_renderer;
 	class world;
+	class proxy_manager;
 
 	class render_pass_debug
 	{
 	private:
 		struct ubo
 		{
-			matrix4x4 view					= matrix4x4::identity;
-			matrix4x4 proj					= matrix4x4::identity;
-			matrix4x4 view_proj				= matrix4x4::identity;
-			vector4	  resolution_and_planes = vector4::zero;
+			matrix4x4 view					   = matrix4x4::identity;
+			matrix4x4 proj					   = matrix4x4::identity;
+			matrix4x4 view_proj				   = matrix4x4::identity;
+			vector4	  cam_right_and_pixel_size = vector4::zero;
+			vector4	  cam_up				   = vector4::zero;
+			vector4	  resolution_and_planes	   = vector4::zero;
+			float	  sdf_thickness			   = 0.5f;
+			float	  sdf_softness			   = 0.02f;
 		};
 
 		struct per_frame_data
@@ -62,6 +67,7 @@ namespace SFG
 			buffer_cpu_gpu idx_buffer_line = {};
 			buffer_cpu_gpu idx_buffer_tri  = {};
 			buffer_cpu_gpu idx_buffer_gui  = {};
+			buffer		   draw_data_gui   = {};
 		};
 
 	public:
@@ -87,7 +93,7 @@ namespace SFG
 		// rendering
 		// -----------------------------------------------------------------------------
 
-		void prepare(const view& main_camera_view, const vector2ui16& resolution, uint8 frame_index);
+		void prepare(proxy_manager& pm, const view& main_camera_view, const vector2ui16& resolution, uint8 frame_index);
 		void render(const render_params& params);
 
 		// -----------------------------------------------------------------------------

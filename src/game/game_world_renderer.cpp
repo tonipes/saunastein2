@@ -295,7 +295,7 @@ namespace SFG
 		_pass_bloom.prepare(frame_index);
 		_pass_post.prepare(frame_index, _base_size);
 		_pass_particles.prepare(frame_index, _proxy_manager, _main_camera_view);
-		_pass_debug_rendering.prepare(_main_camera_view, _base_size, frame_index);
+		_pass_debug_rendering.prepare(_proxy_manager, _main_camera_view, _base_size, frame_index);
 	}
 
 	void game_world_renderer::run_pre_depth(const void* context)
@@ -386,7 +386,7 @@ namespace SFG
 			.global_group		= cmn->bind_group_global,
 		});
 	}
-	void game_world_renderer::run_physics(const void* ctx)
+	void game_world_renderer::run_debug_rendering(const void* ctx)
 	{
 		const game_world_renderer::task_common* cmn = static_cast<const game_world_renderer::task_common*>(ctx);
 		cmn->rend->_pass_debug_rendering.render({
@@ -583,7 +583,7 @@ namespace SFG
 
 		tt.resize(0);
 
-		tt.push_back({run_physics, (void*)&common_data});
+		tt.push_back({run_debug_rendering, (void*)&common_data});
 		tt.push_back({run_lighting, (void*)&common_data});
 		tt.push_back({run_forward, (void*)&common_data});
 		tt.push_back({run_particles_render, (void*)&common_data});

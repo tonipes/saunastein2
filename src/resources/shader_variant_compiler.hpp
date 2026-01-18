@@ -80,6 +80,9 @@ namespace SFG
 		/* compiles variants for 2d & 3d gui */
 		static bool compile_style_gui(shader_raw& raw, const string& shader_text, const vector<string>& folder_path);
 
+		/* compiles variants for engine gui */
+		static bool compile_style_engine_gui(shader_raw& raw, const string& shader_text, const vector<string>& folder_path);
+
 		/* compiles variants for particles */
 		static bool compile_style_particle_additive(shader_raw& raw, const string& shader_text, const vector<string>& folder_path);
 	};

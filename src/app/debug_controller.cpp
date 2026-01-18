@@ -789,7 +789,7 @@ namespace SFG
 				backend->cmd_bind_constants(cmd_buffer,
 											{
 												.data		 = (uint8*)&dc.atlas_gpu_index,
-												.offset		 = constant_index_object_constant0,
+												.offset		 = constant_index_mat_constant2,
 												.count		 = 1,
 												.param_index = rpi_constants,
 											});

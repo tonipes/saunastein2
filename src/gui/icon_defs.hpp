@@ -38,5 +38,15 @@ namespace SFG
 #define ICON_FILE		 "\u0067"
 #define ICON_PLAY		 "\u002C"
 #define ICON_INFO		 "\u004D"
+#define ICON_AMBIENT	 "\u0032"
+#define ICON_ANIMATION	 "\u0033"
+#define ICON_CAMERA		 "\u0038"
+#define ICON_GUI		 "\u0039"
+#define ICON_SPOT		 "\u003A"
+#define ICON_LIGHT_BULB	 "\u003B"
+#define ICON_SUN		 "\u003C"
+#define ICON_MESH		 "\u003D"
+#define ICON_EXPLOSION	 "\u003E"
+#define ICON_CUBES		 "\u003F"
 
 }

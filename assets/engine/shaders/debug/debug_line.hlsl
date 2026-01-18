@@ -56,10 +56,14 @@ struct VSOutput
 
 struct render_pass_data
 {
-	float4x4 view;
+float4x4 view;
 	float4x4 proj;
 	float4x4 view_proj;
+	float4 cam_right_and_pixel_size;
+	float4 cam_up;
 	float4 resolution_and_planes;
+	float sdf_thickness;
+	float sdf_softness;
 };
 
 VSOutput VSMain(VSInput IN)

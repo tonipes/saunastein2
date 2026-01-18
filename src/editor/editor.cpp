@@ -148,6 +148,10 @@ namespace SFG
 		_font_title					  = _font_manager->load_font_from_file(title_font_str.c_str(), 20 * dpi_scale);
 		_font_icons					  = _font_manager->load_font_from_file(icon_font_str.c_str(), 16 * dpi_scale, 32, 128, vekt::font_type::sdf, 3, 128, 32);
 
+		world_debug_rendering& wdr = editor::get().get_app().get_world().get_debug_rendering();
+		wdr.set_default_font(_font_main, _renderer.get_atlas_gpu_index(_font_main->_atlas));
+		wdr.set_icon_font(_font_icons, _renderer.get_atlas_gpu_index(_font_icons->_atlas));
+
 		// -----------------------------------------------------------------------------
 		// editor pipeline
 		// -----------------------------------------------------------------------------

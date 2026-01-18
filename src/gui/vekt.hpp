@@ -1211,7 +1211,7 @@ namespace vekt
 		void				add_stroke_rect_aa(const rect_props& props);
 		void				add_stroke_rect_rounding(const rect_props& props);
 		void				add_stroke_rect_aa_rounding(const rect_props& props);
-		void				add_text(const text_props& text, const VEKT_VEC4& color, const VEKT_VEC2& position, const VEKT_VEC2& size, unsigned int draw_order, void* user_data);
+		void				add_text(const text_props& text, const VEKT_VEC4& color, const VEKT_VEC2& position, const VEKT_VEC2& size, unsigned int draw_order, void* user_data, bool flip_uv = false);
 		void				add_text_cached(const text_props& text, const VEKT_VEC4& color, const VEKT_VEC2& position, const VEKT_VEC2& size, unsigned int draw_order, void* user_data);
 		static VEKT_VEC2	get_text_size(const text_props& text, const VEKT_VEC2& parent_size = VEKT_VEC2());
 		draw_buffer*		get_draw_buffer(unsigned int draw_order, void* user_data, font* fnt = nullptr);

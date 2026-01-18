@@ -94,9 +94,10 @@ namespace SFG
 		// rendering
 		// -----------------------------------------------------------------------------
 
-		void prepare(proxy_manager& pm, gfx_id cmd_buffer, uint8 frame_index);
-		void render(const render_params& p);
-		void resize(const vector2ui16& size);
+		void	  prepare(proxy_manager& pm, gfx_id cmd_buffer, uint8 frame_index);
+		void	  render(const render_params& p);
+		void	  resize(const vector2ui16& size);
+		gpu_index get_atlas_gpu_index(vekt::atlas* atl);
 
 		// -----------------------------------------------------------------------------
 		// accessors

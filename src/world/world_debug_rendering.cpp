@@ -58,13 +58,15 @@ namespace SFG
 	{
 		for (uint32 i = 0; i < 3; ++i)
 		{
-			snapshot& sh	 = _snapshots[i];
-			sh.vertices_gui	 = new vertex_gui[MAX_VERTEX_COUNT_GUI];
-			sh.vertices_line = new vertex_3d_line[MAX_VERTEX_COUNT_LINE];
-			sh.vertices_tri	 = new vertex_simple[MAX_VERTEX_COUNT_TRI];
-			sh.indices_gui	 = new primitive_index[MAX_INDEX_COUNT_GUI];
-			sh.indices_line	 = new primitive_index[MAX_INDEX_COUNT_LINE];
-			sh.indices_tri	 = new primitive_index[MAX_INDEX_COUNT_TRI];
+			snapshot& sh	  = _snapshots[i];
+			sh.vertices_gui	  = new vertex_gui[MAX_VERTEX_COUNT_GUI];
+			sh.vertices_line  = new vertex_3d_line[MAX_VERTEX_COUNT_LINE];
+			sh.vertices_tri	  = new vertex_simple[MAX_VERTEX_COUNT_TRI];
+			sh.indices_gui	  = new primitive_index[MAX_INDEX_COUNT_GUI];
+			sh.indices_line	  = new primitive_index[MAX_INDEX_COUNT_LINE];
+			sh.indices_tri	  = new primitive_index[MAX_INDEX_COUNT_TRI];
+			sh.draw_calls_gui = new gui_draw_call[MAX_DRAW_CALLS_GUI];
+			sh.draw_data_gui  = new gui_draw_call_data[MAX_DRAW_CALLS_GUI];
 		}
 
 		_builder						= new vekt::builder();
@@ -88,6 +90,8 @@ namespace SFG
 			delete[] sh.indices_gui;
 			delete[] sh.indices_tri;
 			delete[] sh.indices_line;
+			delete[] sh.draw_calls_gui;
+			delete[] sh.draw_data_gui;
 			sh = {};
 		}
 
@@ -103,12 +107,49 @@ namespace SFG
 	{
 		world_debug_rendering::snapshot& w = _snapshots[_writer_slot];
 		w.reset();
-		_builder->build_begin(vector2(res.x, res.y));
+		_builder->build_begin(vector2(24000, 24000));
 	}
 
 	void world_debug_rendering::end_frame()
 	{
 		_builder->build_end();
+
+		const auto& dbs		   = _builder->get_draw_buffers();
+		uint32		vertex_ctr = 0;
+		uint32		index_ctr  = 0;
+
+		snapshot& s = _snapshots[_writer_slot];
+
+		for (const vekt::draw_buffer& db : dbs)
+		{
+			SFG_MEMCPY(&s.vertices_gui[s.vtx_count_gui], db.vertex_start, sizeof(vekt::vertex) * db.vertex_count);
+			SFG_MEMCPY(&s.indices_gui[s.idx_count_gui], db.index_start, sizeof(vekt::index) * db.index_count);
+
+			gpu_index fidx = NULL_GPU_INDEX;
+
+			if (db.font_id == _font_id_default)
+				fidx = _gpu_index_font_default;
+			else if (db.font_id == _font_id_icons)
+				fidx = _gpu_index_font_icon;
+
+			gui_draw_call_data* dt	= reinterpret_cast<gui_draw_call_data*>(db.user_data);
+			const size_t		off = dt - s.draw_data_gui;
+
+			gui_draw_call& dc = s.draw_calls_gui[s.dc_count_gui];
+			dc				  = {
+							   .start_index	  = s.idx_count_gui,
+							   .index_count	  = db.index_count,
+							   .base_vertex	  = s.vtx_count_gui,
+							   .vertex_size	  = sizeof(vekt::vertex),
+							   .font_idx	  = fidx,
+							   .draw_data_idx = static_cast<uint32>(off),
+							   .is_icon		  = fidx == _gpu_index_font_icon,
+			   };
+
+			s.vtx_count_gui += db.vertex_count;
+			s.idx_count_gui += db.index_count;
+			s.dc_count_gui++;
+		}
 
 		const uint32 next = (_writer_slot + 1) % 3;
 		_published.store(_writer_slot, std::memory_order_release);
@@ -503,12 +544,30 @@ namespace SFG
 		draw_line(n3, f3, col, thickness);
 	}
 
-	void world_debug_rendering::draw_icon(const vector2&, const color& col)
+	void world_debug_rendering::draw_icon(const vector3& pos, const color& col, const char* txt)
 	{
+		if (_font_icon == nullptr)
+			return;
+		const vekt::text_props tp = {
+			.text		   = txt,
+			.font		   = _font_icon,
+			.text_capacity = strlen(txt),
+			.scale		   = 1.0f,
+		};
+		const vector2 sz = _builder->get_text_size(tp);
+
+		snapshot&			s  = _snapshots[_writer_slot];
+		gui_draw_call_data& dd = s.draw_data_gui[s.draw_data_count_gui];
+
+		_builder->add_text(tp, col.to_vector(), vector2::zero, sz, 0, &dd, true);
+		dd.pos_and_size = vector4(pos.x, pos.y, pos.z, 1.0f);
+		s.draw_data_count_gui++;
 	}
 
-	void world_debug_rendering::draw_text(const vector2&, const color& col)
+	void world_debug_rendering::draw_text(const vector3&, const color& col, const char* txt)
 	{
+		if (_font_default == nullptr)
+			return;
 	}
 
 	const world_debug_rendering::snapshot* world_debug_rendering::get_read_snapshot() const
@@ -517,6 +576,22 @@ namespace SFG
 		if (idx != UINT32_MAX)
 			return &_snapshots[idx];
 		return nullptr;
+	}
+
+	void world_debug_rendering::set_default_font(vekt::font* f, gpu_index idx)
+
+	{
+		_font_default			= f;
+		_gpu_index_font_default = idx;
+		_font_id_default		= f->_font_id;
+	}
+
+	void world_debug_rendering::set_icon_font(vekt::font* f, gpu_index idx)
+
+	{
+		_font_icon			 = f;
+		_gpu_index_font_icon = idx;
+		_font_id_icons		 = f->_font_id;
 	}
 
 }

@@ -98,7 +98,7 @@ namespace SFG
 		static void run_particles_compute(const void* ctx);
 		static void run_obj_id(const void* ctx);
 		static void run_selection_outline(const void* ctx);
-		static void run_physics(const void* ctx);
+		static void run_debug_rendering(const void* ctx);
 		static void run_lighting(const void* ctx);
 		static void run_forward(const void* ctx);
 		static void run_particles_render(const void* ctx);

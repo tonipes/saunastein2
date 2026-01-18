@@ -166,9 +166,12 @@ namespace SFG
 			const color col_light_alt = color::red;
 
 			world_debug_rendering& debug_rendering = w.get_debug_rendering();
-			const vector3		   selected_pos	   = _selected_entity.is_null() ? vector3::zero : em.get_entity_position_abs(_selected_entity);
-			const quat			   selected_rot	   = _selected_entity.is_null() ? quat::identity : em.get_entity_rotation_abs(_selected_entity);
-			const vector3		   selected_scale  = _selected_entity.is_null() ? vector3::one : em.get_entity_scale_abs(_selected_entity);
+
+			debug_rendering.draw_icon(vector3(0, 5, 0), color::red, ICON_ANIMATION);
+
+			const vector3 selected_pos	 = _selected_entity.is_null() ? vector3::zero : em.get_entity_position_abs(_selected_entity);
+			const quat	  selected_rot	 = _selected_entity.is_null() ? quat::identity : em.get_entity_rotation_abs(_selected_entity);
+			const vector3 selected_scale = _selected_entity.is_null() ? vector3::one : em.get_entity_scale_abs(_selected_entity);
 
 			for (const selection_debug_draw& dd : _selection_debug_draws)
 			{

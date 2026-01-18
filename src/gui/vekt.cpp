@@ -2177,7 +2177,7 @@ namespace vekt
 		add_strip(db, in_start, in_aa_start, _reuse_aa_inner_path.size(), false);
 	}
 
-	void builder::add_text(const text_props& text, const VEKT_VEC4& color, const VEKT_VEC2& position, const VEKT_VEC2& size, unsigned int draw_order, void* user_data)
+	void builder::add_text(const text_props& text, const VEKT_VEC4& color, const VEKT_VEC2& position, const VEKT_VEC2& size, unsigned int draw_order, void* user_data, bool flip_uv)
 	{
 		if (text.font == nullptr)
 		{
@@ -2248,10 +2248,10 @@ namespace vekt
 			v2.color = color;
 			v3.color = color;
 
-			v0.uv = uv0;
-			v1.uv = uv1;
-			v2.uv = uv2;
-			v3.uv = uv3;
+			v0.uv = flip_uv ? VEKT_VEC2(uv0.x, uv3.y) : uv0;
+			v1.uv = flip_uv ? VEKT_VEC2(uv1.x, uv2.y) : uv1;
+			v2.uv = flip_uv ? VEKT_VEC2(uv2.x, uv1.y) : uv2;
+			v3.uv = flip_uv ? VEKT_VEC2(uv3.x, uv0.y) : uv3;
 
 			indices[current_char * 6]	  = start_vertices_idx + vtx_counter;
 			indices[current_char * 6 + 1] = start_vertices_idx + vtx_counter + 1;

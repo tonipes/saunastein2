@@ -128,9 +128,9 @@ namespace SFG
 
 		struct comp_remove_button
 		{
-			world_handle handle;
-			vekt::id	 button;
-			string_id	 comp_type;
+			world_handle handle	   = {};
+			vekt::id	 button	   = NULL_WIDGET_ID;
+			string_id	 comp_type = 0;
 		};
 
 		struct add_comp_button

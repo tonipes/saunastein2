@@ -134,13 +134,29 @@ namespace SFG
 					.flags		= resource_flags::rf_index_buffer | resource_flags::rf_gpu_only,
 					.debug_name = "debug_idx_gui",
 				});
+
+			pfd.draw_data_gui.create(
+				{
+					.size			 = world_debug_rendering::MAX_DRAW_CALLS_GUI * sizeof(world_debug_rendering::gui_draw_call_data),
+					.structure_size	 = sizeof(world_debug_rendering::gui_draw_call_data),
+					.structure_count = world_debug_rendering::MAX_DRAW_CALLS_GUI,
+					.flags			 = resource_flags::rf_cpu_visible,
+					.debug_name		 = "debug_dd_gui",
+				},
+				{
+					.size			 = world_debug_rendering::MAX_DRAW_CALLS_GUI * sizeof(world_debug_rendering::gui_draw_call_data),
+					.structure_size	 = sizeof(world_debug_rendering::gui_draw_call_data),
+					.structure_count = world_debug_rendering::MAX_DRAW_CALLS_GUI,
+					.flags			 = resource_flags::rf_storage_buffer | resource_flags::rf_gpu_only,
+					.debug_name		 = "debug_dd_gui",
+				});
 		}
 
 		_shader_debug_triangle	  = engine_shaders::get().get_shader(engine_shader_type::engine_shader_debug_default).get_hw();
 		_shader_debug_line		  = engine_shaders::get().get_shader(engine_shader_type::engine_shader_debug_line).get_hw();
-		_shader_debug_gui_default = 0;
-		_shader_debug_gui_text	  = 0;
-		_shader_debug_gui_sdf	  = 0;
+		_shader_debug_gui_default = engine_shaders::get().get_shader(engine_shader_type::engine_shader_type_gui_default).get_hw(shader_variant_flags::variant_flag_gui_3d);
+		_shader_debug_gui_text	  = engine_shaders::get().get_shader(engine_shader_type::engine_shader_type_gui_text).get_hw(shader_variant_flags::variant_flag_gui_3d);
+		_shader_debug_gui_sdf	  = engine_shaders::get().get_shader(engine_shader_type::engine_shader_type_gui_sdf).get_hw(shader_variant_flags::variant_flag_gui_3d);
 
 #ifdef SFG_TOOLMODE
 		engine_shaders::get().add_reload_listener([this](engine_shader_type type, shader_direct& sh) {
@@ -153,6 +169,24 @@ namespace SFG
 			if (type == engine_shader_type::engine_shader_debug_line)
 			{
 				_shader_debug_line = sh.get_hw();
+				return;
+			}
+
+			if (type == engine_shader_type::engine_shader_type_gui_default)
+			{
+				_shader_debug_gui_default = sh.get_hw(shader_variant_flags::variant_flag_gui_3d);
+				return;
+			}
+
+			if (type == engine_shader_type::engine_shader_type_gui_text)
+			{
+				_shader_debug_gui_text = sh.get_hw(shader_variant_flags::variant_flag_gui_3d);
+				return;
+			}
+
+			if (type == engine_shader_type::engine_shader_type_gui_sdf)
+			{
+				_shader_debug_gui_sdf = sh.get_hw(shader_variant_flags::variant_flag_gui_3d);
 				return;
 			}
 		});
@@ -181,6 +215,7 @@ namespace SFG
 			pfd.idx_buffer_line.destroy();
 			pfd.idx_buffer_tri.destroy();
 			pfd.idx_buffer_gui.destroy();
+			pfd.draw_data_gui.destroy();
 		}
 	}
 
@@ -189,7 +224,7 @@ namespace SFG
 		_renderer->draw(*_world);
 	}
 
-	void render_pass_debug::prepare(const view& main_camera_view, const vector2ui16& resolution, uint8 frame_index)
+	void render_pass_debug::prepare(proxy_manager& pm, const view& main_camera_view, const vector2ui16& resolution, uint8 frame_index)
 	{
 		ZoneScoped;
 
@@ -199,14 +234,28 @@ namespace SFG
 		gfx_backend*	backend	   = gfx_backend::get();
 		per_frame_data& pfd		   = _pfd[frame_index];
 		const gfx_id	cmd_buffer = pfd.cmd_buffer;
-
 		backend->reset_command_buffer(cmd_buffer);
 
+		const world_id mc				 = pm.get_main_camera();
+		vector3		   main_camera_right = vector3::right;
+		vector3		   main_camera_up	 = vector3::up;
+
+		if (mc != NULL_WORLD_ID)
+		{
+			render_proxy_entity& e = pm.get_entity(pm.get_camera(mc).entity);
+			main_camera_right	   = e.rotation.get_right();
+			main_camera_up		   = e.rotation.get_up();
+		}
+
 		const ubo ubo_data = {
-			.view				   = main_camera_view.view_matrix,
-			.proj				   = main_camera_view.proj_matrix,
-			.view_proj			   = main_camera_view.view_proj_matrix,
-			.resolution_and_planes = vector4(resolution.x, resolution.y, main_camera_view.near_plane, main_camera_view.far_plane),
+			.view					  = main_camera_view.view_matrix,
+			.proj					  = main_camera_view.proj_matrix,
+			.view_proj				  = main_camera_view.view_proj_matrix,
+			.cam_right_and_pixel_size = vector4(main_camera_right.x, main_camera_right.y, main_camera_right.z, 0.05f),
+			.cam_up					  = vector4(main_camera_up.x, main_camera_up.y, main_camera_up.z, 0.0f),
+			.resolution_and_planes	  = vector4(resolution.x, resolution.y, main_camera_view.near_plane, main_camera_view.far_plane),
+			.sdf_thickness			  = 0.5f,
+			.sdf_softness			  = 0.02f,
 		};
 		pfd.ubo.buffer_data(0, &ubo_data, sizeof(ubo));
 
@@ -222,12 +271,14 @@ namespace SFG
 		const uint32 idx_count_line = snap->idx_count_line;
 		const uint32 idx_count_tri	= snap->idx_count_tri;
 		const uint32 idx_count_gui	= snap->idx_count_gui;
+		const uint32 dc_count_gui	= snap->dc_count_gui;
+		const uint32 dd_count_gui	= snap->draw_data_count_gui;
 
 		SFG_ASSERT((vtx_count_gui == 0 && idx_count_gui == 0) || (vtx_count_gui != 0 && idx_count_gui != 0));
 		SFG_ASSERT((vtx_count_line == 0 && idx_count_line == 0) || (vtx_count_line != 0 && idx_count_line != 0));
 		SFG_ASSERT((vtx_count_tri == 0 && idx_count_tri == 0) || (vtx_count_tri != 0 && idx_count_tri != 0));
 
-		static_vector<barrier, 6> barriers;
+		static_vector<barrier, 8> barriers;
 
 		// -----------------------------------------------------------------------------
 		// before copy
@@ -249,22 +300,40 @@ namespace SFG
 				.flags		 = barrier_flags::baf_is_resource,
 			});
 
+			barriers.push_back({
+				.from_states = resource_state::resource_state_non_ps_resource,
+				.to_states	 = resource_state::resource_state_copy_dest,
+				.resource	 = pfd.draw_data_gui.get_gpu(),
+				.flags		 = barrier_flags::baf_is_resource,
+			});
+
 			pfd.vtx_buffer_gui.buffer_data(0, snap->vertices_gui, sizeof(vertex_gui) * vtx_count_gui);
 			pfd.idx_buffer_gui.buffer_data(0, snap->indices_gui, sizeof(vekt::index) * idx_count_gui);
+			pfd.draw_data_gui.buffer_data(0, snap->draw_data_gui, sizeof(world_debug_rendering::gui_draw_call_data) * dd_count_gui);
 
-			_draw_stream.add_command({
-				.start_index			 = 0,
-				.index_count			 = idx_count_gui,
-				.base_vertex			 = 0,
-				.material_constant_index = NULL_GPU_INDEX,
-				.texture_constant_index	 = NULL_GPU_INDEX,
-				.font_index				 = NULL_GPU_INDEX,
-				.vb_hw					 = pfd.vtx_buffer_gui.get_gpu(),
-				.ib_hw					 = pfd.idx_buffer_gui.get_gpu(),
-				.pipeline_hw			 = _shader_debug_gui_default,
-				.vertex_size			 = sizeof(vertex_gui),
-				.idx_size				 = sizeof(vekt::index),
-			});
+			for (uint32 i = 0; i < dc_count_gui; i++)
+			{
+				world_debug_rendering::gui_draw_call& dc = snap->draw_calls_gui[i];
+
+				gfx_id pipeline = _shader_debug_gui_default;
+
+				if (dc.font_idx != NULL_GPU_INDEX)
+					pipeline = dc.is_icon ? _shader_debug_gui_sdf : _shader_debug_gui_text;
+
+				_draw_stream.add_command({
+					.start_index			 = dc.start_index,
+					.index_count			 = dc.index_count,
+					.base_vertex			 = dc.base_vertex,
+					.material_constant_index = dc.draw_data_idx,
+					.texture_constant_index	 = pfd.draw_data_gui.get_index(),
+					.font_index				 = dc.font_idx,
+					.vb_hw					 = pfd.vtx_buffer_gui.get_gpu(),
+					.ib_hw					 = pfd.idx_buffer_gui.get_gpu(),
+					.pipeline_hw			 = pipeline,
+					.vertex_size			 = sizeof(vertex_gui),
+					.idx_size				 = sizeof(vekt::index),
+				});
+			}
 		}
 
 		if (vtx_count_line != 0)
@@ -369,8 +438,16 @@ namespace SFG
 				.flags		 = barrier_flags::baf_is_resource,
 			});
 
+			barriers.push_back({
+				.from_states = resource_state::resource_state_copy_dest,
+				.to_states	 = resource_state::resource_state_non_ps_resource,
+				.resource	 = pfd.draw_data_gui.get_gpu(),
+				.flags		 = barrier_flags::baf_is_resource,
+			});
+
 			pfd.vtx_buffer_gui.copy_region(cmd_buffer, 0, sizeof(vertex_gui) * vtx_count_gui);
 			pfd.idx_buffer_gui.copy_region(cmd_buffer, 0, sizeof(vekt::index) * idx_count_gui);
+			pfd.draw_data_gui.copy_region(cmd_buffer, 0, sizeof(world_debug_rendering::gui_draw_call_data) * dd_count_gui);
 		}
 
 		if (vtx_count_line != 0)

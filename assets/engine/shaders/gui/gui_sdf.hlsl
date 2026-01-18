@@ -54,6 +54,22 @@ struct VSOutput
 // Vertex Shader
 //------------------------------------------------------------------------------
 
+#if IS_3D
+
+struct render_pass_data
+{
+	float4x4 view;
+	float4x4 proj;
+	float4x4 view_proj;
+	float4 cam_right_and_pixel_size;
+	float4 cam_up;
+	float4 resolution_and_planes;
+	float sdf_thickness;
+	float sdf_softness;
+};
+
+#else
+
 struct render_pass_data
 {
 	float4x4 projection;
@@ -61,14 +77,44 @@ struct render_pass_data
 	float sdf_softness;
 };
 
+#endif
+
+#if IS_3D
+struct draw_data
+{
+	float4 position_and_size;
+};
+#endif
+
 VSOutput VSMain(VSInput IN)
 {
 	VSOutput OUT;
     
-	render_pass_data rp_data = sfg_get_cbv<render_pass_data>(sfg_rp_constant0);
+	render_pass_data rp_ubo = sfg_get_cbv<render_pass_data>(sfg_rp_constant0);
 
+#if IS_3D
 	float4 worldPos = float4(IN.pos, 0.0f, 1.0f);
-	OUT.pos = mul(rp_data.projection, worldPos);
+	uint draw_index = sfg_mat_constant0;
+	StructuredBuffer<draw_data> draw_data_buffer = sfg_get_ssbo<draw_data>(sfg_mat_constant1);
+	draw_data dd = draw_data_buffer[draw_index];
+
+    float3 anchor_ws = dd.position_and_size.xyz;
+    float  scale_ws  = dd.position_and_size.w;
+
+    float2 local_ws_2d = (IN.pos * rp_ubo.cam_right_and_pixel_size.w) * scale_ws;
+
+    float3 world_pos =
+        anchor_ws +
+        rp_ubo.cam_right_and_pixel_size.xyz * local_ws_2d.x +
+        rp_ubo.cam_up.xyz    * local_ws_2d.y;
+
+    OUT.pos = mul(rp_ubo.view_proj, float4(world_pos, 1.0f));
+
+#else
+	float4 worldPos = float4(IN.pos, 0.0f, 1.0f);
+	OUT.pos = mul(rp_ubo.projection, worldPos);
+#endif
+
 	OUT.uv = IN.uv;
 	OUT.color = IN.color;
 	return OUT;
@@ -83,7 +129,7 @@ SamplerState sampler_base : static_sampler_gui_text;
 float4 PSMain(VSOutput IN) : SV_TARGET
 {
 	render_pass_data rp_data = sfg_get_cbv<render_pass_data>(sfg_rp_constant0);
-	Texture2D txt_atlas = sfg_get_texture<Texture2D>(sfg_object_constant0);
+	Texture2D txt_atlas = sfg_get_texture<Texture2D>(sfg_mat_constant2);
 	
 	float distance = txt_atlas.SampleLevel(sampler_base, IN.uv, 0).x;
 	float alpha = smoothstep(rp_data.sdf_thickness - rp_data.sdf_softness, rp_data.sdf_thickness + rp_data.sdf_softness, distance);

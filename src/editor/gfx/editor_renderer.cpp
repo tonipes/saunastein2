@@ -330,7 +330,7 @@ namespace SFG
 
 			if (last_atlas_constant == UINT32_MAX || (dc.atlas_gpu_index != last_atlas_constant))
 			{
-				backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)&dc.atlas_gpu_index, .offset = constant_index_object_constant0, .count = 1, .param_index = rpi_constants});
+				backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)&dc.atlas_gpu_index, .offset = constant_index_mat_constant2, .count = 1, .param_index = rpi_constants});
 				last_atlas_constant = dc.atlas_gpu_index;
 			}
 
@@ -356,7 +356,7 @@ namespace SFG
 				bd_texture = p.ssao_rt_index;
 
 			if (bd_texture != NULL_GPU_INDEX)
-				backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)&bd_texture, .offset = constant_index_mat_constant0, .count = 1, .param_index = rpi_constants});
+				backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)&bd_texture, .offset = constant_index_mat_constant1, .count = 1, .param_index = rpi_constants});
 
 			backend->cmd_draw_indexed_instanced(cmd_buffer,
 												{
@@ -398,6 +398,17 @@ namespace SFG
 
 		destroy_textures();
 		create_textures(size);
+	}
+
+	gpu_index editor_renderer::get_atlas_gpu_index(vekt::atlas* atl)
+	{
+		for (const atlas_ref& r : _gfx_data.atlases)
+		{
+			if (r.atlas == atl)
+				return r.texture_gpu_index;
+		}
+
+		return NULL_GPU_INDEX;
 	}
 
 	void editor_renderer::create_textures(const vector2ui16& size)

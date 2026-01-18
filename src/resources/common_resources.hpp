@@ -96,6 +96,7 @@ namespace SFG
 		variant_flag_shadow_rendering  = 1 << 4,
 		variant_flag_selection_outline = 1 << 5,
 		variant_flag_id_write		   = 1 << 6,
+		variant_flag_gui_3d			   = 1 << 7,
 	};
 
 }

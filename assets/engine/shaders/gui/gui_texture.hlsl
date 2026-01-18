@@ -64,7 +64,6 @@ VSOutput VSMain(VSInput IN)
 {
 	VSOutput OUT;
 	render_pass_data rp_ubo = sfg_get_cbv<render_pass_data>(sfg_rp_constant0);
-
 	float4 worldPos = float4(IN.pos, 0.0f, 1.0f);
 	OUT.pos = mul(rp_ubo.projection, worldPos);
 	OUT.uv = IN.uv;
@@ -79,6 +78,6 @@ SamplerState smp : static_sampler_linear;
 //------------------------------------------------------------------------------
 float4 PSMain(VSOutput IN) : SV_TARGET
 {
-	Texture2D txt = sfg_get_texture<Texture2D>(sfg_mat_constant0);
+	Texture2D txt = sfg_get_texture<Texture2D>(sfg_mat_constant1);
 	return txt.SampleLevel(smp, IN.uv, 0);
 }
