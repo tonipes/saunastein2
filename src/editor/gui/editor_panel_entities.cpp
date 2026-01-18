@@ -38,10 +38,15 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "world/entity_manager.hpp"
 
 // comps
-#include "world/components/comp_physics.hpp"
+#include "world/components/comp_ambient.hpp"
+#include "world/components/comp_animation_controller.hpp"
 #include "world/components/comp_audio.hpp"
 #include "world/components/comp_camera.hpp"
+#include "world/components/comp_canvas.hpp"
 #include "world/components/comp_light.hpp"
+#include "world/components/comp_mesh_instance.hpp"
+#include "world/components/comp_particle_emitter.hpp"
+#include "world/components/comp_physics.hpp"
 
 // platform
 #include "platform/window.hpp"
@@ -164,10 +169,67 @@ namespace SFG
 			const color col_phy		  = color::red;
 			const color col_light	  = color::yellow;
 			const color col_light_alt = color::red;
+			const color col_icon	  = color(editor_theme::get().col_accent_third.x, editor_theme::get().col_accent_third.y, editor_theme::get().col_accent_third.z, editor_theme::get().col_accent_third.w);
 
 			world_debug_rendering& debug_rendering = w.get_debug_rendering();
 
-			debug_rendering.draw_icon(vector3(0, 5, 0), color::red, ICON_ANIMATION);
+			cm.view<comp_ambient>([&](comp_ambient& c) {
+				debug_rendering.draw_icon(em.get_entity_position_abs(c.get_header().entity), col_icon, ICON_AMBIENT);
+				return comp_view_result::cont;
+			});
+
+			cm.view<comp_audio>([&](comp_audio& c) {
+				debug_rendering.draw_icon(em.get_entity_position_abs(c.get_header().entity), col_icon, ICON_AUDIO);
+				return comp_view_result::cont;
+			});
+			cm.view<comp_camera>([&](comp_camera& c) {
+				if (c.get_header().entity == editor::get().get_camera().get_entity())
+					return comp_view_result::cont;
+
+				debug_rendering.draw_icon(em.get_entity_position_abs(c.get_header().entity), col_icon, ICON_CAMERA);
+				return comp_view_result::cont;
+			});
+
+			cm.view<comp_point_light>([&](comp_point_light& c) {
+				debug_rendering.draw_icon(em.get_entity_position_abs(c.get_header().entity), col_icon, ICON_LIGHT_BULB);
+				return comp_view_result::cont;
+			});
+			cm.view<comp_dir_light>([&](comp_dir_light& c) {
+				debug_rendering.draw_icon(em.get_entity_position_abs(c.get_header().entity), col_icon, ICON_SUN);
+				return comp_view_result::cont;
+			});
+			cm.view<comp_spot_light>([&](comp_spot_light& c) {
+				debug_rendering.draw_icon(em.get_entity_position_abs(c.get_header().entity), col_icon, ICON_SPOT);
+				return comp_view_result::cont;
+			});
+
+			cm.view<comp_particle_emitter>([&](comp_particle_emitter& c) {
+				debug_rendering.draw_icon(em.get_entity_position_abs(c.get_header().entity), col_icon, ICON_EXPLOSION);
+				return comp_view_result::cont;
+			});
+
+			/*
+			*
+			* cm.view<comp_canvas>([&](comp_canvas& c) {
+				debug_rendering.draw_icon(em.get_entity_position_abs(c.get_header().entity), col_icon, ICON_CAMERA);
+				return comp_view_result::cont;
+			});
+
+			cm.view<comp_animation_controller>([&](comp_animation_controller& c) {
+				draw_component_icon(c.get_header().entity, ICON_ANIMATION);
+				return comp_view_result::cont;
+			});
+
+			cm.view<comp_mesh_instance>([&](comp_mesh_instance& c) {
+				draw_component_icon(c.get_header().entity, ICON_MESH);
+				return comp_view_result::cont;
+			});
+
+			cm.view<comp_physics>([&](comp_physics& c) {
+				draw_component_icon(c.get_header().entity, ICON_CUBES);
+				return comp_view_result::cont;
+			});
+			*/
 
 			const vector3 selected_pos	 = _selected_entity.is_null() ? vector3::zero : em.get_entity_position_abs(_selected_entity);
 			const quat	  selected_rot	 = _selected_entity.is_null() ? quat::identity : em.get_entity_rotation_abs(_selected_entity);

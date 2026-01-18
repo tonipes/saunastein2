@@ -69,6 +69,10 @@ namespace SFG
 		{
 			return _base_color;
 		}
+		inline const component_header& get_header() const
+		{
+			return _header;
+		}
 
 	private:
 		template <typename T, int> friend class comp_cache;

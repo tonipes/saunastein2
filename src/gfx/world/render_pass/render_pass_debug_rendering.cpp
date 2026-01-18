@@ -251,7 +251,7 @@ namespace SFG
 			.view					  = main_camera_view.view_matrix,
 			.proj					  = main_camera_view.proj_matrix,
 			.view_proj				  = main_camera_view.view_proj_matrix,
-			.cam_right_and_pixel_size = vector4(main_camera_right.x, main_camera_right.y, main_camera_right.z, 0.05f),
+			.cam_right_and_pixel_size = vector4(main_camera_right.x, main_camera_right.y, main_camera_right.z, 0.025f),
 			.cam_up					  = vector4(main_camera_up.x, main_camera_up.y, main_camera_up.z, 0.0f),
 			.resolution_and_planes	  = vector4(resolution.x, resolution.y, main_camera_view.near_plane, main_camera_view.far_plane),
 			.sdf_thickness			  = 0.5f,

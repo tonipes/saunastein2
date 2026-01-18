@@ -70,7 +70,14 @@ namespace SFG
 		}
 
 		_builder						= new vekt::builder();
-		vekt::builder::init_config conf = {};
+		vekt::builder::init_config conf = {
+			.widget_count				 = 1024,
+			.vertex_buffer_sz			 = 1024 * 1024,
+			.index_buffer_sz			 = 1024 * 1024,
+			.text_cache_vertex_buffer_sz = 1024 * 1024,
+			.text_cache_index_buffer_sz	 = 1024 * 1024,
+			.buffer_count				 = 50,
+		};
 		_builder->init(conf);
 
 		_published.store(UINT32_MAX, std::memory_order_relaxed);
@@ -593,5 +600,4 @@ namespace SFG
 		_gpu_index_font_icon = idx;
 		_font_id_icons		 = f->_font_id;
 	}
-
 }

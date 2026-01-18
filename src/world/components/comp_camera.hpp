@@ -82,6 +82,10 @@ namespace SFG
 		{
 			return _fov_degrees;
 		}
+		inline const component_header& get_header() const
+		{
+			return _header;
+		}
 
 	private:
 		template <typename T, int> friend class comp_cache;

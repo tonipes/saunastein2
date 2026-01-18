@@ -40,6 +40,7 @@ namespace SFG
 #define ICON_INFO		 "\u004D"
 #define ICON_AMBIENT	 "\u0032"
 #define ICON_ANIMATION	 "\u0033"
+#define ICON_AUDIO		 "\u0037"
 #define ICON_CAMERA		 "\u0038"
 #define ICON_GUI		 "\u0039"
 #define ICON_SPOT		 "\u003A"

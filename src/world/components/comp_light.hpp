@@ -80,6 +80,10 @@ namespace SFG
 		{
 			return _intensity;
 		}
+		inline const component_header& get_header() const
+		{
+			return _header;
+		}
 
 	private:
 		template <typename T, int> friend class comp_cache;
@@ -150,6 +154,10 @@ namespace SFG
 		{
 			return _near_plane;
 		}
+		inline const component_header& get_header() const
+		{
+			return _header;
+		}
 
 	private:
 		template <typename T, int> friend class comp_cache;
@@ -212,6 +220,10 @@ namespace SFG
 		inline float get_near_plane() const
 		{
 			return _near_plane;
+		}
+		inline const component_header& get_header() const
+		{
+			return _header;
 		}
 
 	private:
