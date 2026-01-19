@@ -1523,7 +1523,7 @@ namespace vekt
 				continue;
 
 			mouse_callback& cb = _mouse_callbacks[widget];
-			if (!cb.on_mouse)
+			if (!cb.on_mouse && !cb.on_drag)
 				continue;
 
 			if (ev.type == input_event_type::pressed)
@@ -1532,7 +1532,7 @@ namespace vekt
 				set_pressing(widget, ev.button, ev.position);
 			}
 
-			const input_event_result res = cb.on_mouse(this, widget, ev, input_event_phase::tunneling);
+			const input_event_result res = cb.on_mouse ? cb.on_mouse(this, widget, ev, input_event_phase::tunneling) : input_event_result::not_handled;
 			if (res == input_event_result::handled)
 			{
 
