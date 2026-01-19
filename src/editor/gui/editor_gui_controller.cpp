@@ -31,6 +31,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "editor_gui_world_overlays.hpp"
 #include "editor_panels_docking.hpp"
 #include "editor_panels_world_view.hpp"
+#include "editor/editor_layout.hpp"
 #include "editor/editor.hpp"
 #include "editor/editor_theme.hpp"
 
@@ -52,7 +53,8 @@ namespace SFG
 
 	void editor_gui_controller::init(vekt::builder* b)
 	{
-		_builder = b;
+		_builder	 = b;
+		_split_ratio = editor_layout::get().entities_world_split;
 
 		// Construct panels
 		_gui_world_overlays = new editor_gui_world_overlays();
@@ -115,7 +117,7 @@ namespace SFG
 
 			vekt::widget_gfx& gfx = _builder->widget_get_gfx(_layout_separator);
 			gfx.flags			  = vekt::gfx_flags::gfx_is_rect;
-			gfx.color			  = editor_theme::get().col_frame_outline;
+			gfx.color			  = editor_theme::get().col_frame_bg;
 
 			vekt::hover_callback& hb = _builder->widget_get_hover_callbacks(_layout_separator);
 			hb.on_hover_begin		 = on_separator_hover_begin;
@@ -230,6 +232,16 @@ namespace SFG
 
 		_builder->widget_set_pos_abs(_layout_root, vector2(0.0f, debug_controller::get_field_height()));
 		_builder->widget_set_size_abs(_layout_root, vector2(static_cast<float>(window_size.x), static_cast<float>(window_size.y) - debug_controller::get_field_height()));
+		{
+			const vector2 layout_size = _builder->widget_get_size(_layout_root);
+			if (layout_size.x > 0.0f)
+			{
+				const float max_width	 = math::max(layout_size.x - 240.0f, ENTITIES_MIN_WIDTH);
+				_split_px				 = math::clamp(layout_size.x * _split_ratio, ENTITIES_MIN_WIDTH, max_width);
+				vekt::size_props& ent_sz = _builder->widget_get_size_props(_panel_entities->get_root());
+				ent_sz.size.x			 = _split_px;
+			}
+		}
 		_panel_entities->draw(w, window_size);
 		_panel_world_view->draw(window_size);
 	}
@@ -375,6 +387,11 @@ namespace SFG
 		const float	  max_width	  = math::max(layout_size.x - 240.0f, ENTITIES_MIN_WIDTH);
 
 		self->_split_px = math::clamp(self->_split_px + delta_x, ENTITIES_MIN_WIDTH, max_width);
+		if (layout_size.x > 0.0f)
+		{
+			self->_split_ratio						  = math::clamp(self->_split_px / layout_size.x, 0.0f, 1.0f);
+			editor_layout::get().entities_world_split = self->_split_ratio;
+		}
 
 		const vekt::id	  ent_root = self->_panel_entities->get_root();
 		vekt::size_props& ent_sz   = b->widget_get_size_props(ent_root);

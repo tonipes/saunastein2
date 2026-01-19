@@ -194,6 +194,7 @@ namespace SFG
 
 	void editor::uninit()
 	{
+		editor_layout::get().save_last();
 		_gui_controller.uninit();
 
 		_bump_text_allocator.uninit();

@@ -46,6 +46,8 @@ namespace SFG
 	{
 		window_layout controls = {};
 		window_layout entities = {};
+		float		  entities_world_split = 0.25f;
+		float		  entities_components_split = 0.5f;
 
 		static editor_layout& get()
 		{
@@ -59,7 +61,7 @@ namespace SFG
 
 		inline bool save_last()
 		{
-			save(_last_path.c_str());
+			return save(_last_path.c_str());
 		}
 
 		string _last_path = "";

@@ -116,5 +116,6 @@ namespace SFG
 		vekt::id _layout_root	   = NULL_WIDGET_ID;
 		vekt::id _layout_separator = NULL_WIDGET_ID;
 		float	 _split_px		   = 320.0f;
+		float	 _split_ratio	   = 0.25f;
 	};
 }

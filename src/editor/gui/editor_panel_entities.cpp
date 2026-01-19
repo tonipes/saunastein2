@@ -27,6 +27,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "editor_panel_entities.hpp"
 #include "editor/editor_theme.hpp"
 #include "editor/editor_settings.hpp"
+#include "editor/editor_layout.hpp"
 #include "editor/editor.hpp"
 
 // io
@@ -73,10 +74,15 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace SFG
 {
+	static constexpr float SEPARATOR_HEIGHT			 = 4.0f;
+	static constexpr float ENTITY_AREA_MIN_HEIGHT	 = 140.0f;
+	static constexpr float COMPONENT_AREA_MIN_HEIGHT = 200.0f;
 
 	void editor_panel_entities::init(vekt::builder* b)
 	{
-		_builder = b;
+		_builder	 = b;
+		_split_ratio = editor_layout::get().entities_components_split;
+		_split_px	 = 200.0f;
 
 		// gui_builder now uses editor_theme directly for styles and fonts.
 		_gui_builder.init(b);
@@ -90,11 +96,42 @@ namespace SFG
 		_gui_builder.callbacks.on_control_button	  = invoke_button;
 
 		_gui_builder.add_title("entities");
-		_entity_area													 = _gui_builder.begin_area(true);
-		_builder->widget_get_size_props(_entity_area).child_margins.left = 0.0f;
-		_builder->widget_get_size_props(_entity_area).spacing			 = 0.0f;
-		_builder->widget_get_mouse_callbacks(_entity_area).on_mouse		 = on_mouse;
+		_entity_area = _gui_builder.begin_area(true);
+		{
+			vekt::size_props& sz										= _builder->widget_get_size_props(_entity_area);
+			sz.flags													= vekt::size_flags::sf_x_relative | vekt::size_flags::sf_y_abs;
+			sz.size.y													= _split_px;
+			sz.child_margins.left										= 0.0f;
+			sz.spacing													= 0.0f;
+			_builder->widget_get_mouse_callbacks(_entity_area).on_mouse = on_mouse;
+		}
 		_gui_builder.end_area();
+
+		_layout_separator = _builder->allocate();
+		{
+			_builder->widget_add_child(_root, _layout_separator);
+
+			vekt::pos_props& pp = _builder->widget_get_pos_props(_layout_separator);
+			pp.flags			= vekt::pos_flags::pf_x_relative;
+			pp.pos.x			= 0.0f;
+
+			vekt::size_props& sz = _builder->widget_get_size_props(_layout_separator);
+			sz.flags			 = vekt::size_flags::sf_x_relative | vekt::size_flags::sf_y_abs;
+			sz.size.x			 = 1.0f;
+			sz.size.y			 = SEPARATOR_HEIGHT;
+
+			vekt::widget_gfx& gfx = _builder->widget_get_gfx(_layout_separator);
+			gfx.flags			  = vekt::gfx_flags::gfx_is_rect;
+			gfx.color			  = editor_theme::get().col_frame_bg;
+
+			vekt::hover_callback& hb = _builder->widget_get_hover_callbacks(_layout_separator);
+			hb.on_hover_begin		 = on_separator_hover_begin;
+			hb.on_hover_end			 = on_separator_hover_end;
+
+			vekt::mouse_callback& mc							  = _builder->widget_get_mouse_callbacks(_layout_separator);
+			mc.on_drag											  = on_separator_drag;
+			_builder->widget_get_user_data(_layout_separator).ptr = this;
+		}
 
 		// Properties section
 		_gui_builder.add_title("properties");
@@ -156,6 +193,16 @@ namespace SFG
 	{
 		entity_manager&	   em = w.get_entity_manager();
 		component_manager& cm = w.get_comp_manager();
+		{
+			const vector2 root_size = _builder->widget_get_size(_root);
+			if (root_size.y > 0.0f)
+			{
+				const float max_height	 = math::max(root_size.y - COMPONENT_AREA_MIN_HEIGHT - SEPARATOR_HEIGHT, ENTITY_AREA_MIN_HEIGHT);
+				_split_px				 = math::clamp(root_size.y * _split_ratio, ENTITY_AREA_MIN_HEIGHT, max_height);
+				vekt::size_props& ent_sz = _builder->widget_get_size_props(_entity_area);
+				ent_sz.size.y			 = _split_px;
+			}
+		}
 
 		if (em.get_hierarchy_dirty())
 		{
@@ -1172,6 +1219,39 @@ namespace SFG
 				return;
 			}
 		}
+	}
+
+	void editor_panel_entities::on_separator_hover_begin(vekt::builder* b, vekt::id widget)
+	{
+		SFG::window::set_cursor_state(SFG::cursor_state::resize_vt);
+	}
+
+	void editor_panel_entities::on_separator_hover_end(vekt::builder* b, vekt::id widget)
+	{
+		SFG::window::set_cursor_state(SFG::cursor_state::arrow);
+	}
+
+	void editor_panel_entities::on_separator_drag(vekt::builder* b, vekt::id widget, float mp_x, float mp_y, float delta_x, float delta_y, unsigned int button)
+	{
+		if (button != static_cast<uint16>(input_code::mouse_0))
+			return;
+
+		editor_panel_entities* self = static_cast<editor_panel_entities*>(b->widget_get_user_data(widget).ptr);
+		if (!self)
+			return;
+
+		const vector2 layout_size = b->widget_get_size(self->_root);
+		const float	  max_height  = math::max(layout_size.y - COMPONENT_AREA_MIN_HEIGHT - SEPARATOR_HEIGHT, ENTITY_AREA_MIN_HEIGHT);
+
+		self->_split_px = math::clamp(self->_split_px + delta_y, ENTITY_AREA_MIN_HEIGHT, max_height);
+		if (layout_size.y > 0.0f)
+		{
+			self->_split_ratio							   = math::clamp(self->_split_px / layout_size.y, 0.0f, 1.0f);
+			editor_layout::get().entities_components_split = self->_split_ratio;
+		}
+
+		vekt::size_props& ent_sz = b->widget_get_size_props(self->_entity_area);
+		ent_sz.size.y			 = self->_split_px;
 	}
 
 }

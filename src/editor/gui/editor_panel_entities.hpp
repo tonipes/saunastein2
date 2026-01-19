@@ -99,6 +99,9 @@ namespace SFG
 		static void						on_tree_item_hover_end(vekt::builder* b, vekt::id widget);
 		static void						on_tree_item_hover_move(vekt::builder* b, vekt::id widget);
 		static void						on_focus_gained(vekt::builder* b, vekt::id widget, bool from_nav);
+		static void						on_separator_drag(vekt::builder* b, vekt::id widget, float mp_x, float mp_y, float delta_x, float delta_y, unsigned int button);
+		static void						on_separator_hover_begin(vekt::builder* b, vekt::id widget);
+		static void						on_separator_hover_end(vekt::builder* b, vekt::id widget);
 
 		// -----------------------------------------------------------------------------
 		// impl
@@ -146,10 +149,14 @@ namespace SFG
 		};
 
 	private:
-		vekt::builder* _builder		= nullptr;
-		gui_builder	   _gui_builder = {};
-		vekt::id	   _root		= 0;
-		vekt::id	   _entity_area = 0;
+		vekt::builder* _builder				   = nullptr;
+		gui_builder	   _gui_builder			   = {};
+		vekt::id	   _root				   = 0;
+		vekt::id	   _entity_area			   = 0;
+		vekt::id	   _layout_separator	   = NULL_WIDGET_ID;
+		float		   _split_ratio			   = 0.5f;
+		float		   _split_px			   = 0.0f;
+		bool		   _was_dragging_seperator = false;
 
 		vekt::id _prop_name			= NULL_WIDGET_ID;
 		vekt::id _prop_vis			= NULL_WIDGET_ID;
