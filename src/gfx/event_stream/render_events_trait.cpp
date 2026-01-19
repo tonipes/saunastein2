@@ -87,6 +87,66 @@ namespace SFG
 		stream >> base_color;
 	}
 
+	void render_event_bloom::serialize(ostream& stream) const
+	{
+		stream << entity_index;
+		stream << filter_radius;
+	}
+
+	void render_event_bloom::deserialize(istream& stream)
+	{
+		stream >> entity_index;
+		stream >> filter_radius;
+	}
+
+	void render_event_ssao::serialize(ostream& stream) const
+	{
+		stream << entity_index;
+		stream << radius_world;
+		stream << bias;
+		stream << intensity;
+		stream << power;
+		stream << num_dirs;
+		stream << num_steps;
+		stream << random_rot_strength;
+	}
+
+	void render_event_ssao::deserialize(istream& stream)
+	{
+		stream >> entity_index;
+		stream >> radius_world;
+		stream >> bias;
+		stream >> intensity;
+		stream >> power;
+		stream >> num_dirs;
+		stream >> num_steps;
+		stream >> random_rot_strength;
+	}
+
+	void render_event_post_process::serialize(ostream& stream) const
+	{
+		stream << entity_index;
+		stream << bloom_strength;
+		stream << exposure;
+		stream << tonemap_mode;
+		stream << saturation;
+		stream << wb_temp;
+		stream << wb_tint;
+		stream << reinhard_white_point;
+	}
+
+	void render_event_post_process::deserialize(istream& stream)
+	{
+		stream >> entity_index;
+		stream >> bloom_strength;
+		stream >> exposure;
+		stream >> tonemap_mode;
+		stream >> saturation;
+		stream >> wb_temp;
+		stream >> wb_tint;
+		stream >> reinhard_white_point;
+	}
+
 	void render_event_point_light::serialize(ostream& stream) const
 	{
 		stream << shadow_resolution;

@@ -1,4 +1,4 @@
-﻿/*
+/*
 This file is a part of stakeforge_engine: https://github.com/inanevin/stakeforge
 Copyright [2025-] Inan Evin
 
@@ -93,14 +93,17 @@ namespace SFG
 		destroy_textures();
 	}
 
-	void render_pass_bloom::prepare(uint8 frame_index)
+	void render_pass_bloom::prepare(proxy_manager& pm, uint8 frame_index)
 	{
 		ZoneScoped;
 
-		per_frame_data& pfd		 = _pfd[frame_index];
-		const ubo		ubo_data = {
-				  .filter_radius = 0.01f,
-		  };
+		const uint8				  bloom_exists	= pm.get_bloom_exists();
+		const render_proxy_bloom& bloom			= pm.get_bloom();
+		const float				  filter_radius = bloom_exists ? bloom.filter_radius : 0.01f;
+		per_frame_data&			  pfd			= _pfd[frame_index];
+		const ubo				  ubo_data		= {
+								 .filter_radius = filter_radius,
+		 };
 		pfd.ubo.buffer_data(0, &ubo_data, sizeof(ubo));
 	}
 

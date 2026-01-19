@@ -86,7 +86,7 @@ namespace SFG
 		// rendering
 		// -----------------------------------------------------------------------------
 
-		void prepare(uint8 frame_index, const vector2ui16& resolution);
+		void prepare(proxy_manager& pm, uint8 frame_index, const vector2ui16& resolution);
 		void render(const render_params& params);
 		void resize(const vector2ui16& size);
 

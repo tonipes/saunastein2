@@ -64,15 +64,15 @@ namespace SFG
 
 		struct gui_builder_callbacks
 		{
-			void*			 user_data				= nullptr;
-			void*			 callback_ud			= nullptr;
-			vekt::mouse_func on_mouse				= nullptr;
-			vekt::key_func	 on_key					= nullptr;
-			input_field_fn	 on_input_field_changed = nullptr;
-			checkbox_fn		 on_checkbox_changed	= nullptr;
-			resource_fn		 on_resource_changed	= nullptr;
-			dropdown_fn		 on_dropdown_item		= nullptr;
-			control_button_fn on_control_button		= nullptr;
+			void*			  user_data				 = nullptr;
+			void*			  callback_ud			 = nullptr;
+			vekt::mouse_func  on_mouse				 = nullptr;
+			vekt::key_func	  on_key				 = nullptr;
+			input_field_fn	  on_input_field_changed = nullptr;
+			checkbox_fn		  on_checkbox_changed	 = nullptr;
+			resource_fn		  on_resource_changed	 = nullptr;
+			dropdown_fn		  on_dropdown_item		 = nullptr;
+			control_button_fn on_control_button		 = nullptr;
 		};
 
 		struct id_pair
@@ -177,10 +177,10 @@ namespace SFG
 
 		struct control_button_binding
 		{
-			void*	 obj		  = nullptr;
-			string_id type		  = 0;
-			string_id button_id	  = 0;
-			vekt::id	 widget		  = 0;
+			void*	  obj		= nullptr;
+			string_id type		= 0;
+			string_id button_id = 0;
+			vekt::id  widget	= 0;
 		};
 
 		gui_builder_callbacks callbacks = {};
@@ -199,7 +199,7 @@ namespace SFG
 		void deallocate_children(vekt::id id);
 		void deallocate(vekt::id id);
 
-		vekt::id begin_area(bool fill = true, bool sub_area = false);
+		vekt::id begin_area(bool fill = true, bool scroller = true);
 		void	 end_area();
 
 		// -----------------------------------------------------------------------------
@@ -318,12 +318,12 @@ namespace SFG
 			vekt::id	 dropdown_widget = 0;
 			unsigned int index			 = 0;
 		};
-		vector<dropdown_ctx_binding> _dropdown_ctx_bindings = {};
-		vector<reflected_property>	 _reflected				= {};
-		vector<control_button_binding> _control_buttons		= {};
-		vekt::id					 _stack[STACK_SIZE]		= {NULL_WIDGET_ID};
-		vekt::id					 _root					= NULL_WIDGET_ID;
-		vekt::id					 _stack_ptr				= 0;
+		vector<dropdown_ctx_binding>   _dropdown_ctx_bindings = {};
+		vector<reflected_property>	   _reflected			  = {};
+		vector<control_button_binding> _control_buttons		  = {};
+		vekt::id					   _stack[STACK_SIZE]	  = {NULL_WIDGET_ID};
+		vekt::id					   _root				  = NULL_WIDGET_ID;
+		vekt::id					   _stack_ptr			  = 0;
 
 		unsigned int _draw_order = 0;
 	};

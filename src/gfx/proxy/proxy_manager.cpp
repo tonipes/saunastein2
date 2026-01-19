@@ -59,6 +59,9 @@ namespace SFG
 		_mesh_instances		= new mesh_instances_type();
 		_cameras			= new cameras_type();
 		_ambients			= new ambients_type();
+		_blooms				= new blooms_type();
+		_ssaos				= new ssaos_type();
+		_post_processes		= new post_processes_type();
 		_point_lights		= new point_lights_type();
 		_spot_lights		= new spot_lights_type();
 		_dir_lights			= new dir_lights_type();
@@ -81,6 +84,9 @@ namespace SFG
 		delete _mesh_instances;
 		delete _cameras;
 		delete _ambients;
+		delete _blooms;
+		delete _ssaos;
+		delete _post_processes;
 		delete _point_lights;
 		delete _spot_lights;
 		delete _dir_lights;
@@ -103,6 +109,9 @@ namespace SFG
 		_mesh_instances->reset();
 		_cameras->reset();
 		_ambients->reset();
+		_blooms->reset();
+		_ssaos->reset();
+		_post_processes->reset();
 		_point_lights->reset();
 		_spot_lights->reset();
 		_dir_lights->reset();
@@ -110,6 +119,10 @@ namespace SFG
 		_emitters->reset();
 		_particle_resources->reset();
 		_material_updates->resize(0);
+		_ambient_exists		 = 0;
+		_bloom_exists		 = 0;
+		_ssao_exists		 = 0;
+		_post_process_exists = 0;
 	}
 
 	void proxy_manager::init()
@@ -381,6 +394,51 @@ namespace SFG
 			proxy.status				= render_proxy_status::rps_active;
 			proxy.entity				= ev.entity_index;
 			proxy.base_color			= ev.base_color;
+		}
+		else if (type == render_event_type::update_bloom)
+		{
+			render_event_bloom ev = {};
+			ev.deserialize(stream);
+			_bloom_exists = 1;
+
+			render_proxy_bloom& proxy = get_bloom();
+			proxy.status			  = render_proxy_status::rps_active;
+			proxy.entity			  = ev.entity_index;
+			proxy.filter_radius		  = ev.filter_radius;
+		}
+		else if (type == render_event_type::update_ssao)
+		{
+			render_event_ssao ev = {};
+			ev.deserialize(stream);
+			_ssao_exists = 1;
+
+			render_proxy_ssao& proxy  = get_ssao();
+			proxy.status			  = render_proxy_status::rps_active;
+			proxy.entity			  = ev.entity_index;
+			proxy.radius_world		  = ev.radius_world;
+			proxy.bias				  = ev.bias;
+			proxy.intensity			  = ev.intensity;
+			proxy.power				  = ev.power;
+			proxy.num_dirs			  = ev.num_dirs;
+			proxy.num_steps			  = ev.num_steps;
+			proxy.random_rot_strength = ev.random_rot_strength;
+		}
+		else if (type == render_event_type::update_post_process)
+		{
+			render_event_post_process ev = {};
+			ev.deserialize(stream);
+			_post_process_exists = 1;
+
+			render_proxy_post_process& proxy = get_post_process();
+			proxy.status					 = render_proxy_status::rps_active;
+			proxy.entity					 = ev.entity_index;
+			proxy.bloom_strength			 = ev.bloom_strength;
+			proxy.exposure					 = ev.exposure;
+			proxy.tonemap_mode				 = ev.tonemap_mode;
+			proxy.saturation				 = ev.saturation;
+			proxy.wb_temp					 = ev.wb_temp;
+			proxy.wb_tint					 = ev.wb_tint;
+			proxy.reinhard_white_point		 = ev.reinhard_white_point;
 		}
 		else if (type == render_event_type::update_spot_light)
 		{
@@ -663,6 +721,27 @@ namespace SFG
 			proxy.status				= render_proxy_status::rps_active;
 			proxy						= {};
 			_ambient_exists				= 0;
+		}
+		else if (type == render_event_type::remove_bloom)
+		{
+			render_proxy_bloom& proxy = get_bloom();
+			proxy.status			  = render_proxy_status::rps_active;
+			proxy					  = {};
+			_bloom_exists			  = 0;
+		}
+		else if (type == render_event_type::remove_ssao)
+		{
+			render_proxy_ssao& proxy = get_ssao();
+			proxy.status			 = render_proxy_status::rps_active;
+			proxy					 = {};
+			_ssao_exists			 = 0;
+		}
+		else if (type == render_event_type::remove_post_process)
+		{
+			render_proxy_post_process& proxy = get_post_process();
+			proxy.status					 = render_proxy_status::rps_active;
+			proxy							 = {};
+			_post_process_exists			 = 0;
 		}
 		else if (type == render_event_type::remove_point_light)
 		{

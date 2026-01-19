@@ -290,10 +290,17 @@ namespace SFG
 		_pass_object_id.prepare(_proxy_manager, _renderables, _main_camera_view, frame_index);
 		_pass_selection_outline.prepare(_proxy_manager, _renderables, _main_camera_view, frame_index);
 #endif
+		const uint8 ssao_enabled  = _proxy_manager.get_ssao_exists();
+		const uint8 bloom_enabled = _proxy_manager.get_bloom_exists();
+		const uint8 post_enabled  = _proxy_manager.get_post_process_exists();
+
 		_pass_lighting.prepare(_proxy_manager, _main_camera_view, frame_index);
-		_pass_ssao.prepare(_main_camera_view, _base_size, frame_index);
-		_pass_bloom.prepare(frame_index);
-		_pass_post.prepare(frame_index, _base_size);
+
+		_pass_ssao.prepare(_proxy_manager, _main_camera_view, _base_size, frame_index);
+
+		_pass_bloom.prepare(_proxy_manager, frame_index);
+
+		_pass_post.prepare(_proxy_manager, frame_index, _base_size);
 		_pass_particles.prepare(frame_index, _proxy_manager, _main_camera_view);
 		_pass_debug_rendering.prepare(_proxy_manager, _main_camera_view, _base_size, frame_index);
 	}
@@ -480,6 +487,7 @@ namespace SFG
 			.global_group  = cmn->bind_group_global,
 		});
 	}
+
 	void game_world_renderer::render(uint8 frame_index, gfx_id layout_global, gfx_id layout_global_compute, gfx_id bind_group_global, uint64 prev_copy, uint64 next_copy, gfx_id sem_copy)
 	{
 		ZoneScoped;
@@ -516,6 +524,9 @@ namespace SFG
 		const uint64 sem_ssao_val0	   = ++pfd.semp_ssao.value;
 		const uint64 sem_ssao_val1	   = ++pfd.semp_ssao.value;
 		const uint64 sem_frame_val	   = ++pfd.semp_frame.value;
+		const uint8	 ssao_enabled	   = _proxy_manager.get_ssao_exists();
+		const uint8	 bloom_enabled	   = _proxy_manager.get_bloom_exists();
+		const uint8	 post_enabled	   = _proxy_manager.get_post_process_exists();
 
 #ifdef SFG_TOOLMODE
 		const gpu_index gpu_index_selection_outline = _pass_selection_outline.get_gpu_index_output(frame_index);

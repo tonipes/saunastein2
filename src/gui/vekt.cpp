@@ -619,18 +619,14 @@ namespace vekt
 
 	void builder::set_pressing(id widget, unsigned int button, const VEKT_VEC2& press_pos)
 	{
+		if (widget == _pressed_widget)
+			return;
+
 		_pressed_button = button;
 
 		if (_pressed_widget != NULL_WIDGET_ID)
 		{
 			_hover_callbacks[_pressed_widget].is_pressing = 0;
-		}
-
-		if (widget != NULL_WIDGET_ID)
-		{
-			hover_callback& hb = _hover_callbacks[widget];
-			if (!hb.receive_mouse || hb.disable_hover)
-				return;
 		}
 
 		_pressed_widget = widget;
@@ -639,6 +635,14 @@ namespace vekt
 			_hover_callbacks[_pressed_widget].is_pressing = 1;
 			_press_relative_pos							  = press_pos - _pos_results[_pressed_widget].pos;
 		}
+		V_LOG("pressing %d", widget);
+		// if (widget != NULL_WIDGET_ID)
+		// {
+		// 	mouse_callback& mb			  = _mouse_callbacks[widget];
+		// 	const bool		receive_mouse = mb.on_mouse || mb.on_drag;
+		// 	if (!receive_mouse)
+		// 		return;
+		// }
 	}
 
 	unsigned int builder::count_total_children(id widget_id) const
@@ -665,8 +669,10 @@ namespace vekt
 		scroll_props& sc = _scroll_properties[current_widget_id];
 
 		hover_callback& hb			  = _hover_callbacks[current_widget_id];
-		const bool		receive_mouse = hb.receive_mouse;
-		const bool		disable_hover = hb.disable_hover;
+		mouse_callback& mb			  = _mouse_callbacks[current_widget_id];
+		const bool		receive_mouse = mb.on_mouse || mb.on_drag;
+		const bool		receive_hover = hb.on_hover_begin || hb.on_hover_end || hb.on_hover_move;
+		const bool		receive_wheel = mb.on_mouse_wheel;
 		const bool		is_hovered	  = hb.is_hovered;
 		const bool		is_pressing	  = hb.is_pressing;
 
@@ -675,10 +681,9 @@ namespace vekt
 			hb.is_pressing = 0;
 		}
 
-		if (disable_hover)
+		if (!receive_hover)
 		{
-			hb.is_hovered  = 0;
-			hb.is_pressing = 0;
+			hb.is_hovered = 0;
 		}
 
 		if (sc.scroll_parent != NULL_WIDGET_ID)
@@ -687,7 +692,10 @@ namespace vekt
 		if (receive_mouse)
 			_depth_first_mouse_widgets.push_back(current_widget_id);
 
-		if (current_widget_id == _pressed_widget && (!receive_mouse || disable_hover))
+		if (receive_wheel)
+			_depth_first_mouse_wheel_widgets.push_back(current_widget_id);
+
+		if (current_widget_id == _pressed_widget && !receive_mouse)
 			set_pressing(NULL_WIDGET_ID, _pressed_button, {});
 
 		if (_gfxs[current_widget_id].flags & gfx_flags::gfx_focusable)
@@ -709,6 +717,7 @@ namespace vekt
 	void builder::build_hierarchy()
 	{
 		_depth_first_mouse_widgets.resize_explicit(0);
+		_depth_first_mouse_wheel_widgets.resize_explicit(0);
 		_depth_first_fill_parents.resize_explicit(0);
 		_depth_first_scrolls.resize_explicit(0);
 		_depth_first_widgets.resize_explicit(0);
@@ -716,19 +725,6 @@ namespace vekt
 		_depth_first_focusables.resize_explicit(0);
 
 		populate_hierarchy(_root, 0);
-
-		_reverse_depth_first_widgets.resize_explicit(0);
-
-		const unsigned int sz = _depth_first_widgets.size();
-		if (sz < 1)
-			return;
-
-		const int start = static_cast<int>(sz - 1);
-
-		for (int i = start; i >= 0; --i)
-		{
-			_reverse_depth_first_widgets.push_back(_depth_first_widgets[i]);
-		}
 
 		// restore hover states
 		calculate_sizes();
@@ -761,10 +757,12 @@ namespace vekt
 		}
 
 		// bottom-up
-		for (id widget : _reverse_depth_first_widgets)
+		const int wsz = static_cast<int>(_depth_first_widgets.size());
+		for (int i = wsz - 1; i >= 0; i--)
 		{
-			const size_props&  sz	= _size_properties[widget];
-			const widget_meta& meta = _metas[widget];
+			const id		   widget = _depth_first_widgets[i];
+			const size_props&  sz	  = _size_properties[widget];
+			const widget_meta& meta	  = _metas[widget];
 
 			VEKT_VEC2 final_size = VEKT_VEC2();
 
@@ -1142,7 +1140,8 @@ namespace vekt
 			const VEKT_VEC2& pos		  = _pos_results[widget].pos;
 			const VEKT_VEC2& size		  = _size_results[widget].size;
 			const VEKT_VEC4	 widget_clip  = VEKT_VEC4(pos.x, pos.y, size.x, size.y);
-			const VEKT_VEC4	 intersection = calculate_intersection(_clip_stack.get_back().rect, widget_clip);
+			const VEKT_VEC4& back		  = _clip_stack.get_back().rect;
+			const VEKT_VEC4	 intersection = calculate_intersection(back, widget_clip);
 			const bool		 has_clip	  = gfx.flags & gfx_flags::gfx_clip_children;
 			if (intersection.z <= 0 || intersection.w <= 0)
 			{
@@ -1164,8 +1163,9 @@ namespace vekt
 
 			if (gfx.flags & gfx_has_hover_color)
 			{
-				hover_callback& hb = _hover_callbacks[widget];
-				if (hb.is_hovered)
+				const VEKT_VEC4 clip	= widget_get_clip(widget);
+				const bool		hovered = clip.is_point_inside(_mouse_position.x, _mouse_position.y);
+				if (hovered)
 				{
 					start_color = _input_color_properties[widget].hovered_color;
 					multi_color = false;
@@ -1429,44 +1429,33 @@ namespace vekt
 
 		const unsigned int sz = _depth_first_widgets.size();
 
-		vekt::id last_hovered = NULL_WIDGET_ID;
-
 		for (unsigned int i = 0; i < sz; i++)
 		{
 			const id widget = _depth_first_widgets[i];
 
+			hover_callback& hover_state	  = _hover_callbacks[widget];
+			const bool		receive_hover = hover_state.on_hover_begin || hover_state.on_hover_end || hover_state.on_hover_move;
+
+			if (!receive_hover)
+				continue;
+
 			const VEKT_VEC4 clip	= widget_get_clip(widget);
 			const bool		hovered = clip.is_point_inside(mouse.x, mouse.y);
-
-			hover_callback& hover_state = _hover_callbacks[widget];
-
-			if (hover_state.disable_hover)
-				continue;
 
 			if (send_events && !hovered && hover_state.is_hovered && hover_state.on_hover_end)
 			{
 				hover_state.on_hover_end(this, widget);
 			}
 
-			if (!hovered)
-				hover_state.is_hovered = false;
-
-			if (hovered)
-				last_hovered = widget;
-		}
-
-		if (last_hovered != NULL_WIDGET_ID)
-		{
-			hover_callback& hover_state = _hover_callbacks[last_hovered];
-
-			if (send_events && !hover_state.is_hovered && hover_state.on_hover_begin)
+			if (send_events && hovered && !hover_state.is_hovered && hover_state.on_hover_begin)
 			{
-				hover_state.on_hover_begin(this, last_hovered);
+				hover_state.on_hover_begin(this, widget);
 			}
 
-			hover_state.is_hovered = true;
-			if (send_events && hover_state.is_hovered && hover_state.on_hover_move)
-				hover_state.on_hover_move(this, last_hovered);
+			if (hovered && hover_state.on_hover_move)
+				hover_state.on_hover_move(this, widget);
+
+			hover_state.is_hovered = hovered;
 		}
 
 		if (_pressed_widget != NULL_WIDGET_ID)
@@ -1502,85 +1491,112 @@ namespace vekt
 
 	input_event_result builder::on_mouse_event(const mouse_event& ev)
 	{
-		id		   pressed_widget = NULL_WIDGET_ID;
-		id		   last_hovered	  = NULL_WIDGET_ID;
-		mouse_func last_cb		  = nullptr;
+		bool handled = false;
 
-		input_event_result ret_res = input_event_result::not_handled;
-
-		for (id widget : _depth_first_mouse_widgets)
+		if (ev.type == input_event_type::released)
+			set_pressing(NULL_WIDGET_ID, ev.button, {});
+		else if (ev.type == input_event_type::pressed)
 		{
-			hover_callback& hb = _hover_callbacks[widget];
-
-			if (ev.type == input_event_type::pressed && hb.is_hovered)
-			{
-				pressed_widget = widget;
-			}
-
-			mouse_callback& mc = _mouse_callbacks[widget];
-			if (!mc.on_mouse)
-				continue;
-
-			if (hb.is_hovered)
-			{
-				last_hovered = widget;
-				last_cb		 = mc.on_mouse;
-			}
-		}
-
-		if (last_hovered != NULL_WIDGET_ID)
-		{
-			const input_event_result res = last_cb(this, last_hovered, ev, input_event_phase::bubbling);
-			if (res == input_event_result::handled)
-				ret_res = res;
+			set_focus(NULL_WIDGET_ID, false);
+			set_pressing(NULL_WIDGET_ID, ev.button, ev.position);
 		}
 
 		if (ev.type == input_event_type::pressed)
 		{
-			if (pressed_widget == NULL_WIDGET_ID)
+			for (id sc : _depth_first_scrolls)
 			{
-				set_focus(NULL_WIDGET_ID, false);
-				set_pressing(NULL_WIDGET_ID, static_cast<unsigned int>(ev.button), {});
+				const VEKT_VEC4 clip	= widget_get_clip(sc);
+				const bool		hovered = clip.is_point_inside(_mouse_position.x, _mouse_position.y);
+				if (hovered)
+				{
+					set_pressing(sc, ev.button, ev.position);
+					return input_event_result::handled;
+				}
 			}
-			else
-			{
-				set_focus(pressed_widget, false);
-				set_pressing(pressed_widget, static_cast<unsigned int>(ev.button), ev.position);
-			}
-		}
-		else if (ev.type == input_event_type::released)
-		{
-			set_pressing(NULL_WIDGET_ID, static_cast<unsigned int>(ev.button), {});
-		}
-
-		return ret_res;
-	}
-
-	input_event_result builder::on_mouse_wheel_event(const mouse_wheel_event& ev)
-	{
-
-		for (id sc : _depth_first_scrolls)
-		{
-			const id p = _scroll_properties[sc].scroll_parent;
-			if (p == NULL_WIDGET_ID)
-				continue;
-			hover_callback& hb = _hover_callbacks[p];
-			if (hb.is_hovered)
-				_pos_properties[p].scroll_offset -= ev.amount;
 		}
 
 		for (id widget : _depth_first_mouse_widgets)
 		{
-			hover_callback& hb = _hover_callbacks[widget];
+			const VEKT_VEC4 clip	= widget_get_clip(widget);
+			const bool		hovered = clip.is_point_inside(ev.position.x, ev.position.y);
+			if (!hovered)
+				continue;
 
+			mouse_callback& cb = _mouse_callbacks[widget];
+			if (!cb.on_mouse)
+				continue;
+
+			if (ev.type == input_event_type::pressed)
+			{
+				set_focus(widget, false);
+				set_pressing(widget, ev.button, ev.position);
+			}
+
+			const input_event_result res = cb.on_mouse(this, widget, ev, input_event_phase::tunneling);
+			if (res == input_event_result::handled)
+			{
+
+				handled = true;
+				break;
+			}
+		}
+
+		if (handled)
+			return input_event_result::handled;
+
+		const int sz = _depth_first_mouse_widgets.size();
+		for (int i = sz - 1; i >= 0; i--)
+		{
+			const id		widget	= _depth_first_mouse_widgets[i];
+			const VEKT_VEC4 clip	= widget_get_clip(widget);
+			const bool		hovered = clip.is_point_inside(ev.position.x, ev.position.y);
+			if (!hovered)
+				continue;
+
+			mouse_callback& cb = _mouse_callbacks[widget];
+			if (!cb.on_mouse)
+				continue;
+
+			const input_event_result res = cb.on_mouse(this, widget, ev, input_event_phase::bubbling);
+			if (res == input_event_result::handled)
+			{
+				if (ev.type == input_event_type::pressed)
+				{
+					set_focus(widget, false);
+					set_pressing(widget, ev.button, ev.position);
+				}
+				return input_event_result::handled;
+			}
+		}
+
+		return input_event_result::not_handled;
+	}
+
+	input_event_result builder::on_mouse_wheel_event(const mouse_wheel_event& ev)
+	{
+		for (id sc : _depth_first_scrolls)
+		{
+			scroll_props& sp = _scroll_properties[sc];
+			const id	  p	 = sp.scroll_parent;
+			if (p == NULL_WIDGET_ID)
+				continue;
+
+			const VEKT_VEC4 clip	= widget_get_clip(p);
+			const bool		hovered = clip.is_point_inside(_mouse_position.x, _mouse_position.y);
+			if (hovered)
+			{
+				_pos_properties[p].scroll_offset -= ev.amount;
+				sp.scroll_ratio = _pos_properties[p].scroll_offset / -sp._max_scroll;
+			}
+		}
+
+		for (id widget : _depth_first_mouse_wheel_widgets)
+		{
+			hover_callback& hb = _hover_callbacks[widget];
 			if (!hb.is_hovered)
 				continue;
 
-			mouse_callback& mc = _mouse_callbacks[widget];
-
-			if (!mc.on_mouse_wheel)
-				continue;
-
+			mouse_callback&			 mc	 = _mouse_callbacks[widget];
 			const input_event_result res = mc.on_mouse_wheel(this, widget, ev);
 			if (res == input_event_result::handled)
 				return input_event_result::handled;

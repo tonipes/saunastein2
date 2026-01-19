@@ -1,4 +1,4 @@
-﻿/*
+/*
 This file is a part of stakeforge_engine: https://github.com/inanevin/stakeforge
 Copyright [2025-] Inan Evin
 
@@ -145,9 +145,19 @@ namespace SFG
 		destroy_textures();
 	}
 
-	void render_pass_ssao::prepare(const view& camera_view, const vector2ui16& resolution, uint8 frame_index)
+	void render_pass_ssao::prepare(proxy_manager& pm, const view& camera_view, const vector2ui16& resolution, uint8 frame_index)
 	{
 		ZoneScoped;
+
+		const uint8				 ssao_exists		 = pm.get_ssao_exists();
+		const render_proxy_ssao& ssao				 = pm.get_ssao();
+		const float				 radius_world		 = ssao_exists ? ssao.radius_world : 0.75f;
+		const float				 bias				 = ssao_exists ? ssao.bias : 0.04f;
+		const float				 intensity			 = ssao_exists ? ssao.intensity : 1.25f;
+		const float				 power				 = ssao_exists ? ssao.power : 1.25f;
+		const uint32			 num_dirs			 = ssao_exists ? ssao.num_dirs : 8;
+		const uint32			 num_steps			 = ssao_exists ? ssao.num_steps : 6;
+		const float				 random_rot_strength = ssao_exists ? ssao.random_rot_strength : 1.5f;
 
 		per_frame_data& pfd = _pfd[frame_index];
 
@@ -165,13 +175,13 @@ namespace SFG
 			.z_near = camera_view.near_plane,
 			.z_far	= camera_view.far_plane,
 
-			.radius_world		 = 0.75f,
-			.bias				 = 0.04f,
-			.intensity			 = 1.25f,
-			.power				 = 1.25f,
-			.num_dirs			 = 8,
-			.num_steps			 = 6,
-			.random_rot_strength = 1.5,
+			.radius_world		 = radius_world,
+			.bias				 = bias,
+			.intensity			 = intensity,
+			.power				 = power,
+			.num_dirs			 = num_dirs,
+			.num_steps			 = num_steps,
+			.random_rot_strength = random_rot_strength,
 
 		};
 

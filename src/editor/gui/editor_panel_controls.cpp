@@ -61,7 +61,7 @@ namespace SFG
 
 		// general
 		_gui_builder.add_title("info");
-		_gui_builder.begin_area(false);
+		_gui_builder.begin_area(false, true);
 		_gui_builder.add_property_single_label(vstr.c_str());
 		_hyperlink = _gui_builder.add_property_single_hyperlink("github");
 

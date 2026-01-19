@@ -289,7 +289,7 @@ namespace SFG
 			}
 			self->_gui_builder.set_draw_order(2);
 
-			self->_stats_area = self->_gui_builder.begin_area(false, true);
+			self->_stats_area = self->_gui_builder.begin_area(false, false);
 
 			{
 				vekt::pos_props& pp = b->widget_get_pos_props(self->_stats_area);

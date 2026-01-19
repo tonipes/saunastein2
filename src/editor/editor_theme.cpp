@@ -180,11 +180,11 @@ namespace SFG
 		item_spacing	  = DPI_SCALE * 3;
 		root_spacing	  = DPI_SCALE * 6;
 		row_spacing		  = DPI_SCALE * 6;
-		row_height		  = DPI_SCALE * 20;
+		row_height		  = DPI_SCALE * 24;
 		title_line_width  = 0.8f;
 		title_line_height = DPI_SCALE * 2;
 
-		item_height			= DPI_SCALE * 16;
+		item_height			= DPI_SCALE * 20;
 		table_cell_height	= DPI_SCALE * 10;
 		seperator_thickness = DPI_SCALE * 1;
 		property_cell_div	= 0.3f;

@@ -112,6 +112,21 @@ namespace SFG
 			return _ambients->get(0);
 		}
 
+		inline render_proxy_bloom& get_bloom()
+		{
+			return _blooms->get(0);
+		}
+
+		inline render_proxy_ssao& get_ssao()
+		{
+			return _ssaos->get(0);
+		}
+
+		inline render_proxy_post_process& get_post_process()
+		{
+			return _post_processes->get(0);
+		}
+
 		inline render_proxy_canvas& get_canvas(world_id idx)
 		{
 			return _canvases->get(idx);
@@ -204,6 +219,21 @@ namespace SFG
 		inline uint32 get_ambient_exists() const
 		{
 			return _ambient_exists;
+		}
+
+		inline uint32 get_bloom_exists() const
+		{
+			return _bloom_exists;
+		}
+
+		inline uint32 get_ssao_exists() const
+		{
+			return _ssao_exists;
+		}
+
+		inline uint32 get_post_process_exists() const
+		{
+			return _post_process_exists;
 		}
 
 		inline uint32 get_peak_dir_lights() const
@@ -304,6 +334,9 @@ namespace SFG
 		using mesh_instances_type	 = static_array<render_proxy_mesh_instance, MAX_WORLD_COMP_MESH_INSTANCES>;
 		using cameras_type			 = static_array<render_proxy_camera, MAX_WORLD_COMP_CAMERAS>;
 		using ambients_type			 = static_array<render_proxy_ambient, MAX_WORLD_COMP_AMBIENT>;
+		using blooms_type			 = static_array<render_proxy_bloom, MAX_WORLD_COMP_BLOOM>;
+		using ssaos_type			 = static_array<render_proxy_ssao, MAX_WORLD_COMP_SSAO>;
+		using post_processes_type	 = static_array<render_proxy_post_process, MAX_WORLD_COMP_POST_PROCESS>;
 		using point_lights_type		 = static_array<render_proxy_point_light, MAX_WORLD_COMP_POINT_LIGHTS>;
 		using spot_lights_type		 = static_array<render_proxy_spot_light, MAX_WORLD_COMP_SPOT_LIGHTS>;
 		using dir_lights_type		 = static_array<render_proxy_dir_light, MAX_WORLD_COMP_DIR_LIGHTS>;
@@ -326,6 +359,9 @@ namespace SFG
 		mesh_instances_type*	_mesh_instances		= nullptr;
 		cameras_type*			_cameras			= nullptr;
 		ambients_type*			_ambients			= nullptr;
+		blooms_type*			_blooms				= nullptr;
+		ssaos_type*				_ssaos				= nullptr;
+		post_processes_type*	_post_processes		= nullptr;
 		point_lights_type*		_point_lights		= nullptr;
 		spot_lights_type*		_spot_lights		= nullptr;
 		dir_lights_type*		_dir_lights			= nullptr;
@@ -346,5 +382,8 @@ namespace SFG
 		uint32	 _peak_entities			 = 0;
 		uint32	 _peak_canvases			 = 0;
 		uint8	 _ambient_exists		 = 0;
+		uint8	 _bloom_exists			 = 0;
+		uint8	 _ssao_exists			 = 0;
+		uint8	 _post_process_exists	 = 0;
 	};
 }

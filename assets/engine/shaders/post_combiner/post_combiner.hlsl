@@ -213,7 +213,7 @@ float4 PSMain(vs_output IN) : SV_TARGET
     float3 hdr = lighting + bloom * params.bloom_strength;
 
     // Exposure (EV to linear)
-    hdr *= exp2(0);
+    hdr *= exp2(params.exposure);
 
     // guard against tiny negatives before grading/tonemap
     hdr = max(hdr, 0.0);

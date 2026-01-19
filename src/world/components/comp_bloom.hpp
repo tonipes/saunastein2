@@ -26,85 +26,61 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include "gfx/buffer.hpp"
-#include "gfx/common/gfx_constants.hpp"
+#include "world/components/common_comps.hpp"
+#include "reflection/type_reflection.hpp"
+
+#ifdef SFG_TOOLMODE
+#include "vendor/nhlohmann/json_fwd.hpp"
+#endif
 
 namespace SFG
 {
-	struct view;
-	struct vector2ui16;
-	class proxy_manager;
+	class ostream;
+	class istream;
+	class world;
 
-	class render_pass_bloom
+	class comp_bloom
 	{
-	private:
-		static constexpr uint32 MIPS_DS = 5;
-
-		struct ubo
-		{
-			float filter_radius = 0.2f;
-			float pad[3];
-		};
-
-		struct per_frame_data
-		{
-			buffer_gpu ubo								 = {};
-			gfx_id	   cmd_buffer						 = 0;
-			gfx_id	   downsample_out					 = 0;
-			gfx_id	   upsample_out						 = 0;
-			gpu_index  gpu_index_downsample_uav[MIPS_DS] = {NULL_GPU_INDEX};
-			gpu_index  gpu_index_downsample_srv[MIPS_DS] = {NULL_GPU_INDEX};
-			gpu_index  gpu_index_upsample_uav[MIPS_DS]	 = {NULL_GPU_INDEX};
-			gpu_index  gpu_index_upsample_srv[MIPS_DS]	 = {NULL_GPU_INDEX};
-		};
-
 	public:
-		struct render_params
-		{
-			uint8			   frame_index;
-			const vector2ui16& size;
-			gfx_id			   lighting;
-			gpu_index		   gpu_index_lighting;
-			gfx_id			   global_layout_compute;
-			gfx_id			   global_group;
-		};
+		static void reflect();
 
 		// -----------------------------------------------------------------------------
-		// lifecycle
+		// trait
 		// -----------------------------------------------------------------------------
 
-		void init(const vector2ui16& size);
-		void uninit();
+		void on_add(world& w);
+		void on_remove(world& w);
+		void set_values(world& w, float filter_radius);
 
-		// -----------------------------------------------------------------------------
-		// rendering
-		// -----------------------------------------------------------------------------
+		void serialize(ostream& stream, world& w) const;
+		void deserialize(istream& stream, world& w);
 
-		void prepare(proxy_manager& pm, uint8 frame_index);
-		void render(const render_params& params);
-		void resize(const vector2ui16& size);
+#ifdef SFG_TOOLMODE
+		void serialize_json(nlohmann::json& j, world& w) const;
+		void deserialize_json(const nlohmann::json& j, world& w);
+#endif
 
 		// -----------------------------------------------------------------------------
 		// accessors
 		// -----------------------------------------------------------------------------
 
-		inline gfx_id get_cmd_buffer(uint8 frame_index) const
+		inline float get_filter_radius() const
 		{
-			return _pfd[frame_index].cmd_buffer;
+			return _filter_radius;
 		}
 
-		inline gpu_index get_output_gpu_index(uint8 frame_index) const
+		inline const component_header& get_header() const
 		{
-			return _pfd[frame_index].gpu_index_upsample_srv[0];
+			return _header;
 		}
 
 	private:
-		void destroy_textures();
-		void create_textures(const vector2ui16& sz);
+		template <typename T, int> friend class comp_cache;
 
 	private:
-		per_frame_data _pfd[BACK_BUFFER_COUNT];
-		gfx_id		   _shader_bloom_downsample = 0;
-		gfx_id		   _shader_bloom_upsample	= 0;
+		component_header _header		= {};
+		float			 _filter_radius = 0.01f;
 	};
+
+	REFLECT_TYPE(comp_bloom);
 }

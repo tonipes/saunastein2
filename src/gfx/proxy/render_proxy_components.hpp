@@ -76,6 +76,39 @@ namespace SFG
 		render_proxy_status status	   = render_proxy_status::rps_inactive;
 	};
 
+	struct render_proxy_bloom
+	{
+		float				filter_radius = 0.01f;
+		world_id			entity		  = 0;
+		render_proxy_status status		  = render_proxy_status::rps_inactive;
+	};
+
+	struct render_proxy_ssao
+	{
+		float				radius_world		= 0.75f;
+		float				bias				= 0.04f;
+		float				intensity			= 1.25f;
+		float				power				= 1.25f;
+		uint32				num_dirs			= 8;
+		uint32				num_steps			= 6;
+		float				random_rot_strength = 1.5f;
+		world_id			entity				= 0;
+		render_proxy_status status				= render_proxy_status::rps_inactive;
+	};
+
+	struct render_proxy_post_process
+	{
+		float				bloom_strength		 = 0.04f;
+		float				exposure			 = 1.0f;
+		int32				tonemap_mode		 = 1;
+		float				saturation			 = 1.0f;
+		float				wb_temp				 = 0.0f;
+		float				wb_tint				 = 0.0f;
+		float				reinhard_white_point = 6.0f;
+		world_id			entity				 = 0;
+		render_proxy_status status				 = render_proxy_status::rps_inactive;
+	};
+
 	struct render_proxy_dir_light
 	{
 		vector3				base_color									= vector3::one;

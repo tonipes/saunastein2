@@ -26,85 +26,69 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include "gfx/buffer.hpp"
-#include "gfx/common/gfx_constants.hpp"
+#include "world/components/common_comps.hpp"
+#include "reflection/type_reflection.hpp"
+
+#ifdef SFG_TOOLMODE
+#include "vendor/nhlohmann/json_fwd.hpp"
+#endif
 
 namespace SFG
 {
-	struct view;
-	struct vector2ui16;
-	class proxy_manager;
+	class ostream;
+	class istream;
+	class world;
 
-	class render_pass_bloom
+	enum class tonemap_mode : uint8
 	{
-	private:
-		static constexpr uint32 MIPS_DS = 5;
+		aces = 0,
+		reinhard,
+		none,
+	};
 
-		struct ubo
-		{
-			float filter_radius = 0.2f;
-			float pad[3];
-		};
-
-		struct per_frame_data
-		{
-			buffer_gpu ubo								 = {};
-			gfx_id	   cmd_buffer						 = 0;
-			gfx_id	   downsample_out					 = 0;
-			gfx_id	   upsample_out						 = 0;
-			gpu_index  gpu_index_downsample_uav[MIPS_DS] = {NULL_GPU_INDEX};
-			gpu_index  gpu_index_downsample_srv[MIPS_DS] = {NULL_GPU_INDEX};
-			gpu_index  gpu_index_upsample_uav[MIPS_DS]	 = {NULL_GPU_INDEX};
-			gpu_index  gpu_index_upsample_srv[MIPS_DS]	 = {NULL_GPU_INDEX};
-		};
-
+	class comp_post_process
+	{
 	public:
-		struct render_params
-		{
-			uint8			   frame_index;
-			const vector2ui16& size;
-			gfx_id			   lighting;
-			gpu_index		   gpu_index_lighting;
-			gfx_id			   global_layout_compute;
-			gfx_id			   global_group;
-		};
+		static void reflect();
 
 		// -----------------------------------------------------------------------------
-		// lifecycle
+		// trait
 		// -----------------------------------------------------------------------------
 
-		void init(const vector2ui16& size);
-		void uninit();
+		void on_add(world& w);
+		void on_remove(world& w);
+		void set_values(world& w, float bloom_strength, float exposure, tonemap_mode tonemap, float saturation, float wb_temp, float wb_tint, float reinhard_white_point);
 
-		// -----------------------------------------------------------------------------
-		// rendering
-		// -----------------------------------------------------------------------------
+		void serialize(ostream& stream, world& w) const;
+		void deserialize(istream& stream, world& w);
 
-		void prepare(proxy_manager& pm, uint8 frame_index);
-		void render(const render_params& params);
-		void resize(const vector2ui16& size);
+#ifdef SFG_TOOLMODE
+		void serialize_json(nlohmann::json& j, world& w) const;
+		void deserialize_json(const nlohmann::json& j, world& w);
+#endif
 
 		// -----------------------------------------------------------------------------
 		// accessors
 		// -----------------------------------------------------------------------------
 
-		inline gfx_id get_cmd_buffer(uint8 frame_index) const
+		inline const component_header& get_header() const
 		{
-			return _pfd[frame_index].cmd_buffer;
-		}
-
-		inline gpu_index get_output_gpu_index(uint8 frame_index) const
-		{
-			return _pfd[frame_index].gpu_index_upsample_srv[0];
+			return _header;
 		}
 
 	private:
-		void destroy_textures();
-		void create_textures(const vector2ui16& sz);
+		template <typename T, int> friend class comp_cache;
 
 	private:
-		per_frame_data _pfd[BACK_BUFFER_COUNT];
-		gfx_id		   _shader_bloom_downsample = 0;
-		gfx_id		   _shader_bloom_upsample	= 0;
+		component_header _header			   = {};
+		float			 _bloom_strength	   = 0.04f;
+		float			 _exposure			   = 1.0f;
+		tonemap_mode	 _tonemap_mode		   = tonemap_mode::reinhard;
+		float			 _saturation		   = 1.0f;
+		float			 _wb_temp			   = 0.0f;
+		float			 _wb_tint			   = 0.0f;
+		float			 _reinhard_white_point = 6.0f;
 	};
+
+	REFLECT_TYPE(comp_post_process);
 }

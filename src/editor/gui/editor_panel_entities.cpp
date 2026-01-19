@@ -93,13 +93,12 @@ namespace SFG
 		_entity_area													 = _gui_builder.begin_area(true);
 		_builder->widget_get_size_props(_entity_area).child_margins.left = 0.0f;
 		_builder->widget_get_size_props(_entity_area).spacing			 = 0.0f;
-		_builder->widget_get_hover_callbacks(_entity_area).receive_mouse = 1;
 		_builder->widget_get_mouse_callbacks(_entity_area).on_mouse		 = on_mouse;
 		_gui_builder.end_area();
 
 		// Properties section
 		_gui_builder.add_title("properties");
-		_gui_builder.begin_area(false);
+		_gui_builder.begin_area(false, false);
 		_prop_vis						 = _gui_builder.add_property_row_checkbox("visible", 0).second;
 		_prop_name						 = _gui_builder.add_property_row_text_field("name", "-", 256).second;
 		_prop_handle					 = _gui_builder.add_property_row_label("handle:", "{-, -}", 16).second;
@@ -121,7 +120,7 @@ namespace SFG
 		_gui_builder.end_area();
 
 		_gui_builder.add_title("components");
-		_components_parent = _gui_builder.begin_area(true);
+		_components_parent = _gui_builder.begin_area(true, false);
 
 		_gui_builder.add_property_row();
 		_add_component	 = _gui_builder.set_fill_x(_gui_builder.add_button("add_component").first);
@@ -542,7 +541,6 @@ namespace SFG
 			rp.segments				 = 12;
 
 			vekt::hover_callback& hb = _builder->widget_get_hover_callbacks(row_inner);
-			hb.receive_mouse		 = 1;
 			hb.on_hover_move		 = on_tree_item_hover_move;
 			hb.on_hover_end			 = on_tree_item_hover_end;
 			hb.on_focus_gained		 = on_focus_gained;
@@ -859,6 +857,172 @@ namespace SFG
 	{
 		editor_panel_entities* self = static_cast<editor_panel_entities*>(b->widget_get_user_data(widget).ptr);
 
+		if (phase == vekt::input_event_phase::tunneling)
+		{
+			if (ev.type == vekt::input_event_type::released && widget == self->_add_component && !self->_selected_entity.is_null())
+			{
+				self->_add_component_buttons.resize(0);
+				editor::get().get_gui_controller().begin_context_menu(ev.position.x, ev.position.y);
+
+				const auto& metas = reflection::get().get_metas();
+				for (auto& [sid, meta] : metas)
+				{
+					if (meta.get_tag() == "component"_hs && !meta.get_title().empty())
+					{
+						const vekt::id		  button = editor::get().get_gui_controller().add_context_menu_item(meta.get_title().c_str());
+						vekt::mouse_callback& cb	 = b->widget_get_mouse_callbacks(button);
+						cb.on_mouse					 = on_mouse;
+						vekt::widget_user_data& ud	 = b->widget_get_user_data(button);
+						ud.ptr						 = self;
+						self->_add_component_buttons.push_back({.button = button, .type = meta.get_type_id()});
+					}
+				}
+				editor::get().get_gui_controller().end_context_menu();
+				return vekt::input_event_result::handled;
+			}
+
+			if (ev.type == vekt::input_event_type::pressed && widget == self->_ctx_new_entity)
+			{
+				world&			   w  = editor::get().get_app().get_world();
+				entity_manager&	   em = w.get_entity_manager();
+				const world_handle h  = em.create_entity("new_entity");
+				self->set_selected(h);
+				return vekt::input_event_result::handled;
+			}
+
+			if (ev.type == vekt::input_event_type::pressed && widget == self->_ctx_add_child && !self->_selected_entity.is_null())
+			{
+				world&			   w  = editor::get().get_app().get_world();
+				entity_manager&	   em = w.get_entity_manager();
+				const world_handle h  = em.create_entity("new_entity");
+
+				self->_entity_meta[self->_selected_entity.index].collapsed = 0;
+				em.add_child(self->_selected_entity, h);
+
+				self->set_selected(h);
+				return vekt::input_event_result::handled;
+			}
+
+			if (ev.type == vekt::input_event_type::pressed && widget == self->_ctx_duplicate && !self->_selected_entity.is_null())
+			{
+				world&			   w  = editor::get().get_app().get_world();
+				entity_manager&	   em = w.get_entity_manager();
+				const world_handle h  = em.clone_entity(self->_selected_entity);
+				self->set_selected(h);
+				return vekt::input_event_result::handled;
+			}
+
+			if (ev.type == vekt::input_event_type::pressed && widget == self->_ctx_delete && !self->_selected_entity.is_null())
+			{
+				world&			w  = editor::get().get_app().get_world();
+				entity_manager& em = w.get_entity_manager();
+				em.destroy_entity(self->_selected_entity);
+				self->set_selected({});
+				return vekt::input_event_result::handled;
+			}
+		}
+
+		// child to root
+		if (phase == vekt::input_event_phase::bubbling)
+		{
+			// check if entity nodes are clicked.
+			world_handle clicked = {};
+			for (const node_binding& nb : self->_node_bindings)
+			{
+				if (nb.inner_row == widget)
+				{
+					clicked = nb.handle;
+					break;
+				}
+			}
+
+			if (self->_is_payload_on && ev.type == vekt::input_event_type::released)
+			{
+				if (self->_is_payload_on)
+					self->drop_drag(clicked);
+				return vekt::input_event_result::handled;
+			}
+
+			if (!clicked.is_null())
+			{
+				// select entity
+				if (ev.type == vekt::input_event_type::pressed)
+				{
+					if (ev.button == static_cast<uint16>(input_code::mouse_1))
+					{
+						editor::get().get_gui_controller().begin_context_menu(ev.position.x, ev.position.y);
+						self->_ctx_add_child = editor::get().get_gui_controller().add_context_menu_item("add_child");
+						self->_ctx_duplicate = editor::get().get_gui_controller().add_context_menu_item("duplicate");
+						self->_ctx_delete	 = editor::get().get_gui_controller().add_context_menu_item("delete");
+
+						b->widget_get_mouse_callbacks(self->_ctx_add_child).on_mouse = on_mouse;
+						b->widget_get_mouse_callbacks(self->_ctx_duplicate).on_mouse = on_mouse;
+						b->widget_get_mouse_callbacks(self->_ctx_delete).on_mouse	 = on_mouse;
+						b->widget_get_user_data(self->_ctx_add_child).ptr			 = self;
+						b->widget_get_user_data(self->_ctx_duplicate).ptr			 = self;
+						b->widget_get_user_data(self->_ctx_delete).ptr				 = self;
+
+						editor::get().get_gui_controller().end_context_menu();
+
+						self->set_selected(clicked);
+
+						return vekt::input_event_result::handled;
+					}
+					else
+					{
+						self->set_selected(clicked);
+						self->_drag_source	   = clicked;
+						self->_drag_src_widget = widget;
+						self->_drag_y		   = ev.position.y;
+						return vekt::input_event_result::handled;
+					}
+				}
+
+				// toggle entity
+				if (ev.type == vekt::input_event_type::repeated)
+				{
+					const uint8 is_template = editor::get().get_app().get_world().get_entity_manager().get_entity_flags(clicked).is_set(entity_flags::entity_flags_template);
+					if (!is_template)
+						self->toggle_collapse(clicked);
+					self->set_selected(clicked);
+					return vekt::input_event_result::handled;
+				}
+
+				return vekt::input_event_result::handled;
+			}
+
+			if (widget == self->_entity_area)
+			{
+				if (ev.type == vekt::input_event_type::pressed)
+				{
+					self->set_selected({});
+
+					if (ev.button == input_code::mouse_1)
+					{
+						editor::get().get_gui_controller().begin_context_menu(ev.position.x, ev.position.y);
+						self->_ctx_new_entity = editor::get().get_gui_controller().add_context_menu_item("new_entity");
+
+						b->widget_get_user_data(self->_ctx_new_entity).ptr			  = self;
+						b->widget_get_mouse_callbacks(self->_ctx_new_entity).on_mouse = on_mouse;
+						editor::get().get_gui_controller().end_context_menu();
+					}
+
+					return vekt::input_event_result::handled;
+				}
+
+				if (ev.button == input_code::mouse_0 && ev.type == vekt::input_event_type::released)
+				{
+					if (self->_is_payload_on)
+						self->drop_drag({});
+					return vekt::input_event_result::handled;
+				}
+
+				return vekt::input_event_result::handled;
+			}
+		}
+
+		return vekt::input_event_result::not_handled;
+
 		if (ev.type == vekt::input_event_type::pressed && ev.button == static_cast<uint16>(input_code::mouse_0))
 		{
 			if (self->_gui_builder.invoke_control_button(widget))
@@ -918,28 +1082,6 @@ namespace SFG
 			return vekt::input_event_result::handled;
 		}
 
-		if (ev.type == vekt::input_event_type::pressed && widget == self->_add_component && !self->_selected_entity.is_null())
-		{
-			self->_add_component_buttons.resize(0);
-			editor::get().get_gui_controller().begin_context_menu(ev.position.x, ev.position.y);
-
-			const auto& metas = reflection::get().get_metas();
-			for (auto& [sid, meta] : metas)
-			{
-				if (meta.get_tag() == "component"_hs && !meta.get_title().empty())
-				{
-					const vekt::id		  button = editor::get().get_gui_controller().add_context_menu_item(meta.get_title().c_str());
-					vekt::mouse_callback& cb	 = b->widget_get_mouse_callbacks(button);
-					cb.on_mouse					 = on_mouse;
-					vekt::widget_user_data& ud	 = b->widget_get_user_data(button);
-					ud.ptr						 = self;
-					self->_add_component_buttons.push_back({.button = button, .type = meta.get_type_id()});
-				}
-			}
-			editor::get().get_gui_controller().end_context_menu();
-			return vekt::input_event_result::handled;
-		}
-
 		if (ev.type == vekt::input_event_type::pressed && !self->_selected_entity.is_null())
 		{
 			for (const comp_remove_button& b : self->_comp_remove_buttons)
@@ -958,140 +1100,7 @@ namespace SFG
 			}
 		}
 
-		if (ev.type == vekt::input_event_type::pressed && widget == self->_ctx_new_entity)
-		{
-			world&			   w  = editor::get().get_app().get_world();
-			entity_manager&	   em = w.get_entity_manager();
-			const world_handle h  = em.create_entity("new_entity");
-			self->set_selected(h);
-			return vekt::input_event_result::handled;
-		}
-
-		if (ev.type == vekt::input_event_type::pressed && widget == self->_ctx_add_child && !self->_selected_entity.is_null())
-		{
-			world&			   w  = editor::get().get_app().get_world();
-			entity_manager&	   em = w.get_entity_manager();
-			const world_handle h  = em.create_entity("new_entity");
-
-			self->_entity_meta[self->_selected_entity.index].collapsed = 0;
-			em.add_child(self->_selected_entity, h);
-
-			self->set_selected(h);
-			return vekt::input_event_result::handled;
-		}
-
-		if (ev.type == vekt::input_event_type::pressed && widget == self->_ctx_duplicate && !self->_selected_entity.is_null())
-		{
-			world&			   w  = editor::get().get_app().get_world();
-			entity_manager&	   em = w.get_entity_manager();
-			const world_handle h  = em.clone_entity(self->_selected_entity);
-			self->set_selected(h);
-			return vekt::input_event_result::handled;
-		}
-
-		if (ev.type == vekt::input_event_type::pressed && widget == self->_ctx_delete && !self->_selected_entity.is_null())
-		{
-			world&			w  = editor::get().get_app().get_world();
-			entity_manager& em = w.get_entity_manager();
-			em.destroy_entity(self->_selected_entity);
-			self->set_selected({});
-			return vekt::input_event_result::handled;
-		}
-
-		if (widget == self->_entity_area)
-		{
-			if (ev.button == input_code::mouse_1 && ev.type == vekt::input_event_type::pressed)
-			{
-				editor::get().get_gui_controller().begin_context_menu(ev.position.x, ev.position.y);
-				self->_ctx_new_entity							   = editor::get().get_gui_controller().add_context_menu_item("new_entity");
-				b->widget_get_user_data(self->_ctx_new_entity).ptr = self;
-
-				b->widget_get_mouse_callbacks(self->_ctx_new_entity).on_mouse = on_mouse;
-
-				editor::get().get_gui_controller().end_context_menu();
-				return vekt::input_event_result::handled;
-			}
-
-			if (ev.button == input_code::mouse_0 && ev.type == vekt::input_event_type::pressed)
-			{
-				self->set_selected({});
-				return vekt::input_event_result::handled;
-			}
-
-			if (ev.button == input_code::mouse_0 && ev.type == vekt::input_event_type::released)
-			{
-				if (self->_is_payload_on)
-					self->drop_drag({});
-				return vekt::input_event_result::handled;
-			}
-
-			return vekt::input_event_result::not_handled;
-		}
-
-		// find entity ret if empty.
-		world_handle clicked = {};
-		for (const node_binding& nb : self->_node_bindings)
-		{
-			if (nb.inner_row == widget)
-			{
-				clicked = nb.handle;
-				break;
-			}
-		}
-		if (clicked.is_null())
-			return vekt::input_event_result::not_handled;
-
-		// context
-		if (ev.button == static_cast<uint16>(input_code::mouse_1) && ev.type == vekt::input_event_type::pressed)
-		{
-			editor::get().get_gui_controller().begin_context_menu(ev.position.x, ev.position.y);
-			self->_ctx_add_child = editor::get().get_gui_controller().add_context_menu_item("add_child");
-			self->_ctx_duplicate = editor::get().get_gui_controller().add_context_menu_item("duplicate");
-			self->_ctx_delete	 = editor::get().get_gui_controller().add_context_menu_item("delete");
-
-			b->widget_get_mouse_callbacks(self->_ctx_add_child).on_mouse = on_mouse;
-			b->widget_get_mouse_callbacks(self->_ctx_duplicate).on_mouse = on_mouse;
-			b->widget_get_mouse_callbacks(self->_ctx_delete).on_mouse	 = on_mouse;
-			b->widget_get_user_data(self->_ctx_add_child).ptr			 = self;
-			b->widget_get_user_data(self->_ctx_duplicate).ptr			 = self;
-			b->widget_get_user_data(self->_ctx_delete).ptr				 = self;
-
-			editor::get().get_gui_controller().end_context_menu();
-
-			self->set_selected(clicked);
-
-			return vekt::input_event_result::handled;
-		}
-
-		if (ev.button != input_code::mouse_0)
-			return vekt::input_event_result::not_handled;
-
-		if (ev.type == vekt::input_event_type::repeated)
-		{
-			const uint8 is_template = editor::get().get_app().get_world().get_entity_manager().get_entity_flags(clicked).is_set(entity_flags::entity_flags_template);
-			if (!is_template)
-				self->toggle_collapse(clicked);
-			self->set_selected(clicked);
-			return vekt::input_event_result::handled;
-		}
-
-		if (ev.type == vekt::input_event_type::pressed)
-		{
-			self->set_selected(clicked);
-			self->_drag_source	   = clicked;
-			self->_drag_src_widget = widget;
-			self->_drag_y		   = ev.position.y;
-			return vekt::input_event_result::handled;
-		}
-
-		if (self->_is_payload_on && ev.type == vekt::input_event_type::released)
-		{
-			if (self->_is_payload_on)
-				self->drop_drag(clicked);
-			return vekt::input_event_result::handled;
-		}
-
-		return vekt::input_event_result::handled;
+		return vekt::input_event_result::not_handled;
 	}
 
 	vekt::input_event_result editor_panel_entities::on_key(vekt::builder* b, vekt::id widget, const vekt::key_event& ev)
@@ -1144,6 +1153,7 @@ namespace SFG
 
 	void editor_panel_entities::on_tree_item_hover_move(vekt::builder* b, vekt::id widget)
 	{
+
 		editor_panel_entities* self = static_cast<editor_panel_entities*>(b->widget_get_user_data(widget).ptr);
 		if (self->_is_payload_on && widget != self->_drag_src_widget)
 		{
@@ -1153,6 +1163,7 @@ namespace SFG
 
 	void editor_panel_entities::on_focus_gained(vekt::builder* b, vekt::id widget, bool from_nav)
 	{
+
 		editor_panel_entities* self = static_cast<editor_panel_entities*>(b->widget_get_user_data(widget).ptr);
 
 		for (const node_binding& binding : self->_node_bindings)

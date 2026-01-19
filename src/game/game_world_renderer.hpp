@@ -43,6 +43,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gfx/world/render_pass/render_pass_forward.hpp"
 #include "gfx/world/render_pass/render_pass_canvas_2d.hpp"
 #include "gfx/world/render_pass/render_pass_particles.hpp"
+#include "gfx/proxy/proxy_manager.hpp"
 
 #ifdef SFG_TOOLMODE
 #include "gfx/world/render_pass/render_pass_object_id.hpp"
@@ -87,6 +88,7 @@ namespace SFG
 			gfx_id				 depth_texture;
 			gfx_id				 lighting_texture;
 			gfx_id				 post_combiner_texture;
+			gfx_id				 canvas_input_texture;
 			uint8				 frame_index;
 		};
 
@@ -227,6 +229,10 @@ namespace SFG
 #endif
 
 	private:
+		// -----------------------------------------------------------------------------
+		// render util
+		// -----------------------------------------------------------------------------
+
 		// -----------------------------------------------------------------------------
 		// world collect
 		// -----------------------------------------------------------------------------

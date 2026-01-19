@@ -106,7 +106,7 @@ namespace SFG
 		// rendering
 		// -----------------------------------------------------------------------------
 
-		void prepare(const view& main_camera_view, const vector2ui16& resolution, uint8 frame_index);
+		void prepare(proxy_manager& pm, const view& main_camera_view, const vector2ui16& resolution, uint8 frame_index);
 		void render(const render_params& params);
 		void resize(const vector2ui16& size);
 

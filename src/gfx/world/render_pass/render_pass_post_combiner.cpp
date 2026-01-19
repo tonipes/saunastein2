@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -87,21 +87,35 @@ namespace SFG
 		destroy_textures();
 	}
 
-	void render_pass_post_combiner::prepare(uint8 frame_index, const vector2ui16& resolution)
+	void render_pass_post_combiner::prepare(proxy_manager& pm, uint8 frame_index, const vector2ui16& resolution)
 	{
 		ZoneScoped;
+
+		const uint8						 post_exists		  = pm.get_post_process_exists();
+		const uint8						 bloom_exists		  = pm.get_bloom_exists();
+		const render_proxy_post_process& post				  = pm.get_post_process();
+		float							 bloom_strength		  = post_exists ? post.bloom_strength : 0.04f;
+		const float						 exposure			  = post_exists ? post.exposure : 1.0f;
+		const int						 tonemap_mode		  = post_exists ? post.tonemap_mode : 1;
+		const float						 saturation			  = post_exists ? post.saturation : 1.0f;
+		const float						 wb_temp			  = post_exists ? post.wb_temp : 0.0f;
+		const float						 wb_tint			  = post_exists ? post.wb_tint : 0.0f;
+		const float						 reinhard_white_point = post_exists ? post.reinhard_white_point : 6.0f;
+
+		if (!bloom_exists)
+			bloom_strength = 0.0f;
 
 		per_frame_data& pfd = _pfd[frame_index];
 
 		const ubo ubo_data = {
 			.screen_size		  = vector2(static_cast<float>(resolution.x), static_cast<float>(resolution.y)),
-			.bloom_strength		  = 0.04f,
-			.exposure			  = 1,
-			.tonemap_mode		  = 1,
-			.saturation			  = 1.0f,
-			.wb_temp			  = 0.0f,
-			.wb_tint			  = 0.0f,
-			.reinhard_white_point = 6.0f,
+			.bloom_strength		  = bloom_strength,
+			.exposure			  = exposure,
+			.tonemap_mode		  = tonemap_mode,
+			.saturation			  = saturation,
+			.wb_temp			  = wb_temp,
+			.wb_tint			  = wb_tint,
+			.reinhard_white_point = reinhard_white_point,
 		};
 
 		pfd.ubo.buffer_data(0, &ubo_data, sizeof(ubo));
@@ -129,7 +143,7 @@ namespace SFG
 		barriers.push_back({
 			.from_states = resource_state::resource_state_ps_resource,
 			.to_states	 = resource_state::resource_state_render_target,
-				.resource	 = render_target,
+			.resource	 = render_target,
 			.flags		 = barrier_flags::baf_is_texture,
 		});
 		backend->reset_command_buffer(cmd_buffer);

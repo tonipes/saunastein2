@@ -118,7 +118,6 @@ namespace SFG
 			gfx.color			  = editor_theme::get().col_frame_outline;
 
 			vekt::hover_callback& hb = _builder->widget_get_hover_callbacks(_layout_separator);
-			hb.receive_mouse		 = 1;
 			hb.on_hover_begin		 = on_separator_hover_begin;
 			hb.on_hover_end			 = on_separator_hover_end;
 
@@ -285,7 +284,7 @@ namespace SFG
 			size_props& sz	 = _builder->widget_get_size_props(w);
 			sz.flags		 = size_flags::sf_x_abs | size_flags::sf_y_abs;
 			sz.size.y		 = theme.item_height;
-			sz.size.x = theme.item_height * 10;
+			sz.size.x		 = theme.item_height * 10;
 			sz.child_margins = {0.0f, 0.0f, theme.inner_margin, theme.inner_margin};
 			sz.spacing		 = theme.row_spacing;
 
@@ -297,7 +296,6 @@ namespace SFG
 			hover_callback& hb = _builder->widget_get_hover_callbacks(w);
 			hb.on_hover_begin  = on_context_item_hover_begin;
 			hb.on_hover_end	   = on_context_item_hover_end;
-			hb.receive_mouse   = 1;
 		}
 
 		const id txt = _builder->allocate();
@@ -325,6 +323,7 @@ namespace SFG
 		_ctx_active = _ctx_root;
 		_ctx_root	= NULL_WIDGET_ID;
 		_ctx_frame	= frame_info::get_frame();
+		_builder->build_hierarchy();
 	}
 
 	void editor_gui_controller::enable_payload(const char* text)

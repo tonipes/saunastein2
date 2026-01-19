@@ -972,8 +972,6 @@ namespace vekt
 		widget_func		on_focus_lost	= nullptr;
 		focus_gain_func on_focus_gained = nullptr;
 		unsigned char	is_hovered		= 0;
-		unsigned char	receive_mouse	= 0;
-		unsigned char	disable_hover	= 0;
 		unsigned char	is_pressing		= 0;
 		unsigned char	is_focused		= 0;
 	};
@@ -1310,10 +1308,10 @@ namespace vekt
 		vector<draw_buffer>			   _draw_buffers;
 		vector<id>					   _depth_first_widgets;
 		vector<id>					   _depth_first_mouse_widgets;
+		vector<id>					   _depth_first_mouse_wheel_widgets;
 		vector<id>					   _depth_first_fill_parents;
 		vector<id>					   _depth_first_scrolls;
 		vector<id>					   _depth_first_focusables;
-		vector<id>					   _reverse_depth_first_widgets;
 		vector<depth_first_child_info> _depth_first_child_info;
 		vector<text_cache>			   _text_cache = {};
 		vector<VEKT_VEC2>			   _reuse_outer_path;

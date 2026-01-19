@@ -526,7 +526,9 @@ namespace SFG
 			if (it->type == gui_text_field_type::text_only)
 				gb->invoke_reflection(it->widget, (void*)it->buffer, it->sub_index);
 			else if (it->type == gui_text_field_type::number)
+			{
 				gb->invoke_reflection(it->widget, &it->value, it->sub_index);
+			}
 		}
 
 		return vekt::input_event_result::handled;
@@ -684,6 +686,18 @@ namespace SFG
 				const uint8 u8 = *reinterpret_cast<uint8*>(data_ptr);
 				SFG_MEMCPY(ptr, &u8, sizeof(uint8));
 			}
+			else if (ft == reflected_field_type::rf_uint)
+			{
+				const float	 f	 = *reinterpret_cast<float*>(data_ptr);
+				const uint32 u32 = static_cast<float>(f);
+				SFG_MEMCPY(ptr, &u32, sizeof(uint32));
+			}
+			else if (ft == reflected_field_type::rf_int)
+			{
+				const float f	= *reinterpret_cast<float*>(data_ptr);
+				const int32 i32 = static_cast<int32>(f);
+				SFG_MEMCPY(ptr, &i32, sizeof(int32));
+			}
 			else if (ft == reflected_field_type::rf_resource && ref->field->_is_list)
 			{
 				vector<resource_handle>& v	 = ref->field->value(ref->obj).cast_ref<vector<resource_handle>>();
@@ -774,7 +788,7 @@ namespace SFG
 		_builder->deallocate(id);
 	}
 
-	id gui_builder::begin_area(bool fill, bool sub_area)
+	id gui_builder::begin_area(bool fill, bool scroller)
 	{
 		const id w = new_widget(true);
 		{
@@ -806,15 +820,15 @@ namespace SFG
 			// rp.rounding		   = editor_theme::get().area_rounding;
 			// rp.segments		   = 16;
 
-			if (sub_area)
+			if (scroller)
 			{
-				gfx.color			   = vector4();
+				// gfx.color			   = vector4(1, 0, 0, 1);
 				sz.child_margins.left  = 0.0f;
 				sz.child_margins.right = 0.0f;
 			}
 		}
 
-		if (!sub_area)
+		if (scroller)
 		{
 			const id scroll_bg = new_widget(true);
 			{
@@ -860,7 +874,6 @@ namespace SFG
 				hover_callback& hb = _builder->widget_get_hover_callbacks(scroll);
 				hb.on_hover_begin  = on_hover_begin_hand_c;
 				hb.on_hover_end	   = on_hover_end_hand_c;
-				hb.receive_mouse   = 1;
 			}
 
 			pop_stack();
@@ -1022,9 +1035,16 @@ namespace SFG
 			_reflected.push_back({.obj = object_ptr, .type = type_id, .field = field, .widget = ids.second});
 			return ids.first;
 		}
-		else if (type == reflected_field_type::rf_int || type == reflected_field_type::rf_uint)
+		else if (type == reflected_field_type::rf_int)
 		{
-			const float	  val = field->value(object_ptr).cast<float>();
+			const int32	  val = field->value(object_ptr).cast<int32>();
+			const id_pair p	  = clamped ? add_property_row_slider(title, 16, min, max, val, true) : add_property_row_slider(title, 16, 0, UINT32_MAX, val, true);
+			_reflected.push_back({.obj = object_ptr, .type = type_id, .field = field, .widget = p.second});
+			return p.first;
+		}
+		else if (type == reflected_field_type::rf_uint)
+		{
+			const uint32  val = field->value(object_ptr).cast<uint32>();
 			const id_pair p	  = clamped ? add_property_row_slider(title, 16, min, max, val, true) : add_property_row_slider(title, 16, 0, UINT32_MAX, val, true);
 			_reflected.push_back({.obj = object_ptr, .type = type_id, .field = field, .widget = p.second});
 			return p.first;
@@ -1451,7 +1471,7 @@ namespace SFG
 			pp.pos.x	  = 0.0f;
 
 			size_props& sz = _builder->widget_get_size_props(line);
-			sz.size		   = VEKT_VEC2(editor_theme::get().title_line_width, editor_theme::get().title_line_height * 0.5f);
+			sz.size		   = VEKT_VEC2(1.0f, editor_theme::get().title_line_height * 0.5f);
 			sz.flags	   = size_flags::sf_x_relative | size_flags::sf_y_abs;
 		}
 
@@ -1502,9 +1522,6 @@ namespace SFG
 			input_color_props& icp = _builder->widget_get_input_colors(icon);
 			icp.hovered_color	   = editor_theme::get().col_accent_second;
 			icp.pressed_color	   = editor_theme::get().col_accent_second_dim;
-
-			hover_callback& hb = _builder->widget_get_hover_callbacks(icon);
-			hb.receive_mouse   = 1;
 
 			mouse_callback& mc = _builder->widget_get_mouse_callbacks(icon);
 			mc.on_mouse		   = callbacks.on_mouse;
@@ -1612,7 +1629,6 @@ namespace SFG
 
 			_builder->widget_get_hover_callbacks(w).on_hover_begin = on_hover_begin_hand_c;
 			_builder->widget_get_hover_callbacks(w).on_hover_end   = on_hover_end_hand_c;
-			_builder->widget_get_hover_callbacks(w).receive_mouse  = 1;
 			_builder->widget_get_mouse_callbacks(w).on_mouse	   = callbacks.on_mouse;
 		}
 
@@ -1686,8 +1702,6 @@ namespace SFG
 
 			mouse_callback& mc = _builder->widget_get_mouse_callbacks(w);
 			mc.on_mouse		   = callbacks.on_mouse;
-
-			_builder->widget_get_hover_callbacks(w).receive_mouse = 1;
 		}
 
 		const id txt = add_label(title, buffer_capacity);
@@ -1748,8 +1762,6 @@ namespace SFG
 
 			mouse_callback& mc = _builder->widget_get_mouse_callbacks(w);
 			mc.on_mouse		   = callbacks.on_mouse;
-
-			_builder->widget_get_hover_callbacks(w).receive_mouse = 1;
 		}
 
 		const id txt = _builder->allocate();
@@ -1880,9 +1892,6 @@ namespace SFG
 		widget_gfx& gfx = _builder->widget_get_gfx(w);
 		gfx.color		= enabled ? enabled_col : disabled_col;
 
-		_builder->widget_get_hover_callbacks(w).receive_mouse = enabled;
-		_builder->widget_get_hover_callbacks(w).disable_hover = enabled == false;
-
 		const widget_meta& m = _builder->widget_get_meta(w);
 		if (m.children.empty())
 			return;
@@ -1935,7 +1944,7 @@ namespace SFG
 			kc.on_key		 = on_text_field_key;
 
 			hover_callback& hb = _builder->widget_get_hover_callbacks(w);
-			hb.receive_mouse   = 1;
+			// hb.receive_mouse   = 1;
 			hb.on_hover_begin  = on_hover_begin_text_field;
 			hb.on_hover_end	   = on_hover_end_text_field;
 			hb.on_focus_lost   = on_text_field_focus_lost;
@@ -2080,9 +2089,6 @@ namespace SFG
 			icp.pressed_color	   = editor_theme::get().col_button_press;
 			icp.hovered_color	   = editor_theme::get().col_button_hover;
 
-			hover_callback& hb = _builder->widget_get_hover_callbacks(w);
-			hb.receive_mouse   = 1;
-
 			mouse_callback& mc = _builder->widget_get_mouse_callbacks(w);
 			mc.on_mouse		   = on_checkbox_mouse;
 
@@ -2150,9 +2156,6 @@ namespace SFG
 			icp.pressed_color	   = editor_theme::get().col_button_press;
 			icp.hovered_color	   = editor_theme::get().col_button_hover;
 
-			hover_callback& hb = _builder->widget_get_hover_callbacks(w);
-			hb.receive_mouse   = 1;
-
 			mouse_callback& mc = _builder->widget_get_mouse_callbacks(w);
 			mc.on_mouse		   = on_resource_mouse;
 
@@ -2208,9 +2211,6 @@ namespace SFG
 			input_color_props& icp = _builder->widget_get_input_colors(w);
 			icp.pressed_color	   = editor_theme::get().col_button_press;
 			icp.hovered_color	   = editor_theme::get().col_button_hover;
-
-			hover_callback& hb = _builder->widget_get_hover_callbacks(w);
-			hb.receive_mouse   = 1;
 
 			mouse_callback& mc = _builder->widget_get_mouse_callbacks(w);
 			mc.on_mouse		   = on_dropdown_mouse;
