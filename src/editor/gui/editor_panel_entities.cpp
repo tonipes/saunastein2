@@ -857,6 +857,12 @@ namespace SFG
 	{
 		editor_panel_entities* self = static_cast<editor_panel_entities*>(b->widget_get_user_data(widget).ptr);
 
+		if (ev.type == vekt::input_event_type::released && ev.button == static_cast<uint16>(input_code::mouse_0))
+		{
+			if (self->_gui_builder.invoke_control_button(widget))
+				return vekt::input_event_result::handled;
+		}
+
 		if (phase == vekt::input_event_phase::tunneling)
 		{
 			if (ev.type == vekt::input_event_type::released && widget == self->_add_component && !self->_selected_entity.is_null())
@@ -879,6 +885,77 @@ namespace SFG
 				}
 				editor::get().get_gui_controller().end_context_menu();
 				return vekt::input_event_result::handled;
+			}
+
+			if (ev.type == vekt::input_event_type::pressed && !self->_selected_entity.is_null() && !self->_add_component_buttons.empty())
+			{
+				for (const add_comp_button& b : self->_add_component_buttons)
+				{
+					if (b.button == widget)
+					{
+						world&			   w  = editor::get().get_app().get_world();
+						entity_manager&	   em = w.get_entity_manager();
+						component_manager& cm = w.get_comp_manager();
+						cm.add_component(b.type, self->_selected_entity);
+						self->clear_component_view();
+						self->build_component_view();
+						self->_add_component_buttons.resize(0);
+						return vekt::input_event_result::handled;
+					}
+				}
+			}
+
+			if (ev.type == vekt::input_event_type::released && widget == self->_save_template && !self->_selected_entity.is_null())
+			{
+				world&		 w	  = editor::get().get_app().get_world();
+				const string file = process::save_file("save entity file", ".stkent");
+				if (file.empty())
+					return vekt::input_event_result::handled;
+
+				entity_template_raw::save_to_file(file.c_str(), w, {self->_selected_entity});
+
+				string relative = editor_settings::get().get_relative(file);
+				file_system::fix_path(relative);
+				w.get_resource_manager().load_resources({relative});
+
+				const resource_handle h = w.get_resource_manager().get_resource_handle_by_hash<entity_template>(TO_SID(relative));
+				w.get_entity_manager().set_entity_template(self->_selected_entity, h);
+
+				self->_entity_meta[self->_selected_entity.index].collapsed = true;
+				self->set_selected_controls();
+				self->clear_component_view();
+				self->build_component_view();
+				self->rebuild_tree(w);
+				return vekt::input_event_result::handled;
+			}
+
+			if (ev.type == vekt::input_event_type::released && widget == self->_unlock_template && !self->_selected_entity.is_null())
+			{
+				world& w = editor::get().get_app().get_world();
+				w.get_entity_manager().set_entity_template(self->_selected_entity, {});
+				self->set_selected_controls();
+				self->clear_component_view();
+				self->build_component_view();
+				self->rebuild_tree(w);
+				return vekt::input_event_result::handled;
+			}
+
+			if (ev.type == vekt::input_event_type::released && !self->_selected_entity.is_null())
+			{
+				for (const comp_remove_button& b : self->_comp_remove_buttons)
+				{
+					if (widget == b.button)
+					{
+						world&			   w  = editor::get().get_app().get_world();
+						entity_manager&	   em = w.get_entity_manager();
+						component_manager& cm = w.get_comp_manager();
+						cm.remove_component(b.comp_type, self->_selected_entity, b.handle);
+						self->clear_component_view();
+						self->build_component_view();
+
+						return vekt::input_event_result::handled;
+					}
+				}
 			}
 
 			if (ev.type == vekt::input_event_type::pressed && widget == self->_ctx_new_entity)
@@ -1018,85 +1095,6 @@ namespace SFG
 				}
 
 				return vekt::input_event_result::handled;
-			}
-		}
-
-		return vekt::input_event_result::not_handled;
-
-		if (ev.type == vekt::input_event_type::pressed && ev.button == static_cast<uint16>(input_code::mouse_0))
-		{
-			if (self->_gui_builder.invoke_control_button(widget))
-				return vekt::input_event_result::handled;
-		}
-
-		if (ev.type == vekt::input_event_type::pressed && !self->_selected_entity.is_null() && !self->_add_component_buttons.empty())
-		{
-			for (const add_comp_button& b : self->_add_component_buttons)
-			{
-				if (b.button == widget)
-				{
-					world&			   w  = editor::get().get_app().get_world();
-					entity_manager&	   em = w.get_entity_manager();
-					component_manager& cm = w.get_comp_manager();
-					cm.add_component(b.type, self->_selected_entity);
-					self->clear_component_view();
-					self->build_component_view();
-					self->_add_component_buttons.resize(0);
-					return vekt::input_event_result::handled;
-				}
-			}
-		}
-
-		if (ev.type == vekt::input_event_type::pressed && widget == self->_save_template && !self->_selected_entity.is_null())
-		{
-			world&		 w	  = editor::get().get_app().get_world();
-			const string file = process::save_file("save entity file", ".stkent");
-			if (file.empty())
-				return vekt::input_event_result::handled;
-
-			entity_template_raw::save_to_file(file.c_str(), w, {self->_selected_entity});
-
-			string relative = editor_settings::get().get_relative(file);
-			file_system::fix_path(relative);
-			w.get_resource_manager().load_resources({relative});
-
-			const resource_handle h = w.get_resource_manager().get_resource_handle_by_hash<entity_template>(TO_SID(relative));
-			w.get_entity_manager().set_entity_template(self->_selected_entity, h);
-
-			self->_entity_meta[self->_selected_entity.index].collapsed = true;
-			self->set_selected_controls();
-			self->clear_component_view();
-			self->build_component_view();
-			self->rebuild_tree(w);
-			return vekt::input_event_result::handled;
-		}
-
-		if (ev.type == vekt::input_event_type::pressed && widget == self->_unlock_template && !self->_selected_entity.is_null())
-		{
-			world& w = editor::get().get_app().get_world();
-			w.get_entity_manager().set_entity_template(self->_selected_entity, {});
-			self->set_selected_controls();
-			self->clear_component_view();
-			self->build_component_view();
-			self->rebuild_tree(w);
-			return vekt::input_event_result::handled;
-		}
-
-		if (ev.type == vekt::input_event_type::pressed && !self->_selected_entity.is_null())
-		{
-			for (const comp_remove_button& b : self->_comp_remove_buttons)
-			{
-				if (widget == b.button)
-				{
-					world&			   w  = editor::get().get_app().get_world();
-					entity_manager&	   em = w.get_entity_manager();
-					component_manager& cm = w.get_comp_manager();
-					cm.remove_component(b.comp_type, self->_selected_entity, b.handle);
-					self->clear_component_view();
-					self->build_component_view();
-
-					return vekt::input_event_result::handled;
-				}
 			}
 		}
 

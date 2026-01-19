@@ -174,6 +174,9 @@ namespace SFG
 
 	vekt::input_event_result gui_builder::on_text_field_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase)
 	{
+		if (phase != vekt::input_event_phase::bubbling)
+			return vekt::input_event_result::not_handled;
+
 		if (ev.type == vekt::input_event_type::released)
 			return vekt::input_event_result::not_handled;
 
@@ -536,6 +539,9 @@ namespace SFG
 
 	vekt::input_event_result gui_builder::on_checkbox_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase)
 	{
+		if (phase != vekt::input_event_phase::bubbling)
+			return vekt::input_event_result::not_handled;
+
 		if (ev.type != vekt::input_event_type::pressed || ev.button != static_cast<uint16>(input_code::mouse_0))
 			return vekt::input_event_result::not_handled;
 
@@ -556,6 +562,9 @@ namespace SFG
 
 	vekt::input_event_result gui_builder::on_resource_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase)
 	{
+		if (phase != vekt::input_event_phase::bubbling)
+			return vekt::input_event_result::not_handled;
+
 		if (ev.type != vekt::input_event_type::pressed || ev.button != static_cast<uint16>(input_code::mouse_0))
 			return vekt::input_event_result::not_handled;
 

@@ -1,0 +1,45 @@
+{
+    "components": [
+        {
+            "attenuation": 1,
+            "comp_type": 11611975037412134833,
+            "entity": 0,
+            "looping": 1,
+            "max_radius": 10.0,
+            "min_radius": 0.0,
+            "play_on_start": 1,
+            "resource": "assets/audio/metal.stkaud",
+            "rolloff": 1.0,
+            "volume": 1.0
+        }
+    ],
+    "entities": [
+        {
+            "first_child": -1,
+            "name": "sound",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "template": "",
+            "visible": 1
+        }
+    ],
+    "resources": [
+        "assets/audio/metal.stkaud"
+    ]
+}
