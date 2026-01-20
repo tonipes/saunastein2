@@ -37,15 +37,35 @@ namespace SFG
 {
 	struct vector2ui16;
 
-	class editor_panel_controls
+	class editor_panel_stats
 	{
 	public:
 		void init(vekt::builder* builder);
 		void uninit();
 		void draw(const vector2ui16& window_size);
+		void set_visible(bool is_visible);
+
+		inline vekt::id get_root() const
+		{
+			return _gui_builder.get_root();
+		}
 
 	private:
 		vekt::builder* _builder		= nullptr;
 		gui_builder	   _gui_builder = {};
+
+		vekt::id _stats_area		= NULL_WIDGET_ID;
+		vekt::id _wv_game_res		= NULL_WIDGET_ID;
+		vekt::id _wv_window_res		= NULL_WIDGET_ID;
+		vekt::id _wv_fps			= NULL_WIDGET_ID;
+		vekt::id _wv_main			= NULL_WIDGET_ID;
+		vekt::id _wv_render			= NULL_WIDGET_ID;
+		vekt::id _wv_ram			= NULL_WIDGET_ID;
+		vekt::id _wv_vram			= NULL_WIDGET_ID;
+		vekt::id _wv_vram_txt		= NULL_WIDGET_ID;
+		vekt::id _wv_vram_res		= NULL_WIDGET_ID;
+		vekt::id _wv_draw_calls		= NULL_WIDGET_ID;
+		vekt::id _wv_loaded_project = NULL_WIDGET_ID;
+		vekt::id _wv_loaded_level	= NULL_WIDGET_ID;
 	};
 }

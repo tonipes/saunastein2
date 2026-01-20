@@ -115,7 +115,7 @@ namespace SFG
 		// playmode
 		// -----------------------------------------------------------------------------
 
-		void enter_playmode();
+		void enter_playmode(bool is_physics);
 		void exit_playmode();
 
 		inline const string& get_loaded_level() const
@@ -196,7 +196,6 @@ namespace SFG
 		string _loaded_level = "";
 
 		// playmode
-		bool	  _is_playmode	   = false;
 		world_raw _playmode_backup = {};
 
 		static editor* s_instance;

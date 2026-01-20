@@ -299,8 +299,9 @@ namespace SFG
 		else if (ev.type == window_event_type::key)
 		{
 			// Exit playmode on Escape press
-			if (_is_playmode && ev.button == input_code::key_escape && ev.sub_type == window_event_sub_type::press)
+			if (_app.get_world().get_playmode() != play_mode::none && ev.button == input_code::key_escape && ev.sub_type == window_event_sub_type::press)
 			{
+				_gui_controller.on_exited_playmode();
 				exit_playmode();
 				return true;
 			}
@@ -512,42 +513,42 @@ namespace SFG
 		_loaded_level = "";
 	}
 
-	void editor::enter_playmode()
+	void editor::enter_playmode(bool is_physics)
 	{
-		if (_is_playmode)
+		world& w = _app.get_world();
+
+		if (w.get_playmode() != play_mode::none)
 			return;
 
-		world&			   w		  = _app.get_world();
 		entity_manager&	   em		  = w.get_entity_manager();
 		const world_handle cam_entity = _camera_controller.get_entity();
 
 		_playmode_backup.destroy();
 		_playmode_backup.fill_from_world(w);
+
 		_playmode_backup.tool_cam_pos = em.get_entity_position(cam_entity);
 		_playmode_backup.tool_cam_rot = em.get_entity_rotation(cam_entity);
-
 		_camera_controller.deactivate();
-		w.set_playmode(play_mode::full);
-		_app.get_gameplay().on_world_begin(w);
+		w.set_playmode(is_physics ? play_mode::physics_only : play_mode::full);
 
-		_is_playmode = true;
+		_app.get_gameplay().on_world_begin(w);
 	}
 
 	void editor::exit_playmode()
 	{
-		if (!_is_playmode)
-			return;
-
 		world& w = _app.get_world();
 
+		if (w.get_playmode() == play_mode::none)
+			return;
+
 		_app.get_gameplay().on_world_end(w);
+
 		w.set_playmode(play_mode::none);
 
 		w.create_from_loader(_playmode_backup, true);
-		_camera_controller.activate();
-
-		_is_playmode = false;
 		_playmode_backup.destroy();
+
+		_camera_controller.activate();
 	}
 
 	const char* editor::on_vekt_allocate_text(void* ud, size_t sz)

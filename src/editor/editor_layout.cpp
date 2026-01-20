@@ -41,6 +41,7 @@ namespace SFG
 		j["entities_world_split"]	   = t.entities_world_split;
 		j["entities_components_split"] = t.entities_components_split;
 		j["world_aspect"]			   = t.world_aspect_ratio;
+		j["world_stats_view"]		   = t.world_stats_view;
 	}
 
 	void from_json(const nlohmann::json& j, editor_layout& s)
@@ -48,6 +49,7 @@ namespace SFG
 		s.entities_world_split		= j.value<float>("entities_world_split", 0.25f);
 		s.entities_components_split = j.value<float>("entities_components_split", 0.5f);
 		s.world_aspect_ratio		= j.value<uint8>("world_aspect", 0);
+		s.world_stats_view			= j.value<uint8>("world_stats_view", 0);
 	}
 
 	void to_json(nlohmann::json& j, const window_layout& w)

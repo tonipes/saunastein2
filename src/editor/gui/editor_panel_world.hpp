@@ -72,6 +72,20 @@ namespace SFG
 			none,
 			on,
 		};
+
+		enum class stats_view_style
+		{
+			none,
+			full,
+		};
+
+		enum class playmode
+		{
+			none,
+			playing,
+			physics,
+		};
+
 		// -----------------------------------------------------------------------------
 		// lifecycle
 		// -----------------------------------------------------------------------------
@@ -82,6 +96,7 @@ namespace SFG
 		bool			  on_mouse_event(const window_event& ev);
 		bool			  on_key_event(const window_event& ev);
 		const vector2ui16 get_world_size() const;
+		void			  fetch_stats();
 
 		// -----------------------------------------------------------------------------
 		// impl
@@ -92,6 +107,8 @@ namespace SFG
 		void set_aspect(aspect_ratio aspect);
 		void set_physics_debug(physics_debug_style style);
 		void set_audio_style(audio_style aud);
+		void set_stats_view(stats_view_style style);
+		void set_playmode(playmode m);
 
 		static vekt::input_event_result on_widget_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase);
 		static void						on_toggle_button(void* callback_ud, vekt::builder* b, vekt::id id, bool toggled);
@@ -122,12 +139,24 @@ namespace SFG
 			return _gui_builder.get_root();
 		}
 
+		inline vekt::id get_game_view() const
+		{
+			return _world_viewer;
+		}
+		inline void kill_playmode()
+		{
+			set_playmode(playmode::none);
+		}
+
 	private:
 		gui_builder			 _gui_builder = {};
 		vekt::builder*		 _builder	  = nullptr;
 		editor_gui_user_data _user_data	  = {};
 
 		vekt::id _world_viewer		= NULL_WIDGET_ID;
+		vekt::id _btn_file			= NULL_WIDGET_ID;
+		vekt::id _btn_world			= NULL_WIDGET_ID;
+		vekt::id _btn_stats			= NULL_WIDGET_ID;
 		vekt::id _btn_translate		= NULL_WIDGET_ID;
 		vekt::id _btn_rotate		= NULL_WIDGET_ID;
 		vekt::id _btn_scale			= NULL_WIDGET_ID;
@@ -136,25 +165,35 @@ namespace SFG
 		vekt::id _btn_physics_debug = NULL_WIDGET_ID;
 		vekt::id _btn_aspect		= NULL_WIDGET_ID;
 		vekt::id _btn_world_view	= NULL_WIDGET_ID;
+		vekt::id _btn_play			= NULL_WIDGET_ID;
 
-		vekt::id _ctx_aspect_native = NULL_WIDGET_ID;
-		vekt::id _ctx_aspect_169	= NULL_WIDGET_ID;
-		vekt::id _ctx_aspect_43		= NULL_WIDGET_ID;
-		vekt::id _ctx_aspect_11		= NULL_WIDGET_ID;
-		vekt::id _ctx_view_rt		= NULL_WIDGET_ID;
-		vekt::id _ctx_view_albedo	= NULL_WIDGET_ID;
-		vekt::id _ctx_view_normals	= NULL_WIDGET_ID;
-		vekt::id _ctx_view_emissive = NULL_WIDGET_ID;
-		vekt::id _ctx_view_orm		= NULL_WIDGET_ID;
-		vekt::id _ctx_view_depth	= NULL_WIDGET_ID;
-		vekt::id _ctx_view_lighting = NULL_WIDGET_ID;
-		vekt::id _ctx_view_ssao		= NULL_WIDGET_ID;
-		vekt::id _ctx_view_bloom	= NULL_WIDGET_ID;
+		vekt::id _ctx_aspect_native	  = NULL_WIDGET_ID;
+		vekt::id _ctx_aspect_169	  = NULL_WIDGET_ID;
+		vekt::id _ctx_aspect_43		  = NULL_WIDGET_ID;
+		vekt::id _ctx_aspect_11		  = NULL_WIDGET_ID;
+		vekt::id _ctx_view_rt		  = NULL_WIDGET_ID;
+		vekt::id _ctx_view_albedo	  = NULL_WIDGET_ID;
+		vekt::id _ctx_view_normals	  = NULL_WIDGET_ID;
+		vekt::id _ctx_view_emissive	  = NULL_WIDGET_ID;
+		vekt::id _ctx_view_orm		  = NULL_WIDGET_ID;
+		vekt::id _ctx_view_depth	  = NULL_WIDGET_ID;
+		vekt::id _ctx_view_lighting	  = NULL_WIDGET_ID;
+		vekt::id _ctx_view_ssao		  = NULL_WIDGET_ID;
+		vekt::id _ctx_view_bloom	  = NULL_WIDGET_ID;
+		vekt::id _ctx_new_project	  = NULL_WIDGET_ID;
+		vekt::id _ctx_open_project	  = NULL_WIDGET_ID;
+		vekt::id _ctx_save_project	  = NULL_WIDGET_ID;
+		vekt::id _ctx_package_project = NULL_WIDGET_ID;
+		vekt::id _ctx_new_world		  = NULL_WIDGET_ID;
+		vekt::id _ctx_save_world	  = NULL_WIDGET_ID;
+		vekt::id _ctx_load_world	  = NULL_WIDGET_ID;
 
+		playmode			_play_mode	   = playmode::none;
 		gizmo_style			_gizmo_style   = gizmo_style::translate;
 		gizmo_space			_gizmo_space   = gizmo_space::global;
 		aspect_ratio		_aspect		   = aspect_ratio::native;
 		audio_style			_audio_style   = audio_style::on;
 		physics_debug_style _physics_style = physics_debug_style::none;
+		stats_view_style	_stats_style   = stats_view_style::none;
 	};
 }

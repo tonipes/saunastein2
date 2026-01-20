@@ -27,6 +27,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "editor/editor.hpp"
 #include "editor/editor_layout.hpp"
 #include "editor/editor_theme.hpp"
+#include "editor/editor_settings.hpp"
+#include "editor/gui/editor_panel_stats.hpp"
 
 // math
 #include "math/vector2ui16.hpp"
@@ -36,10 +38,13 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gui/vekt.hpp"
 #include "gui/icon_defs.hpp"
 
+// platform
+#include "platform/window.hpp"
+#include "platform/process.hpp"
+
 // misc
 #include "world/world.hpp"
 #include "app/app.hpp"
-#include "platform/window.hpp"
 #include "gfx/renderer.hpp"
 #include "game/game_world_renderer.hpp"
 #include "input/input_mappings.hpp"
@@ -95,17 +100,23 @@ namespace SFG
 
 			vekt::size_props& sz = b->widget_get_size_props(_world_viewer);
 			sz.flags			 = vekt::size_flags::sf_x_abs | vekt::size_flags::sf_y_abs;
-			b->widget_add_child(_gui_builder.get_root(), _world_viewer);
+			sz.child_margins	 = {editor_theme::get().outer_margin, editor_theme::get().outer_margin, editor_theme::get().outer_margin, editor_theme::get().outer_margin};
 
 			vekt::widget_gfx& gfx = b->widget_get_gfx(_world_viewer);
 			gfx.flags			  = vekt::gfx_flags::gfx_is_rect;
 			gfx.color			  = editor_theme::get().col_frame_bg;
 			gfx.user_data		  = &_user_data;
+
+			b->widget_add_child(_gui_builder.get_root(), _world_viewer);
 		}
 
 		// top left icon stack
 		_gui_builder.set_draw_order(1);
 		_gui_builder.begin_row();
+		_btn_file  = _gui_builder.add_icon_button(ICON_FILE, 0, 1.25f, true).first;
+		_btn_world = _gui_builder.add_icon_button(ICON_WORLD, 0, 1.25f, true).first;
+		_btn_stats = _gui_builder.add_toggle_button(ICON_INFO, false, 0, 1.25f, true).first;
+		_gui_builder.add_row_separator(editor_theme::get().col_frame_bg);
 		_btn_translate = _gui_builder.add_toggle_button(ICON_MOVE, true, 0, 1.25f, true).first;
 		_btn_rotate	   = _gui_builder.add_toggle_button(ICON_ROTATE, false, 0, 1.25f, true).first;
 		_btn_scale	   = _gui_builder.add_toggle_button(ICON_SCALE, false, 0, 1.25f, true).first;
@@ -116,6 +127,8 @@ namespace SFG
 		_btn_mute		   = _gui_builder.add_toggle_button(ICON_AUDIO_MUTE, true, 0, 1.25f, true).first;
 		_btn_physics_debug = _gui_builder.add_toggle_button(ICON_CUBES, true, 0, 1.25f, true).first;
 		_btn_world_view	   = _gui_builder.add_icon_button(ICON_EYE, 0, 1.25f, true).first;
+		_gui_builder.add_row_separator(editor_theme::get().col_frame_bg);
+		_btn_play = _gui_builder.add_toggle_button(ICON_PLAY, false, 0, 1.25f, true, editor_theme::get().col_accent_third).first;
 		_gui_builder.end_row();
 		_gui_builder.set_draw_order(0);
 
@@ -124,6 +137,11 @@ namespace SFG
 		set_gizmo_space(gizmo_space::global);
 		set_audio_style(audio_style::on);
 		set_physics_debug(physics_debug_style::none);
+	}
+
+	void editor_panel_world::fetch_stats()
+	{
+		set_stats_view(static_cast<stats_view_style>(math::clamp(editor_layout::get().world_stats_view, (uint8)0, static_cast<uint8>(stats_view_style::full))));
 	}
 
 	void editor_panel_world::uninit()
@@ -202,6 +220,28 @@ namespace SFG
 		editor::get().get_app().get_world().get_audio_manager().set_engine_volume(aud == audio_style::mute ? 0.0f : 1.0f);
 	}
 
+	void editor_panel_world::set_stats_view(stats_view_style style)
+	{
+		_stats_style = style;
+		_gui_builder.set_toggle_button_state(_btn_stats, style == stats_view_style::full);
+		editor_layout::get().world_stats_view = static_cast<uint8>(style);
+		editor_layout::get().save_last();
+		editor::get().get_gui_controller().get_stats()->set_visible(style == stats_view_style::full);
+	}
+
+	void editor_panel_world::set_playmode(playmode m)
+	{
+		_play_mode = m;
+		_gui_builder.set_toggle_button_state(_btn_play, m == playmode::playing);
+
+		if (m == playmode::playing)
+			editor::get().enter_playmode(false);
+		else if (m == playmode::physics)
+			editor::get().enter_playmode(true);
+		else
+			editor::get().exit_playmode();
+	}
+
 	vekt::input_event_result editor_panel_world::on_widget_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase)
 	{
 		editor_panel_world* self = static_cast<editor_panel_world*>(b->widget_get_user_data(widget).ptr);
@@ -274,11 +314,87 @@ namespace SFG
 				self->_user_data.type = editor_gui_user_data_type::bloom_rt;
 				return vekt::input_event_result::handled;
 			}
+			else if (widget == self->_ctx_new_project)
+			{
+				const string dir = process::select_folder("select project directory");
+				if (!dir.empty())
+					editor::get().new_project(dir.c_str());
+				return vekt::input_event_result::handled;
+			}
+			else if (widget == self->_ctx_open_project)
+			{
+				process::open_directory(editor_settings::get().working_dir.c_str());
+				return vekt::input_event_result::handled;
+			}
+			else if (widget == self->_ctx_package_project)
+			{
+				return vekt::input_event_result::handled;
+			}
+			else if (widget == self->_ctx_new_world)
+			{
+				editor::get().new_level();
+				return vekt::input_event_result::handled;
+			}
+			else if (widget == self->_ctx_save_world)
+			{
+				editor::get().save_lavel();
+				return vekt::input_event_result::handled;
+			}
+			else if (widget == self->_ctx_load_world)
+			{
+				editor::get().load_level_prompt();
+				return vekt::input_event_result::handled;
+			}
 
 			return vekt::input_event_result::not_handled;
 		}
 
 		// released
+
+		if (widget == self->_btn_file)
+		{
+			editor_gui_controller& ctr = editor::get().get_gui_controller();
+			const vector2		   pos = b->widget_get_pos(widget) + vector2(0.0f, b->widget_get_size(widget).y);
+			ctr.begin_context_menu(pos.x, pos.y);
+			self->_ctx_new_project	   = ctr.add_context_menu_item("new_project");
+			self->_ctx_open_project	   = ctr.add_context_menu_item("open_project");
+			self->_ctx_save_project	   = ctr.add_context_menu_item("save_project");
+			self->_ctx_package_project = ctr.add_context_menu_item("package_project");
+
+			b->widget_get_mouse_callbacks(self->_ctx_new_project).on_mouse	   = on_widget_mouse;
+			b->widget_get_mouse_callbacks(self->_ctx_open_project).on_mouse	   = on_widget_mouse;
+			b->widget_get_mouse_callbacks(self->_ctx_save_project).on_mouse	   = on_widget_mouse;
+			b->widget_get_mouse_callbacks(self->_ctx_package_project).on_mouse = on_widget_mouse;
+
+			b->widget_get_user_data(self->_ctx_new_project).ptr		= self;
+			b->widget_get_user_data(self->_ctx_open_project).ptr	= self;
+			b->widget_get_user_data(self->_ctx_save_project).ptr	= self;
+			b->widget_get_user_data(self->_ctx_package_project).ptr = self;
+
+			ctr.end_context_menu();
+			return vekt::input_event_result::handled;
+		}
+
+		if (widget == self->_btn_world)
+		{
+			editor_gui_controller& ctr = editor::get().get_gui_controller();
+			const vector2		   pos = b->widget_get_pos(widget) + vector2(0.0f, b->widget_get_size(widget).y);
+			ctr.begin_context_menu(pos.x, pos.y);
+			self->_ctx_new_world  = ctr.add_context_menu_item("new_world");
+			self->_ctx_save_world = ctr.add_context_menu_item("save_world");
+			self->_ctx_load_world = ctr.add_context_menu_item("load_world");
+
+			b->widget_get_mouse_callbacks(self->_ctx_new_world).on_mouse  = on_widget_mouse;
+			b->widget_get_mouse_callbacks(self->_ctx_save_world).on_mouse = on_widget_mouse;
+			b->widget_get_mouse_callbacks(self->_ctx_load_world).on_mouse = on_widget_mouse;
+
+			b->widget_get_user_data(self->_ctx_new_world).ptr  = self;
+			b->widget_get_user_data(self->_ctx_save_world).ptr = self;
+			b->widget_get_user_data(self->_ctx_load_world).ptr = self;
+
+			ctr.end_context_menu();
+			return vekt::input_event_result::handled;
+		}
 
 		if (widget == self->_btn_aspect)
 		{
@@ -404,5 +520,9 @@ namespace SFG
 			self->set_audio_style(toggled ? audio_style::mute : audio_style::on);
 		else if (id == self->_btn_physics_debug)
 			self->set_physics_debug(toggled ? physics_debug_style::on : physics_debug_style::none);
+		else if (id == self->_btn_stats)
+			self->set_stats_view(toggled ? stats_view_style::full : stats_view_style::none);
+		else if (id == self->_btn_play)
+			self->set_playmode(toggled ? playmode::playing : playmode::none);
 	}
 }

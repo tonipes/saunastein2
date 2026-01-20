@@ -40,7 +40,7 @@ namespace vekt
 namespace SFG
 {
 	class world;
-	class editor_panel_controls;
+	class editor_panel_stats;
 	class editor_panel_entities;
 	class editor_panel_properties;
 	class editor_gui_world_overlays;
@@ -64,6 +64,7 @@ namespace SFG
 		bool	on_mouse_event(const window_event& ev);
 		bool	on_key_event(const window_event& ev);
 		vector2 get_world_size();
+		void	on_exited_playmode();
 
 		// -----------------------------------------------------------------------------
 		// gui
@@ -85,6 +86,11 @@ namespace SFG
 			return _panel_entities;
 		}
 
+		inline editor_panel_stats* get_stats() const
+		{
+			return _panel_stats;
+		}
+
 		inline vekt::id get_root() const
 		{
 			return _ctx_root;
@@ -98,13 +104,11 @@ namespace SFG
 		static void on_separator_hover_end(vekt::builder* b, vekt::id widget);
 
 	private:
-		vekt::builder*			   _builder			   = nullptr;
-		editor_panel_controls*	   _panel_controls	   = nullptr;
-		editor_panel_entities*	   _panel_entities	   = nullptr;
-		editor_panel_properties*   _panel_properties   = nullptr;
-		editor_gui_world_overlays* _gui_world_overlays = nullptr;
-		editor_panel_world*		   _panel_world		   = nullptr;
-		uint64					   _ctx_frame		   = 0;
+		vekt::builder*		   _builder		   = nullptr;
+		editor_panel_stats*	   _panel_stats	   = nullptr;
+		editor_panel_entities* _panel_entities = nullptr;
+		editor_panel_world*	   _panel_world	   = nullptr;
+		uint64				   _ctx_frame	   = 0;
 
 		vekt::id _ctx_root		 = NULL_WIDGET_ID;
 		vekt::id _ctx_active	 = NULL_WIDGET_ID;

@@ -199,7 +199,7 @@ namespace SFG
 		inner_margin				   = DPI_SCALE * 4;
 		frame_thickness				   = DPI_SCALE * 1;
 		frame_rounding				   = 2.0f;
-		context_menu_outline_thickness = DPI_SCALE * 1.2f;
+		context_menu_outline_thickness = DPI_SCALE * 2.0f;
 	}
 	void editor_theme::init(const char* base_directory)
 	{

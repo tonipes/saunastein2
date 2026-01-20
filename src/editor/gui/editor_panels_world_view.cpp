@@ -520,7 +520,7 @@ namespace SFG
 
 		if (widget == self->_btn_play)
 		{
-			editor::get().enter_playmode();
+			editor::get().enter_playmode(false);
 			return vekt::input_event_result::handled;
 		}
 

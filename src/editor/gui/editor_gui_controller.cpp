@@ -25,9 +25,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "editor_gui_controller.hpp"
-#include "editor_panel_controls.hpp"
+#include "editor_panel_stats.hpp"
 #include "editor_panel_entities.hpp"
-#include "editor_panel_properties.hpp"
 #include "editor_panels_world_view.hpp"
 #include "editor_panel_world.hpp"
 #include "editor/editor_layout.hpp"
@@ -59,12 +58,9 @@ namespace SFG
 		_split_ratio = editor_layout::get().entities_world_split;
 
 		// Construct panels
-		_panel_entities	  = new editor_panel_entities();
-		_panel_properties = new editor_panel_properties();
-		_panel_world	  = new editor_panel_world();
-
-		// if (_panel_controls) _panel_controls->init(_builder);
-		// _panel_properties->init();
+		_panel_entities = new editor_panel_entities();
+		_panel_stats	= new editor_panel_stats();
+		_panel_world	= new editor_panel_world();
 
 		_layout_root = _builder->allocate();
 		{
@@ -139,6 +135,27 @@ namespace SFG
 			sz.size.y			 = 1.0f;
 		}
 
+		_panel_stats->init(_builder);
+		{
+			const vekt::id stats_root = _panel_stats->get_root();
+
+			vekt::widget_gfx& gfx = _builder->widget_get_gfx(stats_root);
+			gfx.flags			  = 0;
+
+			vekt::pos_props& pp = _builder->widget_get_pos_props(stats_root);
+			pp.flags			= vekt::pos_flags::pf_x_relative | vekt::pos_flags::pf_y_relative;
+			pp.pos.x			= 0.0f;
+			pp.pos.y			= 0.0f;
+
+			vekt::size_props& sz = _builder->widget_get_size_props(stats_root);
+			sz.flags			 = vekt::size_flags::sf_x_relative | vekt::size_flags::sf_y_relative;
+			sz.size.x			 = 1.0f;
+			sz.size.y			 = 1.0f;
+			sz.child_margins	 = {};
+
+			_builder->widget_add_child(_panel_world->get_game_view(), stats_root);
+		}
+
 		_payload = _builder->allocate();
 		{
 			vekt::pos_props& pp = _builder->widget_get_pos_props(_payload);
@@ -175,6 +192,7 @@ namespace SFG
 		_builder->widget_add_child(_payload, _payload_text);
 		_builder->widget_set_visible(_payload, false);
 
+		_panel_world->fetch_stats();
 		_builder->build_hierarchy();
 	}
 
@@ -194,12 +212,9 @@ namespace SFG
 		delete _panel_world;
 		_panel_world = nullptr;
 
-		_panel_properties->uninit();
-		delete _panel_properties;
-		_panel_properties = nullptr;
-
-		delete _gui_world_overlays;
-		_gui_world_overlays = nullptr;
+		_panel_stats->uninit();
+		delete _panel_stats;
+		_panel_stats = nullptr;
 	}
 
 	void editor_gui_controller::tick(world& w, const vector2ui16& window_size)
@@ -235,6 +250,7 @@ namespace SFG
 		}
 		_panel_entities->draw(w, window_size);
 		_panel_world->draw(window_size);
+		_panel_stats->draw(window_size);
 		// _panel_world_view->draw(window_size);
 
 		editor_panel_entities* entities = _panel_entities;
@@ -509,5 +525,9 @@ namespace SFG
 	vector2 editor_gui_controller::get_world_size()
 	{
 		return _panel_world->get_world_size();
+	}
+	void editor_gui_controller::on_exited_playmode()
+	{
+		_panel_world->kill_playmode();
 	}
 }
