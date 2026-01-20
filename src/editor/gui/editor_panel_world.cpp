@@ -29,6 +29,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "editor/editor_theme.hpp"
 #include "editor/editor_settings.hpp"
 #include "editor/gui/editor_panel_stats.hpp"
+#include "editor/gui/editor_panel_entities.hpp"
 
 // math
 #include "math/vector2ui16.hpp"
@@ -133,7 +134,7 @@ namespace SFG
 		_gui_builder.set_draw_order(0);
 
 		set_aspect(static_cast<aspect_ratio>(math::clamp(editor_layout::get().world_aspect_ratio, (uint8)0, static_cast<uint8>(aspect_ratio::aspect_1_1))));
-		set_gizmo_style(gizmo_style::translate);
+		set_gizmo_style(gizmo_style::move);
 		set_gizmo_space(gizmo_space::global);
 		set_audio_style(audio_style::on);
 		set_physics_debug(physics_debug_style::none);
@@ -187,15 +188,15 @@ namespace SFG
 
 	void editor_panel_world::set_gizmo_style(gizmo_style style)
 	{
-		_gizmo_style = style;
-		_gui_builder.set_toggle_button_state(_btn_translate, style == gizmo_style::translate);
+		_gizmo_controls.set_style(style);
+		_gui_builder.set_toggle_button_state(_btn_translate, style == gizmo_style::move);
 		_gui_builder.set_toggle_button_state(_btn_rotate, style == gizmo_style::rotate);
 		_gui_builder.set_toggle_button_state(_btn_scale, style == gizmo_style::scale);
 	}
 
 	void editor_panel_world::set_gizmo_space(gizmo_space space)
 	{
-		_gizmo_space = space;
+		_gizmo_controls.set_space(space);
 		_gui_builder.set_toggle_button_state(_btn_space, space == gizmo_space::global);
 	}
 
@@ -467,6 +468,43 @@ namespace SFG
 
 	bool editor_panel_world::on_mouse_event(const window_event& ev)
 	{
+		if (ev.button == input_code::mouse_0 && ev.sub_type == window_event_sub_type::press)
+		{
+			const vector4 clip			   = _builder->widget_get_clip(_world_viewer);
+			const vector2 mp			   = vector2(ev.value.x, ev.value.y);
+			const bool	  is_world_hovered = clip.is_point_inside(mp.x, mp.y);
+
+			if (is_world_hovered)
+			{
+				const vector2 local		 = mp - _builder->widget_get_pos(_world_viewer);
+				const vector2 panel_size = _builder->widget_get_size(_world_viewer);
+				const uint16  x			 = static_cast<uint16>(math::clamp(local.x, 0.0f, panel_size.x - 1.0f));
+				const uint16  y			 = static_cast<uint16>(math::clamp(local.y, 0.0f, panel_size.y - 1.0f));
+
+				const renderer& rend		= editor::get().get_app().get_renderer();
+				const uint8		frame_index = rend.get_frame_index();
+				const uint32	object_id	= rend.get_world_renderer()->get_render_pass_object_id().read_location(x, y, frame_index);
+
+				editor_panel_entities* entities = editor::get().get_gui_controller().get_entities();
+
+				if (object_id == NULL_WORLD_ID)
+				{
+					entities->set_selected({});
+					return true;
+				}
+
+				entity_manager&	   em	  = editor::get().get_app().get_world().get_entity_manager();
+				const world_handle handle = em.get_valid_handle_by_index(object_id);
+				if (em.is_valid(handle))
+				{
+					entities->set_selected(handle);
+					return true;
+				}
+
+				return true;
+			}
+		}
+
 		return false;
 	}
 
@@ -477,7 +515,7 @@ namespace SFG
 
 		if (ev.button == input_code::key_alpha1 && window::is_key_down(input_code::key_lctrl))
 		{
-			set_gizmo_style(gizmo_style::translate);
+			set_gizmo_style(gizmo_style::move);
 			return true;
 		}
 
@@ -493,7 +531,7 @@ namespace SFG
 		}
 		if (ev.button == input_code::key_alpha4 && window::is_key_down(input_code::key_lctrl))
 		{
-			set_gizmo_space(_gizmo_space == gizmo_space::global ? gizmo_space::local : gizmo_space::global);
+			set_gizmo_space(_gizmo_controls.get_space() == gizmo_space::global ? gizmo_space::local : gizmo_space::global);
 			return true;
 		}
 		if (ev.button == input_code::key_m && window::is_key_down(input_code::key_lctrl))
@@ -509,7 +547,7 @@ namespace SFG
 		editor_panel_world* self = static_cast<editor_panel_world*>(callback_ud);
 
 		if (id == self->_btn_translate)
-			self->set_gizmo_style(gizmo_style::translate);
+			self->set_gizmo_style(gizmo_style::move);
 		else if (id == self->_btn_rotate)
 			self->set_gizmo_style(gizmo_style::rotate);
 		else if (id == self->_btn_scale)

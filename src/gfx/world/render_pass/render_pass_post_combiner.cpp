@@ -102,9 +102,6 @@ namespace SFG
 		const float						 wb_tint			  = post_exists ? post.wb_tint : 0.0f;
 		const float						 reinhard_white_point = post_exists ? post.reinhard_white_point : 6.0f;
 
-		if (!bloom_exists)
-			bloom_strength = 0.0f;
-
 		per_frame_data& pfd = _pfd[frame_index];
 
 		const ubo ubo_data = {

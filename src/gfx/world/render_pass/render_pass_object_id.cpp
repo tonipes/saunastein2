@@ -105,7 +105,7 @@ namespace SFG
 		const gpu_index gpu_index_rp_ubo = pfd.ubo.get_index();
 
 		render_pass_color_attachment att = {};
-		att.clear_color					 = vector4(0, 0, 0, 0.0f);
+		att.clear_color					 = vector4(UINT32_MAX - 1, 0, 0, 0.0f);
 		att.load_op						 = load_op::clear;
 		att.store_op					 = store_op::store;
 		att.texture						 = render_target;
@@ -232,7 +232,7 @@ namespace SFG
 				  .size			  = sz,
 				  .flags		  = texture_flags::tf_render_target | texture_flags::tf_is_2d | texture_flags::tf_sampled,
 				  .views		  = {{.type = view_type::render_target}},
-				  .clear_values	  = {0, 0, 0, 0},
+				  .clear_values	  = {static_cast<float>(UINT32_MAX - 1), 0, 0, 0},
 				  .debug_name	  = "object_id_rt",
 			  });
 

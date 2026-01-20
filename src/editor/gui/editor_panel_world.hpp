@@ -27,6 +27,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "editor/gui/editor_gui_builder.hpp"
 #include "editor/gui/editor_gui_user_data.hpp"
+#include "editor/gui/editor_gizmo_controls.hpp"
+
 namespace vekt
 {
 	class builder;
@@ -46,19 +48,6 @@ namespace SFG
 			aspect_16_9,
 			aspect_4_3,
 			aspect_1_1,
-		};
-
-		enum class gizmo_style
-		{
-			translate,
-			rotate,
-			scale
-		};
-
-		enum class gizmo_space
-		{
-			global,
-			local,
 		};
 
 		enum class audio_style
@@ -149,9 +138,10 @@ namespace SFG
 		}
 
 	private:
-		gui_builder			 _gui_builder = {};
-		vekt::builder*		 _builder	  = nullptr;
-		editor_gui_user_data _user_data	  = {};
+		gui_builder			  _gui_builder	  = {};
+		vekt::builder*		  _builder		  = nullptr;
+		editor_gui_user_data  _user_data	  = {};
+		editor_gizmo_controls _gizmo_controls = {};
 
 		vekt::id _world_viewer		= NULL_WIDGET_ID;
 		vekt::id _btn_file			= NULL_WIDGET_ID;
@@ -189,8 +179,6 @@ namespace SFG
 		vekt::id _ctx_load_world	  = NULL_WIDGET_ID;
 
 		playmode			_play_mode	   = playmode::none;
-		gizmo_style			_gizmo_style   = gizmo_style::translate;
-		gizmo_space			_gizmo_space   = gizmo_space::global;
 		aspect_ratio		_aspect		   = aspect_ratio::native;
 		audio_style			_audio_style   = audio_style::on;
 		physics_debug_style _physics_style = physics_debug_style::none;

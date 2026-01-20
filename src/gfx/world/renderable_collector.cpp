@@ -213,6 +213,7 @@ namespace SFG
 				.texture_constant_index	 = gpu_index_mat_textures,
 				.sampler_constant_index	 = gpu_index_mat_sampler,
 				.entity_constant_index	 = obj.gpu_entity,
+				.bone_constant_index	 = obj.bones_start_index,
 				.entity_world_id		 = obj.world_entity,
 				.vb_hw					 = obj.vertex_buffer->get_gpu(),
 				.ib_hw					 = obj.index_buffer->get_gpu(),

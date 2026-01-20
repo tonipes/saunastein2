@@ -268,6 +268,15 @@ namespace SFG
 		if (!add_compile_var({"WRITE_ID"}, true))
 			return false;
 
+		if (!add_compile_var({"WRITE_ID", "USE_ALPHA_CUTOFF"}, true))
+			return false;
+
+		if (!add_compile_var({"WRITE_ID", "USE_ALPHA_CUTOFF", "USE_SKINNING"}, true))
+			return false;
+
+		if (!add_compile_var({"WRITE_ID", "USE_SKINNING"}, true))
+			return false;
+
 		// PSO-variants
 		add_pso(0, 0);
 		add_pso(1, variant_flag_skinned);
@@ -296,10 +305,15 @@ namespace SFG
 		add_pso(7, variant_flag_double_sided | variant_flag_skinned | variant_flag_alpha_cutoff | variant_flag_z_prepass);
 		add_pso(7, variant_flag_double_sided | variant_flag_skinned | variant_flag_alpha_cutoff | variant_flag_z_prepass | variant_flag_shadow_rendering);
 
-		add_pso(8, variant_flag_alpha_cutoff | variant_flag_id_write);
-		add_pso(8, variant_flag_alpha_cutoff | variant_flag_id_write | variant_flag_double_sided);
-		add_pso(8, variant_flag_alpha_cutoff | variant_flag_id_write | variant_flag_double_sided | variant_flag_skinned);
-		add_pso(8, variant_flag_alpha_cutoff | variant_flag_id_write | variant_flag_skinned);
+		add_pso(8, variant_flag_id_write);
+		add_pso(9, variant_flag_id_write | variant_flag_alpha_cutoff);
+		add_pso(9, variant_flag_id_write | variant_flag_alpha_cutoff | variant_flag_double_sided);
+		add_pso(10, variant_flag_id_write | variant_flag_alpha_cutoff | variant_flag_skinned);
+		add_pso(10, variant_flag_id_write | variant_flag_alpha_cutoff | variant_flag_double_sided | variant_flag_skinned);
+
+		add_pso(8, variant_flag_id_write | variant_flag_double_sided);
+		add_pso(11, variant_flag_id_write | variant_flag_double_sided | variant_flag_skinned);
+		add_pso(11, variant_flag_id_write | variant_flag_skinned);
 		return true;
 	}
 
@@ -407,6 +421,9 @@ namespace SFG
 		if (!add_compile_var({"WRITE_ID"}, true))
 			return false;
 
+		if (!add_compile_var({"WRITE_ID", "USE_SKINNING"}, true))
+			return false;
+
 		// PSO-variants
 		add_pso(0, 0);
 		add_pso(1, variant_flag_skinned);
@@ -417,8 +434,8 @@ namespace SFG
 
 		add_pso(2, variant_flag_id_write);
 		add_pso(2, variant_flag_id_write | variant_flag_double_sided);
-		add_pso(2, variant_flag_id_write | variant_flag_double_sided | variant_flag_skinned);
-		add_pso(2, variant_flag_id_write | variant_flag_skinned);
+		add_pso(3, variant_flag_id_write | variant_flag_double_sided | variant_flag_skinned);
+		add_pso(3, variant_flag_id_write | variant_flag_skinned);
 
 		return true;
 	}
@@ -998,7 +1015,7 @@ namespace SFG
 
 			pso.desc.attachments = variant_flags.is_set(variant_flag_gui_3d) ? color_attachments_3d : color_attachments;
 			pso.desc.inputs		 = vertex_inputs;
-			pso.desc.cull		 =cull_mode::back;
+			pso.desc.cull		 = cull_mode::back;
 			pso.desc.topo		 = topology::triangle_list;
 			pso.desc.front		 = variant_flags.is_set(variant_flag_gui_3d) ? front_face::ccw : front_face::cw;
 			pso.desc.poly_mode	 = polygon_mode::fill;

@@ -208,7 +208,6 @@ float4 PSMain(vs_output IN) : SV_TARGET
     // Fetch HDR inputs (mip 0). 
     float3 lighting = tex_lighting.SampleLevel(smp_linear, IN.uv, 0).rgb;
     float3 bloom    = tex_bloom.SampleLevel(smp_linear, IN.uv, 0).rgb;
-
     // Combine HDR
     float3 hdr = lighting + bloom * params.bloom_strength;
 
