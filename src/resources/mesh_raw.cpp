@@ -45,6 +45,8 @@ namespace SFG
 		stream << skin_index;
 		stream << local_aabb;
 		stream << materials;
+		stream << collider_vertices;
+		stream << collider_indices;
 	}
 
 	void mesh_raw::deserialize(istream& stream)
@@ -57,6 +59,8 @@ namespace SFG
 		stream >> skin_index;
 		stream >> local_aabb;
 		stream >> materials;
+		stream >> collider_vertices;
+		stream >> collider_indices;
 	}
 
 }

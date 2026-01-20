@@ -28,14 +28,39 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gui/vekt_defines.hpp"
 #include "editor/gui/editor_gui_builder.hpp"
 #include "editor/gui/editor_gui_user_data.hpp"
+#include "math/vector2.hpp"
+#include "math/vector3.hpp"
+#include "math/quat.hpp"
 
 namespace SFG
 {
 	struct vector2ui16;
+	struct window_event;
 
 	class editor_panels_world_view
 	{
 	public:
+		enum class gizmo_mode
+		{
+			position,
+			rotation,
+			scale,
+		};
+
+		enum class gizmo_axis
+		{
+			none,
+			x,
+			y,
+			z,
+		};
+
+		enum class gizmo_space
+		{
+			global,
+			local,
+		};
+
 		// -----------------------------------------------------------------------------
 		// lifecycle
 		// -----------------------------------------------------------------------------
@@ -48,7 +73,7 @@ namespace SFG
 		// impl
 		// -----------------------------------------------------------------------------
 
-		bool consume_committed_size(vector2ui16& out_size);
+		bool on_mouse_event(const window_event& ev);
 
 		// -----------------------------------------------------------------------------
 		// accessors
@@ -59,9 +84,32 @@ namespace SFG
 			return _root;
 		}
 
-		static vekt::input_event_result on_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase);
+		inline void kill_context()
+		{
+			_ctx_world_rt		 = NULL_WIDGET_ID;
+			_ctx_colors_rt		 = NULL_WIDGET_ID;
+			_ctx_normals_rt		 = NULL_WIDGET_ID;
+			_ctx_orm_rt			 = NULL_WIDGET_ID;
+			_ctx_emissive_rt	 = NULL_WIDGET_ID;
+			_ctx_depth_rt		 = NULL_WIDGET_ID;
+			_ctx_lighting_rt	 = NULL_WIDGET_ID;
+			_ctx_bloom_rt		 = NULL_WIDGET_ID;
+			_ctx_ssao_rt		 = NULL_WIDGET_ID;
+			_ctx_new_project	 = NULL_WIDGET_ID;
+			_ctx_open_project	 = NULL_WIDGET_ID;
+			_ctx_package_project = NULL_WIDGET_ID;
+			_ctx_new_world		 = NULL_WIDGET_ID;
+			_ctx_save_world		 = NULL_WIDGET_ID;
+			_ctx_open_world		 = NULL_WIDGET_ID;
+		}
+		static vekt::input_event_result on_widget_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase);
+		static vekt::input_event_result on_key(vekt::builder* b, vekt::id widget, const vekt::key_event& ev);
+		static void						on_widget_draw(vekt::builder* b, vekt::id widget);
 
 	private:
+		void update_gizmo_buttons();
+		void update_toggle_button(vekt::id button, bool enabled);
+
 		gui_builder	   _gui_builder = {};
 		vekt::builder* _builder		= nullptr;
 		vekt::id	   _root		= NULL_WIDGET_ID;
@@ -69,11 +117,17 @@ namespace SFG
 		editor_gui_user_data _user_data = {};
 
 		// Icon column and buttons
-		vekt::id _icon_column = NULL_WIDGET_ID;
-		vekt::id _btn_view	  = NULL_WIDGET_ID;
-		vekt::id _btn_menu	  = NULL_WIDGET_ID;
-		vekt::id _btn_stats	  = NULL_WIDGET_ID;
-		vekt::id _btn_play	  = NULL_WIDGET_ID;
+		vekt::id _icon_column			= NULL_WIDGET_ID;
+		vekt::id _icon_row				= NULL_WIDGET_ID;
+		vekt::id _btn_view				= NULL_WIDGET_ID;
+		vekt::id _btn_menu				= NULL_WIDGET_ID;
+		vekt::id _btn_stats				= NULL_WIDGET_ID;
+		vekt::id _btn_play				= NULL_WIDGET_ID;
+		vekt::id _btn_gizmo_translation = NULL_WIDGET_ID;
+		vekt::id _btn_gizmo_rotation	= NULL_WIDGET_ID;
+		vekt::id _btn_gizmo_scale		= NULL_WIDGET_ID;
+		vekt::id _btn_audio_on			= NULL_WIDGET_ID;
+		vekt::id _btn_physics_debug_on	= NULL_WIDGET_ID;
 
 		vekt::id _ctx_world_rt	  = NULL_WIDGET_ID;
 		vekt::id _ctx_colors_rt	  = NULL_WIDGET_ID;
@@ -107,5 +161,23 @@ namespace SFG
 		vekt::id _wv_draw_calls		= NULL_WIDGET_ID;
 		vekt::id _wv_loaded_project = NULL_WIDGET_ID;
 		vekt::id _wv_loaded_level	= NULL_WIDGET_ID;
+
+		gizmo_mode	_gizmo_mode				 = gizmo_mode::position;
+		gizmo_axis	_gizmo_active_axis		 = gizmo_axis::none;
+		gizmo_axis	_gizmo_hover_axis		 = gizmo_axis::none;
+		gizmo_space _gizmo_space			 = gizmo_space::global;
+		bool		_gizmo_center_hover		 = false;
+		bool		_gizmo_center_handle	 = false;
+		bool		_audio_enabled			 = false;
+		bool		_physics_debug_enabled	 = false;
+		bool		_gizmo_dragging			 = false;
+		float		_gizmo_drag_amount		 = 0.0f;
+		vector2		_gizmo_last_mouse		 = vector2::zero;
+		vector3		_gizmo_start_pos		 = vector3::zero;
+		quat		_gizmo_start_rot		 = quat::identity;
+		vector3		_gizmo_start_scale		 = vector3::one;
+		vector3		_gizmo_drag_offset		 = vector3::zero;
+		vector2		_gizmo_angle_start_dir	 = vector2::zero;
+		vector2		_gizmo_angle_current_dir = vector2::zero;
 	};
 }

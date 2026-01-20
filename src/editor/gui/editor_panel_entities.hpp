@@ -84,6 +84,10 @@ namespace SFG
 		{
 			return _root;
 		}
+		inline world_handle get_selected() const
+		{
+			return _selected_entity;
+		}
 
 	private:
 		// -----------------------------------------------------------------------------

@@ -225,8 +225,12 @@ namespace SFG
 		{
 			return _pass_selection_outline;
 		}
-
 #endif
+
+		inline render_pass_debug& get_render_pass_debug_rendering()
+		{
+			return _pass_debug_rendering;
+		}
 
 	private:
 		// -----------------------------------------------------------------------------

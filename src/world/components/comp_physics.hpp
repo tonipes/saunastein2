@@ -159,6 +159,7 @@ namespace SFG
 		resource_handle	   _material_handle		 = {};
 		physics_body_type  _body_type			 = physics_body_type::static_body;
 		physics_shape_type _shape_type			 = physics_shape_type::box;
+		bool			   _is_sensor			 = false;
 		bitmask<uint8>	   _flags				 = 0;
 	};
 

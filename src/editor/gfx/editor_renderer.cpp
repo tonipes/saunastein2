@@ -172,7 +172,7 @@ namespace SFG
 		const gui_pass_view view = {
 			.proj		   = matrix4x4::ortho_reverse_z(0, static_cast<float>(_gfx_data.screen_size.x), 0, static_cast<float>(_gfx_data.screen_size.y), 0.0f, 1.0f),
 			.sdf_thickness = 0.5f,
-			.sdf_softness  = 0.02f,
+			.sdf_softness  = 0.05f,
 		};
 		pfd.buf_pass_data.buffer_data(0, (void*)&view, sizeof(gui_pass_view));
 

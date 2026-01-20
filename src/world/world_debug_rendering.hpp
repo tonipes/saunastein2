@@ -98,9 +98,9 @@ namespace SFG
 		};
 
 		static constexpr size_t MAX_VERTEX_COUNT_LINE = 32000;
-		static constexpr size_t MAX_VERTEX_COUNT_TRI  = 32000;
+		static constexpr size_t MAX_VERTEX_COUNT_TRI  = 164000;
 		static constexpr size_t MAX_VERTEX_COUNT_GUI  = 32000;
-		static constexpr size_t MAX_INDEX_COUNT_TRI	  = 96000;
+		static constexpr size_t MAX_INDEX_COUNT_TRI	  = 164000;
 		static constexpr size_t MAX_INDEX_COUNT_LINE  = 96000;
 		static constexpr size_t MAX_INDEX_COUNT_GUI	  = 96000;
 		static constexpr size_t MAX_DRAW_CALLS_GUI	  = 4096;
@@ -146,8 +146,6 @@ namespace SFG
 		uint32 add_vertex_line(const vertex_3d_line* data, uint32 count);
 		uint32 add_vertex_tri(const vertex_simple* data, uint32 count);
 		uint32 add_vertex_gui(const vertex_gui* data, uint32 count);
-
-		void push_draw_call(uint32 vtx_buffer_index, uint32 start_idx, uint32 idx_count, uint32 base_vtx, uint16 vtx_size);
 
 	private:
 		vekt::builder* _builder				   = nullptr;

@@ -74,6 +74,7 @@ namespace SFG
 		j["col_title"]				   = t.col_title;
 		j["col_text"]				   = t.col_text;
 		j["col_text_dim"]			   = t.col_text_dim;
+		j["col_light"]				   = t.col_light;
 		j["col_frame_bg"]			   = t.col_frame_bg;
 		j["col_area_bg"]			   = t.col_area_bg;
 		j["col_root"]				   = t.col_root;
@@ -127,6 +128,7 @@ namespace SFG
 		s.col_title					= j.value<vector4>("col_title", vector4::zero);
 		s.col_text					= j.value<vector4>("col_text", vector4::zero);
 		s.col_text_dim				= j.value<vector4>("col_text_dim", vector4::zero);
+		s.col_light					= j.value<vector4>("col_light", vector4::zero);
 		s.col_frame_bg				= j.value<vector4>("col_frame_bg", vector4::zero);
 		s.col_area_bg				= j.value<vector4>("col_area_bg", vector4::zero);
 		s.col_root					= j.value<vector4>("col_root", vector4::zero);
@@ -161,6 +163,7 @@ namespace SFG
 		col_title	 = color::from255(180, 180, 180, 255).srgb_to_linear().to_vector();
 		col_text	 = color::from255(180, 180, 180, 255).srgb_to_linear().to_vector();
 		col_text_dim = color::from255(130, 130, 130, 255).srgb_to_linear().to_vector();
+		col_light	 = color::from255(80, 80, 80, 255).srgb_to_linear().to_vector();
 		col_frame_bg = color::from255(4, 4, 4, 255).srgb_to_linear().to_vector();
 		col_area_bg	 = color::from255(15, 15, 15, 255).srgb_to_linear().to_vector();
 		col_root	 = color::from255(28, 28, 28, 255).srgb_to_linear().to_vector();
@@ -186,7 +189,7 @@ namespace SFG
 
 		item_height			= DPI_SCALE * 20;
 		table_cell_height	= DPI_SCALE * 10;
-		seperator_thickness = DPI_SCALE * 1;
+		seperator_thickness = DPI_SCALE * 2;
 		property_cell_div	= 0.3f;
 
 		area_rounding	 = 8.0f;

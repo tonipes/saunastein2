@@ -314,6 +314,9 @@ namespace SFG
 			}
 			else
 			{
+				if (_gui_controller.on_key_event(ev))
+					return true;
+
 				const vekt::input_event_result res = _builder->on_key_event({
 					.type	   = static_cast<vekt::input_event_type>(ev.sub_type),
 					.key	   = ev.button,

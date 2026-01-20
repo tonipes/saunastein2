@@ -27,6 +27,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "world_debug_rendering.hpp"
 #include "gui/vekt.hpp"
 #include "memory/memory.hpp"
+#include "io/assert.hpp"
 #include "math/color.hpp"
 #include "math/math.hpp"
 #include "math/vector3.hpp"
@@ -170,6 +171,7 @@ namespace SFG
 	{
 		snapshot&	 s		= _snapshots[_writer_slot];
 		const uint32 before = s.idx_count_line;
+		SFG_ASSERT(s.idx_count_line + count < MAX_INDEX_COUNT_LINE);
 		SFG_MEMCPY(&s.indices_line[before], data, sizeof(primitive_index) * count);
 		s.idx_count_line += count;
 	}
@@ -178,6 +180,7 @@ namespace SFG
 	{
 		snapshot&	 s		= _snapshots[_writer_slot];
 		const uint32 before = s.idx_count_tri;
+		SFG_ASSERT(s.idx_count_tri + count < MAX_INDEX_COUNT_TRI);
 		SFG_MEMCPY(&s.indices_tri[before], data, sizeof(primitive_index) * count);
 		s.idx_count_tri += count;
 	}
@@ -186,6 +189,7 @@ namespace SFG
 	{
 		snapshot&	 s		= _snapshots[_writer_slot];
 		const uint32 before = s.idx_count_gui;
+		SFG_ASSERT(s.idx_count_gui + count < MAX_INDEX_COUNT_GUI);
 		SFG_MEMCPY(&s.indices_gui[before], data, sizeof(primitive_index) * count);
 		s.idx_count_gui += count;
 	}
@@ -194,6 +198,8 @@ namespace SFG
 	{
 		snapshot&	 s		= _snapshots[_writer_slot];
 		const uint32 before = s.vtx_count_line;
+		SFG_ASSERT(s.vtx_count_line + count < MAX_VERTEX_COUNT_LINE);
+
 		SFG_MEMCPY(&s.vertices_line[before], data, sizeof(vertex_3d_line) * count);
 		s.vtx_count_line += count;
 		return before;
@@ -202,6 +208,7 @@ namespace SFG
 	{
 		snapshot&	 s		= _snapshots[_writer_slot];
 		const uint32 before = s.vtx_count_tri;
+		SFG_ASSERT(s.vtx_count_tri + count < MAX_VERTEX_COUNT_TRI);
 		SFG_MEMCPY(&s.vertices_tri[before], data, sizeof(vertex_simple) * count);
 		s.vtx_count_tri += count;
 		return before;
@@ -210,28 +217,18 @@ namespace SFG
 	{
 		snapshot&	 s		= _snapshots[_writer_slot];
 		const uint32 before = s.vtx_count_gui;
+		SFG_ASSERT(s.vtx_count_gui + count < MAX_VERTEX_COUNT_GUI);
 		SFG_MEMCPY(&s.vertices_gui[before], data, sizeof(vertex_gui) * count);
 		s.vtx_count_gui += count;
 		return before;
 	}
 
-	void world_debug_rendering::push_draw_call(uint32 vtx_buffer_index, uint32 start_idx, uint32 idx_count, uint32 base_vtx, uint16 vtx_size)
-	{
-		// snapshot& s = _snapshots[_writer_slot];
-		//
-		// const uint32 before = s.draw_call_count;
-		//
-		// debug_draw_call& dc = s.draw_calls[s.draw_call_count];
-		// dc.start_index		= start_idx;
-		// dc.index_count		= idx_count;
-		// dc.base_vertex		= base_vtx;
-		// dc.vertex_size		= vtx_size;
-		// dc.vtx_buffer_index = vtx_buffer_index;
-		// s.draw_call_count++;
-	}
-
 	void world_debug_rendering::draw_line(const vector3& p0, const vector3& p1, const color& col, float thickness)
 	{
+		snapshot& s = _snapshots[_writer_slot];
+		if (s.vtx_count_line + 4 >= MAX_VERTEX_COUNT_LINE || s.idx_count_line + 6 >= MAX_INDEX_COUNT_LINE)
+			return;
+
 		const vertex_3d_line v[4] = {
 			{.pos = p0, .next_pos = p1, .color = col.to_vector(), .direction = thickness},
 			{.pos = p0, .next_pos = p1, .color = col.to_vector(), .direction = -thickness},
@@ -249,13 +246,16 @@ namespace SFG
 			 (primitive_index)(base_vtx + 3),
 			 (primitive_index)(base_vtx + 0),
 		 };
-		const uint32 start_idx = static_cast<uint32>(_snapshots[_writer_slot].idx_count_line);
+		const uint32 start_idx = static_cast<uint32>(s.idx_count_line);
 		add_indices_line(idxs, 6);
-		// push_draw_call(0, start_idx, 6, 0, static_cast<uint16>(sizeof(vertex_3d_line)));
 	}
 
 	void world_debug_rendering::draw_triangle(const vector3& p0, const vector3& p1, const vector3& p2, const color& col)
 	{
+		snapshot& s = _snapshots[_writer_slot];
+		if (s.vtx_count_tri + 3 >= MAX_VERTEX_COUNT_TRI || s.idx_count_tri + 3 >= MAX_INDEX_COUNT_TRI)
+			return;
+
 		const vertex_simple v[3] = {
 			{.pos = p0, .color = col.to_vector()},
 			{.pos = p1, .color = col.to_vector()},
@@ -263,9 +263,8 @@ namespace SFG
 		};
 		const uint32		  base_vtx	= add_vertex_tri(v, 3);
 		const primitive_index idxs[3]	= {(primitive_index)(base_vtx + 0), (primitive_index)(base_vtx + 1), (primitive_index)(base_vtx + 2)};
-		const uint32		  start_idx = static_cast<uint32>(_snapshots[_writer_slot].idx_count_tri);
+		const uint32		  start_idx = static_cast<uint32>(s.idx_count_tri);
 		add_indices_tri(idxs, 3);
-		// push_draw_call(1, start_idx, 3, base_vtx, static_cast<uint16>(sizeof(vertex_simple)));
 	}
 
 	void world_debug_rendering::draw_box(const vector3& center, const vector3& half_extents, const vector3& forward, const color& col, float thickness)

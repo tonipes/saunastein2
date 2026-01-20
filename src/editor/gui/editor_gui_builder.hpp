@@ -61,6 +61,7 @@ namespace SFG
 		typedef void (*resource_fn)(void* callback_ud, vekt::builder* b, vekt::id id, const string& value);
 		typedef void (*dropdown_fn)(void* callback_ud, vekt::builder* b, vekt::id dropdown_widget, unsigned int index);
 		typedef void (*control_button_fn)(void* callback_ud, void* object_ptr, string_id type_id, string_id button_id);
+		typedef void (*toggle_button_fn)(void* callback_ud, vekt::builder* b, vekt::id id, bool toggled);
 
 		struct gui_builder_callbacks
 		{
@@ -73,6 +74,7 @@ namespace SFG
 			resource_fn		  on_resource_changed	 = nullptr;
 			dropdown_fn		  on_dropdown_item		 = nullptr;
 			control_button_fn on_control_button		 = nullptr;
+			toggle_button_fn  on_toggle_button		 = nullptr;
 		};
 
 		struct id_pair
@@ -136,17 +138,17 @@ namespace SFG
 
 		struct gui_checkbox
 		{
-			vekt::id	  widget	  = 0;
-			vekt::id	  text_widget = 0;
-			unsigned char state		  = 0; // 0: unchecked, 1: checked
+			vekt::id	  widget	  = NULL_WIDGET_ID;
+			vekt::id	  text_widget = NULL_WIDGET_ID;
+			unsigned char state		  = 0;
 		};
 
 		struct gui_resource
 		{
 			const char* extension	= nullptr;
 			string_id	type		= 0;
-			vekt::id	widget		= 0;
-			vekt::id	text_widget = 0;
+			vekt::id	widget		= NULL_WIDGET_ID;
+			vekt::id	text_widget = NULL_WIDGET_ID;
 		};
 
 		struct gui_slider
@@ -154,15 +156,15 @@ namespace SFG
 			float	 min		   = 0.0f;
 			float	 max		   = 0.0;
 			float	 value		   = 0.0f;
-			vekt::id widget		   = 0;
-			vekt::id slider_widget = 0;
-			vekt::id text_widget   = 0;
+			vekt::id widget		   = NULL_WIDGET_ID;
+			vekt::id slider_widget = NULL_WIDGET_ID;
+			vekt::id text_widget   = NULL_WIDGET_ID;
 		};
 
 		struct gui_dropdown
 		{
-			vekt::id			widget		= 0;
-			vekt::id			text_widget = 0;
+			vekt::id			widget		= NULL_WIDGET_ID;
+			vekt::id			text_widget = NULL_WIDGET_ID;
 			vector<const char*> items;
 		};
 
@@ -183,6 +185,18 @@ namespace SFG
 			vekt::id  widget	= 0;
 		};
 
+		struct dropdown_ctx_binding
+		{
+			vekt::id	 item_widget	 = NULL_WIDGET_ID;
+			vekt::id	 dropdown_widget = NULL_WIDGET_ID;
+			unsigned int index			 = 0;
+		};
+
+		struct gui_toggle_button
+		{
+			vekt::id widget	 = NULL_WIDGET_ID;
+			bool	 toggled = false;
+		};
 		gui_builder_callbacks callbacks = {};
 
 		// -----------------------------------------------------------------------------
@@ -201,6 +215,10 @@ namespace SFG
 
 		vekt::id begin_area(bool fill = true, bool scroller = true);
 		void	 end_area();
+		vekt::id begin_row();
+		void	 end_row();
+		vekt::id begin_column();
+		void	 end_column();
 
 		// -----------------------------------------------------------------------------
 		// properties
@@ -225,7 +243,8 @@ namespace SFG
 		id_penth add_property_row_vector4(const char* label, const char* text, size_t buffer_capacity = 0, unsigned int decimals = 3, float increment = 0.1f);
 		vekt::id add_property_row();
 		vekt::id add_row_cell(float size);
-		vekt::id add_row_cell_seperator();
+		vekt::id add_row_separator(const vector4& color);
+		vekt::id add_col_separator(const vector4& color);
 
 		// -----------------------------------------------------------------------------
 		// raw items
@@ -238,6 +257,8 @@ namespace SFG
 		vekt::id add_hyperlink(const char* label, size_t buffer_capacity = 0);
 		id_pair	 add_button(const char* title, size_t buffer_capacity = 0);
 		id_pair	 add_icon_button(const char* icon, size_t buffer_capacity = 0, float size = 1.0f, bool is_row = false, vector4 color = vector4());
+		id_pair	 add_toggle_button(const char* icon, bool toggled_on, size_t buffer_capacity = 0, float size = 1.0f, bool is_row = false, vector4 color = vector4());
+
 		id_pair	 add_text_field(const char*			text,
 								size_t				buffer_capacity = 0,
 								gui_text_field_type type			= gui_text_field_type::text_only,
@@ -266,6 +287,7 @@ namespace SFG
 		void	 set_checkbox_value(vekt::id id, unsigned char value);
 		void	 set_widget_enabled(vekt::id id, bool enabled, const vector4& enabled_col, const vector4& disabled_col);
 		bool	 invoke_control_button(vekt::id widget);
+		void	 set_toggle_button_state(vekt::id widget, bool toggled);
 
 		// -----------------------------------------------------------------------------
 		// accessors
@@ -289,6 +311,7 @@ namespace SFG
 		static void						on_text_field_focus_gained(vekt::builder* b, vekt::id widget, bool from_nav);
 		static void						on_context_item_hover_begin(vekt::builder* b, vekt::id widget);
 		static void						on_context_item_hover_end(vekt::builder* b, vekt::id widget);
+		static vekt::input_event_result on_toggle_button_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase);
 		static vekt::input_event_result on_checkbox_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase);
 		static vekt::input_event_result on_resource_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase);
 		static vekt::input_event_result on_dropdown_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase);
@@ -306,24 +329,19 @@ namespace SFG
 	private:
 		static constexpr unsigned int STACK_SIZE = 512;
 
-		vekt::builder*		   _builder		= nullptr;
-		vector<gui_text_field> _text_fields = {};
-		vector<gui_checkbox>   _checkboxes	= {};
-		vector<gui_resource>   _resources	= {};
-		vector<gui_dropdown>   _dropdowns	= {};
-
-		struct dropdown_ctx_binding
-		{
-			vekt::id	 item_widget	 = 0;
-			vekt::id	 dropdown_widget = 0;
-			unsigned int index			 = 0;
-		};
+		vekt::builder*				   _builder				  = nullptr;
+		vector<gui_text_field>		   _text_fields			  = {};
+		vector<gui_checkbox>		   _checkboxes			  = {};
+		vector<gui_resource>		   _resources			  = {};
+		vector<gui_dropdown>		   _dropdowns			  = {};
 		vector<dropdown_ctx_binding>   _dropdown_ctx_bindings = {};
 		vector<reflected_property>	   _reflected			  = {};
 		vector<control_button_binding> _control_buttons		  = {};
-		vekt::id					   _stack[STACK_SIZE]	  = {NULL_WIDGET_ID};
-		vekt::id					   _root				  = NULL_WIDGET_ID;
-		vekt::id					   _stack_ptr			  = 0;
+		vector<gui_toggle_button>	   _toggle_buttons		  = {};
+
+		vekt::id _stack[STACK_SIZE] = {NULL_WIDGET_ID};
+		vekt::id _root				= NULL_WIDGET_ID;
+		vekt::id _stack_ptr			= 0;
 
 		unsigned int _draw_order = 0;
 	};

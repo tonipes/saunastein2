@@ -100,9 +100,19 @@ namespace SFG
 			return _world_renderer;
 		}
 
+		inline uint8 get_frame_index() const
+		{
+			return _gfx_data.frame_index;
+		}
+
 		inline texture_queue* get_texture_queue()
 		{
 			return &_texture_queue;
+		}
+
+		inline proxy_manager& get_proxy_manager()
+		{
+			return _proxy_manager;
 		}
 
 	private:

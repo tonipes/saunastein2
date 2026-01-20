@@ -37,6 +37,16 @@ namespace SFG
 {
 	struct mesh_raw;
 	class world;
+	class resource_manager;
+}
+
+namespace JPH
+{
+	class Shape;
+}
+
+namespace SFG
+{
 
 	class mesh
 	{
@@ -85,6 +95,33 @@ namespace SFG
 			return _material_count;
 		}
 
+		inline chunk_handle32 get_collider_vertices() const
+		{
+			return _collider_vertices;
+		}
+
+		inline chunk_handle32 get_collider_indices() const
+		{
+			return _collider_indices;
+		}
+
+		inline uint32 get_collider_vertex_count() const
+		{
+			return _collider_vertex_count;
+		}
+
+		inline uint32 get_collider_index_count() const
+		{
+			return _collider_index_count;
+		}
+
+		inline chunk_handle32 get_mesh_shape_handle() const
+		{
+			return _mesh_shape;
+		}
+
+		JPH::Shape* get_mesh_shape(resource_manager& rm) const;
+
 	private:
 		friend class model;
 
@@ -98,6 +135,11 @@ namespace SFG
 		uint16		   _material_count	 = 0;
 		uint16		   _node_index		 = 0;
 		int16		   _skin_index		 = 0;
+		chunk_handle32 _collider_vertices	  = {};
+		chunk_handle32 _collider_indices	  = {};
+		chunk_handle32 _mesh_shape			  = {};
+		uint32		   _collider_vertex_count = 0;
+		uint32		   _collider_index_count  = 0;
 		bitmask<uint8> _flags			 = 0;
 	};
 

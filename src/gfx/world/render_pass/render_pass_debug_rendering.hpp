@@ -105,16 +105,26 @@ namespace SFG
 			return _pfd[frame_index].cmd_buffer;
 		}
 
+		inline void set_physics_off(bool is_off)
+		{
+			_physics_off = is_off;
+		}
+
 	private:
-		world*					_world		 = nullptr;
-		physics_debug_renderer* _renderer	 = nullptr;
-		bump_allocator			_alloc		 = {};
-		draw_stream_gui			_draw_stream = {};
-		per_frame_data			_pfd[BACK_BUFFER_COUNT];
-		gfx_id					_shader_debug_triangle	  = {};
-		gfx_id					_shader_debug_line		  = {};
-		gfx_id					_shader_debug_gui_default = {};
-		gfx_id					_shader_debug_gui_text	  = {};
-		gfx_id					_shader_debug_gui_sdf	  = {};
+		world* _world = nullptr;
+
+#ifdef JPH_DEBUG_RENDERER
+		physics_debug_renderer* _phy_renderer = nullptr;
+#endif
+
+		bump_allocator	_alloc		 = {};
+		draw_stream_gui _draw_stream = {};
+		per_frame_data	_pfd[BACK_BUFFER_COUNT];
+		gfx_id			_shader_debug_triangle	  = {};
+		gfx_id			_shader_debug_line		  = {};
+		gfx_id			_shader_debug_gui_default = {};
+		gfx_id			_shader_debug_gui_text	  = {};
+		gfx_id			_shader_debug_gui_sdf	  = {};
+		bool			_physics_off			  = false;
 	};
 }

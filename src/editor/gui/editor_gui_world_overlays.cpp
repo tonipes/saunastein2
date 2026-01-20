@@ -26,11 +26,13 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "editor_gui_world_overlays.hpp"
 #include "editor/editor_theme.hpp"
+#include "editor/editor.hpp"
 #include "math/vector2ui16.hpp"
 #include "math/vector2.hpp"
-
+#include "app/app.hpp"
 // gfx
 #include "gfx/proxy/proxy_manager.hpp"
+#include "gfx/renderer.hpp"
 
 // vekt
 #include "gui/vekt.hpp"
@@ -39,10 +41,12 @@ namespace SFG
 {
 	void editor_gui_world_overlays::init(vekt::builder* builder)
 	{
+		_builder = builder;
 	}
 
-	void editor_gui_world_overlays::draw(proxy_manager& pm, vekt::builder* builder, const vector2ui16& size)
+	void editor_gui_world_overlays::draw(const vector2ui16& size)
 	{
+		proxy_manager& pm = editor::get().get_app().get_renderer().get_proxy_manager();
 
 		const world_id cam_id = pm.get_main_camera();
 		if (cam_id == NULL_WORLD_ID)
@@ -72,7 +76,7 @@ namespace SFG
 		const vector2 max	   = min + box_size;
 		const vector2 center   = (min + max) * 0.5f;
 
-		builder->add_line_aa({
+		_builder->add_line_aa({
 			.p0			  = vector2(center),
 			.p1			  = center + x_dir * box_size.x,
 			.color		  = editor_theme::get().color_axis_x,
@@ -80,7 +84,7 @@ namespace SFG
 			.aa_thickness = 2,
 		});
 
-		builder->add_line_aa({
+		_builder->add_line_aa({
 			.p0			  = vector2(center),
 			.p1			  = center + y_dir * box_size.x,
 			.color		  = editor_theme::get().color_axis_y,
@@ -88,7 +92,7 @@ namespace SFG
 			.aa_thickness = 2,
 		});
 
-		builder->add_line_aa({
+		_builder->add_line_aa({
 			.p0			  = vector2(center),
 			.p1			  = center + z_dir * box_size.x,
 			.color		  = editor_theme::get().color_axis_z,

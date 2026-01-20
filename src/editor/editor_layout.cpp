@@ -38,18 +38,16 @@ namespace SFG
 
 	void to_json(nlohmann::json& j, const editor_layout& t)
 	{
-		j["controls"] = t.controls;
-		j["entities"] = t.entities;
-		j["entities_world_split"] = t.entities_world_split;
+		j["entities_world_split"]	   = t.entities_world_split;
 		j["entities_components_split"] = t.entities_components_split;
+		j["world_aspect"]			   = t.world_aspect_ratio;
 	}
 
 	void from_json(const nlohmann::json& j, editor_layout& s)
 	{
-		s.controls = j.value<window_layout>("controls", {});
-		s.entities = j.value<window_layout>("entities", {});
-		s.entities_world_split = j.value<float>("entities_world_split", 0.25f);
+		s.entities_world_split		= j.value<float>("entities_world_split", 0.25f);
 		s.entities_components_split = j.value<float>("entities_components_split", 0.5f);
+		s.world_aspect_ratio		= j.value<uint8>("world_aspect", 0);
 	}
 
 	void to_json(nlohmann::json& j, const window_layout& w)

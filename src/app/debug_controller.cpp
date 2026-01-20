@@ -418,6 +418,8 @@ namespace SFG
 			_vekt_data.builder->widget_update_text(w);
 		}
 		set_console_visible(false);
+
+		_vekt_data.builder->build_hierarchy();
 	}
 
 	void debug_controller::init(window& w, texture_queue* texture_queue, gfx_id global_bind_layout, const vector2ui16& screen_size)
@@ -989,6 +991,7 @@ namespace SFG
 		_vekt_data.builder->widget_set_visible(_vekt_data.widget_console_bg, visible);
 		_vekt_data.builder->widget_set_visible(_vekt_data.widget_input_field, visible);
 		_vekt_data.builder->widget_set_visible(_vekt_data.widget_border, visible);
+		_vekt_data.builder->build_hierarchy();
 	}
 
 	void debug_controller::console_logic()
@@ -1152,6 +1155,8 @@ namespace SFG
 
 		_vekt_data.console_texts.push_back(w);
 		_vekt_data.console_total_text_size_y += _vekt_data.builder->widget_get_size_props(w).size.y + get_spacing();
+
+		_vekt_data.builder->build_hierarchy();
 	}
 
 	void debug_controller::flush_key_events()

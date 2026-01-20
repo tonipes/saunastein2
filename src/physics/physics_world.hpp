@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -47,6 +47,7 @@ namespace JPH
 	class JobSystem;
 	class BodyID;
 	class Body;
+	class Shape;
 }
 
 namespace SFG
@@ -77,7 +78,7 @@ namespace SFG
 		void	   add_body_to_world(const JPH::Body& body);
 		void	   remove_body_from_world(const JPH::Body& body);
 		void	   remove_bodies_from_world(JPH::BodyID* body_ids, uint32 count);
-		JPH::Body* create_body(physics_body_type body_type, physics_shape_type shape, const vector3& extents_or_rad_height, resource_handle physical_material, const vector3& pos, const quat& rot, const vector3& scale);
+		JPH::Body* create_body(physics_body_type body_type, physics_shape_type shape, const vector3& extents_or_rad_height, resource_handle physical_material, bool is_sensor, const vector3& pos, const quat& rot, const vector3& scale, JPH::Shape* mesh_shape);
 		void	   destroy_body(JPH::Body* body);
 		void	   set_gravity(const vector3& g);
 

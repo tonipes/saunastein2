@@ -35,6 +35,9 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gfx/event_stream/render_events_gfx.hpp"
 #include "reflection/reflection.hpp"
 
+#include <Jolt/Jolt.h>
+#include <Jolt/Physics/Collision/Shape/MeshShape.h>
+
 namespace SFG
 {
 	void mesh::reflect()
@@ -44,6 +47,15 @@ namespace SFG
 	mesh::~mesh()
 	{
 		SFG_ASSERT(!_flags.is_set(mesh::flags::created));
+	}
+
+	JPH::Shape* mesh::get_mesh_shape(resource_manager& rm) const
+	{
+		if (_mesh_shape.size == 0)
+			return nullptr;
+
+		JPH::Shape** shape = rm.get_aux().get<JPH::Shape*>(_mesh_shape);
+		return shape != nullptr ? shape[0] : nullptr;
 	}
 
 	void mesh::create_from_loader(const mesh_raw& raw, world& w, resource_handle handle)
@@ -73,6 +85,50 @@ namespace SFG
 			for (uint32 i = 0; i < m_size; i++)
 			{
 				idx[i] = raw.materials[i];
+			}
+		}
+
+		if (!raw.collider_vertices.empty() && !raw.collider_indices.empty())
+		{
+			_collider_vertex_count = static_cast<uint32>(raw.collider_vertices.size());
+			_collider_index_count  = static_cast<uint32>(raw.collider_indices.size());
+
+			_collider_vertices = alloc.allocate<vector3>(_collider_vertex_count);
+			vector3* vtx	   = alloc.get<vector3>(_collider_vertices);
+			for (uint32 i = 0; i < _collider_vertex_count; i++)
+				vtx[i] = raw.collider_vertices[i];
+
+			_collider_indices = alloc.allocate<primitive_index>(_collider_index_count);
+			primitive_index* idx = alloc.get<primitive_index>(_collider_indices);
+			for (uint32 i = 0; i < _collider_index_count; i++)
+				idx[i] = raw.collider_indices[i];
+
+			JPH::VertexList vertices;
+			vertices.reserve(_collider_vertex_count);
+			for (uint32 i = 0; i < _collider_vertex_count; i++)
+				vertices.push_back(JPH::Float3(vtx[i].x, vtx[i].y, vtx[i].z));
+
+			JPH::IndexedTriangleList triangles;
+			const uint32 tri_count = _collider_index_count / 3;
+			triangles.reserve(tri_count);
+			for (uint32 i = 0; i < tri_count; i++)
+			{
+				const uint32 base = i * 3;
+				triangles.push_back(JPH::IndexedTriangle(idx[base], idx[base + 1], idx[base + 2]));
+			}
+
+			JPH::MeshShapeSettings settings(vertices, triangles);
+			JPH::ShapeSettings::ShapeResult result = settings.Create();
+			if (!result.HasError())
+			{
+				JPH::Shape* shape = result.Get().GetPtr();
+				if (shape != nullptr)
+				{
+					shape->AddRef();
+					_mesh_shape = alloc.allocate<JPH::Shape*>(1);
+					JPH::Shape** shape_ptr = alloc.get<JPH::Shape*>(_mesh_shape);
+					shape_ptr[0]			  = shape;
+				}
 			}
 		}
 
@@ -113,6 +169,26 @@ namespace SFG
 		if (_material_indices.size != 0)
 			alloc.free(_material_indices);
 		_material_indices = {};
+
+		if (_mesh_shape.size != 0)
+		{
+			JPH::Shape** shape_ptr = alloc.get<JPH::Shape*>(_mesh_shape);
+			if (shape_ptr != nullptr && shape_ptr[0] != nullptr)
+				shape_ptr[0]->Release();
+			alloc.free(_mesh_shape);
+		}
+		_mesh_shape = {};
+
+		if (_collider_vertices.size != 0)
+			alloc.free(_collider_vertices);
+		_collider_vertices = {};
+
+		if (_collider_indices.size != 0)
+			alloc.free(_collider_indices);
+		_collider_indices = {};
+
+		_collider_vertex_count = 0;
+		_collider_index_count  = 0;
 
 		stream.add_event({
 			.index		= static_cast<uint32>(handle.index),

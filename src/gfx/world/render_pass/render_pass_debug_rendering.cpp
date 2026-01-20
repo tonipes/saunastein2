@@ -51,8 +51,10 @@ namespace SFG
 {
 	void render_pass_debug::init(const vector2ui16& size, world& w)
 	{
-		_renderer = new physics_debug_renderer();
-		_world	  = &w;
+#ifdef JPH_DEBUG_RENDERER
+		_phy_renderer = new physics_debug_renderer();
+#endif
+		_world = &w;
 		_alloc.init(PASS_ALLOC_SIZE_DEBUG_RENDERING, 8);
 
 		gfx_backend* backend = gfx_backend::get();
@@ -199,8 +201,10 @@ namespace SFG
 
 		_alloc.uninit();
 
-		delete _renderer;
-		_renderer = nullptr;
+#ifdef JPH_DEBUG_RENDERER
+		delete _phy_renderer;
+		_phy_renderer = nullptr;
+#endif
 
 		gfx_backend* backend = gfx_backend::get();
 
@@ -221,7 +225,10 @@ namespace SFG
 
 	void render_pass_debug::tick()
 	{
-		_renderer->draw(*_world);
+#ifdef JPH_DEBUG_RENDERER
+		if (!_physics_off)
+			_phy_renderer->draw(*_world);
+#endif
 	}
 
 	void render_pass_debug::prepare(proxy_manager& pm, const view& main_camera_view, const vector2ui16& resolution, uint8 frame_index)

@@ -44,10 +44,9 @@ namespace SFG
 
 	struct editor_layout
 	{
-		window_layout controls = {};
-		window_layout entities = {};
-		float		  entities_world_split = 0.25f;
-		float		  entities_components_split = 0.5f;
+		float entities_world_split		= 0.25f;
+		float entities_components_split = 0.5f;
+		uint8 world_aspect_ratio		= 0;
 
 		static editor_layout& get()
 		{

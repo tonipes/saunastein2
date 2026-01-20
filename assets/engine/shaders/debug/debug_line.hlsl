@@ -56,7 +56,7 @@ struct VSOutput
 
 struct render_pass_data
 {
-float4x4 view;
+	float4x4 view;
 	float4x4 proj;
 	float4x4 view_proj;
 	float4 cam_right_and_pixel_size;
@@ -86,7 +86,7 @@ VSOutput VSMain(VSInput IN)
 	float2 dir = normalize(next_screen - current_screen);
 	float2 normal = float2(-dir.y, dir.x);
 
-	float base_thickness = 0.025;
+	float base_thickness = 0.25;
 	float thickness_alpha = (current_proj.z / rp.resolution_and_planes.w);
 	float fac = lerp(0.0, 0.2, thickness_alpha);
 	float thickness = base_thickness + fac;

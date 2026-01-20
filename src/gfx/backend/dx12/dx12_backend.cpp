@@ -1154,7 +1154,6 @@ namespace SFG
 		NAME_DX12_OBJECT_CSTR(txt.ptr->GetResource(), desc.debug_name);
 
 #ifdef SFG_ENABLE_MEMORY_TRACER
-		txt.size = txt.ptr->GetSize();
 		PUSH_MEMORY_CATEGORY("Gfx");
 		PUSH_ALLOCATION_SZ(txt.ptr->GetSize());
 		POP_MEMORY_CATEGORY();
@@ -1398,11 +1397,11 @@ namespace SFG
 		texture& txt = _textures.get(id);
 
 		PUSH_MEMORY_CATEGORY("Gfx");
-		PUSH_DEALLOCATION_SZ(txt.size);
+		PUSH_DEALLOCATION_SZ(txt.ptr->GetSize());
 		POP_MEMORY_CATEGORY();
 
 		PUSH_MEMORY_CATEGORY("GfxTxt");
-		PUSH_DEALLOCATION_SZ(txt.size);
+		PUSH_DEALLOCATION_SZ(txt.ptr->GetSize());
 		POP_MEMORY_CATEGORY();
 
 		texture_shared_handle& handle = _texture_shared_handles.get(txt.shared_handle);
@@ -1610,6 +1609,7 @@ namespace SFG
 		PUSH_MEMORY_CATEGORY("GfxTxt");
 		PUSH_DEALLOCATION_SZ(swp.size);
 		PUSH_ALLOCATION_SZ(new_size);
+		SFG_TRACE("Pushing dealloc {0}, alloc {1}", swp.size, new_size);
 		POP_MEMORY_CATEGORY();
 
 		PUSH_MEMORY_CATEGORY("Gfx");

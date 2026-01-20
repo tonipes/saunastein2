@@ -23,21 +23,57 @@ OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGEN
 OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#include "editor_panels_docking.hpp"
-#include "math/vector2ui16.hpp"
+
+#pragma once
+
+#include "world/components/common_comps.hpp"
+#include "reflection/type_reflection.hpp"
+#include "math/vector3.hpp"
+
+#ifdef SFG_TOOLMODE
+#include "vendor/nhlohmann/json_fwd.hpp"
+#endif
 
 namespace SFG
 {
-	void editor_panels_docking::init()
-	{
-	}
+	class ostream;
+	class istream;
+	class world;
 
-	void editor_panels_docking::uninit()
+	class comp_physics_settings
 	{
-	}
+	public:
+		static void reflect();
 
-	void editor_panels_docking::draw(const vector2ui16& window_size)
-	{
-		
-	}
+		void on_add(world& w);
+		void on_remove(world& w);
+		void set_gravity(world& w, const vector3& gravity);
+
+		void serialize(ostream& stream, world& w) const;
+		void deserialize(istream& stream, world& w);
+
+#ifdef SFG_TOOLMODE
+		void serialize_json(nlohmann::json& j, world& w) const;
+		void deserialize_json(const nlohmann::json& j, world& w);
+#endif
+
+		inline const vector3& get_gravity() const
+		{
+			return _gravity;
+		}
+
+		inline const component_header& get_header() const
+		{
+			return _header;
+		}
+
+	private:
+		template <typename T, int> friend class comp_cache;
+
+	private:
+		component_header _header	= {};
+		vector3			 _gravity = vector3(0.0f, -9.81f, 0.0f);
+	};
+
+	REFLECT_TYPE(comp_physics_settings);
 }

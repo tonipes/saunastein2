@@ -273,6 +273,39 @@ namespace SFG
 			*/
 		};
 
+		template <typename VertexType>
+		void append_collider_primitive(vector<vector3>& vertices, vector<primitive_index>& indices, const vector<VertexType>& src_vertices, const vector<primitive_index>& src_indices)
+		{
+			const uint32 base = static_cast<uint32>(vertices.size());
+			for (const auto& v : src_vertices)
+				vertices.push_back(v.pos);
+
+			if (!src_indices.empty())
+			{
+				for (const primitive_index idx : src_indices)
+					indices.push_back(static_cast<primitive_index>(base + idx));
+				return;
+			}
+
+			const size_t count = src_vertices.size();
+			if (count % 3 != 0)
+				return;
+
+			for (size_t i = 0; i < count; ++i)
+				indices.push_back(static_cast<primitive_index>(base + static_cast<uint32>(i)));
+		}
+
+		void build_mesh_colliders(mesh_raw& mesh)
+		{
+			mesh.collider_vertices.clear();
+			mesh.collider_indices.clear();
+
+			for (const auto& prim : mesh.primitives_static)
+				append_collider_primitive(mesh.collider_vertices, mesh.collider_indices, prim.vertices, prim.indices);
+
+			for (const auto& prim : mesh.primitives_skinned)
+				append_collider_primitive(mesh.collider_vertices, mesh.collider_indices, prim.vertices, prim.indices);
+		}
 	}
 
 	bool model_raw::import_gtlf(const char* file, const char* relative_path, bool create_materials, bool import_textures)
@@ -1057,12 +1090,19 @@ namespace SFG
 			}
 
 			const uint8 import_pbr_materials = json_data.value<uint8>("import_pbr_materials", 0);
+			const uint8 generate_colliders	 = json_data.value<uint8>("generate_colliders", 0);
 			const uint8 import_textures		 = import_pbr_materials;
 
 			const bool success = import_gtlf(full_source.c_str(), name.c_str(), import_pbr_materials, import_textures);
 			if (!success)
 			{
 				return false;
+			}
+
+			if (generate_colliders != 0)
+			{
+				for (mesh_raw& mesh : loaded_meshes)
+					build_mesh_colliders(mesh);
 			}
 
 			SFG_INFO("Created model from file: {0}", name);

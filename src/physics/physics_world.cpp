@@ -47,6 +47,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
 #include <Jolt/Physics/Collision/Shape/PlaneShape.h>
 #include <Jolt/Physics/Collision/Shape/CylinderShape.h>
+#include <Jolt/Physics/Collision/Shape/ScaledShape.h>
 #include <regex>
 #include <stdarg.h>
 #include <tracy/Tracy.hpp>
@@ -236,7 +237,7 @@ namespace SFG
 		body_interface.RemoveBodies(body_ids, static_cast<int>(count));
 	}
 
-	JPH::Body* physics_world::create_body(physics_body_type body_type, physics_shape_type shape, const vector3& extents_or_rad_height, resource_handle mat, const vector3& pos, const quat& rot, const vector3& scale)
+	JPH::Body* physics_world::create_body(physics_body_type body_type, physics_shape_type shape, const vector3& extents_or_rad_height, resource_handle mat, bool is_sensor, const vector3& pos, const quat& rot, const vector3& scale, JPH::Shape* mesh_shape)
 	{
 		resource_manager& rm = _game_world.get_resource_manager();
 
@@ -251,6 +252,7 @@ namespace SFG
 		JPH::BodyInterface& body_interface = _system->GetBodyInterface();
 
 		JPH::BodyCreationSettings body_settings = {};
+		body_settings.mIsSensor					= is_sensor;
 
 		JPH::Ref<JPH::Shape> shape_ref;
 
@@ -281,9 +283,32 @@ namespace SFG
 			JPH::PlaneShapeSettings plane(p);
 			shape_ref = plane.Create().Get();
 		}
+		else if (shape == physics_shape_type::mesh)
+		{
+			if (mesh_shape != nullptr)
+			{
+				if (!scale.equals(vector3::one))
+				{
+					JPH::ScaledShapeSettings		scaled_settings(mesh_shape, to_jph_vec3(scale));
+					JPH::ShapeSettings::ShapeResult result = scaled_settings.Create();
+					if (!result.HasError())
+						shape_ref = result.Get();
+				}
+				else
+				{
+					shape_ref = mesh_shape;
+				}
+			}
+		}
 		else
 		{
 			SFG_ASSERT(false);
+		}
+
+		if (shape_ref == nullptr)
+		{
+			JPH::BoxShapeSettings fallback(to_jph_vec3(extents_or_rad_height * scale));
+			shape_ref = fallback.Create().Get();
 		}
 
 		body_settings.mRestitution					= mat_settings.restitution;

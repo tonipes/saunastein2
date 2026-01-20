@@ -164,7 +164,7 @@ namespace SFG
 		barriers.push_back({
 			.from_states = resource_state::resource_state_render_target,
 			.to_states	 = resource_state::resource_state_ps_resource,
-					.resource	 = render_target,
+			.resource	 = render_target,
 			.flags		 = barrier_flags::baf_is_texture,
 		});
 

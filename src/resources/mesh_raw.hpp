@@ -48,6 +48,8 @@ namespace SFG
 		vector<primitive_static_raw>  primitives_static;
 		vector<primitive_skinned_raw> primitives_skinned;
 		vector<int16>				  materials;
+		vector<vector3>				  collider_vertices;
+		vector<primitive_index>		  collider_indices;
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);

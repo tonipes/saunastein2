@@ -81,6 +81,7 @@ namespace SFG
 		vector4 col_title				  = vector4();
 		vector4 col_text				  = vector4();
 		vector4 col_text_dim			  = vector4();
+		vector4 col_light				  = vector4();
 		vector4 col_frame_bg			  = vector4();
 		vector4 col_area_bg				  = vector4();
 		vector4 col_root				  = vector4();

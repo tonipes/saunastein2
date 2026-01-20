@@ -284,7 +284,7 @@ namespace vekt
 		child_meta.parent = widget_id;
 		meta.children.push_back(child_id);
 
-		build_hierarchy();
+		// build_hierarchy();
 	}
 
 	void builder::widget_remove_child(id widget_id, id child_id)
@@ -295,7 +295,7 @@ namespace vekt
 		meta.children.remove(child_id);
 		child_meta.parent = NULL_WIDGET_ID;
 
-		build_hierarchy();
+		// build_hierarchy();
 	}
 
 	void builder::widget_set_text(id w, const char* text, size_t default_cap)
@@ -584,7 +584,7 @@ namespace vekt
 
 		deallocate_impl(w);
 
-		build_hierarchy();
+		// build_hierarchy();
 	}
 
 	void builder::clear_text_cache()
@@ -639,7 +639,7 @@ namespace vekt
 		// if (widget != NULL_WIDGET_ID)
 		// {
 		// 	mouse_callback& mb			  = _mouse_callbacks[widget];
-		// 	const bool		receive_mouse = mb.on_mouse || mb.on_drag;
+		// 	const bool		receive_mouse = mb.on_widget_mouse || mb.on_drag;
 		// 	if (!receive_mouse)
 		// 		return;
 		// }
@@ -777,16 +777,18 @@ namespace vekt
 					if (child_pos_props.flags & pos_flags::pf_overlay)
 						continue;
 
+					size_props& child_size_props = _size_properties[child];
+
 					const size_result& child_res = _size_results[child];
 
-					if (sz.flags & size_flags::sf_x_max_children)
+					if (sz.flags & size_flags::sf_x_max_children && !(child_size_props.flags & size_flags::sf_x_relative))
 						final_size.x = math::max(child_res.size.x, final_size.x);
-					else if (sz.flags & size_flags::sf_x_total_children)
+					else if (sz.flags & size_flags::sf_x_total_children && !(child_size_props.flags & size_flags::sf_x_relative))
 						final_size.x += child_res.size.x + sz.spacing;
 
-					if (sz.flags & size_flags::sf_y_max_children)
+					if (sz.flags & size_flags::sf_y_max_children && !(child_size_props.flags & size_flags::sf_y_relative))
 						final_size.y = math::max(child_res.size.y + sz.child_margins.top + sz.child_margins.bottom, final_size.y);
-					else if (sz.flags & size_flags::sf_y_total_children)
+					else if (sz.flags & size_flags::sf_y_total_children && !(child_size_props.flags & size_flags::sf_y_relative))
 						final_size.y += child_res.size.y + sz.spacing;
 				}
 

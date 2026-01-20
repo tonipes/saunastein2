@@ -32,6 +32,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "math/math.hpp"
 #include "reflection/reflection.hpp"
 #include "resources/physical_material.hpp"
+#include "world/components/comp_mesh_instance.hpp"
+#include "resources/mesh.hpp"
 
 #include <Jolt/Jolt.h>
 #include <Jolt/Physics/Body/Body.h>
@@ -48,8 +50,11 @@ namespace SFG
 		m.add_field<&comp_physics::_offset, comp_physics>("offset", reflected_field_type::rf_vector3, "");
 		m.add_field<&comp_physics::_extent_or_rad_height, comp_physics>("extents", reflected_field_type::rf_vector3, "");
 		m.add_field<&comp_physics::_material_handle, comp_physics>("material", reflected_field_type::rf_resource, "", type_id<physical_material>::value);
+		m.add_field<&comp_physics::_is_sensor, comp_physics>("is_sensor", reflected_field_type::rf_bool, "");
 
 		m.add_function<void, const reflected_field_changed_params&>("on_reflected_changed"_hs, [](const reflected_field_changed_params& params) {
+			comp_physics* c = static_cast<comp_physics*>(params.object_ptr);
+
 			// comp_physics* c		   = static_cast<comp_physics*>(params.object_ptr);
 			// const bool	  had_body = (c->_body != nullptr);
 			//
@@ -106,11 +111,38 @@ namespace SFG
 									   math::almost_equal(_extent_or_rad_height.y, 0.0f) ? 1.0f : _extent_or_rad_height.y,
 									   math::almost_equal(_extent_or_rad_height.z, 0.0f) ? 1.0f : _extent_or_rad_height.z);
 
-		entity_manager& em	  = w.get_entity_manager();
-		const vector3	pos	  = em.get_entity_position_abs(_header.entity) + _offset;
-		const vector3	scale = em.get_entity_scale_abs(_header.entity);
-		const quat		rot	  = em.get_entity_rotation_abs(_header.entity);
-		_body				  = phy_world.create_body(_body_type, _shape_type, extent, _material_handle, pos, rot, scale);
+		entity_manager&	   em		  = w.get_entity_manager();
+		component_manager& cm		  = w.get_comp_manager();
+		resource_manager&  rm		  = w.get_resource_manager();
+		const vector3	   pos		  = em.get_entity_position_abs(_header.entity) + _offset;
+		const vector3	   scale	  = em.get_entity_scale_abs(_header.entity);
+		const quat		   rot		  = em.get_entity_rotation_abs(_header.entity);
+		JPH::Shape*		   mesh_shape = nullptr;
+		physics_shape_type shape_type = _shape_type;
+
+		if (_shape_type == physics_shape_type::mesh)
+		{
+			const world_handle mesh_handle = em.get_entity_component<comp_mesh_instance>(_header.entity);
+			if (!mesh_handle.is_null())
+			{
+				const comp_mesh_instance& mi = cm.get_component<comp_mesh_instance>(mesh_handle);
+				const resource_handle	  mh = mi.get_mesh();
+				if (rm.is_valid<mesh>(mh))
+				{
+					mesh& res  = rm.get_resource<mesh>(mh);
+					mesh_shape = res.get_mesh_shape(rm);
+				}
+			}
+
+			if (mesh_shape == nullptr)
+				shape_type = physics_shape_type::box;
+		}
+
+		physics_body_type bd = _body_type;
+		if (shape_type == physics_shape_type::mesh)
+			bd = physics_body_type::static_body;
+
+		_body = phy_world.create_body(bd, shape_type, extent, _material_handle, _is_sensor, pos, rot, scale, mesh_shape);
 		return _body;
 	}
 

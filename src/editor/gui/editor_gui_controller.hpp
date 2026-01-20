@@ -44,8 +44,7 @@ namespace SFG
 	class editor_panel_entities;
 	class editor_panel_properties;
 	class editor_gui_world_overlays;
-	class editor_panels_docking;
-	class editor_panels_world_view;
+	class editor_panel_world;
 
 	class editor_gui_controller
 	{
@@ -63,6 +62,7 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 
 		bool	on_mouse_event(const window_event& ev);
+		bool	on_key_event(const window_event& ev);
 		vector2 get_world_size();
 
 		// -----------------------------------------------------------------------------
@@ -71,6 +71,7 @@ namespace SFG
 
 		vekt::id begin_context_menu(float abs_x, float abs_y);
 		vekt::id add_context_menu_item(const char* label);
+		vekt::id add_context_menu_item_toggle(const char* label, bool is_toggled);
 		void	 end_context_menu();
 		void	 enable_payload(const char* text);
 		void	 disable_payload();
@@ -102,8 +103,7 @@ namespace SFG
 		editor_panel_entities*	   _panel_entities	   = nullptr;
 		editor_panel_properties*   _panel_properties   = nullptr;
 		editor_gui_world_overlays* _gui_world_overlays = nullptr;
-		editor_panels_docking*	   _panels_docking	   = nullptr;
-		editor_panels_world_view*  _panel_world_view   = nullptr;
+		editor_panel_world*		   _panel_world		   = nullptr;
 		uint64					   _ctx_frame		   = 0;
 
 		vekt::id _ctx_root		 = NULL_WIDGET_ID;

@@ -46,7 +46,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <algorithm>
 #include <execution>
 
-// #define OBJECT_ID_PASS
 
 namespace SFG
 {
@@ -182,7 +181,7 @@ namespace SFG
 		_pass_particles.init(bind_layout, bind_layout_compute);
 		_pass_debug_rendering.init(size, _world);
 
-#ifdef OBJECT_ID_PASS
+#ifdef SFG_TOOLMODE
 		_pass_object_id.init(size);
 		_pass_selection_outline.init(size);
 #endif
@@ -202,7 +201,7 @@ namespace SFG
 		_pass_particles.uninit();
 		_pass_debug_rendering.uninit();
 
-#ifdef OBJECT_ID_PASS
+#ifdef SFG_TOOLMODE
 		_pass_object_id.uninit();
 		_pass_selection_outline.uninit();
 #endif
@@ -286,7 +285,7 @@ namespace SFG
 		_pass_forward.prepare(_proxy_manager, _renderables, _main_camera_view, _base_size, frame_index);
 		_pass_canvas_2d.prepare(_proxy_manager, _renderables, _main_camera_view, _base_size, frame_index);
 
-#ifdef OBJECT_ID_PASS
+#ifdef SFG_TOOLMODE
 		_pass_object_id.prepare(_proxy_manager, _renderables, _main_camera_view, frame_index);
 		_pass_selection_outline.prepare(_proxy_manager, _renderables, _main_camera_view, frame_index);
 #endif
@@ -512,7 +511,7 @@ namespace SFG
 		const gfx_id cmd_particles_compute = _pass_particles.get_cmd_buffer_compute(frame_index);
 		const gfx_id cmd_debug			   = _pass_debug_rendering.get_cmd_buffer(frame_index);
 
-#ifdef OBJECT_ID_PASS
+#ifdef SFG_TOOLMODE
 		const gfx_id cmd_object_id = _pass_object_id.get_cmd_buffer(frame_index);
 		const gfx_id cmd_outline   = _pass_selection_outline.get_cmd_buffer(frame_index);
 #endif
@@ -569,7 +568,7 @@ namespace SFG
 		tt.push_back({run_ssao, (void*)&common_data});
 		tt.push_back({run_particles_compute, (void*)&common_data});
 
-#ifdef OBJECT_ID_PASS
+#ifdef SFG_TOOLMODE
 		tt.push_back({run_obj_id, (void*)&common_data});
 		tt.push_back({run_selection_outline, (void*)&common_data});
 
@@ -586,7 +585,7 @@ namespace SFG
 		// kick off particle compute immediately.
 		backend->submit_commands(queue_compute, &cmd_particles_compute, 1);
 
-#ifdef OBJECT_ID_PASS
+#ifdef SFG_TOOLMODE
 		// object-id pass & outline (no dependencies besides depth)
 		backend->submit_commands(queue_gfx, &cmd_object_id, 1);
 		backend->submit_commands(queue_gfx, &cmd_outline, 1);
@@ -646,7 +645,7 @@ namespace SFG
 		_pass_ssao.resize(size);
 		_pass_bloom.resize(size);
 		_pass_post.resize(size);
-#ifdef OBJECT_ID_PASS
+#ifdef SFG_TOOLMODE
 		_pass_object_id.resize(size);
 		_pass_selection_outline.resize(size);
 #endif

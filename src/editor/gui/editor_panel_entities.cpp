@@ -56,6 +56,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 // resources
 #include "resources/entity_template.hpp"
 #include "resources/entity_template_raw.hpp"
+#include "resources/mesh.hpp"
 
 // math
 #include "math/math.hpp"
@@ -63,6 +64,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "math/vector3.hpp"
 #include "math/quat.hpp"
 #include "math/color.hpp"
+#include "gfx/common/gfx_constants.hpp"
 
 // misc
 #include "gui/vekt.hpp"
@@ -211,7 +213,7 @@ namespace SFG
 		}
 
 		{
-			const float thickness	  = 2.0f;
+			const float thickness	  = 0.1f;
 			const color col_phy		  = color::red;
 			const color col_light	  = color::yellow;
 			const color col_light_alt = color::red;
@@ -298,6 +300,32 @@ namespace SFG
 						debug_rendering.draw_cylinder(selected_pos + c.get_offset(), val.x * vector2(selected_scale.x, selected_scale.z).magnitude(), val.y * selected_scale.y, orientation, col_phy, thickness);
 					else if (st == physics_shape_type::mesh)
 					{
+						const world_handle mesh_comp = em.get_entity_component<comp_mesh_instance>(c.get_header().entity);
+						if (!mesh_comp.is_null())
+						{
+							const comp_mesh_instance& mi = cm.get_component<comp_mesh_instance>(mesh_comp);
+							const resource_handle	  mh = mi.get_mesh();
+							resource_manager&		  rm = w.get_resource_manager();
+							if (rm.is_valid<mesh>(mh))
+							{
+								const mesh&	 res	   = rm.get_resource<mesh>(mh);
+								const uint32 vtx_count = res.get_collider_vertex_count();
+								const uint32 idx_count = res.get_collider_index_count();
+								if (vtx_count != 0 && idx_count != 0)
+								{
+									const vector3*		   vtx	= rm.get_aux().get<vector3>(res.get_collider_vertices());
+									const primitive_index* idx	= rm.get_aux().get<primitive_index>(res.get_collider_indices());
+									const vector3		   base = selected_pos + c.get_offset();
+									for (uint32 i = 0; i + 2 < idx_count; i += 3)
+									{
+										const vector3 p0 = selected_rot * (vtx[idx[i + 0]] * selected_scale) + base;
+										const vector3 p1 = selected_rot * (vtx[idx[i + 1]] * selected_scale) + base;
+										const vector3 p2 = selected_rot * (vtx[idx[i + 2]] * selected_scale) + base;
+										debug_rendering.draw_triangle(p0, p1, p2, col_phy);
+									}
+								}
+							}
+						}
 					}
 					else if (st == physics_shape_type::sphere)
 						debug_rendering.draw_sphere(selected_pos + c.get_offset(), val.x * selected_scale.magnitude(), col_phy, thickness);
@@ -484,6 +512,9 @@ namespace SFG
 
 		_gui_builder.end_area();
 		_gui_builder.pop_stack();
+
+		_builder->build_hierarchy();
+
 	}
 
 	void editor_panel_entities::rebuild_tree(world& w)
@@ -528,6 +559,8 @@ namespace SFG
 
 		if (!em.is_valid(_selected_entity))
 			set_selected({});
+
+		_builder->build_hierarchy();
 	}
 
 	vekt::id editor_panel_entities::build_entity_node(world& w, world_handle e, unsigned int depth)

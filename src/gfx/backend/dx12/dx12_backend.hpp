@@ -127,9 +127,6 @@ namespace SFG
 		{
 			D3D12MA::Allocation* ptr = nullptr;
 			texture_view		 views[8];
-#ifdef SFG_ENABLE_MEMORY_TRACER
-			uint32 size = 0;
-#endif
 			gfx_id shared_handle = 0;
 			uint8  format		 = 0;
 			uint8  view_count	 = 0;

@@ -57,7 +57,7 @@ namespace SFG
 
 		uint32 variant_flags = 0;
 #ifdef SFG_TOOLMODE
-		// variant_flags |= shader_variant_flags::variant_flag_selection_outline;
+		variant_flags |= shader_variant_flags::variant_flag_selection_outline;
 #endif
 		_shader_post_combiner = engine_shaders::get().get_shader(engine_shader_type::engine_shader_type_post_combiner).get_hw(variant_flags);
 
