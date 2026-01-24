@@ -126,6 +126,10 @@ namespace SFG
 		{
 			return _resources.at(t);
 		}
+		const hash_map<engine_resource_ident, engine_resource_def>& get_resources() const
+		{
+			return _resources;
+		}
 
 	private:
 		hash_map<engine_resource_ident, engine_resource_def> _resources;

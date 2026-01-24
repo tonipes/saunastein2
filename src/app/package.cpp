@@ -27,6 +27,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "package.hpp"
 #include "serialization/serialization.hpp"
 #include "data/ostream.hpp"
+#include "io/log.hpp"
 
 namespace SFG
 {
@@ -56,6 +57,7 @@ namespace SFG
 
 	void package::start_writing()
 	{
+		SFG_INFO("beginning package");
 		_header = {};
 		if (_write_data.get_size() != 0)
 			_write_data.destroy();
@@ -70,11 +72,14 @@ namespace SFG
 
 	void package::write_resource(const char* path)
 	{
+		SFG_INFO("wrote resource into package: {0}", path);
 		write_resource(TO_SID(path));
 	}
 
 	void package::close_writing(const char* output_path)
 	{
+		SFG_INFO("saving package to: {0}", output_path);
+
 		ostream package_content;
 		_header.serialize(package_content);
 
@@ -83,6 +88,11 @@ namespace SFG
 
 		serialization::save_to_file(output_path, package_content);
 		package_content.destroy();
+	}
+
+	ostream& package::get_write_stream()
+	{
+		return _write_data;
 	}
 
 	const package_entry& package::get_entry(const char* relative)

@@ -62,6 +62,7 @@ namespace SFG
 		void write_resource(string_id id);
 		void write_resource(const char* path);
 		void close_writing(const char* output_path);
+		ostream& get_write_stream();
 
 		const package_entry& get_entry(const char* relative);
 		const package_entry& get_entry(string_id sid);

@@ -50,6 +50,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "game/game_world_renderer.hpp"
 #include "input/input_mappings.hpp"
 
+#include "app/package_manager.hpp"
+
 namespace SFG
 {
 
@@ -336,6 +338,26 @@ namespace SFG
 			}
 			else if (widget == self->_ctx_package_project)
 			{
+				vector<string> files;
+				process::select_files("select worlds to package", "stkworld", files);
+				if (files.empty())
+					return vekt::input_event_result::handled;
+
+				vector<string> relatives;
+				for (const string& f : files)
+				{
+					if (editor_settings::get().is_in_work_directory(f))
+					{
+						SFG_ERR("skipping world to package because it's not inside working directory. {0}", f);
+						continue;
+					}
+
+					relatives.push_back(editor_settings::get().get_relative(f));
+				}
+
+				const string output = process::select_folder("select package output directory");
+				if (!output.empty())
+					package_manager::get().package_project(relatives, output.c_str());
 				return vekt::input_event_result::handled;
 			}
 			else if (widget == self->_ctx_new_world)

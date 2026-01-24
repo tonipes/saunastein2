@@ -26,6 +26,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include "package.hpp"
+#include "data/vector.hpp"
+#include "data/string.hpp"
 
 namespace SFG
 {
@@ -45,6 +47,7 @@ namespace SFG
 
 		void init();
 		void uninit();
+		void package_project(const vector<string>& levels, const char* output_directory);
 
 		// -----------------------------------------------------------------------------
 		// accessors

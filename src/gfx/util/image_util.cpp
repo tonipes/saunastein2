@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -35,6 +35,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include "vendor/stb/stb_image.h"
+#include "vendor/stb/stb_image_write.h"
 #include "vendor/stb/stb_image_resize.h"
 
 namespace SFG
@@ -100,6 +101,12 @@ namespace SFG
 		out_size	 = vector2ui16(static_cast<uint16>(x), static_cast<uint16>(y));
 
 		return data;
+	}
+
+	void image_util::compress_to_buffer(void* data, size_t sz, ostream& stream)
+	{
+		//     int stbi_write_png_to_func(stbi_write_func *func, void *context, int w, int h, int comp, const void  *data, int stride_in_bytes);
+
 	}
 
 	void image_util::generate_mips(texture_buffer* out_buffers, uint8 target_levels, mip_gen_filter filter, uint8 channels, bool is_linear, bool premultiplied_alpha)

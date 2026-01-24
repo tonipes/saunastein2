@@ -61,6 +61,8 @@ namespace SFG
 			stream << b.bpp;
 			stream.write_raw(b.pixels, static_cast<size_t>(b.size.x * b.size.y * b.bpp));
 		}
+
+		
 	}
 
 	void texture_raw::deserialize(istream& stream)

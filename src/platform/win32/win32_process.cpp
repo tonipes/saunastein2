@@ -178,6 +178,105 @@ namespace SFG
 		return result;
 	}
 
+	void process::select_files(const char* title, const char* extension, vector<string>& out_files)
+	{
+		out_files.clear();
+
+		IFileOpenDialog* dialog = nullptr;
+		HRESULT			 hr		= CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&dialog));
+		if (FAILED(hr))
+			return;
+
+		// Title (UTF-8 -> UTF-16)
+		if (title && title[0] != '\0')
+		{
+			int lenW = MultiByteToWideChar(CP_UTF8, 0, title, -1, nullptr, 0);
+			if (lenW > 0)
+			{
+				std::wstring titleW;
+				titleW.resize((size_t)lenW - 1);
+				MultiByteToWideChar(CP_UTF8, 0, title, -1, titleW.data(), lenW);
+				dialog->SetTitle(titleW.c_str());
+			}
+		}
+
+		// Options
+		DWORD options = 0;
+		if (SUCCEEDED(dialog->GetOptions(&options)))
+		{
+			dialog->SetOptions(options | FOS_FORCEFILESYSTEM | FOS_FILEMUSTEXIST | FOS_PATHMUSTEXIST | FOS_ALLOWMULTISELECT);
+		}
+
+		// Extension filter (expects e.g. "png" or ".png")
+		COMDLG_FILTERSPEC filter[1] = {};
+		std::wstring	  extW;
+		std::wstring	  patternW;
+		std::wstring	  labelW;
+
+		if (extension && extension[0] != '\0')
+		{
+			const char* ext = extension;
+			if (ext[0] == '.')
+				++ext;
+
+			int extLenW = MultiByteToWideChar(CP_UTF8, 0, ext, -1, nullptr, 0);
+			if (extLenW > 0)
+			{
+				extW.resize((size_t)extLenW - 1);
+				MultiByteToWideChar(CP_UTF8, 0, ext, -1, extW.data(), extLenW);
+
+				labelW	 = L"*." + extW;
+				patternW = L"*." + extW;
+
+				filter[0].pszName = labelW.c_str();
+				filter[0].pszSpec = patternW.c_str();
+				dialog->SetFileTypes(1, filter);
+				dialog->SetFileTypeIndex(1);
+				dialog->SetDefaultExtension(extW.c_str());
+			}
+		}
+
+		hr = dialog->Show(nullptr);
+		if (SUCCEEDED(hr))
+		{
+			IShellItemArray* items = nullptr;
+			if (SUCCEEDED(dialog->GetResults(&items)) && items)
+			{
+				DWORD count = 0;
+				if (SUCCEEDED(items->GetCount(&count)))
+				{
+					out_files.reserve((size_t)count);
+
+					for (DWORD i = 0; i < count; ++i)
+					{
+						IShellItem* item = nullptr;
+						if (SUCCEEDED(items->GetItemAt(i, &item)) && item)
+						{
+							PWSTR pathW = nullptr;
+							if (SUCCEEDED(item->GetDisplayName(SIGDN_FILESYSPATH, &pathW)) && pathW)
+							{
+								// UTF-16 -> UTF-8
+								int needed = WideCharToMultiByte(CP_UTF8, 0, pathW, -1, nullptr, 0, nullptr, nullptr);
+								if (needed > 0)
+								{
+									string path;
+									path.resize((size_t)needed - 1);
+									WideCharToMultiByte(CP_UTF8, 0, pathW, -1, path.data(), needed, nullptr, nullptr);
+									out_files.push_back(std::move(path));
+								}
+								CoTaskMemFree(pathW);
+							}
+							item->Release();
+						}
+					}
+				}
+				items->Release();
+			}
+		}
+
+		dialog->Release();
+	}
+
 	string process::save_file(const char* title, const char* extension)
 	{
 		string result;

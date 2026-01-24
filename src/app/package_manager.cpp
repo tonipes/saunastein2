@@ -26,13 +26,304 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "app/package_manager.hpp"
 
+#ifdef SFG_TOOLMODE
+#include "app/engine_resources.hpp"
+#include "editor/editor_settings.hpp"
+#include "io/file_system.hpp"
+#include "io/log.hpp"
+#include "reflection/reflection.hpp"
+#include "resources/world_raw.hpp"
+#include "resources/shader.hpp"
+#include "resources/material.hpp"
+#include "resources/texture.hpp"
+#include "resources/texture_sampler.hpp"
+#include "resources/audio.hpp"
+#include "resources/font.hpp"
+#include "resources/model.hpp"
+#include "resources/physical_material.hpp"
+#include "resources/particle_properties.hpp"
+#include "resources/res_state_machine.hpp"
+#include "resources/entity_template.hpp"
+#include "resources/shader_raw.hpp"
+#include "resources/material_raw.hpp"
+#include "resources/texture_raw.hpp"
+#include "resources/texture_sampler_raw.hpp"
+#include "resources/audio_raw.hpp"
+#include "resources/font_raw.hpp"
+#include "resources/model_raw.hpp"
+#include "resources/physical_material_raw.hpp"
+#include "resources/particle_properties_raw.hpp"
+#include "resources/res_state_machine_raw.hpp"
+#include "resources/entity_template_raw.hpp"
+#include "data/hash_map.hpp"
+#include "data/string.hpp"
+#endif
+
 namespace SFG
 {
+#ifdef SFG_TOOLMODE
+	namespace
+	{
+		template <typename T> bool load_raw(T& raw, const char* path, const char* base_dir, const char* cache_dir)
+		{
+			if (cache_dir && cache_dir[0] != '\0')
+			{
+				if (raw.load_from_cache(cache_dir, path, ".stkcache"))
+					return true;
+			}
+
+			if (!raw.load_from_file(path, base_dir))
+				return false;
+
+			if (cache_dir && cache_dir[0] != '\0')
+				raw.save_to_cache(cache_dir, base_dir, ".stkcache");
+
+			return true;
+		}
+
+		void append_sub_resources(vector<string>& pending, const vector<string>& subs)
+		{
+			for (const string& res : subs)
+			{
+				if (!res.empty())
+					pending.push_back(res);
+			}
+		}
+
+		void package_resources(const vector<string>& relative_paths, package& pkg, const char* base_dir, const char* cache_dir)
+		{
+			vector<string>			   pending = relative_paths;
+			hash_map<string_id, uint8> packed;
+
+			vector<string> sub_resources;
+			sub_resources.reserve(16);
+
+			size_t index = 0;
+			while (index < pending.size())
+			{
+				const string path = pending[index++];
+				if (path.empty())
+					continue;
+
+				const string_id sid = TO_SID(path);
+				if (packed.find(sid) != packed.end())
+					continue;
+
+				packed[sid] = 1;
+
+				const string ext = file_system::get_file_extension(path);
+				if (ext.empty())
+				{
+					SFG_ERR("could not deduce extension: {0}", path.c_str());
+					continue;
+				}
+
+				const meta* m = reflection::get().find_by_tag(ext.c_str());
+				if (m == nullptr)
+				{
+					SFG_ERR("no metadata found associated with this tag: {0}", ext.c_str());
+					continue;
+				}
+
+				const string_id type = m->get_type_id();
+
+				sub_resources.resize(0);
+
+				if (type == type_id<shader>::value)
+				{
+					shader_raw raw = {};
+					if (!load_raw(raw, path.c_str(), base_dir, cache_dir))
+						continue;
+					pkg.write_resource(path.c_str());
+					raw.serialize(pkg.get_write_stream());
+					raw.destroy();
+					raw.get_sub_resources(sub_resources);
+				}
+				else if (type == type_id<material>::value)
+				{
+					material_raw raw = {};
+					if (!load_raw(raw, path.c_str(), base_dir, cache_dir))
+						continue;
+					pkg.write_resource(path.c_str());
+					raw.serialize(pkg.get_write_stream());
+					raw.get_sub_resources(sub_resources);
+					raw.destroy();
+				}
+				else if (type == type_id<texture>::value)
+				{
+					texture_raw raw = {};
+					if (!load_raw(raw, path.c_str(), base_dir, cache_dir))
+						continue;
+					pkg.write_resource(path.c_str());
+					raw.serialize(pkg.get_write_stream());
+					raw.get_sub_resources(sub_resources);
+				}
+				else if (type == type_id<texture_sampler>::value)
+				{
+					texture_sampler_raw raw = {};
+					if (!load_raw(raw, path.c_str(), base_dir, cache_dir))
+						continue;
+					pkg.write_resource(path.c_str());
+					raw.serialize(pkg.get_write_stream());
+					raw.get_sub_resources(sub_resources);
+				}
+				else if (type == type_id<audio>::value)
+				{
+					audio_raw raw = {};
+					if (!load_raw(raw, path.c_str(), base_dir, cache_dir))
+						continue;
+					pkg.write_resource(path.c_str());
+					raw.serialize(pkg.get_write_stream());
+					raw.get_sub_resources(sub_resources);
+				}
+				else if (type == type_id<font>::value)
+				{
+					font_raw raw = {};
+					if (!load_raw(raw, path.c_str(), base_dir, cache_dir))
+						continue;
+					pkg.write_resource(path.c_str());
+					raw.serialize(pkg.get_write_stream());
+					raw.get_sub_resources(sub_resources);
+				}
+				else if (type == type_id<model>::value)
+				{
+					model_raw raw = {};
+					if (!load_raw(raw, path.c_str(), base_dir, cache_dir))
+						continue;
+					pkg.write_resource(path.c_str());
+					raw.serialize(pkg.get_write_stream());
+					raw.get_sub_resources(sub_resources);
+				}
+				else if (type == type_id<physical_material>::value)
+				{
+					physical_material_raw raw = {};
+					if (!load_raw(raw, path.c_str(), base_dir, cache_dir))
+						continue;
+					pkg.write_resource(path.c_str());
+					raw.serialize(pkg.get_write_stream());
+					raw.get_sub_resources(sub_resources);
+				}
+				else if (type == type_id<particle_properties>::value)
+				{
+					particle_properties_raw raw = {};
+					if (!load_raw(raw, path.c_str(), base_dir, cache_dir))
+						continue;
+					pkg.write_resource(path.c_str());
+					raw.serialize(pkg.get_write_stream());
+					raw.get_sub_resources(sub_resources);
+				}
+				else if (type == type_id<res_state_machine>::value)
+				{
+					res_state_machine_raw raw = {};
+					if (!load_raw(raw, path.c_str(), base_dir, cache_dir))
+						continue;
+					pkg.write_resource(path.c_str());
+					raw.serialize(pkg.get_write_stream());
+					raw.get_sub_resources(sub_resources);
+				}
+				else if (type == type_id<entity_template>::value)
+				{
+					entity_template_raw raw = {};
+					if (!load_raw(raw, path.c_str(), base_dir, cache_dir))
+						continue;
+					pkg.write_resource(path.c_str());
+					raw.serialize(pkg.get_write_stream());
+					raw.get_sub_resources(sub_resources);
+					raw.destroy();
+				}
+				else
+				{
+					SFG_ERR("unknown resource type: {0}", path.c_str());
+					continue;
+				}
+
+				append_sub_resources(pending, sub_resources);
+			}
+		}
+	}
+#endif
+
 	void package_manager::init()
 	{
 	}
 
 	void package_manager::uninit()
 	{
+	}
+
+	void package_manager::package_project(const vector<string>& levels, const char* output_directory)
+	{
+#ifdef SFG_TOOLMODE
+		const string working_dir	  = editor_settings::get().working_dir;
+		const string cache_dir		  = editor_settings::get().cache_dir;
+		const string engine_cache_dir = editor_settings::get()._resource_cache;
+
+		string out_dir = output_directory == nullptr ? "" : output_directory;
+		file_system::fix_path(out_dir);
+		if (!out_dir.empty() && out_dir.back() != '/')
+			out_dir += "/";
+
+		if (!out_dir.empty() && !file_system::exists(out_dir.c_str()))
+			file_system::create_directory(out_dir.c_str());
+
+		package world_pkg  = {};
+		package res_pkg	   = {};
+		package engine_pkg = {};
+
+		world_pkg.start_writing();
+
+		vector<string> resource_paths;
+
+		for (const string& level : levels)
+		{
+			if (level.empty())
+				continue;
+
+			world_raw raw = {};
+			if (!raw.load_from_file(level.c_str(), working_dir.c_str()))
+			{
+				SFG_ERR("failed loading world: {0}", level.c_str());
+				continue;
+			}
+
+			world_pkg.write_resource(level.c_str());
+			raw.serialize(world_pkg.get_write_stream());
+
+			for (const string& res : raw.entities_raw.resources)
+			{
+				if (!res.empty())
+					resource_paths.push_back(res);
+			}
+
+			raw.destroy();
+		}
+
+		const string world_path = out_dir + "world.stkpackage";
+		world_pkg.close_writing(world_path.c_str());
+
+		res_pkg.start_writing();
+		package_resources(resource_paths, res_pkg, working_dir.c_str(), cache_dir.c_str());
+		const string res_path = out_dir + "res.stkpackage";
+		res_pkg.close_writing(res_path.c_str());
+
+		vector<string> engine_paths;
+		engine_paths.reserve(64);
+
+		const auto& defs = engine_resources::get().get_resources();
+		for (const auto& [ident, def] : defs)
+		{
+			if (def.path && def.path[0] != '\0')
+				engine_paths.push_back(def.path);
+		}
+
+		engine_pkg.start_writing();
+		package_resources(engine_paths, engine_pkg, SFG_ROOT_DIRECTORY, engine_cache_dir.c_str());
+
+		const string engine_path = out_dir + "engine.stkpackage";
+		engine_pkg.close_writing(engine_path.c_str());
+#else
+		(void)levels;
+		(void)output_directory;
+#endif
 	}
 }

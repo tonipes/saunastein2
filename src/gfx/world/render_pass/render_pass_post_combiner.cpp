@@ -65,7 +65,12 @@ namespace SFG
 		engine_resources::get().add_shader_reload_listener([&](engine_resource_ident type, shader_direct& sh) {
 			if (type == engine_resource_ident::shader_post_combiner)
 			{
-				_shader_post_combiner = sh.get_hw(variant_flags);
+						uint32 vf = 0;
+#ifdef SFG_TOOLMODE
+		vf |= shader_variant_flags::variant_flag_selection_outline;
+#endif
+
+				_shader_post_combiner = sh.get_hw(vf);
 				return;
 			}
 		});
