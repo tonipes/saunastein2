@@ -35,6 +35,7 @@ namespace SFG
 		stream << size;
 		stream << intermediate_size;
 		stream << format;
+		stream << buffers_persistent;
 		stream << static_cast<uint32>(buffers.size());
 
 		for (const texture_buffer& b : buffers)
@@ -53,6 +54,7 @@ namespace SFG
 		stream >> size;
 		stream >> intermediate_size;
 		stream >> format;
+		stream >> buffers_persistent;
 		stream >> sz;
 		buffers.resize(sz);
 		for (uint32 i = 0; i < sz; i++)
@@ -78,6 +80,7 @@ namespace SFG
 
 	void render_event_shader::serialize(ostream& stream) const
 	{
+		stream << persistent_blobs;
 		stream << layout;
 		stream << pso_variants;
 
@@ -92,6 +95,7 @@ namespace SFG
 
 	void render_event_shader::deserialize(istream& stream)
 	{
+		stream >> persistent_blobs;
 		stream >> layout;
 		stream >> pso_variants;
 
@@ -178,7 +182,6 @@ namespace SFG
 		stream >> name;
 #endif
 	}
-
 
 	void render_event_resource_reloaded::serialize(ostream& stream) const
 	{

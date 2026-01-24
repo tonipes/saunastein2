@@ -597,7 +597,7 @@ namespace SFG
 						if (SUCCEEDED(D3D12CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_11_0, _uuidof(ID3D12Device), nullptr)))
 						{
 							char* buf = string_util::wchar_to_char(desc.Description);
-							SFG_TRACE("DX12 -> Selected hardware adapter {0}, dedicated video memory {1} mb", buf, desc.DedicatedVideoMemory * 0.000001);
+							SFG_INFO("selected hardware adapter {0}, dedicated video memory {1} mb", buf, desc.DedicatedVideoMemory * 0.000001);
 							delete[] buf;
 							break;
 						}
@@ -611,7 +611,7 @@ namespace SFG
 
 			if (adapter.Get() == nullptr)
 			{
-				SFG_FATAL("DX12 -> Failed finding a suitable device!");
+				SFG_FATAL("failed finding a suitable device!");
 				return;
 			}
 
@@ -624,15 +624,15 @@ namespace SFG
 			{
 				if (severity == D3D12_MESSAGE_SEVERITY_MESSAGE)
 				{
-					SFG_TRACE("DX12 -> {0}", pDesc);
+					SFG_INFO("{0}", pDesc);
 				}
 				else if (severity == D3D12_MESSAGE_SEVERITY_INFO)
 				{
-					// LOGV("Backend -> {0}, pDesc);
+					// LOGV("{0}, pDesc);
 				}
 				else
 				{
-					SFG_ERR("Backend -> {0}", pDesc);
+					SFG_ERR("{0}", pDesc);
 				}
 			}
 		}
@@ -657,7 +657,7 @@ namespace SFG
 		}
 		else
 		{
-			SFG_ERR("DX12 -> Failed enabling debug layers!");
+			SFG_ERR("Failed enabling debug layers!");
 		}
 #endif
 
@@ -726,7 +726,7 @@ namespace SFG
 			HRESULT hr = DxcCreateInstance(CLSID_DxcLibrary, IID_PPV_ARGS(&s_idxcLib));
 			if (FAILED(hr))
 			{
-				SFG_ERR("DX12 -> Failed to create DXC library!");
+				SFG_ERR("Failed to create DXC library!");
 				return false;
 			}
 		}
@@ -1180,7 +1180,7 @@ namespace SFG
 			if (SUCCEEDED(hr))
 			{
 				handle.handle = sharedHandle;
-				SFG_INFO("Created shared handle for: {0}", desc.debug_name);
+				SFG_INFO("created shared handle for: {0}", desc.debug_name);
 			}
 			else
 			{
@@ -1609,7 +1609,6 @@ namespace SFG
 		PUSH_MEMORY_CATEGORY("GfxTxt");
 		PUSH_DEALLOCATION_SZ(swp.size);
 		PUSH_ALLOCATION_SZ(new_size);
-		SFG_TRACE("Pushing dealloc {0}, alloc {1}", swp.size, new_size);
 		POP_MEMORY_CATEGORY();
 
 		PUSH_MEMORY_CATEGORY("Gfx");
@@ -1788,7 +1787,7 @@ namespace SFG
 
 			if (errors && errors->GetStringLength() > 0)
 			{
-				SFG_ERR("DX12 -> {0}", (char*)errors->GetStringPointer());
+				SFG_ERR("{0}", (char*)errors->GetStringPointer());
 				return false;
 			}
 
@@ -1803,7 +1802,7 @@ namespace SFG
 					hr = result->GetErrorBuffer(&errorsBlob);
 					if (SUCCEEDED(hr) && errorsBlob)
 					{
-						SFG_FATAL("DX12 -> Shader compilation failed:{0}", (const char*)errorsBlob->GetBufferPointer());
+						SFG_FATAL("Shader compilation failed:{0}", (const char*)errorsBlob->GetBufferPointer());
 						return false;
 					}
 				}
@@ -1855,7 +1854,7 @@ namespace SFG
 			}
 			else
 			{
-				SFG_FATAL("DX12 -> Failed compiling IDXC blob!");
+				SFG_FATAL("Failed compiling IDXC blob!");
 				return false;
 			}
 
@@ -1941,7 +1940,7 @@ namespace SFG
 		result->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(errors.GetAddressOf()), nullptr);
 		if (errors && errors->GetStringLength() > 0)
 		{
-			SFG_ERR("DX12 -> {0}", (char*)errors->GetStringPointer());
+			SFG_ERR("{0}", (char*)errors->GetStringPointer());
 			return false;
 		}
 
@@ -1956,7 +1955,7 @@ namespace SFG
 				hr = result->GetErrorBuffer(&errorsBlob);
 				if (SUCCEEDED(hr) && errorsBlob)
 				{
-					SFG_FATAL("DX12 -> Shader compilation failed:{0}", (const char*)errorsBlob->GetBufferPointer());
+					SFG_FATAL("Shader compilation failed:{0}", (const char*)errorsBlob->GetBufferPointer());
 					return false;
 				}
 			}
@@ -2005,7 +2004,7 @@ namespace SFG
 		}
 		else
 		{
-			SFG_FATAL("DX12 -> Failed compiling IDXC blob!");
+			SFG_FATAL("Failed compiling IDXC blob!");
 			return false;
 		}
 

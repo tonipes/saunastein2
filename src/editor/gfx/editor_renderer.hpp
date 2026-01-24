@@ -192,7 +192,7 @@ namespace SFG
 		per_frame_data _pfd[BACK_BUFFER_COUNT] = {};
 		gui_draw_call  _gui_draw_calls[64]	   = {};
 
-		static constexpr uint32 SNAPSHOTS_SIZE = 3;
+		static constexpr uint32 SNAPSHOTS_SIZE = 8;
 
 		// GUI snapshot mailbox (lock-free)
 		vekt::snapshot* _snapshots			= nullptr;

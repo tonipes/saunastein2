@@ -664,7 +664,6 @@ namespace SFG
 					});
 				}
 
-				SFG_TRACE("update dir light cascade count {0}", (uint32)cascade_size);
 				views.push_back({
 					.type			= view_type::sampled,
 					.base_arr_level = 0,
@@ -937,7 +936,7 @@ namespace SFG
 				.debug_name = "texture_intermediate",
 			});
 
-			_texture_queue.add_request(ev.buffers, proxy.hw, proxy.intermediate, 1, resource_state::resource_state_ps_resource);
+			_texture_queue.add_request(ev.buffers, proxy.hw, proxy.intermediate, 1, resource_state::resource_state_ps_resource, ev.buffers_persistent);
 		}
 		else if (type == render_event_type::destroy_texture)
 		{
@@ -982,9 +981,12 @@ namespace SFG
 				variant.hw			  = backend->create_shader(pso.desc, ev.compile_variants.at(pso.compile_variant).blobs, ev.layout);
 			}
 
-			for (compile_variant& cv : ev.compile_variants)
-				cv.destroy();
-			ev.compile_variants.clear();
+			if (!ev.persistent_blobs)
+			{
+				for (compile_variant& cv : ev.compile_variants)
+					cv.destroy();
+				ev.compile_variants.clear();
+			}
 		}
 		else if (type == render_event_type::destroy_shader)
 		{

@@ -26,6 +26,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "render_pass_selection_outline.hpp"
 #include "resources/vertex.hpp"
+#include "app/engine_resources.hpp"
 
 // gfx
 #include "gfx/backend/backend.hpp"
@@ -37,7 +38,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gfx/world/renderable.hpp"
 #include "gfx/world/renderable_collector.hpp"
 #include "gfx/common/render_target_definitions.hpp"
-#include "gfx/engine_shaders.hpp"
 
 #include <tracy/Tracy.hpp>
 
@@ -45,7 +45,7 @@ namespace SFG
 {
 	void render_pass_selection_outline::init(const vector2ui16& size)
 	{
-		_alloc.init(64, 8);
+		_alloc.init(PASS_ALLOC_SIZE_OPAQUE, 8);
 
 		gfx_backend* backend = gfx_backend::get();
 
@@ -86,7 +86,7 @@ namespace SFG
 
 		if (_selected_entity_id != NULL_WORLD_ID)
 		{
-			const shader_direct& write_shader = engine_shaders::get().get_shader(engine_shader_type::engine_shader_type_object_outline_write);
+			const shader_direct& write_shader = engine_resources::get().get_shader_direct(engine_resource_ident::shader_object_outline_write);
 			renderable_collector::populate_draw_stream_outline_filtered(pm, renderables, _draw_stream, 0, frame_index, write_shader, _selected_entity_id);
 		}
 

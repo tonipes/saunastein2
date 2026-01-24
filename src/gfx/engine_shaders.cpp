@@ -32,6 +32,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #ifdef SFG_TOOLMODE
 #include "editor/editor_settings.hpp"
+#else
+#include "app/package_manager.hpp"
 #endif
 
 namespace SFG
@@ -70,23 +72,19 @@ namespace SFG
 		paths.push_back("assets/engine/shaders/particle/particle_count.stkshader");
 		paths.push_back("assets/engine/shaders/particle/particle_swap.stkshader");
 
-		shader_raw raw = {};
-
 #ifdef SFG_TOOLMODE
+
 		const string shader_cache = editor_settings::get()._resource_cache;
 		if (!file_system::exists(shader_cache.c_str()))
 			file_system::create_directory(shader_cache.c_str());
-#endif
 
 		for (uint8 i = 0; i < engine_shader_type_max; i++)
 		{
-			const string  p = paths[i];
-			shader_entry& e = _shaders[i];
-			raw				= {};
+			const string  p	  = paths[i];
+			shader_entry& e	  = _shaders[i];
+			shader_raw	  raw = {};
 
-#ifdef SFG_TOOLMODE
-
-			if (!raw.load_from_cache(shader_cache.c_str(), SFG_ROOT_DIRECTORY, ".stkcache"))
+			if (!raw.load_from_cache(shader_cache.c_str(), p.c_str(), ".stkcache"))
 			{
 				if (!raw.load_from_file(p.c_str(), SFG_ROOT_DIRECTORY))
 				{
@@ -94,20 +92,17 @@ namespace SFG
 					return false;
 				}
 
-				raw.save_to_cache(shader_cache.c_str(), p.c_str(), ".stkcache");
+				raw.save_to_cache(shader_cache.c_str(), SFG_ROOT_DIRECTORY, ".stkcache");
 			}
 
-			e.src_path = p;
-#else
-			SFG_NOTIMPLEMENTED();
-#endif
-
+			e.src_path					= p;
 			const string src_stk_shader = root + p;
 			const string src_source		= root + raw.source;
 
 			const bool is_compute = raw.is_compute;
 			e.layout			  = is_compute ? bind_layout_compute : bind_layout;
 			e.direct.create_from_loader(raw, e.layout);
+
 			_file_watcher.add_path(src_source.c_str(), static_cast<uint16>(i));
 			_file_watcher.add_path(src_stk_shader.c_str(), static_cast<uint16>(i));
 			raw.destroy();
@@ -115,6 +110,28 @@ namespace SFG
 
 		_file_watcher.set_callback(engine_shaders::on_shader_reloaded, this);
 		_file_watcher.set_tick_interval(60);
+
+#else
+		package& engine_data_pack = package_manager::get().get_package_engine_data();
+
+		for (uint8 i = 0; i < engine_shader_type_max; i++)
+		{
+			const string  p			 = paths[i];
+			shader_entry& e			 = _shaders[i];
+			shader_raw	  raw		 = {};
+			istream&	  raw_stream = engine_data_pack.get_stream(TO_SID(p));
+			raw.deserialize(raw_stream);
+
+			const string src_stk_shader = root + p;
+			const string src_source		= root + raw.source;
+
+			const bool is_compute = raw.is_compute;
+			e.layout			  = is_compute ? bind_layout_compute : bind_layout;
+			e.direct.create_from_loader(raw, e.layout);
+			raw.destroy();
+		}
+#endif
+
 		return true;
 	}
 
@@ -123,6 +140,7 @@ namespace SFG
 		for (shader_entry& e : _shaders)
 			e.direct.destroy();
 	}
+
 #ifdef SFG_TOOLMODE
 
 	void engine_shaders::add_reload_listener(reload_callback&& cb)

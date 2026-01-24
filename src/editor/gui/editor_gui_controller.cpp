@@ -483,7 +483,6 @@ namespace SFG
 	{
 		if (ev.type == window_event_type::mouse)
 		{
-
 			const vekt::input_event_result res = _builder->on_mouse_event({
 				.type	  = static_cast<vekt::input_event_type>(ev.sub_type),
 				.button	  = ev.button,
@@ -512,6 +511,11 @@ namespace SFG
 		}
 
 		return false;
+	}
+
+	bool editor_gui_controller::on_mouse_move(const vector2& p)
+	{
+		return _panel_world->on_mouse_move(p);
 	}
 
 	bool editor_gui_controller::on_key_event(const window_event& ev)

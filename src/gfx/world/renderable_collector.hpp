@@ -34,7 +34,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace SFG
 {
 	struct view;
-	struct shader_direct;
+	class shader_direct;
 	class draw_stream;
 	class draw_stream_distance;
 	class draw_stream_particle;

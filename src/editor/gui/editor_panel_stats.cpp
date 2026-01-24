@@ -148,9 +148,8 @@ namespace SFG
 
 	void editor_panel_stats::set_visible(bool is_visible)
 	{
-		if (!is_visible)
+		if (!is_visible && _stats_area != NULL_WIDGET_ID)
 		{
-			SFG_ASSERT(_stats_area != NULL_WIDGET_ID);
 			_builder->deallocate(_stats_area);
 			_builder->build_hierarchy();
 			_stats_area = NULL_WIDGET_ID;

@@ -82,7 +82,7 @@ namespace SFG
 		stream >> loaded_lights;
 		stream >> total_aabb;
 
-		SFG_INFO("Created model from buffer: {0}", name);
+		SFG_INFO("created from buffer: {0}", name);
 	}
 
 #ifdef SFG_TOOLMODE
@@ -273,8 +273,7 @@ namespace SFG
 			*/
 		};
 
-		template <typename VertexType>
-		void append_collider_primitive(vector<vector3>& vertices, vector<primitive_index>& indices, const vector<VertexType>& src_vertices, const vector<primitive_index>& src_indices)
+		template <typename VertexType> void append_collider_primitive(vector<vector3>& vertices, vector<primitive_index>& indices, const vector<VertexType>& src_vertices, const vector<primitive_index>& src_indices)
 		{
 			const uint32 base = static_cast<uint32>(vertices.size());
 			for (const auto& v : src_vertices)
@@ -884,7 +883,7 @@ namespace SFG
 				}
 
 				raw.shader = raw.pass_mode == material_pass_mode::gbuffer ? DEFAULT_OPAQUE_SHADER_SID : DEFAULT_FORWARD_SHADER_SID;
-				SFG_INFO("Created material from gltf: {0}", raw.name);
+				SFG_INFO("created material from gltf: {0}", raw.name);
 			}
 		}
 
@@ -1069,7 +1068,7 @@ namespace SFG
 		const string target_path = base_path + string(relative_file);
 		if (!file_system::exists(target_path.c_str()))
 		{
-			SFG_ERR("File don't exist! {0}", target_path.c_str());
+			SFG_ERR("file doesn't exists: {0}", target_path.c_str());
 			return false;
 		}
 
@@ -1105,11 +1104,11 @@ namespace SFG
 					build_mesh_colliders(mesh);
 			}
 
-			SFG_INFO("Created model from file: {0}", name);
+			SFG_INFO("created from file: {0}", name);
 		}
 		catch (std::exception e)
 		{
-			SFG_ERR("Failed loading material: {0}", e.what());
+			SFG_ERR("failed loading: {0}", e.what());
 			return false;
 		}
 

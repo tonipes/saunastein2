@@ -64,6 +64,7 @@ namespace SFG
 		stream >> sdf_padding;
 		stream >> sdf_edge;
 		stream >> sdf_distance;
+		SFG_INFO("created from buffer: {0}", name);
 	}
 
 #ifdef SFG_TOOLMODE
@@ -72,7 +73,7 @@ namespace SFG
 		const string target_path = base_path + string(relative_file);
 		if (!file_system::exists(target_path.c_str()))
 		{
-			SFG_ERR("File don't exist! {0}", target_path.c_str());
+			SFG_ERR("file doesn't exists: {0}", target_path.c_str());
 			return false;
 		}
 
@@ -87,15 +88,15 @@ namespace SFG
 			const string full_source = base_path + source;
 			if (!file_system::exists(full_source.c_str()))
 			{
-				SFG_ERR("File don't exist! {0}", full_source.c_str());
+				SFG_ERR("file doesn't exists: {0}", full_source.c_str());
 				return false;
 			}
 
-			point_size = json_data.value<uint16>("point_size", 0);
+			point_size = json_data.value<uint16>("point_size", 12);
 
 			if (point_size == 0 || point_size > 120)
 			{
-				SFG_ERR("Invalid font point size! {0}", point_size);
+				SFG_ERR("invalid font point size! {0}", point_size);
 				return false;
 			}
 
@@ -105,7 +106,7 @@ namespace SFG
 
 			if (file_data_size == 0)
 			{
-				SFG_ERR("Invalid font data!");
+				SFG_ERR("invalid font data!");
 				return false;
 			}
 
@@ -128,11 +129,11 @@ namespace SFG
 		}
 		catch (std::exception e)
 		{
-			SFG_ERR("Failed loading font: {0}", e.what());
+			SFG_ERR("failed loading: {0}", e.what());
 			return false;
 		}
 
-		SFG_INFO("Created font from file: {0}", target_path.c_str());
+		SFG_INFO("created from file: {0}", target_path.c_str());
 		return true;
 	}
 

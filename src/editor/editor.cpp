@@ -99,7 +99,7 @@ namespace SFG
 			if (verb == vekt::log_verbosity::error)
 				SFG_ERR(formattedMessage.c_str());
 			else
-				SFG_TRACE(formattedMessage.c_str());
+				SFG_INFO(formattedMessage.c_str());
 
 			va_end(args);
 		}
@@ -141,7 +141,7 @@ namespace SFG
 		const float dpi_scale	= _app.get_main_window().get_monitor_info().dpi_scale;
 		editor_theme::DPI_SCALE = dpi_scale;
 
-		const string default_font_str = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/VT323-Regular.ttf");
+		const string default_font_str = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/Roboto-Regular.ttf");
 		const string title_font_str	  = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/VT323-Regular.ttf");
 		const string icon_font_str	  = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/icons.ttf");
 		_font_main					  = _font_manager->load_font_from_file(default_font_str.c_str(), 16 * dpi_scale);
@@ -283,8 +283,12 @@ namespace SFG
 	{
 		if (ev.type == window_event_type::delta)
 		{
-			const vector2i16& mp = _app.get_main_window().get_mouse_position();
-			_builder->on_mouse_move(vector2(mp.x, mp.y));
+			const vector2i16& mp  = _app.get_main_window().get_mouse_position();
+			const vector2	  mpf = vector2(mp.x, mp.y);
+			if (_gui_controller.on_mouse_move(mpf))
+				return true;
+
+			_builder->on_mouse_move(mpf);
 		}
 		else if (ev.type == window_event_type::wheel)
 		{

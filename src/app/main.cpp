@@ -66,7 +66,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 				SFG::process::message_box("Gfx backend failed initializing!");
 			else if (status == SFG::app::init_status::window_failed)
 				SFG::process::message_box("Main window failed initializing!");
-			else if (status == SFG::app::init_status::engine_shaders_failed)
+			else if (status == SFG::app::init_status::engine_resources_failed)
 				SFG::process::message_box("Failed loading engine shaders!");
 
 			SFG::process::uninit();

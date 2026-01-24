@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -28,20 +28,20 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #ifdef SFG_DEBUG
 
-#define SFG_ERR(...)   SFG::log::instance().log_msg(SFG::log_level::error, __VA_ARGS__)
-#define SFG_WARN(...)  SFG::log::instance().log_msg(SFG::log_level::warning, __VA_ARGS__)
-#define SFG_INFO(...)  SFG::log::instance().log_msg(SFG::log_level::info, __VA_ARGS__)
+#define SFG_ERR(...)   SFG::log::instance().log_msg_func(SFG::log_level::error, __FUNCTION__, __VA_ARGS__)
+#define SFG_WARN(...)  SFG::log::instance().log_msg_func(SFG::log_level::warning, __FUNCTION__, __VA_ARGS__)
+#define SFG_INFO(...)  SFG::log::instance().log_msg_func(SFG::log_level::info, __FUNCTION__, __VA_ARGS__)
 #define SFG_TRACE(...) SFG::log::instance().log_msg(SFG::log_level::trace, __VA_ARGS__)
-#define SFG_FATAL(...) SFG::log::instance().log_msg(SFG::log_level::error, __VA_ARGS__)
+#define SFG_FATAL(...) SFG::log::instance().log_msg_func(SFG::log_level::error, __FUNCTION__, __VA_ARGS__)
 #define SFG_PROG(...)  SFG::log::instance().log_msg(SFG::log_level::progress, __VA_ARGS__)
 
 #else
 
-#define SFG_ERR(...)   SFG::log::instance().log_msg(SFG::log_level::error, __VA_ARGS__)
-#define SFG_WARN(...)  SFG::log::instance().log_msg(SFG::log_level::warning, __VA_ARGS__)
-#define SFG_INFO(...)  SFG::log::instance().log_msg(SFG::log_level::info, __VA_ARGS__)
+#define SFG_ERR(...)   SFG::log::instance().log_msg(SFG::log_level::error, __FUNCTION__, __VA_ARGS__)
+#define SFG_WARN(...)  SFG::log::instance().log_msg(SFG::log_level::warning, __FUNCTION__, __VA_ARGS__)
+#define SFG_INFO(...)  SFG::log::instance().log_msg_func(SFG::log_level::info, __FUNCTION__, __VA_ARGS__)
 #define SFG_TRACE(...) SFG::log::instance().log_msg(SFG::log_level::trace, __VA_ARGS__)
-#define SFG_FATAL(...) SFG::log::instance().log_msg(SFG::log_level::error, __VA_ARGS__)
+#define SFG_FATAL(...) SFG::log::instance().log_msg(SFG::log_level::error, __FUNCTION__, __VA_ARGS__)
 #define SFG_PROG(...)  SFG::log::instance().log_msg(SFG::log_level::progress, __VA_ARGS__)
 
 #endif
@@ -147,6 +147,11 @@ namespace SFG
 			log_impl(level, format_str(args...).c_str());
 		}
 
+		template <typename... Args> void log_msg_func(log_level level, const char* func, const Args&... args)
+		{
+			log_impl(level, func, format_str(args...).c_str());
+		}
+
 		void add_listener(unsigned int id, callback_function f, void* user_data);
 		void remove_listener(unsigned int id);
 
@@ -161,6 +166,7 @@ namespace SFG
 	private:
 		const char* get_level(log_level lvl);
 		void		log_impl(log_level level, const char* msg);
+		void		log_impl(log_level level, const char* func, const char* msg);
 
 	private:
 		template <typename T> using vector_malloc = std::vector<T, malloc_allocator_stl<T>>;

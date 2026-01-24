@@ -1,28 +1,36 @@
 {
     "components": [
         {
-            "attenuation": 1,
-            "comp_type": 11611975037412134833,
+            "cast_shadows": 0,
+            "color": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "comp_type": 13525139508269883138,
             "entity": 0,
-            "looping": 1,
-            "max_radius": 10.0,
-            "min_radius": 0.0,
-            "play_on_start": 1,
-            "resource": "assets/audio/metal.stkaud",
-            "rolloff": 1.0,
-            "volume": 1.0
+            "inner_cone": 9.604866981506348,
+            "intensity": 15.0,
+            "near_plane": 0.0,
+            "outer_cone": 39.6960563659668,
+            "range": 25.0,
+            "shadow_res": [
+                256,
+                256
+            ]
         }
     ],
     "entities": [
         {
             "first_child": -1,
-            "name": "sound",
+            "name": "new_entity",
             "next_sibling": -1,
             "parent": -1,
             "pos": [
                 0.0,
-                0.0,
-                0.0
+                3.4099128246307373,
+                16.074581146240234
             ],
             "rot": [
                 0.0,
@@ -39,7 +47,5 @@
             "visible": 1
         }
     ],
-    "resources": [
-        "assets/audio/metal.stkaud"
-    ]
+    "resources": []
 }

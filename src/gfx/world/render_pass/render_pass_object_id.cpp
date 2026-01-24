@@ -37,7 +37,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gfx/world/renderable.hpp"
 #include "gfx/world/renderable_collector.hpp"
 #include "gfx/common/render_target_definitions.hpp"
-#include "gfx/engine_shaders.hpp"
 
 #include <tracy/Tracy.hpp>
 

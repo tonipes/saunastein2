@@ -44,7 +44,7 @@ namespace SFG
 	{
 	}
 
-	void texture_queue::add_request(const static_vector<texture_buffer, MAX_TEXTURE_MIPS>& buffers, gfx_id texture, gfx_id intermediate, uint8 use_free, resource_state state)
+	void texture_queue::add_request(const static_vector<texture_buffer, MAX_TEXTURE_MIPS>& buffers, gfx_id texture, gfx_id intermediate, uint8 use_free, resource_state state, bool persistent)
 	{
 		for (texture_request& req : _requests)
 		{
@@ -70,6 +70,7 @@ namespace SFG
 			.intermediate = intermediate,
 			.added_frame  = frame_info::get_render_frame(),
 			.use_free	  = use_free,
+			.persistent	  = persistent,
 			.to_state	  = state,
 		};
 
@@ -101,6 +102,9 @@ namespace SFG
 
 			for (const texture_buffer& b : buf.buffers)
 			{
+				if (buf.persistent)
+					continue;
+
 				if (buf.use_free)
 					SFG_FREE(b.pixels);
 				else

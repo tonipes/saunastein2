@@ -77,7 +77,7 @@ namespace SFG
 		const string file_path = (base_directory == nullptr ? editor_settings::get().working_dir : string(base_directory)) + string(relative_file);
 		if (!file_system::exists(file_path.c_str()))
 		{
-			SFG_ERR("File don't exist! {0}", file_path.c_str());
+			SFG_ERR("file doesn't exists: {0}", file_path.c_str());
 			return false;
 		}
 		try
@@ -96,14 +96,14 @@ namespace SFG
 			const string full_source = base_directory == nullptr ? (editor_settings::get().working_dir + source) : (string(base_directory) + source);
 			if (!file_system::exists(full_source.c_str()))
 			{
-				SFG_ERR("File don't exist! {0}", full_source.c_str());
+				SFG_ERR("file doesn't exists: {0}", full_source.c_str());
 				return false;
 			}
 
 			const string shader_text = file_system::read_file_as_string(full_source.c_str());
 			if (shader_text.empty())
 			{
-				SFG_ERR("Failed reading shader text! {0}", full_source.c_str());
+				SFG_ERR("failed reading shader text! {0}", full_source.c_str());
 				return false;
 			}
 			const string   folder_path = file_system::get_directory_of_file(full_source.c_str());
@@ -122,7 +122,7 @@ namespace SFG
 			{
 				if (json_data.find("variant_style") == json_data.end())
 				{
-					SFG_ERR("Failed compiling shader as it does not define a raw description neither a variant style! {0}", file_path);
+					SFG_ERR("failed compiling shader as it does not define a raw description neither a variant style! {0}", file_path);
 					return false;
 				}
 
@@ -136,11 +136,11 @@ namespace SFG
 		}
 		catch (std::exception e)
 		{
-			SFG_ERR("Failed loading shader: {0}", e.what());
+			SFG_ERR("failed loading: {0}", e.what());
 			return false;
 		}
 
-		SFG_INFO("Created shader from file: {0}", name);
+		SFG_INFO("created from file: {0}", name);
 		return true;
 	}
 
@@ -232,13 +232,15 @@ namespace SFG
 		stream >> pso_variants;
 		stream >> is_compute;
 
-		SFG_INFO("Created shader from buffer: {0}", name);
+		SFG_INFO("created from buffer: {0}", name);
 	}
 
 	void shader_raw::destroy()
 	{
 		for (compile_variant& cv : compile_variants)
 			cv.destroy();
+		compile_variants.clear();
+		SFG_WARN("destroying {0}", name);
 	}
 
 }

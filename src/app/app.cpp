@@ -41,7 +41,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 // gfx
 #include "gfx/renderer.hpp"
 #include "gfx/backend/backend.hpp"
-#include "gfx/engine_shaders.hpp"
+
+#include "app/engine_resources.hpp"
 
 // game
 #include "game/game.hpp"
@@ -116,7 +117,7 @@ namespace SFG
 		// kick off system shaders.
 		renderer::create_bind_layout_global();
 
-		if (!engine_shaders::get().init(renderer::get_bind_layout_global(), renderer::get_bind_layout_global_compute(), this))
+		if (!engine_resources::get().init(this))
 		{
 			time::uninit();
 			debug_console::uninit();
@@ -132,7 +133,7 @@ namespace SFG
 			delete _world;
 			delete _renderer;
 
-			return init_status::engine_shaders_failed;
+			return init_status::engine_resources_failed;
 		}
 
 // renderer
@@ -183,6 +184,9 @@ namespace SFG
 		kick_off_render();
 
 		SFG_SET_INIT(false);
+
+		engine_resources::get().clear_init();
+
 		return init_status::ok;
 	}
 
@@ -219,6 +223,8 @@ namespace SFG
 		// window
 		_main_window->destroy();
 		delete _main_window;
+
+		engine_resources::get().uninit();
 
 		// backend
 		gfx_backend* backend = gfx_backend::get();
@@ -355,12 +361,14 @@ namespace SFG
 			}
 #endif
 
+			_render_stream.publish();
+
 			// -----------------------------------------------------------------------------
 			// post
 			// -----------------------------------------------------------------------------
 
 #ifdef SFG_TOOLMODE
-			engine_shaders::get().tick();
+			engine_resources::get().tick();
 #endif
 
 			_world->begin_debug_tick(ws);
@@ -375,7 +383,6 @@ namespace SFG
 			_world->end_debug_tick();
 
 			// pipeline render events.
-			_render_stream.publish();
 			frame_info::s_frame.fetch_add(1);
 		}
 	}

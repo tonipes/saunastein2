@@ -56,7 +56,7 @@ namespace SFG
 			renderer_failed,
 			window_failed,
 			backend_failed,
-			engine_shaders_failed,
+			engine_resources_failed,
 		};
 
 		// -----------------------------------------------------------------------------

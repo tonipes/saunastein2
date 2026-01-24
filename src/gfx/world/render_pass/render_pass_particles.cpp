@@ -28,6 +28,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "math/math.hpp"
 #include "math/random.hpp"
 #include "common/packed_size.hpp"
+#include "app/engine_resources.hpp"
 
 // gfx
 #include "gfx/backend/backend.hpp"
@@ -36,7 +37,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gfx/util/gfx_util.hpp"
 #include "gfx/proxy/proxy_manager.hpp"
 #include "gfx/common/barrier_description.hpp"
-#include "gfx/engine_shaders.hpp"
 #include "gfx/common/render_target_definitions.hpp"
 #include "gfx/world/view.hpp"
 #include "gfx/texture_queue.hpp"
@@ -255,46 +255,45 @@ namespace SFG
 					.debug_name		 = name.c_str(),
 				});
 		}
-
-		_shader_clear		= engine_shaders::get().get_shader(engine_shader_type::engine_shader_particle_clear).get_hw();
-		_shader_simulate	= engine_shaders::get().get_shader(engine_shader_type::engine_shader_particle_sim).get_hw();
-		_shader_emit		= engine_shaders::get().get_shader(engine_shader_type::engine_shader_particle_emit).get_hw();
-		_shader_write_count = engine_shaders::get().get_shader(engine_shader_type::engine_shader_particle_write_count).get_hw();
-		_shader_count		= engine_shaders::get().get_shader(engine_shader_type::engine_shader_particle_count).get_hw();
-		_shader_swap		= engine_shaders::get().get_shader(engine_shader_type::engine_shader_particle_swap).get_hw();
+		_shader_clear		= engine_resources::get().get_shader_direct(engine_resource_ident::shader_particle_clear).get_hw();
+		_shader_simulate	= engine_resources::get().get_shader_direct(engine_resource_ident::shader_particle_sim).get_hw();
+		_shader_emit		= engine_resources::get().get_shader_direct(engine_resource_ident::shader_particle_emit).get_hw();
+		_shader_write_count = engine_resources::get().get_shader_direct(engine_resource_ident::shader_particle_write_count).get_hw();
+		_shader_count		= engine_resources::get().get_shader_direct(engine_resource_ident::shader_particle_count).get_hw();
+		_shader_swap		= engine_resources::get().get_shader_direct(engine_resource_ident::shader_particle_swap).get_hw();
 
 #ifdef SFG_TOOLMODE
-		engine_shaders::get().add_reload_listener([this](engine_shader_type type, shader_direct& sh) {
-			if (type == engine_shader_type::engine_shader_particle_clear)
+		engine_resources::get().add_shader_reload_listener([this](engine_resource_ident type, shader_direct& sh) {
+			if (type == engine_resource_ident::shader_particle_clear)
 			{
 				_shader_clear = sh.get_hw();
 				return;
 			}
-			if (type == engine_shader_type::engine_shader_particle_sim)
+			if (type == engine_resource_ident::shader_particle_sim)
 			{
 				_shader_simulate = sh.get_hw();
 				return;
 			}
 
-			if (type == engine_shader_type::engine_shader_particle_emit)
+			if (type == engine_resource_ident::shader_particle_emit)
 			{
 				_shader_emit = sh.get_hw();
 				return;
 			}
 
-			if (type == engine_shader_type::engine_shader_particle_write_count)
+			if (type == engine_resource_ident::shader_particle_write_count)
 			{
 				_shader_write_count = sh.get_hw();
 				return;
 			}
 
-			if (type == engine_shader_type::engine_shader_particle_count)
+			if (type == engine_resource_ident::shader_particle_count)
 			{
 				_shader_count = sh.get_hw();
 				return;
 			}
 
-			if (type == engine_shader_type::engine_shader_particle_swap)
+			if (type == engine_resource_ident::shader_particle_swap)
 			{
 				_shader_swap = sh.get_hw();
 				return;

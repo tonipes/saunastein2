@@ -87,6 +87,8 @@ namespace SFG
 		_gui_builder.callbacks.on_toggle_button = on_toggle_button;
 		_gui_builder.callbacks.on_mouse			= on_widget_mouse;
 		_gui_builder.init(b);
+		_gizmo_controls.init(b);
+		_gizmo_2d.init(b);
 
 		vekt::widget_gfx& root = b->widget_get_gfx(_gui_builder.get_root());
 		root.color			   = editor_theme::get().col_frame_bg;
@@ -104,9 +106,12 @@ namespace SFG
 			sz.child_margins	 = {editor_theme::get().outer_margin, editor_theme::get().outer_margin, editor_theme::get().outer_margin, editor_theme::get().outer_margin};
 
 			vekt::widget_gfx& gfx = b->widget_get_gfx(_world_viewer);
-			gfx.flags			  = vekt::gfx_flags::gfx_is_rect;
+			gfx.flags			  = vekt::gfx_flags::gfx_is_rect | vekt::gfx_flags::gfx_custom_pass | vekt::gfx_flags::gfx_clip_children;
 			gfx.color			  = editor_theme::get().col_frame_bg;
 			gfx.user_data		  = &_user_data;
+
+			b->widget_get_user_data(_world_viewer).ptr				  = this;
+			b->widget_get_custom_pass(_world_viewer).custom_draw_pass = on_widget_draw;
 
 			b->widget_add_child(_gui_builder.get_root(), _world_viewer);
 		}
@@ -132,6 +137,8 @@ namespace SFG
 		_btn_play = _gui_builder.add_toggle_button(ICON_PLAY, false, 0, 1.25f, true, editor_theme::get().col_accent_third).first;
 		_gui_builder.end_row();
 		_gui_builder.set_draw_order(0);
+
+		_gizmo_controls.init(_builder);
 
 		set_aspect(static_cast<aspect_ratio>(math::clamp(editor_layout::get().world_aspect_ratio, (uint8)0, static_cast<uint8>(aspect_ratio::aspect_1_1))));
 		set_gizmo_style(gizmo_style::move);
@@ -466,8 +473,22 @@ namespace SFG
 		return vekt::input_event_result::not_handled;
 	}
 
+	bool editor_panel_world::on_mouse_move(const vector2& p)
+	{
+		return _gizmo_controls.on_mouse_move(p);
+	}
+
 	bool editor_panel_world::on_mouse_event(const window_event& ev)
 	{
+		if (ev.button != input_code::mouse_0)
+			return false;
+
+		if (_gizmo_2d.on_mouse_event(ev))
+			return true;
+
+		if (_gizmo_controls.on_mouse_event(ev))
+			return true;
+
 		if (ev.button == input_code::mouse_0 && ev.sub_type == window_event_sub_type::press)
 		{
 			const vector4 clip			   = _builder->widget_get_clip(_world_viewer);
@@ -552,7 +573,7 @@ namespace SFG
 			self->set_gizmo_style(gizmo_style::rotate);
 		else if (id == self->_btn_scale)
 			self->set_gizmo_style(gizmo_style::scale);
-		else if (id == self->_btn_translate)
+		else if (id == self->_btn_space)
 			self->set_gizmo_space(toggled ? gizmo_space::global : gizmo_space::local);
 		else if (id == self->_btn_mute)
 			self->set_audio_style(toggled ? audio_style::mute : audio_style::on);
@@ -562,5 +583,13 @@ namespace SFG
 			self->set_stats_view(toggled ? stats_view_style::full : stats_view_style::none);
 		else if (id == self->_btn_play)
 			self->set_playmode(toggled ? playmode::playing : playmode::none);
+	}
+
+	void editor_panel_world::on_widget_draw(vekt::builder* b, vekt::id widget)
+	{
+		editor_panel_world* self	  = static_cast<editor_panel_world*>(b->widget_get_user_data(widget).ptr);
+		const vector2		viewer_sz = b->widget_get_size(self->_world_viewer);
+		self->_gizmo_controls.draw(b->widget_get_pos(self->_world_viewer), viewer_sz, viewer_sz);
+		self->_gizmo_2d.draw(b->widget_get_pos(self->_world_viewer), viewer_sz, viewer_sz);
 	}
 }

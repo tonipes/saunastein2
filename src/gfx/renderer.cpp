@@ -25,6 +25,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "renderer.hpp"
+#include "app/engine_resources.hpp"
 
 // gfx
 #include "gfx/backend/backend.hpp"
@@ -48,7 +49,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "io/log.hpp"
 #include "common/system_info.hpp"
 #include "resources/common_resources.hpp"
-#include "engine_shaders.hpp"
 
 #ifdef SFG_TOOLMODE
 #include "editor/editor.hpp"
@@ -142,11 +142,11 @@ namespace SFG
 		_texture_queue.init();
 		_proxy_manager.init();
 
-		_shaders.swapchain = engine_shaders::get().get_shader(engine_shader_type::engine_shader_type_renderer_swapchain).get_hw();
+		_shaders.swapchain = engine_resources::get().get_shader_direct(engine_resource_ident::shader_swapchain).get_hw();
 
 #ifdef SFG_TOOLMODE
-		engine_shaders::get().add_reload_listener([this](engine_shader_type type, shader_direct& sh) {
-			if (type == engine_shader_type::engine_shader_type_renderer_swapchain)
+		engine_resources::get().add_shader_reload_listener([this](engine_resource_ident type, shader_direct& sh) {
+			if (type == engine_resource_ident::shader_swapchain)
 			{
 				_shaders.swapchain = sh.get_hw();
 				return;
@@ -189,14 +189,11 @@ namespace SFG
 
 		// swp
 		backend->destroy_swapchain(_gfx_data.swapchain);
-
-		// globals
-		engine_shaders::get().uninit();
 	}
 
 	void renderer::wait_backend()
 	{
-		SFG_INFO("renderer::wait_backend() - frame: {0}", frame_info::s_render_frame);
+		SFG_INFO("frame: {0}", frame_info::s_render_frame);
 
 		gfx_backend* backend   = gfx_backend::get();
 		const gfx_id queue_gfx = backend->get_queue_gfx();
@@ -226,6 +223,11 @@ namespace SFG
 	{
 		ZoneScoped;
 
+		const uint8 frame_index = _gfx_data.frame_index;
+
+		_proxy_manager.fetch_render_events(_event_stream, frame_index);
+		_proxy_manager.flush_destroys(false);
+
 		gfx_backend*	  backend		 = gfx_backend::get();
 		const gfx_id	  queue_gfx		 = backend->get_queue_gfx();
 		const gfx_id	  queue_transfer = backend->get_queue_transfer();
@@ -238,7 +240,6 @@ namespace SFG
 		}
 
 		/* access frame data */
-		const uint8	 frame_index		   = _gfx_data.frame_index;
 		const gfx_id layout_global		   = s_bind_layout_global;
 		const gfx_id layout_global_compute = s_bind_layout_global_compute;
 		const gfx_id swapchain_rt		   = _gfx_data.swapchain;
@@ -254,9 +255,6 @@ namespace SFG
 			// Wait for frame's fence, then send any uploads needed.
 			backend->wait_semaphore(pfd.sem_frame.semaphore, pfd.sem_frame.value);
 		}
-
-		_proxy_manager.fetch_render_events(_event_stream, frame_index);
-		_proxy_manager.flush_destroys(false);
 
 		/* access pfd */
 		const gfx_id cmd_list		  = pfd.cmd_gfx;

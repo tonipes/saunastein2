@@ -33,6 +33,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "data/string.hpp"
 #include "data/static_vector.hpp"
 #include "memory/chunk_allocator.hpp"
+#include "resources/texture_raw.hpp"
 
 #ifdef SFG_TOOLMODE
 #include "io/simple_file_watcher.hpp"
@@ -626,5 +627,13 @@ namespace SFG
 		resource_handle		  _default_gui_sdf_mat	   = {};
 		uint32				  _max_load_priority	   = 0;
 		uint32				  _dynamic_sampler_count   = 0;
+
+		// raws for defaults
+		texture_raw _dummy_color_raw   = {};
+		texture_raw _dummy_orm_raw	   = {};
+		texture_raw _dummy_normal_raw  = {};
+		uint8*		_dummy_color_data  = nullptr;
+		uint8*		_dummy_normal_data = nullptr;
+		uint8*		_dummy_orm_data	   = nullptr;
 	};
 }

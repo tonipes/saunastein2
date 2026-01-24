@@ -78,9 +78,10 @@ namespace SFG
 		string name = "";
 #endif
 		static_vector<texture_buffer, MAX_TEXTURE_MIPS> buffers;
-		vector2ui16										size			  = {};
-		uint32											intermediate_size = 0;
-		uint8											format			  = 0;
+		vector2ui16										size			   = {};
+		uint32											intermediate_size  = 0;
+		uint8											format			   = 0;
+		bool											buffers_persistent = false;
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);
@@ -98,7 +99,8 @@ namespace SFG
 	{
 		vector<compile_variant> compile_variants;
 		vector<pso_variant>		pso_variants;
-		gfx_id					layout = 0;
+		gfx_id					layout			 = 0;
+		bool					persistent_blobs = false;
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);

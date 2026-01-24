@@ -28,6 +28,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "editor/gui/editor_gui_builder.hpp"
 #include "editor/gui/editor_gui_user_data.hpp"
 #include "editor/gui/editor_gizmo_controls.hpp"
+#include "editor/gui/editor_gizmo_2d.hpp"
 
 namespace vekt
 {
@@ -82,6 +83,7 @@ namespace SFG
 		void			  init(vekt::builder* b);
 		void			  uninit();
 		void			  draw(const vector2ui16& window_size);
+		bool			  on_mouse_move(const vector2& p);
 		bool			  on_mouse_event(const window_event& ev);
 		bool			  on_key_event(const window_event& ev);
 		const vector2ui16 get_world_size() const;
@@ -101,6 +103,7 @@ namespace SFG
 
 		static vekt::input_event_result on_widget_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase);
 		static void						on_toggle_button(void* callback_ud, vekt::builder* b, vekt::id id, bool toggled);
+		static void						on_widget_draw(vekt::builder* b, vekt::id widget);
 
 		// -----------------------------------------------------------------------------
 		// accessors
@@ -142,6 +145,7 @@ namespace SFG
 		vekt::builder*		  _builder		  = nullptr;
 		editor_gui_user_data  _user_data	  = {};
 		editor_gizmo_controls _gizmo_controls = {};
+		editor_gizmo_2d		  _gizmo_2d		  = {};
 
 		vekt::id _world_viewer		= NULL_WIDGET_ID;
 		vekt::id _btn_file			= NULL_WIDGET_ID;

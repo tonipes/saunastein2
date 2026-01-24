@@ -26,6 +26,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "editor_renderer.hpp"
 #include "data/vector_util.hpp"
+#include "app/engine_resources.hpp"
 
 // math
 #include "math/vector2.hpp"
@@ -37,7 +38,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gfx/common/descriptions.hpp"
 #include "gfx/common/commands.hpp"
 #include "gfx/util/gfx_util.hpp"
-#include "gfx/engine_shaders.hpp"
 #include "gfx/texture_queue.hpp"
 #include "gfx/common/render_target_definitions.hpp"
 
@@ -54,32 +54,31 @@ namespace SFG
 		_gfx_data.screen_size	= window.get_size();
 
 		create_textures(_gfx_data.screen_size);
-
 		// Shaders
-		_shaders.gui_default = engine_shaders::get().get_shader(engine_shader_type::engine_shader_type_gui_default).get_hw();
-		_shaders.gui_sdf	 = engine_shaders::get().get_shader(engine_shader_type::engine_shader_type_gui_sdf).get_hw();
-		_shaders.gui_text	 = engine_shaders::get().get_shader(engine_shader_type::engine_shader_type_gui_text).get_hw();
-		_shaders.gui_texture = engine_shaders::get().get_shader(engine_shader_type::engine_shader_type_gui_texture).get_hw();
+		_shaders.gui_default = engine_resources::get().get_shader_direct(engine_resource_ident::shader_gui_default).get_hw();
+		_shaders.gui_sdf	 = engine_resources::get().get_shader_direct(engine_resource_ident::shader_gui_sdf).get_hw();
+		_shaders.gui_text	 = engine_resources::get().get_shader_direct(engine_resource_ident::shader_gui_text).get_hw();
+		_shaders.gui_texture = engine_resources::get().get_shader_direct(engine_resource_ident::shader_gui_texture).get_hw();
 
 #ifdef SFG_TOOLMODE
-		engine_shaders::get().add_reload_listener([this](engine_shader_type type, shader_direct& sh) {
-			if (type == engine_shader_type::engine_shader_type_gui_default)
+		engine_resources::get().add_shader_reload_listener([this](engine_resource_ident type, shader_direct& sh) {
+			if (type == engine_resource_ident::shader_gui_default)
 			{
 				_shaders.gui_default = sh.get_hw();
 				return;
 			}
-			if (type == engine_shader_type::engine_shader_type_gui_text)
+			if (type == engine_resource_ident::shader_gui_text)
 			{
 				_shaders.gui_text = sh.get_hw();
 				return;
 			}
-			if (type == engine_shader_type::engine_shader_type_gui_sdf)
+			if (type == engine_resource_ident::shader_gui_sdf)
 			{
 				_shaders.gui_sdf = sh.get_hw();
 				return;
 			}
 
-			if (type == engine_shader_type::engine_shader_type_gui_texture)
+			if (type == engine_resource_ident::shader_gui_texture)
 			{
 				_shaders.gui_texture = sh.get_hw();
 				return;
@@ -537,7 +536,6 @@ namespace SFG
 	{
 		editor_renderer* r		 = static_cast<editor_renderer*>(user_data);
 		gfx_backend*	 backend = gfx_backend::get();
-		engine_shaders&	 es		 = engine_shaders::get();
 
 		atlas_ref ref		  = {};
 		ref.atlas			  = atlas;
@@ -582,7 +580,7 @@ namespace SFG
 
 				static_vector<texture_buffer, MAX_TEXTURE_MIPS> buffers;
 				buffers.push_back(ref.buffer);
-				r->_gfx_data.texture_queue->add_request(buffers, ref.texture, ref.intermediate_buffer, 0, resource_state::resource_state_ps_resource);
+				r->_gfx_data.texture_queue->add_request(buffers, ref.texture, ref.intermediate_buffer, 0, resource_state::resource_state_ps_resource, false);
 				return;
 			}
 		}

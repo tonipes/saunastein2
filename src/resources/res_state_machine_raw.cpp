@@ -129,6 +129,7 @@ namespace SFG
 		stream >> parameters;
 		stream >> states;
 		stream >> transitions;
+		SFG_INFO("created from buffer: {0}", name);
 	}
 
 #ifdef SFG_TOOLMODE
@@ -260,12 +261,12 @@ namespace SFG
 
 	void to_json(json& j, const res_state_machine_mask_raw& m)
 	{
-		j["name"]	= m.name;
+		j["name"] = m.name;
 	}
 
 	void from_json(const json& j, res_state_machine_mask_raw& m)
 	{
-		m.name	 = j.value<string>("name", "");
+		m.name = j.value<string>("name", "");
 	}
 
 	bool res_state_machine_raw::load_from_file(const char* relative_file, const char* base_path)
@@ -273,7 +274,7 @@ namespace SFG
 		const string target_path = base_path + string(relative_file);
 		if (!file_system::exists(target_path.c_str()))
 		{
-			SFG_ERR("File don't exist! {0}", target_path.c_str());
+			SFG_ERR("file doesn't exists: {0}", target_path.c_str());
 			return false;
 		}
 
@@ -292,11 +293,11 @@ namespace SFG
 		}
 		catch (std::exception e)
 		{
-			SFG_ERR("Failed loading anim_state_machine: {0}", e.what());
+			SFG_ERR("failed loading: {0}", e.what());
 			return false;
 		}
 
-		SFG_INFO("Created anim_state_machine from file: {0}", target_path.c_str());
+		SFG_INFO("created from file: {0}", target_path.c_str());
 		return true;
 	}
 

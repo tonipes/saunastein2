@@ -26,6 +26,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "render_pass_bloom.hpp"
 #include "math/math.hpp"
+#include "app/engine_resources.hpp"
 
 // gfx
 #include "gfx/backend/backend.hpp"
@@ -34,7 +35,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gfx/util/gfx_util.hpp"
 #include "gfx/proxy/proxy_manager.hpp"
 #include "gfx/common/barrier_description.hpp"
-#include "gfx/engine_shaders.hpp"
 #include "gfx/common/render_target_definitions.hpp"
 #include "gfx/world/view.hpp"
 #include "gfx/texture_queue.hpp"
@@ -58,18 +58,17 @@ namespace SFG
 		}
 
 		create_textures(size);
-
-		_shader_bloom_downsample = engine_shaders::get().get_shader(engine_shader_type::engine_shader_type_bloom_downsample).get_hw();
-		_shader_bloom_upsample	 = engine_shaders::get().get_shader(engine_shader_type::engine_shader_type_bloom_upsample).get_hw();
+		_shader_bloom_downsample = engine_resources::get().get_shader_direct(engine_resource_ident::shader_bloom_downsample).get_hw();
+		_shader_bloom_upsample	 = engine_resources::get().get_shader_direct(engine_resource_ident::shader_bloom_upsample).get_hw();
 
 #ifdef SFG_TOOLMODE
-		engine_shaders::get().add_reload_listener([this](engine_shader_type type, shader_direct& sh) {
-			if (type == engine_shader_type::engine_shader_type_bloom_downsample)
+		engine_resources::get().add_shader_reload_listener([this](engine_resource_ident type, shader_direct& sh) {
+			if (type == engine_resource_ident::shader_bloom_downsample)
 			{
 				_shader_bloom_downsample = sh.get_hw();
 				return;
 			}
-			if (type == engine_shader_type::engine_shader_type_bloom_upsample)
+			if (type == engine_resource_ident::shader_bloom_upsample)
 			{
 				_shader_bloom_upsample = sh.get_hw();
 				return;

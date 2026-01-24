@@ -213,7 +213,7 @@ namespace SFG
 		}
 
 		{
-			const float thickness	  = 0.1f;
+			const float thickness	  = 0.05f;
 			const color col_phy		  = color::red;
 			const color col_light	  = color::yellow;
 			const color col_light_alt = color::red;
@@ -221,40 +221,40 @@ namespace SFG
 
 			world_debug_rendering& debug_rendering = w.get_debug_rendering();
 
-			cm.view<comp_ambient>([&](comp_ambient& c) {
-				debug_rendering.draw_icon(em.get_entity_position_abs(c.get_header().entity), col_icon, ICON_AMBIENT);
-				return comp_view_result::cont;
-			});
-
-			cm.view<comp_audio>([&](comp_audio& c) {
-				debug_rendering.draw_icon(em.get_entity_position_abs(c.get_header().entity), col_icon, ICON_AUDIO);
-				return comp_view_result::cont;
-			});
-			cm.view<comp_camera>([&](comp_camera& c) {
-				if (c.get_header().entity == editor::get().get_camera().get_entity())
-					return comp_view_result::cont;
-
-				debug_rendering.draw_icon(em.get_entity_position_abs(c.get_header().entity), col_icon, ICON_CAMERA);
-				return comp_view_result::cont;
-			});
-
-			cm.view<comp_point_light>([&](comp_point_light& c) {
-				debug_rendering.draw_icon(em.get_entity_position_abs(c.get_header().entity), col_icon, ICON_LIGHT_BULB);
-				return comp_view_result::cont;
-			});
-			cm.view<comp_dir_light>([&](comp_dir_light& c) {
-				debug_rendering.draw_icon(em.get_entity_position_abs(c.get_header().entity), col_icon, ICON_SUN);
-				return comp_view_result::cont;
-			});
-			cm.view<comp_spot_light>([&](comp_spot_light& c) {
-				debug_rendering.draw_icon(em.get_entity_position_abs(c.get_header().entity), col_icon, ICON_SPOT);
-				return comp_view_result::cont;
-			});
-
-			cm.view<comp_particle_emitter>([&](comp_particle_emitter& c) {
-				debug_rendering.draw_icon(em.get_entity_position_abs(c.get_header().entity), col_icon, ICON_EXPLOSION);
-				return comp_view_result::cont;
-			});
+		//	cm.view<comp_ambient>([&](comp_ambient& c) {
+		//		debug_rendering.draw_icon(em.get_entity_position_abs(c.get_header().entity), col_icon, ICON_AMBIENT);
+		//		return comp_view_result::cont;
+		//	});
+		//
+		//	cm.view<comp_audio>([&](comp_audio& c) {
+		//		debug_rendering.draw_icon(em.get_entity_position_abs(c.get_header().entity), col_icon, ICON_AUDIO);
+		//		return comp_view_result::cont;
+		//	});
+		//	cm.view<comp_camera>([&](comp_camera& c) {
+		//		if (c.get_header().entity == editor::get().get_camera().get_entity())
+		//			return comp_view_result::cont;
+		//
+		//		debug_rendering.draw_icon(em.get_entity_position_abs(c.get_header().entity), col_icon, ICON_CAMERA);
+		//		return comp_view_result::cont;
+		//	});
+		//
+		//	cm.view<comp_point_light>([&](comp_point_light& c) {
+		//		debug_rendering.draw_icon(em.get_entity_position_abs(c.get_header().entity), col_icon, ICON_LIGHT_BULB);
+		//		return comp_view_result::cont;
+		//	});
+		//	cm.view<comp_dir_light>([&](comp_dir_light& c) {
+		//		debug_rendering.draw_icon(em.get_entity_position_abs(c.get_header().entity), col_icon, ICON_SUN);
+		//		return comp_view_result::cont;
+		//	});
+		//	cm.view<comp_spot_light>([&](comp_spot_light& c) {
+		//		debug_rendering.draw_icon(em.get_entity_position_abs(c.get_header().entity), col_icon, ICON_SPOT);
+		//		return comp_view_result::cont;
+		//	});
+		//
+		//	cm.view<comp_particle_emitter>([&](comp_particle_emitter& c) {
+		//		debug_rendering.draw_icon(em.get_entity_position_abs(c.get_header().entity), col_icon, ICON_EXPLOSION);
+		//		return comp_view_result::cont;
+		//	});
 
 			/*
 			*
@@ -354,8 +354,8 @@ namespace SFG
 				else if (dd.type == debug_draw_type::spot_light)
 				{
 					const comp_spot_light& c = cm.get_component<comp_spot_light>(dd.component);
-					debug_rendering.draw_oriented_cone(selected_pos, selected_rot.get_forward(), c.get_range(), c.get_inner_cone(), col_light_alt, thickness, 24);
-					debug_rendering.draw_oriented_cone(selected_pos, selected_rot.get_forward(), c.get_range(), c.get_outer_cone(), col_light, thickness, 24);
+					debug_rendering.draw_oriented_cone(selected_pos, selected_rot.get_forward(), c.get_range(), c.get_inner_cone(), col_light_alt, thickness, 12);
+					debug_rendering.draw_oriented_cone(selected_pos, selected_rot.get_forward(), c.get_range(), c.get_outer_cone(), col_light, thickness, 12);
 				}
 			}
 		}

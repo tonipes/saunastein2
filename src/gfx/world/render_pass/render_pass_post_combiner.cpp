@@ -25,6 +25,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "render_pass_post_combiner.hpp"
+#include "app/engine_resources.hpp"
 
 // gfx
 #include "gfx/backend/backend.hpp"
@@ -33,7 +34,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gfx/util/gfx_util.hpp"
 #include "gfx/proxy/proxy_manager.hpp"
 #include "gfx/common/barrier_description.hpp"
-#include "gfx/engine_shaders.hpp"
 #include "gfx/common/render_target_definitions.hpp"
 #include "gfx/world/view.hpp"
 
@@ -59,11 +59,11 @@ namespace SFG
 #ifdef SFG_TOOLMODE
 		variant_flags |= shader_variant_flags::variant_flag_selection_outline;
 #endif
-		_shader_post_combiner = engine_shaders::get().get_shader(engine_shader_type::engine_shader_type_post_combiner).get_hw(variant_flags);
+		_shader_post_combiner = engine_resources::get().get_shader_direct(engine_resource_ident::shader_post_combiner).get_hw(variant_flags);
 
 #ifdef SFG_TOOLMODE
-		engine_shaders::get().add_reload_listener([this, variant_flags](engine_shader_type type, shader_direct& sh) {
-			if (type == engine_shader_type::engine_shader_type_post_combiner)
+		engine_resources::get().add_shader_reload_listener([&](engine_resource_ident type, shader_direct& sh) {
+			if (type == engine_resource_ident::shader_post_combiner)
 			{
 				_shader_post_combiner = sh.get_hw(variant_flags);
 				return;

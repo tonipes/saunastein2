@@ -221,7 +221,6 @@ namespace SFG
 				.vertex_size			 = obj.is_skinned ? static_cast<uint16>(sizeof(vertex_skinned)) : static_cast<uint16>(sizeof(vertex_static)),
 				.priority				 = proxy_material.draw_priority,
 			});
-			break; // render only the first matching object
 		}
 	}
 }

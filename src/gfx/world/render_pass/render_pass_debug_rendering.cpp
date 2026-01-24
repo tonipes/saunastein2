@@ -25,8 +25,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "render_pass_debug_rendering.hpp"
-#include "resources/vertex.hpp"
 #include "math/math.hpp"
+#include "app/engine_resources.hpp"
 
 // gfx
 #include "gfx/backend/backend.hpp"
@@ -38,9 +38,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gfx/world/view.hpp"
 #include "gfx/world/renderable.hpp"
 #include "gfx/world/renderable_collector.hpp"
-#include "gfx/engine_shaders.hpp"
-
-#include "resources/vertex.hpp"
 
 #include "world/world.hpp"
 #include "physics/physics_world.hpp"
@@ -154,39 +151,39 @@ namespace SFG
 				});
 		}
 
-		_shader_debug_triangle	  = engine_shaders::get().get_shader(engine_shader_type::engine_shader_debug_default).get_hw();
-		_shader_debug_line		  = engine_shaders::get().get_shader(engine_shader_type::engine_shader_debug_line).get_hw();
-		_shader_debug_gui_default = engine_shaders::get().get_shader(engine_shader_type::engine_shader_type_gui_default).get_hw(shader_variant_flags::variant_flag_gui_3d);
-		_shader_debug_gui_text	  = engine_shaders::get().get_shader(engine_shader_type::engine_shader_type_gui_text).get_hw(shader_variant_flags::variant_flag_gui_3d);
-		_shader_debug_gui_sdf	  = engine_shaders::get().get_shader(engine_shader_type::engine_shader_type_gui_sdf).get_hw(shader_variant_flags::variant_flag_gui_3d);
+		_shader_debug_triangle	  = engine_resources::get().get_shader_direct(engine_resource_ident::shader_debug_triangle).get_hw();
+		_shader_debug_line		  = engine_resources::get().get_shader_direct(engine_resource_ident::shader_debug_line).get_hw();
+		_shader_debug_gui_default = engine_resources::get().get_shader_direct(engine_resource_ident::shader_gui_default).get_hw(shader_variant_flags::variant_flag_gui_3d);
+		_shader_debug_gui_text	  = engine_resources::get().get_shader_direct(engine_resource_ident::shader_gui_text).get_hw(shader_variant_flags::variant_flag_gui_3d);
+		_shader_debug_gui_sdf	  = engine_resources::get().get_shader_direct(engine_resource_ident::shader_gui_sdf).get_hw(shader_variant_flags::variant_flag_gui_3d);
 
 #ifdef SFG_TOOLMODE
-		engine_shaders::get().add_reload_listener([this](engine_shader_type type, shader_direct& sh) {
-			if (type == engine_shader_type::engine_shader_debug_default)
+		engine_resources::get().add_shader_reload_listener([this](engine_resource_ident type, shader_direct& sh) {
+			if (type == engine_resource_ident::shader_debug_triangle)
 			{
 				_shader_debug_triangle = sh.get_hw();
 				return;
 			}
 
-			if (type == engine_shader_type::engine_shader_debug_line)
+			if (type == engine_resource_ident::shader_debug_line)
 			{
 				_shader_debug_line = sh.get_hw();
 				return;
 			}
 
-			if (type == engine_shader_type::engine_shader_type_gui_default)
+			if (type == engine_resource_ident::shader_gui_default)
 			{
 				_shader_debug_gui_default = sh.get_hw(shader_variant_flags::variant_flag_gui_3d);
 				return;
 			}
 
-			if (type == engine_shader_type::engine_shader_type_gui_text)
+			if (type == engine_resource_ident::shader_gui_text)
 			{
 				_shader_debug_gui_text = sh.get_hw(shader_variant_flags::variant_flag_gui_3d);
 				return;
 			}
 
-			if (type == engine_shader_type::engine_shader_type_gui_sdf)
+			if (type == engine_resource_ident::shader_gui_sdf)
 			{
 				_shader_debug_gui_sdf = sh.get_hw(shader_variant_flags::variant_flag_gui_3d);
 				return;

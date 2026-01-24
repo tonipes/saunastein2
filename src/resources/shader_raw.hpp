@@ -43,7 +43,8 @@ namespace SFG
 		string					source			 = "";
 		vector<compile_variant> compile_variants = {};
 		vector<pso_variant>		pso_variants	 = {};
-		uint8					is_compute		 = 0;
+		bool					is_compute		 = false;
+		bool					persistent_blobs = false;
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);

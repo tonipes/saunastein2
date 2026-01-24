@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -52,7 +52,13 @@ namespace SFG
 	{
 		LOCK_GUARD(_mtx);
 
-		const string msgStr = "[" + string(get_level(level)) + "] " + msg + "\n";
+		log_impl(level, nullptr, msg);
+	}
+
+	void log::log_impl(log_level level, const char* func, const char* msg)
+	{
+		string msg_str = func == nullptr ? (string(msg)) : (string(func) + "() -> " + string(msg));
+		msg_str += "\n";
 
 #ifdef SFG_DUMP_LOG_TRACE
 		if (level == log_level::error || level == log_level::warning)
@@ -79,21 +85,10 @@ namespace SFG
 
 		hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 		SetConsoleTextAttribute(hConsole, color);
-		WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), msgStr.c_str(), static_cast<DWORD>(strlen(msgStr.c_str())), NULL, NULL);
+		WriteConsole(GetStdHandle(STD_OUTPUT_HANDLE), msg_str.c_str(), static_cast<DWORD>(strlen(msg_str.c_str())), NULL, NULL);
 #else
-		std::cout << msgStr.c_str();
+		std::cout << msg_str.c_str();
 #endif
-
-		/*
-				ostream		stream;
-				const uint8 dt		  = (uint8)pipe_data_type::log;
-				const uint8 log_level = (uint8)level;
-				stream << dt;
-				stream << level;
-				stream.write_raw((uint8*)msg, strlen(msg));
-				process::send_pipe_data(stream.get_raw(), stream.get_size());
-				stream.destroy();
-		*/
 
 		for (const listener& l : _listeners)
 			l.f(level, msg, l.user_data);

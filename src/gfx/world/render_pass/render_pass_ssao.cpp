@@ -26,6 +26,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "render_pass_ssao.hpp"
 #include "math/math.hpp"
+#include "app/engine_resources.hpp"
 
 // gfx
 #include "gfx/backend/backend.hpp"
@@ -34,7 +35,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gfx/util/gfx_util.hpp"
 #include "gfx/proxy/proxy_manager.hpp"
 #include "gfx/common/barrier_description.hpp"
-#include "gfx/engine_shaders.hpp"
 #include "gfx/common/render_target_definitions.hpp"
 #include "gfx/world/view.hpp"
 #include "gfx/texture_queue.hpp"
@@ -96,7 +96,7 @@ namespace SFG
 
 		static_vector<texture_buffer, MAX_TEXTURE_MIPS> buffers;
 		buffers.push_back({.pixels = noise_data, .size = noise_size, .bpp = noise_bpp});
-		tq.add_request(buffers, _noise_tex, _noise_tex_intermediate, false, resource_state::resource_state_non_ps_resource);
+		tq.add_request(buffers, _noise_tex, _noise_tex_intermediate, false, resource_state::resource_state_non_ps_resource, false);
 
 		// ofd
 		for (uint32 i = 0; i < BACK_BUFFER_COUNT; i++)
@@ -109,17 +109,18 @@ namespace SFG
 
 		create_textures(size);
 
-		_shader_hbao		  = engine_shaders::get().get_shader(engine_shader_type::engine_shader_type_hbao).get_hw();
-		_shader_hbao_upsample = engine_shaders::get().get_shader(engine_shader_type::engine_shader_type_hbao_upsample).get_hw();
+		_shader_hbao		  = engine_resources::get().get_shader_direct(engine_resource_ident::shader_hbao).get_hw();
+		_shader_hbao_upsample = engine_resources::get().get_shader_direct(engine_resource_ident::shader_hbao_upsample).get_hw();
 
 #ifdef SFG_TOOLMODE
-		engine_shaders::get().add_reload_listener([this](engine_shader_type type, shader_direct& sh) {
-			if (type == engine_shader_type::engine_shader_type_hbao)
+		engine_resources::get().add_shader_reload_listener([this](engine_resource_ident type, shader_direct& sh) {
+			if (type == engine_resource_ident::shader_hbao)
 			{
 				_shader_hbao = sh.get_hw();
 				return;
 			}
-			if (type == engine_shader_type::engine_shader_type_hbao_upsample)
+
+			if (type == engine_resource_ident::shader_hbao_upsample)
 			{
 				_shader_hbao_upsample = sh.get_hw();
 				return;

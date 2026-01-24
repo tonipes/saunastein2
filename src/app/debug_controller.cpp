@@ -25,6 +25,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "debug_controller.hpp"
+#include "app/engine_resources.hpp"
 
 // math
 #include "math/vector2ui.hpp"
@@ -48,7 +49,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gfx/common/commands.hpp"
 #include "gfx/util/gfx_util.hpp"
 #include "gfx/texture_queue.hpp"
-#include "gfx/engine_shaders.hpp"
 #include "gfx/shared_cbv.hpp"
 
 // misc
@@ -62,6 +62,9 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "platform/window_common.hpp"
 #include "platform/process.hpp"
 #include "platform/window.hpp"
+
+// resources
+#include "resources/font_raw.hpp"
 
 // io
 #include "io/log.hpp"
@@ -433,32 +436,32 @@ namespace SFG
 
 		gfx_backend* backend = gfx_backend::get();
 
-		_shaders.gui_default				   = engine_shaders::get().get_shader(engine_shader_type::engine_shader_type_gui_default).get_hw();
-		_shaders.gui_sdf					   = engine_shaders::get().get_shader(engine_shader_type::engine_shader_type_gui_sdf).get_hw();
-		_shaders.gui_text					   = engine_shaders::get().get_shader(engine_shader_type::engine_shader_type_gui_text).get_hw();
-		_shaders.debug_controller_console_draw = engine_shaders::get().get_shader(engine_shader_type::engine_shader_type_debug_console).get_hw();
+		_shaders.gui_default				   = engine_resources::get().get_shader_direct(engine_resource_ident::shader_gui_default).get_hw();
+		_shaders.gui_sdf					   = engine_resources::get().get_shader_direct(engine_resource_ident::shader_gui_sdf).get_hw();
+		_shaders.gui_text					   = engine_resources::get().get_shader_direct(engine_resource_ident::shader_gui_text).get_hw();
+		_shaders.debug_controller_console_draw = engine_resources::get().get_shader_direct(engine_resource_ident::shader_debug_console).get_hw();
 
 #ifdef SFG_TOOLMODE
-		engine_shaders::get().add_reload_listener([this](engine_shader_type type, shader_direct& sh) {
-			if (type == engine_shader_type::engine_shader_type_gui_default)
+		engine_resources::get().add_shader_reload_listener([this](engine_resource_ident type, shader_direct& sh) {
+			if (type == engine_resource_ident::shader_gui_default)
 			{
 				_shaders.gui_default = sh.get_hw();
 				return;
 			}
 
-			if (type == engine_shader_type::engine_shader_type_gui_text)
+			if (type == engine_resource_ident::shader_gui_text)
 			{
 				_shaders.gui_text = sh.get_hw();
 				return;
 			}
 
-			if (type == engine_shader_type::engine_shader_type_gui_sdf)
+			if (type == engine_resource_ident::shader_gui_sdf)
 			{
 				_shaders.gui_sdf = sh.get_hw();
 				return;
 			}
 
-			if (type == engine_shader_type::engine_shader_type_debug_console)
+			if (type == engine_resource_ident::shader_debug_console)
 			{
 				_shaders.debug_controller_console_draw = sh.get_hw();
 				return;
@@ -538,14 +541,11 @@ namespace SFG
 		_vekt_data.font_manager->set_atlas_updated_callback(on_atlas_updated);
 		_vekt_data.font_manager->set_atlas_destroyed_callback(on_atlas_destroyed);
 
-#ifdef SFG_TOOLMODE
-		const string p		  = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/VT323-Regular.ttf");
-		const string p2		  = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/icons.ttf");
-		_vekt_data.font_debug = _vekt_data.font_manager->load_font_from_file(p.c_str(), get_font_size());
-		_vekt_data.font_icon  = _vekt_data.font_manager->load_font_from_file(p2.c_str(), 12, 32, 128, vekt::font_type::sdf);
-#else
-		SFG_NOTIMPLEMENTED();
-#endif
+		font_raw* def_font_raw	= reinterpret_cast<font_raw*>(engine_resources::get().get_def(engine_resource_ident::font_debug_console_default).raw);
+		font_raw* icon_font_raw = reinterpret_cast<font_raw*>(engine_resources::get().get_def(engine_resource_ident::font_debug_console_icons).raw);
+
+		_vekt_data.font_debug = _vekt_data.font_manager->load_font(reinterpret_cast<unsigned char*>(def_font_raw->font_data.data()), def_font_raw->font_data.size(), get_font_size(), 32, 128);
+		_vekt_data.font_icon  = _vekt_data.font_manager->load_font(reinterpret_cast<unsigned char*>(icon_font_raw->font_data.data()), icon_font_raw->font_data.size(), 12, 32, 128, vekt::font_type::sdf);
 
 		_vekt_data.console_texts.reserve(MAX_CONSOLE_TEXT);
 		_input_field.history.reserve(MAX_CONSOLE_TEXT);
@@ -968,7 +968,7 @@ namespace SFG
 
 		static_vector<texture_buffer, MAX_TEXTURE_MIPS> buffers;
 		buffers.push_back(ref.buffer);
-		controller->_gfx_data.texture_queue->add_request(buffers, ref.texture, ref.intermediate_buffer, 0, resource_state::resource_state_ps_resource);
+		controller->_gfx_data.texture_queue->add_request(buffers, ref.texture, ref.intermediate_buffer, 0, resource_state::resource_state_ps_resource, false);
 	}
 
 	void debug_controller::on_atlas_destroyed(vekt::atlas* atlas, void* user_data)

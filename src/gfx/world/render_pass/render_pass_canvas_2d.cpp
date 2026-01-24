@@ -25,7 +25,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "render_pass_canvas_2d.hpp"
-#include "resources/vertex.hpp"
 #include "math/math.hpp"
 
 // gfx
@@ -38,7 +37,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gfx/world/view.hpp"
 #include "gfx/world/renderable.hpp"
 #include "gfx/world/renderable_collector.hpp"
-#include "gfx/engine_shaders.hpp"
 #include "gui/vekt.hpp"
 
 #include <tracy/Tracy.hpp>

@@ -62,6 +62,7 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 
 		bool	on_mouse_event(const window_event& ev);
+		bool	on_mouse_move(const vector2& p);
 		bool	on_key_event(const window_event& ev);
 		vector2 get_world_size();
 		void	on_exited_playmode();

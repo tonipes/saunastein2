@@ -125,6 +125,7 @@ namespace SFG
 			stream.read_to_raw(component_buffer.get_raw(), sz);
 			component_buffer.shrink(sz);
 		}
+		SFG_INFO("created from buffer: {0}", name);
 	}
 
 	void entity_template_raw::destroy()
@@ -253,7 +254,7 @@ namespace SFG
 		const string target_path = base_path + string(relative_file);
 		if (!file_system::exists(target_path.c_str()))
 		{
-			SFG_ERR("File don't exist! {0}", target_path.c_str());
+			SFG_ERR("file doesn't exists: {0}", target_path.c_str());
 			return false;
 		}
 
@@ -268,11 +269,11 @@ namespace SFG
 		}
 		catch (std::exception e)
 		{
-			SFG_ERR("Failed loading entity_template: {0}", e.what());
+			SFG_ERR("failed loading: {0}", e.what());
 			return false;
 		}
 
-		SFG_INFO("Created entity_template from file: {0}", target_path);
+		SFG_INFO("created from file: {0}", target_path);
 		return true;
 	}
 

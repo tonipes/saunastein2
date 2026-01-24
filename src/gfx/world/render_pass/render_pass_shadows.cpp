@@ -25,6 +25,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "render_pass_shadows.hpp"
+
+// gfx
 #include "gfx/backend/backend.hpp"
 #include "gfx/common/descriptions.hpp"
 #include "gfx/common/commands.hpp"
@@ -32,16 +34,21 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gfx/buffer_queue.hpp"
 #include "gfx/proxy/proxy_manager.hpp"
 #include "gfx/renderer.hpp"
-#include "gfx/engine_shaders.hpp"
 #include "gfx/common/render_target_definitions.hpp"
 #include "gfx/util/shadow_util.hpp"
 #include "gfx/world/renderable_collector.hpp"
+
+// misc
 #include "world/world.hpp"
 #include "game/game_max_defines.hpp"
-#include "resources/vertex.hpp"
+
+// math
 #include "math/vector2ui16.hpp"
 #include "math/math.hpp"
+
+// resources
 #include "resources/shader_raw.hpp"
+#include "resources/vertex.hpp"
 
 #include <tracy/Tracy.hpp>
 

@@ -51,7 +51,7 @@ namespace SFG
 		stream >> desc;
 		stream >> name;
 
-		SFG_INFO("Created sampler from buffer: {0}", name);
+		SFG_INFO("created from buffer: {0}", name);
 	}
 
 #ifdef SFG_TOOLMODE
@@ -60,7 +60,7 @@ namespace SFG
 		const string target_path = base_path + string(relative_file);
 		if (!file_system::exists(target_path.c_str()))
 		{
-			SFG_ERR("File don't exist! {0}", target_path.c_str());
+			SFG_ERR("file doesn't exists: {0}", target_path.c_str());
 			return false;
 		}
 
@@ -74,11 +74,11 @@ namespace SFG
 		}
 		catch (std::exception e)
 		{
-			SFG_ERR("Failed loading sampler: {0}", e.what());
+			SFG_ERR("failed loading: {0}", e.what());
 			return false;
 		}
 
-		SFG_INFO("Created sampler from file: {0}", name);
+		SFG_INFO("created from file: {0}", name);
 		return true;
 	}
 

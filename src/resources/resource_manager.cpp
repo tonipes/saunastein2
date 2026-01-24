@@ -29,17 +29,17 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "data/istream.hpp"
 #include "data/pair.hpp"
 #include "game/game_max_defines.hpp"
+#include "app/engine_resources.hpp"
 
 // resources
 #include "resources/texture.hpp"
-#include "resources/texture_raw.hpp"
 #include "resources/texture_sampler.hpp"
 #include "resources/texture_sampler_raw.hpp"
-#include "resources/shader_raw.hpp"
-#include "resources/material_raw.hpp"
 #include "resources/particle_properties.hpp"
 #include "resources/particle_properties_raw.hpp"
 #include "resources/physical_material.hpp"
+#include "resources/material_raw.hpp"
+#include "resources/shader_raw.hpp"
 
 #ifdef SFG_TOOLMODE
 #include "serialization/serialization.hpp"
@@ -64,13 +64,72 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <future>
 namespace SFG
 {
+
 	resource_manager::resource_manager(world& w) : _world(w)
 	{
 		_aux_memory.init(MAX_WORLD_RESOURCES_AUX_MEMORY);
+
+		// dummy texture raw
+		{
+			_dummy_color_raw.name  = "dummy_color";
+			_dummy_normal_raw.name = "dummy_normal";
+			_dummy_orm_raw.name	   = "dummy_orm";
+
+			_dummy_color_data  = reinterpret_cast<uint8*>(SFG_MALLOC(4));
+			_dummy_normal_data = reinterpret_cast<uint8*>(SFG_MALLOC(4));
+			_dummy_orm_data	   = reinterpret_cast<uint8*>(SFG_MALLOC(4));
+
+			uint8 color_data[4]	 = {255, 255, 255, 255};
+			uint8 normal_data[4] = {128, 128, 255, 255};
+			uint8 orm_data[4]	 = {255, 255, 0, 255};
+
+			if (_dummy_color_data)
+				SFG_MEMCPY(_dummy_color_data, color_data, 4);
+
+			if (_dummy_normal_data)
+				SFG_MEMCPY(_dummy_normal_data, normal_data, 4);
+
+			if (_dummy_orm_data)
+				SFG_MEMCPY(_dummy_orm_data, orm_data, 4);
+
+			_dummy_color_raw.load_from_data(_dummy_color_data, vector2ui16(1, 1), static_cast<uint8>(format::r8g8b8a8_srgb), false);
+			_dummy_normal_raw.load_from_data(_dummy_normal_data, vector2ui16(1, 1), static_cast<uint8>(format::r8g8b8a8_unorm), false);
+			_dummy_orm_raw.load_from_data(_dummy_orm_data, vector2ui16(1, 1), static_cast<uint8>(format::r8g8b8a8_unorm), false);
+			_dummy_color_raw.buffers_persistent	 = true;
+			_dummy_normal_raw.buffers_persistent = true;
+			_dummy_orm_raw.buffers_persistent	 = true;
+		}
+
+#ifdef SFG_TOOLMODE
+		const string engine_cache = editor_settings::get()._resource_cache;
+
+		auto load = [&](auto& raw, const char* path) {
+			if (!raw.load_from_cache(engine_cache.c_str(), path, ".stkcache"))
+			{
+				raw.load_from_file(path, SFG_ROOT_DIRECTORY);
+				raw.save_to_cache(engine_cache.c_str(), SFG_ROOT_DIRECTORY, ".stkcache");
+			}
+		};
+
+#else
+		package& pkg = package_manager::get().get_package_engine_data();
+
+		auto load = [&](auto& raw, const char* path) {
+			istream& stream = pkg.get_stream(path);
+			raw.deserialize(stream);
+		};
+#endif
 	}
 
 	resource_manager::~resource_manager()
 	{
+		// dummies
+		{
+			SFG_FREE(_dummy_color_data);
+			SFG_FREE(_dummy_normal_data);
+			SFG_FREE(_dummy_orm_data);
+		}
+
 		for (const cache_storage& stg : _storages)
 			delete stg.cache_ptr;
 
@@ -83,82 +142,36 @@ namespace SFG
 
 	void resource_manager::init()
 	{
-#ifdef SFG_TOOLMODE
-		_file_watch.set_callback(resource_manager::on_watched_resource_modified, this);
-		_file_watch.reserve(250);
-		_file_watch.set_tick_interval(15);
-#endif
+		shader_raw&	  sh_raw_gbuffer   = engine_resources::get().get_shader_raw(engine_resource_ident::shader_world_gbuffer);
+		shader_raw&	  sh_raw_fw		   = engine_resources::get().get_shader_raw(engine_resource_ident::shader_world_forward);
+		shader_raw&	  sh_raw_gui	   = engine_resources::get().get_shader_raw(engine_resource_ident::shader_world_gui_default);
+		shader_raw&	  sh_raw_gui_text  = engine_resources::get().get_shader_raw(engine_resource_ident::shader_world_gui_text);
+		shader_raw&	  sh_raw_gui_sdf   = engine_resources::get().get_shader_raw(engine_resource_ident::shader_world_gui_sdf);
+		material_raw& mat_raw_gui	   = engine_resources::get().get_material_raw(engine_resource_ident::mat_world_gui_default);
+		material_raw& mat_raw_gui_sdf  = engine_resources::get().get_material_raw(engine_resource_ident::mat_world_gui_sdf);
+		material_raw& mat_raw_gui_text = engine_resources::get().get_material_raw(engine_resource_ident::mat_world_gui_text);
+
+		sh_raw_gbuffer.persistent_blobs	 = true;
+		sh_raw_fw.persistent_blobs		 = true;
+		sh_raw_gui.persistent_blobs		 = true;
+		sh_raw_gui_text.persistent_blobs = true;
+		sh_raw_gui_sdf.persistent_blobs	 = true;
 
 		// Dummys.
 		{
-			texture_raw dummy_color_raw	 = {};
-			texture_raw dummy_orm_raw	 = {};
-			texture_raw dummy_normal_raw = {};
-			dummy_color_raw.name		 = "dummy_color";
-			dummy_normal_raw.name		 = "dummy_normal";
-			dummy_orm_raw.name			 = "dummy_orm";
-			uint8* dummy_color_data		 = reinterpret_cast<uint8*>(SFG_MALLOC(4));
-			uint8* dummy_normal_data	 = reinterpret_cast<uint8*>(SFG_MALLOC(4));
-			uint8* dummy_orm_data		 = reinterpret_cast<uint8*>(SFG_MALLOC(4));
-
-			uint8 color_data[4]	 = {255, 255, 255, 255};
-			uint8 normal_data[4] = {128, 128, 255, 255};
-			uint8 orm_data[4]	 = {255, 255, 0, 255};
-
-			if (dummy_color_data)
-				SFG_MEMCPY(dummy_color_data, color_data, 4);
-
-			if (dummy_normal_data)
-				SFG_MEMCPY(dummy_normal_data, normal_data, 4);
-
-			if (dummy_orm_data)
-				SFG_MEMCPY(dummy_orm_data, orm_data, 4);
-
-			dummy_color_raw.load_from_data(dummy_color_data, vector2ui16(1, 1), static_cast<uint8>(format::r8g8b8a8_srgb), false);
-			dummy_normal_raw.load_from_data(dummy_normal_data, vector2ui16(1, 1), static_cast<uint8>(format::r8g8b8a8_unorm), false);
-			dummy_orm_raw.load_from_data(dummy_orm_data, vector2ui16(1, 1), static_cast<uint8>(format::r8g8b8a8_unorm), false);
-
 			_dummy_color_texture	  = add_resource<texture>(DUMMY_COLOR_TEXTURE_SID);
 			_dummy_orm_texture		  = add_resource<texture>(DUMMY_ORM_TEXTURE_SID);
 			_dummy_normal_texture	  = add_resource<texture>(DUMMY_NORMAL_TEXTURE_SID);
 			texture& dummy_color_txt  = get_resource<texture>(_dummy_color_texture);
 			texture& dummy_orm_txt	  = get_resource<texture>(_dummy_orm_texture);
 			texture& dummy_normal_txt = get_resource<texture>(_dummy_normal_texture);
-			dummy_color_txt.create_from_loader(dummy_color_raw, _world, _dummy_color_texture);
-			dummy_normal_txt.create_from_loader(dummy_normal_raw, _world, _dummy_normal_texture);
-			dummy_orm_txt.create_from_loader(dummy_orm_raw, _world, _dummy_orm_texture);
+			dummy_color_txt.create_from_loader(_dummy_color_raw, _world, _dummy_color_texture);
+			dummy_normal_txt.create_from_loader(_dummy_normal_raw, _world, _dummy_normal_texture);
+			dummy_orm_txt.create_from_loader(_dummy_orm_raw, _world, _dummy_orm_texture);
 
 			// -----------------------------------------------------------------------------
 			// default shaders
 			// -----------------------------------------------------------------------------
-
-			shader_raw default_gbuffer_raw	= {};
-			shader_raw default_forward_raw	= {};
-			shader_raw default_gui_raw		= {};
-			shader_raw default_gui_text_raw = {};
-			shader_raw default_gui_sdf_raw	= {};
-
-#ifdef SFG_TOOLMODE
-			const string engine_cache = editor_settings::get()._resource_cache;
-
-			{
-				auto load = [&](auto& raw, const char* path) {
-					if (!raw.load_from_cache(engine_cache.c_str(), path, ".stkcache"))
-					{
-						raw.load_from_file(path, SFG_ROOT_DIRECTORY);
-						raw.save_to_cache(engine_cache.c_str(), path, ".stkcache");
-					}
-				};
-				load(default_gbuffer_raw, DEFAULT_OPAQUE_SHADER_PATH);
-				load(default_forward_raw, DEFAULT_OPAQUE_SHADER_PATH);
-				load(default_gui_raw, DEFAULT_OPAQUE_SHADER_PATH);
-				load(default_gui_text_raw, DEFAULT_OPAQUE_SHADER_PATH);
-				load(default_gui_sdf_raw, DEFAULT_OPAQUE_SHADER_PATH);
-			}
-
-#else
-			SFG_NOTIMPLEMENTED();
-#endif
 
 			_default_gbuffer_shader	 = add_resource<shader>(DEFAULT_OPAQUE_SHADER_SID);
 			_default_forward_shader	 = add_resource<shader>(DEFAULT_FORWARD_SHADER_SID);
@@ -171,39 +184,15 @@ namespace SFG
 			shader& gui_text_sh		 = get_resource<shader>(_default_gui_text_shader);
 			shader& gui_sdf_sh		 = get_resource<shader>(_default_gui_sdf_shader);
 
-			gbuffer_sh.create_from_loader(default_gbuffer_raw, _world, _default_gbuffer_shader);
-			forward_sh.create_from_loader(default_forward_raw, _world, _default_forward_shader);
-			gui_sh.create_from_loader(default_gui_raw, _world, _default_gui_shader);
-			gui_text_sh.create_from_loader(default_gui_text_raw, _world, _default_gui_text_shader);
-			gui_sdf_sh.create_from_loader(default_gui_sdf_raw, _world, _default_gui_sdf_shader);
+			gbuffer_sh.create_from_loader(sh_raw_gbuffer, _world, _default_gbuffer_shader);
+			forward_sh.create_from_loader(sh_raw_fw, _world, _default_forward_shader);
+			gui_sh.create_from_loader(sh_raw_gui, _world, _default_gui_shader);
+			gui_text_sh.create_from_loader(sh_raw_gui_text, _world, _default_gui_text_shader);
+			gui_sdf_sh.create_from_loader(sh_raw_gui_sdf, _world, _default_gui_sdf_shader);
 
 			// -----------------------------------------------------------------------------
 			// default materials
 			// -----------------------------------------------------------------------------
-
-			material_raw default_gui_mat_raw	  = {};
-			material_raw default_gui_text_mat_raw = {};
-			material_raw default_gui_sdf_mat_raw  = {};
-
-#ifdef SFG_TOOLMODE
-
-			{
-				auto load = [&](auto& raw, const char* path) {
-					if (!raw.load_from_cache(engine_cache.c_str(), path, ".stkcache"))
-					{
-						raw.load_from_file(path, SFG_ROOT_DIRECTORY);
-						raw.save_to_cache(engine_cache.c_str(), path, ".stkcache");
-					}
-				};
-				load(default_gui_mat_raw, DEFAULT_GUI_MAT_PATH);
-				load(default_gui_text_mat_raw, DEFAULT_GUI_TEXT_MAT_PATH);
-				load(default_gui_sdf_mat_raw, DEFAULT_GUI_SDF_MAT_PATH);
-			}
-
-#else
-			SFG_NOTIMPLEMENTED();
-#endif
-
 			_default_gui_mat			 = add_resource<material>(DEFAULT_GUI_MAT_SID);
 			_default_gui_text_mat		 = add_resource<material>(DEFAULT_GUI_TEXT_MAT_SID);
 			_default_gui_sdf_mat		 = add_resource<material>(DEFAULT_GUI_SDF_MAT_SID);
@@ -211,21 +200,24 @@ namespace SFG
 			material& default_gui_text_m = get_resource<material>(_default_gui_text_mat);
 			material& default_gui_sdf_m	 = get_resource<material>(_default_gui_sdf_mat);
 
-			default_gui_m.create_from_loader(default_gui_mat_raw, _world, _default_gui_mat);
-			default_gui_text_m.create_from_loader(default_gui_text_mat_raw, _world, _default_gui_text_mat);
-			default_gui_sdf_m.create_from_loader(default_gui_sdf_mat_raw, _world, _default_gui_sdf_mat);
+			default_gui_m.create_from_loader(mat_raw_gui, _world, _default_gui_mat);
+			default_gui_text_m.create_from_loader(mat_raw_gui_text, _world, _default_gui_text_mat);
+			default_gui_sdf_m.create_from_loader(mat_raw_gui_sdf, _world, _default_gui_sdf_mat);
+		}
 
 #ifdef SFG_TOOLMODE
-			add_resource_watch(_default_gbuffer_shader, DEFAULT_OPAQUE_SHADER_PATH, {default_gbuffer_raw.source}, type_id<shader>::value, SFG_ROOT_DIRECTORY);
-			add_resource_watch(_default_forward_shader, DEFAULT_FORWARD_SHADER_PATH, {default_forward_raw.source}, type_id<shader>::value, SFG_ROOT_DIRECTORY);
-			add_resource_watch(_default_gui_shader, DEFAULT_GUI_SHADER_PATH, {default_gui_raw.source}, type_id<shader>::value, SFG_ROOT_DIRECTORY);
-			add_resource_watch(_default_gui_text_shader, DEFAULT_GUI_TEXT_SHADER_PATH, {default_gui_text_raw.source}, type_id<shader>::value, SFG_ROOT_DIRECTORY);
-			add_resource_watch(_default_gui_sdf_shader, DEFAULT_GUI_SDF_SHADER_PATH, {default_gui_sdf_raw.source}, type_id<shader>::value, SFG_ROOT_DIRECTORY);
-			add_resource_watch(_default_gui_mat, DEFAULT_GUI_MAT_PATH, {default_gui_sdf_raw.source}, type_id<shader>::value, SFG_ROOT_DIRECTORY);
-			add_resource_watch(_default_gui_text_mat, DEFAULT_GUI_TEXT_MAT_PATH, {default_gui_sdf_raw.source}, type_id<shader>::value, SFG_ROOT_DIRECTORY);
-			add_resource_watch(_default_gui_sdf_mat, DEFAULT_GUI_SDF_MAT_PATH, {default_gui_sdf_raw.source}, type_id<shader>::value, SFG_ROOT_DIRECTORY);
+		_file_watch.set_callback(resource_manager::on_watched_resource_modified, this);
+		_file_watch.reserve(250);
+		_file_watch.set_tick_interval(15);
+		add_resource_watch(_default_gbuffer_shader, DEFAULT_OPAQUE_SHADER_PATH, {sh_raw_gbuffer.source}, type_id<shader>::value, SFG_ROOT_DIRECTORY);
+		add_resource_watch(_default_forward_shader, DEFAULT_FORWARD_SHADER_PATH, {sh_raw_fw.source}, type_id<shader>::value, SFG_ROOT_DIRECTORY);
+		add_resource_watch(_default_gui_shader, DEFAULT_GUI_SHADER_PATH, {sh_raw_gui.source}, type_id<shader>::value, SFG_ROOT_DIRECTORY);
+		add_resource_watch(_default_gui_text_shader, DEFAULT_GUI_TEXT_SHADER_PATH, {sh_raw_gui_text.source}, type_id<shader>::value, SFG_ROOT_DIRECTORY);
+		add_resource_watch(_default_gui_sdf_shader, DEFAULT_GUI_SDF_SHADER_PATH, {sh_raw_gui_sdf.source}, type_id<shader>::value, SFG_ROOT_DIRECTORY);
+		add_resource_watch(_default_gui_mat, DEFAULT_GUI_MAT_PATH, {sh_raw_gui.source}, type_id<shader>::value, SFG_ROOT_DIRECTORY);
+		add_resource_watch(_default_gui_text_mat, DEFAULT_GUI_TEXT_MAT_PATH, {sh_raw_gui_text.source}, type_id<shader>::value, SFG_ROOT_DIRECTORY);
+		add_resource_watch(_default_gui_sdf_mat, DEFAULT_GUI_SDF_MAT_PATH, {sh_raw_gui_sdf.source}, type_id<shader>::value, SFG_ROOT_DIRECTORY);
 #endif
-		}
 	}
 
 	void resource_manager::uninit()
@@ -578,7 +570,7 @@ namespace SFG
 			return;
 		}
 
-		SFG_INFO("Reloaded resource: {0}", path);
+		SFG_INFO("reloaded resource: {0}", path);
 	}
 #endif
 

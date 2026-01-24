@@ -90,7 +90,7 @@ namespace SFG
 	{
 		if (!file_system::exists(path))
 		{
-			SFG_ERR("File don't exist! {0}", path);
+			SFG_ERR("file doesn't exists: {0}", path);
 			return false;
 		}
 

@@ -83,8 +83,6 @@ namespace SFG
 			SFG_ERR("Failed to init decoder from memory for {0}", raw.name);
 			return;
 		}
-
-		SFG_INFO("Created audio resource: {0} (stream={1})", raw.name, _flags.is_set(audio::flags::is_streaming));
 	}
 
 	void audio::destroy(world& w, resource_handle handle)

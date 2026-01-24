@@ -27,22 +27,30 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+#include "gui/vekt_defines.hpp"
+#include "math/vector2.hpp"
+#include "math/vector3.hpp"
+#include "math/quat.hpp"
+#include "math/matrix4x4.hpp"
+#include "world/world_constants.hpp"
+
 namespace vekt
 {
 	class builder;
-	struct font;
 }
 
 namespace SFG
 {
-	struct vector2ui16;
+	class vector2;
+	struct window_event;
 
 	enum class gizmo_axis
 	{
 		none,
 		x,
 		y,
-		z
+		z,
+		uniform
 	};
 
 	enum class gizmo_style
@@ -58,6 +66,21 @@ namespace SFG
 		local
 	};
 
+	struct gizmo_draw_context
+	{
+		vector2		 root_pos	   = vector2::zero;
+		vector2		 root_size	   = vector2::zero;
+		matrix4x4	 view		   = matrix4x4::identity;
+		matrix4x4	 view_proj	   = matrix4x4::identity;
+		vector2		 center_screen = vector2::zero;
+		vector3		 entity_pos	   = vector3::zero;
+		quat		 entity_rot	   = quat::identity;
+		quat		 cam_rot	   = quat::identity;
+		vector3		 cam_pos	   = vector3::zero;
+		float		 fov		   = 0.0f;
+		world_handle selected	   = {};
+	};
+
 	class editor_gizmo_controls
 	{
 	public:
@@ -66,7 +89,9 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 
 		void init(vekt::builder* builder);
-		void draw(const vector2ui16& size);
+		void draw(const vector2& root_pos, const vector2& root_size, const vector2& game_render_size);
+		bool on_mouse_event(const window_event& ev);
+		bool on_mouse_move(const vector2& pos);
 
 		// -----------------------------------------------------------------------------
 		// accessors
@@ -103,9 +128,25 @@ namespace SFG
 		}
 
 	private:
-		vekt::builder* _builder		= nullptr;
-		gizmo_style	   _style		= gizmo_style::move;
-		gizmo_axis	   _active_axis = gizmo_axis::none;
-		gizmo_space	   _space		= gizmo_space::global;
+		bool get_context_selected(gizmo_draw_context& out);
+
+	private:
+		vekt::builder* _builder				  = nullptr;
+		gizmo_style	   _style				  = gizmo_style::move;
+		gizmo_axis	   _active_axis			  = gizmo_axis::none;
+		gizmo_axis	   _hovered_axis		  = gizmo_axis::none;
+		gizmo_space	   _space				  = gizmo_space::global;
+		vector2		   _last_root_pos		  = vector2::zero;
+		vector2		   _last_root_size		  = vector2::zero;
+		vector2		   _last_game_render_size = vector2::zero;
+		vector2		   _drag_last_mouse		  = vector2::zero;
+		vector2		   _drag_start_mouse	  = vector2::zero;
+		vector2		   _angle_start_dir		  = vector2::zero;
+		vector2		   _angle_current_dir	  = vector2::zero;
+		vector3		   _drag_start_pos		  = vector3::zero;
+		quat		   _drag_start_rot		  = quat::identity;
+		vector3		   _drag_start_scale	  = vector3::one;
+		vector3		   _drag_offset			  = vector3::zero;
+		float		   _drag_amount			  = 0.0f;
 	};
 }

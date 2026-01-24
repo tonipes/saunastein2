@@ -62,6 +62,7 @@ namespace SFG
 		ev.compile_variants	   = raw.compile_variants;
 		ev.pso_variants		   = raw.pso_variants;
 		ev.layout			   = raw.is_compute ? renderer::get_bind_layout_global_compute() : renderer::get_bind_layout_global();
+		ev.persistent_blobs	   = raw.persistent_blobs;
 
 		stream.add_event(
 			{

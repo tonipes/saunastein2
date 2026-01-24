@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -49,6 +49,7 @@ namespace SFG
 			uint64											added_frame	 = 0;
 			uint8											cleared		 = 0;
 			uint8											use_free	 = 0;
+			bool											persistent	 = false;
 			resource_state									to_state	 = resource_state::resource_state_ps_resource;
 		};
 
@@ -56,11 +57,11 @@ namespace SFG
 		void init();
 		void uninit();
 
-		void add_request(const static_vector<texture_buffer, MAX_TEXTURE_MIPS>& buffers, gfx_id texture, gfx_id intermediate, uint8 use_free, resource_state state);
+		void add_request(const static_vector<texture_buffer, MAX_TEXTURE_MIPS>& buffers, gfx_id texture, gfx_id intermediate, uint8 use_free, resource_state state, bool persistent);
 		void flush_all(gfx_id cmd, vector<barrier>& out_barriers);
 		bool empty() const;
 
 	private:
 		vector<texture_request> _requests = {};
 	};
-} 
+}

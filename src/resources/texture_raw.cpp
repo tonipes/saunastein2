@@ -87,7 +87,7 @@ namespace SFG
 			stream.read_to_raw(b.pixels, pixels_size);
 		}
 
-		SFG_INFO("Created texture from buffer: {0}", name);
+		SFG_INFO("created from buffer: {0}", name);
 	}
 
 	void texture_raw::load_from_data(uint8* base, const vector2ui16& size, uint8 txt_format, bool generate_mips)
@@ -118,7 +118,7 @@ namespace SFG
 		const string target_path = base_path + string(relative_file);
 		if (!file_system::exists(target_path.c_str()))
 		{
-			SFG_ERR("File don't exist! {0}", target_path.c_str());
+			SFG_ERR("file doesn't exists: {0}", target_path.c_str());
 			return false;
 		}
 
@@ -147,7 +147,7 @@ namespace SFG
 
 			if (data == nullptr)
 			{
-				SFG_ERR("Failed loading pixel data for texture: {0}", target_path);
+				SFG_ERR("failed loading pixel data for texture: {0}", target_path);
 				return false;
 			}
 
@@ -169,11 +169,11 @@ namespace SFG
 		}
 		catch (std::exception e)
 		{
-			SFG_ERR("Exception: {0}", e.what());
+			SFG_ERR("exception: {0}", e.what());
 			return false;
 		}
 
-		SFG_INFO("Created texture from file: {0}", name);
+		SFG_INFO("created from file: {0}", name);
 
 		return true;
 	}
@@ -219,10 +219,10 @@ namespace SFG
 
 	void texture_raw::save_to_cache(const char* cache_folder_path, const char* resource_directory_path, const char* extension) const
 	{
-		const string sid_str	 = std::to_string(TO_SID(name));
-		const string file_path	 = resource_directory_path + name;
-		const string source_path = resource_directory_path + source;
-		const string relative	 = file_system::get_filename_from_path(name);
+		const string sid_str			= std::to_string(TO_SID(name));
+		const string file_path			= resource_directory_path + name;
+		const string source_path		= resource_directory_path + source;
+		const string relative			= file_system::get_filename_from_path(name);
 		const uint64 file_last_modified = file_system::get_last_modified_ticks(file_path);
 		const uint64 src_last_modified	= file_system::get_last_modified_ticks(source_path);
 

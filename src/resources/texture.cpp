@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -73,6 +73,7 @@ namespace SFG
 		stg.format				 = _texture_format;
 		stg.size				 = raw.buffers[0].size;
 		stg.intermediate_size	 = backend->align_texture_size(total_size);
+		stg.buffers_persistent	 = raw.buffers_persistent;
 
 #ifndef SFG_STRIP_DEBUG_NAMES
 		stg.name = raw.name;
@@ -84,7 +85,6 @@ namespace SFG
 				.event_type = render_event_type::create_texture,
 			},
 			stg);
-
 	}
 
 	void texture::destroy(world& w, resource_handle handle)
