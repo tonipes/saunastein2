@@ -45,22 +45,9 @@ template <> struct call_ref<T>                              \
 	};\
 template <> struct type_id<T>                              \
 	{                                                          \
-		static constexpr std::string_view name = #T;          \
-		static constexpr string_id		  value = fnv1a(name); \
+		static constexpr string_id		  value = to_sid(#T); \
 		static inline call_ref<T> cr = {}; \
 	}
-
-
-	/*
-	
-	template <> struct type_id<T>                              \
-	{                                                          \
-		static constexpr std::string_view name = #T;          \
-		static constexpr string_id		  value = fnv1a(name); \
-		static inline ref_register<T>  reflection = ref_register<T>(value, "component"); \
-		static inline call_ref<T> ref_c = {};
-	}
-	*/
 
 	// clang-format on
 }

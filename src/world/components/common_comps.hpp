@@ -25,9 +25,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #pragma once
-#include "common/size_definitions.hpp"
 #include "world/common_entity.hpp"
-#include "data/bitmask.hpp"
 #include "world/world_constants.hpp"
 
 namespace SFG

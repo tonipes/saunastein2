@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -25,38 +25,49 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #pragma once
-
 #include "common/size_definitions.hpp"
-#include "data/string_view.hpp"
 
-// Headers here.
 namespace SFG
 {
 	using string_id = uint64;
-	#define NULL_STRING_ID UINT64_MAX
 
-	constexpr string_id hash_str(std::string_view str)
+	constexpr string_id hash_bytes(const char* str, size_t len) noexcept
 	{
 		string_id h = 1469598103934665603ull;
-		for (char c : str)
-			h = (h ^ static_cast<unsigned char>(c)) * 1099511628211ull;
+		for (size_t i = 0; i < len; ++i)
+			h = (h ^ static_cast<unsigned char>(str[i])) * 1099511628211ull;
 		return h;
 	}
 
-	consteval string_id fnv1a(string_view str)
+	// compile-time for string literals (covers #T)
+	template <size_t N> consteval string_id to_sid(const char (&lit)[N]) noexcept
 	{
-		string_id hash = 1469598103934665603ull;
-		for (char c : str)
-			hash = (hash ^ (string_id)c) * 1099511628211ull;
-		return hash;
+		static_assert(N > 0);
+		// N includes '\0'
+		return hash_bytes(lit, N - 1);
 	}
 
-	constexpr string_id operator"" _hs(const char* str, std::size_t len) noexcept
+	// runtime for C-strings
+	constexpr string_id to_sid(const char* s) noexcept
 	{
-		return hash_str({str, len});
+		// no pointer casts => friendlier to constexpr rules too
+		string_id h = 1469598103934665603ull;
+		for (size_t i = 0; s[i] != '\0'; ++i)
+			h = (h ^ static_cast<unsigned char>(s[i])) * 1099511628211ull;
+		return h;
 	}
 
-#define TO_SID(X)  hash_str(std::string_view{X}) // runtime
-#define TO_SIDC(X) (X##_hs)						 // compile-time
+	// string-like: has data() and size()
+	template <class S> constexpr auto to_sid(const S& s) noexcept -> decltype(s.data(), s.size(), string_id{})
+	{
+		return hash_bytes(s.data(), static_cast<size_t>(s.size()));
+	}
 
+	constexpr string_id operator"" _hs(const char* str, size_t len) noexcept
+	{
+		return hash_bytes(str, len);
+	}
+
+#define TO_SID(X)  ::SFG::to_sid((X))
+#define TO_SIDC(X) (X##_hs)
 }

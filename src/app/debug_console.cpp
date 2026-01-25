@@ -40,7 +40,7 @@ namespace SFG
 		if (eq != string::npos)
 		{
 			const string	command = str.substr(0, eq);
-			const string_id sid		= TO_SID(command);
+			const string_id sid		= TO_SID(command.c_str());
 			auto			it		= _console_entries.find(sid);
 			if (it == _console_entries.end())
 			{
@@ -63,7 +63,7 @@ namespace SFG
 
 		const string command = str.substr(0, bracket0);
 
-		const string_id sid = TO_SID(command);
+		const string_id sid = TO_SID(command.c_str());
 		auto			it	= _console_entries.find(sid);
 		if (it == _console_entries.end())
 		{

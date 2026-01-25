@@ -26,17 +26,10 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "comp_ambient.hpp"
 #include "reflection/type_reflection.hpp"
-#include "data/ostream.hpp"
-#include "data/istream.hpp"
 #include "world/world.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"
 #include "gfx/event_stream/render_events_trait.hpp"
 #include "reflection/reflection.hpp"
-
-#ifdef SFG_TOOLMODE
-#include <vendor/nhlohmann/json.hpp>
-using json = nlohmann::json;
-#endif
 
 namespace SFG
 {
@@ -102,27 +95,4 @@ namespace SFG
 			ev);
 	}
 
-	void comp_ambient::serialize(ostream& stream, world& w) const
-	{
-		stream << _base_color;
-	}
-
-	void comp_ambient::deserialize(istream& stream, world& w)
-	{
-		stream >> _base_color;
-	}
-
-#ifdef SFG_TOOLMODE
-
-	void comp_ambient::serialize_json(nlohmann::json& j, world& w) const
-	{
-		j["base_color"] = _base_color;
-	}
-
-	void comp_ambient::deserialize_json(const nlohmann::json& j, world& w)
-	{
-		_base_color = j.value<color>("base_color", color::white);
-	}
-
-#endif
 }
