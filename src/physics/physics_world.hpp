@@ -29,10 +29,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "data/vector.hpp"
 #include "math/vector3.hpp"
 #include "memory/pool_allocator_gen.hpp"
-#include "physics/physics_layer_filter.hpp"
-#include "physics/physics_object_bp_layer_filter.hpp"
-#include "physics/physics_bp_layer_interface.hpp"
 #include "physics/physics_material_settings.hpp"
+#include "physics/physics_types.hpp"
 
 #include "world/world_constants.hpp"
 #include "game/game_max_defines.hpp"
@@ -54,6 +52,10 @@ namespace SFG
 {
 	class world;
 	class quat;
+
+	class physics_layer_filter;
+	class physics_object_bp_layer_filter;
+	class physics_bp_layer_interface;
 
 	class physics_world
 	{
@@ -111,9 +113,9 @@ namespace SFG
 		physical_material_settings _default_material = {};
 		vector3					   _graivty			 = vector3::zero;
 
-		physics_layer_filter		   _layer_filter = {};
-		physics_object_bp_layer_filter _object_bp_layer_filter;
-		physics_bp_layer_interface	   _bp_layer_interface;
+		physics_layer_filter*			_layer_filter			= nullptr;
+		physics_object_bp_layer_filter* _object_bp_layer_filter = nullptr;
+		physics_bp_layer_interface*		_bp_layer_interface		= nullptr;
 
 #if !USE_FIXED_FRAMERATE
 		float _dt_counter = 0.0f;

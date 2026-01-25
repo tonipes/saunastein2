@@ -326,7 +326,7 @@ namespace SFG
 		engine_paths.reserve(64);
 
 		const auto& defs = engine_resources::get().get_resources();
-		for (const auto& [ident, def] : defs)
+		for (const engine_resource_def& def : defs)
 		{
 			if (def.path && def.path[0] != '\0')
 				engine_paths.push_back(def.path);

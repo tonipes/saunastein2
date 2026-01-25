@@ -37,7 +37,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "world/time_manager.hpp"
 #include "world/world_debug_rendering.hpp"
 
-#include "gui/vekt.hpp"
 #include "resources/resource_manager.hpp"
 #include "physics/physics_world.hpp"
 #include "audio/audio_manager.hpp"
@@ -51,6 +50,7 @@ struct ma_engine;
 namespace vekt
 {
 	class atlas;
+	class font_manager;
 }
 
 namespace SFG
@@ -141,7 +141,7 @@ namespace SFG
 
 		inline vekt::font_manager& get_font_manager()
 		{
-			return _vekt_fonts;
+			return *_vekt_fonts;
 		}
 
 		inline render_event_stream& get_render_stream()
@@ -207,6 +207,8 @@ namespace SFG
 		static void on_atlas_destroyed(vekt::atlas* atlas, void* user_data);
 
 	private:
+		vekt::font_manager* _vekt_fonts = nullptr;
+
 		resource_manager	  _resource_manager;
 		entity_manager		  _entity_manager;
 		physics_world		  _phy_world;
@@ -214,7 +216,6 @@ namespace SFG
 		text_allocator		  _text_allocator;
 		audio_manager		  _audio_manager   = {};
 		animation_graph		  _anim_graph	   = {};
-		vekt::font_manager	  _vekt_fonts	   = {};
 		time_manager		  _time_manager	   = {};
 		world_debug_rendering _debug_rendering = {};
 

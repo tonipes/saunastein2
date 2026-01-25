@@ -30,8 +30,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "math/vector3.hpp"
 #include "math/quat.hpp"
 #include "data/bitmask.hpp"
-#include "data/static_vector.hpp"
-#include "game/game_max_defines.hpp"
 #include "resources/common_resources.hpp"
 
 namespace SFG

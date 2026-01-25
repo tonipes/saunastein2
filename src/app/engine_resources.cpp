@@ -54,223 +54,222 @@ namespace SFG
 		const gfx_id bind_layout_global	 = renderer::get_bind_layout_global();
 		const gfx_id bind_layout_compute = renderer::get_bind_layout_global_compute();
 
-		_resources = {
-			{engine_resource_ident::shader_debug_console,
-			 {
-				 .path		   = "assets/engine/shaders/debug_controller/console_draw.stkshader",
-				 .res_type	   = engine_resource_type::shader,
-				 .extra_data   = bind_layout_global,
-				 .store_direct = true,
-			 }},
-			{engine_resource_ident::shader_gui_default,
-			 {
-				 .path		   = "assets/engine/shaders/gui/gui_default.stkshader",
-				 .res_type	   = engine_resource_type::shader,
-				 .extra_data   = bind_layout_global,
-				 .store_direct = true,
-			 }},
-			{engine_resource_ident::shader_gui_sdf,
-			 {
-				 .path		   = "assets/engine/shaders/gui/gui_sdf.stkshader",
-				 .res_type	   = engine_resource_type::shader,
-				 .extra_data   = bind_layout_global,
-				 .store_direct = true,
-			 }},
-			{engine_resource_ident::shader_gui_text,
-			 {
-				 .path		   = "assets/engine/shaders/gui/gui_text.stkshader",
-				 .res_type	   = engine_resource_type::shader,
-				 .extra_data   = bind_layout_global,
-				 .store_direct = true,
-			 }},
-			{engine_resource_ident::shader_gui_texture,
-			 {
-				 .path		   = "assets/engine/shaders/gui/gui_texture.stkshader",
-				 .res_type	   = engine_resource_type::shader,
-				 .extra_data   = bind_layout_global,
-				 .store_direct = true,
-			 }},
-			{engine_resource_ident::shader_swapchain,
-			 {
-				 .path		   = "assets/engine/shaders/swapchain/swapchain.stkshader",
-				 .res_type	   = engine_resource_type::shader,
-				 .extra_data   = bind_layout_global,
-				 .store_direct = true,
-			 }},
-			{engine_resource_ident::shader_lighting,
-			 {
-				 .path		   = "assets/engine/shaders/lighting/deferred_lighting.stkshader",
-				 .res_type	   = engine_resource_type::shader,
-				 .extra_data   = bind_layout_global,
-				 .store_direct = true,
-			 }},
-			{engine_resource_ident::shader_hbao,
-			 {
-				 .path		   = "assets/engine/shaders/ssao/hbao.stkshader",
-				 .res_type	   = engine_resource_type::shader,
-				 .extra_data   = bind_layout_compute,
-				 .store_direct = true,
-			 }},
-			{engine_resource_ident::shader_hbao_upsample,
-			 {
-				 .path		   = "assets/engine/shaders/ssao/hbao_upsample.stkshader",
-				 .res_type	   = engine_resource_type::shader,
-				 .extra_data   = bind_layout_compute,
-				 .store_direct = true,
-			 }},
-			{engine_resource_ident::shader_bloom_downsample,
-			 {
-				 .path		   = "assets/engine/shaders/bloom/bloom_downsample.stkshader",
-				 .res_type	   = engine_resource_type::shader,
-				 .extra_data   = bind_layout_compute,
-				 .store_direct = true,
-			 }},
-			{engine_resource_ident::shader_bloom_upsample,
-			 {
-				 .path		   = "assets/engine/shaders/bloom/bloom_upsample.stkshader",
-				 .res_type	   = engine_resource_type::shader,
-				 .extra_data   = bind_layout_compute,
-				 .store_direct = true,
-			 }},
-			{engine_resource_ident::shader_post_combiner,
-			 {
-				 .path		   = "assets/engine/shaders/post_combiner/post_combiner.stkshader",
-				 .res_type	   = engine_resource_type::shader,
-				 .extra_data   = bind_layout_global,
-				 .store_direct = true,
-			 }},
-			{engine_resource_ident::shader_object_outline_write,
-			 {
-				 .path		   = "assets/engine/shaders/selection/selection_outline_write.stkshader",
-				 .res_type	   = engine_resource_type::shader,
-				 .extra_data   = bind_layout_global,
-				 .store_direct = true,
-			 }},
-			{engine_resource_ident::shader_debug_triangle,
-			 {
-				 .path		   = "assets/engine/shaders/debug/debug_default.stkshader",
-				 .res_type	   = engine_resource_type::shader,
-				 .extra_data   = bind_layout_global,
-				 .store_direct = true,
-			 }},
-			{engine_resource_ident::shader_debug_line,
-			 {
-				 .path		   = "assets/engine/shaders/debug/debug_line.stkshader",
-				 .res_type	   = engine_resource_type::shader,
-				 .extra_data   = bind_layout_global,
-				 .store_direct = true,
-			 }},
-			{engine_resource_ident::shader_particle_clear,
-			 {
-				 .path		   = "assets/engine/shaders/particle/particle_clear.stkshader",
-				 .res_type	   = engine_resource_type::shader,
-				 .extra_data   = bind_layout_compute,
-				 .store_direct = true,
-			 }},
-			{engine_resource_ident::shader_particle_sim,
-			 {
-				 .path		   = "assets/engine/shaders/particle/particle_simulate.stkshader",
-				 .res_type	   = engine_resource_type::shader,
-				 .extra_data   = bind_layout_compute,
-				 .store_direct = true,
-			 }},
-			{engine_resource_ident::shader_particle_emit,
-			 {
-				 .path		   = "assets/engine/shaders/particle/particle_emit.stkshader",
-				 .res_type	   = engine_resource_type::shader,
-				 .extra_data   = bind_layout_compute,
-				 .store_direct = true,
-			 }},
-			{engine_resource_ident::shader_particle_write_count,
-			 {
-				 .path		   = "assets/engine/shaders/particle/particle_write_count.stkshader",
-				 .res_type	   = engine_resource_type::shader,
-				 .extra_data   = bind_layout_compute,
-				 .store_direct = true,
-			 }},
-			{engine_resource_ident::shader_particle_count,
-			 {
-				 .path		   = "assets/engine/shaders/particle/particle_count.stkshader",
-				 .res_type	   = engine_resource_type::shader,
-				 .extra_data   = bind_layout_compute,
-				 .store_direct = true,
-			 }},
-			{engine_resource_ident::shader_particle_swap,
-			 {
-				 .path		   = "assets/engine/shaders/particle/particle_swap.stkshader",
-				 .res_type	   = engine_resource_type::shader,
-				 .extra_data   = bind_layout_compute,
-				 .store_direct = true,
-			 }},
-			{engine_resource_ident::shader_world_gbuffer,
-			 {
-				 .path				  = DEFAULT_OPAQUE_SHADER_PATH,
-				 .res_type			  = engine_resource_type::shader,
-				 .extra_data		  = bind_layout_compute,
-				 .keep_raw_persistent = true,
-			 }},
-			{engine_resource_ident::shader_world_forward,
-			 {
-				 .path				  = DEFAULT_FORWARD_SHADER_PATH,
-				 .res_type			  = engine_resource_type::shader,
-				 .extra_data		  = bind_layout_compute,
-				 .keep_raw_persistent = true,
-			 }},
-			{engine_resource_ident::shader_world_gui_default,
-			 {
-				 .path				  = DEFAULT_GUI_SHADER_PATH,
-				 .res_type			  = engine_resource_type::shader,
-				 .extra_data		  = bind_layout_compute,
-				 .keep_raw_persistent = true,
-			 }},
-			{engine_resource_ident::shader_world_gui_text,
-			 {
-				 .path				  = DEFAULT_GUI_TEXT_SHADER_PATH,
-				 .res_type			  = engine_resource_type::shader,
-				 .extra_data		  = bind_layout_compute,
-				 .keep_raw_persistent = true,
-			 }},
-			{engine_resource_ident::shader_world_gui_sdf,
-			 {
-				 .path				  = DEFAULT_GUI_SDF_SHADER_PATH,
-				 .res_type			  = engine_resource_type::shader,
-				 .extra_data		  = bind_layout_compute,
-				 .keep_raw_persistent = true,
-			 }},
-			{engine_resource_ident::mat_world_gui_default,
-			 {
-				 .path				  = DEFAULT_GUI_MAT_PATH,
-				 .res_type			  = engine_resource_type::material,
-				 .keep_raw_persistent = true,
-			 }},
-			{engine_resource_ident::mat_world_gui_text,
-			 {
-				 .path				  = DEFAULT_GUI_TEXT_MAT_PATH,
-				 .res_type			  = engine_resource_type::material,
-				 .keep_raw_persistent = true,
-			 }},
-			{engine_resource_ident::mat_world_gui_sdf,
-			 {
-				 .path				  = DEFAULT_GUI_SDF_MAT_PATH,
-				 .res_type			  = engine_resource_type::material,
-				 .keep_raw_persistent = true,
-			 }},
-			{engine_resource_ident::font_text_default,
-			 {
-				 .path	   = "assets/engine/fonts/roboto.stkfont",
-				 .res_type = engine_resource_type::font,
-			 }},
-			{engine_resource_ident::font_debug_console_default,
-			 {
-				 .path	   = "assets/engine/fonts/vt323.stkfont",
-				 .res_type = engine_resource_type::font,
-			 }},
-			{engine_resource_ident::font_debug_console_icons,
-			 {
-				 .path	   = "assets/engine/fonts/icons.stkfont",
-				 .res_type = engine_resource_type::font,
-			 }},
-		};
+		_resources = {{
+						  .path			= "assets/engine/shaders/debug_controller/console_draw.stkshader",
+						  .extra_data	= bind_layout_global,
+						  .res_type		= engine_resource_type::shader,
+						  .ident		= engine_resource_ident::shader_debug_console,
+						  .store_direct = true,
+					  },
+					  {
+						  .path			= "assets/engine/shaders/gui/gui_default.stkshader",
+						  .extra_data	= bind_layout_global,
+						  .res_type		= engine_resource_type::shader,
+						  .ident		= engine_resource_ident::shader_gui_default,
+						  .store_direct = true,
+					  },
+
+					  {
+						  .path			= "assets/engine/shaders/gui/gui_sdf.stkshader",
+						  .extra_data	= bind_layout_global,
+						  .res_type		= engine_resource_type::shader,
+						  .ident		= engine_resource_ident::shader_gui_sdf,
+						  .store_direct = true,
+					  },
+
+					  {
+						  .path			= "assets/engine/shaders/gui/gui_text.stkshader",
+						  .extra_data	= bind_layout_global,
+						  .res_type		= engine_resource_type::shader,
+						  .ident		= engine_resource_ident::shader_gui_text,
+						  .store_direct = true,
+					  },
+					  {
+						  .path			= "assets/engine/shaders/gui/gui_texture.stkshader",
+						  .extra_data	= bind_layout_global,
+						  .res_type		= engine_resource_type::shader,
+						  .ident		= engine_resource_ident::shader_gui_texture,
+						  .store_direct = true,
+					  },
+					  {
+						  .path			= "assets/engine/shaders/swapchain/swapchain.stkshader",
+						  .extra_data	= bind_layout_global,
+						  .res_type		= engine_resource_type::shader,
+						  .ident		= engine_resource_ident::shader_swapchain,
+						  .store_direct = true,
+					  },
+					  {
+						  .path			= "assets/engine/shaders/lighting/deferred_lighting.stkshader",
+						  .extra_data	= bind_layout_global,
+						  .res_type		= engine_resource_type::shader,
+						  .ident		= engine_resource_ident::shader_lighting,
+						  .store_direct = true,
+					  },
+					  {
+						  .path			= "assets/engine/shaders/ssao/hbao.stkshader",
+						  .extra_data	= bind_layout_compute,
+						  .res_type		= engine_resource_type::shader,
+						  .ident		= engine_resource_ident::shader_hbao,
+						  .store_direct = true,
+					  },
+					  {
+						  .path			= "assets/engine/shaders/ssao/hbao_upsample.stkshader",
+						  .extra_data	= bind_layout_compute,
+						  .res_type		= engine_resource_type::shader,
+						  .ident		= engine_resource_ident::shader_hbao_upsample,
+						  .store_direct = true,
+					  },
+					  {
+						  .path			= "assets/engine/shaders/bloom/bloom_downsample.stkshader",
+						  .extra_data	= bind_layout_compute,
+						  .res_type		= engine_resource_type::shader,
+						  .ident		= engine_resource_ident::shader_bloom_downsample,
+						  .store_direct = true,
+					  },
+					  {
+						  .path			= "assets/engine/shaders/bloom/bloom_upsample.stkshader",
+						  .extra_data	= bind_layout_global,
+						  .res_type		= engine_resource_type::shader,
+						  .ident		= engine_resource_ident::shader_bloom_upsample,
+						  .store_direct = true,
+					  },
+					  {
+						  .path			= "assets/engine/shaders/post_combiner/post_combiner.stkshader",
+						  .res_type		= engine_resource_type::shader,
+						  .ident		= engine_resource_ident::shader_post_combiner,
+						  .store_direct = true,
+					  },
+					  {
+						  .path			= "assets/engine/shaders/selection/selection_outline_write.stkshader",
+						  .extra_data	= bind_layout_global,
+						  .res_type		= engine_resource_type::shader,
+						  .ident		= engine_resource_ident::shader_object_outline_write,
+						  .store_direct = true,
+					  },
+					  {
+						  .path			= "assets/engine/shaders/debug/debug_default.stkshader",
+						  .extra_data	= bind_layout_global,
+						  .res_type		= engine_resource_type::shader,
+						  .ident		= engine_resource_ident::shader_debug_triangle,
+						  .store_direct = true,
+					  },
+					  {
+						  .path			= "assets/engine/shaders/debug/debug_line.stkshader",
+						  .extra_data	= bind_layout_global,
+						  .res_type		= engine_resource_type::shader,
+						  .ident		= engine_resource_ident::shader_debug_line,
+						  .store_direct = true,
+					  },
+					  {
+						  .path			= "assets/engine/shaders/particle/particle_clear.stkshader",
+						  .extra_data	= bind_layout_compute,
+						  .res_type		= engine_resource_type::shader,
+						  .ident		= engine_resource_ident::shader_particle_clear,
+						  .store_direct = true,
+					  },
+					  {
+						  .path			= "assets/engine/shaders/particle/particle_simulate.stkshader",
+						  .extra_data	= bind_layout_compute,
+						  .res_type		= engine_resource_type::shader,
+						  .ident		= engine_resource_ident::shader_particle_sim,
+						  .store_direct = true,
+					  },
+					  {
+						  .path			= "assets/engine/shaders/particle/particle_emit.stkshader",
+						  .extra_data	= bind_layout_compute,
+						  .res_type		= engine_resource_type::shader,
+						  .ident		= engine_resource_ident::shader_particle_emit,
+						  .store_direct = true,
+					  },
+					  {
+						  .path			= "assets/engine/shaders/particle/particle_write_count.stkshader",
+						  .extra_data	= bind_layout_compute,
+						  .res_type		= engine_resource_type::shader,
+						  .ident		= engine_resource_ident::shader_particle_write_count,
+						  .store_direct = true,
+					  },
+					  {
+						  .path			= "assets/engine/shaders/particle/particle_count.stkshader",
+						  .extra_data	= bind_layout_compute,
+						  .res_type		= engine_resource_type::shader,
+						  .ident		= engine_resource_ident::shader_particle_count,
+						  .store_direct = true,
+					  },
+					  {
+						  .path			= "assets/engine/shaders/particle/particle_swap.stkshader",
+						  .extra_data	= bind_layout_compute,
+						  .res_type		= engine_resource_type::shader,
+						  .ident		= engine_resource_ident::shader_particle_swap,
+						  .store_direct = true,
+					  },
+					  {
+						  .path				   = DEFAULT_OPAQUE_SHADER_PATH,
+						  .extra_data		   = bind_layout_compute,
+						  .res_type			   = engine_resource_type::shader,
+						  .ident			   = engine_resource_ident::shader_world_gbuffer,
+						  .keep_raw_persistent = true,
+					  },
+					  {
+						  .path				   = DEFAULT_FORWARD_SHADER_PATH,
+						  .extra_data		   = bind_layout_compute,
+						  .res_type			   = engine_resource_type::shader,
+						  .ident			   = engine_resource_ident::shader_world_forward,
+						  .keep_raw_persistent = true,
+					  },
+					  {
+						  .path				   = DEFAULT_GUI_SHADER_PATH,
+						  .extra_data		   = bind_layout_compute,
+						  .res_type			   = engine_resource_type::shader,
+						  .ident			   = engine_resource_ident::shader_world_gui_default,
+						  .keep_raw_persistent = true,
+					  },
+					  {
+						  .path				   = DEFAULT_GUI_TEXT_SHADER_PATH,
+						  .extra_data		   = bind_layout_compute,
+						  .res_type			   = engine_resource_type::shader,
+						  .ident			   = engine_resource_ident::shader_world_gui_text,
+						  .keep_raw_persistent = true,
+					  },
+					  {
+						  .path				   = DEFAULT_GUI_SDF_SHADER_PATH,
+						  .extra_data		   = bind_layout_compute,
+						  .res_type			   = engine_resource_type::shader,
+						  .ident			   = engine_resource_ident::shader_world_gui_sdf,
+						  .keep_raw_persistent = true,
+					  },
+					  {
+						  .path				   = DEFAULT_GUI_MAT_PATH,
+						  .res_type			   = engine_resource_type::material,
+						  .ident			   = engine_resource_ident::mat_world_gui_default,
+						  .keep_raw_persistent = true,
+					  },
+					  {
+						  .path				   = DEFAULT_GUI_TEXT_MAT_PATH,
+						  .res_type			   = engine_resource_type::material,
+						  .ident			   = engine_resource_ident::mat_world_gui_text,
+						  .keep_raw_persistent = true,
+					  },
+					  {
+						  .path				   = DEFAULT_GUI_SDF_MAT_PATH,
+						  .res_type			   = engine_resource_type::material,
+						  .ident			   = engine_resource_ident::mat_world_gui_sdf,
+						  .keep_raw_persistent = true,
+					  },
+					  {
+						  .path		= "assets/engine/fonts/roboto.stkfont",
+						  .res_type = engine_resource_type::font,
+						  .ident	= engine_resource_ident::font_text_default,
+					  },
+					  {
+						  .path		= "assets/engine/fonts/vt323.stkfont",
+						  .res_type = engine_resource_type::font,
+						  .ident	= engine_resource_ident::font_debug_console_default,
+					  },
+					  {
+						  .path		= "assets/engine/fonts/icons.stkfont",
+						  .res_type = engine_resource_type::font,
+						  .ident	= engine_resource_ident::font_debug_console_icons,
+					  }};
 
 #ifdef SFG_TOOLMODE
 		const string res_cache = editor_settings::get()._resource_cache;
@@ -374,9 +373,10 @@ namespace SFG
 				raw->deserialize(stream);
 		};
 
-		for (auto& [type, def] : _resources)
+		for (engine_resource_def& def : _resources)
 		{
-			def.sid = TO_SID(def.path);
+			const engine_resource_type type = def.res_type;
+			def.sid							= TO_SID(def.path);
 
 			const uint16 type_u16 = static_cast<uint16>(type);
 
@@ -409,7 +409,7 @@ namespace SFG
 		engine_data_pack.close();
 #endif
 
-		for (auto& [type, def] : _resources)
+		for (engine_resource_def& def : _resources)
 		{
 			if (!def.store_direct)
 				continue;
@@ -434,7 +434,7 @@ namespace SFG
 
 	void engine_resources::clear_init()
 	{
-		for (auto& [type, def] : _resources)
+		for (engine_resource_def& def : _resources)
 		{
 			if (def.keep_raw_persistent)
 				continue;
@@ -467,7 +467,7 @@ namespace SFG
 
 	void engine_resources::uninit()
 	{
-		for (auto& [type, def] : _resources)
+		for (engine_resource_def& def : _resources)
 		{
 			if (def.direct != nullptr)
 			{
@@ -553,7 +553,11 @@ namespace SFG
 		engine_resources* self = static_cast<engine_resources*>(user_data);
 
 		const engine_resource_ident ident = static_cast<engine_resource_ident>(id);
-		engine_resource_def&		def	  = self->_resources.at(ident);
+		auto						it	  = std::find_if(self->_resources.begin(), self->_resources.end(), [ident](const engine_resource_def& def) -> bool { return def.ident == ident; });
+		if (it == self->_resources.end())
+			return;
+
+		engine_resource_def& def = *it;
 		if (def.direct == nullptr)
 			return;
 
@@ -592,6 +596,16 @@ namespace SFG
 			self->_app->kick_off_render();
 		}
 	}
+
 #endif
+
+	const engine_resource_def& engine_resources::get_def(engine_resource_ident t)
+	{
+		auto it = std::find_if(_resources.begin(), _resources.end(), [t](const engine_resource_def& def) -> bool { return def.ident == t; });
+		if (it == _resources.end())
+			return _resources[0];
+
+		return *it;
+	}
 
 }

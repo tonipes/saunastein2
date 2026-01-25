@@ -25,6 +25,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "physics_bp_layer_interface.hpp"
+
 #include "io/assert.hpp"
 namespace SFG
 {

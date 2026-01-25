@@ -28,6 +28,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "game/game_max_defines.hpp"
 #include "platform/window.hpp"
 #include "app/package_manager.hpp"
+#include "gui/vekt.hpp"
 
 // resources
 #include "resources/texture.hpp"
@@ -123,10 +124,11 @@ namespace SFG
 		_phy_world.init();
 		_audio_manager.init();
 
-		_vekt_fonts.set_callback_user_data(this);
-		_vekt_fonts.set_atlas_created_callback(on_atlas_created);
-		_vekt_fonts.set_atlas_updated_callback(on_atlas_updated);
-		_vekt_fonts.set_atlas_destroyed_callback(on_atlas_destroyed);
+		_vekt_fonts = new vekt::font_manager();
+		_vekt_fonts->set_callback_user_data(this);
+		_vekt_fonts->set_atlas_created_callback(on_atlas_created);
+		_vekt_fonts->set_atlas_updated_callback(on_atlas_updated);
+		_vekt_fonts->set_atlas_destroyed_callback(on_atlas_destroyed);
 
 		_debug_rendering.init();
 	};
@@ -136,8 +138,9 @@ namespace SFG
 		_audio_manager.uninit();
 		_text_allocator.uninit();
 		_phy_world.uninit();
-		_vekt_fonts.uninit();
+		_vekt_fonts->uninit();
 		_debug_rendering.uninit();
+		delete _vekt_fonts;
 	}
 
 	void world::init()

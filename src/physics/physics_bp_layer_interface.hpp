@@ -27,6 +27,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include "physics/common_physics.hpp"
+#include "physics/physics_types.hpp"
 #include <Jolt/Physics/Collision/BroadPhase/BroadPhaseLayer.h>
 
 namespace SFG

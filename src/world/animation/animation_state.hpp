@@ -27,9 +27,9 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include "common/size_definitions.hpp"
+#include "resources/common_resources.hpp"
 #include "data/bitmask.hpp"
 #include "math/vector2.hpp"
-#include "resources/common_resources.hpp"
 
 namespace SFG
 {

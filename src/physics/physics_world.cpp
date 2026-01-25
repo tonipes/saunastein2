@@ -29,6 +29,9 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "io/assert.hpp"
 #include "world/world.hpp"
 #include "physics/physics_convert.hpp"
+#include "physics/physics_layer_filter.hpp"
+#include "physics/physics_object_bp_layer_filter.hpp"
+#include "physics/physics_bp_layer_interface.hpp"
 #include "resources/physical_material.hpp"
 #include "world/components/comp_physics.hpp"
 #include "platform/time.hpp"
@@ -101,11 +104,15 @@ namespace SFG
 		_allocator	= new JPH::TempAllocatorImpl(10 * 1024 * 1024);
 		_job_system = new JPH::JobSystemThreadPool(JPH::cMaxPhysicsJobs, JPH::cMaxPhysicsBarriers, JPH::thread::hardware_concurrency() - 1);
 
+		_layer_filter			= new physics_layer_filter();
+		_object_bp_layer_filter = new physics_object_bp_layer_filter();
+		_bp_layer_interface		= new physics_bp_layer_interface();
+
 		const uint32 cMaxBodies				= 1024;
 		const uint32 cNumBodyMutexes		= 0;
 		const uint32 cMaxBodyPairs			= 1024;
 		const uint32 cMaxContactConstraints = 1024;
-		_system->Init(cMaxBodies, cNumBodyMutexes, cMaxBodyPairs, cMaxContactConstraints, _bp_layer_interface, _object_bp_layer_filter, _layer_filter);
+		_system->Init(cMaxBodies, cNumBodyMutexes, cMaxBodyPairs, cMaxContactConstraints, *_bp_layer_interface, *_object_bp_layer_filter, *_layer_filter);
 		set_gravity(vector3(0.0f, -9.81f, 0.0f));
 		_added_bodies.reserve(MAX_ENTITIES);
 	}
@@ -115,10 +122,16 @@ namespace SFG
 		delete _job_system;
 		delete _allocator;
 		delete _system;
+		delete _layer_filter;
+		delete _object_bp_layer_filter;
+		delete _bp_layer_interface;
 
-		_job_system = nullptr;
-		_allocator	= nullptr;
-		_system		= nullptr;
+		_layer_filter			= nullptr;
+		_object_bp_layer_filter = nullptr;
+		_bp_layer_interface		= nullptr;
+		_job_system				= nullptr;
+		_allocator				= nullptr;
+		_system					= nullptr;
 
 		JPH::UnregisterTypes();
 		delete JPH::Factory::sInstance;

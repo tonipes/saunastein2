@@ -29,7 +29,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "data/bitmask.hpp"
 #include "world/components/common_comps.hpp"
 #include "reflection/type_reflection.hpp"
-#include "physics/common_physics.hpp"
+#include "physics/physics_types.hpp"
 #include "resources/common_resources.hpp"
 #include "math/vector3.hpp"
 

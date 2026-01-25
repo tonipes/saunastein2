@@ -345,6 +345,10 @@ target_link_libraries(${PROJECT_NAME}
 PUBLIC lz4
 )
 
+target_precompile_headers(${PROJECT_NAME} PRIVATE
+    "$<$<COMPILE_LANGUAGE:CXX>:${PROJECT_SOURCE_DIR}/src/common/pch.hpp>"
+)
+
 set_target_properties(lz4 PROPERTIES FOLDER "Dependencies")
 
 include(${CMAKE_SOURCE_DIR}/utils/cmake/common_functions.cmake)

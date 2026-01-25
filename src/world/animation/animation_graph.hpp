@@ -28,13 +28,11 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "common/size_definitions.hpp"
 #include "memory/pool_allocator_gen.hpp"
-#include "memory/static_array.hpp"
+#include "game/game_max_defines.hpp"
 #include "animation_state.hpp"
 #include "animation_transition.hpp"
 #include "animation_mask.hpp"
-#include "animation_pose.hpp"
 #include "animation_state_machine.hpp"
-#include "game/game_max_defines.hpp"
 
 namespace SFG
 {
@@ -46,6 +44,7 @@ namespace SFG
 		float		  value		  = 0.0f;
 	};
 
+	struct animation_pose;
 	class world;
 	class res_state_machine_raw;
 

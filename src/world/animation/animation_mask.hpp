@@ -29,8 +29,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "common/size_definitions.hpp"
 #include "resources/common_resources.hpp"
 #include "common/string_id.hpp"
-#include "game/game_max_defines.hpp"
-#include "data/static_vector.hpp"
 
 namespace SFG
 {

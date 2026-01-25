@@ -26,7 +26,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include "common/string_id.hpp"
-#include "data/hash_map.hpp"
 #include "data/static_vector.hpp"
 #include "resources/shader_direct.hpp"
 
@@ -36,7 +35,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace SFG
 {
-	enum class engine_resource_ident
+	enum engine_resource_ident : uint8
 	{
 		shader_debug_console,
 		shader_gui_default,
@@ -70,6 +69,7 @@ namespace SFG
 		font_text_default,
 		font_debug_console_default,
 		font_debug_console_icons,
+		max,
 	};
 
 	enum class engine_resource_type
@@ -83,14 +83,15 @@ namespace SFG
 
 	struct engine_resource_def
 	{
-		const char*			 path				 = "";
-		string_id			 sid				 = 0;
-		engine_resource_type res_type			 = engine_resource_type::unknown;
-		uint32				 extra_data			 = 0;
-		bool				 keep_raw_persistent = false;
-		bool				 store_direct		 = false;
-		void*				 raw				 = nullptr;
-		void*				 direct				 = nullptr;
+		const char*			  path				  = "";
+		void*				  raw				  = nullptr;
+		void*				  direct			  = nullptr;
+		string_id			  sid				  = 0;
+		uint32				  extra_data		  = 0;
+		engine_resource_type  res_type			  = engine_resource_type::unknown;
+		engine_resource_ident ident				  = engine_resource_ident::font_debug_console_default;
+		bool				  keep_raw_persistent = false;
+		bool				  store_direct		  = false;
 	};
 
 	class app;
@@ -122,18 +123,16 @@ namespace SFG
 		static void on_resource_reloaded(const char* p, uint64 last_modified, uint16 id, void* user_data);
 #endif
 
-		const engine_resource_def& get_def(engine_resource_ident t)
-		{
-			return _resources.at(t);
-		}
-		const hash_map<engine_resource_ident, engine_resource_def>& get_resources() const
+		const engine_resource_def& get_def(engine_resource_ident t);
+
+		inline const static_vector<engine_resource_def, engine_resource_ident::max>& get_resources() const
 		{
 			return _resources;
 		}
 
 	private:
-		hash_map<engine_resource_ident, engine_resource_def> _resources;
-		app*												 _app = nullptr;
+		static_vector<engine_resource_def, engine_resource_ident::max> _resources;
+		app*														   _app = nullptr;
 
 #ifdef SFG_TOOLMODE
 		static_vector<shader_reload_callback, 100> _shader_reload_callbacks;
