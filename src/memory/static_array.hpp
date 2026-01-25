@@ -29,7 +29,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "common/size_definitions.hpp"
 #include "io/assert.hpp"
 #include "memory.hpp"
-#include "data/vector.hpp"
 
 namespace SFG
 {

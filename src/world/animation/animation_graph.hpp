@@ -29,6 +29,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "common/size_definitions.hpp"
 #include "memory/pool_allocator_gen.hpp"
 #include "game/game_max_defines.hpp"
+#include "data/static_vector.hpp"
 #include "animation_state.hpp"
 #include "animation_transition.hpp"
 #include "animation_mask.hpp"

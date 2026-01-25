@@ -28,15 +28,24 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
-#include <string>
-#include <string_view>
-#include <vector>
 #include <unordered_map>
 #include <memory>
-#include <mutex>
-#include "gfx/backend/backend.hpp"
+#include <chrono>
+
 #include "data/vector.hpp"
 #include "data/hash_map.hpp"
 #include "data/string.hpp"
+#include "data/mutex.hpp"
+#include "data/string_view.hpp"
+
 #include "gfx/common/descriptions.hpp"
+#include "gfx/common/shader_description.hpp"
+#include "gfx/backend/backend.hpp"
+#include "resources/resource_manager.hpp"
+
 #include "io/log.hpp"
+#include "io/file_system.hpp"
+
+#ifdef SFG_TOOLMODE
+#include <vendor/nhlohmann/json.hpp>
+#endif

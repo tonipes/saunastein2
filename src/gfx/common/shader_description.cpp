@@ -29,8 +29,10 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "data/ostream.hpp"
 #include "data/istream.hpp"
 
+#ifdef SFG_TOOLMODE
 #include "vendor/nhlohmann/json.hpp"
 using json = nlohmann::json;
+#endif
 
 namespace SFG
 {

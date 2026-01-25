@@ -29,7 +29,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pool_handle.hpp"
 #include "io/assert.hpp"
 #include "memory.hpp"
-#include <new>
 
 namespace SFG
 {
@@ -279,12 +278,12 @@ namespace SFG
 		}
 
 	private:
-		T		  _items[N]		  = {};
-		SIZE_TYPE _free_count	  = 0;
-		SIZE_TYPE _free_list[N]	  = {};
-		SIZE_TYPE _generations[N] = {};
-		uint8	  _actives[N]	  = {};
-		SIZE_TYPE _head			  = 0;
+		T		  _items[N];
+		SIZE_TYPE _free_count = 0;
+		SIZE_TYPE _free_list[N];
+		SIZE_TYPE _generations[N];
+		uint8	  _actives[N];
+		SIZE_TYPE _head = 0;
 	};
 
 }

@@ -128,7 +128,7 @@ namespace SFG
 					  },
 					  {
 						  .path			= "assets/engine/shaders/bloom/bloom_upsample.stkshader",
-						  .extra_data	= bind_layout_global,
+						  .extra_data	= bind_layout_compute,
 						  .res_type		= engine_resource_type::shader,
 						  .ident		= engine_resource_ident::shader_bloom_upsample,
 						  .store_direct = true,
@@ -292,11 +292,11 @@ namespace SFG
 			return true;
 		};
 
-		for (auto& [type, def] : _resources)
+		for (engine_resource_def& def : _resources)
 		{
 			def.sid = TO_SID(def.path);
 
-			const uint16 type_u16 = static_cast<uint16>(type);
+			const uint16 type_u16 = static_cast<uint16>(def.res_type);
 
 			if (def.res_type == engine_resource_type::shader)
 			{
