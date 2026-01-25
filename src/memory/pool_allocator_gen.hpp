@@ -29,7 +29,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pool_handle.hpp"
 #include "io/assert.hpp"
 #include "memory.hpp"
-#include "data/vector.hpp"
 #include <new>
 
 namespace SFG

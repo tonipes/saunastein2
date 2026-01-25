@@ -29,13 +29,10 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "memory/pool_allocator_gen.hpp"
 #include "world/world_constants.hpp"
 #include "common/type_id.hpp"
-#include "data/string.hpp"
-#include "data/static_vector.hpp"
+#include "data/vector.hpp"
 #include "memory/chunk_allocator.hpp"
-#include <functional>
 
 #ifdef SFG_TOOLMODE
-#include "io/simple_file_watcher.hpp"
 #include <vendor/nhlohmann/json_fwd.hpp>
 using json = nlohmann::json;
 #endif
