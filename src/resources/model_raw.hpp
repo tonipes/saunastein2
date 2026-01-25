@@ -44,6 +44,9 @@ namespace SFG
 
 	struct model_raw
 	{
+		model_raw();
+		~model_raw();
+
 		string				   name	  = "";
 		string				   source = "";
 		vector<model_node_raw> loaded_nodes;

@@ -63,7 +63,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "input/input_mappings.hpp"
 #include "math/math.hpp"
 #include "game/gameplay.hpp"
-#include <regex>
 #include <tracy/Tracy.hpp>
 
 namespace SFG
@@ -83,6 +82,19 @@ namespace SFG
 	namespace
 	{
 
+		string escape_braces(std::string_view s)
+		{
+			std::string out;
+			out.reserve(s.size()); // will grow if it finds braces
+			for (char c : s)
+			{
+				if (c == '{' || c == '}')
+					out.push_back(c);
+				out.push_back(c);
+			}
+			return out;
+		}
+
 		void vekt_log(vekt::log_verbosity verb, const char* err, ...)
 		{
 			va_list args;
@@ -91,15 +103,13 @@ namespace SFG
 			char buffer[4096];
 			vsnprintf(buffer, sizeof(buffer), err, args);
 
-			std::string formattedMessage(buffer);
-
-			formattedMessage = std::regex_replace(formattedMessage, std::regex("\\{"), "{{");
-			formattedMessage = std::regex_replace(formattedMessage, std::regex("\\}"), "}}");
+			std::string msg(buffer);
+			msg = escape_braces(msg);
 
 			if (verb == vekt::log_verbosity::error)
-				SFG_ERR(formattedMessage.c_str());
+				SFG_ERR(msg.c_str());
 			else
-				SFG_INFO(formattedMessage.c_str());
+				SFG_INFO(msg.c_str());
 
 			va_end(args);
 		}
@@ -118,8 +128,8 @@ namespace SFG
 		_builder->set_callback_user_data(this);
 		_builder->set_on_allocate_text(on_vekt_allocate_text);
 		_builder->set_on_deallocate_text(on_vekt_deallocate_text);
-		constexpr size_t VTX_SZ = 1024 * 1024 * 12;
-		constexpr size_t IDX_SZ = 1024 * 1024 * 8;
+		constexpr size_t VTX_SZ = 1024 * 1024 * 32;
+		constexpr size_t IDX_SZ = 1024 * 1024 * 24;
 		_builder->init({
 			.vertex_buffer_sz			 = VTX_SZ,
 			.index_buffer_sz			 = IDX_SZ,
@@ -226,6 +236,9 @@ namespace SFG
 	void editor::post_world_tick(float delta)
 	{
 		_camera_controller.tick(delta);
+		world& w = _app.get_world();
+		if (w.get_playmode() == play_mode::full)
+			_app.get_gameplay().on_world_tick(w, delta);
 	}
 
 	void editor::tick()
@@ -281,6 +294,20 @@ namespace SFG
 
 	bool editor::on_window_event(const window_event& ev)
 	{
+		const play_mode pm = _app.get_world().get_playmode();
+
+		if (pm == play_mode::full)
+		{
+			if (ev.type == window_event_type::key && ev.button == input_code::key_escape && ev.sub_type == window_event_sub_type::press)
+			{
+				_gui_controller.on_exited_playmode();
+				exit_playmode();
+				return true;
+			}
+
+			return false;
+		}
+
 		if (ev.type == window_event_type::delta)
 		{
 			const vector2i16& mp  = _app.get_main_window().get_mouse_position();
@@ -302,14 +329,6 @@ namespace SFG
 		}
 		else if (ev.type == window_event_type::key)
 		{
-			// Exit playmode on Escape press
-			if (_app.get_world().get_playmode() != play_mode::none && ev.button == input_code::key_escape && ev.sub_type == window_event_sub_type::press)
-			{
-				_gui_controller.on_exited_playmode();
-				exit_playmode();
-				return true;
-			}
-
 			if (ev.button == input_code::key_tab && ev.sub_type == window_event_sub_type::press)
 			{
 				if (window::is_key_down(input_code::key_lshift))
@@ -333,7 +352,8 @@ namespace SFG
 			}
 		}
 
-		return _camera_controller.on_window_event(ev);
+		_camera_controller.on_window_event(ev);
+		return true;
 	}
 
 	void editor::resize(const vector2ui16& size)

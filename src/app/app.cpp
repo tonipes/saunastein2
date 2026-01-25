@@ -343,6 +343,12 @@ namespace SFG
 #if FIXED_FRAMERATE_USE_INTERPOLATION
 				const double interpolation = static_cast<double>(accumulator_ns) / FIXED_FRAMERATE_NS_D;
 				_world->interpolate(interpolation);
+				_render_stream.publish();
+
+#else
+				if (ticks != 0)
+					_render_stream.publish();
+
 #endif
 			}
 
@@ -365,13 +371,12 @@ namespace SFG
 #ifdef SFG_TOOLMODE
 				_editor->post_world_tick(dtt);
 #else
-				_game->post_world_tick(ws, dt_seconds);
+				_game->post_world_tick(dtt);
 #endif
 				_world->calculate_abs_transforms();
+				_render_stream.publish();
 			}
 #endif
-
-			_render_stream.publish();
 
 			// -----------------------------------------------------------------------------
 			// post
@@ -399,21 +404,24 @@ namespace SFG
 
 	void app::on_window_event(const window_event& ev, void* user_data)
 	{
-		app* application = static_cast<app*>(user_data);
+		app* self = static_cast<app*>(user_data);
 
-		if (ev.type != window_event_type::focus && !application->_main_window->get_flags().is_set(window_flags::wf_has_focus))
+		if (ev.type != window_event_type::focus && !self->_main_window->get_flags().is_set(window_flags::wf_has_focus))
 			return;
 
-		if (application->_renderer && application->_renderer->on_window_event(ev))
+		if (self->_renderer && self->_renderer->on_window_event(ev))
 			return;
 
 #ifdef SFG_TOOLMODE
-		if (application->_editor && application->_editor->on_window_event(ev))
+		if (self->_editor && self->_editor->on_window_event(ev))
 			return;
 #endif
 
-		if (application->_world && application->_world->on_window_event(ev, application->_main_window))
+		if (self->_world && self->_world->on_window_event(ev, self->_main_window))
 			return;
+
+		if (self->_gameplay)
+			self->_gameplay->on_window_event(ev, self->_main_window);
 	}
 
 	void app::join_render()

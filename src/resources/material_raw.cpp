@@ -83,7 +83,6 @@ namespace SFG
 		stream >> use_alpha_cutoff;
 		stream >> sampler_definition;
 
-		SFG_INFO("created from buffer: {0}", name);
 	}
 
 #ifdef SFG_TOOLMODE
@@ -201,7 +200,6 @@ namespace SFG
 			return false;
 		}
 
-		SFG_INFO("created from file: {0}", name);
 		return true;
 	}
 

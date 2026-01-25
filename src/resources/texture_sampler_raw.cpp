@@ -50,11 +50,10 @@ namespace SFG
 	{
 		stream >> desc;
 		stream >> name;
-
-		SFG_INFO("created from buffer: {0}", name);
 	}
 
 #ifdef SFG_TOOLMODE
+
 	bool texture_sampler_raw::load_from_file(const char* relative_file, const char* base_path)
 	{
 		const string target_path = base_path + string(relative_file);
@@ -77,8 +76,6 @@ namespace SFG
 			SFG_ERR("failed loading: {0}", e.what());
 			return false;
 		}
-
-		SFG_INFO("created from file: {0}", name);
 		return true;
 	}
 

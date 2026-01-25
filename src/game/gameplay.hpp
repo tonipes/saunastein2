@@ -27,11 +27,17 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include "common/string_id.hpp"
+#include "math/vector2.hpp"
+#include "math/vector3.hpp"
+#include "resources/common_resources.hpp"
+#include "world/world_constants.hpp"
 
 namespace SFG
 {
 	class world;
 	class app;
+	class window;
+	struct window_event;
 
 	class gameplay
 	{
@@ -41,9 +47,25 @@ namespace SFG
 		void on_world_begin(world& w);
 		void on_world_end(world& w);
 		void on_world_tick(world& w, float dt);
+		void on_window_event(const window_event& ev, window* wnd);
 
 	private:
-		app& _app;
+		app&			_app;
+		window*			_window			 = nullptr;
+		world_handle	_player_entity	 = {};
+		world_handle	_camera_entity	 = {};
+		world_handle	_camera_comp	 = {};
+		resource_handle _bullet_template = {};
+		vector3			_direction_input = vector3::zero;
+		vector2			_mouse_delta	 = vector2::zero;
+		float			_yaw_degrees	 = 0.0f;
+		float			_pitch_degrees	 = 0.0f;
+		float			_current_move_speed = 12.0f;
+		float			_base_move_speed	 = 12.0f;
+		float			_boost_multiplier	 = 8.0f;
+		float			_mouse_sensitivity	 = 0.08f;
+		bool			_is_looking			= false;
+		uint8			_is_active			= 0;
 	};
 
 }

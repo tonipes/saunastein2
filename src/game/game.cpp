@@ -49,6 +49,7 @@ namespace SFG
 	}
 	void game::post_world_tick(float delta)
 	{
+		_app.get_gameplay().on_world_tick(_app.get_world(), delta);
 	}
 	bool game::on_window_event(const window_event& ev)
 	{

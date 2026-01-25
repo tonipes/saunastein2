@@ -141,8 +141,6 @@ namespace SFG
 			SFG_ERR("failed loading: {0}", e.what());
 			return false;
 		}
-
-		SFG_INFO("created from file: {0}", name);
 		return true;
 	}
 
@@ -233,8 +231,6 @@ namespace SFG
 		stream >> compile_variants;
 		stream >> pso_variants;
 		stream >> is_compute;
-
-		SFG_INFO("created from buffer: {0}", name);
 	}
 
 	void shader_raw::destroy()

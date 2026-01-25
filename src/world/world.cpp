@@ -93,16 +93,18 @@ namespace SFG
 		_resource_manager.register_cache<texture_sampler, texture_sampler_raw, MAX_WORLD_SAMPLERS, 0>();
 		_resource_manager.register_cache<audio, audio_raw, MAX_WORLD_AUDIO, 0>();
 		_resource_manager.register_cache<font, font_raw, MAX_WORLD_FONTS, 0>();
-		_resource_manager.register_cache<material, material_raw, MAX_WORLD_MATERIALS, 1>();
 		_resource_manager.register_cache<mesh, mesh_raw, MAX_WORLD_MESHES, 0>();
-		_resource_manager.register_cache<model, model_raw, MAX_WORLD_MODELS, 1>();
 		_resource_manager.register_cache<animation, animation_raw, MAX_WORLD_ANIMS, 0>();
 		_resource_manager.register_cache<skin, skin_raw, MAX_WORLD_SKINS, 0>();
 		_resource_manager.register_cache<shader, shader_raw, MAX_WORLD_SHADERS, 0>();
 		_resource_manager.register_cache<physical_material, physical_material_raw, MAX_WORLD_PHYSICAL_MATERIALS, 0>();
-		_resource_manager.register_cache<particle_properties, particle_properties_raw, MAX_WORLD_PARTICLE_PROPERTIES, 0>();
-		_resource_manager.register_cache<res_state_machine, res_state_machine_raw, MAX_WORLD_ANIM_STATE_MACHINES, 1>();
-		_resource_manager.register_cache<entity_template, entity_template_raw, MAX_WORLD_ENTITY_TEMPLATES, 0>();
+
+		_resource_manager.register_cache<material, material_raw, MAX_WORLD_MATERIALS, 1>();
+		_resource_manager.register_cache<model, model_raw, MAX_WORLD_MODELS, 1>();
+
+		_resource_manager.register_cache<particle_properties, particle_properties_raw, MAX_WORLD_PARTICLE_PROPERTIES, 2>();
+		_resource_manager.register_cache<res_state_machine, res_state_machine_raw, MAX_WORLD_ANIM_STATE_MACHINES, 2>();
+		_resource_manager.register_cache<entity_template, entity_template_raw, MAX_WORLD_ENTITY_TEMPLATES, 3>();
 
 		// trait registry
 		_comp_manager.register_cache<comp_camera, MAX_WORLD_COMP_CAMERAS>();

@@ -52,7 +52,6 @@ namespace SFG
 	{
 		stream >> name;
 		stream >> props;
-		SFG_INFO("created from buffer: {0}", name);
 	}
 
 #ifdef SFG_TOOLMODE
@@ -80,8 +79,6 @@ namespace SFG
 			SFG_ERR("failed loading: {0}", e.what());
 			return false;
 		}
-
-		SFG_INFO("created from file: {0}", target_path.c_str());
 		return true;
 	}
 

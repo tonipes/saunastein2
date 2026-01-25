@@ -94,7 +94,6 @@ namespace SFG
 		{
 			for (world_id idx : ped.dirty_indices)
 				ped.dirty_flags[idx] = 0;
-
 			ped.dirty_indices.resize(0);
 			ped.peak_size = 0;
 		}

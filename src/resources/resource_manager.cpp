@@ -285,16 +285,16 @@ namespace SFG
 			const size_t	dot	 = path.find_last_of(".");
 			if (dot == string::npos)
 			{
-				SFG_ERR("Could not deduce extension: {0}", path);
-				return;
+				SFG_ERR("could not deduce extension: {0}", path);
+				continue;
 			}
 
 			const string ext = path.substr(dot + 1, path.size() - dot - 1);
 			const meta*	 m	 = reflection::get().find_by_tag(ext.c_str());
 			if (m == nullptr)
 			{
-				SFG_ASSERT(false, "No metadata found associated with this tag: {0}", ext);
-				return;
+				SFG_ASSERT(false, "no metadata found associated with this tag: {0}", ext);
+				continue;
 			}
 
 			const string_id type   = m->get_type_id();
@@ -302,11 +302,11 @@ namespace SFG
 
 			const resource_handle h = get_resource_handle_by_hash_if_exists(type, TO_SID(path));
 			if (!h.is_null())
-				return;
+				continue;
 
 			istream stream;
 			if (!pkg.get_stream(sid, stream))
-				return;
+				continue;
 
 			loader				= load_from_stream(type, stream);
 			resolved_loaders[i] = loader;
@@ -327,15 +327,20 @@ namespace SFG
 				void*			loader = resolved_loaders[i];
 
 				if (loader == nullptr)
+				{
 					continue;
+				}
 
 				const cache_storage& stg = get_storage(type);
 				if (pass != stg.load_priority)
+				{
 					continue;
+				}
 
 				out_subs.resize(0);
 				get_loader_sub_resources(type, loader, out_subs);
-				load_resources(out_subs, pkg);
+				if (!out_subs.empty())
+					load_resources(out_subs, pkg);
 
 				const string_id hash = TO_SID(p);
 
@@ -344,6 +349,7 @@ namespace SFG
 				if (handle.is_null())
 					continue;
 
+				SFG_INFO("loaded resource: {0}", p.c_str());
 				// store by hash-path
 				store_relative_path(type, handle, p);
 				delete_loader(type, loader);
@@ -456,6 +462,8 @@ namespace SFG
 				handle				   = add_from_loader(type, loader, pass, hash);
 				if (handle.is_null())
 					continue;
+
+				SFG_INFO("loaded resource: {0}", p.c_str());
 
 				// store by hash-path
 				store_relative_path(type, handle, p);

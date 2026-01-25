@@ -55,6 +55,14 @@ using json = nlohmann::json;
 
 namespace SFG
 {
+	model_raw::model_raw()
+	{
+		//SFG_WARN("yeah");
+	}
+	model_raw::~model_raw()
+	{
+		//SFG_ERR("nah");
+	}
 	void model_raw::serialize(ostream& stream) const
 	{
 		stream << name;
@@ -81,8 +89,6 @@ namespace SFG
 		stream >> loaded_animations;
 		stream >> loaded_lights;
 		stream >> total_aabb;
-
-		SFG_INFO("created from buffer: {0}", name);
 	}
 
 #ifdef SFG_TOOLMODE
@@ -1103,8 +1109,6 @@ namespace SFG
 				for (mesh_raw& mesh : loaded_meshes)
 					build_mesh_colliders(mesh);
 			}
-
-			SFG_INFO("created from file: {0}", name);
 		}
 		catch (std::exception e)
 		{

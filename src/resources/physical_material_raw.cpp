@@ -51,7 +51,6 @@ namespace SFG
 	{
 		stream >> name;
 		stream >> settings;
-		SFG_INFO("created from buffer: {0}", name);
 	}
 
 #ifdef SFG_TOOLMODE

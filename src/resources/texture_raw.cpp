@@ -61,8 +61,6 @@ namespace SFG
 			stream << b.bpp;
 			stream.write_raw(b.pixels, static_cast<size_t>(b.size.x * b.size.y * b.bpp));
 		}
-
-		
 	}
 
 	void texture_raw::deserialize(istream& stream)
@@ -88,8 +86,6 @@ namespace SFG
 			PUSH_ALLOCATION_SZ(pixels_size);
 			stream.read_to_raw(b.pixels, pixels_size);
 		}
-
-		SFG_INFO("created from buffer: {0}", name);
 	}
 
 	void texture_raw::load_from_data(uint8* base, const vector2ui16& size, uint8 txt_format, bool generate_mips)
@@ -174,9 +170,6 @@ namespace SFG
 			SFG_ERR("exception: {0}", e.what());
 			return false;
 		}
-
-		SFG_INFO("created from file: {0}", name);
-
 		return true;
 	}
 

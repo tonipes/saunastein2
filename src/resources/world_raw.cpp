@@ -95,8 +95,6 @@ namespace SFG
 			SFG_ERR("Failed loading: {0}", e.what());
 			return false;
 		}
-
-		SFG_INFO("created from file: {0}", target_path);
 		return true;
 	}
 

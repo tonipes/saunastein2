@@ -81,7 +81,6 @@ namespace SFG
 		static void save_to_json(nlohmann::json& out, world& w, const vector<world_handle>& handles);
 		static void load_from_json(const nlohmann::json& in, entity_template_raw& r);
 
-		void save_in_place(world& w, const vector<world_handle>& handles);
 		bool load_from_file(const char* relative_file, const char* base_path);
 		bool load_from_cache(const char* cache_folder_path, const char* relative_path, const char* extension);
 		void save_to_cache(const char* cache_folder_path, const char* resource_directory_path, const char* extension) const;

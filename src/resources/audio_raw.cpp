@@ -54,7 +54,6 @@ namespace SFG
 		stream >> source;
 		stream >> is_stream;
 		stream >> audio_data;
-		SFG_INFO("created from buffer: {0}", name);
 	}
 #ifdef SFG_TOOLMODE
 
@@ -105,7 +104,6 @@ namespace SFG
 			return false;
 		}
 
-		SFG_INFO("created from file: {0}", target_path.c_str());
 		return true;
 	}
 

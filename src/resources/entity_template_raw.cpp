@@ -125,7 +125,6 @@ namespace SFG
 			stream.read_to_raw(component_buffer.get_raw(), sz);
 			component_buffer.shrink(sz);
 		}
-		SFG_INFO("created from buffer: {0}", name);
 	}
 
 	void entity_template_raw::destroy()
@@ -173,11 +172,6 @@ namespace SFG
 		}
 	}
 
-	void entity_template_raw::save_in_place(world& w, const vector<world_handle>& handles)
-	{
-		destroy();
-	}
-
 	void entity_template_raw::save_to_json(nlohmann::json& j, world& w, const vector<world_handle>& handles)
 	{
 		entity_manager&	   em = w.get_entity_manager();
@@ -217,9 +211,20 @@ namespace SFG
 
 			if (!er.template_reference.empty())
 			{
+				const resource_handle handle = rm.get_resource_handle_by_hash<entity_template>(TO_SID(er.template_reference));
+				entity_template&	  et	 = rm.get_resource<entity_template>(handle);
+
 				auto it = std::find_if(resource_paths.begin(), resource_paths.end(), [&](const string& str) -> bool { return str.compare(er.template_reference) == 0; });
 				if (it == resource_paths.end())
 					resource_paths.push_back(er.template_reference);
+
+				// const entity_template_raw& et_raw = et.get_raw();
+				// for (const string& r : et_raw.resources)
+				// {
+				// 	auto it2 = std::find_if(resource_paths.begin(), resource_paths.end(), [&](const string& str) -> bool { return str.compare(r) == 0; });
+				// 	if (it2 == resource_paths.end())
+				// 		resource_paths.push_back(r);
+				// }
 				continue;
 			}
 
@@ -273,7 +278,6 @@ namespace SFG
 			return false;
 		}
 
-		SFG_INFO("created from file: {0}", target_path);
 		return true;
 	}
 
