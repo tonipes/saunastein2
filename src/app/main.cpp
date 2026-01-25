@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -46,7 +46,6 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
 		try
 		{
-			
 		}
 		catch (std::exception e)
 		{
@@ -68,6 +67,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 				SFG::process::message_box("Main window failed initializing!");
 			else if (status == SFG::app::init_status::engine_resources_failed)
 				SFG::process::message_box("Failed loading engine shaders!");
+			else if (status == SFG::app::init_status::packages_failed)
+				SFG::process::message_box("Failed loading one of the packages: engine.stkpkg, res.sktpkg or world.stkpkg");
 
 			SFG::process::uninit();
 			POP_MEMORY_CATEGORY();

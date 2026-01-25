@@ -41,24 +41,35 @@ namespace SFG
 			return inst;
 		}
 
+		static constexpr const char* ENGINE_PKG_PATH = "engine.stkpkg";
+		static constexpr const char* RES_PKG_PATH	 = "res.stkpkg";
+		static constexpr const char* WORLD_PKG_PATH	 = "world.stkpkg";
+
 		// -----------------------------------------------------------------------------
 		// lifecycle
 		// -----------------------------------------------------------------------------
 
-		void init();
+		bool init();
 		void uninit();
+
+		// -----------------------------------------------------------------------------
+		// impl
+		// -----------------------------------------------------------------------------
+
+#ifdef SFG_TOOLMODE
 		void package_project(const vector<string>& levels, const char* output_directory);
+#endif
+		package& open_package_engine_data();
+		package& open_package_world();
+		package& open_package_res();
 
 		// -----------------------------------------------------------------------------
 		// accessors
 		// -----------------------------------------------------------------------------
 
-		inline package& get_package_engine_data()
-		{
-			return _pk_engine_data;
-		}
-
 	private:
 		package _pk_engine_data = {};
+		package _pk_world_data	= {};
+		package _pk_res_data	= {};
 	};
 }

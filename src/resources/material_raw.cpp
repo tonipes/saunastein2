@@ -258,11 +258,13 @@ namespace SFG
 
 		out_stream.destroy();
 	}
+
+#endif
+
 	void material_raw::get_sub_resources(vector<string>& out_res) const
 	{
 		out_res.push_back(shader_path);
 		for (const string& txt : textures_path)
 			out_res.push_back(txt);
 	}
-#endif
 }

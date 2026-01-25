@@ -85,5 +85,8 @@ namespace SFG
 
 		/* compiles variants for particles */
 		static bool compile_style_particle_additive(shader_raw& raw, const string& shader_text, const vector<string>& folder_path);
+
+		/* swapchain */
+		static bool compile_style_swapchain(shader_raw& raw, const string& shader_text, const vector<string>& folder_path);
 	};
 }

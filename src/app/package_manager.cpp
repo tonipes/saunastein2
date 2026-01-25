@@ -25,6 +25,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "app/package_manager.hpp"
+#include "io/file_system.hpp"
 
 #ifdef SFG_TOOLMODE
 #include "app/engine_resources.hpp"
@@ -193,6 +194,9 @@ namespace SFG
 					pkg.write_resource(path.c_str());
 					raw.serialize(pkg.get_write_stream());
 					raw.get_sub_resources(sub_resources);
+
+					for (material_raw& m : raw.loaded_materials)
+						m.destroy();
 				}
 				else if (type == type_id<physical_material>::value)
 				{
@@ -243,17 +247,26 @@ namespace SFG
 	}
 #endif
 
-	void package_manager::init()
+	bool package_manager::init()
 	{
+#ifndef SFG_TOOLMODE
+		if (!file_system::exists(WORLD_PKG_PATH) || !file_system::exists(RES_PKG_PATH) || !file_system::exists(ENGINE_PKG_PATH))
+			return false;
+
+		// TODO: checksum
+#endif
+
+		return true;
 	}
 
 	void package_manager::uninit()
 	{
 	}
 
+#ifdef SFG_TOOLMODE
+
 	void package_manager::package_project(const vector<string>& levels, const char* output_directory)
 	{
-#ifdef SFG_TOOLMODE
 		const string working_dir	  = editor_settings::get().working_dir;
 		const string cache_dir		  = editor_settings::get().cache_dir;
 		const string engine_cache_dir = editor_settings::get()._resource_cache;
@@ -279,14 +292,17 @@ namespace SFG
 			if (level.empty())
 				continue;
 
+			string fixed_path = level;
+			file_system::fix_path(fixed_path);
+
 			world_raw raw = {};
-			if (!raw.load_from_file(level.c_str(), working_dir.c_str()))
+			if (!raw.load_from_file(fixed_path.c_str(), working_dir.c_str()))
 			{
-				SFG_ERR("failed loading world: {0}", level.c_str());
+				SFG_ERR("failed loading world: {0}", fixed_path.c_str());
 				continue;
 			}
 
-			world_pkg.write_resource(level.c_str());
+			world_pkg.write_resource(fixed_path.c_str());
 			raw.serialize(world_pkg.get_write_stream());
 
 			for (const string& res : raw.entities_raw.resources)
@@ -298,12 +314,12 @@ namespace SFG
 			raw.destroy();
 		}
 
-		const string world_path = out_dir + "world.stkpackage";
+		const string world_path = out_dir + WORLD_PKG_PATH;
 		world_pkg.close_writing(world_path.c_str());
 
 		res_pkg.start_writing();
 		package_resources(resource_paths, res_pkg, working_dir.c_str(), cache_dir.c_str());
-		const string res_path = out_dir + "res.stkpackage";
+		const string res_path = out_dir + RES_PKG_PATH;
 		res_pkg.close_writing(res_path.c_str());
 
 		vector<string> engine_paths;
@@ -319,11 +335,27 @@ namespace SFG
 		engine_pkg.start_writing();
 		package_resources(engine_paths, engine_pkg, SFG_ROOT_DIRECTORY, engine_cache_dir.c_str());
 
-		const string engine_path = out_dir + "engine.stkpackage";
+		const string engine_path = out_dir + ENGINE_PKG_PATH;
 		engine_pkg.close_writing(engine_path.c_str());
-#else
-		(void)levels;
-		(void)output_directory;
+	}
+
 #endif
+
+	package& package_manager::open_package_engine_data()
+	{
+		_pk_engine_data.open(ENGINE_PKG_PATH);
+		return _pk_engine_data;
+	}
+
+	package& package_manager::open_package_world()
+	{
+		_pk_world_data.open(WORLD_PKG_PATH);
+		return _pk_world_data;
+	}
+
+	package& package_manager::open_package_res()
+	{
+		_pk_res_data.open(RES_PKG_PATH);
+		return _pk_res_data;
 	}
 }

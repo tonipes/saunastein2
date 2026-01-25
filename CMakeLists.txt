@@ -34,7 +34,7 @@ cmake_minimum_required (VERSION 4.0)
 
 project (Stakeforge)
 
-set(CMAKE_CONFIGURATION_TYPES "Debug;Release;Production;" CACHE STRING "" FORCE)
+set(CMAKE_CONFIGURATION_TYPES "DebugToolmode;ReleaseToolmode;Debug;Release;" CACHE STRING "" FORCE)
 
 if(WIN32)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -55,35 +55,41 @@ endif()
 
 # ------------- COMPILE DEFINITIONS -------------
 
+add_compile_definitions($<$<CONFIG:DebugToolmode>:_ITERATOR_DEBUG_LEVEL=1>)
+add_compile_definitions($<$<CONFIG:DebugToolmode>:SFG_DEBUG>)
+add_compile_definitions($<$<CONFIG:DebugToolmode>:SFG_ENABLE_MEMORY_TRACER>)
+add_compile_definitions($<$<CONFIG:DebugToolmode>:SFG_GFX_SERIALIZE_SHADERS_PDB>)
+add_compile_definitions($<$<CONFIG:DebugToolmode>:SFG_GFX_USE_DEBUG_LAYERS>)
+add_compile_definitions($<$<CONFIG:DebugToolmode>:SFG_USE_DEBUG_CONTROLLER>)
+add_compile_definitions($<$<CONFIG:DebugToolmode>:SFG_DUMP_LOG_TRACE>)
+add_compile_definitions($<$<CONFIG:DebugToolmode>:SFG_TOOLMODE>)
+add_compile_definitions($<$<CONFIG:DebugToolmode>:JPH_DEBUG_RENDERER>)
+
 add_compile_definitions($<$<CONFIG:Debug>:_ITERATOR_DEBUG_LEVEL=1>)
 add_compile_definitions($<$<CONFIG:Debug>:SFG_DEBUG>)
-add_compile_definitions($<$<CONFIG:Debug>:SFG_TOOLMODE>)
 add_compile_definitions($<$<CONFIG:Debug>:SFG_ENABLE_MEMORY_TRACER>)
 add_compile_definitions($<$<CONFIG:Debug>:SFG_GFX_SERIALIZE_SHADERS_PDB>)
 add_compile_definitions($<$<CONFIG:Debug>:SFG_GFX_USE_DEBUG_LAYERS>)
 add_compile_definitions($<$<CONFIG:Debug>:SFG_USE_DEBUG_CONTROLLER>)
 add_compile_definitions($<$<CONFIG:Debug>:SFG_DUMP_LOG_TRACE>)
 
-# Production is release ready.
-
-add_compile_definitions($<$<CONFIG:Production>:_ITERATOR_DEBUG_LEVEL=0>)
-add_compile_definitions($<$<CONFIG:Production>:NDEBUG>)
-add_compile_definitions($<$<CONFIG:Production>:SFG_TOOLMODE>)
-add_compile_definitions($<$<CONFIG:Production>:SFG_DUMP_LOG_TRACE>)
-
-# Release is profiling enabled production client.
-
 add_compile_definitions($<$<CONFIG:Release>:_ITERATOR_DEBUG_LEVEL=0>)
 add_compile_definitions($<$<CONFIG:Release>:NDEBUG>)
-add_compile_definitions($<$<CONFIG:Release>:SFG_TOOLMODE>)
-add_compile_definitions($<$<CONFIG:Release>:SFG_ENABLE_MEMORY_TRACER>)
-add_compile_definitions($<$<CONFIG:Release>:SFG_USE_DEBUG_CONTROLLER>)
 add_compile_definitions($<$<CONFIG:Release>:SFG_DUMP_LOG_TRACE>)
-add_compile_definitions($<$<CONFIG:Release>:TRACY_ENABLE>)
+
+add_compile_definitions($<$<CONFIG:ReleaseToolmode>:_ITERATOR_DEBUG_LEVEL=0>)
+add_compile_definitions($<$<CONFIG:ReleaseToolmode>:NDEBUG>)
+add_compile_definitions($<$<CONFIG:ReleaseToolmode>:SFG_TOOLMODE>)
 
 add_definitions(-DSFG_CONFIGURATION="$<CONFIGURATION>")
 add_definitions(-DSFG_ROOT_DIRECTORY="${CMAKE_SOURCE_DIR}/")
 
+set(CMAKE_C_FLAGS_DEBUGTOOLMODE             "${CMAKE_C_FLAGS_DEBUG}")
+set(CMAKE_CXX_FLAGS_DEBUGTOOLMODE           "${CMAKE_CXX_FLAGS_DEBUG}")
+set(CMAKE_EXE_LINKER_FLAGS_DEBUGTOOLMODE    "${CMAKE_EXE_LINKER_FLAGS_DEBUG}")
+set(CMAKE_SHARED_LINKER_FLAGS_DEBUGTOOLMODE "${CMAKE_SHARED_LINKER_FLAGS_DEBUG}")
+set(CMAKE_MODULE_LINKER_FLAGS_DEBUGTOOLMODE "${CMAKE_MODULE_LINKER_FLAGS_DEBUG}")
+set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<$<CONFIG:Debug,DebugToolmode>:ProgramDatabase>")
 
 if (WIN32)
     add_compile_definitions(SFG_PLATFORM_WINDOWS=1)
@@ -253,8 +259,8 @@ target_sources(${PROJECT_NAME} PRIVATE
     ${PLATFORM_SOURCES}
     ${ICON}
     # Only in Debug configs:
-    $<$<CONFIG:Debug>:${EDITOR_SOURCES} ${EDITOR_HEADERS}>
-    $<$<CONFIG:Release>:${EDITOR_SOURCES} ${EDITOR_HEADERS}>
+    $<$<CONFIG:DebugToolmode>:${EDITOR_SOURCES} ${EDITOR_HEADERS}>
+    $<$<CONFIG:ReleaseToolmode>:${EDITOR_SOURCES} ${EDITOR_HEADERS}>
 )
 
 
@@ -300,7 +306,7 @@ set_property(TARGET Jolt PROPERTY FOLDER Dependencies)
 
 
 if (MSVC)
-  target_compile_options(Jolt PRIVATE /wd4865)  # ignore C4865 for Jolt
+  target_compile_options(Jolt PRIVATE /wd4865 /wd5045)  # ignore C4865 for Jolt
 endif()
 
 add_subdirectory(deps/lz4-1.9.4)

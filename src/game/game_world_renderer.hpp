@@ -98,15 +98,18 @@ namespace SFG
 		static void run_opaque(const void* ctx);
 		static void run_ssao(const void* ctx);
 		static void run_particles_compute(const void* ctx);
-		static void run_obj_id(const void* ctx);
-		static void run_selection_outline(const void* ctx);
-		static void run_debug_rendering(const void* ctx);
 		static void run_lighting(const void* ctx);
 		static void run_forward(const void* ctx);
 		static void run_particles_render(const void* ctx);
 		static void run_post(const void* ctx);
 		static void run_bloom(const void* ctx);
 		static void run_canvas_2d(const void* ctx);
+
+#ifdef SFG_TOOLMODE
+		static void run_obj_id(const void* ctx);
+		static void run_selection_outline(const void* ctx);
+		static void run_debug_rendering(const void* ctx);
+#endif
 
 		struct task
 		{
@@ -225,12 +228,13 @@ namespace SFG
 		{
 			return _pass_selection_outline;
 		}
-#endif
 
 		inline render_pass_debug& get_render_pass_debug_rendering()
 		{
 			return _pass_debug_rendering;
 		}
+
+#endif
 
 	private:
 		// -----------------------------------------------------------------------------
@@ -264,11 +268,8 @@ namespace SFG
 		render_pass_canvas_2d	  _pass_canvas_2d = {};
 		render_pass_particles	  _pass_particles = {};
 
-#ifdef JPH_DEBUG_RENDERER
-		render_pass_debug _pass_debug_rendering = {};
-#endif
-
 #ifdef SFG_TOOLMODE
+		render_pass_debug			  _pass_debug_rendering	  = {};
 		render_pass_object_id		  _pass_object_id		  = {};
 		render_pass_selection_outline _pass_selection_outline = {};
 		uint32						  _target_world_id		  = 0;

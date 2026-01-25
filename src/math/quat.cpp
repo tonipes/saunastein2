@@ -323,6 +323,8 @@ namespace SFG
 		stream >> x >> y >> z >> w;
 	}
 
+#ifdef SFG_TOOLMODE
+
 	void to_json(nlohmann::json& j, const quat& q)
 	{
 		j = nlohmann::json::array({q.x, q.y, q.z, q.w});
@@ -337,5 +339,6 @@ namespace SFG
 		q.z = j.at(2).get<float>();
 		q.w = j.at(3).get<float>();
 	}
+#endif
 
 }

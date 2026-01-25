@@ -30,11 +30,11 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "data/istream.hpp"
 #include "data/hash_map.hpp"
 #include "math/vector2ui16.hpp"
+#include "io/log.hpp"
 
 #ifdef SFG_TOOLMODE
 #include "reflection/reflection.hpp"
 #include "io/file_system.hpp"
-#include "io/log.hpp"
 #include "world/world.hpp"
 #include "world/entity_manager.hpp"
 #include "world/common_entity.hpp"
@@ -332,12 +332,12 @@ namespace SFG
 		out_stream.destroy();
 	}
 
+#endif
+
 	void entity_template_raw::get_sub_resources(vector<string>& out_res) const
 	{
 		for (const string& res : resources)
 			out_res.push_back(res);
 	}
-
-#endif
 
 }

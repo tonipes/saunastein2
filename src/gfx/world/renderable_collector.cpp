@@ -132,12 +132,14 @@ namespace SFG
 				.sampler_constant_index	 = gpu_index_mat_sampler,
 				.entity_constant_index	 = obj.gpu_entity,
 				.bone_constant_index	 = obj.bones_start_index,
-				.entity_world_id		 = obj.world_entity,
-				.vb_hw					 = obj.vertex_buffer->get_gpu(),
-				.ib_hw					 = obj.index_buffer->get_gpu(),
-				.pipeline_hw			 = target_shader,
-				.vertex_size			 = obj.is_skinned ? static_cast<uint16>(sizeof(vertex_skinned)) : static_cast<uint16>(sizeof(vertex_static)),
-				.priority				 = proxy_material.draw_priority,
+#ifdef SFG_TOOLMODE
+				.entity_world_id = obj.world_entity,
+#endif
+				.vb_hw		 = obj.vertex_buffer->get_gpu(),
+				.ib_hw		 = obj.index_buffer->get_gpu(),
+				.pipeline_hw = target_shader,
+				.vertex_size = obj.is_skinned ? static_cast<uint16>(sizeof(vertex_skinned)) : static_cast<uint16>(sizeof(vertex_static)),
+				.priority	 = proxy_material.draw_priority,
 			});
 		}
 	}
@@ -175,13 +177,15 @@ namespace SFG
 				.sampler_constant_index	 = gpu_index_mat_sampler,
 				.entity_constant_index	 = obj.gpu_entity,
 				.bone_constant_index	 = obj.bones_start_index,
-				.entity_world_id		 = obj.world_entity,
-				.vb_hw					 = obj.vertex_buffer->get_gpu(),
-				.ib_hw					 = obj.index_buffer->get_gpu(),
-				.pipeline_hw			 = target_shader,
-				.vertex_size			 = obj.is_skinned ? static_cast<uint16>(sizeof(vertex_skinned)) : static_cast<uint16>(sizeof(vertex_static)),
-				.priority				 = proxy_material.draw_priority,
-				.distance				 = obj.distance,
+#ifdef SFG_TOOLMODE
+				.entity_world_id = obj.world_entity,
+#endif
+				.vb_hw		 = obj.vertex_buffer->get_gpu(),
+				.ib_hw		 = obj.index_buffer->get_gpu(),
+				.pipeline_hw = target_shader,
+				.vertex_size = obj.is_skinned ? static_cast<uint16>(sizeof(vertex_skinned)) : static_cast<uint16>(sizeof(vertex_static)),
+				.priority	 = proxy_material.draw_priority,
+				.distance	 = obj.distance,
 			});
 		}
 	}
@@ -214,12 +218,14 @@ namespace SFG
 				.sampler_constant_index	 = gpu_index_mat_sampler,
 				.entity_constant_index	 = obj.gpu_entity,
 				.bone_constant_index	 = obj.bones_start_index,
-				.entity_world_id		 = obj.world_entity,
-				.vb_hw					 = obj.vertex_buffer->get_gpu(),
-				.ib_hw					 = obj.index_buffer->get_gpu(),
-				.pipeline_hw			 = target_shader,
-				.vertex_size			 = obj.is_skinned ? static_cast<uint16>(sizeof(vertex_skinned)) : static_cast<uint16>(sizeof(vertex_static)),
-				.priority				 = proxy_material.draw_priority,
+#ifdef SFG_TOOLMODE
+				.entity_world_id = obj.world_entity,
+#endif
+				.vb_hw		 = obj.vertex_buffer->get_gpu(),
+				.ib_hw		 = obj.index_buffer->get_gpu(),
+				.pipeline_hw = target_shader,
+				.vertex_size = obj.is_skinned ? static_cast<uint16>(sizeof(vertex_skinned)) : static_cast<uint16>(sizeof(vertex_static)),
+				.priority	 = proxy_material.draw_priority,
 			});
 		}
 	}

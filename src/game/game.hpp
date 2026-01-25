@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -25,7 +25,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #pragma once
-
 
 namespace SFG
 {
@@ -42,11 +41,7 @@ namespace SFG
 	class game
 	{
 	public:
-#ifdef SFG_TOOLMODE
-		game(app& application, renderer& rend, world& w, editor& edt) : _app(application), _world(w), _renderer(rend), _editor(edt) {};
-#else
-		game(app& application, renderer& rend, world& w) : _app(application), _world(w), _renderer(rend) {};
-#endif
+		game(app& application) : _app(application) {};
 		~game() {};
 
 		// -----------------------------------------------------------------------------
@@ -55,20 +50,23 @@ namespace SFG
 
 		void init();
 		void uninit();
-		void pre_tick(float dt);
-		void tick(float dt);
-		void post_render();
-		void on_window_event(const window_event& ev, window* wnd);
-		void on_window_resize(const vector2ui16& size);
+		void tick();
+		void pre_world_tick(float delta);
+		void post_world_tick(float delta);
+		bool on_window_event(const window_event& ev);
+		void resize(const vector2ui16& size);
+
+		// -----------------------------------------------------------------------------
+		// accessors
+		// -----------------------------------------------------------------------------
+
+		inline app& get_app()
+		{
+			return _app;
+		}
 
 	private:
-		app&	  _app;
-		world&	  _world;
-		renderer& _renderer;
-
-#ifdef SFG_TOOLMODE
-		editor& _editor;
-#endif
+		app& _app;
 	};
 
 }

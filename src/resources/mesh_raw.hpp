@@ -54,6 +54,7 @@ namespace SFG
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);
 
+#ifdef SFG_TOOLMODE
 		void save_to_cache(const char* cache_folder_path, const char* resource_directory_path, const char* extension) const
 		{
 		}
@@ -67,6 +68,8 @@ namespace SFG
 			return false;
 		}
 		void get_dependencies(vector<string>& out_deps) const {};
+#endif
+
 		void get_sub_resources(vector<string>& out_res) const {};
 	};
 }

@@ -111,19 +111,26 @@ namespace SFG
 
 		inline void kill_context()
 		{
-			_ctx_aspect_native = NULL_WIDGET_ID;
-			_ctx_aspect_169	   = NULL_WIDGET_ID;
-			_ctx_aspect_43	   = NULL_WIDGET_ID;
-			_ctx_aspect_11	   = NULL_WIDGET_ID;
-			_ctx_view_rt	   = NULL_WIDGET_ID;
-			_ctx_view_albedo   = NULL_WIDGET_ID;
-			_ctx_view_normals  = NULL_WIDGET_ID;
-			_ctx_view_emissive = NULL_WIDGET_ID;
-			_ctx_view_orm	   = NULL_WIDGET_ID;
-			_ctx_view_depth	   = NULL_WIDGET_ID;
-			_ctx_view_lighting = NULL_WIDGET_ID;
-			_ctx_view_ssao	   = NULL_WIDGET_ID;
-			_ctx_view_bloom	   = NULL_WIDGET_ID;
+			_ctx_aspect_native	 = NULL_WIDGET_ID;
+			_ctx_aspect_169		 = NULL_WIDGET_ID;
+			_ctx_aspect_43		 = NULL_WIDGET_ID;
+			_ctx_aspect_11		 = NULL_WIDGET_ID;
+			_ctx_view_rt		 = NULL_WIDGET_ID;
+			_ctx_view_albedo	 = NULL_WIDGET_ID;
+			_ctx_view_normals	 = NULL_WIDGET_ID;
+			_ctx_view_emissive	 = NULL_WIDGET_ID;
+			_ctx_view_orm		 = NULL_WIDGET_ID;
+			_ctx_view_depth		 = NULL_WIDGET_ID;
+			_ctx_view_lighting	 = NULL_WIDGET_ID;
+			_ctx_view_ssao		 = NULL_WIDGET_ID;
+			_ctx_view_bloom		 = NULL_WIDGET_ID;
+			_ctx_new_project	 = NULL_WIDGET_ID;
+			_ctx_open_project	 = NULL_WIDGET_ID;
+			_ctx_save_project	 = NULL_WIDGET_ID;
+			_ctx_package_project = NULL_WIDGET_ID;
+			_ctx_new_world		 = NULL_WIDGET_ID;
+			_ctx_save_world		 = NULL_WIDGET_ID;
+			_ctx_load_world		 = NULL_WIDGET_ID;
 		}
 
 		inline vekt::id get_root() const

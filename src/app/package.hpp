@@ -58,10 +58,10 @@ namespace SFG
 		void open(const char* package_file);
 		void close();
 
-		void start_writing();
-		void write_resource(string_id id);
-		void write_resource(const char* path);
-		void close_writing(const char* output_path);
+		void	 start_writing();
+		void	 write_resource(string_id id);
+		void	 write_resource(const char* path);
+		void	 close_writing(const char* output_path);
 		ostream& get_write_stream();
 
 		const package_entry& get_entry(const char* relative);

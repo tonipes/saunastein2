@@ -150,31 +150,31 @@ namespace SFG
 		backend->cmd_end_render_pass(cmd_buffer, {});
 		END_DEBUG_EVENT(backend, cmd_buffer);
 
-#ifndef JPH_DEBUG_RENDERER
+		if (p.transition)
+		{
 
-		static_vector<barrier, 2> barriers;
+			static_vector<barrier, 2> barriers;
 
-		barriers.push_back({
-			.from_states = resource_state::resource_state_depth_read | resource_state::resource_state_ps_resource | resource_state::resource_state_non_ps_resource,
-			.to_states	 = resource_state::resource_state_common,
-			.resource	 = p.depth_texture,
-			.flags		 = barrier_flags::baf_is_texture,
-		});
+			barriers.push_back({
+				.from_states = resource_state::resource_state_depth_read | resource_state::resource_state_ps_resource | resource_state::resource_state_non_ps_resource,
+				.to_states	 = resource_state::resource_state_common,
+				.resource	 = p.depth_texture,
+				.flags		 = barrier_flags::baf_is_texture,
+			});
 
-		barriers.push_back({
-			.from_states = resource_state::resource_state_render_target,
-			.to_states	 = resource_state::resource_state_ps_resource | resource_state::resource_state_non_ps_resource,
-			.resource	 = p.input_texture,
-			.flags		 = barrier_flags::baf_is_texture,
-		});
+			barriers.push_back({
+				.from_states = resource_state::resource_state_render_target,
+				.to_states	 = resource_state::resource_state_ps_resource | resource_state::resource_state_non_ps_resource,
+				.resource	 = p.input_texture,
+				.flags		 = barrier_flags::baf_is_texture,
+			});
 
-		backend->cmd_barrier(cmd_buffer,
-							 {
-								 .barriers		= barriers.data(),
-								 .barrier_count = static_cast<uint16>(barriers.size()),
-							 });
-
-#endif
+			backend->cmd_barrier(cmd_buffer,
+								 {
+									 .barriers		= barriers.data(),
+									 .barrier_count = static_cast<uint16>(barriers.size()),
+								 });
+		}
 
 		backend->close_command_buffer(cmd_buffer);
 	}

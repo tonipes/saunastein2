@@ -57,6 +57,7 @@ namespace SFG
 			window_failed,
 			backend_failed,
 			engine_resources_failed,
+			packages_failed,
 		};
 
 		// -----------------------------------------------------------------------------

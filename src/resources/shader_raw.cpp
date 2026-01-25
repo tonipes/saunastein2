@@ -67,6 +67,8 @@ namespace SFG
 			return shader_variant_compiler::compile_style_engine_gui(*this, shader_text, folder_paths);
 		else if (variant_style.compare("particle_additive") == 0)
 			return shader_variant_compiler::compile_style_particle_additive(*this, shader_text, folder_paths);
+		else if (variant_style.compare("swapchain") == 0)
+			return shader_variant_compiler::compile_style_swapchain(*this, shader_text, folder_paths);
 
 		SFG_ERR("Unrecognize shader variant style: {0} {1}", variant_style, name);
 		return false;
@@ -240,7 +242,6 @@ namespace SFG
 		for (compile_variant& cv : compile_variants)
 			cv.destroy();
 		compile_variants.clear();
-		SFG_WARN("destroying {0}", name);
 	}
 
 }

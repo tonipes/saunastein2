@@ -66,6 +66,8 @@ SamplerState sampler_base : static_sampler_linear;
 //------------------------------------------------------------------------------
 float4 PSMain(VSOutput IN) : SV_TARGET
 {
+
+#ifdef SFG_TOOLMODE
 	Texture2D txt_world = sfg_get_texture<Texture2D>(sfg_rp_constant0);
 	Texture2D txt_debug_controller = sfg_get_texture<Texture2D>(sfg_rp_constant1);
 	Texture2D txt_editor = sfg_get_texture<Texture2D>(sfg_rp_constant2);
@@ -85,5 +87,10 @@ float4 PSMain(VSOutput IN) : SV_TARGET
 		return (color_debug_controller + color_world * (1.0f - color_debug_controller.w)) * (1.0 - color_editor.w) + color_editor;
 
 	return color_world * (1.0 - color_editor.w) + color_editor;
+
+#else
+	Texture2D txt_world = sfg_get_texture<Texture2D>(sfg_rp_constant0);
+	return txt_world.SampleLevel(sampler_base, IN.uv, 0);
+#endif
 
 }

@@ -28,16 +28,16 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "data/ostream.hpp"
 #include "data/istream.hpp"
 #include "memory/memory_tracer.hpp"
+#include "io/log.hpp"
+#include "gfx/common/format.hpp"
+#include "gfx/util/image_util.hpp"
+#include "math/math.hpp"
 
 #ifdef SFG_TOOLMODE
 #include "io/file_system.hpp"
-#include "io/log.hpp"
 #include "io/assert.hpp"
 #include "serialization/serialization.hpp"
 #include "math/vector2ui16.hpp"
-#include "math/math.hpp"
-#include "gfx/common/format.hpp"
-#include "gfx/util/image_util.hpp"
 #include <fstream>
 #include <vendor/nhlohmann/json.hpp>
 using json = nlohmann::json;

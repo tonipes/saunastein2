@@ -65,7 +65,7 @@ namespace SFG
 		void save_to_cache(const char* cache_folder_path, const char* resource_directory_path, const char* extension) const;
 		void get_dependencies(vector<string>& out_deps) const;
 		bool import_gtlf(const char* file, const char* relative_path, bool import_materials, bool import_textures);
-		void get_sub_resources(vector<string>& out_res) const {};
 #endif
+		void get_sub_resources(vector<string>& out_res) const {};
 	};
 }

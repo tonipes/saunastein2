@@ -255,13 +255,11 @@ namespace SFG
 		void update_entity_flags_to_render(world_handle handle);
 
 	private:
-#ifdef SFG_TOOLMODE
 		struct instantiated_model
 		{
 			world_handle	root = {};
 			resource_handle res	 = {};
 		};
-#endif
 		world& _world;
 
 		pool_allocator_gen<world_id, world_id, MAX_ENTITIES>* _entities			   = {};

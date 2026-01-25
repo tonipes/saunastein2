@@ -46,7 +46,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <algorithm>
 #include <execution>
 
-
 namespace SFG
 {
 	game_world_renderer::game_world_renderer(proxy_manager& pm, world& w) : _proxy_manager(pm), _world(w) {};
@@ -179,9 +178,9 @@ namespace SFG
 		_pass_forward.init(size);
 		_pass_canvas_2d.init(size);
 		_pass_particles.init(bind_layout, bind_layout_compute);
-		_pass_debug_rendering.init(size, _world);
 
 #ifdef SFG_TOOLMODE
+		_pass_debug_rendering.init(size, _world);
 		_pass_object_id.init(size);
 		_pass_selection_outline.init(size);
 #endif
@@ -199,9 +198,9 @@ namespace SFG
 		_pass_forward.uninit();
 		_pass_canvas_2d.uninit();
 		_pass_particles.uninit();
-		_pass_debug_rendering.uninit();
 
 #ifdef SFG_TOOLMODE
+		_pass_debug_rendering.uninit();
 		_pass_object_id.uninit();
 		_pass_selection_outline.uninit();
 #endif
@@ -228,7 +227,9 @@ namespace SFG
 	void game_world_renderer::tick()
 	{
 		ZoneScoped;
+#ifdef SFG_TOOLMODE
 		_pass_debug_rendering.tick();
+#endif
 	}
 
 	void game_world_renderer::prepare(uint8 frame_index)
@@ -288,20 +289,14 @@ namespace SFG
 #ifdef SFG_TOOLMODE
 		_pass_object_id.prepare(_proxy_manager, _renderables, _main_camera_view, frame_index);
 		_pass_selection_outline.prepare(_proxy_manager, _renderables, _main_camera_view, frame_index);
+		_pass_debug_rendering.prepare(_proxy_manager, _main_camera_view, _base_size, frame_index);
 #endif
-		const uint8 ssao_enabled  = _proxy_manager.get_ssao_exists();
-		const uint8 bloom_enabled = _proxy_manager.get_bloom_exists();
-		const uint8 post_enabled  = _proxy_manager.get_post_process_exists();
 
 		_pass_lighting.prepare(_proxy_manager, _main_camera_view, frame_index);
-
 		_pass_ssao.prepare(_proxy_manager, _main_camera_view, _base_size, frame_index);
-
 		_pass_bloom.prepare(_proxy_manager, frame_index);
-
 		_pass_post.prepare(_proxy_manager, frame_index, _base_size);
 		_pass_particles.prepare(frame_index, _proxy_manager, _main_camera_view);
-		_pass_debug_rendering.prepare(_proxy_manager, _main_camera_view, _base_size, frame_index);
 	}
 
 	void game_world_renderer::run_pre_depth(const void* context)
@@ -367,6 +362,8 @@ namespace SFG
 			.global_group		   = cmn->bind_group_global,
 		});
 	}
+
+#ifdef SFG_TOOLMODE
 	void game_world_renderer::run_obj_id(const void* context)
 	{
 		const game_world_renderer::task_common* cmn = static_cast<const game_world_renderer::task_common*>(context);
@@ -404,6 +401,8 @@ namespace SFG
 			.global_group  = cmn->bind_group_global,
 		});
 	}
+#endif
+
 	void game_world_renderer::run_lighting(const void* ctx)
 	{
 		const game_world_renderer::task_common* cmn = static_cast<const game_world_renderer::task_common*>(ctx);
@@ -426,6 +425,12 @@ namespace SFG
 	void game_world_renderer::run_forward(const void* ctx)
 	{
 		const game_world_renderer::task_common* cmn = static_cast<const game_world_renderer::task_common*>(ctx);
+
+#ifdef SFG_TOOLMODE
+		const bool transition_resources = false;
+#else
+		const bool transition_resources = true;
+#endif
 		cmn->rend->_pass_forward.render({
 			.frame_index		= cmn->frame_index,
 			.size				= cmn->resolution,
@@ -435,6 +440,7 @@ namespace SFG
 			.input_texture		= cmn->lighting_texture,
 			.global_layout		= cmn->layout_global,
 			.global_group		= cmn->bind_group_global,
+			.transition			= transition_resources,
 		});
 	}
 	void game_world_renderer::run_particles_render(const void* ctx)
@@ -509,9 +515,9 @@ namespace SFG
 		const gfx_id cmd_forward		   = _pass_forward.get_cmd_buffer(frame_index);
 		const gfx_id cmd_particles		   = _pass_particles.get_cmd_buffer(frame_index);
 		const gfx_id cmd_particles_compute = _pass_particles.get_cmd_buffer_compute(frame_index);
-		const gfx_id cmd_debug			   = _pass_debug_rendering.get_cmd_buffer(frame_index);
 
 #ifdef SFG_TOOLMODE
+		const gfx_id cmd_debug	   = _pass_debug_rendering.get_cmd_buffer(frame_index);
 		const gfx_id cmd_object_id = _pass_object_id.get_cmd_buffer(frame_index);
 		const gfx_id cmd_outline   = _pass_selection_outline.get_cmd_buffer(frame_index);
 #endif
@@ -593,7 +599,9 @@ namespace SFG
 
 		tt.resize(0);
 
+#ifdef SFG_TOOLMODE
 		tt.push_back({run_debug_rendering, (void*)&common_data});
+#endif
 		tt.push_back({run_lighting, (void*)&common_data});
 		tt.push_back({run_forward, (void*)&common_data});
 		tt.push_back({run_particles_render, (void*)&common_data});
@@ -607,8 +615,14 @@ namespace SFG
 
 		// submit lighting + forward + particles + debugs, waits for ssao (and particles compute)
 		backend->queue_wait(queue_gfx, &sem_ssao, &sem_ssao_val1, 1);
+
+#ifdef SFG_TOOLMODE
 		const gfx_id fw_commands[4] = {cmd_lighting, cmd_particles, cmd_forward, cmd_debug};
 		backend->submit_commands(queue_gfx, fw_commands, 4);
+#else
+		const gfx_id fw_commands[3] = {cmd_lighting, cmd_particles, cmd_forward};
+		backend->submit_commands(queue_gfx, fw_commands, 3);
+#endif
 		backend->queue_signal(queue_gfx, &sem_lighting, &sem_lighting_val0, 1);
 
 		tt.resize(0);

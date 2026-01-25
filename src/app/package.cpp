@@ -31,10 +31,11 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace SFG
 {
-
 	package::~package()
 	{
-		SFG_ASSERT(_read_data.get_size() == 0);
+		close();
+		if (_write_data.get_size() != 0)
+			_write_data.destroy();
 	}
 
 	void package::open(const char* package_file)

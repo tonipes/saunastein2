@@ -79,6 +79,7 @@ namespace SFG
 			gfx_id			   input_texture;
 			gfx_id			   global_layout;
 			gfx_id			   global_group;
+			bool			   transition;
 		};
 
 		// -----------------------------------------------------------------------------

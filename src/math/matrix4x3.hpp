@@ -26,6 +26,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
+#include "common/size_definitions.hpp"
 #include "vector4.hpp"
 #include "vector3.hpp"
 #include "matrix3x3.hpp"
@@ -88,12 +89,12 @@ namespace SFG
 			return m[index];
 		}
 
-		inline vector3 get_column(uint8_t idx) const
+		inline vector3 get_column(uint8 idx) const
 		{
 			return vector3(m[idx * 3], m[idx * 3 + 1], m[idx * 3 + 2]);
 		}
 
-		inline vector4 get_column_v4(uint8_t idx) const
+		inline vector4 get_column_v4(uint8 idx) const
 		{
 			return vector4(m[idx * 3], m[idx * 3 + 1], m[idx * 3 + 2], 0.0f);
 		}

@@ -56,7 +56,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <tracy/Tracy.hpp>
 #include <tracy/TracyD3D12.hpp>
 
-#ifndef SFG_PRODUCTION
+#ifdef SFG_DEBUG
 #include <WinPixEventRuntime/pix3.h>
 #endif
 
@@ -3037,7 +3037,7 @@ namespace SFG
 	{
 		command_buffer&				buffer	 = _command_buffers.get(cmd_id);
 		ID3D12GraphicsCommandList4* cmd_list = buffer.ptr.Get();
-#ifndef SFG_PRODUCTION
+#ifdef SFG_DEBUG
 		PIXBeginEvent(cmd_list, PIX_COLOR(120, 255, 100), "%s", label);
 #endif
 	}
@@ -3046,7 +3046,7 @@ namespace SFG
 	{
 		command_buffer&				buffer	 = _command_buffers.get(cmd_id);
 		ID3D12GraphicsCommandList4* cmd_list = buffer.ptr.Get();
-#ifndef SFG_PRODUCTION
+#ifdef SFG_DEBUG
 		PIXEndEvent(cmd_list);
 #endif
 	}

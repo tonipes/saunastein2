@@ -98,7 +98,7 @@ namespace SFG
 
 	struct command_bind_group;
 
-#ifndef SFG_PRODUCTION
+#ifdef SFG_DEBUG
 #define BEGIN_DEBUG_EVENT(backend, CMD_BUF, LABEL) backend->cmd_begin_event(CMD_BUF, LABEL)
 #define END_DEBUG_EVENT(backend, CMD_BUF)		   backend->cmd_end_event(CMD_BUF)
 #else
@@ -127,9 +127,9 @@ namespace SFG
 		{
 			D3D12MA::Allocation* ptr = nullptr;
 			texture_view		 views[8];
-			gfx_id shared_handle = 0;
-			uint8  format		 = 0;
-			uint8  view_count	 = 0;
+			gfx_id				 shared_handle = 0;
+			uint8				 format		   = 0;
+			uint8				 view_count	   = 0;
 		};
 
 		struct texture_shared_handle

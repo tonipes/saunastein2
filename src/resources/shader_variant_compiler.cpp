@@ -1116,4 +1116,85 @@ namespace SFG
 		return true;
 	}
 
+	bool shader_variant_compiler::compile_style_swapchain(shader_raw& raw, const string& shader_text, const vector<string>& folder_paths)
+	{
+		color_blend_attachment blend_attachment = {};
+		blend_definitions::get_blend_attachment(blend_definition_style::none, blend_attachment);
+
+		const vector<shader_color_attachment> color_attachments = {{
+			{.format = render_target_definitions::get_format_swapchain(), .blend_attachment = blend_attachment},
+		}};
+
+		auto add_compile_var = [&](const vector<string>& defines) -> bool {
+			raw.compile_variants.push_back({});
+			compile_variant& def_compile = raw.compile_variants.back();
+			span<uint8>		 dummy_layout;
+
+			def_compile.blobs.push_back({.stage = shader_stage::vertex});
+			bool res = compile({
+				.stage			= static_cast<uint8>(def_compile.blobs.back().stage),
+				.data			= def_compile.blobs.back().data,
+				.defines		= defines,
+				.text			= shader_text,
+				.folder_paths	= folder_paths,
+				.compile_layout = false,
+				.out_layout		= dummy_layout,
+				.entry			= "VSMain",
+			});
+			if (!res)
+			{
+				def_compile.destroy();
+				return false;
+			}
+
+			def_compile.blobs.push_back({.stage = shader_stage::fragment});
+			res = compile({
+				.stage			= static_cast<uint8>(def_compile.blobs.back().stage),
+				.data			= def_compile.blobs.back().data,
+				.defines		= defines,
+				.text			= shader_text,
+				.folder_paths	= folder_paths,
+				.compile_layout = false,
+				.out_layout		= dummy_layout,
+				.entry			= "PSMain",
+			});
+			if (!res)
+			{
+				def_compile.destroy();
+				return false;
+			}
+			return true;
+		};
+
+		auto add_pso = [&](uint32 compile_variant_index, const bitmask<uint32>& variant_flags) {
+			raw.pso_variants.push_back({});
+			pso_variant& pso	 = raw.pso_variants.back();
+			pso.compile_variant	 = compile_variant_index;
+			pso.variant_flags	 = variant_flags;
+			pso.desc.debug_name	 = raw.name;
+			pso.desc.attachments = color_attachments;
+			pso.desc.inputs		 = {};
+			pso.desc.cull		 = cull_mode::back;
+			pso.desc.topo		 = topology::triangle_strip;
+			pso.desc.front		 = front_face::ccw;
+			pso.desc.poly_mode	 = polygon_mode::fill;
+			pso.desc.fill		 = fill_mode::solid;
+
+			pso.desc.depth_stencil_desc = {
+
+			};
+		};
+
+		if (!add_compile_var({}))
+			return false;
+
+		if (!add_compile_var({"SFG_TOOLMODE"}))
+			return false;
+
+		add_pso(0, 0);
+		add_pso(1, variant_flag_toolmode);
+
+		return true;
+	}
+
 }

@@ -366,9 +366,9 @@ namespace SFG
 		_file_watcher.set_tick_interval(60);
 
 #else
-		package& engine_data_pack = package_manager::get().get_package_engine_data();
+		package& engine_data_pack = package_manager::get().open_package_engine_data();
 
-		auto load = [&](auto* raw, const char* path) -> bool {
+		auto load = [&](auto* raw, const char* path) {
 			istream& stream = engine_data_pack.get_stream(path);
 			raw->deserialize(stream);
 		};
@@ -404,6 +404,8 @@ namespace SFG
 				def.raw = raw;
 			}
 		}
+
+		engine_data_pack.close();
 #endif
 
 		for (auto& [type, def] : _resources)

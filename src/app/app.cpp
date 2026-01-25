@@ -43,9 +43,9 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gfx/backend/backend.hpp"
 
 #include "app/engine_resources.hpp"
+#include "app/package_manager.hpp"
 
 // game
-#include "game/game.hpp"
 #include "game/app_defines.hpp"
 #include "game/gameplay.hpp"
 
@@ -56,6 +56,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "editor/editor_settings.hpp"
 #include "editor/editor.hpp"
 #include "gfx/common/descriptions.hpp"
+#else
+#include "game/game.hpp"
 #endif
 
 namespace SFG
@@ -68,6 +70,13 @@ namespace SFG
 		// globals
 		debug_console::init();
 		time::init();
+
+		if (!package_manager::get().init())
+		{
+			time::uninit();
+			debug_console::uninit();
+			return init_status::packages_failed;
+		}
 
 		// toolmode requires correct engine_data initialization
 #ifdef SFG_TOOLMODE
@@ -141,6 +150,7 @@ namespace SFG
 		_editor	  = new editor(*this);
 		_renderer = new renderer(*_main_window, *_world, _render_stream, _editor);
 #else
+		_game	  = new game(*this);
 		_renderer = new renderer(*_main_window, *_world, _render_stream, nullptr);
 #endif
 
@@ -175,7 +185,6 @@ namespace SFG
 #ifdef SFG_TOOLMODE
 		_editor->init();
 #else
-		_game = new game(*this);
 		_game->init();
 #endif
 
@@ -457,8 +466,6 @@ namespace SFG
 			TracyCFrameMarkNamed("render_frame");
 #endif
 
-#ifndef SFG_PRODUCTION
-
 			const int64 time_now = time::get_cpu_microseconds();
 			const int64 delta	 = time_now - time_prev;
 			time_prev			 = time_now;
@@ -469,7 +476,6 @@ namespace SFG
 			frame_info::s_render_thread_time_milli.store(delta_milli);
 			frame_info::s_render_thread_elapsed_seconds.store(frame_info::s_render_thread_elapsed_seconds.load() + delta_seconds);
 			frame_info::s_fps.store(1.0f / static_cast<float>(delta_seconds));
-#endif
 
 			frame_info::s_draw_calls = 0;
 			_renderer->render();

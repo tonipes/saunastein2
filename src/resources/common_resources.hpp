@@ -97,6 +97,7 @@ namespace SFG
 		variant_flag_selection_outline = 1 << 5,
 		variant_flag_id_write		   = 1 << 6,
 		variant_flag_gui_3d			   = 1 << 7,
+		variant_flag_toolmode		   = 1 << 8,
 	};
 
 }

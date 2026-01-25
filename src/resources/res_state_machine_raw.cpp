@@ -27,10 +27,10 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "res_state_machine_raw.hpp"
 #include "data/ostream.hpp"
 #include "data/istream.hpp"
+#include "io/log.hpp"
 
 #ifdef SFG_TOOLMODE
 #include "io/file_system.hpp"
-#include "io/log.hpp"
 #include "serialization/serialization.hpp"
 #include <vendor/nhlohmann/json.hpp>
 #include <fstream>
@@ -354,6 +354,8 @@ namespace SFG
 		out_stream.destroy();
 	}
 
+#endif
+
 	void res_state_machine_raw::get_sub_resources(vector<string>& out_res) const
 	{
 		for (const res_state_machine_state_raw& sr : states)
@@ -363,5 +365,4 @@ namespace SFG
 		}
 	}
 
-#endif
 }

@@ -30,6 +30,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "data/pair.hpp"
 #include "game/game_max_defines.hpp"
 #include "app/engine_resources.hpp"
+#include "app/package.hpp"
+#include "reflection/reflection.hpp"
 
 // resources
 #include "resources/texture.hpp"
@@ -40,15 +42,14 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "resources/physical_material.hpp"
 #include "resources/material_raw.hpp"
 #include "resources/shader_raw.hpp"
+#include "resources/shader.hpp"
+#include "resources/material.hpp"
 
 #ifdef SFG_TOOLMODE
 #include "serialization/serialization.hpp"
-#include "reflection/reflection.hpp"
 #include "editor/editor_settings.hpp"
 #include "resources/model.hpp"
 #include "resources/mesh.hpp"
-#include "resources/shader.hpp"
-#include "resources/material.hpp"
 #include "resources/entity_template.hpp"
 #include "gfx/event_stream/render_events_gfx.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"
@@ -99,26 +100,6 @@ namespace SFG
 			_dummy_normal_raw.buffers_persistent = true;
 			_dummy_orm_raw.buffers_persistent	 = true;
 		}
-
-#ifdef SFG_TOOLMODE
-		const string engine_cache = editor_settings::get()._resource_cache;
-
-		auto load = [&](auto& raw, const char* path) {
-			if (!raw.load_from_cache(engine_cache.c_str(), path, ".stkcache"))
-			{
-				raw.load_from_file(path, SFG_ROOT_DIRECTORY);
-				raw.save_to_cache(engine_cache.c_str(), SFG_ROOT_DIRECTORY, ".stkcache");
-			}
-		};
-
-#else
-		package& pkg = package_manager::get().get_package_engine_data();
-
-		auto load = [&](auto& raw, const char* path) {
-			istream& stream = pkg.get_stream(path);
-			raw.deserialize(stream);
-		};
-#endif
 	}
 
 	resource_manager::~resource_manager()
@@ -227,7 +208,11 @@ namespace SFG
 			stg.cache_ptr->reset(_world);
 		}
 		_aux_memory.reset();
+
+#ifdef SFG_TOOLMODE
 		_file_watch.clear();
+#endif
+
 		_dynamic_sampler_count = 0;
 	}
 
@@ -270,34 +255,99 @@ namespace SFG
 		return out_handle;
 	}
 
-	void resource_manager::load_resources(istream& stream)
+	void resource_manager::load_resources(const vector<string>& relative_paths, package& pkg)
 	{
-		const size_t size = stream.get_size();
+		vector<string> filtered_relative_paths = {};
+		filtered_relative_paths.reserve(relative_paths.size());
 
-		vector<pair<string_id, void*>> loaders;
-		const uint32				   max_passes = _max_load_priority + 1;
-
-		while (!stream.is_eof())
+		for (const string& p : relative_paths)
 		{
-			string_id sid	  = 0;
-			string_id type_id = 0;
-			stream >> sid;
-			stream >> type_id;
+			if (p.empty())
+				continue;
 
-			resource_handle handle = {};
+			auto it = std::find_if(filtered_relative_paths.begin(), filtered_relative_paths.end(), [&](const string& str) -> bool { return str.compare(p) == 0; });
+			if (it == filtered_relative_paths.end())
+				filtered_relative_paths.push_back(p);
+		}
 
-			void* loader = load_from_stream(type_id, stream);
-			SFG_ASSERT(loader != nullptr);
+		const uint32 size = static_cast<uint32>(filtered_relative_paths.size());
 
-			for (uint32 pass = 0; pass < max_passes; pass++)
+		vector<void*>	  resolved_loaders(filtered_relative_paths.size());
+		vector<string_id> resolved_types(filtered_relative_paths.size());
+
+		vector<int> indices(filtered_relative_paths.size());
+		std::iota(indices.begin(), indices.end(), 0);
+
+
+		for (uint32 i = 0; i < filtered_relative_paths.size(); i++)
+		{
+			const string&	path = filtered_relative_paths.at(i);
+			const string_id sid	 = TO_SID(path);
+			const size_t	dot	 = path.find_last_of(".");
+			if (dot == string::npos)
 			{
-				handle = add_from_loader(type_id, loader, pass, sid);
-				delete_loader(type_id, loader);
-				if (!handle.is_null())
-					break;
+				SFG_ERR("Could not deduce extension: {0}", path);
+				return;
 			}
 
-			SFG_ASSERT(!handle.is_null());
+			const string ext = path.substr(dot + 1, path.size() - dot - 1);
+			const meta*	 m	 = reflection::get().find_by_tag(ext.c_str());
+			if (m == nullptr)
+			{
+				SFG_ASSERT(false, "No metadata found associated with this tag: {0}", ext);
+				return;
+			}
+
+			const string_id type   = m->get_type_id();
+			void*			loader = nullptr;
+
+			const resource_handle h = get_resource_handle_by_hash_if_exists(type, TO_SID(path));
+			if (!h.is_null())
+				return;
+
+			istream& stream = pkg.get_stream(sid);
+			loader			= load_from_stream(type, stream);
+
+			resolved_loaders[i] = loader;
+			resolved_types[i]	= type;
+		}
+		
+		// create actual resources.
+		const uint32   max_passes = _max_load_priority + 1;
+		vector<string> dependencies;
+		vector<string> out_subs = {};
+
+		for (uint32 pass = 0; pass < max_passes; pass++)
+		{
+			for (uint32 i = 0; i < size; i++)
+			{
+				const string&	p	   = filtered_relative_paths[i];
+				const string_id type   = resolved_types[i];
+				void*			loader = resolved_loaders[i];
+
+				if (loader == nullptr)
+					continue;
+
+				const cache_storage& stg = get_storage(type);
+				if (pass != stg.load_priority)
+					continue;
+
+				out_subs.resize(0);
+				get_loader_sub_resources(type, loader, out_subs);
+				load_resources(out_subs, pkg);
+
+				const string_id hash = TO_SID(p);
+
+				resource_handle handle = {};
+				handle				   = add_from_loader(type, loader, pass, hash);
+				if (handle.is_null())
+					continue;
+
+				// store by hash-path
+				store_relative_path(type, handle, p);
+				delete_loader(type, loader);
+				resolved_loaders[i] = nullptr;
+			}
 		}
 	}
 
@@ -375,7 +425,6 @@ namespace SFG
 		// create actual resources.
 		const uint32   max_passes = _max_load_priority + 1;
 		vector<string> dependencies;
-
 		vector<string> out_subs = {};
 
 		for (uint32 pass = 0; pass < max_passes; pass++)
@@ -621,19 +670,20 @@ namespace SFG
 		return get_storage(type).cache_ptr->_paths_by_hashes.at(get_resource_hash(type, h));
 	}
 
-	void* resource_manager::load_from_file(string_id type, const char* relative_file, const char* base_path) const
-	{
-		const cache_storage& stg	= get_storage(type);
-		void*				 loader = stg.cache_ptr->load_from_file(relative_file, base_path);
-		return loader;
-	}
-
 	void* resource_manager::load_from_stream(string_id type, istream& stream) const
 	{
 		const cache_storage& stg	= get_storage(type);
 		void*				 loader = stg.cache_ptr->load_from_stream(stream);
 		return loader;
 	}
+
+	void resource_manager::save_to_stream(string_id type, const void* loader, ostream& stream) const
+	{
+		const cache_storage& stg = get_storage(type);
+		stg.cache_ptr->save_to_stream(loader, stream);
+	}
+
+#ifdef SFG_TOOLMODE
 
 	void* resource_manager::load_from_cache(string_id type, const char* cache_folder_path, const char* relative_path, const char* extension) const
 	{
@@ -648,10 +698,11 @@ namespace SFG
 		stg.cache_ptr->save_to_cache(loader, cache_folder_path, resource_directory_path, extension);
 	}
 
-	void resource_manager::save_to_stream(string_id type, const void* loader, ostream& stream) const
+	void* resource_manager::load_from_file(string_id type, const char* relative_file, const char* base_path) const
 	{
-		const cache_storage& stg = get_storage(type);
-		stg.cache_ptr->save_to_stream(loader, stream);
+		const cache_storage& stg	= get_storage(type);
+		void*				 loader = stg.cache_ptr->load_from_file(relative_file, base_path);
+		return loader;
 	}
 
 	void resource_manager::get_dependencies(string_id type, const void* loader, vector<string>& out_dependencies) const
@@ -659,6 +710,7 @@ namespace SFG
 		const cache_storage& stg = get_storage(type);
 		stg.cache_ptr->get_dependencies(loader, out_dependencies);
 	}
+#endif
 
 	resource_handle resource_manager::add_from_loader(string_id type, void* loader, uint32 priority, string_id hash) const
 	{

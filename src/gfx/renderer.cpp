@@ -142,16 +142,17 @@ namespace SFG
 		_texture_queue.init();
 		_proxy_manager.init();
 
-		_shaders.swapchain = engine_resources::get().get_shader_direct(engine_resource_ident::shader_swapchain).get_hw();
-
 #ifdef SFG_TOOLMODE
+		_shaders.swapchain = engine_resources::get().get_shader_direct(engine_resource_ident::shader_swapchain).get_hw(shader_variant_flags::variant_flag_toolmode);
 		engine_resources::get().add_shader_reload_listener([this](engine_resource_ident type, shader_direct& sh) {
 			if (type == engine_resource_ident::shader_swapchain)
 			{
-				_shaders.swapchain = sh.get_hw();
+				_shaders.swapchain = sh.get_hw(shader_variant_flags::variant_flag_toolmode);
 				return;
 			}
 		});
+#else
+		_shaders.swapchain = engine_resources::get().get_shader_direct(engine_resource_ident::shader_swapchain).get_hw();
 #endif
 		return true;
 	}

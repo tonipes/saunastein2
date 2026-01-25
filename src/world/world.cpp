@@ -27,6 +27,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "world.hpp"
 #include "game/game_max_defines.hpp"
 #include "platform/window.hpp"
+#include "app/package_manager.hpp"
 
 // resources
 #include "resources/texture.hpp"
@@ -182,14 +183,18 @@ namespace SFG
 			uninit();
 			init();
 		}
+		const entity_template_raw& tr = raw.entities_raw;
 
 #ifdef SFG_TOOLMODE
 		_tool_camera_pos = raw.tool_cam_pos;
 		_tool_camera_rot = raw.tool_cam_rot;
+		_resource_manager.load_resources(tr.resources);
+#else
+		package& pkg = package_manager::get().open_package_res();
+		_resource_manager.load_resources(tr.resources, pkg);
+		pkg.close();
 #endif
 
-		const entity_template_raw& tr = raw.entities_raw;
-		_resource_manager.load_resources(tr.resources);
 		_entity_manager.instantiate_template(tr);
 	}
 
