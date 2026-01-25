@@ -25,8 +25,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "render_events_trait.hpp"
-#include "data/ostream.hpp"
-#include "data/istream.hpp"
+#include "data/ostream_vector.hpp"
+#include "data/istream_vector.hpp"
 
 namespace SFG
 {

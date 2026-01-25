@@ -25,8 +25,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "model_raw.hpp"
-#include "data/istream.hpp"
-#include "data/ostream.hpp"
+#include "data/ostream_vector.hpp"
+#include "data/istream_vector.hpp"
 #include "common/packed_size.hpp"
 
 #ifdef SFG_TOOLMODE

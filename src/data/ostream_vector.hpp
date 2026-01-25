@@ -24,21 +24,19 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISE
 OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "reflection/reflection.hpp"
+#pragma once
+
+#include "data/vector.hpp"
+#include "data/ostream.hpp"
 
 namespace SFG
 {
-	const meta* reflection::find_by_tag(const char* tag) const
+	template <class T, class Alloc> ostream& operator<<(ostream& stream, const std::vector<T, Alloc>& v)
 	{
-		const string_id tagsid = TO_SID(tag);
-		for (const auto& entry : _metas)
-		{
-			if (entry.meta.get_tag() == tagsid)
-			{
-				return &entry.meta;
-			}
-		}
-
-		return nullptr;
+		const uint32 sz = static_cast<uint32>(v.size());
+		stream << sz;
+		for (auto& e : v)
+			stream << e;
+		return stream;
 	}
 }

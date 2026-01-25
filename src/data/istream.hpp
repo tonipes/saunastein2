@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -30,35 +30,10 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "serialization/endianness.hpp"
 #include "memory/memory.hpp"
 #include "data/string.hpp"
-#include "common/types.hpp"
 #include "io/assert.hpp"
-#include <fstream>
 
 namespace SFG
 {
-
-
-	template <typename Stream, typename U> void deserialize_vector(Stream& stream, vector<U>& vec)
-	{
-		uint32 sz = 0;
-		stream >> sz;
-		vec.resize(sz);
-		if constexpr (std::is_pointer<U>::value)
-		{
-			for (uint32 i = 0; i < sz; i++)
-			{
-				using UnderlyingType = typename std::remove_pointer<U>::type;
-				vec[i]				 = new UnderlyingType();
-				vec[i]->deserialize(stream);
-			}
-		}
-		else
-		{
-			for (uint32 i = 0; i < sz; i++)
-				stream >> vec[i];
-		}
-	}
-
 	class istream
 	{
 	public:
@@ -133,42 +108,37 @@ namespace SFG
 		size_t _size  = 0;
 	};
 
-	template <typename T> istream& operator>>(istream& stream, T& val)
+	template <typename T> std::enable_if_t<std::is_arithmetic_v<std::remove_reference_t<T>>, istream&> operator>>(istream& stream, T& val)
 	{
-		if constexpr (std::is_arithmetic_v<T>)
-		{
-			stream.read(val);
-			if (endianness::should_swap())
-				endianness::swap_endian(val);
-		}
-		else if constexpr (std::is_same_v<T, string>)
-		{
-			uint32 sz = 0;
-			stream >> sz;
-			val = string((char*)stream.get_data_current(), sz);
-			stream.skip_by(sz);
-		}
-		else if constexpr (std::is_enum_v<T>)
-		{
-			uint8 u8 = 0;
-			stream >> u8;
-			val = static_cast<T>(u8);
-		}
-		else if constexpr (is_vector_v<T>)
-		{
-			deserialize_vector(stream, val);
-		}
-		else if constexpr (std::is_class_v<T>)
-		{
-			// Handle custom classes or structs
-			val.deserialize(stream);
-		}
-		else
-		{
-			SFG_ASSERT(false, "");
-		}
-
+		stream.read(val);
+		if (endianness::should_swap())
+			endianness::swap_endian(val);
 		return stream;
 	}
+
+	template <typename T> std::enable_if_t<std::is_enum_v<std::remove_reference_t<T>>, istream&> operator>>(istream& stream, T& val)
+	{
+		uint8 u8 = 0;
+		stream >> u8;
+		val = static_cast<std::remove_reference_t<T>>(u8);
+		return stream;
+	}
+
+	inline istream& operator>>(istream& stream, string& val)
+	{
+		uint32 sz = 0;
+		stream >> sz;
+		val = string(reinterpret_cast<char*>(stream.get_data_current()), sz);
+		stream.skip_by(sz);
+		return stream;
+	}
+
+	template <typename T> auto operator>>(istream& stream, T& val) -> decltype(val.deserialize(stream), stream)
+	{
+		val.deserialize(stream);
+		return stream;
+	}
+
+	template <typename T> istream& operator>>(istream& stream, T&&) = delete;
 
 }

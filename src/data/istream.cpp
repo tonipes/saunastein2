@@ -26,6 +26,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "istream.hpp"
 #include "vector.hpp"
+#include <fstream>
 
 namespace SFG
 {

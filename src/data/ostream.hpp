@@ -28,50 +28,12 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "common/size_definitions.hpp"
 #include "serialization/endianness.hpp"
-#include "data/vector.hpp"
 #include "data/string.hpp"
 #include "memory/memory.hpp"
 #include "io/assert.hpp"
-#include "common/types.hpp"
-#include <fstream>
 
 namespace SFG
 {
-
-	template <typename Stream, typename U> void serialize_vector(Stream& stream, vector<U>& vec)
-	{
-		const uint32 sz = static_cast<uint32>(vec.size());
-		stream << sz;
-
-		if constexpr (std::is_pointer<U>::value)
-		{
-			for (auto item : vec)
-				item->serialize(stream);
-		}
-		else
-		{
-			for (auto& item : vec)
-				stream << item;
-		}
-	}
-
-	template <typename Stream, typename U> void serialize_vector(Stream& stream, const vector<U>& vec)
-	{
-		const uint32 sz = static_cast<uint32>(vec.size());
-		stream << sz;
-
-		if constexpr (std::is_pointer<U>::value)
-		{
-			for (auto item : vec)
-				item->serialize(stream);
-		}
-		else
-		{
-			for (const auto& item : vec)
-				stream << item;
-		}
-	}
-
 	class ostream
 	{
 	public:
@@ -124,47 +86,38 @@ namespace SFG
 		size_t _total_size	 = 0;
 	};
 
-	template <typename T> ostream& operator<<(ostream& stream, T& val)
+	// arithmetic
+	template <typename T> std::enable_if_t<std::is_arithmetic_v<std::remove_reference_t<T>>, ostream&> operator<<(ostream& stream, T&& val)
 	{
-		if constexpr (std::is_arithmetic_v<T>)
-		{
-			auto copy = const_cast<typename std::remove_const<T>::type&>(val);
-			if (endianness::should_swap())
-				endianness::swap_endian(copy);
-			stream.write<T>(copy);
-		}
-		else if constexpr (std::is_same_v<T, string> || std::is_same_v<T, const string>)
-		{
-			const uint32 sz = static_cast<uint32>(val.size());
-			stream << sz;
-			stream.write_raw_endian_safe((uint8*)val.data(), val.size());
-		}
-		else if constexpr (std::is_enum_v<T>)
-		{
-			const uint8 u8 = static_cast<uint8>(val);
-			stream << u8;
-		}
-		else if constexpr (is_vector_v<T>)
-		{
-			serialize_vector(stream, val);
-		}
-		else if constexpr (std::is_class_v<T>)
-		{
-			// Handle custom classes or structs
-			val.serialize(stream);
-		}
-		else
-		{
-			SFG_ASSERT(false, "");
-		}
-
+		using U = std::remove_cv_t<std::remove_reference_t<T>>;
+		U copy	= static_cast<U>(val);
+		if (endianness::should_swap())
+			endianness::swap_endian(copy);
+		stream.write(copy);
 		return stream;
 	}
 
-	template <typename T> ostream& operator<<(ostream& stream, T&& val)
+	// string
+	inline ostream& operator<<(ostream& stream, const string& val)
 	{
-		T lval = val;
-		stream << lval;
+		const uint32 sz = static_cast<uint32>(val.size());
+		stream << sz;
+		stream.write_raw_endian_safe((uint8*)val.data(), val.size());
+		return stream;
+	}
+
+	// enums
+	template <typename T> std::enable_if_t<std::is_enum_v<std::remove_reference_t<T>>, ostream&> operator<<(ostream& stream, T&& val)
+	{
+		const uint8 u8 = static_cast<uint8>(val);
+		stream << u8;
+		return stream;
+	}
+
+	// classes with serialize()
+	template <typename T> auto operator<<(ostream& stream, T&& val) -> decltype(val.serialize(stream), stream)
+	{
+		val.serialize(stream);
 		return stream;
 	}
 

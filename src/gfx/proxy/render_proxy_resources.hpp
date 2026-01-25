@@ -26,16 +26,14 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include "gfx/buffer.hpp"
-#include "math/aabb.hpp"
-#include "data/ostream.hpp"
-#include "data/bitmask.hpp"
-#include "data/static_vector.hpp"
-#include "memory/chunk_handle.hpp"
 #include "render_proxy_common.hpp"
 #include "resources/common_resources.hpp"
-#include "game/game_max_defines.hpp"
 #include "world/particles/common_particles.hpp"
+
+#include "gfx/buffer.hpp"
+#include "math/aabb.hpp"
+#include "data/bitmask.hpp"
+#include "memory/chunk_handle.hpp"
 
 namespace SFG
 {

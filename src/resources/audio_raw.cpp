@@ -25,8 +25,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "audio_raw.hpp"
-#include "data/ostream.hpp"
-#include "data/istream.hpp"
+#include "data/ostream_vector.hpp"
+#include "data/istream_vector.hpp"
 
 #ifdef SFG_TOOLMODE
 #include "io/file_system.hpp"

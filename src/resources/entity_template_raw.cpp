@@ -26,8 +26,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "entity_template_raw.hpp"
 #include "entity_template.hpp"
-#include "data/ostream.hpp"
-#include "data/istream.hpp"
+#include "data/ostream_vector.hpp"
+#include "data/istream_vector.hpp"
 #include "data/hash_map.hpp"
 #include "math/vector2ui16.hpp"
 #include "io/log.hpp"

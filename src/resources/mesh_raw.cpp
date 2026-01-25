@@ -29,8 +29,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "primitive.hpp"
 #include "io/log.hpp"
 #include "memory/chunk_allocator.hpp"
-#include "data/ostream.hpp"
-#include "data/istream.hpp"
+#include "data/ostream_vector.hpp"
+#include "data/istream_vector.hpp"
 
 namespace SFG
 {

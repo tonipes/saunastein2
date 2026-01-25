@@ -25,16 +25,15 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #pragma once
-#include "data/hash_map.hpp"
 #include "data/vector.hpp"
 #include "data/string.hpp"
 #include "common/string_id.hpp"
 #include "common/type_id.hpp"
 #include "io/assert.hpp"
 #include "reflection/common_reflection.hpp"
-#include "memory/malloc_allocator_map.hpp"
 #include "memory/malloc_allocator_stl.hpp"
 #include "memory/memory.hpp"
+#include <functional>
 
 #pragma warning(push)
 #pragma warning(disable : 4541)
@@ -164,9 +163,15 @@ namespace SFG
 	class meta
 	{
 	public:
-		typedef phmap::flat_hash_map<string_id, reflection_function_base*, phmap::priv::hash_default_hash<string_id>, phmap::priv::hash_default_eq<string_id>, malloc_allocator_map<string_id>> alloc_map;
-		typedef vector<field_base*, malloc_allocator_stl<field_base*>>																															field_vec;
-		typedef vector<control_button, malloc_allocator_stl<control_button>>																													button_vec;
+		struct function_entry
+		{
+			string_id				  id  = 0;
+			reflection_function_base* ptr = nullptr;
+		};
+
+		typedef vector<function_entry, malloc_allocator_stl<function_entry>> function_vec;
+		typedef vector<field_base*, malloc_allocator_stl<field_base*>>		 field_vec;
+		typedef vector<control_button, malloc_allocator_stl<control_button>> button_vec;
 
 		template <auto DATA, typename Class> field_base* add_field(const string& title, reflected_field_type type, const string& tooltip, float min, float max, string_id sub_type_id = 0, uint8 is_list = 0, uint8 no_ui = 0)
 		{
@@ -219,9 +224,13 @@ namespace SFG
 			using func_t						= reflection_function<RetVal, Args...>;
 			std::function<RetVal(Args...)> func = std::forward<F>(f);
 
-			void*	mem			   = SFG_ALIGNED_MALLOC(alignof(func_t), sizeof(func_t));
-			func_t* reflectionFunc = new (mem) func_t(std::move(func));
-			_functions[id]		   = reflectionFunc;
+			void*			mem			   = SFG_ALIGNED_MALLOC(alignof(func_t), sizeof(func_t));
+			func_t*			reflectionFunc = new (mem) func_t(std::move(func));
+			function_entry* entry		   = find_function_entry(id);
+			if (entry)
+				entry->ptr = reflectionFunc;
+			else
+				_functions.push_back({.id = id, .ptr = reflectionFunc});
 
 			//_functions[id]						= std::make_unique<func_t>(std::move(func));
 			return *this;
@@ -229,17 +238,11 @@ namespace SFG
 
 		template <typename RetVal, typename... Args> RetVal invoke_function(string_id id, Args... args) const
 		{
-			auto it = _functions.find(id);
-			if (it == _functions.end())
-				throw std::runtime_error("Function not found");
-
-			auto* ptr = it->second;
-			if (!ptr)
-				throw std::runtime_error("Empty reflection ptr!");
-
+			const function_entry* entry = find_function_entry(id);
+			auto*				  ptr	= entry->ptr;
 			// Signature check
-			if (ptr->signature_hash() != typeid(reflection_function<RetVal, Args...>).hash_code())
-				throw std::runtime_error("Signature mismatch");
+			// if (ptr->signature_hash() != typeid(reflection_function<RetVal, Args...>).hash_code())
+			// 	throw std::runtime_error("Signature mismatch");
 
 			auto* func = static_cast<reflection_function<RetVal, Args...>*>(ptr);
 			return func->invoke(std::forward<Args>(args)...);
@@ -247,12 +250,13 @@ namespace SFG
 
 		reflection_function_base* get_function(string_id id)
 		{
-			return _functions[id];
+			function_entry* entry = find_function_entry(id);
+			return entry ? entry->ptr : nullptr;
 		}
 
 		bool has_function(string_id id) const
 		{
-			return _functions.find(id) != _functions.end();
+			return find_function_entry(id) != nullptr;
 		}
 
 		inline string_id get_type_id() const
@@ -300,10 +304,13 @@ namespace SFG
 
 		inline void destroy()
 		{
-			for (auto [sid, ptr] : _functions)
+			for (auto& entry : _functions)
 			{
-				ptr->~reflection_function_base();
-				SFG_ALIGNED_FREE(ptr);
+				if (entry.ptr)
+				{
+					entry.ptr->~reflection_function_base();
+					SFG_ALIGNED_FREE(entry.ptr);
+				}
 			}
 
 			for (auto f : _fields)
@@ -313,7 +320,27 @@ namespace SFG
 		}
 
 	private:
-		alloc_map	  _functions;
+		inline function_entry* find_function_entry(string_id id)
+		{
+			for (function_entry& entry : _functions)
+			{
+				if (entry.id == id)
+					return &entry;
+			}
+			return nullptr;
+		}
+
+		inline const function_entry* find_function_entry(string_id id) const
+		{
+			for (const function_entry& entry : _functions)
+			{
+				if (entry.id == id)
+					return &entry;
+			}
+			return nullptr;
+		}
+
+		function_vec  _functions;
 		field_vec	  _fields;
 		button_vec	  _control_buttons = {};
 		malloc_string _title		   = "";
@@ -326,7 +353,13 @@ namespace SFG
 	class reflection
 	{
 	public:
-		typedef phmap::flat_hash_map<string_id, meta, phmap::priv::hash_default_hash<string_id>, phmap::priv::hash_default_eq<string_id>, malloc_allocator_map<string_id>> alloc_map;
+		struct meta_entry
+		{
+			string_id id = 0;
+			meta	  meta;
+		};
+
+		typedef vector<meta_entry, malloc_allocator_stl<meta_entry>> meta_vec;
 
 		static reflection& get()
 		{
@@ -336,15 +369,22 @@ namespace SFG
 
 		~reflection()
 		{
-			for (auto& [sid, meta] : _metas)
+			for (auto& entry : _metas)
 			{
-				meta.destroy();
+				entry.meta.destroy();
 			}
 		}
 
 		meta& register_meta(string_id id, uint32 index, const string& tag)
 		{
-			meta& m		  = _metas[id];
+			meta_entry* entry = find_meta_entry(id);
+			if (!entry)
+			{
+				_metas.push_back({.id = id});
+				entry = &_metas.back();
+			}
+
+			meta& m		  = entry->meta;
 			m._type_id	  = id;
 			m._tag		  = TO_SID(tag);
 			m._tag_str	  = tag;
@@ -354,17 +394,17 @@ namespace SFG
 
 		meta& resolve(string_id id)
 		{
-			meta& m = _metas.at(id);
-			return m;
+			meta_entry* entry = find_meta_entry(id);
+			return entry->meta;
 		}
 
 		meta* try_resolve(string_id id)
 		{
-			auto it = _metas.find(id);
-			return it == _metas.end() ? nullptr : &(it->second);
+			meta_entry* entry = find_meta_entry(id);
+			return entry ? &entry->meta : nullptr;
 		}
 
-		const alloc_map& get_metas() const
+		const meta_vec& get_metas() const
 		{
 			return _metas;
 		}
@@ -372,7 +412,27 @@ namespace SFG
 		const meta* find_by_tag(const char* tag) const;
 
 	private:
-		alloc_map _metas;
+		inline meta_entry* find_meta_entry(string_id id)
+		{
+			for (meta_entry& entry : _metas)
+			{
+				if (entry.id == id)
+					return &entry;
+			}
+			return nullptr;
+		}
+
+		inline const meta_entry* find_meta_entry(string_id id) const
+		{
+			for (const meta_entry& entry : _metas)
+			{
+				if (entry.id == id)
+					return &entry;
+			}
+			return nullptr;
+		}
+
+		meta_vec _metas;
 	};
 
 #define SFG_PP_CONCAT_INNER(a, b) a##b

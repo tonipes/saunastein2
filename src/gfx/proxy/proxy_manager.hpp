@@ -33,6 +33,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "memory/static_array.hpp"
 #include "memory/chunk_allocator.hpp"
 #include "data/vector.hpp"
+#include "data/static_vector.hpp"
 #include "gfx/common/gfx_constants.hpp"
 #include "game/game_max_defines.hpp"
 

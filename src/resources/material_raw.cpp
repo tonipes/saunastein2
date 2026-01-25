@@ -25,7 +25,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "material_raw.hpp"
-#include "data/istream.hpp"
+#include "data/ostream_vector.hpp"
+#include "data/istream_vector.hpp"
 
 #ifdef SFG_TOOLMODE
 #include "math/vector2.hpp"

@@ -951,8 +951,9 @@ namespace SFG
 				editor::get().get_gui_controller().begin_context_menu(ev.position.x, ev.position.y);
 
 				const auto& metas = reflection::get().get_metas();
-				for (auto& [sid, meta] : metas)
+				for (const auto& entry : metas)
 				{
+					const meta& meta = entry.meta;
 					if (meta.get_tag() == "component"_hs && !meta.get_title().empty())
 					{
 						const vekt::id		  button = editor::get().get_gui_controller().add_context_menu_item(meta.get_title().c_str());
