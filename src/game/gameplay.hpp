@@ -31,15 +31,19 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace SFG
 {
 	class world;
+	class app;
 
 	class gameplay
 	{
 	public:
+		gameplay(app& app) : _app(app) {};
+
 		void on_world_begin(world& w);
 		void on_world_end(world& w);
 		void on_world_tick(world& w, float dt);
 
 	private:
+		app& _app;
 	};
 
 }

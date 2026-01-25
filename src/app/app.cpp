@@ -29,9 +29,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 #include "app.hpp"
-#include "common/system_info.hpp"
-#include "memory/memory_tracer.hpp"
-#include "io/log.hpp"
+#include "app/engine_resources.hpp"
+#include "app/package_manager.hpp"
 
 // platform
 #include "platform/time.hpp"
@@ -42,15 +41,17 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gfx/renderer.hpp"
 #include "gfx/backend/backend.hpp"
 
-#include "app/engine_resources.hpp"
-#include "app/package_manager.hpp"
-
 // game
 #include "game/app_defines.hpp"
 #include "game/gameplay.hpp"
 
+// misc
+#include "common/system_info.hpp"
+#include "memory/memory_tracer.hpp"
+#include "io/log.hpp"
 #include "debug_console.hpp"
 #include "world/world.hpp"
+#include "resources/world_raw.hpp"
 
 #ifdef SFG_TOOLMODE
 #include "editor/editor_settings.hpp"
@@ -78,7 +79,6 @@ namespace SFG
 			return init_status::packages_failed;
 		}
 
-		// toolmode requires correct engine_data initialization
 #ifdef SFG_TOOLMODE
 		if (!editor_settings::get().init())
 		{
@@ -103,6 +103,7 @@ namespace SFG
 #ifdef SFG_TOOLMODE
 		editor_settings::get().init_window_layout(*_main_window);
 #endif
+
 		// backend
 		gfx_backend::s_instance = new gfx_backend();
 		gfx_backend* backend	= gfx_backend::get();
@@ -180,7 +181,7 @@ namespace SFG
 
 		_render_stream.init();
 
-		_gameplay = new gameplay();
+		_gameplay = new gameplay(*this);
 
 #ifdef SFG_TOOLMODE
 		_editor->init();
@@ -454,6 +455,7 @@ namespace SFG
 	void app::render_loop()
 	{
 		SFG_REGISTER_THREAD_RENDER();
+
 #ifdef TRACY_ENABLE
 		tracy::SetThreadName("render_thread");
 #endif

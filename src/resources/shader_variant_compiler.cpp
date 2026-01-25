@@ -1188,11 +1188,15 @@ namespace SFG
 		if (!add_compile_var({}))
 			return false;
 
-		if (!add_compile_var({"SFG_TOOLMODE"}))
+		if (!add_compile_var({"SFG_CONSOLE"}))
+			return false;
+
+		if (!add_compile_var({"SFG_CONSOLE_AND_EDITOR"}))
 			return false;
 
 		add_pso(0, 0);
-		add_pso(1, variant_flag_toolmode);
+		add_pso(1, variant_flag_console);
+		add_pso(2, variant_flag_console_and_editor);
 
 		return true;
 	}

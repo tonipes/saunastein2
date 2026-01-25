@@ -278,7 +278,6 @@ namespace SFG
 		vector<int> indices(filtered_relative_paths.size());
 		std::iota(indices.begin(), indices.end(), 0);
 
-
 		for (uint32 i = 0; i < filtered_relative_paths.size(); i++)
 		{
 			const string&	path = filtered_relative_paths.at(i);
@@ -305,13 +304,15 @@ namespace SFG
 			if (!h.is_null())
 				return;
 
-			istream& stream = pkg.get_stream(sid);
-			loader			= load_from_stream(type, stream);
+			istream stream;
+			if (!pkg.get_stream(sid, stream))
+				return;
 
+			loader				= load_from_stream(type, stream);
 			resolved_loaders[i] = loader;
 			resolved_types[i]	= type;
 		}
-		
+
 		// create actual resources.
 		const uint32   max_passes = _max_load_priority + 1;
 		vector<string> dependencies;

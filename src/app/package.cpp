@@ -106,17 +106,24 @@ namespace SFG
 		return _header.resource_table.at(sid);
 	}
 
-	istream& package::get_stream(const char* entry_begin_relative)
+	bool package::get_stream(const char* entry_begin_relative, istream& out)
 	{
 		const string_id sid = TO_SID(entry_begin_relative);
-		return get_stream(sid);
+		return get_stream(sid, out);
 	}
 
-	istream& package::get_stream(string_id sid)
+	bool package::get_stream(string_id sid, istream& out)
 	{
-		const package_entry& e = _header.resource_table.at(sid);
-		_read_data.seek(_read_header_size + static_cast<size_t>(e.offset));
-		return _read_data;
+		auto it = _header.resource_table.find(sid);
+		if (it == _header.resource_table.end())
+			return false;
+		const size_t off = _read_header_size + static_cast<size_t>(it->second.offset);
+
+		if (off > _read_data.get_size())
+			return false;
+
+		out = istream(_read_data.get_raw() + off, _read_data.get_size() - off);
+		return true;
 	}
 
 	void package_header::serialize(ostream& stream) const

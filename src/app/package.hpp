@@ -66,8 +66,8 @@ namespace SFG
 
 		const package_entry& get_entry(const char* relative);
 		const package_entry& get_entry(string_id sid);
-		istream&			 get_stream(const char* entry_begin_relative);
-		istream&			 get_stream(string_id);
+		bool				 get_stream(const char* entry_begin_relative, istream& out);
+		bool				 get_stream(string_id, istream& out);
 
 	private:
 		package_header _header			 = {};

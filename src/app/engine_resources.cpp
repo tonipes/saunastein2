@@ -369,8 +369,9 @@ namespace SFG
 		package& engine_data_pack = package_manager::get().open_package_engine_data();
 
 		auto load = [&](auto* raw, const char* path) {
-			istream& stream = engine_data_pack.get_stream(path);
-			raw->deserialize(stream);
+			istream stream;
+			if (engine_data_pack.get_stream(path, stream))
+				raw->deserialize(stream);
 		};
 
 		for (auto& [type, def] : _resources)

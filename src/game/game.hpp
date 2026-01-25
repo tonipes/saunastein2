@@ -55,6 +55,7 @@ namespace SFG
 		void post_world_tick(float delta);
 		bool on_window_event(const window_event& ev);
 		void resize(const vector2ui16& size);
+		void load_level(const char* level);
 
 		// -----------------------------------------------------------------------------
 		// accessors
