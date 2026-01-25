@@ -25,10 +25,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "entity_template.hpp"
-#include "entity_template_raw.hpp"
-#include "memory/chunk_allocator.hpp"
-#include "world/world.hpp"
-#include "resources/resource_manager.hpp"
 #include "reflection/reflection.hpp"
 
 namespace SFG

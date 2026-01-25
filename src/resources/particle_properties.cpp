@@ -25,7 +25,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "particle_properties.hpp"
-#include "reflection/type_reflection.hpp"
 #include "particle_properties_raw.hpp"
 #include "gui/vekt.hpp"
 #include "world/world.hpp"

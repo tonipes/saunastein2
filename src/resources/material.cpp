@@ -25,7 +25,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "material.hpp"
-#include "reflection/type_reflection.hpp"
 #include "material_raw.hpp"
 #include "gfx/backend/backend.hpp"
 #include "gfx/util/gfx_util.hpp"

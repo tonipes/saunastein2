@@ -25,7 +25,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "physical_material.hpp"
-#include "reflection/type_reflection.hpp"
 #include "physical_material_raw.hpp"
 #include "world/world.hpp"
 #include "reflection/reflection.hpp"

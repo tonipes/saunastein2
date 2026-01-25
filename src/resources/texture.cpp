@@ -25,7 +25,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "texture.hpp"
-#include "reflection/type_reflection.hpp"
 #include "texture_raw.hpp"
 #include "io/assert.hpp"
 #include "gfx/backend/backend.hpp"

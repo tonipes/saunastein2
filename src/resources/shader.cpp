@@ -25,7 +25,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "shader.hpp"
-#include "reflection/type_reflection.hpp"
 #include "shader_raw.hpp"
 #include "gfx/renderer.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"

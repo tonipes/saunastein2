@@ -25,7 +25,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "mesh.hpp"
-#include "reflection/type_reflection.hpp"
 #include "mesh_raw.hpp"
 #include "primitive_raw.hpp"
 #include "primitive.hpp"

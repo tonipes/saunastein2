@@ -25,7 +25,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "font.hpp"
-#include "reflection/type_reflection.hpp"
 #include "font_raw.hpp"
 #include "gui/vekt.hpp"
 #include "world/world.hpp"

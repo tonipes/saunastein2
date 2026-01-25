@@ -25,7 +25,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "resources/common_resources.hpp"
-#include <string>
 
 namespace SFG
 {

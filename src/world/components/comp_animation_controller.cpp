@@ -25,7 +25,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "comp_animation_controller.hpp"
-#include "reflection/type_reflection.hpp"
 #include "reflection/reflection.hpp"
 #include "world/world.hpp"
 #include "resources/res_state_machine.hpp"

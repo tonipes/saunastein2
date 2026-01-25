@@ -25,7 +25,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "model.hpp"
-#include "reflection/type_reflection.hpp"
 #include "memory/chunk_allocator.hpp"
 #include "mesh.hpp"
 #include "model_node.hpp"

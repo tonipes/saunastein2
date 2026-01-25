@@ -25,7 +25,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "skin.hpp"
-#include "reflection/type_reflection.hpp"
 #include "skin_raw.hpp"
 #include "memory/chunk_allocator.hpp"
 #include "world/world.hpp"

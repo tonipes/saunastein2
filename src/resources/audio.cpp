@@ -25,7 +25,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "audio.hpp"
-#include "reflection/type_reflection.hpp"
 #include "audio_raw.hpp"
 #include "io/assert.hpp"
 #include "memory/chunk_allocator.hpp"

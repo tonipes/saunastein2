@@ -26,13 +26,9 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include "data/bitmask.hpp"
-#include "memory/chunk_handle.hpp"
 #include "resources/common_resources.hpp"
 #include "reflection/type_reflection.hpp"
 #include "entity_template_raw.hpp"
-#include "math/vector3.hpp"
-#include "math/quat.hpp"
 
 namespace SFG
 {
