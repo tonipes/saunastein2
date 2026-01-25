@@ -344,7 +344,6 @@ namespace SFG
 				const double interpolation = static_cast<double>(accumulator_ns) / FIXED_FRAMERATE_NS_D;
 				_world->interpolate(interpolation);
 				_render_stream.publish();
-
 #else
 				if (ticks != 0)
 					_render_stream.publish();

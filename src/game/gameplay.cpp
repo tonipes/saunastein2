@@ -118,7 +118,6 @@ namespace SFG
 		const vector3& pos = em.get_entity_position(_player_entity);
 		auto		   p   = pos + (move_dir * (_current_move_speed * dt));
 		em.set_entity_position(_player_entity, p);
-		SFG_TRACE("player pos x {0}", p.x);
 	}
 
 	void gameplay::on_window_event(const window_event& ev, window* wnd)

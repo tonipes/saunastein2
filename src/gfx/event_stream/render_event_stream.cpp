@@ -124,11 +124,6 @@ namespace SFG
 		e.rot						   = rot;
 		e.model						   = model;
 
-		if (index == 71)
-		{
-			SFG_TRACE("writing to buffer {0}, position x: {1}", (uint32)_xform_write, model.get_translation().x);
-		}
-
 		uint8& dirty = ped.dirty_flags[index];
 		if (dirty == 0)
 		{
@@ -156,11 +151,6 @@ namespace SFG
 				write.rotation			   = e.rot;
 				write.model				   = e.model;
 				write.normal			   = e.model.to_linear3x3().inversed().transposed();
-
-				if (d == 71)
-				{
-					SFG_INFO("reading from buffer {0}, position x: {1}", (uint32)xidx, e.model.get_translation().x);
-				}
 			}
 
 			out_size = ped.peak_size;
