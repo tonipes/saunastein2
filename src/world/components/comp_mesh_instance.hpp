@@ -32,14 +32,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "memory/chunk_handle.hpp"
 #include "data/vector.hpp"
 
-#ifdef SFG_TOOLMODE
-#include "vendor/nhlohmann/json_fwd.hpp"
-#endif
-
 namespace SFG
 {
-	class ostream;
-	class istream;
 	class world;
 	class resource_manager;
 
@@ -54,13 +48,6 @@ namespace SFG
 
 		void on_add(world& we);
 		void on_remove(world& w);
-		void serialize(ostream& stream, world& w) const;
-		void deserialize(istream& stream, world& w);
-
-#ifdef SFG_TOOLMODE
-		void serialize_json(nlohmann::json& j, world& w) const;
-		void deserialize_json(const nlohmann::json& j, world& w);
-#endif
 
 		// -----------------------------------------------------------------------------
 		// accessors

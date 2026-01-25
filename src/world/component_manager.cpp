@@ -73,30 +73,6 @@ namespace SFG
 		return handle;
 	}
 
-	world_handle component_manager::add_component_from_stream(string_id type, istream& stream, world_handle entity)
-	{
-		entity_manager& em = _world.get_entity_manager();
-		SFG_ASSERT(em.is_valid(entity));
-
-		comp_cache_storage& stg	   = get_storage(type);
-		const world_handle	handle = stg.cache_ptr->add_from_stream(stream, entity, _world);
-
-		if (handle.is_null())
-		{
-			SFG_ERR("Failed adding component, type's pool is full! {0}", type);
-			return {};
-		}
-
-		em.on_component_added(entity, handle, type);
-		return handle;
-	}
-
-	void component_manager::save_component_to_stream(string_id type, ostream& stream, world_handle handle)
-	{
-		comp_cache_storage& stg = get_storage(type);
-		stg.cache_ptr->save_to_stream(stream, handle, _world);
-	}
-
 	void component_manager::remove_component(string_id type, world_handle entity, world_handle handle)
 	{
 		entity_manager& em = _world.get_entity_manager();
@@ -143,19 +119,4 @@ namespace SFG
 		return *it;
 	}
 
-#ifdef SFG_TOOLMODE
-
-	world_handle component_manager::add_component_from_json(string_id type, const json& j, world_handle entity)
-	{
-		const comp_cache_storage& stg = get_storage(type);
-		return stg.cache_ptr->add_from_json(j, entity, _world);
-	}
-
-	void component_manager::save_comp(string_id type, json& j, world_handle handle)
-	{
-		const comp_cache_storage& stg = get_storage(type);
-		stg.cache_ptr->save_to_json(j, handle, _world);
-	}
-
-#endif
 }

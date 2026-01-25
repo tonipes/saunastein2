@@ -32,17 +32,10 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "data/vector.hpp"
 #include "memory/chunk_allocator.hpp"
 
-#ifdef SFG_TOOLMODE
-#include <vendor/nhlohmann/json_fwd.hpp>
-using json = nlohmann::json;
-#endif
-
 namespace SFG
 {
 	struct sampler_desc;
 	class world;
-	class istream;
-	class ostream;
 	class meta;
 
 	enum class comp_view_result : uint8
@@ -60,17 +53,11 @@ namespace SFG
 		virtual ~comp_cache_base() = default;
 
 		// Lifecycle
-		virtual world_handle add(world_handle entity, world& w)								 = 0;
-		virtual world_handle add_from_stream(istream& stream, world_handle entity, world& w) = 0;
-		virtual void		 save_to_stream(ostream& stream, world_handle handle, world& w)	 = 0;
-		virtual void		 remove(world_handle handle, world& w)							 = 0;
-		virtual void		 reset(world& w)												 = 0;
-		virtual bool		 is_valid(world_handle handle) const							 = 0;
+		virtual world_handle add(world_handle entity, world& w)	   = 0;
+		virtual void		 remove(world_handle handle, world& w) = 0;
+		virtual void		 reset(world& w)					   = 0;
+		virtual bool		 is_valid(world_handle handle) const   = 0;
 
-#ifdef SFG_TOOLMODE
-		virtual world_handle add_from_json(const json& j, world_handle entity, world& w) = 0;
-		virtual void		 save_to_json(json& j, world_handle handle, world& w)		 = 0;
-#endif
 		// Accessors
 		virtual void*		get_ptr(world_handle h)				= 0;
 		virtual const void* get_const_ptr(world_handle h) const = 0;
@@ -107,42 +94,6 @@ namespace SFG
 			comp._header.own_handle	  = handle;
 			comp.on_add(w);
 			return handle;
-		}
-
-		virtual world_handle add_from_stream(istream& stream, world_handle entity, world& w) override
-		{
-			const world_handle handle = _components.add();
-			T&				   comp	  = _components.get(handle);
-			comp._header.entity		  = entity;
-			comp._header.own_handle	  = handle;
-			comp.deserialize(stream, w);
-			comp.on_add(w);
-			return handle;
-		}
-
-#ifdef SFG_TOOLMODE
-		virtual world_handle add_from_json(const json& j, world_handle entity, world& w) override
-		{
-			const world_handle handle = _components.add();
-			T&				   comp	  = _components.get(handle);
-			comp._header.entity		  = entity;
-			comp._header.own_handle	  = handle;
-			//	comp.deserialize_json(j, w);
-			comp.on_add(w);
-			return handle;
-		}
-
-		virtual void save_to_json(json& j, world_handle handle, world& w) override
-		{
-			T& comp = _components.get(handle);
-			// comp.serialize_json(j, w);
-		}
-#endif
-
-		virtual void save_to_stream(ostream& stream, world_handle handle, world& w) override
-		{
-			T& comp = _components.get(handle);
-			comp.serialize(stream, w);
 		}
 
 		virtual void remove(world_handle handle, world& w) override
@@ -252,16 +203,9 @@ namespace SFG
 		// Lifecycle
 		// -----------------------------------------------------------------------------
 		world_handle add_component(string_id type, world_handle entity);
-		world_handle add_component_from_stream(string_id type, istream& stream, world_handle entity);
-		void		 save_component_to_stream(string_id type, ostream& stream, world_handle trait);
 		void		 remove_component(string_id type, world_handle entity, world_handle handle);
 		bool		 is_valid(string_id type, world_handle handle) const;
 		void*		 get_component(string_id type, world_handle handle) const;
-
-#ifdef SFG_TOOLMODE
-		world_handle add_component_from_json(string_id type, const json& json, world_handle entity);
-		void		 save_comp(string_id type, json& j, world_handle handle);
-#endif
 
 		template <typename T> inline world_handle add_component(world_handle entity)
 		{

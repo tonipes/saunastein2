@@ -25,18 +25,10 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "comp_camera.hpp"
-#include "reflection/type_reflection.hpp"
-#include "data/ostream.hpp"
-#include "data/istream.hpp"
+#include "reflection/reflection.hpp"
 #include "world/world.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"
 #include "gfx/event_stream/render_events_trait.hpp"
-#include "reflection/reflection.hpp"
-
-#ifdef SFG_TOOLMODE
-#include <vendor/nhlohmann/json.hpp>
-using json = nlohmann::json;
-#endif
 
 namespace SFG
 {
@@ -149,35 +141,4 @@ namespace SFG
 		});
 	}
 
-	void comp_camera::serialize(ostream& stream, world& w) const
-	{
-		stream << _near;
-		stream << _far;
-		stream << _fov_degrees;
-	}
-
-	void comp_camera::deserialize(istream& stream, world& w)
-	{
-		stream >> _near;
-		stream >> _far;
-		stream >> _fov_degrees;
-	}
-
-#ifdef SFG_TOOLMODE
-
-	void comp_camera::serialize_json(nlohmann::json& j, world& w) const
-	{
-		j["near"]		 = _near;
-		j["far"]		 = _far;
-		j["fov_degrees"] = _fov_degrees;
-	}
-
-	void comp_camera::deserialize_json(const nlohmann::json& j, world& w)
-	{
-		_near		 = j.value<float>("near", 0.0f);
-		_far		 = j.value<float>("far", 0.0f);
-		_fov_degrees = j.value<float>("fov_degrees", 0.0f);
-	}
-
-#endif
 }

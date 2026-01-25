@@ -33,16 +33,10 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "math/color.hpp"
 #include "math/vector2ui16.hpp"
 
-#ifdef SFG_TOOLMODE
-#include "vendor/nhlohmann/json_fwd.hpp"
-#endif
-
 namespace SFG
 {
 #define SFG_LIGHT_CANDELA_MULT 1.0f / 683.0f
 
-	class ostream;
-	class istream;
 	class world;
 
 	class comp_dir_light
@@ -56,13 +50,6 @@ namespace SFG
 
 		void on_add(world& w);
 		void on_remove(world& w);
-		void serialize(ostream& stream, world& w) const;
-		void deserialize(istream& stream, world& w);
-
-#ifdef SFG_TOOLMODE
-		void serialize_json(nlohmann::json& j, world& w) const;
-		void deserialize_json(const nlohmann::json& j, world& w);
-#endif
 
 		// -----------------------------------------------------------------------------
 		// accessors
@@ -110,13 +97,6 @@ namespace SFG
 
 		void on_add(world& w);
 		void on_remove(world& w);
-		void serialize(ostream& stream, world& w) const;
-		void deserialize(istream& stream, world& w);
-
-#ifdef SFG_TOOLMODE
-		void serialize_json(nlohmann::json& j, world& w) const;
-		void deserialize_json(const nlohmann::json& j, world& w);
-#endif
 
 		// -----------------------------------------------------------------------------
 		// accessors
@@ -187,13 +167,6 @@ namespace SFG
 
 		void on_add(world& w);
 		void on_remove(world& w);
-		void serialize(ostream& stream, world& w) const;
-		void deserialize(istream& stream, world& w);
-
-#ifdef SFG_TOOLMODE
-		void serialize_json(nlohmann::json& j, world& w) const;
-		void deserialize_json(const nlohmann::json& j, world& w);
-#endif
 
 		// -----------------------------------------------------------------------------
 		// accessors

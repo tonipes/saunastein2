@@ -26,8 +26,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include "common/size_definitions.hpp"
-#include "common/string_id.hpp"
 #include "common/type_id.hpp"
 
 namespace SFG

@@ -26,12 +26,11 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "comp_animation_controller.hpp"
 #include "reflection/type_reflection.hpp"
-#include "data/ostream.hpp"
-#include "data/istream.hpp"
-#include "world/world.hpp"
 #include "reflection/reflection.hpp"
+#include "world/world.hpp"
 #include "resources/res_state_machine.hpp"
 #include "resources/animation.hpp"
+
 namespace SFG
 {
 	void comp_animation_controller::reflect()
@@ -77,14 +76,6 @@ namespace SFG
 			aux.free(_skin_entities_ch);
 			_skin_entities_ch = {};
 		}
-	}
-
-	void comp_animation_controller::serialize(ostream& stream, world& w) const
-	{
-	}
-
-	void comp_animation_controller::deserialize(istream& stream, world& w)
-	{
 	}
 
 	void comp_animation_controller::set_skin_entities(world& w, world_handle* skin_entities, uint16 skin_entities_count)

@@ -25,18 +25,10 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "comp_post_process.hpp"
-#include "reflection/type_reflection.hpp"
-#include "data/ostream.hpp"
-#include "data/istream.hpp"
+#include "reflection/reflection.hpp"
 #include "world/world.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"
 #include "gfx/event_stream/render_events_trait.hpp"
-#include "reflection/reflection.hpp"
-
-#ifdef SFG_TOOLMODE
-#include <vendor/nhlohmann/json.hpp>
-using json = nlohmann::json;
-#endif
 
 namespace SFG
 {
@@ -125,53 +117,4 @@ namespace SFG
 			ev);
 	}
 
-	void comp_post_process::serialize(ostream& stream, world& w) const
-	{
-		stream << _bloom_strength;
-		stream << _exposure;
-		stream << static_cast<uint8>(_tonemap_mode);
-		stream << _saturation;
-		stream << _wb_temp;
-		stream << _wb_tint;
-		stream << _reinhard_white_point;
-	}
-
-	void comp_post_process::deserialize(istream& stream, world& w)
-	{
-		uint8 mode = 0;
-		stream >> _bloom_strength;
-		stream >> _exposure;
-		stream >> mode;
-		stream >> _saturation;
-		stream >> _wb_temp;
-		stream >> _wb_tint;
-		stream >> _reinhard_white_point;
-		_tonemap_mode = static_cast<tonemap_mode>(mode);
-	}
-
-#ifdef SFG_TOOLMODE
-
-	void comp_post_process::serialize_json(nlohmann::json& j, world& w) const
-	{
-		j["bloom_strength"]		  = _bloom_strength;
-		j["exposure"]			  = _exposure;
-		j["tonemap_mode"]		  = static_cast<uint8>(_tonemap_mode);
-		j["saturation"]			  = _saturation;
-		j["wb_temp"]			  = _wb_temp;
-		j["wb_tint"]			  = _wb_tint;
-		j["reinhard_white_point"] = _reinhard_white_point;
-	}
-
-	void comp_post_process::deserialize_json(const nlohmann::json& j, world& w)
-	{
-		_bloom_strength		  = j.value<float>("bloom_strength", 0.04f);
-		_exposure			  = j.value<float>("exposure", 1.0f);
-		_tonemap_mode		  = static_cast<tonemap_mode>(j.value<uint8>("tonemap_mode", 1));
-		_saturation			  = j.value<float>("saturation", 1.0f);
-		_wb_temp			  = j.value<float>("wb_temp", 0.0f);
-		_wb_tint			  = j.value<float>("wb_tint", 0.0f);
-		_reinhard_white_point = j.value<float>("reinhard_white_point", 6.0f);
-	}
-
-#endif
 }

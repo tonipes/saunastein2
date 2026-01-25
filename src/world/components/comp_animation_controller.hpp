@@ -35,8 +35,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace SFG
 {
-	class ostream;
-	class istream;
 	class world;
 
 	class comp_animation_controller
@@ -50,8 +48,6 @@ namespace SFG
 
 		void on_add(world& w);
 		void on_remove(world& w);
-		void serialize(ostream& stream, world& w) const;
-		void deserialize(istream& stream, world& w);
 
 		// -----------------------------------------------------------------------------
 		// impl
@@ -78,11 +74,11 @@ namespace SFG
 		template <typename T, int> friend class comp_cache;
 
 	private:
-		component_header	 _header		   = {};
-		resource_handle		 _resource_machine = {};
-		chunk_handle32		 _skin_entities_ch = {};
-		pool_handle16		 _machine_runtime  = {};
 		vector<world_handle> _skin_entities	   = {};
+		component_header	 _header		   = {};
+		chunk_handle32		 _skin_entities_ch = {};
+		resource_handle		 _resource_machine = {};
+		pool_handle16		 _machine_runtime  = {};
 	};
 
 	REFLECT_TYPE(comp_animation_controller);

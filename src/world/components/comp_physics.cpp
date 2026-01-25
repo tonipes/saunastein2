@@ -25,14 +25,11 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "comp_physics.hpp"
-#include "reflection/type_reflection.hpp"
-#include "data/ostream.hpp"
-#include "data/istream.hpp"
-#include "world/world.hpp"
-#include "math/math.hpp"
 #include "reflection/reflection.hpp"
-#include "resources/physical_material.hpp"
+#include "world/world.hpp"
 #include "world/components/comp_mesh_instance.hpp"
+#include "math/math.hpp"
+#include "resources/physical_material.hpp"
 #include "resources/mesh.hpp"
 
 #include <Jolt/Jolt.h>
@@ -91,14 +88,6 @@ namespace SFG
 
 			destroy_body(w);
 		}
-	}
-
-	void comp_physics::serialize(ostream& stream, world& w) const
-	{
-	}
-
-	void comp_physics::deserialize(istream& stream, world& w)
-	{
 	}
 
 	JPH::Body* comp_physics::create_body(world& w)

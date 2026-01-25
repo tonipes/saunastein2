@@ -25,18 +25,10 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "comp_ssao.hpp"
-#include "reflection/type_reflection.hpp"
-#include "data/ostream.hpp"
-#include "data/istream.hpp"
+#include "reflection/reflection.hpp"
 #include "world/world.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"
 #include "gfx/event_stream/render_events_trait.hpp"
-#include "reflection/reflection.hpp"
-
-#ifdef SFG_TOOLMODE
-#include <vendor/nhlohmann/json.hpp>
-using json = nlohmann::json;
-#endif
 
 namespace SFG
 {
@@ -125,51 +117,4 @@ namespace SFG
 			ev);
 	}
 
-	void comp_ssao::serialize(ostream& stream, world& w) const
-	{
-		stream << _radius_world;
-		stream << _bias;
-		stream << _intensity;
-		stream << _power;
-		stream << _num_dirs;
-		stream << _num_steps;
-		stream << _random_rot_strength;
-	}
-
-	void comp_ssao::deserialize(istream& stream, world& w)
-	{
-		stream >> _radius_world;
-		stream >> _bias;
-		stream >> _intensity;
-		stream >> _power;
-		stream >> _num_dirs;
-		stream >> _num_steps;
-		stream >> _random_rot_strength;
-	}
-
-#ifdef SFG_TOOLMODE
-
-	void comp_ssao::serialize_json(nlohmann::json& j, world& w) const
-	{
-		j["radius_world"]		 = _radius_world;
-		j["bias"]				 = _bias;
-		j["intensity"]			 = _intensity;
-		j["power"]				 = _power;
-		j["num_dirs"]			 = _num_dirs;
-		j["num_steps"]			 = _num_steps;
-		j["random_rot_strength"] = _random_rot_strength;
-	}
-
-	void comp_ssao::deserialize_json(const nlohmann::json& j, world& w)
-	{
-		_radius_world		 = j.value<float>("radius_world", 0.75f);
-		_bias				 = j.value<float>("bias", 0.04f);
-		_intensity			 = j.value<float>("intensity", 1.25f);
-		_power				 = j.value<float>("power", 1.25f);
-		_num_dirs			 = j.value<uint32>("num_dirs", 8);
-		_num_steps			 = j.value<uint32>("num_steps", 6);
-		_random_rot_strength = j.value<float>("random_rot_strength", 1.5f);
-	}
-
-#endif
 }

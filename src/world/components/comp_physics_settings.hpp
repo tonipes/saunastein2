@@ -30,14 +30,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "reflection/type_reflection.hpp"
 #include "math/vector3.hpp"
 
-#ifdef SFG_TOOLMODE
-#include "vendor/nhlohmann/json_fwd.hpp"
-#endif
-
 namespace SFG
 {
-	class ostream;
-	class istream;
 	class world;
 
 	class comp_physics_settings
@@ -48,14 +42,6 @@ namespace SFG
 		void on_add(world& w);
 		void on_remove(world& w);
 		void set_gravity(world& w, const vector3& gravity);
-
-		void serialize(ostream& stream, world& w) const;
-		void deserialize(istream& stream, world& w);
-
-#ifdef SFG_TOOLMODE
-		void serialize_json(nlohmann::json& j, world& w) const;
-		void deserialize_json(const nlohmann::json& j, world& w);
-#endif
 
 		inline const vector3& get_gravity() const
 		{

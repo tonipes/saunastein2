@@ -40,8 +40,6 @@ namespace JPH
 
 namespace SFG
 {
-	class ostream;
-	class istream;
 	class world;
 
 	class comp_physics
@@ -60,8 +58,6 @@ namespace SFG
 
 		void on_add(world& w);
 		void on_remove(world& w);
-		void serialize(ostream& stream, world& w) const;
-		void deserialize(istream& stream, world& w);
 
 		// -----------------------------------------------------------------------------
 		// impl

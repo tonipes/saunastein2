@@ -25,9 +25,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "comp_canvas.hpp"
-#include "reflection/type_reflection.hpp"
-#include "data/ostream.hpp"
-#include "data/istream.hpp"
+#include "reflection/reflection.hpp"
 #include "math/math.hpp"
 #include "world/world.hpp"
 #include "gui/vekt.hpp"
@@ -35,7 +33,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gfx/event_stream/render_events_trait.hpp"
 #include "resources/material.hpp"
 #include "resources/font.hpp"
-#include "reflection/reflection.hpp"
 
 namespace SFG
 {
@@ -61,14 +58,6 @@ namespace SFG
 
 		delete _builder;
 		_builder = nullptr;
-	}
-
-	void comp_canvas::serialize(ostream& stream, world& w) const
-	{
-	}
-
-	void comp_canvas::deserialize(istream& stream, world& w)
-	{
 	}
 
 	void comp_canvas::update_counts_and_init(world& w, uint32 max_widget_count, uint16 max_buffer_count)

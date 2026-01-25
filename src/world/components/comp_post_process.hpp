@@ -29,14 +29,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "world/components/common_comps.hpp"
 #include "reflection/type_reflection.hpp"
 
-#ifdef SFG_TOOLMODE
-#include "vendor/nhlohmann/json_fwd.hpp"
-#endif
-
 namespace SFG
 {
-	class ostream;
-	class istream;
 	class world;
 
 	enum class tonemap_mode : uint8
@@ -58,14 +52,6 @@ namespace SFG
 		void on_add(world& w);
 		void on_remove(world& w);
 		void set_values(world& w, float bloom_strength, float exposure, tonemap_mode tonemap, float saturation, float wb_temp, float wb_tint, float reinhard_white_point);
-
-		void serialize(ostream& stream, world& w) const;
-		void deserialize(istream& stream, world& w);
-
-#ifdef SFG_TOOLMODE
-		void serialize_json(nlohmann::json& j, world& w) const;
-		void deserialize_json(const nlohmann::json& j, world& w);
-#endif
 
 		// -----------------------------------------------------------------------------
 		// accessors

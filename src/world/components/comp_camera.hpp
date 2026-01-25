@@ -30,14 +30,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "reflection/type_reflection.hpp"
 #include "game/game_max_defines.hpp"
 
-#ifdef SFG_TOOLMODE
-#include "vendor/nhlohmann/json_fwd.hpp"
-#endif
-
 namespace SFG
 {
-	class ostream;
-	class istream;
 	class world;
 
 	class comp_camera
@@ -51,14 +45,6 @@ namespace SFG
 
 		void on_add(world& w);
 		void on_remove(world& w);
-
-		void serialize(ostream& stream, world& w) const;
-		void deserialize(istream& stream, world& w);
-
-#ifdef SFG_TOOLMODE
-		void serialize_json(nlohmann::json& j, world& w) const;
-		void deserialize_json(const nlohmann::json& j, world& w);
-#endif
 
 		// -----------------------------------------------------------------------------
 		// accessors
@@ -91,9 +77,8 @@ namespace SFG
 		template <typename T, int> friend class comp_cache;
 
 	private:
-		component_header _header = {};
-
 		static_vector<float, MAX_SHADOW_CASCADES> _cascades;
+		component_header						  _header	   = {};
 		float									  _near		   = 0.1f;
 		float									  _far		   = 0.1f;
 		float									  _fov_degrees = 45.0f;

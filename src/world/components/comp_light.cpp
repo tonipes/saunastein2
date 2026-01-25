@@ -25,19 +25,11 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "comp_light.hpp"
-#include "reflection/type_reflection.hpp"
-#include "data/ostream.hpp"
-#include "data/istream.hpp"
+#include "reflection/reflection.hpp"
 #include "math/math.hpp"
 #include "world/world.hpp"
 #include "gfx/event_stream/render_events_trait.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"
-#include "reflection/reflection.hpp"
-
-#ifdef SFG_TOOLMODE
-#include <vendor/nhlohmann/json.hpp>
-using json = nlohmann::json;
-#endif
 
 namespace SFG
 {
@@ -158,16 +150,6 @@ namespace SFG
 			ev);
 	}
 
-	void comp_dir_light::serialize(ostream& stream, world& w) const
-	{
-		stream << _base_color;
-	}
-
-	void comp_dir_light::deserialize(istream& stream, world& w)
-	{
-		stream >> _base_color;
-	}
-
 	void comp_dir_light::set_values(world& w, const color& c, float intensity)
 	{
 		_base_color = c;
@@ -195,15 +177,6 @@ namespace SFG
 			.index		= _header.own_handle.index,
 			.event_type = render_event_type::remove_spot_light,
 		});
-	}
-
-	void comp_spot_light::serialize(ostream& stream, world& w) const
-	{
-		stream << _base_color;
-	}
-	void comp_spot_light::deserialize(istream& stream, world& w)
-	{
-		stream >> _base_color;
 	}
 
 	void comp_spot_light::set_values(world& w, const color& c, float range, float intensity, float inner_cone, float outer_cone)
@@ -259,15 +232,6 @@ namespace SFG
 		});
 	}
 
-	void comp_point_light::serialize(ostream& stream, world& w) const
-	{
-		stream << _base_color;
-	}
-	void comp_point_light::deserialize(istream& stream, world& w)
-	{
-		stream >> _base_color;
-	}
-
 	void comp_point_light::set_values(world& w, const color& c, float range, float intensity)
 	{
 		_base_color = c;
@@ -303,35 +267,4 @@ namespace SFG
 			ev);
 	}
 
-#ifdef SFG_TOOLMODE
-
-	void comp_dir_light::serialize_json(nlohmann::json& j, world& w) const
-	{
-		j["base_color"] = _base_color;
-	}
-
-	void comp_dir_light::deserialize_json(const nlohmann::json& j, world& w)
-	{
-		_base_color = j.value<color>("base_color", color::white);
-	}
-
-	void comp_spot_light::serialize_json(nlohmann::json& j, world& w) const
-	{
-		j["base_color"] = _base_color;
-	}
-	void comp_spot_light::deserialize_json(const nlohmann::json& j, world& w)
-	{
-		_base_color = j.value<color>("base_color", color::white);
-	}
-
-	void comp_point_light::serialize_json(nlohmann::json& j, world& w) const
-	{
-		j["base_color"] = _base_color;
-	}
-	void comp_point_light::deserialize_json(const nlohmann::json& j, world& w)
-	{
-		_base_color = j.value<color>("base_color", color::white);
-	}
-
-#endif
 }

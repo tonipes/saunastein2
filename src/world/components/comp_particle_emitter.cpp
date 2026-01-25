@@ -25,13 +25,10 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "comp_particle_emitter.hpp"
-#include "reflection/type_reflection.hpp"
-#include "data/ostream.hpp"
-#include "data/istream.hpp"
+#include "reflection/reflection.hpp"
 #include "world/world.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"
 #include "gfx/event_stream/render_events_trait.hpp"
-#include "reflection/reflection.hpp"
 #include "resources/particle_properties.hpp"
 #include "resources/material.hpp"
 
@@ -78,14 +75,6 @@ namespace SFG
 		w.get_entity_manager().remove_render_proxy(_header.entity);
 
 		w.get_render_stream().add_event({.index = _header.own_handle.index, .event_type = render_event_type::remove_particle_emitter});
-	}
-
-	void comp_particle_emitter::serialize(ostream& stream, world& w) const
-	{
-	}
-
-	void comp_particle_emitter::deserialize(istream& stream, world& w)
-	{
 	}
 
 	void comp_particle_emitter::set_values(world& w, resource_handle particle_res, resource_handle material)

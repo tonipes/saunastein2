@@ -25,24 +25,16 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "comp_bloom.hpp"
-#include "reflection/type_reflection.hpp"
-#include "data/ostream.hpp"
-#include "data/istream.hpp"
+#include "reflection/reflection.hpp"
 #include "world/world.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"
 #include "gfx/event_stream/render_events_trait.hpp"
-#include "reflection/reflection.hpp"
-
-#ifdef SFG_TOOLMODE
-#include <vendor/nhlohmann/json.hpp>
-using json = nlohmann::json;
-#endif
 
 namespace SFG
 {
 	void comp_bloom::reflect()
 	{
-		meta& m = reflection::get().register_meta(type_id<comp_bloom>::value, 0, "component"); 
+		meta& m = reflection::get().register_meta(type_id<comp_bloom>::value, 0, "component");
 		m.set_title("bloom");
 		m.add_field<&comp_bloom::_filter_radius, comp_bloom>("filter_radius", reflected_field_type::rf_float, "", 0.001f, 0.2f);
 
@@ -101,27 +93,4 @@ namespace SFG
 			ev);
 	}
 
-	void comp_bloom::serialize(ostream& stream, world& w) const
-	{
-		stream << _filter_radius;
-	}
-
-	void comp_bloom::deserialize(istream& stream, world& w)
-	{
-		stream >> _filter_radius;
-	}
-
-#ifdef SFG_TOOLMODE
-
-	void comp_bloom::serialize_json(nlohmann::json& j, world& w) const
-	{
-		j["filter_radius"] = _filter_radius;
-	}
-
-	void comp_bloom::deserialize_json(const nlohmann::json& j, world& w)
-	{
-		_filter_radius = j.value<float>("filter_radius", 0.01f);
-	}
-
-#endif
 }

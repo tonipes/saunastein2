@@ -26,15 +26,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "comp_physics_settings.hpp"
 #include "reflection/type_reflection.hpp"
-#include "data/ostream.hpp"
-#include "data/istream.hpp"
 #include "world/world.hpp"
 #include "reflection/reflection.hpp"
-
-#ifdef SFG_TOOLMODE
-#include <vendor/nhlohmann/json.hpp>
-using json = nlohmann::json;
-#endif
 
 namespace SFG
 {
@@ -70,27 +63,4 @@ namespace SFG
 		w.get_physics_world().set_gravity(_gravity);
 	}
 
-	void comp_physics_settings::serialize(ostream& stream, world& w) const
-	{
-		stream << _gravity;
-	}
-
-	void comp_physics_settings::deserialize(istream& stream, world& w)
-	{
-		stream >> _gravity;
-	}
-
-#ifdef SFG_TOOLMODE
-
-	void comp_physics_settings::serialize_json(nlohmann::json& j, world& w) const
-	{
-		j["gravity"] = _gravity;
-	}
-
-	void comp_physics_settings::deserialize_json(const nlohmann::json& j, world& w)
-	{
-		_gravity = j.value<vector3>("gravity", vector3(0.0f, -9.81f, 0.0f));
-	}
-
-#endif
 }

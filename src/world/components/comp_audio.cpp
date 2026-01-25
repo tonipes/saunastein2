@@ -25,13 +25,10 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "comp_audio.hpp"
-#include "reflection/type_reflection.hpp"
-#include "data/ostream.hpp"
-#include "data/istream.hpp"
+#include "reflection/reflection.hpp"
 #include "world/world.hpp"
 #include "resources/audio.hpp"
 #include "io/log.hpp"
-#include "reflection/reflection.hpp"
 
 #include <vendor/miniaudio/miniaudio.h>
 
@@ -106,14 +103,6 @@ namespace SFG
 		aux.free(_ma_sound);
 		_ma_sound		= {};
 		_audio_resource = {};
-	}
-
-	void comp_audio::serialize(ostream& stream, world& w) const
-	{
-	}
-
-	void comp_audio::deserialize(istream& stream, world& w)
-	{
 	}
 
 	void comp_audio::play(world& w)
