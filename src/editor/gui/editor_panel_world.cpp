@@ -251,9 +251,59 @@ namespace SFG
 			editor::get().exit_playmode();
 	}
 
+	void editor_panel_world::open_save_popup(popup_action action)
+	{
+		_popup_action = action;
+
+		editor_gui_controller& ctr = editor::get().get_gui_controller();
+		ctr.begin_popup("do you want to save the current level");
+		_popup_save_yes = ctr.popup_add_button("yes");
+		_popup_save_no  = ctr.popup_add_button("no");
+
+		vekt::mouse_callback& yes_cb = _builder->widget_get_mouse_callbacks(_popup_save_yes);
+		yes_cb.on_mouse				  = on_widget_mouse;
+		_builder->widget_get_user_data(_popup_save_yes).ptr = this;
+
+		vekt::mouse_callback& no_cb = _builder->widget_get_mouse_callbacks(_popup_save_no);
+		no_cb.on_mouse			  = on_widget_mouse;
+		_builder->widget_get_user_data(_popup_save_no).ptr = this;
+
+		ctr.end_popup();
+	}
+
 	vekt::input_event_result editor_panel_world::on_widget_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase)
 	{
 		editor_panel_world* self = static_cast<editor_panel_world*>(b->widget_get_user_data(widget).ptr);
+
+		if (ev.type == vekt::input_event_type::released && ev.button == input_code::mouse_0)
+		{
+			const popup_action action = self->_popup_action;
+
+			if (widget == self->_popup_save_yes)
+			{
+				editor::get().get_gui_controller().kill_popup();
+				editor::get().save_lavel();
+
+				if (action == popup_action::new_world)
+					editor::get().new_level();
+				else if (action == popup_action::load_world)
+					editor::get().load_level_prompt();
+
+				return vekt::input_event_result::handled;
+			}
+
+			if (widget == self->_popup_save_no)
+			{
+				editor::get().get_gui_controller().kill_popup();
+
+				if (action == popup_action::new_world)
+					editor::get().new_level();
+				else if (action == popup_action::load_world)
+					editor::get().load_level_prompt();
+
+				return vekt::input_event_result::handled;
+			}
+		}
 
 		// Pressed
 		if (ev.type == vekt::input_event_type::pressed)
@@ -361,7 +411,7 @@ namespace SFG
 			}
 			else if (widget == self->_ctx_new_world)
 			{
-				editor::get().new_level();
+				self->open_save_popup(popup_action::new_world);
 				return vekt::input_event_result::handled;
 			}
 			else if (widget == self->_ctx_save_world)
@@ -371,7 +421,7 @@ namespace SFG
 			}
 			else if (widget == self->_ctx_load_world)
 			{
-				editor::get().load_level_prompt();
+				self->open_save_popup(popup_action::load_world);
 				return vekt::input_event_result::handled;
 			}
 

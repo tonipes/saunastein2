@@ -133,6 +133,13 @@ namespace SFG
 			_ctx_load_world		 = NULL_WIDGET_ID;
 		}
 
+		inline void kill_popup()
+		{
+			_popup_save_yes = NULL_WIDGET_ID;
+			_popup_save_no  = NULL_WIDGET_ID;
+			_popup_action   = popup_action::none;
+		}
+
 		inline vekt::id get_root() const
 		{
 			return _gui_builder.get_root();
@@ -146,6 +153,16 @@ namespace SFG
 		{
 			set_playmode(playmode::none);
 		}
+
+	private:
+		enum class popup_action
+		{
+			none,
+			new_world,
+			load_world,
+		};
+
+		void open_save_popup(popup_action action);
 
 	private:
 		gui_builder			  _gui_builder	  = {};
@@ -187,11 +204,14 @@ namespace SFG
 		vekt::id _ctx_new_world		  = NULL_WIDGET_ID;
 		vekt::id _ctx_save_world	  = NULL_WIDGET_ID;
 		vekt::id _ctx_load_world	  = NULL_WIDGET_ID;
+		vekt::id _popup_save_yes	  = NULL_WIDGET_ID;
+		vekt::id _popup_save_no		  = NULL_WIDGET_ID;
 
 		playmode			_play_mode	   = playmode::none;
 		aspect_ratio		_aspect		   = aspect_ratio::native;
 		audio_style			_audio_style   = audio_style::on;
 		physics_debug_style _physics_style = physics_debug_style::none;
 		stats_view_style	_stats_style   = stats_view_style::none;
+		popup_action		_popup_action  = popup_action::none;
 	};
 }

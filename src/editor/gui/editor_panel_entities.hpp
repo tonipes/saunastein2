@@ -72,6 +72,10 @@ namespace SFG
 			_ctx_delete		= NULL_WIDGET_ID;
 		}
 
+		inline void kill_popup()
+		{
+		}
+
 		inline vekt::id get_root() const
 		{
 			return _root;

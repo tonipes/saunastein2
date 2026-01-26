@@ -333,11 +333,11 @@ namespace SFG
 		const entity_comp_register& cr = em.get_component_register(_selected_entity);
 		for (const entity_comp& c : cr.comps)
 		{
-			const meta&				   m		= reflection::get().resolve(c.comp_type);
-			const meta::field_vec&	   fields	= m.get_fields();
-			void*					   comp_ptr = cm.get_component(c.comp_type, c.comp_handle);
+			const meta&				   m			= reflection::get().resolve(c.comp_type);
+			const meta::field_vec&	   fields		= m.get_fields();
+			void*					   comp_ptr		= cm.get_component(c.comp_type, c.comp_handle);
 			const bool				   is_collapsed = is_component_collapsed(c.comp_type);
-			const gui_builder::id_trip pair		 = _gui_builder.add_component_title(m.get_title().c_str());
+			const gui_builder::id_trip pair			= _gui_builder.add_component_title(m.get_title().c_str());
 			_comp_header_buttons.push_back({c.comp_handle, pair.first, pair.second, pair.third, c.comp_type});
 
 			if (!is_collapsed)

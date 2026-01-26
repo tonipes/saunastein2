@@ -77,6 +77,10 @@ namespace SFG
 		vekt::id add_context_menu_item(const char* label);
 		vekt::id add_context_menu_item_toggle(const char* label, bool is_toggled);
 		void	 end_context_menu();
+		vekt::id begin_popup(const char* prompt);
+		vekt::id popup_add_button(const char* label);
+		void	 end_popup();
+		void	 kill_popup();
 		void	 enable_payload(const char* text);
 		void	 disable_payload();
 
@@ -117,6 +121,10 @@ namespace SFG
 		vekt::id _payload		 = NULL_WIDGET_ID;
 		vekt::id _payload_text	 = NULL_WIDGET_ID;
 		uint8	 _payload_active = 0;
+		vekt::id _popup_root		 = NULL_WIDGET_ID;
+		vekt::id _popup_window		 = NULL_WIDGET_ID;
+		vekt::id _popup_prompt_text = NULL_WIDGET_ID;
+		vekt::id _popup_buttons_row = NULL_WIDGET_ID;
 
 		// Layout root (row) and children
 		vekt::id _layout_root			 = NULL_WIDGET_ID;

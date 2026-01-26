@@ -64,6 +64,10 @@ namespace SFG
 			_add_component_buttons.resize(0);
 		}
 
+		inline void kill_popup()
+		{
+		}
+
 		inline vekt::id get_root() const
 		{
 			return _root;

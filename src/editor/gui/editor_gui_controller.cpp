@@ -55,6 +55,35 @@ namespace SFG
 	static constexpr float WORLD_MIN_WIDTH	   = 240.0f;
 	static constexpr float INSPECTOR_MIN_WIDTH = 240.0f;
 
+	namespace
+	{
+		vekt::input_event_result on_popup_background_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase)
+		{
+			(void)phase;
+			if (ev.button != input_code::mouse_0)
+				return vekt::input_event_result::not_handled;
+
+			if (ev.type != vekt::input_event_type::pressed)
+				return vekt::input_event_result::not_handled;
+
+			editor_gui_controller* self = static_cast<editor_gui_controller*>(b->widget_get_user_data(widget).ptr);
+			if (!self)
+				return vekt::input_event_result::not_handled;
+
+			self->kill_popup();
+			return vekt::input_event_result::handled;
+		}
+
+		vekt::input_event_result on_popup_window_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase)
+		{
+			(void)b;
+			(void)widget;
+			(void)ev;
+			(void)phase;
+			return vekt::input_event_result::handled;
+		}
+	}
+
 	void editor_gui_controller::init(vekt::builder* b)
 	{
 		_builder		   = b;
@@ -536,6 +565,227 @@ namespace SFG
 		_builder->build_hierarchy();
 	}
 
+	vekt::id editor_gui_controller::begin_popup(const char* prompt)
+	{
+		if (_ctx_active != NULL_WIDGET_ID)
+		{
+			_panel_world->kill_context();
+			_panel_entities->kill_context();
+			_panel_inspector->kill_context();
+			_builder->deallocate(_ctx_active);
+			_ctx_active = _ctx_root = NULL_WIDGET_ID;
+		}
+
+		if (_popup_root != NULL_WIDGET_ID)
+		{
+			_builder->deallocate(_popup_root);
+			_popup_root		   = NULL_WIDGET_ID;
+			_popup_window	   = NULL_WIDGET_ID;
+			_popup_prompt_text = NULL_WIDGET_ID;
+			_popup_buttons_row = NULL_WIDGET_ID;
+		}
+
+		using namespace vekt;
+		const editor_theme& theme = editor_theme::get();
+		const id			root  = _builder->allocate();
+		_popup_root				  = root;
+		_builder->widget_add_child(_builder->get_root(), root);
+		{
+			pos_props& p = _builder->widget_get_pos_props(root);
+			p.flags		 = pos_flags::pf_x_abs | pos_flags::pf_y_abs;
+			p.pos.x		 = 0.0f;
+			p.pos.y		 = 0.0f;
+
+			size_props& sz = _builder->widget_get_size_props(root);
+			sz.flags	   = size_flags::sf_x_relative | size_flags::sf_y_relative;
+			sz.size.x	   = 1.0f;
+			sz.size.y	   = 1.0f;
+
+			widget_gfx& gfx = _builder->widget_get_gfx(root);
+			gfx.flags		= gfx_flags::gfx_is_rect;
+			gfx.color		= vector4(0.0f, 0.0f, 0.0f, 0.85f);
+			gfx.draw_order	= 2000;
+
+			mouse_callback& mc						 = _builder->widget_get_mouse_callbacks(root);
+			mc.on_mouse								 = on_popup_background_mouse;
+			_builder->widget_get_user_data(root).ptr = this;
+		}
+
+		const id window = _builder->allocate();
+		_popup_window	= window;
+		_builder->widget_add_child(root, window);
+		{
+			pos_props& p = _builder->widget_get_pos_props(window);
+			p.flags		 = pos_flags::pf_x_relative | pos_flags::pf_y_relative | pos_flags::pf_x_anchor_center | pos_flags::pf_y_anchor_center | pos_flags::pf_child_pos_column;
+			p.pos.x		 = 0.5f;
+			p.pos.y		 = 0.5f;
+
+			size_props& sz	 = _builder->widget_get_size_props(window);
+			sz.flags		 = size_flags::sf_x_relative | size_flags::sf_y_relative;
+			sz.size.x		 = 0.25f;
+			sz.size.y		 = 0.15f;
+			sz.child_margins = {theme.outer_margin, theme.outer_margin, theme.outer_margin, theme.outer_margin};
+			sz.spacing		 = theme.item_spacing;
+
+			widget_gfx& gfx = _builder->widget_get_gfx(window);
+			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_stroke | gfx_flags::gfx_has_rounding;
+			gfx.color		= theme.col_area_bg;
+			gfx.draw_order	= 2001;
+
+			stroke_props& sp = _builder->widget_get_stroke(window);
+			sp.thickness	 = theme.frame_thickness;
+			sp.color		 = theme.col_frame_outline;
+
+			rounding_props& rp = _builder->widget_get_rounding(window);
+			rp.rounding		   = theme.frame_rounding;
+			rp.segments		   = 8;
+
+			mouse_callback& mc						   = _builder->widget_get_mouse_callbacks(window);
+			mc.on_mouse								   = on_popup_window_mouse;
+			_builder->widget_get_user_data(window).ptr = this;
+		}
+
+		const id prompt_row = _builder->allocate();
+		_builder->widget_add_child(window, prompt_row);
+		{
+			pos_props& p = _builder->widget_get_pos_props(prompt_row);
+			p.flags		 = pos_flags::pf_x_relative | pos_flags::pf_child_pos_row;
+			p.pos.x		 = 0.0f;
+
+			size_props& sz	 = _builder->widget_get_size_props(prompt_row);
+			sz.flags		 = size_flags::sf_x_relative | size_flags::sf_y_abs;
+			sz.size.x		 = 1.0f;
+			sz.size.y		 = theme.item_height * 1.5f;
+			sz.child_margins = {theme.inner_margin, theme.inner_margin, theme.inner_margin, theme.inner_margin};
+
+			widget_gfx& gfx = _builder->widget_get_gfx(prompt_row);
+			gfx.flags		= gfx_flags::gfx_is_rect;
+			gfx.color		= vector4();
+			gfx.draw_order	= 2002;
+		}
+
+		const id prompt_text = _builder->allocate();
+		_popup_prompt_text	 = prompt_text;
+		_builder->widget_add_child(prompt_row, prompt_text);
+		{
+			widget_gfx& gfx = _builder->widget_get_gfx(prompt_text);
+			gfx.flags		= gfx_flags::gfx_is_text;
+			gfx.color		= theme.col_text;
+			gfx.draw_order	= 2003;
+
+			pos_props& pp = _builder->widget_get_pos_props(prompt_text);
+			pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_y_relative | pos_flags::pf_x_anchor_center | pos_flags::pf_y_anchor_center;
+			pp.pos.x	  = 0.5f;
+			pp.pos.y	  = 0.5f;
+
+			text_props& tp = _builder->widget_get_text(prompt_text);
+			tp.font		   = theme.font_default;
+			_builder->widget_set_text(prompt_text, prompt);
+		}
+
+		const id buttons_row = _builder->allocate();
+		_popup_buttons_row	 = buttons_row;
+		_builder->widget_add_child(window, buttons_row);
+		{
+			pos_props& p = _builder->widget_get_pos_props(buttons_row);
+			p.flags		 = pos_flags::pf_x_relative | pos_flags::pf_child_pos_row;
+			p.pos.x		 = 0.0f;
+
+			size_props& sz	 = _builder->widget_get_size_props(buttons_row);
+			sz.flags		 = size_flags::sf_x_relative | size_flags::sf_y_abs;
+			sz.size.x		 = 1.0f;
+			sz.size.y		 = theme.item_height;
+			sz.child_margins = {theme.inner_margin, theme.inner_margin, theme.inner_margin, theme.inner_margin};
+			sz.spacing		 = theme.item_spacing;
+
+			widget_gfx& gfx = _builder->widget_get_gfx(buttons_row);
+			gfx.flags		= gfx_flags::gfx_is_rect;
+			gfx.color		= vector4();
+			gfx.draw_order	= 2002;
+		}
+
+		return root;
+	}
+
+	vekt::id editor_gui_controller::popup_add_button(const char* label)
+	{
+		if (_popup_buttons_row == NULL_WIDGET_ID)
+			return NULL_WIDGET_ID;
+
+		using namespace vekt;
+		const editor_theme& theme = editor_theme::get();
+		const id			w	  = _builder->allocate();
+		_builder->widget_add_child(_popup_buttons_row, w);
+		{
+			pos_props& p = _builder->widget_get_pos_props(w);
+			p.flags		 = pos_flags::pf_y_relative | pos_flags::pf_y_anchor_center;
+			p.pos.y		 = 0.5f;
+
+			size_props& sz	 = _builder->widget_get_size_props(w);
+			sz.flags		 = size_flags::sf_x_max_children | size_flags::sf_y_abs;
+			sz.size.y		 = theme.item_height;
+			sz.child_margins = {theme.inner_margin, theme.inner_margin, theme.inner_margin, theme.inner_margin};
+
+			widget_gfx& gfx = _builder->widget_get_gfx(w);
+			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_stroke | gfx_flags::gfx_has_rounding | gfx_flags::gfx_has_press_color | gfx_flags::gfx_has_hover_color;
+			gfx.color		= theme.col_button;
+			gfx.draw_order	= 2003;
+
+			stroke_props& sp = _builder->widget_get_stroke(w);
+			sp.thickness	 = theme.frame_thickness;
+			sp.color		 = theme.col_frame_outline;
+
+			rounding_props& rp = _builder->widget_get_rounding(w);
+			rp.rounding		   = theme.frame_rounding;
+			rp.segments		   = 8;
+
+			input_color_props& icp = _builder->widget_get_input_colors(w);
+			icp.pressed_color	   = theme.col_button_press;
+			icp.hovered_color	   = theme.col_button_hover;
+		}
+
+		const id txt = _builder->allocate();
+		_builder->widget_add_child(w, txt);
+		{
+			widget_gfx& gfx = _builder->widget_get_gfx(txt);
+			gfx.flags		= gfx_flags::gfx_is_text;
+			gfx.color		= theme.col_text;
+			gfx.draw_order	= 2004;
+
+			pos_props& pp = _builder->widget_get_pos_props(txt);
+			pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_y_relative | pos_flags::pf_x_anchor_center | pos_flags::pf_y_anchor_center;
+			pp.pos.x	  = 0.5f;
+			pp.pos.y	  = 0.5f;
+
+			text_props& tp = _builder->widget_get_text(txt);
+			tp.font		   = theme.font_default;
+			_builder->widget_set_text(txt, label);
+		}
+
+		return w;
+	}
+
+	void editor_gui_controller::end_popup()
+	{
+		_builder->build_hierarchy();
+	}
+
+	void editor_gui_controller::kill_popup()
+	{
+		if (_popup_root == NULL_WIDGET_ID)
+			return;
+
+		_builder->deallocate(_popup_root);
+		_popup_root		   = NULL_WIDGET_ID;
+		_popup_window	   = NULL_WIDGET_ID;
+		_popup_prompt_text = NULL_WIDGET_ID;
+		_popup_buttons_row = NULL_WIDGET_ID;
+		_panel_world->kill_popup();
+		_panel_entities->kill_popup();
+		_panel_inspector->kill_popup();
+		_builder->build_hierarchy();
+	}
+
 	void editor_gui_controller::enable_payload(const char* text)
 	{
 		SFG_ASSERT(strlen(text) < MAX_PAYLOAD_SIZE);
@@ -617,11 +867,22 @@ namespace SFG
 	{
 		if (ev.type == window_event_type::mouse)
 		{
-			const vekt::input_event_result res = _builder->on_mouse_event({
-				.type	  = static_cast<vekt::input_event_type>(ev.sub_type),
-				.button	  = ev.button,
-				.position = VEKT_VEC2(ev.value.x, ev.value.y),
-			});
+			const bool					   had_popup = _popup_root != NULL_WIDGET_ID;
+			const vekt::input_event_result res		 = _builder->on_mouse_event({
+					  .type		= static_cast<vekt::input_event_type>(ev.sub_type),
+					  .button	= ev.button,
+					  .position = VEKT_VEC2(ev.value.x, ev.value.y),
+			  });
+
+			if (had_popup)
+			{
+				if (_payload_active && ev.sub_type == window_event_sub_type::release)
+				{
+					_panel_entities->kill_drag();
+					disable_payload();
+				}
+				return true;
+			}
 
 			if (frame_info::get_frame() != _ctx_frame && _ctx_active != NULL_WIDGET_ID && ev.sub_type == window_event_sub_type::press)
 			{

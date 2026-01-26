@@ -416,6 +416,40 @@ namespace SFG
 
 	vekt::input_event_result editor_panels_world_view::on_widget_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase)
 	{
+		if (ev.type == vekt::input_event_type::released && ev.button == input_code::mouse_0)
+		{
+			editor_panels_world_view* self = static_cast<editor_panels_world_view*>(b->widget_get_user_data(widget).ptr);
+			if (!self)
+				return vekt::input_event_result::not_handled;
+
+			const popup_action action = self->_popup_action;
+
+			if (widget == self->_popup_save_yes)
+			{
+				editor::get().get_gui_controller().kill_popup();
+				editor::get().save_lavel();
+
+				if (action == popup_action::new_world)
+					editor::get().new_level();
+				else if (action == popup_action::open_world)
+					editor::get().load_level_prompt();
+
+				return vekt::input_event_result::handled;
+			}
+
+			if (widget == self->_popup_save_no)
+			{
+				editor::get().get_gui_controller().kill_popup();
+
+				if (action == popup_action::new_world)
+					editor::get().new_level();
+				else if (action == popup_action::open_world)
+					editor::get().load_level_prompt();
+
+				return vekt::input_event_result::handled;
+			}
+		}
+
 		if (ev.type != vekt::input_event_type::pressed)
 			return vekt::input_event_result::not_handled;
 
@@ -644,7 +678,7 @@ namespace SFG
 
 		if (widget == self->_ctx_new_world)
 		{
-			editor::get().new_level();
+			self->open_save_popup(popup_action::new_world);
 			return vekt::input_event_result::handled;
 		}
 
@@ -656,7 +690,7 @@ namespace SFG
 
 		if (widget == self->_ctx_open_world)
 		{
-			editor::get().load_level_prompt();
+			self->open_save_popup(popup_action::open_world);
 			return vekt::input_event_result::handled;
 		}
 
@@ -1141,6 +1175,26 @@ namespace SFG
 		gfx.color		  = editor_theme::get().col_button;
 		icp.hovered_color = editor_theme::get().col_button_hover;
 		icp.pressed_color = editor_theme::get().col_button_press;
+	}
+
+	void editor_panels_world_view::open_save_popup(popup_action action)
+	{
+		_popup_action = action;
+
+		editor_gui_controller& ctr = editor::get().get_gui_controller();
+		ctr.begin_popup("do you want to save the current level");
+		_popup_save_yes = ctr.popup_add_button("yes");
+		_popup_save_no  = ctr.popup_add_button("no");
+
+		vekt::mouse_callback& yes_cb = _builder->widget_get_mouse_callbacks(_popup_save_yes);
+		yes_cb.on_mouse				  = on_widget_mouse;
+		_builder->widget_get_user_data(_popup_save_yes).ptr = this;
+
+		vekt::mouse_callback& no_cb = _builder->widget_get_mouse_callbacks(_popup_save_no);
+		no_cb.on_mouse			  = on_widget_mouse;
+		_builder->widget_get_user_data(_popup_save_no).ptr = this;
+
+		ctr.end_popup();
 	}
 
 	bool editor_panels_world_view::on_mouse_event(const window_event& ev)

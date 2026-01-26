@@ -102,13 +102,28 @@ namespace SFG
 			_ctx_save_world		 = NULL_WIDGET_ID;
 			_ctx_open_world		 = NULL_WIDGET_ID;
 		}
+
+		inline void kill_popup()
+		{
+			_popup_save_yes = NULL_WIDGET_ID;
+			_popup_save_no  = NULL_WIDGET_ID;
+			_popup_action   = popup_action::none;
+		}
 		static vekt::input_event_result on_widget_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase);
 		static vekt::input_event_result on_key(vekt::builder* b, vekt::id widget, const vekt::key_event& ev);
 		static void						on_widget_draw(vekt::builder* b, vekt::id widget);
 
 	private:
+		enum class popup_action
+		{
+			none,
+			new_world,
+			open_world,
+		};
+
 		void update_gizmo_buttons();
 		void update_toggle_button(vekt::id button, bool enabled);
+		void open_save_popup(popup_action action);
 
 		gui_builder	   _gui_builder = {};
 		vekt::builder* _builder		= nullptr;
@@ -146,6 +161,8 @@ namespace SFG
 		vekt::id _ctx_new_world		  = NULL_WIDGET_ID;
 		vekt::id _ctx_save_world	  = NULL_WIDGET_ID;
 		vekt::id _ctx_open_world	  = NULL_WIDGET_ID;
+		vekt::id _popup_save_yes	  = NULL_WIDGET_ID;
+		vekt::id _popup_save_no		  = NULL_WIDGET_ID;
 
 		// Stats area and texts
 		vekt::id _stats_area		= NULL_WIDGET_ID;
@@ -179,5 +196,6 @@ namespace SFG
 		vector3		_gizmo_drag_offset		 = vector3::zero;
 		vector2		_gizmo_angle_start_dir	 = vector2::zero;
 		vector2		_gizmo_angle_current_dir = vector2::zero;
+		popup_action _popup_action			 = popup_action::none;
 	};
 }
