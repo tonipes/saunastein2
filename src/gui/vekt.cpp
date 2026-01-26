@@ -2260,15 +2260,7 @@ namespace vekt
 		const char* cstr = text.text.c_str();
 #endif
 		const uint8_t* c;
-		float		   max_y_offset = 0;
-		for (c = (uint8_t*)cstr; *c; c++)
-		{
-			auto		 character = *c;
-			const glyph& ch		   = text.font->glyph_info[character];
-			max_y_offset		   = math::max(max_y_offset, -ch.y_offset);
-		}
-		// pen.y += 10;
-		pen.y += (max_y_offset * text.scale);
+		pen.y += static_cast<float>(text.font->ascent) * scale;
 
 		unsigned long previous_char = 0;
 		for (c = (uint8_t*)cstr; *c; c++)
@@ -2395,15 +2387,7 @@ namespace vekt
 		const char* cstr = text.text.c_str();
 #endif
 		const uint8_t* c;
-		float		   max_y_offset = 0;
-		for (c = (uint8_t*)cstr; *c; c++)
-		{
-			auto		 character = *c;
-			const glyph& ch		   = text.font->glyph_info[character];
-			max_y_offset		   = math::max(max_y_offset, -ch.y_offset);
-		}
-
-		pen.y += max_y_offset * text.scale;
+		pen.y += static_cast<float>(text.font->ascent) * scale;
 
 		unsigned long previous_char = 0;
 		for (c = (uint8_t*)cstr; *c; c++)
@@ -2582,9 +2566,9 @@ namespace vekt
 			}
 
 			total_x += spacing;
-			max_y = math::max(max_y, static_cast<float>(g0.height) * used_scale);
 		}
 
+		max_y = (static_cast<float>(fnt->ascent) - static_cast<float>(fnt->descent)) * scale;
 		return VEKT_VEC2(total_x - spacing, max_y);
 	}
 
