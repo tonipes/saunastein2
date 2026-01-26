@@ -157,6 +157,8 @@ namespace SFG
 		}
 
 		SFG_ASSERT(_stats_area == NULL_WIDGET_ID);
+		_gui_builder.set_draw_order(5);
+
 		_stats_area = _gui_builder.begin_area(false, false);
 
 		{
@@ -174,8 +176,6 @@ namespace SFG
 			gfx.color.w			  = 0.9f;
 			gfx.draw_order		  = 2;
 
-			_gui_builder.set_draw_order(3);
-
 			_wv_game_res	   = _gui_builder.add_property_row_label("game_res:", "fetching...", 12).second;
 			_wv_window_res	   = _gui_builder.add_property_row_label("window_res:", "fetching...", 12).second;
 			_wv_fps			   = _gui_builder.add_property_row_label("fps:", "fetching...", 12).second;
@@ -188,9 +188,9 @@ namespace SFG
 			_wv_draw_calls	   = _gui_builder.add_property_row_label("draw_calls:", "fetching...", 12).second;
 			_wv_loaded_project = _gui_builder.add_property_row_label("project:", editor_settings::get().working_dir.c_str(), 1024).second;
 			_wv_loaded_level   = _gui_builder.add_property_row_label("world:", editor::get().get_loaded_level().c_str(), 1024).second;
+			_gui_builder.set_draw_order(0);
 		}
 		_gui_builder.end_area();
-		_gui_builder.set_draw_order(0);
 		_builder->build_hierarchy();
 	}
 

@@ -36,6 +36,8 @@ namespace SFG
 	{
 		meta& m = reflection::get().register_meta(type_id<comp_post_process>::value, 0, "component");
 		m.set_title("post_process");
+		m.set_category("fx");
+
 		m.add_field<&comp_post_process::_bloom_strength, comp_post_process>("bloom_strength", reflected_field_type::rf_float, "");
 		m.add_field<&comp_post_process::_exposure, comp_post_process>("exposure", reflected_field_type::rf_float, "");
 		m.add_field<&comp_post_process::_tonemap_mode, comp_post_process>("tonemap_mode", reflected_field_type::rf_enum, "")->_enum_list = {"aces", "reinhard", "none"};

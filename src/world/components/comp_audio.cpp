@@ -38,6 +38,8 @@ namespace SFG
 	{
 		meta& m = reflection::get().register_meta(type_id<comp_audio>::value, 0, "component");
 		m.set_title("audio");
+		m.set_category("audio");
+
 		m.add_field<&comp_audio::_audio_resource, comp_audio>("resource", reflected_field_type::rf_resource, "", type_id<audio>::value);
 		m.add_field<&comp_audio::_volume, comp_audio>("volume", reflected_field_type::rf_float, "", 0.0f, 1.0f);
 		m.add_field<&comp_audio::_radius_min, comp_audio>("min_radius", reflected_field_type::rf_float, "");

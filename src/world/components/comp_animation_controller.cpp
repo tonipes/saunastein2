@@ -36,6 +36,8 @@ namespace SFG
 	{
 		meta& m = reflection::get().register_meta(type_id<comp_animation_controller>::value, 0, "component");
 		m.set_title("anim_controller");
+		m.set_category("animation");
+
 		m.add_field<&comp_animation_controller::_resource_machine, comp_animation_controller>("machine", reflected_field_type::rf_resource, "", type_id<res_state_machine>::value);
 		m.add_field<&comp_animation_controller::_skin_entities, comp_animation_controller>("skin_entities", reflected_field_type::rf_entity, "", (string_id)0, 1, 1);
 

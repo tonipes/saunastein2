@@ -40,6 +40,8 @@ namespace SFG
 	{
 		meta& m = reflection::get().register_meta(type_id<comp_mesh_instance>::value, 0, "component");
 		m.set_title("mesh_instance");
+		m.set_category("rendering");
+
 		m.add_field<&comp_mesh_instance::_target_mesh, comp_mesh_instance>("mesh", reflected_field_type::rf_resource, "", type_id<mesh>::value);
 		m.add_field<&comp_mesh_instance::_target_skin, comp_mesh_instance>("skin", reflected_field_type::rf_resource, "", type_id<skin>::value);
 		m.add_field<&comp_mesh_instance::_materials, comp_mesh_instance>("material", reflected_field_type::rf_resource, "", type_id<material>::value, 1);

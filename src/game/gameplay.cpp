@@ -28,6 +28,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "app/app.hpp"
 #include "world/world.hpp"
 #include "world/components/comp_camera.hpp"
+#include "world/components/comp_character_controller.hpp"
 #include "platform/window_common.hpp"
 #include "platform/window.hpp"
 #include "input/input_mappings.hpp"
@@ -43,18 +44,24 @@ namespace SFG
 		component_manager& cm = w.get_comp_manager();
 		resource_manager&  rm = w.get_resource_manager();
 
-		_player_entity = em.create_entity("player");
-		_camera_entity = em.create_entity("player_camera");
-		em.add_child(_player_entity, _camera_entity);
+		_player_entity = em.find_entity("Player");
+		if (!_player_entity.is_null())
+			_camera_entity = em.find_entity(_player_entity, "PlayerCamera");
+		if (_camera_entity.is_null())
+			_camera_entity = em.find_entity("PlayerCamera");
 
-		_camera_comp	  = cm.add_component<comp_camera>(_camera_entity);
-		comp_camera& comp = cm.get_component<comp_camera>(_camera_comp);
-		comp.set_main(w);
-		comp.set_values(w, 0.1, 500.0f, 90.0f);
+		if (!_camera_entity.is_null())
+		{
+			_camera_comp = em.get_entity_component<comp_camera>(_camera_entity);
+			if (!_camera_comp.is_null())
+			{
+				comp_camera& comp = cm.get_component<comp_camera>(_camera_comp);
+				comp.set_main(w);
+			}
+		}
 
-		em.set_entity_position(_player_entity, vector3(0, 0, 15));
-		em.set_entity_position(_camera_entity, vector3(0, 2, 0));
-		em.set_entity_rotation(_camera_entity, quat::identity);
+		if (!_player_entity.is_null())
+			_player_controller = em.get_entity_component<comp_character_controller>(_player_entity);
 
 		_bullet_template = rm.get_resource_handle_by_hash<entity_template>(TO_SID("assets/entity_templates/bullet.stkent"));
 
@@ -63,7 +70,7 @@ namespace SFG
 		_yaw_degrees		= 0.0f;
 		_pitch_degrees		= 0.0f;
 		_current_move_speed = _base_move_speed;
-		_is_active			= 1;
+		_is_active			= !_player_entity.is_null() && !_camera_entity.is_null() && !_player_controller.is_null();
 
 		_app.get_main_window().confine_cursor(cursor_confinement::pointer);
 		_app.get_main_window().set_cursor_visible(false);
@@ -72,10 +79,8 @@ namespace SFG
 
 	void gameplay::on_world_end(world& w)
 	{
-		entity_manager& em = w.get_entity_manager();
-		if (!_player_entity.is_null())
-			em.destroy_entity(_player_entity);
 		_player_entity	 = {};
+		_player_controller = {};
 		_camera_entity	 = {};
 		_camera_comp	 = {};
 		_bullet_template = {};
@@ -89,7 +94,7 @@ namespace SFG
 
 	void gameplay::on_world_tick(world& w, float dt)
 	{
-		if (_is_active == 0 || _player_entity.is_null() || _camera_entity.is_null())
+		if (_is_active == 0 || _player_entity.is_null() || _camera_entity.is_null() || _player_controller.is_null())
 			return;
 
 		_yaw_degrees -= _mouse_delta.x * _mouse_sensitivity;
@@ -97,13 +102,11 @@ namespace SFG
 		_pitch_degrees = math::clamp(_pitch_degrees, -89.0f, 89.0f);
 
 		entity_manager& em		= w.get_entity_manager();
+		component_manager& cm	= w.get_comp_manager();
 		const quat		new_rot = quat::from_euler(_pitch_degrees, _yaw_degrees, 0.0f);
 		em.set_entity_rotation(_camera_entity, new_rot);
 
 		_mouse_delta = vector2::zero;
-
-		if (_direction_input.is_zero())
-			return;
 
 		const quat&	  rot	   = em.get_entity_rotation_abs(_camera_entity);
 		const vector3 forward  = rot.get_forward();
@@ -111,13 +114,12 @@ namespace SFG
 		const vector3 up	   = vector3::up;
 		vector3		  move_dir = (forward * _direction_input.z + right * _direction_input.x + up * _direction_input.y);
 
-		if (move_dir.is_zero())
-			return;
-		move_dir.normalize();
+		if (!move_dir.is_zero())
+			move_dir.normalize();
 
-		const vector3& pos = em.get_entity_position(_player_entity);
-		auto		   p   = pos + (move_dir * (_current_move_speed * dt));
-		em.set_entity_position(_player_entity, p);
+		comp_character_controller& controller = cm.get_component<comp_character_controller>(_player_controller);
+		controller.update(w, move_dir * _current_move_speed, dt);
+
 	}
 
 	void gameplay::on_window_event(const window_event& ev, window* wnd)

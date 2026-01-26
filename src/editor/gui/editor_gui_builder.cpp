@@ -174,9 +174,6 @@ namespace SFG
 
 	vekt::input_event_result gui_builder::on_text_field_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase)
 	{
-		if (phase != vekt::input_event_phase::bubbling)
-			return vekt::input_event_result::not_handled;
-
 		if (ev.type == vekt::input_event_type::released)
 			return vekt::input_event_result::not_handled;
 
@@ -557,9 +554,6 @@ namespace SFG
 
 	vekt::input_event_result gui_builder::on_checkbox_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase)
 	{
-		if (phase != vekt::input_event_phase::bubbling)
-			return vekt::input_event_result::not_handled;
-
 		if (ev.type != vekt::input_event_type::pressed || ev.button != static_cast<uint16>(input_code::mouse_0))
 			return vekt::input_event_result::not_handled;
 
@@ -580,9 +574,6 @@ namespace SFG
 
 	vekt::input_event_result gui_builder::on_resource_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase)
 	{
-		if (phase != vekt::input_event_phase::bubbling)
-			return vekt::input_event_result::not_handled;
-
 		if (ev.type != vekt::input_event_type::pressed || ev.button != static_cast<uint16>(input_code::mouse_0))
 			return vekt::input_event_result::not_handled;
 
@@ -1218,8 +1209,13 @@ namespace SFG
 
 			const id_pair ids = add_property_row_dropdown(title, field->_enum_list[val].c_str(), 256);
 
+			uint8 i = 0;
 			for (const malloc_string& str : field->_enum_list)
-				add_dropdown_item(ids.second, str.c_str());
+			{
+				add_dropdown_item(ids.second, str.c_str(), val == i);
+				i++;
+			}
+
 			_reflected.push_back({.obj = object_ptr, .type = type_id, .field = field, .widget = ids.second});
 
 			return ids.first;
@@ -1499,7 +1495,7 @@ namespace SFG
 			}
 
 			// widget_gfx& gfx = _builder->widget_get_gfx(w);
-			// gfx.flags		= gfx_flags::gfx_is_rect;
+			// gfx.flags		= gfx_flags::gfx_clip_children;
 			// gfx.color		= editor_theme::get().col_accent;
 			// gfx.draw_order	= _draw_order;
 		}
@@ -1564,50 +1560,38 @@ namespace SFG
 		return w;
 	}
 
-	gui_builder::id_pair gui_builder::add_component_title(const char* title)
+	gui_builder::id_trip gui_builder::add_component_title(const char* title)
 	{
 		const id w = new_widget();
 		{
 			pos_props& pp = _builder->widget_get_pos_props(w);
-			pp.flags	  = pos_flags::pf_child_pos_column | pos_flags::pf_x_relative;
+			pp.flags	  = pos_flags::pf_x_relative;
 			pp.pos.x	  = 0.0f;
 
-			size_props& sz = _builder->widget_get_size_props(w);
-			sz.spacing	   = editor_theme::get().item_spacing * 0.75f;
-			sz.flags	   = size_flags::sf_x_relative | size_flags::sf_y_total_children;
-			sz.size.x	   = 1.0f;
-		}
+			size_props& sz	 = _builder->widget_get_size_props(w);
+			sz.flags		 = size_flags::sf_x_relative | size_flags::sf_y_abs;
+			sz.size.x		 = 1.0f;
+			sz.size.y		 = editor_theme::get().row_height;
+			sz.child_margins = {editor_theme::get().inner_margin, editor_theme::get().inner_margin, editor_theme::get().inner_margin, editor_theme::get().inner_margin};
 
-		const id line = _builder->allocate();
-		{
-			widget_gfx& gfx = _builder->widget_get_gfx(line);
-			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_second_color;
-			gfx.color		= editor_theme::get().col_accent_second;
+			widget_gfx& gfx = _builder->widget_get_gfx(w);
+			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_rounding | gfx_flags::gfx_has_press_color | gfx_flags::gfx_has_hover_color;
+			gfx.color		= editor_theme::get().col_frame_bg;
 			gfx.draw_order	= _draw_order;
 
-			second_color_props& sc = _builder->widget_get_second_color(line);
-			sc.color			   = editor_theme::get().col_accent_second;
-			sc.color.w			   = 0.0f;
+			rounding_props& rp = _builder->widget_get_rounding(w);
+			rp.rounding		   = editor_theme::get().frame_rounding;
+			rp.segments		   = 8;
 
-			pos_props& pp = _builder->widget_get_pos_props(line);
-			pp.flags	  = pos_flags::pf_x_relative;
-			pp.pos.x	  = 0.0f;
+			input_color_props& icp = _builder->widget_get_input_colors(w);
+			icp.pressed_color	   = editor_theme::get().col_button_press;
+			icp.hovered_color	   = editor_theme::get().col_button_hover;
 
-			size_props& sz = _builder->widget_get_size_props(line);
-			sz.size		   = VEKT_VEC2(1.0f, editor_theme::get().title_line_height * 0.5f);
-			sz.flags	   = size_flags::sf_x_relative | size_flags::sf_y_abs;
-		}
+			mouse_callback& mc = _builder->widget_get_mouse_callbacks(w);
+			mc.on_mouse		   = callbacks.on_mouse;
 
-		const id txt_wrap = _builder->allocate();
-		{
-			pos_props& pp = _builder->widget_get_pos_props(txt_wrap);
-			pp.flags	  = pos_flags::pf_x_relative;
-			pp.pos.x	  = 0.0f;
-
-			size_props& sz	 = _builder->widget_get_size_props(txt_wrap);
-			sz.size.x		 = 1.0f;
-			sz.flags		 = size_flags::sf_x_relative | size_flags::sf_y_max_children;
-			sz.child_margins = {0.0f, 0.0f, 0.0f, editor_theme::get().outer_margin};
+			widget_user_data& ud = _builder->widget_get_user_data(w);
+			ud.ptr				 = callbacks.user_data;
 		}
 
 		const id txt = _builder->allocate();
@@ -1615,7 +1599,7 @@ namespace SFG
 			widget_gfx& gfx = _builder->widget_get_gfx(txt);
 			gfx.flags		= gfx_flags::gfx_is_text;
 			gfx.color		= editor_theme::get().col_accent_second;
-			gfx.draw_order	= _draw_order;
+			gfx.draw_order	= _draw_order + 1;
 
 			pos_props& pp = _builder->widget_get_pos_props(txt);
 			pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_y_relative | pos_flags::pf_y_anchor_center;
@@ -1627,38 +1611,128 @@ namespace SFG
 			_builder->widget_set_text(txt, title);
 		}
 
-		const id icon = _builder->allocate();
+		const id actions = _builder->allocate();
 		{
-			widget_gfx& gfx = _builder->widget_get_gfx(icon);
-			gfx.flags		= gfx_flags::gfx_is_text | gfx_flags::gfx_has_hover_color | gfx_flags::gfx_has_press_color;
-			gfx.color		= editor_theme::get().col_accent_second_dim;
-
-			pos_props& pp = _builder->widget_get_pos_props(icon);
-			pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_x_anchor_end | pos_flags::pf_y_relative | pos_flags::pf_y_anchor_center;
+			pos_props& pp = _builder->widget_get_pos_props(actions);
+			pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_x_anchor_end | pos_flags::pf_y_relative | pos_flags::pf_y_anchor_center | pos_flags::pf_child_pos_row;
 			pp.pos.x	  = 1.0f;
 			pp.pos.y	  = 0.5f;
 
-			text_props& tp = _builder->widget_get_text(icon);
-			tp.font		   = editor_theme::get().font_icons;
-			tp.scale	   = 0.75f;
-			_builder->widget_set_text(icon, ICON_CROSS);
-			input_color_props& icp = _builder->widget_get_input_colors(icon);
-			icp.hovered_color	   = editor_theme::get().col_accent_second;
-			icp.pressed_color	   = editor_theme::get().col_accent_second_dim;
+			size_props& sz	 = _builder->widget_get_size_props(actions);
+			sz.flags		 = size_flags::sf_x_total_children | size_flags::sf_y_max_children;
+			sz.spacing		 = editor_theme::get().inner_margin * 0.5f;
+			sz.child_margins = {0.0f, 0.0f, 0.0f, 0.0f};
+		}
 
-			mouse_callback& mc = _builder->widget_get_mouse_callbacks(icon);
+		const vector2 text_sz		= _builder->get_text_size({
+				  .text = "A",
+				  .font = editor_theme::get().font_icons,
+		  });
+		const float	  button_size	= text_sz.y * 1.15f;
+		const float	  button_margin = editor_theme::get().inner_margin * 0.25f;
+
+		const id reset_button = _builder->allocate();
+		{
+			pos_props& pp = _builder->widget_get_pos_props(reset_button);
+			pp.flags	  = pos_flags::pf_y_relative | pos_flags::pf_y_anchor_center | pos_flags::pf_child_pos_row;
+			pp.pos.y	  = 0.5f;
+
+			size_props& sz	 = _builder->widget_get_size_props(reset_button);
+			sz.flags		 = size_flags::sf_x_abs | size_flags::sf_y_abs;
+			sz.size.x		 = button_size;
+			sz.size.y		 = button_size;
+			sz.child_margins = {button_margin, button_margin, button_margin, button_margin};
+
+			widget_gfx& gfx = _builder->widget_get_gfx(reset_button);
+			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_press_color | gfx_flags::gfx_has_hover_color;
+			gfx.color		= vector4();
+			gfx.draw_order	= _draw_order + 1;
+
+			input_color_props& icp = _builder->widget_get_input_colors(reset_button);
+			icp.pressed_color	   = editor_theme::get().col_frame_bg;
+			icp.hovered_color	   = editor_theme::get().col_light;
+
+			mouse_callback& mc = _builder->widget_get_mouse_callbacks(reset_button);
 			mc.on_mouse		   = callbacks.on_mouse;
 
-			widget_user_data& ud = _builder->widget_get_user_data(icon);
+			widget_user_data& ud = _builder->widget_get_user_data(reset_button);
 			ud.ptr				 = callbacks.user_data;
 		}
 
-		_builder->widget_add_child(w, txt_wrap);
-		_builder->widget_add_child(w, line);
-		_builder->widget_add_child(txt_wrap, txt);
-		_builder->widget_add_child(txt_wrap, icon);
+		const id reset_icon = _builder->allocate();
+		{
+			widget_gfx& gfx = _builder->widget_get_gfx(reset_icon);
+			gfx.flags		= gfx_flags::gfx_is_text;
+			gfx.color		= editor_theme::get().col_accent_second_dim;
+			gfx.draw_order	= _draw_order + 1;
 
-		return {w, icon};
+			pos_props& pp = _builder->widget_get_pos_props(reset_icon);
+			pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_y_relative | pos_flags::pf_x_anchor_center | pos_flags::pf_y_anchor_center;
+			pp.pos.x	  = 0.5f;
+			pp.pos.y	  = 0.5f;
+
+			text_props& tp = _builder->widget_get_text(reset_icon);
+			tp.font		   = editor_theme::get().font_icons;
+			tp.scale	   = 0.75f;
+			_builder->widget_set_text(reset_icon, ICON_HAMMER);
+		}
+
+		_builder->widget_add_child(reset_button, reset_icon);
+
+		const id remove_button = _builder->allocate();
+		{
+			pos_props& pp = _builder->widget_get_pos_props(remove_button);
+			pp.flags	  = pos_flags::pf_y_relative | pos_flags::pf_y_anchor_center | pos_flags::pf_child_pos_row;
+			pp.pos.y	  = 0.5f;
+
+			size_props& sz	 = _builder->widget_get_size_props(remove_button);
+			sz.flags		 = size_flags::sf_x_abs | size_flags::sf_y_abs;
+			sz.size.x		 = button_size;
+			sz.size.y		 = button_size;
+			sz.child_margins = {button_margin, button_margin, button_margin, button_margin};
+
+			widget_gfx& gfx = _builder->widget_get_gfx(remove_button);
+			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_press_color | gfx_flags::gfx_has_hover_color;
+			gfx.color		= vector4();
+			gfx.draw_order	= _draw_order + 1;
+
+			input_color_props& icp = _builder->widget_get_input_colors(remove_button);
+			icp.pressed_color	   = editor_theme::get().col_frame_bg;
+			icp.hovered_color	   = editor_theme::get().col_light;
+
+			mouse_callback& mc = _builder->widget_get_mouse_callbacks(remove_button);
+			mc.on_mouse		   = callbacks.on_mouse;
+
+			widget_user_data& ud = _builder->widget_get_user_data(remove_button);
+			ud.ptr				 = callbacks.user_data;
+		}
+
+		const id remove_icon = _builder->allocate();
+		{
+			widget_gfx& gfx = _builder->widget_get_gfx(remove_icon);
+			gfx.flags		= gfx_flags::gfx_is_text;
+			gfx.color		= editor_theme::get().col_accent_second_dim;
+			gfx.draw_order	= _draw_order + 1;
+
+			pos_props& pp = _builder->widget_get_pos_props(remove_icon);
+			pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_y_relative | pos_flags::pf_x_anchor_center | pos_flags::pf_y_anchor_center;
+			pp.pos.x	  = 0.5f;
+			pp.pos.y	  = 0.5f;
+
+			text_props& tp = _builder->widget_get_text(remove_icon);
+			tp.font		   = editor_theme::get().font_icons;
+			tp.scale	   = 0.75f;
+			_builder->widget_set_text(remove_icon, ICON_CROSS);
+		}
+
+		_builder->widget_add_child(remove_button, remove_icon);
+
+		_builder->widget_add_child(w, txt);
+		_builder->widget_add_child(w, actions);
+		_builder->widget_add_child(actions, reset_button);
+		_builder->widget_add_child(actions, remove_button);
+
+		return {w, reset_button, remove_button};
 	}
 
 	id gui_builder::add_title(const char* title)
@@ -2358,6 +2432,8 @@ namespace SFG
 
 		const id txt = add_label(res, buffer_capacity);
 		{
+			widget_gfx& gfx = _builder->widget_get_gfx(txt);
+			gfx.draw_order	= _draw_order + 1;
 		}
 
 		pop_stack();
@@ -2414,6 +2490,8 @@ namespace SFG
 
 		const id txt = add_label(initial_text, buffer_capacity);
 		{
+			widget_gfx& gfx = _builder->widget_get_gfx(txt);
+			gfx.draw_order	= _draw_order + 1;
 		}
 
 		pop_stack();
@@ -2426,12 +2504,15 @@ namespace SFG
 		return w;
 	}
 
-	void gui_builder::add_dropdown_item(vekt::id dropdown_widget, const char* label)
+	void gui_builder::add_dropdown_item(vekt::id dropdown_widget, const char* label, bool is_selected)
 	{
 		auto it = std::find_if(_dropdowns.begin(), _dropdowns.end(), [dropdown_widget](const gui_dropdown& d) { return d.widget == dropdown_widget; });
 		SFG_ASSERT(it != _dropdowns.end());
 
 		const char* stored = editor::get().get_text_allocator().allocate(label);
+		if (is_selected)
+			it->selected = static_cast<uint8>(it->items.size());
+
 		it->items.push_back(stored);
 
 		// If no text set, set to first item
@@ -2453,14 +2534,17 @@ namespace SFG
 		gb->_dropdown_ctx_bindings.resize(0);
 
 		editor::get().get_gui_controller().begin_context_menu(ev.position.x, ev.position.y);
-		for (unsigned int i = 0; i < it->items.size(); ++i)
+		const uint8 sz = static_cast<uint8>(it->items.size());
+
+		for (uint8 i = 0; i < sz; ++i)
 		{
 			const char*			  item_label = it->items[i];
-			const vekt::id		  btn		 = editor::get().get_gui_controller().add_context_menu_item(item_label);
+			const vekt::id		  btn		 = editor::get().get_gui_controller().add_context_menu_item_toggle(item_label, i == it->selected);
 			vekt::mouse_callback& cb		 = b->widget_get_mouse_callbacks(btn);
 			cb.on_mouse						 = on_dropdown_item_mouse;
-			vekt::widget_user_data& ud		 = b->widget_get_user_data(btn);
-			ud.ptr							 = gb;
+
+			vekt::widget_user_data& ud = b->widget_get_user_data(btn);
+			ud.ptr					   = gb;
 
 			gb->_dropdown_ctx_bindings.push_back({.item_widget = btn, .dropdown_widget = widget, .index = i});
 		}
@@ -2484,6 +2568,8 @@ namespace SFG
 		if (it_dd != gb->_dropdowns.end())
 		{
 			const unsigned int idx = it->index;
+
+			it_dd->selected = idx;
 			if (idx < it_dd->items.size())
 				b->widget_set_text(it_dd->text_widget, it_dd->items[idx]);
 		}

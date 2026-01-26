@@ -190,7 +190,7 @@ namespace SFG
 		shaders		   _shaders				   = {};
 		gfx_data	   _gfx_data			   = {};
 		per_frame_data _pfd[BACK_BUFFER_COUNT] = {};
-		gui_draw_call  _gui_draw_calls[64]	   = {};
+		gui_draw_call  _gui_draw_calls[128]	   = {};
 
 		static constexpr uint32 SNAPSHOTS_SIZE = 8;
 

@@ -156,7 +156,6 @@ namespace SFG
 
 		vekt::id _world_viewer		= NULL_WIDGET_ID;
 		vekt::id _btn_file			= NULL_WIDGET_ID;
-		vekt::id _btn_world			= NULL_WIDGET_ID;
 		vekt::id _btn_stats			= NULL_WIDGET_ID;
 		vekt::id _btn_translate		= NULL_WIDGET_ID;
 		vekt::id _btn_rotate		= NULL_WIDGET_ID;

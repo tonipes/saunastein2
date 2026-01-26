@@ -180,7 +180,7 @@ namespace SFG
 		root_rounding = 6.0f;
 
 		outer_margin	  = DPI_SCALE * 8;
-		item_spacing	  = DPI_SCALE * 3;
+		item_spacing	  = DPI_SCALE * 5;
 		root_spacing	  = DPI_SCALE * 6;
 		row_spacing		  = DPI_SCALE * 6;
 		row_height		  = DPI_SCALE * 24;

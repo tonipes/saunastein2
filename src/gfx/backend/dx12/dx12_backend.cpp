@@ -77,7 +77,7 @@ namespace SFG
 	SFG_FATAL(__VA_ARGS__);                                                                                                                                                                                                                                        \
 	throw exception;
 
-#ifdef _DEBUG
+#ifdef SFG_DEBUG
 #define NAME_DX12_OBJECT_CSTR(x, NAME)                                                                                                                                                                                                                             \
 	auto wcharConverted = string_util::char_to_wchar(NAME);                                                                                                                                                                                                        \
 	x->SetName(wcharConverted);                                                                                                                                                                                                                                    \

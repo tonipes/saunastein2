@@ -135,7 +135,7 @@ namespace SFG
 			.index_buffer_sz			 = IDX_SZ,
 			.text_cache_vertex_buffer_sz = 1024 * 1024 * 2,
 			.text_cache_index_buffer_sz	 = 1024 * 1024 * 4,
-			.buffer_count				 = 64,
+			.buffer_count				 = 120,
 		});
 
 		// font
@@ -151,10 +151,10 @@ namespace SFG
 		const float dpi_scale	= _app.get_main_window().get_monitor_info().dpi_scale;
 		editor_theme::DPI_SCALE = dpi_scale;
 
-		const string default_font_str = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/Roboto-Regular.ttf");
+		const string default_font_str = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/Quantico-Regular.ttf");
 		const string title_font_str	  = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/VT323-Regular.ttf");
 		const string icon_font_str	  = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/icons.ttf");
-		_font_main					  = _font_manager->load_font_from_file(default_font_str.c_str(), 16 * dpi_scale);
+		_font_main					  = _font_manager->load_font_from_file(default_font_str.c_str(), 14 * dpi_scale);
 		_font_title					  = _font_manager->load_font_from_file(title_font_str.c_str(), 20 * dpi_scale);
 		_font_icons					  = _font_manager->load_font_from_file(icon_font_str.c_str(), 16 * dpi_scale, 32, 128, vekt::font_type::sdf, 3, 128, 32);
 

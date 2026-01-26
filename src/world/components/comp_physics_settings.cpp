@@ -35,6 +35,8 @@ namespace SFG
 	{
 		meta& m = reflection::get().register_meta(type_id<comp_physics_settings>::value, 0, "component");
 		m.set_title("physics_settings");
+		m.set_category("physics");
+
 		m.add_field<&comp_physics_settings::_gravity, comp_physics_settings>("gravity", reflected_field_type::rf_vector3, "");
 
 		m.add_function<void, const reflected_field_changed_params&>("on_reflected_changed"_hs, [](const reflected_field_changed_params& params) {

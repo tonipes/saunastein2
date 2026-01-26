@@ -122,7 +122,6 @@ namespace SFG
 		_gui_builder.set_draw_order(1);
 		_gui_builder.begin_row();
 		_btn_file  = _gui_builder.add_icon_button(ICON_FILE, 0, 1.25f, true).first;
-		_btn_world = _gui_builder.add_icon_button(ICON_WORLD, 0, 1.25f, true).first;
 		_btn_stats = _gui_builder.add_toggle_button(ICON_INFO, false, 0, 1.25f, true).first;
 		_gui_builder.add_row_separator(editor_theme::get().col_frame_bg);
 		_btn_translate = _gui_builder.add_toggle_button(ICON_MOVE, true, 0, 1.25f, true).first;
@@ -386,37 +385,32 @@ namespace SFG
 			editor_gui_controller& ctr = editor::get().get_gui_controller();
 			const vector2		   pos = b->widget_get_pos(widget) + vector2(0.0f, b->widget_get_size(widget).y);
 			ctr.begin_context_menu(pos.x, pos.y);
+
+			ctr.add_context_menu_title("project");
 			self->_ctx_new_project	   = ctr.add_context_menu_item("new_project");
 			self->_ctx_open_project	   = ctr.add_context_menu_item("open_project");
 			self->_ctx_save_project	   = ctr.add_context_menu_item("save_project");
 			self->_ctx_package_project = ctr.add_context_menu_item("package_project");
+
+			ctr.add_context_menu_title("world");
+
+			self->_ctx_new_world  = ctr.add_context_menu_item("new_world");
+			self->_ctx_save_world = ctr.add_context_menu_item("save_world");
+			self->_ctx_load_world = ctr.add_context_menu_item("load_world");
 
 			b->widget_get_mouse_callbacks(self->_ctx_new_project).on_mouse	   = on_widget_mouse;
 			b->widget_get_mouse_callbacks(self->_ctx_open_project).on_mouse	   = on_widget_mouse;
 			b->widget_get_mouse_callbacks(self->_ctx_save_project).on_mouse	   = on_widget_mouse;
 			b->widget_get_mouse_callbacks(self->_ctx_package_project).on_mouse = on_widget_mouse;
 
+			b->widget_get_mouse_callbacks(self->_ctx_new_world).on_mouse  = on_widget_mouse;
+			b->widget_get_mouse_callbacks(self->_ctx_save_world).on_mouse = on_widget_mouse;
+			b->widget_get_mouse_callbacks(self->_ctx_load_world).on_mouse = on_widget_mouse;
+
 			b->widget_get_user_data(self->_ctx_new_project).ptr		= self;
 			b->widget_get_user_data(self->_ctx_open_project).ptr	= self;
 			b->widget_get_user_data(self->_ctx_save_project).ptr	= self;
 			b->widget_get_user_data(self->_ctx_package_project).ptr = self;
-
-			ctr.end_context_menu();
-			return vekt::input_event_result::handled;
-		}
-
-		if (widget == self->_btn_world)
-		{
-			editor_gui_controller& ctr = editor::get().get_gui_controller();
-			const vector2		   pos = b->widget_get_pos(widget) + vector2(0.0f, b->widget_get_size(widget).y);
-			ctr.begin_context_menu(pos.x, pos.y);
-			self->_ctx_new_world  = ctr.add_context_menu_item("new_world");
-			self->_ctx_save_world = ctr.add_context_menu_item("save_world");
-			self->_ctx_load_world = ctr.add_context_menu_item("load_world");
-
-			b->widget_get_mouse_callbacks(self->_ctx_new_world).on_mouse  = on_widget_mouse;
-			b->widget_get_mouse_callbacks(self->_ctx_save_world).on_mouse = on_widget_mouse;
-			b->widget_get_mouse_callbacks(self->_ctx_load_world).on_mouse = on_widget_mouse;
 
 			b->widget_get_user_data(self->_ctx_new_world).ptr  = self;
 			b->widget_get_user_data(self->_ctx_save_world).ptr = self;
@@ -456,15 +450,22 @@ namespace SFG
 			const vector2		   pos = b->widget_get_pos(widget) + vector2(0.0f, b->widget_get_size(widget).y);
 			ctr.begin_context_menu(pos.x, pos.y);
 
+			ctr.add_context_menu_title("result");
+
 			self->_ctx_view_rt		 = ctr.add_context_menu_item_toggle("final_output", self->_user_data.type == editor_gui_user_data_type::world_rt);
+			self->_ctx_view_depth	 = ctr.add_context_menu_item_toggle("depth", self->_user_data.type == editor_gui_user_data_type::depth_rt);
+			self->_ctx_view_lighting = ctr.add_context_menu_item_toggle("lighting", self->_user_data.type == editor_gui_user_data_type::lighting_rt);
+
+			ctr.add_context_menu_title("gbuffer");
 			self->_ctx_view_albedo	 = ctr.add_context_menu_item_toggle("albedo", self->_user_data.type == editor_gui_user_data_type::colors_rt);
 			self->_ctx_view_normals	 = ctr.add_context_menu_item_toggle("oct_normal", self->_user_data.type == editor_gui_user_data_type::normals_rt);
 			self->_ctx_view_emissive = ctr.add_context_menu_item_toggle("emissive", self->_user_data.type == editor_gui_user_data_type::emissive_rt);
 			self->_ctx_view_orm		 = ctr.add_context_menu_item_toggle("orm", self->_user_data.type == editor_gui_user_data_type::orm_rt);
-			self->_ctx_view_depth	 = ctr.add_context_menu_item_toggle("depth", self->_user_data.type == editor_gui_user_data_type::depth_rt);
-			self->_ctx_view_lighting = ctr.add_context_menu_item_toggle("lighting", self->_user_data.type == editor_gui_user_data_type::lighting_rt);
-			self->_ctx_view_ssao	 = ctr.add_context_menu_item_toggle("ssao", self->_user_data.type == editor_gui_user_data_type::ssao_rt);
-			self->_ctx_view_bloom	 = ctr.add_context_menu_item_toggle("bloom", self->_user_data.type == editor_gui_user_data_type::bloom_rt);
+
+			ctr.add_context_menu_title("compute");
+
+			self->_ctx_view_ssao  = ctr.add_context_menu_item_toggle("ssao", self->_user_data.type == editor_gui_user_data_type::ssao_rt);
+			self->_ctx_view_bloom = ctr.add_context_menu_item_toggle("bloom", self->_user_data.type == editor_gui_user_data_type::bloom_rt);
 
 			b->widget_get_mouse_callbacks(self->_ctx_view_rt).on_mouse		 = on_widget_mouse;
 			b->widget_get_mouse_callbacks(self->_ctx_view_albedo).on_mouse	 = on_widget_mouse;

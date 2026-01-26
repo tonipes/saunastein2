@@ -46,6 +46,7 @@ namespace SFG
 	{
 		float entities_world_split		= 0.25f;
 		float entities_components_split = 0.5f;
+		float world_inspector_split	 = 0.7f;
 		uint8 world_aspect_ratio		= 0;
 		uint8 world_stats_view			= 0;
 

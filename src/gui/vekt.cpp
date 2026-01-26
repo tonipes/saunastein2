@@ -191,8 +191,9 @@ namespace vekt
 		_depth_first_child_info.reserve(1024);
 		_depth_first_fill_parents.reserve(1024);
 		_depth_first_scrolls.reserve(1024);
-		_depth_first_mouse_widgets.reserve(1024);
 		_depth_first_focusables.reserve(1024);
+		_draw_order_first_hover_widgets.reserve(1024);
+		_draw_order_first_mouse_widgets.reserve(1024);
 
 		_root = allocate();
 	}
@@ -671,26 +672,25 @@ namespace vekt
 		hover_callback& hb			  = _hover_callbacks[current_widget_id];
 		mouse_callback& mb			  = _mouse_callbacks[current_widget_id];
 		const bool		receive_mouse = mb.on_mouse || mb.on_drag;
-		const bool		receive_hover = hb.on_hover_begin || hb.on_hover_end || hb.on_hover_move;
+		const bool		receive_hover = hb.on_hover_begin || hb.on_hover_end || hb.on_hover_move || (widget_get_gfx(current_widget_id).flags & gfx_flags::gfx_has_hover_color);
 		const bool		receive_wheel = mb.on_mouse_wheel;
 		const bool		is_hovered	  = hb.is_hovered;
 		const bool		is_pressing	  = hb.is_pressing;
 
 		if (!receive_mouse)
-		{
 			hb.is_pressing = 0;
-		}
 
 		if (!receive_hover)
-		{
 			hb.is_hovered = 0;
-		}
 
 		if (sc.scroll_parent != NULL_WIDGET_ID)
 			_depth_first_scrolls.push_back(current_widget_id);
 
 		if (receive_mouse)
-			_depth_first_mouse_widgets.push_back(current_widget_id);
+			_draw_order_first_mouse_widgets.push_back(current_widget_id);
+
+		if (receive_hover)
+			_draw_order_first_hover_widgets.push_back(current_widget_id);
 
 		if (receive_wheel)
 			_depth_first_mouse_wheel_widgets.push_back(current_widget_id);
@@ -716,15 +716,19 @@ namespace vekt
 
 	void builder::build_hierarchy()
 	{
-		_depth_first_mouse_widgets.resize_explicit(0);
 		_depth_first_mouse_wheel_widgets.resize_explicit(0);
 		_depth_first_fill_parents.resize_explicit(0);
 		_depth_first_scrolls.resize_explicit(0);
 		_depth_first_widgets.resize_explicit(0);
 		_depth_first_child_info.resize_explicit(0);
 		_depth_first_focusables.resize_explicit(0);
+		_draw_order_first_hover_widgets.resize_explicit(0);
+		_draw_order_first_mouse_widgets.resize_explicit(0);
 
 		populate_hierarchy(_root, 0);
+
+		std::sort(_draw_order_first_hover_widgets.begin(), _draw_order_first_hover_widgets.end(), [this](vekt::id a, vekt::id b) -> bool { return widget_get_gfx(a).draw_order > widget_get_gfx(b).draw_order; });
+		std::sort(_draw_order_first_mouse_widgets.begin(), _draw_order_first_mouse_widgets.end(), [this](vekt::id a, vekt::id b) -> bool { return widget_get_gfx(a).draw_order > widget_get_gfx(b).draw_order; });
 
 		// restore hover states
 		calculate_sizes();
@@ -1165,9 +1169,8 @@ namespace vekt
 
 			if (gfx.flags & gfx_has_hover_color)
 			{
-				const VEKT_VEC4 clip	= widget_get_clip(widget);
-				const bool		hovered = clip.is_point_inside(_mouse_position.x, _mouse_position.y);
-				if (hovered)
+				hover_callback& hb = _hover_callbacks[widget];
+				if (hb.is_hovered)
 				{
 					start_color = _input_color_properties[widget].hovered_color;
 					multi_color = false;
@@ -1429,30 +1432,22 @@ namespace vekt
 		const VEKT_VEC2 delta = mouse - _mouse_position;
 		_mouse_position		  = mouse;
 
-		const unsigned int sz = _depth_first_widgets.size();
+		bool first_hover = false;
 
-		for (unsigned int i = 0; i < sz; i++)
+		for (id widget : _draw_order_first_hover_widgets)
 		{
-			const id widget = _depth_first_widgets[i];
+			hover_callback& hover_state = _hover_callbacks[widget];
+			const VEKT_VEC4 clip		= widget_get_clip(widget);
+			const bool		hovered		= !first_hover && clip.is_point_inside(mouse.x, mouse.y);
 
-			hover_callback& hover_state	  = _hover_callbacks[widget];
-			const bool		receive_hover = hover_state.on_hover_begin || hover_state.on_hover_end || hover_state.on_hover_move;
+			if (hovered && !first_hover)
+				first_hover = true;
 
-			if (!receive_hover)
-				continue;
-
-			const VEKT_VEC4 clip	= widget_get_clip(widget);
-			const bool		hovered = clip.is_point_inside(mouse.x, mouse.y);
-
-			if (send_events && !hovered && hover_state.is_hovered && hover_state.on_hover_end)
-			{
+			if (send_events && hover_state.on_hover_end && !hovered && hover_state.is_hovered)
 				hover_state.on_hover_end(this, widget);
-			}
 
-			if (send_events && hovered && !hover_state.is_hovered && hover_state.on_hover_begin)
-			{
+			if (send_events && hover_state.on_hover_begin && hovered && !hover_state.is_hovered)
 				hover_state.on_hover_begin(this, widget);
-			}
 
 			if (hovered && hover_state.on_hover_move)
 				hover_state.on_hover_move(this, widget);
@@ -1517,7 +1512,7 @@ namespace vekt
 			}
 		}
 
-		for (id widget : _depth_first_mouse_widgets)
+		for (id widget : _draw_order_first_mouse_widgets)
 		{
 			const VEKT_VEC4 clip	= widget_get_clip(widget);
 			const bool		hovered = clip.is_point_inside(ev.position.x, ev.position.y);
@@ -1534,40 +1529,14 @@ namespace vekt
 				set_pressing(widget, ev.button, ev.position);
 			}
 
-			const input_event_result res = cb.on_mouse ? cb.on_mouse(this, widget, ev, input_event_phase::tunneling) : input_event_result::not_handled;
-			if (res == input_event_result::handled)
+			if (cb.on_mouse)
 			{
-
-				handled = true;
-				break;
-			}
-		}
-
-		if (handled)
-			return input_event_result::handled;
-
-		const int sz = _depth_first_mouse_widgets.size();
-		for (int i = sz - 1; i >= 0; i--)
-		{
-			const id		widget	= _depth_first_mouse_widgets[i];
-			const VEKT_VEC4 clip	= widget_get_clip(widget);
-			const bool		hovered = clip.is_point_inside(ev.position.x, ev.position.y);
-			if (!hovered)
-				continue;
-
-			mouse_callback& cb = _mouse_callbacks[widget];
-			if (!cb.on_mouse)
-				continue;
-
-			const input_event_result res = cb.on_mouse(this, widget, ev, input_event_phase::bubbling);
-			if (res == input_event_result::handled)
-			{
-				if (ev.type == input_event_type::pressed)
+				const input_event_result res = cb.on_mouse(this, widget, ev, input_event_phase::tunneling);
+				if (res == input_event_result::handled)
 				{
-					set_focus(widget, false);
-					set_pressing(widget, ev.button, ev.position);
+
+					return input_event_result::handled;
 				}
-				return input_event_result::handled;
 			}
 		}
 

@@ -26,161 +26,56 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "editor_panel_entities.hpp"
 #include "editor/editor_theme.hpp"
-#include "editor/editor_settings.hpp"
-#include "editor/editor_layout.hpp"
 #include "editor/editor.hpp"
-
-// io
-#include "io/file_system.hpp"
-#include "io/log.hpp"
 
 // world
 #include "world/world.hpp"
 #include "world/entity_manager.hpp"
 
-// comps
-#include "world/components/comp_ambient.hpp"
-#include "world/components/comp_animation_controller.hpp"
-#include "world/components/comp_audio.hpp"
-#include "world/components/comp_camera.hpp"
-#include "world/components/comp_canvas.hpp"
-#include "world/components/comp_light.hpp"
-#include "world/components/comp_mesh_instance.hpp"
-#include "world/components/comp_particle_emitter.hpp"
-#include "world/components/comp_physics.hpp"
-
-// platform
-#include "platform/window.hpp"
-#include "platform/process.hpp"
-
-// resources
-#include "resources/entity_template.hpp"
-#include "resources/entity_template_raw.hpp"
-#include "resources/mesh.hpp"
-
 // math
-#include "math/math.hpp"
 #include "math/vector2ui16.hpp"
 #include "math/vector3.hpp"
 #include "math/quat.hpp"
-#include "math/color.hpp"
-#include "gfx/common/gfx_constants.hpp"
 
 // misc
 #include "gui/vekt.hpp"
-#include "memory/bump_text_allocator.hpp"
 #include "gui/icon_defs.hpp"
 #include "input/input_mappings.hpp"
 #include "app/app.hpp"
-#include "reflection/reflection.hpp"
+#include "platform/window.hpp"
 
 namespace SFG
 {
-	static constexpr float SEPARATOR_HEIGHT			 = 4.0f;
-	static constexpr float ENTITY_AREA_MIN_HEIGHT	 = 140.0f;
-	static constexpr float COMPONENT_AREA_MIN_HEIGHT = 200.0f;
-
 	void editor_panel_entities::init(vekt::builder* b)
 	{
-		_builder	 = b;
-		_split_ratio = editor_layout::get().entities_components_split;
-		_split_px	 = 200.0f;
+		_builder = b;
 
-		// gui_builder now uses editor_theme directly for styles and fonts.
 		_gui_builder.init(b);
 		_root = _gui_builder.get_root();
 
-		_gui_builder.callbacks.user_data			  = this;
-		_gui_builder.callbacks.callback_ud			  = this;
-		_gui_builder.callbacks.on_input_field_changed = on_input_field_changed;
-		_gui_builder.callbacks.on_mouse				  = on_mouse;
-		_gui_builder.callbacks.on_checkbox_changed	  = on_checkbox;
-		_gui_builder.callbacks.on_control_button	  = invoke_button;
+		_gui_builder.callbacks.user_data   = this;
+		_gui_builder.callbacks.callback_ud = this;
+		_gui_builder.callbacks.on_mouse	   = on_mouse;
 
 		_gui_builder.add_title("entities");
 		_entity_area = _gui_builder.begin_area(true);
 		{
 			vekt::size_props& sz										= _builder->widget_get_size_props(_entity_area);
-			sz.flags													= vekt::size_flags::sf_x_relative | vekt::size_flags::sf_y_abs;
-			sz.size.y													= _split_px;
+			sz.flags													= vekt::size_flags::sf_x_relative | vekt::size_flags::sf_y_fill;
+			sz.size.x													= 1.0f;
 			sz.child_margins.left										= 0.0f;
 			sz.spacing													= 0.0f;
 			_builder->widget_get_mouse_callbacks(_entity_area).on_mouse = on_mouse;
 		}
 		_gui_builder.end_area();
 
-		_layout_separator = _builder->allocate();
-		{
-			_builder->widget_add_child(_root, _layout_separator);
-
-			vekt::pos_props& pp = _builder->widget_get_pos_props(_layout_separator);
-			pp.flags			= vekt::pos_flags::pf_x_relative;
-			pp.pos.x			= 0.0f;
-
-			vekt::size_props& sz = _builder->widget_get_size_props(_layout_separator);
-			sz.flags			 = vekt::size_flags::sf_x_relative | vekt::size_flags::sf_y_abs;
-			sz.size.x			 = 1.0f;
-			sz.size.y			 = SEPARATOR_HEIGHT;
-
-			vekt::widget_gfx& gfx = _builder->widget_get_gfx(_layout_separator);
-			gfx.flags			  = vekt::gfx_flags::gfx_is_rect;
-			gfx.color			  = editor_theme::get().col_frame_bg;
-
-			vekt::hover_callback& hb = _builder->widget_get_hover_callbacks(_layout_separator);
-			hb.on_hover_begin		 = on_separator_hover_begin;
-			hb.on_hover_end			 = on_separator_hover_end;
-
-			vekt::mouse_callback& mc							  = _builder->widget_get_mouse_callbacks(_layout_separator);
-			mc.on_drag											  = on_separator_drag;
-			_builder->widget_get_user_data(_layout_separator).ptr = this;
-		}
-
-		// Properties section
-		_gui_builder.add_title("properties");
-		_gui_builder.begin_area(false, false);
-		_prop_vis						 = _gui_builder.add_property_row_checkbox("visible", 0).second;
-		_prop_name						 = _gui_builder.add_property_row_text_field("name", "-", 256).second;
-		_prop_handle					 = _gui_builder.add_property_row_label("handle:", "{-, -}", 16).second;
-		const gui_builder::id_quat pos	 = _gui_builder.add_property_row_vector3("position", "0.0", 16, 3, 0.1f);
-		const gui_builder::id_quat rot	 = _gui_builder.add_property_row_vector3("rotation", "0.0", 16, 3, 1.0f);
-		const gui_builder::id_quat scale = _gui_builder.add_property_row_vector3("scale", "1.0", 16, 3, 0.1f);
-		_selected_pos_x					 = pos.second;
-		_selected_pos_y					 = pos.third;
-		_selected_pos_z					 = pos.fourth;
-
-		_selected_rot_x = rot.second;
-		_selected_rot_y = rot.third;
-		_selected_rot_z = rot.fourth;
-
-		_selected_scale_x = scale.second;
-		_selected_scale_y = scale.third;
-		_selected_scale_z = scale.fourth;
-
-		_gui_builder.end_area();
-
-		_gui_builder.add_title("components");
-		_components_parent = _gui_builder.begin_area(true, false);
-
-		_gui_builder.add_property_row();
-		_add_component	 = _gui_builder.set_fill_x(_gui_builder.add_button("add_component").first);
-		_save_template	 = _gui_builder.set_fill_x(_gui_builder.add_button("save_as_template").first);
-		_unlock_template = _gui_builder.set_fill_x(_gui_builder.add_button("unlock_template").first);
-		_gui_builder.pop_stack();
-
-		_gui_builder.end_area();
-
 		// Reserve per-entity meta storage
 		_entity_meta.resize(MAX_ENTITIES);
 		_node_bindings.reserve(512);
 		_root_entity_widgets.reserve(512);
-		_comp_remove_buttons.reserve(512);
-		_add_component_buttons.reserve(512);
-		_selection_debug_draws.reserve(8);
 		_text_icon_dd_collapsed = editor::get().get_text_allocator().allocate(ICON_DD_RIGHT);
 		_text_icon_dd			= editor::get().get_text_allocator().allocate(ICON_DD_DOWN);
 		_text_icon_template		= editor::get().get_text_allocator().allocate(ICON_HAMMER);
-
-		set_selected_controls();
 	}
 
 	void editor_panel_entities::uninit()
@@ -193,328 +88,14 @@ namespace SFG
 
 	void editor_panel_entities::draw(world& w, const vector2ui16& window_size)
 	{
-		entity_manager&	   em = w.get_entity_manager();
-		component_manager& cm = w.get_comp_manager();
-		{
-			const vector2 root_size = _builder->widget_get_size(_root);
-			if (root_size.y > 0.0f)
-			{
-				const float max_height	 = math::max(root_size.y - COMPONENT_AREA_MIN_HEIGHT - SEPARATOR_HEIGHT, ENTITY_AREA_MIN_HEIGHT);
-				_split_px				 = math::clamp(root_size.y * _split_ratio, ENTITY_AREA_MIN_HEIGHT, max_height);
-				vekt::size_props& ent_sz = _builder->widget_get_size_props(_entity_area);
-				ent_sz.size.y			 = _split_px;
-			}
-		}
+		(void)window_size;
 
+		entity_manager& em = w.get_entity_manager();
 		if (em.get_hierarchy_dirty())
 		{
 			rebuild_tree(w);
 			em.set_hierarchy_dirty(0);
 		}
-
-		{
-			const float thickness	  = 0.05f;
-			const color col_phy		  = color::red;
-			const color col_light	  = color::yellow;
-			const color col_light_alt = color::red;
-			const color col_icon	  = color(editor_theme::get().col_accent_third.x, editor_theme::get().col_accent_third.y, editor_theme::get().col_accent_third.z, editor_theme::get().col_accent_third.w);
-
-			world_debug_rendering& debug_rendering = w.get_debug_rendering();
-
-		//	cm.view<comp_ambient>([&](comp_ambient& c) {
-		//		debug_rendering.draw_icon(em.get_entity_position_abs(c.get_header().entity), col_icon, ICON_AMBIENT);
-		//		return comp_view_result::cont;
-		//	});
-		//
-		//	cm.view<comp_audio>([&](comp_audio& c) {
-		//		debug_rendering.draw_icon(em.get_entity_position_abs(c.get_header().entity), col_icon, ICON_AUDIO);
-		//		return comp_view_result::cont;
-		//	});
-		//	cm.view<comp_camera>([&](comp_camera& c) {
-		//		if (c.get_header().entity == editor::get().get_camera().get_entity())
-		//			return comp_view_result::cont;
-		//
-		//		debug_rendering.draw_icon(em.get_entity_position_abs(c.get_header().entity), col_icon, ICON_CAMERA);
-		//		return comp_view_result::cont;
-		//	});
-		//
-		//	cm.view<comp_point_light>([&](comp_point_light& c) {
-		//		debug_rendering.draw_icon(em.get_entity_position_abs(c.get_header().entity), col_icon, ICON_LIGHT_BULB);
-		//		return comp_view_result::cont;
-		//	});
-		//	cm.view<comp_dir_light>([&](comp_dir_light& c) {
-		//		debug_rendering.draw_icon(em.get_entity_position_abs(c.get_header().entity), col_icon, ICON_SUN);
-		//		return comp_view_result::cont;
-		//	});
-		//	cm.view<comp_spot_light>([&](comp_spot_light& c) {
-		//		debug_rendering.draw_icon(em.get_entity_position_abs(c.get_header().entity), col_icon, ICON_SPOT);
-		//		return comp_view_result::cont;
-		//	});
-		//
-		//	cm.view<comp_particle_emitter>([&](comp_particle_emitter& c) {
-		//		debug_rendering.draw_icon(em.get_entity_position_abs(c.get_header().entity), col_icon, ICON_EXPLOSION);
-		//		return comp_view_result::cont;
-		//	});
-
-			/*
-			*
-			* cm.view<comp_canvas>([&](comp_canvas& c) {
-				debug_rendering.draw_icon(em.get_entity_position_abs(c.get_header().entity), col_icon, ICON_CAMERA);
-				return comp_view_result::cont;
-			});
-
-			cm.view<comp_animation_controller>([&](comp_animation_controller& c) {
-				draw_component_icon(c.get_header().entity, ICON_ANIMATION);
-				return comp_view_result::cont;
-			});
-
-			cm.view<comp_mesh_instance>([&](comp_mesh_instance& c) {
-				draw_component_icon(c.get_header().entity, ICON_MESH);
-				return comp_view_result::cont;
-			});
-
-			cm.view<comp_physics>([&](comp_physics& c) {
-				draw_component_icon(c.get_header().entity, ICON_CUBES);
-				return comp_view_result::cont;
-			});
-			*/
-
-			const vector3 selected_pos	 = _selected_entity.is_null() ? vector3::zero : em.get_entity_position_abs(_selected_entity);
-			const quat	  selected_rot	 = _selected_entity.is_null() ? quat::identity : em.get_entity_rotation_abs(_selected_entity);
-			const vector3 selected_scale = _selected_entity.is_null() ? vector3::one : em.get_entity_scale_abs(_selected_entity);
-
-			for (const selection_debug_draw& dd : _selection_debug_draws)
-			{
-				if (dd.type == debug_draw_type::physics)
-				{
-					const comp_physics&		 c	 = cm.get_component<comp_physics>(dd.component);
-					const physics_shape_type st	 = c.get_shape_type();
-					const vector3&			 val = c.get_extent_or_rad_height();
-
-					const vector3 orientation = selected_rot.get_up();
-					if (st == physics_shape_type::box)
-						debug_rendering.draw_box(selected_pos + c.get_offset(), val, selected_rot.get_forward(), color::red, thickness);
-					else if (st == physics_shape_type::capsule)
-						debug_rendering.draw_capsule(selected_pos + c.get_offset(), val.x * vector2(selected_scale.x, selected_scale.z).magnitude(), val.y * 0.5f * selected_scale.y, orientation, col_phy, thickness);
-					else if (st == physics_shape_type::cylinder)
-						debug_rendering.draw_cylinder(selected_pos + c.get_offset(), val.x * vector2(selected_scale.x, selected_scale.z).magnitude(), val.y * selected_scale.y, orientation, col_phy, thickness);
-					else if (st == physics_shape_type::mesh)
-					{
-						const world_handle mesh_comp = em.get_entity_component<comp_mesh_instance>(c.get_header().entity);
-						if (!mesh_comp.is_null())
-						{
-							const comp_mesh_instance& mi = cm.get_component<comp_mesh_instance>(mesh_comp);
-							const resource_handle	  mh = mi.get_mesh();
-							resource_manager&		  rm = w.get_resource_manager();
-							if (rm.is_valid<mesh>(mh))
-							{
-								const mesh&	 res	   = rm.get_resource<mesh>(mh);
-								const uint32 vtx_count = res.get_collider_vertex_count();
-								const uint32 idx_count = res.get_collider_index_count();
-								if (vtx_count != 0 && idx_count != 0)
-								{
-									const vector3*		   vtx	= rm.get_aux().get<vector3>(res.get_collider_vertices());
-									const primitive_index* idx	= rm.get_aux().get<primitive_index>(res.get_collider_indices());
-									const vector3		   base = selected_pos + c.get_offset();
-									for (uint32 i = 0; i + 2 < idx_count; i += 3)
-									{
-										const vector3 p0 = selected_rot * (vtx[idx[i + 0]] * selected_scale) + base;
-										const vector3 p1 = selected_rot * (vtx[idx[i + 1]] * selected_scale) + base;
-										const vector3 p2 = selected_rot * (vtx[idx[i + 2]] * selected_scale) + base;
-										debug_rendering.draw_triangle(p0, p1, p2, col_phy);
-									}
-								}
-							}
-						}
-					}
-					else if (st == physics_shape_type::sphere)
-						debug_rendering.draw_sphere(selected_pos + c.get_offset(), val.x * selected_scale.magnitude(), col_phy, thickness);
-					else if (st == physics_shape_type::plane)
-						debug_rendering.draw_oriented_plane(selected_pos + c.get_offset(), val.x * selected_scale.x, val.z * selected_scale.z, vector3::up, col_phy, thickness);
-				}
-				else if (dd.type == debug_draw_type::audio)
-				{
-					const comp_audio& c = cm.get_component<comp_audio>(dd.component);
-					if (c.get_attenuation() != sound_attenuation::none)
-					{
-						debug_rendering.draw_sphere(selected_pos, c.get_radius_min(), col_light_alt, thickness);
-						debug_rendering.draw_sphere(selected_pos, c.get_radius_max(), col_light, thickness);
-					}
-				}
-				else if (dd.type == debug_draw_type::camera)
-				{
-					const comp_camera& c = cm.get_component<comp_camera>(dd.component);
-					debug_rendering.draw_frustum(selected_pos, selected_rot.get_forward(), c.get_fov_degrees(), 1.0f, c.get_near(), c.get_far(), col_light, thickness);
-				}
-				else if (dd.type == debug_draw_type::point_light)
-				{
-					const comp_point_light& c = cm.get_component<comp_point_light>(dd.component);
-					debug_rendering.draw_sphere(selected_pos, c.get_range(), col_light, thickness);
-				}
-				else if (dd.type == debug_draw_type::spot_light)
-				{
-					const comp_spot_light& c = cm.get_component<comp_spot_light>(dd.component);
-					debug_rendering.draw_oriented_cone(selected_pos, selected_rot.get_forward(), c.get_range(), c.get_inner_cone(), col_light_alt, thickness, 12);
-					debug_rendering.draw_oriented_cone(selected_pos, selected_rot.get_forward(), c.get_range(), c.get_outer_cone(), col_light, thickness, 12);
-				}
-			}
-		}
-
-		const world_handle	 selected = _selected_entity;
-		bump_text_allocator& alloc	  = editor::get().get_bump_text_allocator();
-
-		const char* name_txt = selected.is_null() ? "-" : em.get_entity_meta(selected).name;
-		_gui_builder.set_text_field_text(_prop_name, name_txt, true);
-		_gui_builder.set_checkbox_value(_prop_vis, selected.is_null() ? 0 : !em.get_entity_flags(selected).is_set(entity_flags::entity_flags_invisible));
-		// Handle
-		{
-			const char* handle_txt = alloc.allocate_reserve(32);
-			if (selected.is_null())
-			{
-				alloc.append("-");
-			}
-			else
-			{
-				alloc.append("[");
-				alloc.append(static_cast<uint32>(selected.generation));
-				alloc.append(", ");
-				alloc.append(static_cast<uint32>(selected.index));
-				alloc.append("]");
-			}
-
-			_builder->widget_get_text(_prop_handle).text = handle_txt;
-			_builder->widget_update_text(_prop_handle);
-		}
-
-		// transform
-		{
-			if (selected.is_null())
-			{
-				_gui_builder.set_text_field_value(_selected_pos_x, 0.0f, true);
-				_gui_builder.set_text_field_value(_selected_pos_y, 0.0f, true);
-				_gui_builder.set_text_field_value(_selected_pos_z, 0.0f, true);
-				_gui_builder.set_text_field_value(_selected_rot_x, 0.0f, true);
-				_gui_builder.set_text_field_value(_selected_rot_y, 0.0f, true);
-				_gui_builder.set_text_field_value(_selected_rot_z, 0.0f, true);
-				_gui_builder.set_text_field_value(_selected_scale_x, 0.0f, true);
-				_gui_builder.set_text_field_value(_selected_scale_y, 0.0f, true);
-				_gui_builder.set_text_field_value(_selected_scale_z, 0.0f, true);
-			}
-			else
-			{
-				entity_manager& em	  = w.get_entity_manager();
-				const vector3&	pos	  = em.get_entity_position(selected);
-				const quat&		rot	  = em.get_entity_rotation(selected);
-				const vector3&	scale = em.get_entity_scale(selected);
-				const vector3&	eul	  = quat::to_euler(rot);
-				_gui_builder.set_text_field_value(_selected_pos_x, pos.x, true);
-				_gui_builder.set_text_field_value(_selected_pos_y, pos.y, true);
-				_gui_builder.set_text_field_value(_selected_pos_z, pos.z, true);
-				_gui_builder.set_text_field_value(_selected_rot_x, eul.x, true);
-				_gui_builder.set_text_field_value(_selected_rot_y, eul.y, true);
-				_gui_builder.set_text_field_value(_selected_rot_z, eul.z, true);
-				_gui_builder.set_text_field_value(_selected_scale_x, scale.x, true);
-				_gui_builder.set_text_field_value(_selected_scale_y, scale.y, true);
-				_gui_builder.set_text_field_value(_selected_scale_z, scale.z, true);
-			}
-		}
-	}
-
-	void editor_panel_entities::clear_component_view()
-	{
-		_selection_debug_draws.resize(0);
-
-		if (_components_area != NULL_WIDGET_ID)
-			_gui_builder.deallocate(_components_area);
-		_components_area = NULL_WIDGET_ID;
-
-		_comp_remove_buttons.resize(0);
-	}
-	void editor_panel_entities::build_component_view()
-	{
-		world&			w  = editor::get().get_app().get_world();
-		entity_manager& em = w.get_entity_manager();
-		if (em.get_entity_flags(_selected_entity).is_set(entity_flags::entity_flags_template))
-			return;
-
-		_gui_builder.push_stack(_components_parent);
-		_components_area = _gui_builder.begin_area(false, true);
-
-		component_manager&			cm = w.get_comp_manager();
-		const entity_comp_register& cr = em.get_component_register(_selected_entity);
-		for (const entity_comp& c : cr.comps)
-		{
-			const meta&				   m		= reflection::get().resolve(c.comp_type);
-			const meta::field_vec&	   fields	= m.get_fields();
-			void*					   comp_ptr = cm.get_component(c.comp_type, c.comp_handle);
-			const gui_builder::id_pair pair		= _gui_builder.add_component_title(m.get_title().c_str());
-			_comp_remove_buttons.push_back({c.comp_handle, pair.second, c.comp_type});
-
-			for (field_base* f : fields)
-			{
-				_gui_builder.add_reflected_field(f, c.comp_type, comp_ptr);
-			}
-
-			const meta::button_vec& controls = m.get_control_buttons();
-
-			if (!controls.empty())
-			{
-				const vekt::id id								  = _gui_builder.add_property_row();
-				_builder->widget_get_size_props(id).child_margins = {0.0f, 0.0f, editor_theme::get().inner_margin, editor_theme::get().outer_margin};
-			}
-
-			for (const control_button& button : controls)
-			{
-				_gui_builder.set_fill_x(_gui_builder.add_control_button(button.title.c_str(), c.comp_type, comp_ptr, button.sid));
-
-				_builder->build_hierarchy();
-			}
-
-			if (!controls.empty())
-				_gui_builder.pop_stack();
-
-			if (c.comp_type == type_id<comp_physics>::value)
-			{
-				_selection_debug_draws.push_back({
-					.type	   = debug_draw_type::physics,
-					.component = c.comp_handle,
-				});
-			}
-			else if (c.comp_type == type_id<comp_audio>::value)
-			{
-				_selection_debug_draws.push_back({
-					.type	   = debug_draw_type::audio,
-					.component = c.comp_handle,
-				});
-			}
-			else if (c.comp_type == type_id<comp_camera>::value)
-			{
-				_selection_debug_draws.push_back({
-					.type	   = debug_draw_type::camera,
-					.component = c.comp_handle,
-				});
-			}
-			else if (c.comp_type == type_id<comp_point_light>::value)
-			{
-				_selection_debug_draws.push_back({
-					.type	   = debug_draw_type::point_light,
-					.component = c.comp_handle,
-				});
-			}
-			else if (c.comp_type == type_id<comp_spot_light>::value)
-			{
-				_selection_debug_draws.push_back({
-					.type	   = debug_draw_type::spot_light,
-					.component = c.comp_handle,
-				});
-			}
-		}
-
-		_gui_builder.end_area();
-		_gui_builder.pop_stack();
-
-		_builder->build_hierarchy();
-
 	}
 
 	void editor_panel_entities::rebuild_tree(world& w)
@@ -611,6 +192,7 @@ namespace SFG
 			vekt::widget_gfx& gfx = _builder->widget_get_gfx(row_inner);
 			gfx.flags			  = vekt::gfx_flags::gfx_is_rect | vekt::gfx_flags::gfx_has_rounding | vekt::gfx_flags::gfx_has_stroke | vekt::gfx_flags::gfx_focusable;
 			gfx.color			  = selected ? editor_theme::get().col_accent_second_dim : (vector4());
+			gfx.draw_order		  = 1;
 
 			vekt::stroke_props& sp = _builder->widget_get_stroke(row_inner);
 			sp.thickness		   = editor_theme::get().frame_thickness;
@@ -797,7 +379,6 @@ namespace SFG
 
 		// select new
 		_selected_entity = h;
-		set_selected_controls();
 
 		auto it = std::find_if(_node_bindings.begin(), _node_bindings.end(), [h](const node_binding& nb) -> bool { return h == nb.handle; });
 		if (it != _node_bindings.end())
@@ -805,240 +386,130 @@ namespace SFG
 			vekt::widget_gfx& gfx = _builder->widget_get_gfx(it->inner_row);
 			gfx.color			  = editor_theme::get().col_accent_second_dim;
 		}
-
-		clear_component_view();
-
-		if (_selected_entity.is_null())
-			return;
-
-		build_component_view();
 	}
 
-	void editor_panel_entities::set_selected_controls()
+	void editor_panel_entities::update_entity_name(world_handle h)
 	{
-		bool is_template = 0;
-		if (!_selected_entity.is_null())
-			is_template = editor::get().get_app().get_world().get_entity_manager().get_entity_flags(_selected_entity).is_set(entity_flags::entity_flags_template);
-		const bool template_disabled = _selected_entity.is_null() || is_template;
-
-		_gui_builder.set_widget_enabled(_unlock_template, is_template, editor_theme::get().col_button, editor_theme::get().col_button_silent);
-		_gui_builder.set_widget_enabled(_add_component, !template_disabled, editor_theme::get().col_button, editor_theme::get().col_button_silent);
-		_gui_builder.set_widget_enabled(_save_template, !template_disabled, editor_theme::get().col_button, editor_theme::get().col_button_silent);
-		_gui_builder.set_widget_enabled(_prop_name, !template_disabled, editor_theme::get().col_frame_bg, editor_theme::get().col_button_silent);
-		_gui_builder.set_widget_enabled(_selected_pos_x, !_selected_entity.is_null(), editor_theme::get().col_frame_bg, editor_theme::get().col_button_silent);
-		_gui_builder.set_widget_enabled(_selected_pos_y, !_selected_entity.is_null(), editor_theme::get().col_frame_bg, editor_theme::get().col_button_silent);
-		_gui_builder.set_widget_enabled(_selected_pos_z, !_selected_entity.is_null(), editor_theme::get().col_frame_bg, editor_theme::get().col_button_silent);
-		_gui_builder.set_widget_enabled(_selected_rot_x, !_selected_entity.is_null(), editor_theme::get().col_frame_bg, editor_theme::get().col_button_silent);
-		_gui_builder.set_widget_enabled(_selected_rot_y, !_selected_entity.is_null(), editor_theme::get().col_frame_bg, editor_theme::get().col_button_silent);
-		_gui_builder.set_widget_enabled(_selected_rot_z, !_selected_entity.is_null(), editor_theme::get().col_frame_bg, editor_theme::get().col_button_silent);
-		_gui_builder.set_widget_enabled(_selected_scale_x, !_selected_entity.is_null(), editor_theme::get().col_frame_bg, editor_theme::get().col_button_silent);
-		_gui_builder.set_widget_enabled(_selected_scale_y, !_selected_entity.is_null(), editor_theme::get().col_frame_bg, editor_theme::get().col_button_silent);
-		_gui_builder.set_widget_enabled(_selected_scale_z, !_selected_entity.is_null(), editor_theme::get().col_frame_bg, editor_theme::get().col_button_silent);
-		_gui_builder.set_widget_enabled(_prop_vis, !_selected_entity.is_null(), editor_theme::get().col_frame_bg, editor_theme::get().col_button_silent);
-		_gui_builder.set_widget_enabled(_prop_handle, !_selected_entity.is_null(), editor_theme::get().col_text, editor_theme::get().col_button_silent);
-		_builder->build_hierarchy();
-	}
-
-	void editor_panel_entities::on_input_field_changed(void* callback_ud, vekt::builder* b, vekt::id widget, const char* txt, float value)
-	{
-		editor_panel_entities* self = static_cast<editor_panel_entities*>(callback_ud);
-
-		world&			w  = editor::get().get_app().get_world();
-		entity_manager& em = w.get_entity_manager();
-
-		if (!em.is_valid(self->_selected_entity))
+		if (h.is_null())
 			return;
 
-		const vector3& pos	 = em.get_entity_position(self->_selected_entity);
-		const quat&	   rot	 = em.get_entity_rotation(self->_selected_entity);
-		const vector3& scale = em.get_entity_scale(self->_selected_entity);
-		const vector3& eul	 = quat::to_euler(rot);
-
-		if (widget == self->_prop_name)
-		{
-			em.set_entity_name(self->_selected_entity, txt);
-			auto it = std::find_if(self->_node_bindings.begin(), self->_node_bindings.end(), [self](const node_binding& b) -> bool { return b.handle == self->_selected_entity; });
-			if (it != self->_node_bindings.end())
-			{
-				b->widget_get_text(it->text).text = em.get_entity_meta(self->_selected_entity).name;
-				b->widget_update_text(it->text);
-			}
-		}
-		else if (widget == self->_prop_vis)
-		{
-		}
-		else if (widget == self->_selected_pos_x)
-		{
-			em.set_entity_position(self->_selected_entity, vector3(value, pos.y, pos.z));
-		}
-		else if (widget == self->_selected_pos_y)
-		{
-			em.set_entity_position(self->_selected_entity, vector3(pos.x, value, pos.z));
-		}
-		else if (widget == self->_selected_pos_z)
-		{
-			em.set_entity_position(self->_selected_entity, vector3(pos.x, pos.y, value));
-		}
-		else if (widget == self->_selected_rot_x)
-		{
-			em.set_entity_rotation(self->_selected_entity, quat::from_euler(value, eul.y, eul.z));
-		}
-		else if (widget == self->_selected_rot_y)
-		{
-			em.set_entity_rotation(self->_selected_entity, quat::from_euler(eul.x, value, eul.z));
-		}
-		else if (widget == self->_selected_rot_z)
-		{
-			em.set_entity_rotation(self->_selected_entity, quat::from_euler(eul.x, eul.y, value));
-		}
-		else if (widget == self->_selected_scale_x)
-		{
-			em.set_entity_scale(self->_selected_entity, vector3(value, scale.y, scale.z));
-		}
-		else if (widget == self->_selected_scale_y)
-		{
-			em.set_entity_scale(self->_selected_entity, vector3(scale.x, value, scale.z));
-		}
-		else if (widget == self->_selected_scale_z)
-		{
-			em.set_entity_scale(self->_selected_entity, vector3(scale.x, scale.y, value));
-		}
-	}
-
-	void editor_panel_entities::on_checkbox(void* callback_ud, vekt::builder* b, vekt::id id, unsigned char value)
-	{
-		editor_panel_entities* self = static_cast<editor_panel_entities*>(callback_ud);
-		if (!self->_selected_entity.is_null() && id == self->_prop_vis)
-		{
-			world&			w  = editor::get().get_app().get_world();
-			entity_manager& em = w.get_entity_manager();
-			em.set_entity_visible(self->_selected_entity, value);
-		}
-	}
-
-	void editor_panel_entities::invoke_button(void* callback_ud, void* object_ptr, string_id type_id, string_id button_id)
-	{
-		if (object_ptr == nullptr || type_id == 0 || button_id == 0)
+		auto it = std::find_if(_node_bindings.begin(), _node_bindings.end(), [h](const node_binding& b) -> bool { return b.handle == h; });
+		if (it == _node_bindings.end())
 			return;
 
-		meta& m = reflection::get().resolve(type_id);
-		if (!m.has_function("on_button"_hs))
+		entity_manager& em						 = editor::get().get_app().get_world().get_entity_manager();
+		_builder->widget_get_text(it->text).text = em.get_entity_meta(h).name;
+		_builder->widget_update_text(it->text);
+	}
+
+	void editor_panel_entities::set_entity_collapsed(world_handle h, bool collapsed)
+	{
+		if (h.is_null())
 			return;
 
-		const reflected_button_params params = {
-			.w			= editor::get().get_app().get_world(),
-			.object_ptr = object_ptr,
-			.button_id	= button_id,
-		};
-		m.invoke_function<void, const reflected_button_params&>("on_button"_hs, params);
+		set_collapse(h, collapsed ? 1 : 0);
 	}
 
 	vekt::input_event_result editor_panel_entities::on_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase)
 	{
 		editor_panel_entities* self = static_cast<editor_panel_entities*>(b->widget_get_user_data(widget).ptr);
 
-		if (ev.type == vekt::input_event_type::released && ev.button == static_cast<uint16>(input_code::mouse_0))
+		if (widget == self->_entity_area)
 		{
-			if (self->_gui_builder.invoke_control_button(widget))
+			if (ev.type == vekt::input_event_type::pressed)
+			{
+				self->set_selected({});
+
+				if (ev.button == input_code::mouse_1)
+				{
+					editor::get().get_gui_controller().begin_context_menu(ev.position.x, ev.position.y);
+					self->_ctx_new_entity = editor::get().get_gui_controller().add_context_menu_item("new_entity");
+
+					b->widget_get_user_data(self->_ctx_new_entity).ptr			  = self;
+					b->widget_get_mouse_callbacks(self->_ctx_new_entity).on_mouse = on_mouse;
+					editor::get().get_gui_controller().end_context_menu();
+				}
+
 				return vekt::input_event_result::handled;
+			}
+
+			if (ev.button == input_code::mouse_0 && ev.type == vekt::input_event_type::released)
+			{
+				if (self->_is_payload_on)
+					self->drop_drag({});
+				return vekt::input_event_result::handled;
+			}
+
+			return vekt::input_event_result::handled;
 		}
 
-		if (phase == vekt::input_event_phase::tunneling)
+		world_handle clicked = {};
+		for (const node_binding& nb : self->_node_bindings)
 		{
-			if (ev.type == vekt::input_event_type::released && widget == self->_add_component && !self->_selected_entity.is_null())
+			if (nb.inner_row == widget)
 			{
-				self->_add_component_buttons.resize(0);
-				editor::get().get_gui_controller().begin_context_menu(ev.position.x, ev.position.y);
-
-				const auto& metas = reflection::get().get_metas();
-				for (const auto& entry : metas)
-				{
-					const meta& meta = entry.meta;
-					if (meta.get_tag() == "component"_hs && !meta.get_title().empty())
-					{
-						const vekt::id		  button = editor::get().get_gui_controller().add_context_menu_item(meta.get_title().c_str());
-						vekt::mouse_callback& cb	 = b->widget_get_mouse_callbacks(button);
-						cb.on_mouse					 = on_mouse;
-						vekt::widget_user_data& ud	 = b->widget_get_user_data(button);
-						ud.ptr						 = self;
-						self->_add_component_buttons.push_back({.button = button, .type = meta.get_type_id()});
-					}
-				}
-				editor::get().get_gui_controller().end_context_menu();
-				return vekt::input_event_result::handled;
+				clicked = nb.handle;
+				break;
 			}
+		}
 
-			if (ev.type == vekt::input_event_type::pressed && !self->_selected_entity.is_null() && !self->_add_component_buttons.empty())
+		if (self->_is_payload_on && ev.type == vekt::input_event_type::released)
+		{
+			if (self->_is_payload_on)
+				self->drop_drag(clicked);
+			return vekt::input_event_result::handled;
+		}
+
+		if (!clicked.is_null())
+		{
+			// select entity
+			if (ev.type == vekt::input_event_type::pressed)
 			{
-				for (const add_comp_button& b : self->_add_component_buttons)
+				if (ev.button == static_cast<uint16>(input_code::mouse_1))
 				{
-					if (b.button == widget)
-					{
-						world&			   w  = editor::get().get_app().get_world();
-						entity_manager&	   em = w.get_entity_manager();
-						component_manager& cm = w.get_comp_manager();
-						cm.add_component(b.type, self->_selected_entity);
-						self->clear_component_view();
-						self->build_component_view();
-						self->_add_component_buttons.resize(0);
-						return vekt::input_event_result::handled;
-					}
-				}
-			}
+					editor::get().get_gui_controller().begin_context_menu(ev.position.x, ev.position.y);
+					self->_ctx_add_child = editor::get().get_gui_controller().add_context_menu_item("add_child");
+					self->_ctx_duplicate = editor::get().get_gui_controller().add_context_menu_item("duplicate");
+					self->_ctx_delete	 = editor::get().get_gui_controller().add_context_menu_item("delete");
 
-			if (ev.type == vekt::input_event_type::released && widget == self->_save_template && !self->_selected_entity.is_null())
-			{
-				world&		 w	  = editor::get().get_app().get_world();
-				const string file = process::save_file("save entity file", ".stkent");
-				if (file.empty())
+					b->widget_get_mouse_callbacks(self->_ctx_add_child).on_mouse = on_mouse;
+					b->widget_get_mouse_callbacks(self->_ctx_duplicate).on_mouse = on_mouse;
+					b->widget_get_mouse_callbacks(self->_ctx_delete).on_mouse	 = on_mouse;
+					b->widget_get_user_data(self->_ctx_add_child).ptr			 = self;
+					b->widget_get_user_data(self->_ctx_duplicate).ptr			 = self;
+					b->widget_get_user_data(self->_ctx_delete).ptr				 = self;
+
+					editor::get().get_gui_controller().end_context_menu();
+
+					self->set_selected(clicked);
+
 					return vekt::input_event_result::handled;
-
-				entity_template_raw::save_to_file(file.c_str(), w, {self->_selected_entity});
-
-				string relative = editor_settings::get().get_relative(file);
-				file_system::fix_path(relative);
-				w.get_resource_manager().load_resources({relative});
-
-				const resource_handle h = w.get_resource_manager().get_resource_handle_by_hash<entity_template>(TO_SID(relative));
-				w.get_entity_manager().set_entity_template(self->_selected_entity, h);
-
-				self->_entity_meta[self->_selected_entity.index].collapsed = true;
-				self->set_selected_controls();
-				self->clear_component_view();
-				self->build_component_view();
-				self->rebuild_tree(w);
-				return vekt::input_event_result::handled;
-			}
-
-			if (ev.type == vekt::input_event_type::released && widget == self->_unlock_template && !self->_selected_entity.is_null())
-			{
-				world& w = editor::get().get_app().get_world();
-				w.get_entity_manager().set_entity_template(self->_selected_entity, {});
-				self->set_selected_controls();
-				self->clear_component_view();
-				self->build_component_view();
-				self->rebuild_tree(w);
-				return vekt::input_event_result::handled;
-			}
-
-			if (ev.type == vekt::input_event_type::released && !self->_selected_entity.is_null())
-			{
-				for (const comp_remove_button& b : self->_comp_remove_buttons)
+				}
+				else
 				{
-					if (widget == b.button)
-					{
-						world&			   w  = editor::get().get_app().get_world();
-						entity_manager&	   em = w.get_entity_manager();
-						component_manager& cm = w.get_comp_manager();
-						cm.remove_component(b.comp_type, self->_selected_entity, b.handle);
-						self->clear_component_view();
-						self->build_component_view();
-
-						return vekt::input_event_result::handled;
-					}
+					self->set_selected(clicked);
+					self->_drag_source	   = clicked;
+					self->_drag_src_widget = widget;
+					self->_drag_y		   = ev.position.y;
+					return vekt::input_event_result::handled;
 				}
 			}
 
+			// toggle entity
+			if (ev.type == vekt::input_event_type::repeated)
+			{
+				const uint8 is_template = editor::get().get_app().get_world().get_entity_manager().get_entity_flags(clicked).is_set(entity_flags::entity_flags_template);
+				if (!is_template)
+					self->toggle_collapse(clicked);
+				self->set_selected(clicked);
+				return vekt::input_event_result::handled;
+			}
+
+			return vekt::input_event_result::handled;
+		}
+
+		if (ev.type == vekt::input_event_type::pressed)
+		{
 			if (ev.type == vekt::input_event_type::pressed && widget == self->_ctx_new_entity)
 			{
 				world&			   w  = editor::get().get_app().get_world();
@@ -1076,105 +547,6 @@ namespace SFG
 				entity_manager& em = w.get_entity_manager();
 				em.destroy_entity(self->_selected_entity);
 				self->set_selected({});
-				return vekt::input_event_result::handled;
-			}
-		}
-
-		// child to root
-		if (phase == vekt::input_event_phase::bubbling)
-		{
-			// check if entity nodes are clicked.
-			world_handle clicked = {};
-			for (const node_binding& nb : self->_node_bindings)
-			{
-				if (nb.inner_row == widget)
-				{
-					clicked = nb.handle;
-					break;
-				}
-			}
-
-			if (self->_is_payload_on && ev.type == vekt::input_event_type::released)
-			{
-				if (self->_is_payload_on)
-					self->drop_drag(clicked);
-				return vekt::input_event_result::handled;
-			}
-
-			if (!clicked.is_null())
-			{
-				// select entity
-				if (ev.type == vekt::input_event_type::pressed)
-				{
-					if (ev.button == static_cast<uint16>(input_code::mouse_1))
-					{
-						editor::get().get_gui_controller().begin_context_menu(ev.position.x, ev.position.y);
-						self->_ctx_add_child = editor::get().get_gui_controller().add_context_menu_item("add_child");
-						self->_ctx_duplicate = editor::get().get_gui_controller().add_context_menu_item("duplicate");
-						self->_ctx_delete	 = editor::get().get_gui_controller().add_context_menu_item("delete");
-
-						b->widget_get_mouse_callbacks(self->_ctx_add_child).on_mouse = on_mouse;
-						b->widget_get_mouse_callbacks(self->_ctx_duplicate).on_mouse = on_mouse;
-						b->widget_get_mouse_callbacks(self->_ctx_delete).on_mouse	 = on_mouse;
-						b->widget_get_user_data(self->_ctx_add_child).ptr			 = self;
-						b->widget_get_user_data(self->_ctx_duplicate).ptr			 = self;
-						b->widget_get_user_data(self->_ctx_delete).ptr				 = self;
-
-						editor::get().get_gui_controller().end_context_menu();
-
-						self->set_selected(clicked);
-
-						return vekt::input_event_result::handled;
-					}
-					else
-					{
-						self->set_selected(clicked);
-						self->_drag_source	   = clicked;
-						self->_drag_src_widget = widget;
-						self->_drag_y		   = ev.position.y;
-						return vekt::input_event_result::handled;
-					}
-				}
-
-				// toggle entity
-				if (ev.type == vekt::input_event_type::repeated)
-				{
-					const uint8 is_template = editor::get().get_app().get_world().get_entity_manager().get_entity_flags(clicked).is_set(entity_flags::entity_flags_template);
-					if (!is_template)
-						self->toggle_collapse(clicked);
-					self->set_selected(clicked);
-					return vekt::input_event_result::handled;
-				}
-
-				return vekt::input_event_result::handled;
-			}
-
-			if (widget == self->_entity_area)
-			{
-				if (ev.type == vekt::input_event_type::pressed)
-				{
-					self->set_selected({});
-
-					if (ev.button == input_code::mouse_1)
-					{
-						editor::get().get_gui_controller().begin_context_menu(ev.position.x, ev.position.y);
-						self->_ctx_new_entity = editor::get().get_gui_controller().add_context_menu_item("new_entity");
-
-						b->widget_get_user_data(self->_ctx_new_entity).ptr			  = self;
-						b->widget_get_mouse_callbacks(self->_ctx_new_entity).on_mouse = on_mouse;
-						editor::get().get_gui_controller().end_context_menu();
-					}
-
-					return vekt::input_event_result::handled;
-				}
-
-				if (ev.button == input_code::mouse_0 && ev.type == vekt::input_event_type::released)
-				{
-					if (self->_is_payload_on)
-						self->drop_drag({});
-					return vekt::input_event_result::handled;
-				}
-
 				return vekt::input_event_result::handled;
 			}
 		}
@@ -1253,39 +625,6 @@ namespace SFG
 				return;
 			}
 		}
-	}
-
-	void editor_panel_entities::on_separator_hover_begin(vekt::builder* b, vekt::id widget)
-	{
-		SFG::window::set_cursor_state(SFG::cursor_state::resize_vt);
-	}
-
-	void editor_panel_entities::on_separator_hover_end(vekt::builder* b, vekt::id widget)
-	{
-		SFG::window::set_cursor_state(SFG::cursor_state::arrow);
-	}
-
-	void editor_panel_entities::on_separator_drag(vekt::builder* b, vekt::id widget, float mp_x, float mp_y, float delta_x, float delta_y, unsigned int button)
-	{
-		if (button != static_cast<uint16>(input_code::mouse_0))
-			return;
-
-		editor_panel_entities* self = static_cast<editor_panel_entities*>(b->widget_get_user_data(widget).ptr);
-		if (!self)
-			return;
-
-		const vector2 layout_size = b->widget_get_size(self->_root);
-		const float	  max_height  = math::max(layout_size.y - COMPONENT_AREA_MIN_HEIGHT - SEPARATOR_HEIGHT, ENTITY_AREA_MIN_HEIGHT);
-
-		self->_split_px = math::clamp(self->_split_px + delta_y, ENTITY_AREA_MIN_HEIGHT, max_height);
-		if (layout_size.y > 0.0f)
-		{
-			self->_split_ratio							   = math::clamp(self->_split_px / layout_size.y, 0.0f, 1.0f);
-			editor_layout::get().entities_components_split = self->_split_ratio;
-		}
-
-		vekt::size_props& ent_sz = b->widget_get_size_props(self->_entity_area);
-		ent_sz.size.y			 = self->_split_px;
 	}
 
 }

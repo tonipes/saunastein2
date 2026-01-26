@@ -1307,11 +1307,12 @@ namespace vekt
 		vector<clip_info>			   _clip_stack;
 		vector<draw_buffer>			   _draw_buffers;
 		vector<id>					   _depth_first_widgets;
-		vector<id>					   _depth_first_mouse_widgets;
 		vector<id>					   _depth_first_mouse_wheel_widgets;
 		vector<id>					   _depth_first_fill_parents;
 		vector<id>					   _depth_first_scrolls;
 		vector<id>					   _depth_first_focusables;
+		vector<id>					   _draw_order_first_mouse_widgets;
+		vector<id>					   _draw_order_first_hover_widgets;
 		vector<depth_first_child_info> _depth_first_child_info;
 		vector<text_cache>			   _text_cache = {};
 		vector<VEKT_VEC2>			   _reuse_outer_path;

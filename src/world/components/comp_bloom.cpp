@@ -36,6 +36,8 @@ namespace SFG
 	{
 		meta& m = reflection::get().register_meta(type_id<comp_bloom>::value, 0, "component");
 		m.set_title("bloom");
+		m.set_category("fx");
+
 		m.add_field<&comp_bloom::_filter_radius, comp_bloom>("filter_radius", reflected_field_type::rf_float, "", 0.001f, 0.2f);
 
 		m.add_function<void, const reflected_field_changed_params&>("on_reflected_changed"_hs, [](const reflected_field_changed_params& params) {

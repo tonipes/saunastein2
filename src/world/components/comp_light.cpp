@@ -38,6 +38,8 @@ namespace SFG
 	{
 		meta& m = reflection::get().register_meta(type_id<comp_dir_light>::value, 0, "component");
 		m.set_title("dir_light");
+		m.set_category("light");
+
 		m.add_field<&comp_dir_light::_base_color, comp_dir_light>("color", reflected_field_type::rf_color, "");
 		m.add_field<&comp_dir_light::_intensity, comp_dir_light>("intensity", reflected_field_type::rf_float, "");
 		m.add_field<&comp_dir_light::_cast_shadows, comp_dir_light>("cast_shadows", reflected_field_type::rf_bool, "");
@@ -65,6 +67,8 @@ namespace SFG
 	{
 		meta& m = reflection::get().register_meta(type_id<comp_spot_light>::value, 0, "component");
 		m.set_title("spot_light");
+		m.set_category("light");
+
 		m.add_field<&comp_spot_light::_base_color, comp_spot_light>("color", reflected_field_type::rf_color, "");
 		m.add_field<&comp_spot_light::_range, comp_spot_light>("range", reflected_field_type::rf_float, "");
 		m.add_field<&comp_spot_light::_intensity, comp_spot_light>("intensity", reflected_field_type::rf_float, "");
@@ -94,6 +98,8 @@ namespace SFG
 	{
 		meta& m = reflection::get().register_meta(type_id<comp_point_light>::value, 0, "component");
 		m.set_title("point_light");
+		m.set_category("light");
+
 		m.add_field<&comp_point_light::_base_color, comp_point_light>("color", reflected_field_type::rf_color, "");
 		m.add_field<&comp_point_light::_range, comp_point_light>("range", reflected_field_type::rf_float, "");
 		m.add_field<&comp_point_light::_intensity, comp_point_light>("intensity", reflected_field_type::rf_float, "");

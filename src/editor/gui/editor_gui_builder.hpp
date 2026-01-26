@@ -166,6 +166,7 @@ namespace SFG
 			vekt::id			widget		= NULL_WIDGET_ID;
 			vekt::id			text_widget = NULL_WIDGET_ID;
 			vector<const char*> items;
+			uint8				selected = 0;
 		};
 
 		struct reflected_property
@@ -251,7 +252,7 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 
 		vekt::id add_sub_title(const char* title);
-		id_pair	 add_component_title(const char* title);
+		id_trip	 add_component_title(const char* title);
 		vekt::id add_title(const char* title);
 		vekt::id add_label(const char* label, size_t buffer_capacity = 0);
 		vekt::id add_hyperlink(const char* label, size_t buffer_capacity = 0);
@@ -272,7 +273,7 @@ namespace SFG
 		vekt::id add_checkbox(bool initial_state);
 		vekt::id add_resource(const char* res, const char* extension, string_id type_id, size_t buffer_capacity = 0);
 		vekt::id add_dropdown(const char* initial_text = "", size_t buffer_capacity = 0);
-		void	 add_dropdown_item(vekt::id dropdown_widget, const char* label);
+		void	 add_dropdown_item(vekt::id dropdown_widget, const char* label, bool is_selected);
 		// vekt::id add_slider(float val, float min, float max, size_t buffer_capacity = 0);
 
 		// -----------------------------------------------------------------------------

@@ -42,14 +42,6 @@ namespace SFG
 	class editor_panel_entities
 	{
 	public:
-		enum class debug_draw_type
-		{
-			physics,
-			point_light,
-			spot_light,
-			audio,
-			camera,
-		};
 		// -----------------------------------------------------------------------------
 		// lifecycle
 		// -----------------------------------------------------------------------------
@@ -63,9 +55,10 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 
 		void set_selected(world_handle h);
-		void set_selected_controls();
 		void drop_drag(world_handle target);
 		void kill_drag();
+		void update_entity_name(world_handle h);
+		void set_entity_collapsed(world_handle h, bool collapsed);
 
 		// -----------------------------------------------------------------------------
 		// accessors
@@ -73,7 +66,6 @@ namespace SFG
 
 		inline void kill_context()
 		{
-			_add_component_buttons.resize(0);
 			_ctx_new_entity = NULL_WIDGET_ID;
 			_ctx_add_child	= NULL_WIDGET_ID;
 			_ctx_duplicate	= NULL_WIDGET_ID;
@@ -94,25 +86,17 @@ namespace SFG
 		// callbacks
 		// -----------------------------------------------------------------------------
 
-		static void						on_input_field_changed(void* callback_ud, vekt::builder* b, vekt::id id, const char* txt, float value);
-		static void						on_checkbox(void* callback_ud, vekt::builder* b, vekt::id id, unsigned char value);
-		static void						invoke_button(void* callback_ud, void* object_ptr, string_id type_id, string_id button_id);
 		static vekt::input_event_result on_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase);
 		static vekt::input_event_result on_key(vekt::builder* b, vekt::id widget, const vekt::key_event& ev);
 		static void						on_tree_item_drag(vekt::builder* b, vekt::id widget, float mp_x, float mp_y, float delta_x, float delta_y, unsigned int button);
 		static void						on_tree_item_hover_end(vekt::builder* b, vekt::id widget);
 		static void						on_tree_item_hover_move(vekt::builder* b, vekt::id widget);
 		static void						on_focus_gained(vekt::builder* b, vekt::id widget, bool from_nav);
-		static void						on_separator_drag(vekt::builder* b, vekt::id widget, float mp_x, float mp_y, float delta_x, float delta_y, unsigned int button);
-		static void						on_separator_hover_begin(vekt::builder* b, vekt::id widget);
-		static void						on_separator_hover_end(vekt::builder* b, vekt::id widget);
 
 		// -----------------------------------------------------------------------------
 		// impl
 		// -----------------------------------------------------------------------------
 
-		void	 clear_component_view();
-		void	 build_component_view();
 		void	 rebuild_tree(class world& w);
 		vekt::id build_entity_node(class world& w, world_handle e, unsigned int depth);
 		bool	 is_ancestor_of(world_handle ancestor, world_handle node);
@@ -133,63 +117,18 @@ namespace SFG
 			world_handle handle	   = {};
 		};
 
-		struct comp_remove_button
-		{
-			world_handle handle	   = {};
-			vekt::id	 button	   = NULL_WIDGET_ID;
-			string_id	 comp_type = 0;
-		};
-
-		struct add_comp_button
-		{
-			vekt::id  button = NULL_WIDGET_ID;
-			string_id type	 = 0;
-		};
-
-		struct selection_debug_draw
-		{
-			debug_draw_type type	  = debug_draw_type::physics;
-			world_handle	component = {};
-		};
-
 	private:
-		vekt::builder* _builder				   = nullptr;
-		gui_builder	   _gui_builder			   = {};
-		vekt::id	   _root				   = 0;
-		vekt::id	   _entity_area			   = 0;
-		vekt::id	   _layout_separator	   = NULL_WIDGET_ID;
-		float		   _split_ratio			   = 0.5f;
-		float		   _split_px			   = 0.0f;
-		bool		   _was_dragging_seperator = false;
-
-		vekt::id _prop_name			= NULL_WIDGET_ID;
-		vekt::id _prop_vis			= NULL_WIDGET_ID;
-		vekt::id _prop_handle		= NULL_WIDGET_ID;
-		vekt::id _ctx_new_entity	= NULL_WIDGET_ID;
-		vekt::id _ctx_add_child		= NULL_WIDGET_ID;
-		vekt::id _ctx_duplicate		= NULL_WIDGET_ID;
-		vekt::id _ctx_delete		= NULL_WIDGET_ID;
-		vekt::id _selected_pos_x	= NULL_WIDGET_ID;
-		vekt::id _selected_pos_y	= NULL_WIDGET_ID;
-		vekt::id _selected_pos_z	= NULL_WIDGET_ID;
-		vekt::id _selected_rot_x	= NULL_WIDGET_ID;
-		vekt::id _selected_rot_y	= NULL_WIDGET_ID;
-		vekt::id _selected_rot_z	= NULL_WIDGET_ID;
-		vekt::id _selected_scale_x	= NULL_WIDGET_ID;
-		vekt::id _selected_scale_y	= NULL_WIDGET_ID;
-		vekt::id _selected_scale_z	= NULL_WIDGET_ID;
-		vekt::id _components_parent = NULL_WIDGET_ID;
-		vekt::id _components_area	= NULL_WIDGET_ID;
-		vekt::id _add_component		= NULL_WIDGET_ID;
-		vekt::id _unlock_template	= NULL_WIDGET_ID;
-		vekt::id _save_template		= NULL_WIDGET_ID;
-
-		vector<add_comp_button>		 _add_component_buttons = {};
-		vector<entity_panel_meta>	 _entity_meta			= {};
-		vector<vekt::id>			 _root_entity_widgets	= {};
-		vector<node_binding>		 _node_bindings			= {};
-		vector<comp_remove_button>	 _comp_remove_buttons	= {};
-		vector<selection_debug_draw> _selection_debug_draws = {};
+		vekt::builder*			  _builder			   = nullptr;
+		gui_builder				  _gui_builder		   = {};
+		vekt::id				  _root				   = 0;
+		vekt::id				  _entity_area		   = 0;
+		vekt::id				  _ctx_new_entity	   = NULL_WIDGET_ID;
+		vekt::id				  _ctx_add_child	   = NULL_WIDGET_ID;
+		vekt::id				  _ctx_duplicate	   = NULL_WIDGET_ID;
+		vekt::id				  _ctx_delete		   = NULL_WIDGET_ID;
+		vector<entity_panel_meta> _entity_meta		   = {};
+		vector<vekt::id>		  _root_entity_widgets = {};
+		vector<node_binding>	  _node_bindings	   = {};
 
 		const char* _text_icon_dd			= nullptr;
 		const char* _text_icon_dd_collapsed = nullptr;

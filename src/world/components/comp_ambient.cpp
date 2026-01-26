@@ -36,6 +36,7 @@ namespace SFG
 	{
 		meta& m = reflection::get().register_meta(type_id<comp_ambient>::value, 0, "component");
 		m.set_title("ambient");
+		m.set_category("lights");
 		m.add_field<&comp_ambient::_base_color, comp_ambient>("color", reflected_field_type::rf_color, "");
 
 		m.add_function<void, const reflected_field_changed_params&>("on_reflected_changed"_hs, [](const reflected_field_changed_params& params) {

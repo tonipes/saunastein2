@@ -45,6 +45,7 @@ namespace SFG
 	class editor_panel_properties;
 	class editor_gui_world_overlays;
 	class editor_panel_world;
+	class editor_panel_inspector;
 
 	class editor_gui_controller
 	{
@@ -72,6 +73,7 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 
 		vekt::id begin_context_menu(float abs_x, float abs_y);
+		vekt::id add_context_menu_title(const char* label);
 		vekt::id add_context_menu_item(const char* label);
 		vekt::id add_context_menu_item_toggle(const char* label, bool is_toggled);
 		void	 end_context_menu();
@@ -98,18 +100,17 @@ namespace SFG
 		}
 
 	private:
-		static void on_context_item_hover_begin(vekt::builder* b, vekt::id widget);
-		static void on_context_item_hover_end(vekt::builder* b, vekt::id widget);
 		static void on_separator_drag(vekt::builder* b, vekt::id widget, float mp_x, float mp_y, float delta_x, float delta_y, unsigned int button);
 		static void on_separator_hover_begin(vekt::builder* b, vekt::id widget);
 		static void on_separator_hover_end(vekt::builder* b, vekt::id widget);
 
 	private:
-		vekt::builder*		   _builder		   = nullptr;
-		editor_panel_stats*	   _panel_stats	   = nullptr;
-		editor_panel_entities* _panel_entities = nullptr;
-		editor_panel_world*	   _panel_world	   = nullptr;
-		uint64				   _ctx_frame	   = 0;
+		vekt::builder*			_builder		 = nullptr;
+		editor_panel_stats*		_panel_stats	 = nullptr;
+		editor_panel_entities*	_panel_entities	 = nullptr;
+		editor_panel_world*		_panel_world	 = nullptr;
+		editor_panel_inspector* _panel_inspector = nullptr;
+		uint64					_ctx_frame		 = 0;
 
 		vekt::id _ctx_root		 = NULL_WIDGET_ID;
 		vekt::id _ctx_active	 = NULL_WIDGET_ID;
@@ -118,9 +119,12 @@ namespace SFG
 		uint8	 _payload_active = 0;
 
 		// Layout root (row) and children
-		vekt::id _layout_root	   = NULL_WIDGET_ID;
-		vekt::id _layout_separator = NULL_WIDGET_ID;
-		float	 _split_px		   = 320.0f;
-		float	 _split_ratio	   = 0.25f;
+		vekt::id _layout_root			 = NULL_WIDGET_ID;
+		vekt::id _layout_separator_left	 = NULL_WIDGET_ID;
+		vekt::id _layout_separator_right = NULL_WIDGET_ID;
+		float	 _split_px				 = 320.0f;
+		float	 _split_world_px		 = 0.0f;
+		float	 _split_ratio			 = 0.25f;
+		float	 _split_ratio_right		 = 0.7f;
 	};
 }

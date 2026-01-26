@@ -30,6 +30,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "math/vector3.hpp"
 #include "physics/physics_material_settings.hpp"
 #include "physics/physics_types.hpp"
+#include "physics/physics_layer_filter.hpp"
+#include "physics/physics_object_bp_layer_filter.hpp"
 
 #include "world/world_constants.hpp"
 #include "game/game_max_defines.hpp"
@@ -90,6 +92,26 @@ namespace SFG
 		inline JPH::PhysicsSystem* get_system() const
 		{
 			return _system;
+		}
+
+		inline JPH::TempAllocatorImpl* get_allocator() const
+		{
+			return _allocator;
+		}
+
+		inline const physics_layer_filter& get_layer_filter() const
+		{
+			return *_layer_filter;
+		}
+
+		inline const physics_object_bp_layer_filter& get_object_bp_layer_filter() const
+		{
+			return *_object_bp_layer_filter;
+		}
+
+		inline const vector3& get_gravity() const
+		{
+			return _graivty;
 		}
 
 		inline world& get_game_world()

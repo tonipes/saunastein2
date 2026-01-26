@@ -187,19 +187,20 @@ namespace SFG
 	void physics_world::simulate(float rate)
 	{
 		ZoneScoped;
+		constexpr int collision_steps = 2;
 
-#if !USE_FIXED_FRAMERATE
+#if !FIXED_FRAMERATE_ENABLED
 		if (_dt_counter < PHYSICS_RATE_WITHOUT_FIXED_FRAMERATE_S)
 		{
 			_dt_counter += rate;
 			return;
 		}
 
-		_dt_counter -= PHYSICS_RATE_WITHOUT_FIXED_FRAMERATE_S;
-#endif
-
-		constexpr int collision_steps = 1;
 		_system->Update(PHYSICS_RATE_WITHOUT_FIXED_FRAMERATE_S, collision_steps, _allocator, _job_system);
+		_dt_counter -= PHYSICS_RATE_WITHOUT_FIXED_FRAMERATE_S;
+#else
+		_system->Update(rate, collision_steps, _allocator, _job_system);
+#endif
 
 		entity_manager& em = _game_world.get_entity_manager();
 

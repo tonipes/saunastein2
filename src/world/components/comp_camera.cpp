@@ -36,6 +36,8 @@ namespace SFG
 	{
 		meta& m = reflection::get().register_meta(type_id<comp_camera>::value, 0, "component");
 		m.set_title("camera");
+		m.set_category("gameplay");
+
 		m.add_field<&comp_camera::_near, comp_camera>("near", reflected_field_type::rf_float, "", 0.001f, 1000.0f);
 		m.add_field<&comp_camera::_far, comp_camera>("far", reflected_field_type::rf_float, "", 0.001f, 1000.0f);
 		m.add_field<&comp_camera::_fov_degrees, comp_camera>("fov_degrees", reflected_field_type::rf_float, "", 0.0f, 180.0f);

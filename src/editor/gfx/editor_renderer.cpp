@@ -525,6 +525,10 @@ namespace SFG
 				dc.shader  = texture_shader;
 				dc.ud_type = ud->type;
 			}
+			else
+			{
+				int a = 5;
+			}
 		}
 		else
 		{

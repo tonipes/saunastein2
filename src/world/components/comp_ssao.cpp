@@ -36,6 +36,8 @@ namespace SFG
 	{
 		meta& m = reflection::get().register_meta(type_id<comp_ssao>::value, 0, "component");
 		m.set_title("ssao");
+		m.set_category("fx");
+
 		m.add_field<&comp_ssao::_radius_world, comp_ssao>("radius_world", reflected_field_type::rf_float, "");
 		m.add_field<&comp_ssao::_bias, comp_ssao>("bias", reflected_field_type::rf_float, "");
 		m.add_field<&comp_ssao::_intensity, comp_ssao>("intensity", reflected_field_type::rf_float, "");

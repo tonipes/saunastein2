@@ -289,9 +289,19 @@ namespace SFG
 			_title = t;
 		}
 
+		inline void set_category(const char* t)
+		{
+			_category = t;
+		}
+
 		inline const malloc_string& get_title() const
 		{
 			return _title;
+		}
+
+		inline const malloc_string& get_category() const
+		{
+			return _category;
 		}
 
 		inline const button_vec& get_control_buttons() const
@@ -344,6 +354,7 @@ namespace SFG
 		field_vec	  _fields;
 		button_vec	  _control_buttons = {};
 		malloc_string _title		   = "";
+		malloc_string _category		   = "";
 		malloc_string _tag_str		   = "";
 		string_id	  _type_id		   = 0;
 		string_id	  _tag			   = 0;

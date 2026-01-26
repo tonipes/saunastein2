@@ -38,6 +38,8 @@ namespace SFG
 	{
 		meta& m = reflection::get().register_meta(type_id<comp_particle_emitter>::value, 0, "component");
 		m.set_title("particle_emitter");
+		m.set_category("rendering");
+
 		m.add_field<&comp_particle_emitter::_particle_resource, comp_particle_emitter>("particle", reflected_field_type::rf_resource, "", type_id<particle_properties>::value);
 		m.add_field<&comp_particle_emitter::_material, comp_particle_emitter>("material", reflected_field_type::rf_resource, "", type_id<material>::value);
 
