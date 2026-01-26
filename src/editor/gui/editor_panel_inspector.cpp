@@ -80,6 +80,7 @@ namespace SFG
 		_gui_builder.begin_area(false, false);
 		_prop_vis						 = _gui_builder.add_property_row_checkbox("visible", 0).second;
 		_prop_name						 = _gui_builder.add_property_row_text_field("name", "-", 256).second;
+		_prop_tag						 = _gui_builder.add_property_row_text_field("tag", "-", 256).second;
 		_prop_handle					 = _gui_builder.add_property_row_label("handle:", "{-, -}", 16).second;
 		const gui_builder::id_quat pos	 = _gui_builder.add_property_row_vector3("position", "0.0", 16, 3, 0.1f);
 		const gui_builder::id_quat rot	 = _gui_builder.add_property_row_vector3("rotation", "0.0", 16, 3, 1.0f);
@@ -128,6 +129,7 @@ namespace SFG
 
 		entity_manager&	   em = w.get_entity_manager();
 		component_manager& cm = w.get_comp_manager();
+		if (w.get_playmode() == play_mode::none)
 		{
 			const float thickness	  = 0.05f;
 			const color col_phy		  = color::red;
@@ -228,7 +230,9 @@ namespace SFG
 		bump_text_allocator& alloc	  = editor::get().get_bump_text_allocator();
 
 		const char* name_txt = selected.is_null() ? "-" : em.get_entity_meta(selected).name;
+		const char* tag_txt  = selected.is_null() ? "-" : em.get_entity_meta(selected).tag;
 		_gui_builder.set_text_field_text(_prop_name, name_txt, true);
+		_gui_builder.set_text_field_text(_prop_tag, tag_txt, true);
 		_gui_builder.set_checkbox_value(_prop_vis, selected.is_null() ? 0 : !em.get_entity_flags(selected).is_set(entity_flags::entity_flags_invisible));
 		{
 			const char* handle_txt = alloc.allocate_reserve(32);
@@ -426,6 +430,7 @@ namespace SFG
 		_gui_builder.set_widget_enabled(_add_component, !template_disabled, editor_theme::get().col_button, editor_theme::get().col_button_silent);
 		_gui_builder.set_widget_enabled(_save_template, !template_disabled, editor_theme::get().col_button, editor_theme::get().col_button_silent);
 		_gui_builder.set_widget_enabled(_prop_name, !template_disabled, editor_theme::get().col_frame_bg, editor_theme::get().col_button_silent);
+		_gui_builder.set_widget_enabled(_prop_tag, !template_disabled, editor_theme::get().col_frame_bg, editor_theme::get().col_button_silent);
 		_gui_builder.set_widget_enabled(_selected_pos_x, !_selected_entity.is_null(), editor_theme::get().col_frame_bg, editor_theme::get().col_button_silent);
 		_gui_builder.set_widget_enabled(_selected_pos_y, !_selected_entity.is_null(), editor_theme::get().col_frame_bg, editor_theme::get().col_button_silent);
 		_gui_builder.set_widget_enabled(_selected_pos_z, !_selected_entity.is_null(), editor_theme::get().col_frame_bg, editor_theme::get().col_button_silent);
@@ -461,6 +466,20 @@ namespace SFG
 		build_component_view();
 	}
 
+	void editor_panel_inspector::open_info_popup(const char* text)
+	{
+		editor_gui_controller& ctr = editor::get().get_gui_controller();
+		ctr.begin_popup(text);
+		_popup_ok = ctr.popup_add_button("ok");
+		if (_popup_ok != NULL_WIDGET_ID)
+		{
+			vekt::mouse_callback& cb = _builder->widget_get_mouse_callbacks(_popup_ok);
+			cb.on_mouse				 = on_mouse;
+			_builder->widget_get_user_data(_popup_ok).ptr = this;
+		}
+		ctr.end_popup();
+	}
+
 	void editor_panel_inspector::on_input_field_changed(void* callback_ud, vekt::builder* b, vekt::id widget, const char* txt, float value)
 	{
 		editor_panel_inspector* self = static_cast<editor_panel_inspector*>(callback_ud);
@@ -481,6 +500,10 @@ namespace SFG
 			em.set_entity_name(self->_selected_entity, txt);
 			if (self->_entities)
 				self->_entities->update_entity_name(self->_selected_entity);
+		}
+		else if (widget == self->_prop_tag)
+		{
+			em.set_entity_tag(self->_selected_entity, txt);
 		}
 		else if (widget == self->_prop_vis)
 		{
@@ -557,6 +580,12 @@ namespace SFG
 
 		if (ev.type == vekt::input_event_type::released && ev.button == static_cast<uint16>(input_code::mouse_0))
 		{
+			if (widget == self->_popup_ok)
+			{
+				editor::get().get_gui_controller().kill_popup();
+				return vekt::input_event_result::handled;
+			}
+
 			if (self->_gui_builder.invoke_control_button(widget))
 				return vekt::input_event_result::handled;
 		}
@@ -622,7 +651,32 @@ namespace SFG
 						world&			   w  = editor::get().get_app().get_world();
 						entity_manager&	   em = w.get_entity_manager();
 						component_manager& cm = w.get_comp_manager();
-						cm.add_component(b.type, self->_selected_entity);
+						const entity_comp_register& reg = em.get_component_register(self->_selected_entity);
+						bool						has_comp = false;
+						for (const entity_comp& c : reg.comps)
+						{
+							if (c.comp_type == b.type)
+							{
+								has_comp = true;
+								break;
+							}
+						}
+
+						if (has_comp)
+						{
+							self->open_info_popup("entity already has this component");
+							self->_add_component_buttons.resize(0);
+							return vekt::input_event_result::handled;
+						}
+
+						const world_handle new_handle = cm.add_component(b.type, self->_selected_entity);
+						if (new_handle.is_null())
+						{
+							self->open_info_popup("failed to add component");
+							self->_add_component_buttons.resize(0);
+							return vekt::input_event_result::handled;
+						}
+
 						self->clear_component_view();
 						self->build_component_view();
 						self->_add_component_buttons.resize(0);
@@ -694,14 +748,20 @@ namespace SFG
 						component_manager& cm = w.get_comp_manager();
 						cm.remove_component(b.comp_type, self->_selected_entity, b.handle);
 						const world_handle new_handle = cm.add_component(b.comp_type, self->_selected_entity);
-						if (!new_handle.is_null())
+						if (new_handle.is_null())
 						{
-							meta& m = reflection::get().resolve(b.comp_type);
-							if (m.has_function("on_reflect_load"_hs))
-							{
-								void* comp_ptr = cm.get_component(b.comp_type, new_handle);
-								m.invoke_function<void, void*, world&>("on_reflect_load"_hs, comp_ptr, w);
-							}
+							self->open_info_popup("failed to add component");
+							self->clear_component_view();
+							self->build_component_view();
+							em.set_hierarchy_dirty(1);
+							return vekt::input_event_result::handled;
+						}
+
+						meta& m = reflection::get().resolve(b.comp_type);
+						if (m.has_function("on_reflect_load"_hs))
+						{
+							void* comp_ptr = cm.get_component(b.comp_type, new_handle);
+							m.invoke_function<void, void*, world&>("on_reflect_load"_hs, comp_ptr, w);
 						}
 						self->clear_component_view();
 						self->build_component_view();

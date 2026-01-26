@@ -44,6 +44,7 @@ namespace SFG
 	struct entity_template_entity_raw
 	{
 		string	name			   = "";
+		string	tag				   = "";
 		string	template_reference = "";
 		quat	rotation		   = quat::identity;
 		vector3 position		   = vector3::zero;

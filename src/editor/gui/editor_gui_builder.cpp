@@ -308,7 +308,7 @@ namespace SFG
 		auto		 it	  = vector_util::find_if(self->_toggle_buttons, [widget](const gui_toggle_button& tf) -> bool { return tf.widget == widget; });
 		SFG_ASSERT(it != self->_toggle_buttons.end());
 
-		if (ev.button == mouse_0 && ev.type == vekt::input_event_type::pressed)
+		if (ev.button == mouse_0 && ev.type == vekt::input_event_type::released)
 		{
 			self->set_toggle_button_state(widget, !it->toggled);
 
@@ -761,7 +761,7 @@ namespace SFG
 		it->toggled = toggled;
 
 		vekt::widget_gfx& gfx = _builder->widget_get_gfx(widget);
-		gfx.color			  = it->toggled ? editor_theme::get().col_accent_second : vector4();
+		gfx.color			  = it->toggled ? editor_theme::get().col_accent_second_dim : vector4();
 	}
 
 	void gui_builder::remove_impl(vekt::id id)
@@ -1933,17 +1933,9 @@ namespace SFG
 				pp.pos.x = 0.5f;
 			}
 
-			size_props& sz		  = _builder->widget_get_size_props(w);
-			sz.flags			  = size_flags::sf_x_abs | size_flags::sf_y_abs;
-			const vector2 text_sz = _builder->get_text_size({
-				.text = "A",
-				.font = editor_theme::get().font_icons,
-			});
-			sz.size.x = sz.size.y = text_sz.y * 1.15f;
-
-			const float margin = editor_theme::get().inner_margin * 0.25f;
-
-			sz.child_margins = {margin, margin, margin, margin};
+			size_props& sz = _builder->widget_get_size_props(w);
+			sz.flags	   = size_flags::sf_x_abs | size_flags::sf_y_abs;
+			sz.size.x = sz.size.y = editor_theme::get().item_height * 1.5f;
 
 			widget_gfx& gfx = _builder->widget_get_gfx(w);
 			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_press_color | gfx_flags::gfx_has_hover_color;
@@ -2002,16 +1994,9 @@ namespace SFG
 				pp.pos.x = 0.5f;
 			}
 
-			size_props& sz		  = _builder->widget_get_size_props(w);
-			sz.flags			  = size_flags::sf_x_abs | size_flags::sf_y_abs;
-			const vector2 text_sz = _builder->get_text_size({
-				.text = "A",
-				.font = editor_theme::get().font_icons,
-			});
-			sz.size.x = sz.size.y = text_sz.y * 1.15f;
-
-			const float margin = editor_theme::get().inner_margin * 0.25f;
-			sz.child_margins   = {margin, margin, margin, margin};
+			size_props& sz = _builder->widget_get_size_props(w);
+			sz.flags	   = size_flags::sf_x_abs | size_flags::sf_y_abs;
+			sz.size.x = sz.size.y = editor_theme::get().item_height * 1.5f;
 
 			widget_gfx& gfx = _builder->widget_get_gfx(w);
 			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_press_color | gfx_flags::gfx_has_hover_color;

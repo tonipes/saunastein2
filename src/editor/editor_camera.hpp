@@ -73,6 +73,11 @@ namespace SFG
 			return _entity;
 		}
 
+		inline bool get_is_looking() const
+		{
+			return _is_looking;
+		}
+
 	private:
 		void reset_runtime();
 		void update_rotation();
@@ -95,6 +100,6 @@ namespace SFG
 		float	_boost_multiplier	= 8.0f;
 		float	_mouse_sensitivity	= 0.08f;
 		bool	_is_looking			= false;
-		uint8	_is_active			= 0;
+		bool	_is_active			= false;
 	};
 }

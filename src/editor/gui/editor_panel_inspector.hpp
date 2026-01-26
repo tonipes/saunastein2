@@ -66,6 +66,7 @@ namespace SFG
 
 		inline void kill_popup()
 		{
+			_popup_ok = NULL_WIDGET_ID;
 		}
 
 		inline vekt::id get_root() const
@@ -84,6 +85,7 @@ namespace SFG
 		void							build_component_view();
 		void							set_selected_controls();
 		void							sync_selected(world& w);
+		void							open_info_popup(const char* text);
 
 	private:
 		struct comp_header_button
@@ -120,6 +122,7 @@ namespace SFG
 		vekt::id			   _root		= 0;
 
 		vekt::id _prop_name			= NULL_WIDGET_ID;
+		vekt::id _prop_tag			= NULL_WIDGET_ID;
 		vekt::id _prop_vis			= NULL_WIDGET_ID;
 		vekt::id _prop_handle		= NULL_WIDGET_ID;
 		vekt::id _selected_pos_x	= NULL_WIDGET_ID;
@@ -136,6 +139,7 @@ namespace SFG
 		vekt::id _add_component		= NULL_WIDGET_ID;
 		vekt::id _unlock_template	= NULL_WIDGET_ID;
 		vekt::id _save_template		= NULL_WIDGET_ID;
+		vekt::id _popup_ok			= NULL_WIDGET_ID;
 
 		vector<add_comp_button>		 _add_component_buttons = {};
 		vector<comp_header_button>	 _comp_header_buttons	= {};

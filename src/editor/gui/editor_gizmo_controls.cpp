@@ -31,6 +31,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "editor/editor_theme.hpp"
 #include "app/app.hpp"
 
+#include "input/input_mappings.hpp"
 #include "math/math.hpp"
 #include "world/world.hpp"
 #include "world/components/comp_camera.hpp"
@@ -428,6 +429,9 @@ namespace SFG
 
 	bool editor_gizmo_controls::on_mouse_event(const window_event& ev)
 	{
+		if (ev.button != input_code::mouse_0)
+			return false;
+
 		if (ev.sub_type == window_event_sub_type::release && _active_axis != gizmo_axis::none)
 		{
 			set_active_axis(gizmo_axis::none);

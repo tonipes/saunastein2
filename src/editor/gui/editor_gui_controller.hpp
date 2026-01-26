@@ -29,6 +29,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "world/world_constants.hpp"
 #include "math/vector2ui16.hpp"
 #include "math/vector2.hpp"
+#include "math/vector3.hpp"
 #include "gui/vekt_defines.hpp"
 #include "platform/window_common.hpp"
 
@@ -66,6 +67,7 @@ namespace SFG
 		bool	on_mouse_move(const vector2& p);
 		bool	on_key_event(const window_event& ev);
 		vector2 get_world_size();
+		bool	get_world_ray(const vector2& mouse_pos, vector3& origin, vector3& direction) const;
 		void	on_exited_playmode();
 
 		// -----------------------------------------------------------------------------

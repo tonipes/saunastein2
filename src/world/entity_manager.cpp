@@ -372,6 +372,7 @@ namespace SFG
 		const world_id id	= handle.index;
 		entity_meta&   meta = _metas->get(id);
 		_world.get_text_allocator().deallocate(meta.name);
+		_world.get_text_allocator().deallocate(meta.tag);
 
 		entity_comp_register& reg		   = _comp_registers->get(id);
 		auto				  copied_comps = reg.comps;
@@ -417,6 +418,7 @@ namespace SFG
 
 		entity_meta& meta = _metas->get(handle.index);
 		meta.name		  = _world.get_text_allocator().allocate(name);
+		meta.tag			  = _world.get_text_allocator().allocate("");
 
 #ifdef SFG_TOOLMODE
 		_hierarchy_dirty = 1;
@@ -461,6 +463,7 @@ namespace SFG
 
 		const char*	 src_name = _metas->get(source.index).name;
 		world_handle clone	  = create_entity(src_name);
+		set_entity_tag(clone, _metas->get(source.index).tag);
 
 		const entity_transform& src_tr		= _local_transforms->get(source.index);
 		_local_transforms->get(clone.index) = src_tr;
@@ -617,6 +620,42 @@ namespace SFG
 		entity_meta& meta = _metas->get(entity.index);
 		_world.get_text_allocator().deallocate(meta.name);
 		meta.name = _world.get_text_allocator().allocate(name);
+	}
+
+	void entity_manager::set_entity_tag(world_handle entity, const char* tag)
+	{
+		SFG_ASSERT(_entities->is_valid(entity));
+		entity_meta& meta = _metas->get(entity.index);
+		_world.get_text_allocator().deallocate(meta.tag);
+		meta.tag = _world.get_text_allocator().allocate(tag ? tag : "");
+	}
+
+	world_handle entity_manager::find_entity_by_tag(const char* tag)
+	{
+		const char* target = tag ? tag : "";
+		const auto& entities = *_entities;
+		for (auto it = entities.handles_begin(); it != entities.handles_end(); ++it)
+		{
+			const world_handle handle = *it;
+			const char*		   t	  = _metas->get(handle.index).tag;
+			if (strcmp(t, target) == 0)
+				return handle;
+		}
+		return {};
+	}
+
+	void entity_manager::find_entities_by_tag(const char* tag, vector<world_handle>& out) const
+	{
+		out.resize(0);
+		const char* target = tag ? tag : "";
+		const auto& entities = *_entities;
+		for (auto it = entities.handles_begin(); it != entities.handles_end(); ++it)
+		{
+			const world_handle handle = *it;
+			const char*		   t	  = _metas->get(handle.index).tag;
+			if (strcmp(t, target) == 0)
+				out.push_back(handle);
+		}
 	}
 
 	void entity_manager::set_entity_transient(world_handle entity, bool is_transient)
@@ -1107,6 +1146,7 @@ namespace SFG
 			else
 				created_handle = create_entity(r.name.c_str());
 
+			set_entity_tag(created_handle, r.tag.c_str());
 			set_entity_position(created_handle, r.position);
 			set_entity_rotation(created_handle, r.rotation);
 			set_entity_scale(created_handle, r.scale);

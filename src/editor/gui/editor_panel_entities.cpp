@@ -362,6 +362,24 @@ namespace SFG
 
 	void editor_panel_entities::set_selected(world_handle h)
 	{
+		if (_selected_entity == h && h.is_null())
+			return;
+
+		if (!h.is_null())
+		{
+			entity_manager& em = editor::get().get_app().get_world().get_entity_manager();
+			bool			changed = false;
+			em.visit_parents(h, [&](world_handle p) {
+				if (_entity_meta[p.index].collapsed)
+				{
+					_entity_meta[p.index].collapsed = 0;
+					changed = true;
+				}
+			});
+			if (changed)
+				em.set_hierarchy_dirty(1);
+		}
+
 		if (_selected_entity == h)
 			return;
 

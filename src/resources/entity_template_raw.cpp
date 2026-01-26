@@ -52,6 +52,7 @@ namespace SFG
 	void entity_template_entity_raw::serialize(ostream& stream) const
 	{
 		stream << name;
+		stream << tag;
 		stream << position;
 		stream << rotation;
 		stream << scale;
@@ -65,6 +66,7 @@ namespace SFG
 	void entity_template_entity_raw::deserialize(istream& stream)
 	{
 		stream >> name;
+		stream >> tag;
 		stream >> position;
 		stream >> rotation;
 		stream >> scale;
@@ -79,6 +81,7 @@ namespace SFG
 	void to_json(nlohmann::json& j, const entity_template_entity_raw& r)
 	{
 		j["name"]		  = r.name;
+		j["tag"]		  = r.tag;
 		j["pos"]		  = r.position;
 		j["rot"]		  = r.rotation;
 		j["scale"]		  = r.scale;
@@ -92,6 +95,7 @@ namespace SFG
 	void from_json(const nlohmann::json& j, entity_template_entity_raw& r)
 	{
 		r.name				 = j.value<string>("name", "");
+		r.tag				 = j.value<string>("tag", "");
 		r.position			 = j.value<vector3>("pos", vector3::zero);
 		r.rotation			 = j.value<quat>("rot", quat::identity);
 		r.scale				 = j.value<vector3>("scale", vector3::one);

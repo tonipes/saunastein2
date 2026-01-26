@@ -236,6 +236,11 @@ namespace SFG
 
 #endif
 
+		inline const view& get_main_view() const
+		{
+			return _main_camera_view;
+		}
+
 	private:
 		// -----------------------------------------------------------------------------
 		// render util

@@ -884,7 +884,7 @@ namespace SFG
 				return true;
 			}
 
-			if (frame_info::get_frame() != _ctx_frame && _ctx_active != NULL_WIDGET_ID && ev.sub_type == window_event_sub_type::press)
+			if (frame_info::get_frame() != _ctx_frame && _ctx_active != NULL_WIDGET_ID && ev.sub_type == window_event_sub_type::release)
 			{
 				_panel_world->kill_context();
 				_panel_entities->kill_context();
@@ -929,6 +929,14 @@ namespace SFG
 	{
 		return _panel_world->get_world_size();
 	}
+
+	bool editor_gui_controller::get_world_ray(const vector2& mouse_pos, vector3& origin, vector3& direction) const
+	{
+		if (!_panel_world)
+			return false;
+		return _panel_world->get_mouse_world_ray(mouse_pos, origin, direction);
+	}
+
 	void editor_gui_controller::on_exited_playmode()
 	{
 		_panel_world->kill_playmode();

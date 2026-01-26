@@ -167,13 +167,7 @@ namespace SFG
 		static void		   on_vekt_deallocate_text(void* ud, const char* ptr);
 
 	private:
-		app&		 _app;
-		world_handle _camera_entity	  = {};
-		world_handle _camera_trait	  = {};
-		world_handle _demo_model_root = {};
-		world_handle _ambient_entity  = {};
-		world_handle _ambient_trait	  = {};
-		world_handle _gizmo_entity	  = {};
+		app& _app;
 
 		editor_camera _camera_controller;
 
@@ -196,7 +190,8 @@ namespace SFG
 		string _loaded_level = "";
 
 		// playmode
-		world_raw _playmode_backup = {};
+		world_raw _playmode_backup		   = {};
+		world_id  _playmode_selected_index = NULL_WORLD_ID;
 
 		static editor* s_instance;
 	};

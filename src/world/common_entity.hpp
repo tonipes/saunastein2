@@ -48,6 +48,7 @@ namespace SFG
 	struct entity_meta
 	{
 		const char* name			   = "";
+		const char* tag				   = "";
 		uint8		render_proxy_count = 0;
 	};
 

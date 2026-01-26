@@ -52,7 +52,7 @@ namespace SFG
 
 	void editor_camera::activate()
 	{
-		SFG_ASSERT(_is_active == 0);
+		SFG_ASSERT(_is_active == false);
 
 		world&			   w  = *_world;
 		entity_manager&	   em = w.get_entity_manager();
@@ -75,7 +75,7 @@ namespace SFG
 		const vector3 euler = quat::to_euler(rot);
 		_yaw_degrees		= euler.y;
 		_pitch_degrees		= euler.x;
-		_is_active			= 1;
+		_is_active			= true;
 	}
 
 	void editor_camera::deactivate()
@@ -92,7 +92,7 @@ namespace SFG
 		_camera_trait = {};
 
 		reset_runtime();
-		_is_active = 0;
+		_is_active = false;
 	}
 
 	void editor_camera::reset_runtime()

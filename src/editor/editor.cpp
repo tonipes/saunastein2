@@ -114,6 +114,7 @@ namespace SFG
 			va_end(args);
 		}
 	}
+
 	void editor::init()
 	{
 		s_instance = this;
@@ -192,7 +193,11 @@ namespace SFG
 			const string last_world = editor_settings::get().working_dir + editor_settings::get().last_world_relative;
 			if (file_system::exists(last_world.c_str()))
 				load_level(editor_settings::get().last_world_relative.c_str());
+			else
+				_camera_controller.activate();
 		}
+		else
+			_camera_controller.activate();
 
 		// -----------------------------------------------------------------------------
 		// gui
@@ -296,6 +301,12 @@ namespace SFG
 	{
 		const play_mode pm = _app.get_world().get_playmode();
 
+		if (_camera_controller.get_is_looking())
+		{
+			_camera_controller.on_window_event(ev);
+			return true;
+		}
+
 		if (pm == play_mode::full)
 		{
 			if (ev.type == window_event_type::key && ev.button == input_code::key_escape && ev.sub_type == window_event_sub_type::press)
@@ -388,6 +399,11 @@ namespace SFG
 			return;
 		}
 
+		const world_handle camera_entity = _camera_controller.get_entity();
+		const vector3&	   cam_pos		 = em.get_entity_position(camera_entity);
+		const quat&		   cam_rot		 = em.get_entity_rotation(camera_entity);
+		const vector3	   placement_pos = cam_pos + cam_rot.get_forward() * 3.0f;
+
 		if (ext.compare("stkent") == 0)
 		{
 			const string_id sid	   = TO_SID(relative);
@@ -405,7 +421,11 @@ namespace SFG
 				return;
 			}
 
-			em.instantiate_template(handle);
+			const world_handle instantiated = em.instantiate_template(handle);
+			em.set_entity_position(instantiated, placement_pos);
+			em.teleport_entity(instantiated);
+			_gui_controller.get_entities()->set_selected(instantiated);
+
 			return;
 		}
 
@@ -427,8 +447,11 @@ namespace SFG
 				return;
 			}
 
-			const string name = file_system::get_filename_from_path(relative);
-			_gui_controller.get_entities()->set_selected(em.instantiate_model(handle));
+			const world_handle instantiated = em.instantiate_model(handle);
+			em.set_entity_position(instantiated, placement_pos);
+			em.teleport_entity(instantiated);
+
+			_gui_controller.get_entities()->set_selected(instantiated);
 
 			return;
 		}
@@ -544,6 +567,18 @@ namespace SFG
 		if (w.get_playmode() != play_mode::none)
 			return;
 
+		editor_panel_entities* entities = _gui_controller.get_entities();
+		if (entities)
+		{
+			const world_handle selected = entities->get_selected();
+			_playmode_selected_index	= selected.is_null() ? NULL_WORLD_ID : selected.index;
+			entities->set_selected({});
+		}
+		else
+		{
+			_playmode_selected_index = NULL_WORLD_ID;
+		}
+
 		entity_manager&	   em		  = w.get_entity_manager();
 		const world_handle cam_entity = _camera_controller.get_entity();
 
@@ -571,6 +606,18 @@ namespace SFG
 
 		w.create_from_loader(_playmode_backup, true);
 		_playmode_backup.destroy();
+
+		if (_playmode_selected_index != NULL_WORLD_ID)
+		{
+			entity_manager& em	   = w.get_entity_manager();
+			world_handle	handle = em.get_valid_handle_by_index(_playmode_selected_index);
+			if (em.is_valid(handle))
+				_gui_controller.get_entities()->set_selected(handle);
+			else
+				_gui_controller.get_entities()->set_selected({});
+		}
+
+		_playmode_selected_index = NULL_WORLD_ID;
 
 		_camera_controller.activate();
 	}

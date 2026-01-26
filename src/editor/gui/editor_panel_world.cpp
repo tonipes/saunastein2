@@ -118,11 +118,31 @@ namespace SFG
 			b->widget_add_child(_gui_builder.get_root(), _world_viewer);
 		}
 
-		// top left icon stack
+		build_toolbar();
+
+		_gizmo_controls.init(_builder);
+
+		set_aspect(static_cast<aspect_ratio>(math::clamp(editor_layout::get().world_aspect_ratio, (uint8)0, static_cast<uint8>(aspect_ratio::aspect_1_1))));
+		set_gizmo_style(gizmo_style::move);
+		set_gizmo_space(gizmo_space::global);
+		set_audio_style(audio_style::on);
+		set_physics_debug(physics_debug_style::none);
+	}
+
+	void editor_panel_world::fetch_stats()
+	{
+		set_stats_view(static_cast<stats_view_style>(math::clamp(editor_layout::get().world_stats_view, (uint8)0, static_cast<uint8>(stats_view_style::full))));
+	}
+
+	void editor_panel_world::build_toolbar()
+	{
+		if (_toolbar_row != NULL_WIDGET_ID)
+			return;
+
 		_gui_builder.set_draw_order(1);
-		_gui_builder.begin_row();
-		_btn_file  = _gui_builder.add_icon_button(ICON_FILE, 0, 1.25f, true).first;
-		_btn_stats = _gui_builder.add_toggle_button(ICON_INFO, false, 0, 1.25f, true).first;
+		_toolbar_row = _gui_builder.begin_row();
+		_btn_file	 = _gui_builder.add_icon_button(ICON_FILE, 0, 1.25f, true).first;
+		_btn_stats	 = _gui_builder.add_toggle_button(ICON_INFO, false, 0, 1.25f, true).first;
 		_gui_builder.add_row_separator(editor_theme::get().col_frame_bg);
 		_btn_translate = _gui_builder.add_toggle_button(ICON_MOVE, true, 0, 1.25f, true).first;
 		_btn_rotate	   = _gui_builder.add_toggle_button(ICON_ROTATE, false, 0, 1.25f, true).first;
@@ -138,19 +158,28 @@ namespace SFG
 		_btn_play = _gui_builder.add_toggle_button(ICON_PLAY, false, 0, 1.25f, true, editor_theme::get().col_accent_third).first;
 		_gui_builder.end_row();
 		_gui_builder.set_draw_order(0);
-
-		_gizmo_controls.init(_builder);
-
-		set_aspect(static_cast<aspect_ratio>(math::clamp(editor_layout::get().world_aspect_ratio, (uint8)0, static_cast<uint8>(aspect_ratio::aspect_1_1))));
-		set_gizmo_style(gizmo_style::move);
-		set_gizmo_space(gizmo_space::global);
-		set_audio_style(audio_style::on);
-		set_physics_debug(physics_debug_style::none);
+		_builder->build_hierarchy();
 	}
 
-	void editor_panel_world::fetch_stats()
+	void editor_panel_world::destroy_toolbar()
 	{
-		set_stats_view(static_cast<stats_view_style>(math::clamp(editor_layout::get().world_stats_view, (uint8)0, static_cast<uint8>(stats_view_style::full))));
+		if (_toolbar_row == NULL_WIDGET_ID)
+			return;
+
+		_gui_builder.deallocate(_toolbar_row);
+		_toolbar_row	   = NULL_WIDGET_ID;
+		_btn_file		   = NULL_WIDGET_ID;
+		_btn_stats		   = NULL_WIDGET_ID;
+		_btn_translate	   = NULL_WIDGET_ID;
+		_btn_rotate		   = NULL_WIDGET_ID;
+		_btn_scale		   = NULL_WIDGET_ID;
+		_btn_space		   = NULL_WIDGET_ID;
+		_btn_mute		   = NULL_WIDGET_ID;
+		_btn_physics_debug = NULL_WIDGET_ID;
+		_btn_aspect		   = NULL_WIDGET_ID;
+		_btn_world_view	   = NULL_WIDGET_ID;
+		_btn_play		   = NULL_WIDGET_ID;
+		_builder->build_hierarchy();
 	}
 
 	void editor_panel_world::uninit()
@@ -192,6 +221,39 @@ namespace SFG
 	{
 		const vector2 sz = _builder->widget_get_size(_world_viewer);
 		return vector2ui16(sz.x, sz.y);
+	}
+
+	bool editor_panel_world::get_mouse_world_ray(const vector2& mouse_pos, vector3& origin, vector3& direction) const
+	{
+		const vector4 clip = _builder->widget_get_clip(_world_viewer);
+		if (!clip.is_point_inside(mouse_pos.x, mouse_pos.y))
+			return false;
+
+		const vector2 panel_pos	 = _builder->widget_get_pos(_world_viewer);
+		const vector2 panel_size = _builder->widget_get_size(_world_viewer);
+		if (panel_size.x <= 0.0f || panel_size.y <= 0.0f)
+			return false;
+
+		const float nx = math::clamp((mouse_pos.x - panel_pos.x) / panel_size.x, 0.0f, 1.0f);
+		const float ny = math::clamp((mouse_pos.y - panel_pos.y) / panel_size.y, 0.0f, 1.0f);
+
+		const float ndc_x = nx * 2.0f - 1.0f;
+		const float ndc_y = 1.0f - ny * 2.0f;
+
+		game_world_renderer* wr = editor::get().get_app().get_renderer().get_world_renderer();
+		if (!wr)
+			return false;
+		const view& main_view = wr->get_main_view();
+
+		const vector4 near_v = main_view.inv_view_proj_matrix * vector4(ndc_x, ndc_y, 0.0f, 1.0f);
+		const vector4 far_v	 = main_view.inv_view_proj_matrix * vector4(ndc_x, ndc_y, 1.0f, 1.0f);
+
+		const vector3 near_ws = vector3(near_v.x, near_v.y, near_v.z) / near_v.w;
+		const vector3 far_ws  = vector3(far_v.x, far_v.y, far_v.z) / far_v.w;
+
+		origin	  = main_view.position;
+		direction = (far_ws - near_ws).normalized();
+		return true;
 	}
 
 	void editor_panel_world::set_gizmo_style(gizmo_style style)
@@ -241,7 +303,8 @@ namespace SFG
 	void editor_panel_world::set_playmode(playmode m)
 	{
 		_play_mode = m;
-		_gui_builder.set_toggle_button_state(_btn_play, m == playmode::playing);
+		if (_btn_play != NULL_WIDGET_ID)
+			_gui_builder.set_toggle_button_state(_btn_play, m == playmode::playing);
 
 		if (m == playmode::playing)
 			editor::get().enter_playmode(false);
@@ -249,6 +312,11 @@ namespace SFG
 			editor::get().enter_playmode(true);
 		else
 			editor::get().exit_playmode();
+
+		if (m == playmode::none)
+			build_toolbar();
+		else
+			destroy_toolbar();
 	}
 
 	void editor_panel_world::open_save_popup(popup_action action)
@@ -258,14 +326,14 @@ namespace SFG
 		editor_gui_controller& ctr = editor::get().get_gui_controller();
 		ctr.begin_popup("do you want to save the current level");
 		_popup_save_yes = ctr.popup_add_button("yes");
-		_popup_save_no  = ctr.popup_add_button("no");
+		_popup_save_no	= ctr.popup_add_button("no");
 
-		vekt::mouse_callback& yes_cb = _builder->widget_get_mouse_callbacks(_popup_save_yes);
-		yes_cb.on_mouse				  = on_widget_mouse;
+		vekt::mouse_callback& yes_cb						= _builder->widget_get_mouse_callbacks(_popup_save_yes);
+		yes_cb.on_mouse										= on_widget_mouse;
 		_builder->widget_get_user_data(_popup_save_yes).ptr = this;
 
-		vekt::mouse_callback& no_cb = _builder->widget_get_mouse_callbacks(_popup_save_no);
-		no_cb.on_mouse			  = on_widget_mouse;
+		vekt::mouse_callback& no_cb						   = _builder->widget_get_mouse_callbacks(_popup_save_no);
+		no_cb.on_mouse									   = on_widget_mouse;
 		_builder->widget_get_user_data(_popup_save_no).ptr = this;
 
 		ctr.end_popup();
@@ -306,7 +374,7 @@ namespace SFG
 		}
 
 		// Pressed
-		if (ev.type == vekt::input_event_type::pressed)
+		if (ev.type == vekt::input_event_type::released)
 		{
 			if (widget == self->_ctx_aspect_native)
 			{
@@ -548,11 +616,16 @@ namespace SFG
 
 	bool editor_panel_world::on_mouse_move(const vector2& p)
 	{
+		if (_play_mode != playmode::none)
+			return false;
 		return _gizmo_controls.on_mouse_move(p);
 	}
 
 	bool editor_panel_world::on_mouse_event(const window_event& ev)
 	{
+		if (_play_mode != playmode::none)
+			return false;
+
 		if (ev.button != input_code::mouse_0)
 			return false;
 
@@ -660,8 +733,10 @@ namespace SFG
 
 	void editor_panel_world::on_widget_draw(vekt::builder* b, vekt::id widget)
 	{
-		editor_panel_world* self	  = static_cast<editor_panel_world*>(b->widget_get_user_data(widget).ptr);
-		const vector2		viewer_sz = b->widget_get_size(self->_world_viewer);
+		editor_panel_world* self = static_cast<editor_panel_world*>(b->widget_get_user_data(widget).ptr);
+		if (self->_play_mode != playmode::none)
+			return;
+		const vector2 viewer_sz = b->widget_get_size(self->_world_viewer);
 		self->_gizmo_controls.draw(b->widget_get_pos(self->_world_viewer), viewer_sz, viewer_sz);
 		self->_gizmo_2d.draw(b->widget_get_pos(self->_world_viewer), viewer_sz, viewer_sz);
 	}

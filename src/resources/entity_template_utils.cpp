@@ -355,6 +355,7 @@ namespace SFG
 		entity_template_entity_raw er = {};
 		const entity_meta&		   m  = em.get_entity_meta(entity);
 		er.name						  = m.name;
+		er.tag						  = m.tag;
 		er.position					  = em.get_entity_position(entity);
 		er.scale					  = em.get_entity_scale(entity);
 		er.rotation					  = em.get_entity_rotation(entity);

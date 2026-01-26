@@ -89,6 +89,9 @@ namespace SFG
 		const entity_family&		get_entity_family(world_handle entity) const;
 		const bitmask<uint16>		get_entity_flags(world_handle entity) const;
 		void						set_entity_name(world_handle entity, const char* name);
+		void						set_entity_tag(world_handle entity, const char* tag);
+		world_handle				find_entity_by_tag(const char* tag);
+		void						find_entities_by_tag(const char* tag, vector<world_handle>& out) const;
 		void						set_entity_transient(world_handle entity, bool is_transient);
 		void						add_render_proxy(world_handle entity);
 		void						remove_render_proxy(world_handle entity);
