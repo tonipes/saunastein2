@@ -367,13 +367,13 @@ namespace SFG
 
 		if (!h.is_null())
 		{
-			entity_manager& em = editor::get().get_app().get_world().get_entity_manager();
+			entity_manager& em		= editor::get().get_app().get_world().get_entity_manager();
 			bool			changed = false;
 			em.visit_parents(h, [&](world_handle p) {
 				if (_entity_meta[p.index].collapsed)
 				{
 					_entity_meta[p.index].collapsed = 0;
-					changed = true;
+					changed							= true;
 				}
 			});
 			if (changed)
@@ -428,6 +428,49 @@ namespace SFG
 		set_collapse(h, collapsed ? 1 : 0);
 	}
 
+	void editor_panel_entities::on_context_item(vekt::id widget)
+	{
+		if (widget == _ctx_new_entity)
+		{
+			world&			   w  = editor::get().get_app().get_world();
+			entity_manager&	   em = w.get_entity_manager();
+			const world_handle h  = em.create_entity("new_entity");
+			set_selected(h);
+			return;
+		}
+
+		if (widget == _ctx_add_child && !_selected_entity.is_null())
+		{
+			world&			   w  = editor::get().get_app().get_world();
+			entity_manager&	   em = w.get_entity_manager();
+			const world_handle h  = em.create_entity("new_entity");
+
+			_entity_meta[_selected_entity.index].collapsed = 0;
+			em.add_child(_selected_entity, h);
+
+			set_selected(h);
+			return;
+		}
+
+		if (widget == _ctx_duplicate && !_selected_entity.is_null())
+		{
+			world&			   w  = editor::get().get_app().get_world();
+			entity_manager&	   em = w.get_entity_manager();
+			const world_handle h  = em.clone_entity(_selected_entity);
+			set_selected(h);
+			return;
+		}
+
+		if (widget == _ctx_delete && !_selected_entity.is_null())
+		{
+			world&			w  = editor::get().get_app().get_world();
+			entity_manager& em = w.get_entity_manager();
+			em.destroy_entity(_selected_entity);
+			set_selected({});
+			return;
+		}
+	}
+
 	vekt::input_event_result editor_panel_entities::on_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase)
 	{
 		editor_panel_entities* self = static_cast<editor_panel_entities*>(b->widget_get_user_data(widget).ptr);
@@ -442,9 +485,6 @@ namespace SFG
 				{
 					editor::get().get_gui_controller().begin_context_menu(ev.position.x, ev.position.y);
 					self->_ctx_new_entity = editor::get().get_gui_controller().add_context_menu_item("new_entity");
-
-					b->widget_get_user_data(self->_ctx_new_entity).ptr			  = self;
-					b->widget_get_mouse_callbacks(self->_ctx_new_entity).on_mouse = on_mouse;
 					editor::get().get_gui_controller().end_context_menu();
 				}
 
@@ -489,14 +529,6 @@ namespace SFG
 					self->_ctx_add_child = editor::get().get_gui_controller().add_context_menu_item("add_child");
 					self->_ctx_duplicate = editor::get().get_gui_controller().add_context_menu_item("duplicate");
 					self->_ctx_delete	 = editor::get().get_gui_controller().add_context_menu_item("delete");
-
-					b->widget_get_mouse_callbacks(self->_ctx_add_child).on_mouse = on_mouse;
-					b->widget_get_mouse_callbacks(self->_ctx_duplicate).on_mouse = on_mouse;
-					b->widget_get_mouse_callbacks(self->_ctx_delete).on_mouse	 = on_mouse;
-					b->widget_get_user_data(self->_ctx_add_child).ptr			 = self;
-					b->widget_get_user_data(self->_ctx_duplicate).ptr			 = self;
-					b->widget_get_user_data(self->_ctx_delete).ptr				 = self;
-
 					editor::get().get_gui_controller().end_context_menu();
 
 					self->set_selected(clicked);
@@ -524,49 +556,6 @@ namespace SFG
 			}
 
 			return vekt::input_event_result::handled;
-		}
-
-		if (ev.type == vekt::input_event_type::pressed)
-		{
-			if (ev.type == vekt::input_event_type::pressed && widget == self->_ctx_new_entity)
-			{
-				world&			   w  = editor::get().get_app().get_world();
-				entity_manager&	   em = w.get_entity_manager();
-				const world_handle h  = em.create_entity("new_entity");
-				self->set_selected(h);
-				return vekt::input_event_result::handled;
-			}
-
-			if (ev.type == vekt::input_event_type::pressed && widget == self->_ctx_add_child && !self->_selected_entity.is_null())
-			{
-				world&			   w  = editor::get().get_app().get_world();
-				entity_manager&	   em = w.get_entity_manager();
-				const world_handle h  = em.create_entity("new_entity");
-
-				self->_entity_meta[self->_selected_entity.index].collapsed = 0;
-				em.add_child(self->_selected_entity, h);
-
-				self->set_selected(h);
-				return vekt::input_event_result::handled;
-			}
-
-			if (ev.type == vekt::input_event_type::pressed && widget == self->_ctx_duplicate && !self->_selected_entity.is_null())
-			{
-				world&			   w  = editor::get().get_app().get_world();
-				entity_manager&	   em = w.get_entity_manager();
-				const world_handle h  = em.clone_entity(self->_selected_entity);
-				self->set_selected(h);
-				return vekt::input_event_result::handled;
-			}
-
-			if (ev.type == vekt::input_event_type::pressed && widget == self->_ctx_delete && !self->_selected_entity.is_null())
-			{
-				world&			w  = editor::get().get_app().get_world();
-				entity_manager& em = w.get_entity_manager();
-				em.destroy_entity(self->_selected_entity);
-				self->set_selected({});
-				return vekt::input_event_result::handled;
-			}
 		}
 
 		return vekt::input_event_result::not_handled;

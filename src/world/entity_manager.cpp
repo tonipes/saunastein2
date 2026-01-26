@@ -418,7 +418,7 @@ namespace SFG
 
 		entity_meta& meta = _metas->get(handle.index);
 		meta.name		  = _world.get_text_allocator().allocate(name);
-		meta.tag			  = _world.get_text_allocator().allocate("");
+		meta.tag		  = _world.get_text_allocator().allocate("");
 
 #ifdef SFG_TOOLMODE
 		_hierarchy_dirty = 1;
@@ -467,6 +467,7 @@ namespace SFG
 
 		const entity_transform& src_tr		= _local_transforms->get(source.index);
 		_local_transforms->get(clone.index) = src_tr;
+		teleport_entity(clone);
 
 		const entity_family& source_family = _families->get(source.index);
 		if (target_parent.is_null())
@@ -632,7 +633,7 @@ namespace SFG
 
 	world_handle entity_manager::find_entity_by_tag(const char* tag)
 	{
-		const char* target = tag ? tag : "";
+		const char* target	 = tag ? tag : "";
 		const auto& entities = *_entities;
 		for (auto it = entities.handles_begin(); it != entities.handles_end(); ++it)
 		{
@@ -647,7 +648,7 @@ namespace SFG
 	void entity_manager::find_entities_by_tag(const char* tag, vector<world_handle>& out) const
 	{
 		out.resize(0);
-		const char* target = tag ? tag : "";
+		const char* target	 = tag ? tag : "";
 		const auto& entities = *_entities;
 		for (auto it = entities.handles_begin(); it != entities.handles_end(); ++it)
 		{

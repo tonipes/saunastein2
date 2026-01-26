@@ -112,6 +112,9 @@ namespace SFG
 			gfx.color			  = editor_theme::get().col_frame_bg;
 			gfx.user_data		  = &_user_data;
 
+			vekt::mouse_callback& mb = b->widget_get_mouse_callbacks(_world_viewer);
+			mb.on_mouse				 = on_widget_mouse;
+
 			b->widget_get_user_data(_world_viewer).ptr				  = this;
 			b->widget_get_custom_pass(_world_viewer).custom_draw_pass = on_widget_draw;
 
@@ -319,23 +322,163 @@ namespace SFG
 			destroy_toolbar();
 	}
 
+	void editor_panel_world::on_context_item(vekt::id widget)
+	{
+		if (widget == _ctx_aspect_native)
+		{
+			set_aspect(aspect_ratio::native);
+			return;
+		}
+		if (widget == _ctx_aspect_169)
+		{
+			set_aspect(aspect_ratio::aspect_16_9);
+			return;
+		}
+		if (widget == _ctx_aspect_43)
+		{
+			set_aspect(aspect_ratio::aspect_4_3);
+			return;
+		}
+		if (widget == _ctx_aspect_11)
+		{
+			set_aspect(aspect_ratio::aspect_1_1);
+			return;
+		}
+		if (widget == _ctx_view_rt)
+		{
+			_user_data.type = editor_gui_user_data_type::world_rt;
+			return;
+		}
+		if (widget == _ctx_view_albedo)
+		{
+			_user_data.type = editor_gui_user_data_type::colors_rt;
+			return;
+		}
+		if (widget == _ctx_view_normals)
+		{
+			_user_data.type = editor_gui_user_data_type::normals_rt;
+			return;
+		}
+		if (widget == _ctx_view_orm)
+		{
+			_user_data.type = editor_gui_user_data_type::orm_rt;
+			return;
+		}
+		if (widget == _ctx_view_emissive)
+		{
+			_user_data.type = editor_gui_user_data_type::emissive_rt;
+			return;
+		}
+		if (widget == _ctx_view_depth)
+		{
+			_user_data.type = editor_gui_user_data_type::depth_rt;
+			return;
+		}
+		if (widget == _ctx_view_lighting)
+		{
+			_user_data.type = editor_gui_user_data_type::lighting_rt;
+			return;
+		}
+		if (widget == _ctx_view_ssao)
+		{
+			_user_data.type = editor_gui_user_data_type::ssao_rt;
+			return;
+		}
+		if (widget == _ctx_view_bloom)
+		{
+			_user_data.type = editor_gui_user_data_type::bloom_rt;
+			return;
+		}
+		if (widget == _ctx_new_project)
+		{
+			const string dir = process::select_folder("select project directory");
+			if (!dir.empty())
+				editor::get().new_project(dir.c_str());
+			return;
+		}
+		if (widget == _ctx_open_project)
+		{
+			process::open_directory(editor_settings::get().working_dir.c_str());
+			return;
+		}
+		if (widget == _ctx_package_project)
+		{
+			vector<string> files;
+			process::select_files("select worlds to package", "stkworld", files);
+			if (files.empty())
+				return;
+
+			vector<string> relatives;
+			for (const string& f : files)
+			{
+				if (editor_settings::get().is_in_work_directory(f))
+				{
+					SFG_ERR("skipping world to package because it's not inside working directory. {0}", f);
+					continue;
+				}
+
+				relatives.push_back(editor_settings::get().get_relative(f));
+			}
+
+			const string output = process::select_folder("select package output directory");
+			if (!output.empty())
+				package_manager::get().package_project(relatives, output.c_str());
+			return;
+		}
+		if (widget == _ctx_new_world)
+		{
+			open_save_popup(popup_action::new_world);
+			return;
+		}
+		if (widget == _ctx_save_world)
+		{
+			editor::get().save_lavel();
+			return;
+		}
+		if (widget == _ctx_load_world)
+		{
+			open_save_popup(popup_action::load_world);
+			return;
+		}
+	}
+
+	void editor_panel_world::on_popup_item(vekt::id widget)
+	{
+		const popup_action action = _popup_action;
+
+		if (widget == _popup_save_yes)
+		{
+			editor::get().get_gui_controller().kill_popup();
+			editor::get().save_lavel();
+
+			if (action == popup_action::new_world)
+				editor::get().new_level();
+			else if (action == popup_action::load_world)
+				editor::get().load_level_prompt();
+
+			return;
+		}
+
+		if (widget == _popup_save_no)
+		{
+			editor::get().get_gui_controller().kill_popup();
+
+			if (action == popup_action::new_world)
+				editor::get().new_level();
+			else if (action == popup_action::load_world)
+				editor::get().load_level_prompt();
+
+			return;
+		}
+	}
+
 	void editor_panel_world::open_save_popup(popup_action action)
 	{
-		_popup_action = action;
-
+		_popup_action			   = action;
 		editor_gui_controller& ctr = editor::get().get_gui_controller();
-		ctr.begin_popup("do you want to save the current level");
+		ctr.begin_popup("do you want to save the current level?");
 		_popup_save_yes = ctr.popup_add_button("yes");
 		_popup_save_no	= ctr.popup_add_button("no");
-
-		vekt::mouse_callback& yes_cb						= _builder->widget_get_mouse_callbacks(_popup_save_yes);
-		yes_cb.on_mouse										= on_widget_mouse;
-		_builder->widget_get_user_data(_popup_save_yes).ptr = this;
-
-		vekt::mouse_callback& no_cb						   = _builder->widget_get_mouse_callbacks(_popup_save_no);
-		no_cb.on_mouse									   = on_widget_mouse;
-		_builder->widget_get_user_data(_popup_save_no).ptr = this;
-
 		ctr.end_popup();
 	}
 
@@ -343,197 +486,61 @@ namespace SFG
 	{
 		editor_panel_world* self = static_cast<editor_panel_world*>(b->widget_get_user_data(widget).ptr);
 
-		if (ev.type == vekt::input_event_type::released && ev.button == input_code::mouse_0)
+		if (ev.button == input_code::mouse_0 && widget == self->_world_viewer)
 		{
-			const popup_action action = self->_popup_action;
+			const window_event eev = {
+				.value	  = vector2i16(ev.position.x, ev.position.y),
+				.button	  = static_cast<uint16>(ev.button),
+				.sub_type = static_cast<window_event_sub_type>(ev.type),
+			};
+			if (self->_gizmo_2d.on_mouse_event(eev))
+				return vekt::input_event_result::handled;
 
-			if (widget == self->_popup_save_yes)
-			{
-				editor::get().get_gui_controller().kill_popup();
-				editor::get().save_lavel();
+			if (self->_gizmo_controls.on_mouse_event(eev))
+				return vekt::input_event_result::handled;
 
-				if (action == popup_action::new_world)
-					editor::get().new_level();
-				else if (action == popup_action::load_world)
-					editor::get().load_level_prompt();
+			if (ev.type == vekt::input_event_type::pressed)
+			{
+				const vector2 local		 = ev.position - b->widget_get_pos(self->_world_viewer);
+				const vector2 panel_size = b->widget_get_size(self->_world_viewer);
+				const uint16  x			 = static_cast<uint16>(math::clamp(local.x, 0.0f, panel_size.x - 1.0f));
+				const uint16  y			 = static_cast<uint16>(math::clamp(local.y, 0.0f, panel_size.y - 1.0f));
 
-				return vekt::input_event_result::handled;
-			}
+				const renderer& rend		= editor::get().get_app().get_renderer();
+				const uint8		frame_index = rend.get_frame_index();
+				const uint32	object_id	= rend.get_world_renderer()->get_render_pass_object_id().read_location(x, y, frame_index);
 
-			if (widget == self->_popup_save_no)
-			{
-				editor::get().get_gui_controller().kill_popup();
+				editor_panel_entities* entities = editor::get().get_gui_controller().get_entities();
 
-				if (action == popup_action::new_world)
-					editor::get().new_level();
-				else if (action == popup_action::load_world)
-					editor::get().load_level_prompt();
-
-				return vekt::input_event_result::handled;
-			}
-		}
-
-		// Pressed
-		if (ev.type == vekt::input_event_type::released)
-		{
-			if (widget == self->_ctx_aspect_native)
-			{
-				self->set_aspect(aspect_ratio::native);
-				return vekt::input_event_result::handled;
-			}
-			else if (widget == self->_ctx_aspect_169)
-			{
-				self->set_aspect(aspect_ratio::aspect_16_9);
-				return vekt::input_event_result::handled;
-			}
-			else if (widget == self->_ctx_aspect_43)
-			{
-				self->set_aspect(aspect_ratio::aspect_4_3);
-				return vekt::input_event_result::handled;
-			}
-			else if (widget == self->_ctx_aspect_11)
-			{
-				self->set_aspect(aspect_ratio::aspect_1_1);
-				return vekt::input_event_result::handled;
-			}
-			else if (widget == self->_ctx_view_rt)
-			{
-				self->_user_data.type = editor_gui_user_data_type::world_rt;
-				return vekt::input_event_result::handled;
-			}
-			else if (widget == self->_ctx_view_albedo)
-			{
-				self->_user_data.type = editor_gui_user_data_type::colors_rt;
-				return vekt::input_event_result::handled;
-			}
-			else if (widget == self->_ctx_view_normals)
-			{
-				self->_user_data.type = editor_gui_user_data_type::normals_rt;
-				return vekt::input_event_result::handled;
-			}
-			else if (widget == self->_ctx_view_orm)
-			{
-				self->_user_data.type = editor_gui_user_data_type::orm_rt;
-				return vekt::input_event_result::handled;
-			}
-			else if (widget == self->_ctx_view_emissive)
-			{
-				self->_user_data.type = editor_gui_user_data_type::emissive_rt;
-				return vekt::input_event_result::handled;
-			}
-			else if (widget == self->_ctx_view_depth)
-			{
-				self->_user_data.type = editor_gui_user_data_type::depth_rt;
-				return vekt::input_event_result::handled;
-			}
-			else if (widget == self->_ctx_view_lighting)
-			{
-				self->_user_data.type = editor_gui_user_data_type::lighting_rt;
-				return vekt::input_event_result::handled;
-			}
-			else if (widget == self->_ctx_view_ssao)
-			{
-				self->_user_data.type = editor_gui_user_data_type::ssao_rt;
-				return vekt::input_event_result::handled;
-			}
-			else if (widget == self->_ctx_view_bloom)
-			{
-				self->_user_data.type = editor_gui_user_data_type::bloom_rt;
-				return vekt::input_event_result::handled;
-			}
-			else if (widget == self->_ctx_new_project)
-			{
-				const string dir = process::select_folder("select project directory");
-				if (!dir.empty())
-					editor::get().new_project(dir.c_str());
-				return vekt::input_event_result::handled;
-			}
-			else if (widget == self->_ctx_open_project)
-			{
-				process::open_directory(editor_settings::get().working_dir.c_str());
-				return vekt::input_event_result::handled;
-			}
-			else if (widget == self->_ctx_package_project)
-			{
-				vector<string> files;
-				process::select_files("select worlds to package", "stkworld", files);
-				if (files.empty())
-					return vekt::input_event_result::handled;
-
-				vector<string> relatives;
-				for (const string& f : files)
+				if (object_id == NULL_WORLD_ID)
 				{
-					if (editor_settings::get().is_in_work_directory(f))
-					{
-						SFG_ERR("skipping world to package because it's not inside working directory. {0}", f);
-						continue;
-					}
-
-					relatives.push_back(editor_settings::get().get_relative(f));
+					entities->set_selected({});
+					return vekt::input_event_result::handled;
 				}
 
-				const string output = process::select_folder("select package output directory");
-				if (!output.empty())
-					package_manager::get().package_project(relatives, output.c_str());
-				return vekt::input_event_result::handled;
-			}
-			else if (widget == self->_ctx_new_world)
-			{
-				self->open_save_popup(popup_action::new_world);
-				return vekt::input_event_result::handled;
-			}
-			else if (widget == self->_ctx_save_world)
-			{
-				editor::get().save_lavel();
-				return vekt::input_event_result::handled;
-			}
-			else if (widget == self->_ctx_load_world)
-			{
-				self->open_save_popup(popup_action::load_world);
-				return vekt::input_event_result::handled;
+				entity_manager&	   em	  = editor::get().get_app().get_world().get_entity_manager();
+				const world_handle handle = em.get_valid_handle_by_index(object_id);
+				if (em.is_valid(handle))
+					entities->set_selected(handle);
 			}
 
-			return vekt::input_event_result::not_handled;
+			return vekt::input_event_result::handled;
 		}
-
-		// released
 
 		if (widget == self->_btn_file)
 		{
 			editor_gui_controller& ctr = editor::get().get_gui_controller();
 			const vector2		   pos = b->widget_get_pos(widget) + vector2(0.0f, b->widget_get_size(widget).y);
 			ctr.begin_context_menu(pos.x, pos.y);
-
 			ctr.add_context_menu_title("project");
 			self->_ctx_new_project	   = ctr.add_context_menu_item("new_project");
 			self->_ctx_open_project	   = ctr.add_context_menu_item("open_project");
 			self->_ctx_save_project	   = ctr.add_context_menu_item("save_project");
 			self->_ctx_package_project = ctr.add_context_menu_item("package_project");
-
 			ctr.add_context_menu_title("world");
-
 			self->_ctx_new_world  = ctr.add_context_menu_item("new_world");
 			self->_ctx_save_world = ctr.add_context_menu_item("save_world");
 			self->_ctx_load_world = ctr.add_context_menu_item("load_world");
-
-			b->widget_get_mouse_callbacks(self->_ctx_new_project).on_mouse	   = on_widget_mouse;
-			b->widget_get_mouse_callbacks(self->_ctx_open_project).on_mouse	   = on_widget_mouse;
-			b->widget_get_mouse_callbacks(self->_ctx_save_project).on_mouse	   = on_widget_mouse;
-			b->widget_get_mouse_callbacks(self->_ctx_package_project).on_mouse = on_widget_mouse;
-
-			b->widget_get_mouse_callbacks(self->_ctx_new_world).on_mouse  = on_widget_mouse;
-			b->widget_get_mouse_callbacks(self->_ctx_save_world).on_mouse = on_widget_mouse;
-			b->widget_get_mouse_callbacks(self->_ctx_load_world).on_mouse = on_widget_mouse;
-
-			b->widget_get_user_data(self->_ctx_new_project).ptr		= self;
-			b->widget_get_user_data(self->_ctx_open_project).ptr	= self;
-			b->widget_get_user_data(self->_ctx_save_project).ptr	= self;
-			b->widget_get_user_data(self->_ctx_package_project).ptr = self;
-
-			b->widget_get_user_data(self->_ctx_new_world).ptr  = self;
-			b->widget_get_user_data(self->_ctx_save_world).ptr = self;
-			b->widget_get_user_data(self->_ctx_load_world).ptr = self;
-
 			ctr.end_context_menu();
 			return vekt::input_event_result::handled;
 		}
@@ -547,17 +554,6 @@ namespace SFG
 			self->_ctx_aspect_169	 = ctr.add_context_menu_item_toggle("16:9", self->_aspect == aspect_ratio::aspect_16_9);
 			self->_ctx_aspect_43	 = ctr.add_context_menu_item_toggle("4:3", self->_aspect == aspect_ratio::aspect_4_3);
 			self->_ctx_aspect_11	 = ctr.add_context_menu_item_toggle("1:1", self->_aspect == aspect_ratio::aspect_1_1);
-
-			b->widget_get_mouse_callbacks(self->_ctx_aspect_native).on_mouse = on_widget_mouse;
-			b->widget_get_mouse_callbacks(self->_ctx_aspect_169).on_mouse	 = on_widget_mouse;
-			b->widget_get_mouse_callbacks(self->_ctx_aspect_43).on_mouse	 = on_widget_mouse;
-			b->widget_get_mouse_callbacks(self->_ctx_aspect_11).on_mouse	 = on_widget_mouse;
-
-			b->widget_get_user_data(self->_ctx_aspect_native).ptr = self;
-			b->widget_get_user_data(self->_ctx_aspect_169).ptr	  = self;
-			b->widget_get_user_data(self->_ctx_aspect_43).ptr	  = self;
-			b->widget_get_user_data(self->_ctx_aspect_11).ptr	  = self;
-
 			ctr.end_context_menu();
 			return vekt::input_event_result::handled;
 		}
@@ -585,26 +581,6 @@ namespace SFG
 			self->_ctx_view_ssao  = ctr.add_context_menu_item_toggle("ssao", self->_user_data.type == editor_gui_user_data_type::ssao_rt);
 			self->_ctx_view_bloom = ctr.add_context_menu_item_toggle("bloom", self->_user_data.type == editor_gui_user_data_type::bloom_rt);
 
-			b->widget_get_mouse_callbacks(self->_ctx_view_rt).on_mouse		 = on_widget_mouse;
-			b->widget_get_mouse_callbacks(self->_ctx_view_albedo).on_mouse	 = on_widget_mouse;
-			b->widget_get_mouse_callbacks(self->_ctx_view_normals).on_mouse	 = on_widget_mouse;
-			b->widget_get_mouse_callbacks(self->_ctx_view_emissive).on_mouse = on_widget_mouse;
-			b->widget_get_mouse_callbacks(self->_ctx_view_orm).on_mouse		 = on_widget_mouse;
-			b->widget_get_mouse_callbacks(self->_ctx_view_depth).on_mouse	 = on_widget_mouse;
-			b->widget_get_mouse_callbacks(self->_ctx_view_lighting).on_mouse = on_widget_mouse;
-			b->widget_get_mouse_callbacks(self->_ctx_view_ssao).on_mouse	 = on_widget_mouse;
-			b->widget_get_mouse_callbacks(self->_ctx_view_bloom).on_mouse	 = on_widget_mouse;
-
-			b->widget_get_user_data(self->_ctx_view_rt).ptr		  = self;
-			b->widget_get_user_data(self->_ctx_view_albedo).ptr	  = self;
-			b->widget_get_user_data(self->_ctx_view_normals).ptr  = self;
-			b->widget_get_user_data(self->_ctx_view_emissive).ptr = self;
-			b->widget_get_user_data(self->_ctx_view_orm).ptr	  = self;
-			b->widget_get_user_data(self->_ctx_view_depth).ptr	  = self;
-			b->widget_get_user_data(self->_ctx_view_lighting).ptr = self;
-			b->widget_get_user_data(self->_ctx_view_ssao).ptr	  = self;
-			b->widget_get_user_data(self->_ctx_view_bloom).ptr	  = self;
-
 			ctr.end_context_menu();
 			return vekt::input_event_result::handled;
 
@@ -621,91 +597,46 @@ namespace SFG
 		return _gizmo_controls.on_mouse_move(p);
 	}
 
-	bool editor_panel_world::on_mouse_event(const window_event& ev)
-	{
-		if (_play_mode != playmode::none)
-			return false;
-
-		if (ev.button != input_code::mouse_0)
-			return false;
-
-		if (_gizmo_2d.on_mouse_event(ev))
-			return true;
-
-		if (_gizmo_controls.on_mouse_event(ev))
-			return true;
-
-		if (ev.button == input_code::mouse_0 && ev.sub_type == window_event_sub_type::press)
-		{
-			const vector4 clip			   = _builder->widget_get_clip(_world_viewer);
-			const vector2 mp			   = vector2(ev.value.x, ev.value.y);
-			const bool	  is_world_hovered = clip.is_point_inside(mp.x, mp.y);
-
-			if (is_world_hovered)
-			{
-				const vector2 local		 = mp - _builder->widget_get_pos(_world_viewer);
-				const vector2 panel_size = _builder->widget_get_size(_world_viewer);
-				const uint16  x			 = static_cast<uint16>(math::clamp(local.x, 0.0f, panel_size.x - 1.0f));
-				const uint16  y			 = static_cast<uint16>(math::clamp(local.y, 0.0f, panel_size.y - 1.0f));
-
-				const renderer& rend		= editor::get().get_app().get_renderer();
-				const uint8		frame_index = rend.get_frame_index();
-				const uint32	object_id	= rend.get_world_renderer()->get_render_pass_object_id().read_location(x, y, frame_index);
-
-				editor_panel_entities* entities = editor::get().get_gui_controller().get_entities();
-
-				if (object_id == NULL_WORLD_ID)
-				{
-					entities->set_selected({});
-					return true;
-				}
-
-				entity_manager&	   em	  = editor::get().get_app().get_world().get_entity_manager();
-				const world_handle handle = em.get_valid_handle_by_index(object_id);
-				if (em.is_valid(handle))
-				{
-					entities->set_selected(handle);
-					return true;
-				}
-
-				return true;
-			}
-		}
-
-		return false;
-	}
-
 	bool editor_panel_world::on_key_event(const window_event& ev)
 	{
 		if (ev.sub_type != window_event_sub_type::press)
 			return false;
 
-		if (ev.button == input_code::key_alpha1 && window::is_key_down(input_code::key_lctrl))
+		const bool is_ctrl = window::is_key_down(input_code::key_lctrl);
+
+		if (ev.button == input_code::key_alpha1 && is_ctrl)
 		{
 			set_gizmo_style(gizmo_style::move);
 			return true;
 		}
 
-		if (ev.button == input_code::key_alpha2 && window::is_key_down(input_code::key_lctrl))
+		if (ev.button == input_code::key_alpha2 && is_ctrl)
 		{
 			set_gizmo_style(gizmo_style::rotate);
 			return true;
 		}
-		if (ev.button == input_code::key_alpha3 && window::is_key_down(input_code::key_lctrl))
+		if (ev.button == input_code::key_alpha3 && is_ctrl)
 		{
 			set_gizmo_style(gizmo_style::scale);
 			return true;
 		}
-		if (ev.button == input_code::key_alpha4 && window::is_key_down(input_code::key_lctrl))
+		if (ev.button == input_code::key_alpha4 && is_ctrl)
 		{
 			set_gizmo_space(_gizmo_controls.get_space() == gizmo_space::global ? gizmo_space::local : gizmo_space::global);
 			return true;
 		}
-		if (ev.button == input_code::key_m && window::is_key_down(input_code::key_lctrl))
+		if (ev.button == input_code::key_m && is_ctrl)
 		{
 			set_audio_style(_audio_style == audio_style::on ? audio_style::mute : audio_style::on);
 			return true;
 		}
+
+		if (ev.button == input_code::key_s && is_ctrl)
+		{
+			editor::get().save_lavel();
+			return true;
+		}
+
 		return false;
 	}
 

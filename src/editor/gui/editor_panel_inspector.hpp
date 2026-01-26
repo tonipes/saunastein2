@@ -58,6 +58,8 @@ namespace SFG
 		void init(vekt::builder* b, editor_panel_entities* entities);
 		void uninit();
 		void draw(world& w, const vector2ui16& window_size);
+		void on_context_item(vekt::id widget);
+		void on_popup_item(vekt::id widget);
 
 		inline void kill_context()
 		{
@@ -66,7 +68,6 @@ namespace SFG
 
 		inline void kill_popup()
 		{
-			_popup_ok = NULL_WIDGET_ID;
 		}
 
 		inline vekt::id get_root() const
@@ -90,11 +91,11 @@ namespace SFG
 	private:
 		struct comp_header_button
 		{
-			world_handle handle		  = {};
-			vekt::id	 collapse_row = NULL_WIDGET_ID;
-			vekt::id	 reset_button = NULL_WIDGET_ID;
+			world_handle handle		   = {};
+			vekt::id	 collapse_row  = NULL_WIDGET_ID;
+			vekt::id	 reset_button  = NULL_WIDGET_ID;
 			vekt::id	 remove_button = NULL_WIDGET_ID;
-			string_id	 comp_type	  = 0;
+			string_id	 comp_type	   = 0;
 		};
 
 		struct add_comp_button
@@ -139,12 +140,11 @@ namespace SFG
 		vekt::id _add_component		= NULL_WIDGET_ID;
 		vekt::id _unlock_template	= NULL_WIDGET_ID;
 		vekt::id _save_template		= NULL_WIDGET_ID;
-		vekt::id _popup_ok			= NULL_WIDGET_ID;
 
-		vector<add_comp_button>		 _add_component_buttons = {};
-		vector<comp_header_button>	 _comp_header_buttons	= {};
+		vector<add_comp_button>			 _add_component_buttons		= {};
+		vector<comp_header_button>		 _comp_header_buttons		= {};
 		vector<component_collapse_state> _component_collapse_states = {};
-		vector<selection_debug_draw> _selection_debug_draws = {};
+		vector<selection_debug_draw>	 _selection_debug_draws		= {};
 
 		world_handle _selected_entity = {};
 	};

@@ -106,6 +106,11 @@ namespace SFG
 		}
 
 	private:
+		void kill_context();
+
+		static vekt::input_event_result on_context_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase);
+		static vekt::input_event_result on_popup_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase);
+
 		static void on_separator_drag(vekt::builder* b, vekt::id widget, float mp_x, float mp_y, float delta_x, float delta_y, unsigned int button);
 		static void on_separator_hover_begin(vekt::builder* b, vekt::id widget);
 		static void on_separator_hover_end(vekt::builder* b, vekt::id widget);
@@ -118,13 +123,13 @@ namespace SFG
 		editor_panel_inspector* _panel_inspector = nullptr;
 		uint64					_ctx_frame		 = 0;
 
-		vekt::id _ctx_root		 = NULL_WIDGET_ID;
-		vekt::id _ctx_active	 = NULL_WIDGET_ID;
-		vekt::id _payload		 = NULL_WIDGET_ID;
-		vekt::id _payload_text	 = NULL_WIDGET_ID;
-		uint8	 _payload_active = 0;
-		vekt::id _popup_root		 = NULL_WIDGET_ID;
-		vekt::id _popup_window		 = NULL_WIDGET_ID;
+		vekt::id _ctx_bg			= NULL_WIDGET_ID;
+		vekt::id _ctx_root			= NULL_WIDGET_ID;
+		vekt::id _payload			= NULL_WIDGET_ID;
+		vekt::id _payload_text		= NULL_WIDGET_ID;
+		uint8	 _payload_active	= 0;
+		vekt::id _popup_root		= NULL_WIDGET_ID;
+		vekt::id _popup_window		= NULL_WIDGET_ID;
 		vekt::id _popup_prompt_text = NULL_WIDGET_ID;
 		vekt::id _popup_buttons_row = NULL_WIDGET_ID;
 

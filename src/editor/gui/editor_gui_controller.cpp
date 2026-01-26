@@ -49,7 +49,10 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace SFG
 {
-#define MAX_PAYLOAD_SIZE 128
+#define MAX_PAYLOAD_SIZE   128
+#define CONTEXT_DRAW_ORDER 1000
+#define POPUP_DRAW_ORDER   1000
+
 	static constexpr float SEPARATOR_WIDTH	   = 4.0f;
 	static constexpr float ENTITIES_MIN_WIDTH  = 160.0f;
 	static constexpr float WORLD_MIN_WIDTH	   = 240.0f;
@@ -303,13 +306,13 @@ namespace SFG
 			_builder->widget_set_pos_abs(_payload, vector2(mp.x + 20, mp.y + 20));
 		}
 
-		if (_ctx_active != NULL_WIDGET_ID)
+		if (_ctx_root != NULL_WIDGET_ID)
 		{
-			const vector2 ctx_size = _builder->widget_get_size(_ctx_active);
-			const vector2 ctx_pos  = _builder->widget_get_pos(_ctx_active);
+			const vector2 ctx_size = _builder->widget_get_size(_ctx_root);
+			const vector2 ctx_pos  = _builder->widget_get_pos(_ctx_root);
 			if (ctx_pos.x + ctx_size.x > window_size.x)
 			{
-				vekt::pos_props& pp = _builder->widget_get_pos_props(_ctx_active);
+				vekt::pos_props& pp = _builder->widget_get_pos_props(_ctx_root);
 				pp.pos.x			= window_size.x - ctx_size.x - 50;
 			}
 		}
@@ -352,42 +355,60 @@ namespace SFG
 
 	vekt::id editor_gui_controller::begin_context_menu(float abs_x, float abs_y)
 	{
-		if (_ctx_active != NULL_WIDGET_ID)
-		{
-			_builder->deallocate(_ctx_active);
-			_ctx_active = _ctx_root = NULL_WIDGET_ID;
-		}
+		kill_context();
 
-		using namespace vekt;
 		const editor_theme& theme = editor_theme::get();
-		const id			w	  = _builder->allocate();
-		_ctx_root				  = w;
-		_builder->widget_add_child(_builder->get_root(), w);
+		_ctx_bg					  = _builder->allocate();
 		{
-			pos_props& p = _builder->widget_get_pos_props(w);
-			p.flags		 = pos_flags::pf_x_abs | pos_flags::pf_y_abs | pos_flags::pf_child_pos_column;
-			p.pos.x		 = abs_x;
-			p.pos.y		 = abs_y;
+			vekt::pos_props& p = _builder->widget_get_pos_props(_ctx_bg);
+			p.pos.x = p.pos.y = 0.0f;
+			p.flags			  = vekt::pos_flags::pf_x_relative | vekt::pos_flags::pf_y_relative;
 
-			size_props& sz	 = _builder->widget_get_size_props(w);
-			sz.flags		 = size_flags::sf_x_max_children | size_flags::sf_y_total_children;
-			sz.child_margins = {theme.inner_margin, theme.inner_margin, 0.0f, 0.0f};
-			sz.spacing		 = theme.item_spacing;
+			vekt::size_props& sz = _builder->widget_get_size_props(_ctx_bg);
+			sz.flags			 = vekt::size_flags::sf_x_relative | vekt::size_flags::sf_y_relative;
+			sz.size.x			 = 1.0f;
+			sz.size.y			 = 1.0f;
 
-			widget_gfx& gfx = _builder->widget_get_gfx(w);
-			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_stroke | gfx_flags::gfx_has_hover_color;
-			gfx.color		= theme.col_area_bg;
-			gfx.draw_order	= 1000;
+			vekt::mouse_callback& mc = _builder->widget_get_mouse_callbacks(_ctx_bg);
+			mc.on_mouse				 = on_context_mouse;
 
-			input_color_props& ip = _builder->widget_get_input_colors(w);
-			ip.hovered_color	  = gfx.color;
+			vekt::widget_user_data& ud = _builder->widget_get_user_data(_ctx_bg);
+			ud.ptr					   = this;
 
-			stroke_props& sp = _builder->widget_get_stroke(w);
-			sp.thickness	 = theme.context_menu_outline_thickness;
-			sp.color		 = theme.col_context_menu_outline;
+			vekt::widget_gfx& gfx = _builder->widget_get_gfx(_ctx_bg);
+			gfx.draw_order		  = CONTEXT_DRAW_ORDER;
+
+			_builder->widget_add_child(_builder->get_root(), _ctx_bg);
 		}
 
-		return w;
+		_ctx_root = _builder->allocate();
+		{
+			vekt::pos_props& p = _builder->widget_get_pos_props(_ctx_root);
+			p.flags			   = vekt::pos_flags::pf_x_abs | vekt::pos_flags::pf_y_abs | vekt::pos_flags::pf_child_pos_column;
+			p.pos.x			   = abs_x;
+			p.pos.y			   = abs_y;
+
+			vekt::size_props& sz = _builder->widget_get_size_props(_ctx_root);
+			sz.flags			 = vekt::size_flags::sf_x_max_children | vekt::size_flags::sf_y_total_children;
+			sz.child_margins	 = {theme.inner_margin, theme.inner_margin, 0.0f, 0.0f};
+			sz.spacing			 = theme.item_spacing;
+
+			vekt::widget_gfx& gfx = _builder->widget_get_gfx(_ctx_root);
+			gfx.flags			  = vekt::gfx_flags::gfx_is_rect | vekt::gfx_flags::gfx_has_stroke | vekt::gfx_flags::gfx_has_hover_color;
+			gfx.color			  = theme.col_area_bg;
+			gfx.draw_order		  = CONTEXT_DRAW_ORDER;
+
+			vekt::input_color_props& ip = _builder->widget_get_input_colors(_ctx_root);
+			ip.hovered_color			= gfx.color;
+
+			vekt::stroke_props& sp = _builder->widget_get_stroke(_ctx_root);
+			sp.thickness		   = theme.context_menu_outline_thickness;
+			sp.color			   = theme.col_context_menu_outline;
+
+			_builder->widget_add_child(_ctx_bg, _ctx_root);
+		}
+
+		return _ctx_root;
 	}
 
 	vekt::id editor_gui_controller::add_context_menu_title(const char* label)
@@ -406,11 +427,6 @@ namespace SFG
 			sz.size.x			 = theme.item_height * 10;
 			sz.child_margins	 = {0.0f, 0.0f, theme.inner_margin, theme.inner_margin};
 			sz.spacing			 = theme.row_spacing;
-
-			vekt::widget_gfx& gfx = _builder->widget_get_gfx(w);
-			gfx.flags			  = vekt::gfx_flags::gfx_is_rect;
-			gfx.color			  = {0.0f, 0.0f, 0.0f, 0.0f};
-			gfx.draw_order		  = 1001;
 		}
 
 		const vekt::id txt = _builder->allocate();
@@ -418,7 +434,7 @@ namespace SFG
 			vekt::widget_gfx& gfx = _builder->widget_get_gfx(txt);
 			gfx.flags			  = vekt::gfx_flags::gfx_is_text;
 			gfx.color			  = theme.col_text_dim;
-			gfx.draw_order		  = 1002;
+			gfx.draw_order		  = CONTEXT_DRAW_ORDER + 1;
 
 			vekt::pos_props& pp = _builder->widget_get_pos_props(txt);
 			pp.flags			= vekt::pos_flags::pf_y_relative | vekt::pos_flags::pf_y_anchor_center;
@@ -453,7 +469,13 @@ namespace SFG
 			vekt::widget_gfx& gfx = _builder->widget_get_gfx(w);
 			gfx.flags			  = vekt::gfx_flags::gfx_is_rect | vekt::gfx_flags::gfx_has_hover_color;
 			gfx.color			  = {0.0f, 0.0f, 0.0f, 0.0f};
-			gfx.draw_order		  = 1001;
+			gfx.draw_order		  = CONTEXT_DRAW_ORDER + 1;
+
+			vekt::mouse_callback& mc = _builder->widget_get_mouse_callbacks(w);
+			mc.on_mouse				 = on_context_mouse;
+
+			vekt::widget_user_data& ud = _builder->widget_get_user_data(w);
+			ud.ptr					   = this;
 
 			vekt::input_color_props& ip = _builder->widget_get_input_colors(w);
 			ip.hovered_color			= editor_theme::get().col_accent_second;
@@ -510,11 +532,17 @@ namespace SFG
 			sz.child_margins	 = {0.0f, 0.0f, theme.inner_margin, theme.inner_margin};
 			sz.spacing			 = theme.row_spacing;
 
+			vekt::mouse_callback& mc = _builder->widget_get_mouse_callbacks(w);
+			mc.on_mouse				 = on_context_mouse;
+
+			vekt::widget_user_data& ud = _builder->widget_get_user_data(w);
+			ud.ptr					   = this;
+
 			vekt::widget_gfx& gfx = _builder->widget_get_gfx(w);
 			gfx.flags			  = vekt::gfx_flags::gfx_is_rect;
 			gfx.flags			  = vekt::gfx_flags::gfx_is_rect | vekt::gfx_flags::gfx_has_hover_color;
 			gfx.color			  = {0.0f, 0.0f, 0.0f, 0.0f};
-			gfx.draw_order		  = 1001;
+			gfx.draw_order		  = CONTEXT_DRAW_ORDER + 1;
 
 			vekt::input_color_props& ip = _builder->widget_get_input_colors(w);
 			ip.hovered_color			= editor_theme::get().col_accent_second;
@@ -559,149 +587,119 @@ namespace SFG
 
 	void editor_gui_controller::end_context_menu()
 	{
-		_ctx_active = _ctx_root;
-		_ctx_root	= NULL_WIDGET_ID;
-		_ctx_frame	= frame_info::get_frame();
+		_ctx_frame = frame_info::get_frame();
 		_builder->build_hierarchy();
 	}
 
 	vekt::id editor_gui_controller::begin_popup(const char* prompt)
 	{
-		if (_ctx_active != NULL_WIDGET_ID)
-		{
-			_panel_world->kill_context();
-			_panel_entities->kill_context();
-			_panel_inspector->kill_context();
-			_builder->deallocate(_ctx_active);
-			_ctx_active = _ctx_root = NULL_WIDGET_ID;
-		}
+		kill_context();
+		kill_popup();
 
-		if (_popup_root != NULL_WIDGET_ID)
-		{
-			_builder->deallocate(_popup_root);
-			_popup_root		   = NULL_WIDGET_ID;
-			_popup_window	   = NULL_WIDGET_ID;
-			_popup_prompt_text = NULL_WIDGET_ID;
-			_popup_buttons_row = NULL_WIDGET_ID;
-		}
-
-		using namespace vekt;
 		const editor_theme& theme = editor_theme::get();
-		const id			root  = _builder->allocate();
+		const vekt::id		root  = _builder->allocate();
 		_popup_root				  = root;
 		_builder->widget_add_child(_builder->get_root(), root);
 		{
-			pos_props& p = _builder->widget_get_pos_props(root);
-			p.flags		 = pos_flags::pf_x_abs | pos_flags::pf_y_abs;
-			p.pos.x		 = 0.0f;
-			p.pos.y		 = 0.0f;
+			vekt::pos_props& p = _builder->widget_get_pos_props(root);
+			p.flags			   = vekt::pos_flags::pf_x_abs | vekt::pos_flags::pf_y_abs;
+			p.pos.x			   = 0.0f;
+			p.pos.y			   = 0.0f;
 
-			size_props& sz = _builder->widget_get_size_props(root);
-			sz.flags	   = size_flags::sf_x_relative | size_flags::sf_y_relative;
-			sz.size.x	   = 1.0f;
-			sz.size.y	   = 1.0f;
+			vekt::size_props& sz = _builder->widget_get_size_props(root);
+			sz.flags			 = vekt::size_flags::sf_x_relative | vekt::size_flags::sf_y_relative;
+			sz.size.x			 = 1.0f;
+			sz.size.y			 = 1.0f;
 
-			widget_gfx& gfx = _builder->widget_get_gfx(root);
-			gfx.flags		= gfx_flags::gfx_is_rect;
-			gfx.color		= vector4(0.0f, 0.0f, 0.0f, 0.85f);
-			gfx.draw_order	= 2000;
+			vekt::widget_gfx& gfx = _builder->widget_get_gfx(root);
+			gfx.flags			  = vekt::gfx_flags::gfx_is_rect;
+			gfx.color			  = vector4(0.0f, 0.0f, 0.0f, 0.85f);
+			gfx.draw_order		  = POPUP_DRAW_ORDER;
 
-			mouse_callback& mc						 = _builder->widget_get_mouse_callbacks(root);
+			vekt::mouse_callback& mc				 = _builder->widget_get_mouse_callbacks(root);
 			mc.on_mouse								 = on_popup_background_mouse;
 			_builder->widget_get_user_data(root).ptr = this;
 		}
 
-		const id window = _builder->allocate();
-		_popup_window	= window;
+		const vekt::id window = _builder->allocate();
+		_popup_window		  = window;
 		_builder->widget_add_child(root, window);
 		{
-			pos_props& p = _builder->widget_get_pos_props(window);
-			p.flags		 = pos_flags::pf_x_relative | pos_flags::pf_y_relative | pos_flags::pf_x_anchor_center | pos_flags::pf_y_anchor_center | pos_flags::pf_child_pos_column;
-			p.pos.x		 = 0.5f;
-			p.pos.y		 = 0.5f;
+			vekt::pos_props& p = _builder->widget_get_pos_props(window);
+			p.flags			   = vekt::pos_flags::pf_x_relative | vekt::pos_flags::pf_y_relative | vekt::pos_flags::pf_x_anchor_center | vekt::pos_flags::pf_y_anchor_center | vekt::pos_flags::pf_child_pos_column;
+			p.pos.x			   = 0.5f;
+			p.pos.y			   = 0.5f;
 
-			size_props& sz	 = _builder->widget_get_size_props(window);
-			sz.flags		 = size_flags::sf_x_relative | size_flags::sf_y_relative;
-			sz.size.x		 = 0.25f;
-			sz.size.y		 = 0.15f;
-			sz.child_margins = {theme.outer_margin, theme.outer_margin, theme.outer_margin, theme.outer_margin};
-			sz.spacing		 = theme.item_spacing;
+			vekt::size_props& sz = _builder->widget_get_size_props(window);
+			sz.flags			 = vekt::size_flags::sf_x_max_children | vekt::size_flags::sf_y_total_children;
+			sz.size.x			 = 0.25f;
+			sz.size.y			 = 0.15f;
+			sz.child_margins	 = {theme.outer_margin, theme.outer_margin, theme.outer_margin, theme.outer_margin};
+			sz.spacing			 = theme.item_spacing;
 
-			widget_gfx& gfx = _builder->widget_get_gfx(window);
-			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_stroke | gfx_flags::gfx_has_rounding;
-			gfx.color		= theme.col_area_bg;
-			gfx.draw_order	= 2001;
+			vekt::widget_gfx& gfx = _builder->widget_get_gfx(window);
+			gfx.flags			  = vekt::gfx_flags::gfx_is_rect | vekt::gfx_flags::gfx_has_stroke | vekt::gfx_flags::gfx_has_rounding;
+			gfx.color			  = theme.col_area_bg;
+			gfx.draw_order		  = POPUP_DRAW_ORDER + 1;
 
-			stroke_props& sp = _builder->widget_get_stroke(window);
-			sp.thickness	 = theme.frame_thickness;
-			sp.color		 = theme.col_frame_outline;
+			vekt::stroke_props& sp = _builder->widget_get_stroke(window);
+			sp.thickness		   = theme.frame_thickness;
+			sp.color			   = theme.col_frame_outline;
 
-			rounding_props& rp = _builder->widget_get_rounding(window);
-			rp.rounding		   = theme.frame_rounding;
-			rp.segments		   = 8;
+			vekt::rounding_props& rp = _builder->widget_get_rounding(window);
+			rp.rounding				 = theme.frame_rounding;
+			rp.segments				 = 8;
 
-			mouse_callback& mc						   = _builder->widget_get_mouse_callbacks(window);
+			vekt::mouse_callback& mc				   = _builder->widget_get_mouse_callbacks(window);
 			mc.on_mouse								   = on_popup_window_mouse;
 			_builder->widget_get_user_data(window).ptr = this;
 		}
 
-		const id prompt_row = _builder->allocate();
+		const vekt::id prompt_row = _builder->allocate();
 		_builder->widget_add_child(window, prompt_row);
 		{
-			pos_props& p = _builder->widget_get_pos_props(prompt_row);
-			p.flags		 = pos_flags::pf_x_relative | pos_flags::pf_child_pos_row;
-			p.pos.x		 = 0.0f;
+			vekt::pos_props& p = _builder->widget_get_pos_props(prompt_row);
+			p.flags			   = vekt::pos_flags::pf_x_relative;
+			p.pos.x			   = 0.0f;
 
-			size_props& sz	 = _builder->widget_get_size_props(prompt_row);
-			sz.flags		 = size_flags::sf_x_relative | size_flags::sf_y_abs;
-			sz.size.x		 = 1.0f;
-			sz.size.y		 = theme.item_height * 1.5f;
-			sz.child_margins = {theme.inner_margin, theme.inner_margin, theme.inner_margin, theme.inner_margin};
-
-			widget_gfx& gfx = _builder->widget_get_gfx(prompt_row);
-			gfx.flags		= gfx_flags::gfx_is_rect;
-			gfx.color		= vector4();
-			gfx.draw_order	= 2002;
+			vekt::size_props& sz = _builder->widget_get_size_props(prompt_row);
+			sz.flags			 = vekt::size_flags::sf_x_max_children | vekt::size_flags::sf_y_abs;
+			sz.size.y			 = theme.item_height * 1.5f;
 		}
 
-		const id prompt_text = _builder->allocate();
-		_popup_prompt_text	 = prompt_text;
+		const vekt::id prompt_text = _builder->allocate();
+		_popup_prompt_text		   = prompt_text;
 		_builder->widget_add_child(prompt_row, prompt_text);
 		{
-			widget_gfx& gfx = _builder->widget_get_gfx(prompt_text);
-			gfx.flags		= gfx_flags::gfx_is_text;
-			gfx.color		= theme.col_text;
-			gfx.draw_order	= 2003;
+			vekt::widget_gfx& gfx = _builder->widget_get_gfx(prompt_text);
+			gfx.flags			  = vekt::gfx_flags::gfx_is_text;
+			gfx.color			  = theme.col_text;
+			gfx.draw_order		  = POPUP_DRAW_ORDER + 1;
 
-			pos_props& pp = _builder->widget_get_pos_props(prompt_text);
-			pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_y_relative | pos_flags::pf_x_anchor_center | pos_flags::pf_y_anchor_center;
-			pp.pos.x	  = 0.5f;
-			pp.pos.y	  = 0.5f;
+			vekt::pos_props& pp = _builder->widget_get_pos_props(prompt_text);
+			pp.flags			= vekt::pos_flags::pf_x_relative | vekt::pos_flags::pf_y_relative | vekt::pos_flags::pf_x_anchor_center | vekt::pos_flags::pf_y_anchor_center;
+			pp.pos.x			= 0.5f;
+			pp.pos.y			= 0.5f;
 
-			text_props& tp = _builder->widget_get_text(prompt_text);
-			tp.font		   = theme.font_default;
+			vekt::text_props& tp = _builder->widget_get_text(prompt_text);
+			tp.font				 = theme.font_default;
 			_builder->widget_set_text(prompt_text, prompt);
 		}
 
-		const id buttons_row = _builder->allocate();
-		_popup_buttons_row	 = buttons_row;
+		const vekt::id buttons_row = _builder->allocate();
+		_popup_buttons_row		   = buttons_row;
 		_builder->widget_add_child(window, buttons_row);
 		{
-			pos_props& p = _builder->widget_get_pos_props(buttons_row);
-			p.flags		 = pos_flags::pf_x_relative | pos_flags::pf_child_pos_row;
-			p.pos.x		 = 0.0f;
+			vekt::pos_props& p = _builder->widget_get_pos_props(buttons_row);
+			p.flags			   = vekt::pos_flags::pf_x_relative | vekt::pos_flags::pf_child_pos_row;
+			p.pos.x			   = 0.0f;
 
-			size_props& sz	 = _builder->widget_get_size_props(buttons_row);
-			sz.flags		 = size_flags::sf_x_relative | size_flags::sf_y_abs;
-			sz.size.x		 = 1.0f;
-			sz.size.y		 = theme.item_height;
-			sz.child_margins = {theme.inner_margin, theme.inner_margin, theme.inner_margin, theme.inner_margin};
-			sz.spacing		 = theme.item_spacing;
-
-			widget_gfx& gfx = _builder->widget_get_gfx(buttons_row);
-			gfx.flags		= gfx_flags::gfx_is_rect;
-			gfx.color		= vector4();
-			gfx.draw_order	= 2002;
+			vekt::size_props& sz = _builder->widget_get_size_props(buttons_row);
+			sz.flags			 = vekt::size_flags::sf_x_relative | vekt::size_flags::sf_y_abs;
+			sz.size.x			 = 1.0f;
+			sz.size.y			 = theme.item_height;
+			sz.child_margins	 = {theme.inner_margin, theme.inner_margin, theme.inner_margin, theme.inner_margin};
+			sz.spacing			 = theme.item_spacing;
 		}
 
 		return root;
@@ -715,6 +713,7 @@ namespace SFG
 		using namespace vekt;
 		const editor_theme& theme = editor_theme::get();
 		const id			w	  = _builder->allocate();
+
 		_builder->widget_add_child(_popup_buttons_row, w);
 		{
 			pos_props& p = _builder->widget_get_pos_props(w);
@@ -729,7 +728,7 @@ namespace SFG
 			widget_gfx& gfx = _builder->widget_get_gfx(w);
 			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_stroke | gfx_flags::gfx_has_rounding | gfx_flags::gfx_has_press_color | gfx_flags::gfx_has_hover_color;
 			gfx.color		= theme.col_button;
-			gfx.draw_order	= 2003;
+			gfx.draw_order	= POPUP_DRAW_ORDER + 3;
 
 			stroke_props& sp = _builder->widget_get_stroke(w);
 			sp.thickness	 = theme.frame_thickness;
@@ -742,6 +741,12 @@ namespace SFG
 			input_color_props& icp = _builder->widget_get_input_colors(w);
 			icp.pressed_color	   = theme.col_button_press;
 			icp.hovered_color	   = theme.col_button_hover;
+
+			vekt::mouse_callback& mc = _builder->widget_get_mouse_callbacks(w);
+			mc.on_mouse				 = on_popup_mouse;
+
+			vekt::widget_user_data& ud = _builder->widget_get_user_data(w);
+			ud.ptr					   = this;
 		}
 
 		const id txt = _builder->allocate();
@@ -750,7 +755,7 @@ namespace SFG
 			widget_gfx& gfx = _builder->widget_get_gfx(txt);
 			gfx.flags		= gfx_flags::gfx_is_text;
 			gfx.color		= theme.col_text;
-			gfx.draw_order	= 2004;
+			gfx.draw_order	= POPUP_DRAW_ORDER + 3;
 
 			pos_props& pp = _builder->widget_get_pos_props(txt);
 			pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_y_relative | pos_flags::pf_x_anchor_center | pos_flags::pf_y_anchor_center;
@@ -811,6 +816,61 @@ namespace SFG
 	void editor_gui_controller::on_separator_hover_end(vekt::builder* b, vekt::id widget)
 	{
 		SFG::window::set_cursor_state(SFG::cursor_state::arrow);
+	}
+
+	void editor_gui_controller::kill_context()
+	{
+		if (_ctx_bg == NULL_WIDGET_ID)
+			return;
+
+		_panel_world->kill_context();
+		_panel_entities->kill_context();
+		_panel_inspector->kill_context();
+		_builder->deallocate(_ctx_bg);
+		_ctx_bg = _ctx_root = NULL_WIDGET_ID;
+	}
+
+	vekt::input_event_result editor_gui_controller::on_context_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase)
+	{
+		editor_gui_controller* self = static_cast<editor_gui_controller*>(b->widget_get_user_data(widget).ptr);
+		if (ev.type == vekt::input_event_type::pressed && widget == self->_ctx_bg)
+		{
+			self->kill_context();
+			return vekt::input_event_result::handled;
+		}
+
+		// do nothing dont let event go to bg.
+		if (ev.type == vekt::input_event_type::pressed && widget != self->_ctx_bg)
+		{
+
+			return vekt::input_event_result::handled;
+		}
+
+		if (ev.type == vekt::input_event_type::released && widget != self->_ctx_bg)
+		{
+			self->_panel_entities->on_context_item(widget);
+			self->_panel_world->on_context_item(widget);
+			self->_panel_inspector->on_context_item(widget);
+			self->kill_context();
+			return vekt::input_event_result::handled;
+		}
+
+		return vekt::input_event_result::not_handled;
+	}
+
+	vekt::input_event_result editor_gui_controller::on_popup_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase)
+	{
+		editor_gui_controller* self = static_cast<editor_gui_controller*>(b->widget_get_user_data(widget).ptr);
+
+		if (ev.type == vekt::input_event_type::released)
+		{
+			self->_panel_entities->on_popup_item(widget);
+			self->_panel_world->on_popup_item(widget);
+			self->_panel_inspector->on_popup_item(widget);
+			self->kill_popup();
+			return vekt::input_event_result::handled;
+		}
+		return vekt::input_event_result::not_handled;
 	}
 
 	void editor_gui_controller::on_separator_drag(vekt::builder* b, vekt::id widget, float mp_x, float mp_y, float delta_x, float delta_y, unsigned int button)
@@ -883,18 +943,6 @@ namespace SFG
 				}
 				return true;
 			}
-
-			if (frame_info::get_frame() != _ctx_frame && _ctx_active != NULL_WIDGET_ID && ev.sub_type == window_event_sub_type::release)
-			{
-				_panel_world->kill_context();
-				_panel_entities->kill_context();
-				_panel_inspector->kill_context();
-				_builder->deallocate(_ctx_active);
-				_ctx_active = _ctx_root = NULL_WIDGET_ID;
-			}
-
-			if (_panel_world && _panel_world->on_mouse_event(ev))
-				return true;
 
 			if (_builder->widget_get_hover_callbacks(_panel_entities->get_root()).is_hovered)
 				return true;

@@ -2,163 +2,17 @@
     "components": [
         {
             "color": [
-                0.05000000074505806,
-                0.05000000074505806,
-                0.05000000074505806,
-                0.0
+                0.029999999329447746,
+                0.029999999329447746,
+                0.029999999329447746,
+                1.0
             ],
             "comp_type": 2366491877753393331,
             "entity": 0
         },
         {
-            "comp_type": 14356981188726125758,
-            "entity": 56,
-            "machine": "assets/character/idle_state_machine.stkanim",
-            "skin_entities": 55,
-            "skin_entities0": 9,
-            "skin_entities1": 8,
-            "skin_entities10": 20,
-            "skin_entities11": 25,
-            "skin_entities12": 24,
-            "skin_entities13": 23,
-            "skin_entities14": 28,
-            "skin_entities15": 27,
-            "skin_entities16": 26,
-            "skin_entities17": 13,
-            "skin_entities18": 12,
-            "skin_entities19": 11,
-            "skin_entities2": 16,
-            "skin_entities20": 10,
-            "skin_entities21": 35,
-            "skin_entities22": 34,
-            "skin_entities23": 33,
-            "skin_entities24": 38,
-            "skin_entities25": 37,
-            "skin_entities26": 36,
-            "skin_entities27": 41,
-            "skin_entities28": 40,
-            "skin_entities29": 39,
-            "skin_entities3": 15,
-            "skin_entities30": 44,
-            "skin_entities31": 43,
-            "skin_entities32": 42,
-            "skin_entities33": 47,
-            "skin_entities34": 46,
-            "skin_entities35": 45,
-            "skin_entities36": 32,
-            "skin_entities37": 31,
-            "skin_entities38": 30,
-            "skin_entities39": 29,
-            "skin_entities4": 14,
-            "skin_entities40": 7,
-            "skin_entities41": 6,
-            "skin_entities42": 5,
-            "skin_entities43": 51,
-            "skin_entities44": 50,
-            "skin_entities45": 49,
-            "skin_entities46": 48,
-            "skin_entities47": 55,
-            "skin_entities48": 54,
-            "skin_entities49": 53,
-            "skin_entities5": 19,
-            "skin_entities50": 52,
-            "skin_entities51": 4,
-            "skin_entities52": 3,
-            "skin_entities53": 56,
-            "skin_entities54": 2,
-            "skin_entities6": 18,
-            "skin_entities7": 17,
-            "skin_entities8": 22,
-            "skin_entities9": 21
-        },
-        {
             "comp_type": 12829486272651206750,
-            "entity": 56,
-            "material": 2,
-            "material0": "assets/character/character.stkmodel/M_Main",
-            "material1": "assets/character/character.stkmodel/M_Joints",
-            "mesh": "assets/character/character.stkmodel/Mannequin",
-            "skin": "assets/character/character.stkmodel/Rig",
-            "skin_entities": 55,
-            "skin_entities0": 9,
-            "skin_entities1": 8,
-            "skin_entities10": 20,
-            "skin_entities11": 25,
-            "skin_entities12": 24,
-            "skin_entities13": 23,
-            "skin_entities14": 28,
-            "skin_entities15": 27,
-            "skin_entities16": 26,
-            "skin_entities17": 13,
-            "skin_entities18": 12,
-            "skin_entities19": 11,
-            "skin_entities2": 16,
-            "skin_entities20": 10,
-            "skin_entities21": 35,
-            "skin_entities22": 34,
-            "skin_entities23": 33,
-            "skin_entities24": 38,
-            "skin_entities25": 37,
-            "skin_entities26": 36,
-            "skin_entities27": 41,
-            "skin_entities28": 40,
-            "skin_entities29": 39,
-            "skin_entities3": 15,
-            "skin_entities30": 44,
-            "skin_entities31": 43,
-            "skin_entities32": 42,
-            "skin_entities33": 47,
-            "skin_entities34": 46,
-            "skin_entities35": 45,
-            "skin_entities36": 32,
-            "skin_entities37": 31,
-            "skin_entities38": 30,
-            "skin_entities39": 29,
-            "skin_entities4": 14,
-            "skin_entities40": 7,
-            "skin_entities41": 6,
-            "skin_entities42": 5,
-            "skin_entities43": 51,
-            "skin_entities44": 50,
-            "skin_entities45": 49,
-            "skin_entities46": 48,
-            "skin_entities47": 55,
-            "skin_entities48": 54,
-            "skin_entities49": 53,
-            "skin_entities5": 19,
-            "skin_entities50": 52,
-            "skin_entities51": 4,
-            "skin_entities52": 3,
-            "skin_entities53": 56,
-            "skin_entities54": 2,
-            "skin_entities6": 18,
-            "skin_entities7": 17,
-            "skin_entities8": 22,
-            "skin_entities9": 21
-        },
-        {
-            "cast_shadows": 1,
-            "color": [
-                1.0,
-                1.0,
-                1.0,
-                1.0
-            ],
-            "comp_type": 13525139508269883138,
-            "entity": 57,
-            "inner_cone": 27.089378356933594,
-            "intensity": 48.09983825683594,
-            "near_plane": 0.0,
-            "outer_cone": 49.606571197509766,
-            "range": 38.999977111816406,
-            "shadow_res": [
-                1024,
-                1024
-            ]
-        },
-        {
-            "comp_type": 12829486272651206750,
-            "entity": 60,
+            "entity": 3,
             "material": 2,
             "material0": "assets/map/map.stkmodel/old_house_2",
             "material1": "assets/map/map.stkmodel/old_house_1",
@@ -167,26 +21,8 @@
             "skin_entities": 0
         },
         {
-            "body_type": 0,
-            "comp_type": 14536826215375575722,
-            "entity": 60,
-            "extents": [
-                1.0,
-                1.0,
-                1.0
-            ],
-            "is_sensor": 0,
-            "material": "",
-            "offset": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "shape_type": 5
-        },
-        {
             "comp_type": 12829486272651206750,
-            "entity": 61,
+            "entity": 4,
             "material": 1,
             "material0": "assets/map/map.stkmodel/barrel",
             "mesh": "assets/map/map.stkmodel/lp005_barrel_0",
@@ -194,26 +30,8 @@
             "skin_entities": 0
         },
         {
-            "body_type": 2,
-            "comp_type": 14536826215375575722,
-            "entity": 61,
-            "extents": [
-                0.7999999523162842,
-                1.0,
-                1.0
-            ],
-            "is_sensor": 0,
-            "material": "",
-            "offset": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "shape_type": 2
-        },
-        {
             "comp_type": 12829486272651206750,
-            "entity": 62,
+            "entity": 5,
             "material": 1,
             "material0": "assets/map/map.stkmodel/Rock_01_A",
             "mesh": "assets/map/map.stkmodel/defaultMaterial",
@@ -222,7 +40,7 @@
         },
         {
             "comp_type": 12829486272651206750,
-            "entity": 63,
+            "entity": 6,
             "material": 1,
             "material0": "assets/map/map.stkmodel/Terrain",
             "mesh": "assets/map/map.stkmodel/Landscape.006",
@@ -230,26 +48,8 @@
             "skin_entities": 0
         },
         {
-            "body_type": 0,
-            "comp_type": 14536826215375575722,
-            "entity": 63,
-            "extents": [
-                1.0,
-                1.0,
-                1.0
-            ],
-            "is_sensor": 0,
-            "material": "",
-            "offset": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "shape_type": 4
-        },
-        {
             "comp_type": 12829486272651206750,
-            "entity": 64,
+            "entity": 7,
             "material": 1,
             "material0": "assets/map/map.stkmodel/Rock_01_A",
             "mesh": "assets/map/map.stkmodel/defaultMaterial.002",
@@ -257,134 +57,191 @@
             "skin_entities": 0
         },
         {
-            "attenuation": 0,
-            "comp_type": 11611975037412134833,
-            "entity": 65,
-            "looping": 1,
-            "max_radius": 10.0,
-            "min_radius": 0.0,
-            "play_on_start": 1,
-            "resource": "assets/audio/metal.stkaud",
-            "rolloff": 0.0,
-            "volume": 0.0
-        },
-        {
-            "body_type": 0,
-            "comp_type": 14536826215375575722,
-            "entity": 65,
-            "extents": [
-                1.0,
-                1.0,
-                1.0
-            ],
-            "is_sensor": 0,
-            "material": "",
-            "offset": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "shape_type": 1
-        },
-        {
-            "character_padding": 0.019999999552965164,
-            "comp_type": 17190279333344653665,
-            "enhanced_internal_edge_removal": 0,
-            "entity": 67,
-            "half_height": 0.8999999761581421,
-            "mass": 70.0,
-            "max_slope_degrees": 50.0,
-            "max_strength": 100.0,
-            "object_layer": 1,
-            "penetration_recovery_speed": 1.0,
-            "predictive_contact_distance": 0.10000000149011612,
-            "radius": 0.4000000059604645,
-            "shape_offset": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "step_down": 0.5,
-            "step_forward": 0.019999999552965164,
-            "step_forward_contact_angle_degrees": 75.0,
-            "step_forward_test": 0.15000000596046448,
-            "step_up": 0.4000000059604645
-        },
-        {
-            "comp_type": 2550096278038808870,
-            "entity": 68,
-            "far": 500.0,
-            "fov_degrees": 80.0,
-            "near": 0.10000000149011612
+            "comp_type": 14356981188726125758,
+            "entity": 63,
+            "machine": "assets/character/idle_state_machine.stkanim",
+            "skin_entities": 55,
+            "skin_entities0": 16,
+            "skin_entities1": 15,
+            "skin_entities10": 27,
+            "skin_entities11": 32,
+            "skin_entities12": 31,
+            "skin_entities13": 30,
+            "skin_entities14": 35,
+            "skin_entities15": 34,
+            "skin_entities16": 33,
+            "skin_entities17": 20,
+            "skin_entities18": 19,
+            "skin_entities19": 18,
+            "skin_entities2": 23,
+            "skin_entities20": 17,
+            "skin_entities21": 42,
+            "skin_entities22": 41,
+            "skin_entities23": 40,
+            "skin_entities24": 45,
+            "skin_entities25": 44,
+            "skin_entities26": 43,
+            "skin_entities27": 48,
+            "skin_entities28": 47,
+            "skin_entities29": 46,
+            "skin_entities3": 22,
+            "skin_entities30": 51,
+            "skin_entities31": 50,
+            "skin_entities32": 49,
+            "skin_entities33": 54,
+            "skin_entities34": 53,
+            "skin_entities35": 52,
+            "skin_entities36": 39,
+            "skin_entities37": 38,
+            "skin_entities38": 37,
+            "skin_entities39": 36,
+            "skin_entities4": 21,
+            "skin_entities40": 14,
+            "skin_entities41": 13,
+            "skin_entities42": 12,
+            "skin_entities43": 58,
+            "skin_entities44": 57,
+            "skin_entities45": 56,
+            "skin_entities46": 55,
+            "skin_entities47": 62,
+            "skin_entities48": 61,
+            "skin_entities49": 60,
+            "skin_entities5": 26,
+            "skin_entities50": 59,
+            "skin_entities51": 11,
+            "skin_entities52": 10,
+            "skin_entities53": 63,
+            "skin_entities54": 9,
+            "skin_entities6": 25,
+            "skin_entities7": 24,
+            "skin_entities8": 29,
+            "skin_entities9": 28
         },
         {
             "comp_type": 12829486272651206750,
-            "entity": 70,
-            "material": 1,
-            "material0": "assets/cube/cube.stkmodel/CubeMaterial",
-            "mesh": "assets/cube/cube.stkmodel/Cube.001",
-            "skin": "",
-            "skin_entities": 0
+            "entity": 63,
+            "material": 2,
+            "material0": "assets/character/character.stkmodel/M_Main",
+            "material1": "assets/character/character.stkmodel/M_Joints",
+            "mesh": "assets/character/character.stkmodel/Mannequin",
+            "skin": "assets/character/character.stkmodel/Rig",
+            "skin_entities": 55,
+            "skin_entities0": 16,
+            "skin_entities1": 15,
+            "skin_entities10": 27,
+            "skin_entities11": 32,
+            "skin_entities12": 31,
+            "skin_entities13": 30,
+            "skin_entities14": 35,
+            "skin_entities15": 34,
+            "skin_entities16": 33,
+            "skin_entities17": 20,
+            "skin_entities18": 19,
+            "skin_entities19": 18,
+            "skin_entities2": 23,
+            "skin_entities20": 17,
+            "skin_entities21": 42,
+            "skin_entities22": 41,
+            "skin_entities23": 40,
+            "skin_entities24": 45,
+            "skin_entities25": 44,
+            "skin_entities26": 43,
+            "skin_entities27": 48,
+            "skin_entities28": 47,
+            "skin_entities29": 46,
+            "skin_entities3": 22,
+            "skin_entities30": 51,
+            "skin_entities31": 50,
+            "skin_entities32": 49,
+            "skin_entities33": 54,
+            "skin_entities34": 53,
+            "skin_entities35": 52,
+            "skin_entities36": 39,
+            "skin_entities37": 38,
+            "skin_entities38": 37,
+            "skin_entities39": 36,
+            "skin_entities4": 21,
+            "skin_entities40": 14,
+            "skin_entities41": 13,
+            "skin_entities42": 12,
+            "skin_entities43": 58,
+            "skin_entities44": 57,
+            "skin_entities45": 56,
+            "skin_entities46": 55,
+            "skin_entities47": 62,
+            "skin_entities48": 61,
+            "skin_entities49": 60,
+            "skin_entities5": 26,
+            "skin_entities50": 59,
+            "skin_entities51": 11,
+            "skin_entities52": 10,
+            "skin_entities53": 63,
+            "skin_entities54": 9,
+            "skin_entities6": 25,
+            "skin_entities7": 24,
+            "skin_entities8": 29,
+            "skin_entities9": 28
         },
         {
             "comp_type": 1084153302536849766,
-            "entity": 71,
+            "entity": 64,
             "material": "assets/_defaults/materials/particle_fire_core.stkmat",
             "particle": "assets/_defaults/particles/fire_core.stkparticle"
         },
         {
             "cast_shadows": 1,
             "color": [
-                2.200000047683716,
-                1.5000001192092896,
-                0.5999999046325684,
+                3.899998664855957,
+                0.9000002145767212,
+                0.49999991059303284,
                 1.0
             ],
             "comp_type": 444826457028991798,
-            "entity": 72,
-            "intensity": 25.0,
+            "entity": 65,
+            "intensity": 25.700061798095703,
             "near_plane": 0.0,
-            "range": 15.0,
+            "range": 8.099994659423828,
             "shadow_res": [
-                1024,
-                1024
+                512,
+                512
             ]
         }
     ],
     "entities": [
         {
             "first_child": -1,
-            "name": "ambient_light",
+            "name": "ambient",
             "next_sibling": -1,
             "parent": -1,
             "pos": [
                 0.0,
-                6.532296657562256,
-                18.80067253112793
+                0.0,
+                0.0
             ],
             "rot": [
-                -0.3739836513996124,
-                -0.019834017381072044,
-                0.2271036058664322,
-                0.8989809155464172
+                0.0,
+                0.0,
+                0.0,
+                1.0
             ],
             "scale": [
                 1.0,
                 1.0,
                 1.0
             ],
+            "tag": "",
             "template": "",
             "visible": 1
         },
         {
             "first_child": 2,
-            "name": "assets/character/character.stkmodel",
+            "name": "assets/map/map.stkmodel",
             "next_sibling": -1,
             "parent": -1,
             "pos": [
-                0.0,
-                0.18317748606204987,
-                8.36319351196289
+                0.042176708579063416,
+                1.9335980415344238,
+                4.63454532623291
             ],
             "rot": [
                 0.0,
@@ -393,17 +250,18 @@
                 1.0
             ],
             "scale": [
-                1.5,
-                1.5,
-                1.5
+                1.0,
+                1.0,
+                1.0
             ],
+            "tag": "",
             "template": "",
             "visible": 1
         },
         {
-            "first_child": 3,
-            "name": "Rig",
-            "next_sibling": -1,
+            "first_child": -1,
+            "name": "door_2",
+            "next_sibling": 3,
             "parent": 1,
             "pos": [
                 0.0,
@@ -421,1386 +279,19 @@
                 1.0,
                 1.0
             ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 4,
-            "name": "root",
-            "next_sibling": 56,
-            "parent": 2,
-            "pos": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "rot": [
-                -0.7071067094802856,
-                0.0,
-                0.0,
-                0.7071068286895752
-            ],
-            "scale": [
-                1.0,
-                0.9999999403953552,
-                0.9999999403953552
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 5,
-            "name": "DEF-hips",
-            "next_sibling": -1,
-            "parent": 3,
-            "pos": [
-                0.012078593485057354,
-                0.049988072365522385,
-                0.8837480545043945
-            ],
-            "rot": [
-                0.7902773022651672,
-                0.016308719292283058,
-                -0.0022275818046182394,
-                0.6125283241271973
-            ],
-            "scale": [
-                1.0,
-                0.9999999403953552,
-                0.9999999403953552
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 6,
-            "name": "DEF-spine.001",
-            "next_sibling": 48,
-            "parent": 4,
-            "pos": [
-                1.1292301316245812e-08,
-                0.13817636668682098,
-                7.566989523866141e-08
-            ],
-            "rot": [
-                -0.06470268219709396,
-                1.1878266548137617e-07,
-                -4.96358465440494e-09,
-                0.9979045987129211
-            ],
-            "scale": [
-                1.0,
-                0.9999999403953552,
-                1.0
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 7,
-            "name": "DEF-spine.002",
-            "next_sibling": -1,
-            "parent": 5,
-            "pos": [
-                5.078612641540303e-09,
-                0.12403485178947449,
-                2.130113507803344e-08
-            ],
-            "rot": [
-                -0.03486701473593712,
-                0.009830840863287449,
-                0.003149456111714244,
-                0.999338686466217
-            ],
-            "scale": [
-                1.0,
-                0.9999998211860657,
-                0.9999998807907104
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 8,
-            "name": "DEF-spine.003",
-            "next_sibling": -1,
-            "parent": 6,
-            "pos": [
-                1.4260872482907416e-09,
-                0.14127172529697418,
-                2.5866211394998118e-09
-            ],
-            "rot": [
-                0.12703059613704681,
-                0.028354883193969727,
-                -0.01177728921175003,
-                0.991423487663269
-            ],
-            "scale": [
-                1.0,
-                0.9999997019767761,
-                0.9999998807907104
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 9,
-            "name": "DEF-neck",
-            "next_sibling": 10,
-            "parent": 7,
-            "pos": [
-                9.313271265298795e-10,
-                0.1728908121585846,
-                3.1366901964702265e-08
-            ],
-            "rot": [
-                0.02600879594683647,
-                -0.01746341586112976,
-                0.011814064346253872,
-                0.9994393587112427
-            ],
-            "scale": [
-                1.0000001192092896,
-                1.000000238418579,
-                1.0000001192092896
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": -1,
-            "name": "DEF-head",
-            "next_sibling": -1,
-            "parent": 8,
-            "pos": [
-                1.3969853052131498e-09,
-                0.08258677273988724,
-                -4.891579141741431e-09
-            ],
-            "rot": [
-                -0.028741242364048958,
-                -0.015675866976380348,
-                0.012753533199429512,
-                0.9993826150894165
-            ],
-            "scale": [
-                0.9999999403953552,
-                0.9999996423721313,
-                0.9999997019767761
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 11,
-            "name": "DEF-shoulder.L",
-            "next_sibling": 29,
-            "parent": 7,
-            "pos": [
-                0.018799975514411926,
-                0.1405535340309143,
-                0.08089505881071091
-            ],
-            "rot": [
-                -0.6154536008834839,
-                -0.3242743909358978,
-                -0.335215300321579,
-                0.6353690028190613
-            ],
-            "scale": [
-                1.0000001192092896,
-                1.0,
-                0.9999999403953552
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 12,
-            "name": "DEF-upper_arm.L",
-            "next_sibling": -1,
-            "parent": 10,
-            "pos": [
-                -0.030072318390011787,
-                0.2185816764831543,
-                -0.0169686209410429
-            ],
-            "rot": [
-                -0.27638697624206543,
-                0.6524481177330017,
-                -0.5573670864105225,
-                0.43273964524269104
-            ],
-            "scale": [
-                1.0000001192092896,
-                1.000000238418579,
-                0.9999998807907104
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 13,
-            "name": "DEF-forearm.L",
-            "next_sibling": -1,
-            "parent": 11,
-            "pos": [
-                -4.077864090845651e-08,
-                0.27444007992744446,
-                -1.8715610394792748e-08
-            ],
-            "rot": [
-                0.27241483330726624,
-                0.00909370742738247,
-                -0.05245091766119003,
-                0.9607061743736267
-            ],
-            "scale": [
-                0.9999999403953552,
-                0.9999997019767761,
-                0.9999998807907104
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 14,
-            "name": "DEF-hand.L",
-            "next_sibling": -1,
-            "parent": 12,
-            "pos": [
-                2.17020463821882e-08,
-                0.2726406753063202,
-                -3.68665098449128e-08
-            ],
-            "rot": [
-                0.03713160753250122,
-                0.018916307017207146,
-                -0.011683959513902664,
-                0.9990630149841309
-            ],
-            "scale": [
-                1.0000001192092896,
-                0.9999998807907104,
-                1.0
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 15,
-            "name": "DEF-f_index.01.L",
-            "next_sibling": 17,
-            "parent": 13,
-            "pos": [
-                0.0019999328069388866,
-                0.11989998817443848,
-                0.0308998990803957
-            ],
-            "rot": [
-                0.4451906979084015,
-                0.5493689775466919,
-                -0.4451938569545746,
-                0.549364447593689
-            ],
-            "scale": [
-                1.0000001192092896,
-                0.9999997615814209,
-                1.000000238418579
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 16,
-            "name": "DEF-f_index.02.L",
-            "next_sibling": -1,
-            "parent": 14,
-            "pos": [
-                -4.8822073495102813e-08,
-                0.04070005938410759,
-                -4.195472769197295e-08
-            ],
-            "rot": [
-                0.6233417987823486,
-                -4.3332809696039476e-07,
-                2.2160297419304698e-07,
-                0.781949520111084
-            ],
-            "scale": [
-                0.9999998807907104,
-                1.0,
-                0.9999999403953552
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": -1,
-            "name": "DEF-f_index.03.L",
-            "next_sibling": -1,
-            "parent": 15,
-            "pos": [
-                -3.204058884875849e-08,
-                0.03480000048875809,
-                -6.708373234687315e-08
-            ],
-            "rot": [
-                0.62334144115448,
-                -1.643614524482473e-07,
-                -2.644077596869465e-07,
-                0.7819497585296631
-            ],
-            "scale": [
-                1.000000238418579,
-                0.9999998211860657,
-                1.0
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 18,
-            "name": "DEF-f_middle.01.L",
-            "next_sibling": 20,
-            "parent": 13,
-            "pos": [
-                -0.0004001546767540276,
-                0.12159987539052963,
-                0.005200018174946308
-            ],
-            "rot": [
-                0.4320901334285736,
-                0.5386998057365417,
-                -0.4580466151237488,
-                0.5597268342971802
-            ],
-            "scale": [
-                1.0000001192092896,
-                0.9999997615814209,
-                1.0
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 19,
-            "name": "DEF-f_middle.02.L",
-            "next_sibling": -1,
-            "parent": 17,
-            "pos": [
-                2.2930807475063375e-08,
-                0.04234727844595909,
-                -9.618088370189071e-08
-            ],
-            "rot": [
-                0.6233408451080322,
-                0.0009432585211470723,
-                0.0011835776967927814,
-                0.7819488048553467
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": -1,
-            "name": "DEF-f_middle.03.L",
-            "next_sibling": -1,
-            "parent": 18,
-            "pos": [
-                -2.8357713954818564e-09,
-                0.03393308445811272,
-                7.235578891595651e-08
-            ],
-            "rot": [
-                0.6233413219451904,
-                -0.0007042833021841943,
-                -0.0008834128966554999,
-                0.7819491028785706
-            ],
-            "scale": [
-                1.0,
-                1.000000238418579,
-                1.0000001192092896
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 21,
-            "name": "DEF-f_pinky.01.L",
-            "next_sibling": 23,
-            "parent": 13,
-            "pos": [
-                0.0015999509487301111,
-                0.10769982635974884,
-                -0.04080004245042801
-            ],
-            "rot": [
-                0.504056990146637,
-                0.511541485786438,
-                -0.4351515769958496,
-                0.5430423021316528
-            ],
-            "scale": [
-                1.0000001192092896,
-                1.0,
-                1.0
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 22,
-            "name": "DEF-f_pinky.02.L",
-            "next_sibling": -1,
-            "parent": 20,
-            "pos": [
-                1.6471050301447576e-08,
-                0.040290556848049164,
-                -1.2808351357307401e-07
-            ],
-            "rot": [
-                0.623163104057312,
-                -0.020061608403921127,
-                0.014925489202141762,
-                0.7816920876502991
-            ],
-            "scale": [
-                0.9999999403953552,
-                0.9999999403953552,
-                1.0
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": -1,
-            "name": "DEF-f_pinky.03.L",
-            "next_sibling": -1,
-            "parent": 21,
-            "pos": [
-                -2.4739488679870192e-08,
-                0.02766544744372368,
-                -4.364343908491719e-08
-            ],
-            "rot": [
-                0.6233413815498352,
-                0.00037992728175595403,
-                0.0004765242920257151,
-                0.7819495797157288
-            ],
-            "scale": [
-                0.9999997615814209,
-                0.9999998211860657,
-                1.0000001192092896
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 24,
-            "name": "DEF-f_ring.01.L",
-            "next_sibling": 26,
-            "parent": 13,
-            "pos": [
-                -0.00010008002573158592,
-                0.1190999299287796,
-                -0.017100036144256592
-            ],
-            "rot": [
-                0.4353399872779846,
-                0.5413559675216675,
-                -0.4549039602279663,
-                0.5572030544281006
-            ],
-            "scale": [
-                1.0000001192092896,
-                0.9999996423721313,
-                0.9999999403953552
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 25,
-            "name": "DEF-f_ring.02.L",
-            "next_sibling": -1,
-            "parent": 23,
-            "pos": [
-                -3.779720003649345e-08,
-                0.03932494670152664,
-                1.4961442218464072e-07
-            ],
-            "rot": [
-                0.6233412027359009,
-                7.250612270581769e-06,
-                9.402313480677549e-06,
-                0.7819499969482422
-            ],
-            "scale": [
-                0.9999999403953552,
-                1.000000238418579,
-                1.0000001192092896
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": -1,
-            "name": "DEF-f_ring.03.L",
-            "next_sibling": -1,
-            "parent": 24,
-            "pos": [
-                1.3620671701630727e-08,
-                0.030919479206204414,
-                2.2055358428474392e-08
-            ],
-            "rot": [
-                0.6233415007591248,
-                -0.000665118102915585,
-                -0.0008344429661519825,
-                0.781948983669281
-            ],
-            "scale": [
-                0.9999997615814209,
-                0.9999998807907104,
-                1.0000001192092896
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 27,
-            "name": "DEF-thumb.01.L",
-            "next_sibling": -1,
-            "parent": 13,
-            "pos": [
-                0.02280004695057869,
-                0.027300018817186356,
-                0.033600032329559326
-            ],
-            "rot": [
-                0.29083871841430664,
-                0.9496490955352783,
-                0.11458338052034378,
-                0.02121701091527939
-            ],
-            "scale": [
-                0.9999998211860657,
-                0.9999997615814209,
-                1.0
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 28,
-            "name": "DEF-thumb.02.L",
-            "next_sibling": -1,
-            "parent": 26,
-            "pos": [
-                1.2212822753099317e-08,
-                0.043029818683862686,
-                2.698503642761807e-08
-            ],
-            "rot": [
-                0.2193901389837265,
-                0.023802654817700386,
-                -0.005304757971316576,
-                0.9753323793411255
-            ],
-            "scale": [
-                1.0,
-                0.9999997615814209,
-                0.9999999403953552
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": -1,
-            "name": "DEF-thumb.03.L",
-            "next_sibling": -1,
-            "parent": 27,
-            "pos": [
-                8.336765944250146e-08,
-                0.049078043550252914,
-                1.598766985466682e-08
-            ],
-            "rot": [
-                0.6873881816864014,
-                -0.00030981170129962265,
-                -0.00044513182365335524,
-                0.7262900471687317
-            ],
-            "scale": [
-                1.0000001192092896,
-                1.0000001192092896,
-                1.0000001192092896
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 30,
-            "name": "DEF-shoulder.R",
-            "next_sibling": -1,
-            "parent": 7,
-            "pos": [
-                -0.018800038844347,
-                0.14055366814136505,
-                0.08089502900838852
-            ],
-            "rot": [
-                -0.6096903681755066,
-                0.33498436212539673,
-                0.34627193212509155,
-                0.6294115781784058
-            ],
-            "scale": [
-                1.0000001192092896,
-                0.9999999403953552,
-                0.9999998807907104
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 31,
-            "name": "DEF-upper_arm.R",
-            "next_sibling": -1,
-            "parent": 29,
-            "pos": [
-                0.030072417110204697,
-                0.21858172118663788,
-                -0.016968190670013428
-            ],
-            "rot": [
-                -0.11481824517250061,
-                -0.6231788992881775,
-                0.6483876705169678,
-                0.42196953296661377
-            ],
-            "scale": [
-                1.0000001192092896,
-                1.0000003576278687,
-                0.9999998807907104
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 32,
-            "name": "DEF-forearm.R",
-            "next_sibling": -1,
-            "parent": 30,
-            "pos": [
-                1.1528722154707793e-07,
-                0.2744404673576355,
-                1.456057052706683e-08
-            ],
-            "rot": [
-                0.34410980343818665,
-                0.15259617567062378,
-                0.051073119044303894,
-                0.9250374436378479
-            ],
-            "scale": [
-                0.9999999403953552,
-                1.0000001192092896,
-                0.9999998807907104
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 33,
-            "name": "DEF-hand.R",
-            "next_sibling": -1,
-            "parent": 31,
-            "pos": [
-                4.315139889854436e-08,
-                0.27264031767845154,
-                -2.4564828393636162e-08
-            ],
-            "rot": [
-                0.21140791475772858,
-                -0.009976492263376713,
-                0.009200573898851871,
-                0.977303683757782
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                0.9999998807907104
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 34,
-            "name": "DEF-f_index.01.R",
-            "next_sibling": 36,
-            "parent": 32,
-            "pos": [
-                -0.0019999537616968155,
-                0.11989995092153549,
-                0.030900103971362114
-            ],
-            "rot": [
-                0.4451904296875,
-                -0.5493689775466919,
-                0.44519415497779846,
-                0.5493645668029785
-            ],
-            "scale": [
-                1.0000001192092896,
-                1.0,
-                1.0000001192092896
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 35,
-            "name": "DEF-f_index.02.R",
-            "next_sibling": -1,
-            "parent": 33,
-            "pos": [
-                -5.008147851981448e-08,
-                0.04069996252655983,
-                -5.980596995414089e-08
-            ],
-            "rot": [
-                0.62334144115448,
-                -1.2255955539330898e-07,
-                1.3776046081659388e-08,
-                0.7819497585296631
-            ],
-            "scale": [
-                0.9999998807907104,
-                0.9999999403953552,
-                0.9999999403953552
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": -1,
-            "name": "DEF-f_index.03.R",
-            "next_sibling": -1,
-            "parent": 34,
-            "pos": [
-                -3.512192847665574e-08,
-                0.03479992598295212,
-                -7.015982816938049e-08
-            ],
-            "rot": [
-                0.6233422756195068,
-                -3.311058094368491e-07,
-                1.1195651694606568e-07,
-                0.7819491028785706
-            ],
-            "scale": [
-                1.0,
-                1.0000001192092896,
-                1.0000001192092896
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 37,
-            "name": "DEF-f_middle.01.R",
-            "next_sibling": 39,
-            "parent": 32,
-            "pos": [
-                0.0004001730412710458,
-                0.12159990519285202,
-                0.0052000549621880054
-            ],
-            "rot": [
-                0.4320899546146393,
-                -0.5386998057365417,
-                0.458046555519104,
-                0.559726893901825
-            ],
-            "scale": [
-                0.9999999403953552,
-                0.9999998807907104,
-                1.000000238418579
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 38,
-            "name": "DEF-f_middle.02.R",
-            "next_sibling": -1,
-            "parent": 36,
-            "pos": [
-                -4.192986935436238e-08,
-                0.04234744608402252,
-                -3.839317308518275e-09
-            ],
-            "rot": [
-                0.6233410239219666,
-                -0.0009433283121325076,
-                -0.0011837562778964639,
-                0.7819486260414124
-            ],
-            "scale": [
-                1.0,
-                0.9999998807907104,
-                0.9999998211860657
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": -1,
-            "name": "DEF-f_middle.03.R",
-            "next_sibling": -1,
-            "parent": 37,
-            "pos": [
-                -1.395345350374555e-07,
-                0.033933114260435104,
-                -7.987500794115476e-08
-            ],
-            "rot": [
-                0.6233412027359009,
-                0.0007042541983537376,
-                0.0008834070758894086,
-                0.7819491624832153
-            ],
-            "scale": [
-                0.9999998807907104,
-                1.0,
-                1.0000001192092896
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 40,
-            "name": "DEF-f_pinky.01.R",
-            "next_sibling": 42,
-            "parent": 32,
-            "pos": [
-                -0.0015999922761693597,
-                0.1076999381184578,
-                -0.040799979120492935
-            ],
-            "rot": [
-                0.5040571093559265,
-                -0.5115413665771484,
-                0.4351516366004944,
-                0.5430422425270081
-            ],
-            "scale": [
-                1.0000001192092896,
-                1.0,
-                1.0
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 41,
-            "name": "DEF-f_pinky.02.R",
-            "next_sibling": -1,
-            "parent": 39,
-            "pos": [
-                -8.594336264877711e-08,
-                0.040290508419275284,
-                5.548151271739243e-09
-            ],
-            "rot": [
-                0.6231629252433777,
-                0.020061498507857323,
-                -0.014925786294043064,
-                0.7816922664642334
-            ],
-            "scale": [
-                0.9999998211860657,
-                0.9999996423721313,
-                1.0000001192092896
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": -1,
-            "name": "DEF-f_pinky.03.R",
-            "next_sibling": -1,
-            "parent": 40,
-            "pos": [
-                9.898138841890614e-08,
-                0.027665290981531143,
-                3.7548630871242494e-08
-            ],
-            "rot": [
-                0.6233416199684143,
-                -0.0003798356046900153,
-                -0.0004762211174238473,
-                0.7819494605064392
-            ],
-            "scale": [
-                1.0,
-                0.9999998211860657,
-                0.9999999403953552
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 43,
-            "name": "DEF-f_ring.01.R",
-            "next_sibling": 45,
-            "parent": 32,
-            "pos": [
-                0.00010015365842264146,
-                0.11909995973110199,
-                -0.017100030556321144
-            ],
-            "rot": [
-                0.43533948063850403,
-                -0.541356086730957,
-                0.45490410923957825,
-                0.5572032928466797
-            ],
-            "scale": [
-                1.0,
-                0.9999997019767761,
-                1.0000001192092896
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 44,
-            "name": "DEF-f_ring.02.R",
-            "next_sibling": -1,
-            "parent": 42,
-            "pos": [
-                9.618020158086438e-08,
-                0.039325051009655,
-                -7.184326733522539e-08
-            ],
-            "rot": [
-                0.6233417987823486,
-                -7.716481377428863e-06,
-                -9.409945960214827e-06,
-                0.781949520111084
-            ],
-            "scale": [
-                0.9999998211860657,
-                0.9999998211860657,
-                0.9999998211860657
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": -1,
-            "name": "DEF-f_ring.03.R",
-            "next_sibling": -1,
-            "parent": 43,
-            "pos": [
-                -4.5747484023195284e-08,
-                0.030919604003429413,
-                -8.411657859141997e-08
-            ],
-            "rot": [
-                0.6233413815498352,
-                0.0006648887065239251,
-                0.0008344604866579175,
-                0.7819491624832153
-            ],
-            "scale": [
-                1.0,
-                0.9999999403953552,
-                1.0
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 46,
-            "name": "DEF-thumb.01.R",
-            "next_sibling": -1,
-            "parent": 32,
-            "pos": [
-                -0.022799896076321602,
-                0.027299970388412476,
-                0.03360001742839813
-            ],
-            "rot": [
-                0.2908379137516022,
-                -0.9496492147445679,
-                -0.11458396911621094,
-                0.02121734246611595
-            ],
-            "scale": [
-                0.9999999403953552,
-                0.9999997615814209,
-                0.9999999403953552
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 47,
-            "name": "DEF-thumb.02.R",
-            "next_sibling": -1,
-            "parent": 45,
-            "pos": [
-                3.660181135956009e-08,
-                0.04302985966205597,
-                1.341787907449543e-07
-            ],
-            "rot": [
-                0.21939080953598022,
-                -0.02380264550447464,
-                0.005304449237883091,
-                0.9753322601318359
-            ],
-            "scale": [
-                0.9999999403953552,
-                0.9999998211860657,
-                0.9999999403953552
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": -1,
-            "name": "DEF-thumb.03.R",
-            "next_sibling": -1,
-            "parent": 46,
-            "pos": [
-                -2.210968297333693e-09,
-                0.049078069627285004,
-                9.837773262688643e-08
-            ],
-            "rot": [
-                0.6873878836631775,
-                0.00030902281287126243,
-                0.0004445368831511587,
-                0.7262902855873108
-            ],
-            "scale": [
-                0.9999998211860657,
-                0.9999998807907104,
-                1.0000001192092896
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 49,
-            "name": "DEF-thigh.L",
-            "next_sibling": 52,
-            "parent": 4,
-            "pos": [
-                0.08900000900030136,
-                0.027770940214395523,
-                0.046023815870285034
-            ],
-            "rot": [
-                0.9521661400794983,
-                0.002228059805929661,
-                -0.00027468541520647705,
-                0.30557259917259216
-            ],
-            "scale": [
-                1.0,
-                1.000000238418579,
-                1.0000014305114746
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 50,
-            "name": "DEF-shin.L",
-            "next_sibling": -1,
-            "parent": 48,
-            "pos": [
-                -6.086920745218549e-09,
-                0.40030965209007263,
-                1.0535754491058924e-08
-            ],
-            "rot": [
-                0.2828322947025299,
-                0.00027536964626051486,
-                -9.975260036299005e-05,
-                0.959169328212738
-            ],
-            "scale": [
-                0.9999998211860657,
-                1.0,
-                0.9999998211860657
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 51,
-            "name": "DEF-foot.L",
-            "next_sibling": -1,
-            "parent": 49,
-            "pos": [
-                -6.494759841046971e-09,
-                0.4294798970222473,
-                -4.089953620223241e-08
-            ],
-            "rot": [
-                -0.5807221531867981,
-                0.01410308200865984,
-                -0.0035820533521473408,
-                0.8139718174934387
-            ],
-            "scale": [
-                1.0,
-                0.9999999403953552,
-                0.9999998807907104
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": -1,
-            "name": "DEF-toe.L",
-            "next_sibling": -1,
-            "parent": 50,
-            "pos": [
-                -6.288730092229855e-10,
-                0.1733008325099945,
-                1.2270406912762155e-08
-            ],
-            "rot": [
-                0.00013712899817619473,
-                -0.9643067121505737,
-                0.2647874653339386,
-                0.0004995362833142281
-            ],
-            "scale": [
-                1.0,
-                1.000000238418579,
-                0.9999998807907104
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 53,
-            "name": "DEF-thigh.R",
-            "next_sibling": -1,
-            "parent": 4,
-            "pos": [
-                -0.08899999409914017,
-                0.027770694345235825,
-                0.046023890376091
-            ],
-            "rot": [
-                0.9910444617271423,
-                0.006380632519721985,
-                -0.0007866439409554005,
-                0.13337671756744385
-            ],
-            "scale": [
-                1.0,
-                1.0000001192092896,
-                1.0000015497207642
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 54,
-            "name": "DEF-shin.R",
-            "next_sibling": -1,
-            "parent": 52,
-            "pos": [
-                -2.98385249841715e-09,
-                0.4003099799156189,
-                -1.9355731240011664e-08
-            ],
-            "rot": [
-                0.4674716889858246,
-                0.0013257599202916026,
-                -0.0006324872374534607,
-                0.8840068578720093
-            ],
-            "scale": [
-                0.9999998807907104,
-                0.9999999403953552,
-                1.0
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 55,
-            "name": "DEF-foot.R",
-            "next_sibling": -1,
-            "parent": 53,
-            "pos": [
-                -1.00256491997186e-09,
-                0.42947983741760254,
-                -1.001141498591096e-07
-            ],
-            "rot": [
-                -0.5434406995773315,
-                0.006462105084210634,
-                -0.00832301750779152,
-                0.8393815159797668
-            ],
-            "scale": [
-                0.9999997615814209,
-                0.9999997615814209,
-                1.0000001192092896
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": -1,
-            "name": "DEF-toe.R",
-            "next_sibling": -1,
-            "parent": 54,
-            "pos": [
-                1.2940273741435249e-08,
-                0.1733008474111557,
-                4.762707561667412e-09
-            ],
-            "rot": [
-                0.00013708361075259745,
-                -0.9643067121505737,
-                0.2647875249385834,
-                0.000499492569360882
-            ],
-            "scale": [
-                0.9999998807907104,
-                1.0,
-                0.9999997615814209
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": -1,
-            "name": "Mannequin",
-            "next_sibling": -1,
-            "parent": 2,
-            "pos": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "rot": [
-                0.0,
-                0.0,
-                0.0,
-                1.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": -1,
-            "name": "new_entity",
-            "next_sibling": -1,
-            "parent": -1,
-            "pos": [
-                0.0,
-                2.76129412651062,
-                13.216205596923828
-            ],
-            "rot": [
-                -0.006074568256735802,
-                0.06805161386728287,
-                0.11725666373968124,
-                0.9907485842704773
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 59,
-            "name": "assets/map/map.stkmodel",
-            "next_sibling": -1,
-            "parent": -1,
-            "pos": [
-                0.0,
-                0.23148535192012787,
-                0.0
-            ],
-            "rot": [
-                0.0,
-                0.0,
-                0.0,
-                1.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": -1,
-            "name": "door_2",
-            "next_sibling": 60,
-            "parent": 58,
-            "pos": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "rot": [
-                0.0,
-                0.0,
-                0.0,
-                1.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0
-            ],
+            "tag": "",
             "template": "",
             "visible": 1
         },
         {
             "first_child": -1,
             "name": "Object_8",
-            "next_sibling": 61,
-            "parent": 58,
+            "next_sibling": 4,
+            "parent": 1,
             "pos": [
                 0.0,
-                -1.2277947664260864,
-                -19.400331497192383
+                0.0,
+                0.0
             ],
             "rot": [
                 0.0,
@@ -1809,42 +300,44 @@
                 1.0
             ],
             "scale": [
-                2.4999990463256836,
-                2.4999990463256836,
-                2.4999990463256836
+                1.0,
+                1.0,
+                1.0
             ],
+            "tag": "",
             "template": "",
             "visible": 1
         },
         {
             "first_child": -1,
             "name": "lp005_barrel_0",
-            "next_sibling": 62,
-            "parent": 58,
+            "next_sibling": 5,
+            "parent": 1,
             "pos": [
                 7.444823741912842,
-                8.462186813354492,
+                1.3573282957077026,
                 3.5927608013153076
             ],
             "rot": [
-                0.4194931387901306,
                 0.0,
                 0.0,
-                0.9077585339546204
+                0.0,
+                1.0
             ],
             "scale": [
                 1.0,
                 1.0,
                 1.0
             ],
+            "tag": "",
             "template": "",
             "visible": 1
         },
         {
             "first_child": -1,
             "name": "rock",
-            "next_sibling": 63,
-            "parent": 58,
+            "next_sibling": 6,
+            "parent": 1,
             "pos": [
                 -8.866172790527344,
                 0.5999669432640076,
@@ -1861,14 +354,15 @@
                 1.0,
                 1.0
             ],
+            "tag": "",
             "template": "",
             "visible": 1
         },
         {
             "first_child": -1,
             "name": "Landscape.006",
-            "next_sibling": 64,
-            "parent": 58,
+            "next_sibling": 7,
+            "parent": 1,
             "pos": [
                 0.0,
                 0.0,
@@ -1885,6 +379,7 @@
                 1.0,
                 1.0
             ],
+            "tag": "",
             "template": "",
             "visible": 1
         },
@@ -1892,7 +387,7 @@
             "first_child": -1,
             "name": "rock.001",
             "next_sibling": -1,
-            "parent": 58,
+            "parent": 1,
             "pos": [
                 -7.2097272872924805,
                 0.212135910987854,
@@ -1909,18 +404,44 @@
                 1.0,
                 1.0
             ],
+            "tag": "",
             "template": "",
             "visible": 1
         },
         {
-            "first_child": -1,
-            "name": "new_entity",
+            "first_child": 9,
+            "name": "assets/character/character.stkmodel",
             "next_sibling": -1,
             "parent": -1,
             "pos": [
-                10.354674339294434,
-                3.1248462200164795,
-                3.1747164726257324
+                -0.46295928955078125,
+                2.149312973022461,
+                11.558370590209961
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.4799997806549072,
+                1.4799997806549072,
+                1.4799997806549072
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 10,
+            "name": "Rig",
+            "next_sibling": -1,
+            "parent": 8,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
             ],
             "rot": [
                 0.0,
@@ -1933,42 +454,1369 @@
                 1.0,
                 1.0
             ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 11,
+            "name": "root",
+            "next_sibling": 63,
+            "parent": 9,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                -0.7071067094802856,
+                0.0,
+                0.0,
+                0.7071068286895752
+            ],
+            "scale": [
+                1.0,
+                0.9999999403953552,
+                0.9999999403953552
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 12,
+            "name": "DEF-hips",
+            "next_sibling": -1,
+            "parent": 10,
+            "pos": [
+                -0.03076375275850296,
+                0.049957048147916794,
+                0.902795672416687
+            ],
+            "rot": [
+                0.7902147173881531,
+                0.01842097006738186,
+                -0.005279168952256441,
+                0.6125304102897644
+            ],
+            "scale": [
+                1.0,
+                0.9999999403953552,
+                0.9999999403953552
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 13,
+            "name": "DEF-spine.001",
+            "next_sibling": 55,
+            "parent": 11,
+            "pos": [
+                1.1292301316245812e-08,
+                0.13817636668682098,
+                7.566989523866141e-08
+            ],
+            "rot": [
+                -0.06470268219709396,
+                1.1878266548137617e-07,
+                -4.96358465440494e-09,
+                0.9979045987129211
+            ],
+            "scale": [
+                1.0,
+                0.9999999403953552,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 14,
+            "name": "DEF-spine.002",
+            "next_sibling": -1,
+            "parent": 12,
+            "pos": [
+                5.078612641540303e-09,
+                0.12403485178947449,
+                2.130113507803344e-08
+            ],
+            "rot": [
+                -0.03969400003552437,
+                0.002339500468224287,
+                0.006315861362963915,
+                0.9991891980171204
+            ],
+            "scale": [
+                1.0,
+                0.9999998211860657,
+                0.9999998807907104
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 15,
+            "name": "DEF-spine.003",
+            "next_sibling": -1,
+            "parent": 13,
+            "pos": [
+                1.4260872482907416e-09,
+                0.14127172529697418,
+                2.5866211394998118e-09
+            ],
+            "rot": [
+                0.11250091344118118,
+                0.005348321981728077,
+                -0.011472315527498722,
+                0.9935709834098816
+            ],
+            "scale": [
+                1.0,
+                0.9999997019767761,
+                0.9999998807907104
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 16,
+            "name": "DEF-neck",
+            "next_sibling": 17,
+            "parent": 14,
+            "pos": [
+                9.313271265298795e-10,
+                0.1728908121585846,
+                3.1366901964702265e-08
+            ],
+            "rot": [
+                0.03584164008498192,
+                -0.0021134091075509787,
+                0.010519360192120075,
+                0.9992998838424683
+            ],
+            "scale": [
+                1.0000001192092896,
+                1.000000238418579,
+                1.0000001192092896
+            ],
+            "tag": "",
             "template": "",
             "visible": 1
         },
         {
             "first_child": -1,
-            "name": "bullet",
+            "name": "DEF-head",
+            "next_sibling": -1,
+            "parent": 15,
+            "pos": [
+                1.3969853052131498e-09,
+                0.08258677273988724,
+                -4.891579141741431e-09
+            ],
+            "rot": [
+                -0.02358461730182171,
+                -2.6766037990455516e-05,
+                0.011603740975260735,
+                0.9996545314788818
+            ],
+            "scale": [
+                0.9999999403953552,
+                0.9999996423721313,
+                0.9999997019767761
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 18,
+            "name": "DEF-shoulder.L",
+            "next_sibling": 36,
+            "parent": 14,
+            "pos": [
+                0.018799975514411926,
+                0.1405535340309143,
+                0.08089505881071091
+            ],
+            "rot": [
+                -0.616668164730072,
+                -0.32195842266082764,
+                -0.3328244686126709,
+                0.6366247534751892
+            ],
+            "scale": [
+                1.0000001192092896,
+                1.0,
+                0.9999999403953552
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 19,
+            "name": "DEF-upper_arm.L",
+            "next_sibling": -1,
+            "parent": 17,
+            "pos": [
+                -0.030072318390011787,
+                0.2185816764831543,
+                -0.0169686209410429
+            ],
+            "rot": [
+                -0.2797154188156128,
+                0.6531948447227478,
+                -0.5542941093444824,
+                0.43342113494873047
+            ],
+            "scale": [
+                1.0000001192092896,
+                1.000000238418579,
+                0.9999998807907104
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 20,
+            "name": "DEF-forearm.L",
+            "next_sibling": -1,
+            "parent": 18,
+            "pos": [
+                -4.077864090845651e-08,
+                0.27444007992744446,
+                -1.8715610394792748e-08
+            ],
+            "rot": [
+                0.28687962889671326,
+                0.0087046530097723,
+                -0.06881082057952881,
+                0.9554525017738342
+            ],
+            "scale": [
+                0.9999999403953552,
+                0.9999997019767761,
+                0.9999998807907104
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 21,
+            "name": "DEF-hand.L",
+            "next_sibling": -1,
+            "parent": 19,
+            "pos": [
+                2.17020463821882e-08,
+                0.2726406753063202,
+                -3.68665098449128e-08
+            ],
+            "rot": [
+                0.16954725980758667,
+                0.012020159512758255,
+                -0.010054622776806355,
+                0.9853975176811218
+            ],
+            "scale": [
+                1.0000001192092896,
+                0.9999998807907104,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 22,
+            "name": "DEF-f_index.01.L",
+            "next_sibling": 24,
+            "parent": 20,
+            "pos": [
+                0.0019999328069388866,
+                0.11989998817443848,
+                0.0308998990803957
+            ],
+            "rot": [
+                0.4451906979084015,
+                0.5493689775466919,
+                -0.4451938569545746,
+                0.549364447593689
+            ],
+            "scale": [
+                1.0000001192092896,
+                0.9999997615814209,
+                1.000000238418579
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 23,
+            "name": "DEF-f_index.02.L",
+            "next_sibling": -1,
+            "parent": 21,
+            "pos": [
+                -4.8822073495102813e-08,
+                0.04070005938410759,
+                -4.195472769197295e-08
+            ],
+            "rot": [
+                0.6233417987823486,
+                -4.3332809696039476e-07,
+                2.2160297419304698e-07,
+                0.781949520111084
+            ],
+            "scale": [
+                0.9999998807907104,
+                1.0,
+                0.9999999403953552
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "DEF-f_index.03.L",
+            "next_sibling": -1,
+            "parent": 22,
+            "pos": [
+                -3.204058884875849e-08,
+                0.03480000048875809,
+                -6.708373234687315e-08
+            ],
+            "rot": [
+                0.62334144115448,
+                -1.643614524482473e-07,
+                -2.644077596869465e-07,
+                0.7819497585296631
+            ],
+            "scale": [
+                1.000000238418579,
+                0.9999998211860657,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 25,
+            "name": "DEF-f_middle.01.L",
+            "next_sibling": 27,
+            "parent": 20,
+            "pos": [
+                -0.0004001546767540276,
+                0.12159987539052963,
+                0.005200018174946308
+            ],
+            "rot": [
+                0.4320901334285736,
+                0.5386998057365417,
+                -0.4580466151237488,
+                0.5597268342971802
+            ],
+            "scale": [
+                1.0000001192092896,
+                0.9999997615814209,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 26,
+            "name": "DEF-f_middle.02.L",
+            "next_sibling": -1,
+            "parent": 24,
+            "pos": [
+                2.2930807475063375e-08,
+                0.04234727844595909,
+                -9.618088370189071e-08
+            ],
+            "rot": [
+                0.6233408451080322,
+                0.0009432585211470723,
+                0.0011835776967927814,
+                0.7819488048553467
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "DEF-f_middle.03.L",
+            "next_sibling": -1,
+            "parent": 25,
+            "pos": [
+                -2.8357713954818564e-09,
+                0.03393308445811272,
+                7.235578891595651e-08
+            ],
+            "rot": [
+                0.6233413219451904,
+                -0.0007042833021841943,
+                -0.0008834128966554999,
+                0.7819491028785706
+            ],
+            "scale": [
+                1.0,
+                1.000000238418579,
+                1.0000001192092896
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 28,
+            "name": "DEF-f_pinky.01.L",
+            "next_sibling": 30,
+            "parent": 20,
+            "pos": [
+                0.0015999509487301111,
+                0.10769982635974884,
+                -0.04080004245042801
+            ],
+            "rot": [
+                0.504056990146637,
+                0.511541485786438,
+                -0.4351515769958496,
+                0.5430423021316528
+            ],
+            "scale": [
+                1.0000001192092896,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 29,
+            "name": "DEF-f_pinky.02.L",
+            "next_sibling": -1,
+            "parent": 27,
+            "pos": [
+                1.6471050301447576e-08,
+                0.040290556848049164,
+                -1.2808351357307401e-07
+            ],
+            "rot": [
+                0.623163104057312,
+                -0.020061608403921127,
+                0.014925489202141762,
+                0.7816920876502991
+            ],
+            "scale": [
+                0.9999999403953552,
+                0.9999999403953552,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "DEF-f_pinky.03.L",
+            "next_sibling": -1,
+            "parent": 28,
+            "pos": [
+                -2.4739488679870192e-08,
+                0.02766544744372368,
+                -4.364343908491719e-08
+            ],
+            "rot": [
+                0.6233413815498352,
+                0.00037992728175595403,
+                0.0004765242920257151,
+                0.7819495797157288
+            ],
+            "scale": [
+                0.9999997615814209,
+                0.9999998211860657,
+                1.0000001192092896
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 31,
+            "name": "DEF-f_ring.01.L",
+            "next_sibling": 33,
+            "parent": 20,
+            "pos": [
+                -0.00010008002573158592,
+                0.1190999299287796,
+                -0.017100036144256592
+            ],
+            "rot": [
+                0.4353399872779846,
+                0.5413559675216675,
+                -0.4549039602279663,
+                0.5572030544281006
+            ],
+            "scale": [
+                1.0000001192092896,
+                0.9999996423721313,
+                0.9999999403953552
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 32,
+            "name": "DEF-f_ring.02.L",
+            "next_sibling": -1,
+            "parent": 30,
+            "pos": [
+                -3.779720003649345e-08,
+                0.03932494670152664,
+                1.4961442218464072e-07
+            ],
+            "rot": [
+                0.6233412027359009,
+                7.250612270581769e-06,
+                9.402313480677549e-06,
+                0.7819499969482422
+            ],
+            "scale": [
+                0.9999999403953552,
+                1.000000238418579,
+                1.0000001192092896
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "DEF-f_ring.03.L",
+            "next_sibling": -1,
+            "parent": 31,
+            "pos": [
+                1.3620671701630727e-08,
+                0.030919479206204414,
+                2.2055358428474392e-08
+            ],
+            "rot": [
+                0.6233415007591248,
+                -0.000665118102915585,
+                -0.0008344429661519825,
+                0.781948983669281
+            ],
+            "scale": [
+                0.9999997615814209,
+                0.9999998807907104,
+                1.0000001192092896
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 34,
+            "name": "DEF-thumb.01.L",
+            "next_sibling": -1,
+            "parent": 20,
+            "pos": [
+                0.02280004695057869,
+                0.027300018817186356,
+                0.033600032329559326
+            ],
+            "rot": [
+                0.29083871841430664,
+                0.9496490955352783,
+                0.11458338052034378,
+                0.02121701091527939
+            ],
+            "scale": [
+                0.9999998211860657,
+                0.9999997615814209,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 35,
+            "name": "DEF-thumb.02.L",
+            "next_sibling": -1,
+            "parent": 33,
+            "pos": [
+                1.2212822753099317e-08,
+                0.043029818683862686,
+                2.698503642761807e-08
+            ],
+            "rot": [
+                0.2193901389837265,
+                0.023802654817700386,
+                -0.005304757971316576,
+                0.9753323793411255
+            ],
+            "scale": [
+                1.0,
+                0.9999997615814209,
+                0.9999999403953552
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "DEF-thumb.03.L",
+            "next_sibling": -1,
+            "parent": 34,
+            "pos": [
+                8.336765944250146e-08,
+                0.049078043550252914,
+                1.598766985466682e-08
+            ],
+            "rot": [
+                0.6873881816864014,
+                -0.00030981170129962265,
+                -0.00044513182365335524,
+                0.7262900471687317
+            ],
+            "scale": [
+                1.0000001192092896,
+                1.0000001192092896,
+                1.0000001192092896
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 37,
+            "name": "DEF-shoulder.R",
+            "next_sibling": -1,
+            "parent": 14,
+            "pos": [
+                -0.018800038844347,
+                0.14055366814136505,
+                0.08089502900838852
+            ],
+            "rot": [
+                -0.6074613332748413,
+                0.33900949358940125,
+                0.35042721033096313,
+                0.6271076798439026
+            ],
+            "scale": [
+                1.0000001192092896,
+                0.9999999403953552,
+                0.9999998807907104
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 38,
+            "name": "DEF-upper_arm.R",
+            "next_sibling": -1,
+            "parent": 36,
+            "pos": [
+                0.030072417110204697,
+                0.21858172118663788,
+                -0.016968190670013428
+            ],
+            "rot": [
+                -0.14654555916786194,
+                -0.6287328004837036,
+                0.6362515687942505,
+                0.42237839102745056
+            ],
+            "scale": [
+                1.0000001192092896,
+                1.0000003576278687,
+                0.9999998807907104
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 39,
+            "name": "DEF-forearm.R",
+            "next_sibling": -1,
+            "parent": 37,
+            "pos": [
+                1.1528722154707793e-07,
+                0.2744404673576355,
+                1.456057052706683e-08
+            ],
+            "rot": [
+                0.31429699063301086,
+                0.118014857172966,
+                0.04205063730478287,
+                0.9410215616226196
+            ],
+            "scale": [
+                0.9999999403953552,
+                1.0000001192092896,
+                0.9999998807907104
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 40,
+            "name": "DEF-hand.R",
+            "next_sibling": -1,
+            "parent": 38,
+            "pos": [
+                4.315139889854436e-08,
+                0.27264031767845154,
+                -2.4564828393636162e-08
+            ],
+            "rot": [
+                0.0796813815832138,
+                -0.016636457294225693,
+                0.011339443735778332,
+                0.9966170191764832
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                0.9999998807907104
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 41,
+            "name": "DEF-f_index.01.R",
+            "next_sibling": 43,
+            "parent": 39,
+            "pos": [
+                -0.0019999537616968155,
+                0.11989995092153549,
+                0.030900103971362114
+            ],
+            "rot": [
+                0.4451904296875,
+                -0.5493689775466919,
+                0.44519415497779846,
+                0.5493645668029785
+            ],
+            "scale": [
+                1.0000001192092896,
+                1.0,
+                1.0000001192092896
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 42,
+            "name": "DEF-f_index.02.R",
+            "next_sibling": -1,
+            "parent": 40,
+            "pos": [
+                -5.008147851981448e-08,
+                0.04069996252655983,
+                -5.980596995414089e-08
+            ],
+            "rot": [
+                0.62334144115448,
+                -1.2255955539330898e-07,
+                1.3776046081659388e-08,
+                0.7819497585296631
+            ],
+            "scale": [
+                0.9999998807907104,
+                0.9999999403953552,
+                0.9999999403953552
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "DEF-f_index.03.R",
+            "next_sibling": -1,
+            "parent": 41,
+            "pos": [
+                -3.512192847665574e-08,
+                0.03479992598295212,
+                -7.015982816938049e-08
+            ],
+            "rot": [
+                0.6233422756195068,
+                -3.311058094368491e-07,
+                1.1195651694606568e-07,
+                0.7819491028785706
+            ],
+            "scale": [
+                1.0,
+                1.0000001192092896,
+                1.0000001192092896
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 44,
+            "name": "DEF-f_middle.01.R",
+            "next_sibling": 46,
+            "parent": 39,
+            "pos": [
+                0.0004001730412710458,
+                0.12159990519285202,
+                0.0052000549621880054
+            ],
+            "rot": [
+                0.4320899546146393,
+                -0.5386998057365417,
+                0.458046555519104,
+                0.559726893901825
+            ],
+            "scale": [
+                0.9999999403953552,
+                0.9999998807907104,
+                1.000000238418579
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 45,
+            "name": "DEF-f_middle.02.R",
+            "next_sibling": -1,
+            "parent": 43,
+            "pos": [
+                -4.192986935436238e-08,
+                0.04234744608402252,
+                -3.839317308518275e-09
+            ],
+            "rot": [
+                0.6233410239219666,
+                -0.0009433283121325076,
+                -0.0011837562778964639,
+                0.7819486260414124
+            ],
+            "scale": [
+                1.0,
+                0.9999998807907104,
+                0.9999998211860657
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "DEF-f_middle.03.R",
+            "next_sibling": -1,
+            "parent": 44,
+            "pos": [
+                -1.395345350374555e-07,
+                0.033933114260435104,
+                -7.987500794115476e-08
+            ],
+            "rot": [
+                0.6233412027359009,
+                0.0007042541983537376,
+                0.0008834070758894086,
+                0.7819491624832153
+            ],
+            "scale": [
+                0.9999998807907104,
+                1.0,
+                1.0000001192092896
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 47,
+            "name": "DEF-f_pinky.01.R",
+            "next_sibling": 49,
+            "parent": 39,
+            "pos": [
+                -0.0015999922761693597,
+                0.1076999381184578,
+                -0.040799979120492935
+            ],
+            "rot": [
+                0.5040571093559265,
+                -0.5115413665771484,
+                0.4351516366004944,
+                0.5430422425270081
+            ],
+            "scale": [
+                1.0000001192092896,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 48,
+            "name": "DEF-f_pinky.02.R",
+            "next_sibling": -1,
+            "parent": 46,
+            "pos": [
+                -8.594336264877711e-08,
+                0.040290508419275284,
+                5.548151271739243e-09
+            ],
+            "rot": [
+                0.6231629252433777,
+                0.020061498507857323,
+                -0.014925786294043064,
+                0.7816922664642334
+            ],
+            "scale": [
+                0.9999998211860657,
+                0.9999996423721313,
+                1.0000001192092896
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "DEF-f_pinky.03.R",
+            "next_sibling": -1,
+            "parent": 47,
+            "pos": [
+                9.898138841890614e-08,
+                0.027665290981531143,
+                3.7548630871242494e-08
+            ],
+            "rot": [
+                0.6233416199684143,
+                -0.0003798356046900153,
+                -0.0004762211174238473,
+                0.7819494605064392
+            ],
+            "scale": [
+                1.0,
+                0.9999998211860657,
+                0.9999999403953552
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 50,
+            "name": "DEF-f_ring.01.R",
+            "next_sibling": 52,
+            "parent": 39,
+            "pos": [
+                0.00010015365842264146,
+                0.11909995973110199,
+                -0.017100030556321144
+            ],
+            "rot": [
+                0.43533948063850403,
+                -0.541356086730957,
+                0.45490410923957825,
+                0.5572032928466797
+            ],
+            "scale": [
+                1.0,
+                0.9999997019767761,
+                1.0000001192092896
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 51,
+            "name": "DEF-f_ring.02.R",
+            "next_sibling": -1,
+            "parent": 49,
+            "pos": [
+                9.618020158086438e-08,
+                0.039325051009655,
+                -7.184326733522539e-08
+            ],
+            "rot": [
+                0.6233417987823486,
+                -7.716481377428863e-06,
+                -9.409945960214827e-06,
+                0.781949520111084
+            ],
+            "scale": [
+                0.9999998211860657,
+                0.9999998211860657,
+                0.9999998211860657
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "DEF-f_ring.03.R",
+            "next_sibling": -1,
+            "parent": 50,
+            "pos": [
+                -4.5747484023195284e-08,
+                0.030919604003429413,
+                -8.411657859141997e-08
+            ],
+            "rot": [
+                0.6233413815498352,
+                0.0006648887065239251,
+                0.0008344604866579175,
+                0.7819491624832153
+            ],
+            "scale": [
+                1.0,
+                0.9999999403953552,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 53,
+            "name": "DEF-thumb.01.R",
+            "next_sibling": -1,
+            "parent": 39,
+            "pos": [
+                -0.022799896076321602,
+                0.027299970388412476,
+                0.03360001742839813
+            ],
+            "rot": [
+                0.2908379137516022,
+                -0.9496492147445679,
+                -0.11458396911621094,
+                0.02121734246611595
+            ],
+            "scale": [
+                0.9999999403953552,
+                0.9999997615814209,
+                0.9999999403953552
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 54,
+            "name": "DEF-thumb.02.R",
+            "next_sibling": -1,
+            "parent": 52,
+            "pos": [
+                3.660181135956009e-08,
+                0.04302985966205597,
+                1.341787907449543e-07
+            ],
+            "rot": [
+                0.21939080953598022,
+                -0.02380264550447464,
+                0.005304449237883091,
+                0.9753322601318359
+            ],
+            "scale": [
+                0.9999999403953552,
+                0.9999998211860657,
+                0.9999999403953552
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "DEF-thumb.03.R",
+            "next_sibling": -1,
+            "parent": 53,
+            "pos": [
+                -2.210968297333693e-09,
+                0.049078069627285004,
+                9.837773262688643e-08
+            ],
+            "rot": [
+                0.6873878836631775,
+                0.00030902281287126243,
+                0.0004445368831511587,
+                0.7262902855873108
+            ],
+            "scale": [
+                0.9999998211860657,
+                0.9999998807907104,
+                1.0000001192092896
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 56,
+            "name": "DEF-thigh.L",
+            "next_sibling": 59,
+            "parent": 11,
+            "pos": [
+                0.08900000900030136,
+                0.027770940214395523,
+                0.046023815870285034
+            ],
+            "rot": [
+                0.8682310581207275,
+                0.027509132400155067,
+                -0.0033917855471372604,
+                0.4953853189945221
+            ],
+            "scale": [
+                1.0,
+                1.000000238418579,
+                1.0000014305114746
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 57,
+            "name": "DEF-shin.L",
+            "next_sibling": -1,
+            "parent": 55,
+            "pos": [
+                -6.086920745218549e-09,
+                0.40030965209007263,
+                1.0535754491058924e-08
+            ],
+            "rot": [
+                0.49840933084487915,
+                0.008740383200347424,
+                -0.0051424442790448666,
+                0.8668825626373291
+            ],
+            "scale": [
+                0.9999998211860657,
+                1.0,
+                0.9999998211860657
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 58,
+            "name": "DEF-foot.L",
+            "next_sibling": -1,
+            "parent": 56,
+            "pos": [
+                -6.494759841046971e-09,
+                0.4294798970222473,
+                -4.089953620223241e-08
+            ],
+            "rot": [
+                -0.5467832684516907,
+                0.008189069107174873,
+                0.021570133045315742,
+                0.836956262588501
+            ],
+            "scale": [
+                1.0,
+                0.9999999403953552,
+                0.9999998807907104
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "DEF-toe.L",
+            "next_sibling": -1,
+            "parent": 57,
+            "pos": [
+                -6.288730092229855e-10,
+                0.1733008325099945,
+                1.2270406912762155e-08
+            ],
+            "rot": [
+                0.00013709752238355577,
+                -0.9643067121505737,
+                0.2647874355316162,
+                0.0004995202179998159
+            ],
+            "scale": [
+                1.0,
+                1.000000238418579,
+                0.9999998807907104
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 60,
+            "name": "DEF-thigh.R",
+            "next_sibling": -1,
+            "parent": 11,
+            "pos": [
+                -0.08899999409914017,
+                0.027770694345235825,
+                0.046023890376091
+            ],
+            "rot": [
+                0.9959774017333984,
+                0.03387609124183655,
+                -0.004176746588200331,
+                0.08284904062747955
+            ],
+            "scale": [
+                1.0,
+                1.0000001192092896,
+                1.0000015497207642
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 61,
+            "name": "DEF-shin.R",
+            "next_sibling": -1,
+            "parent": 59,
+            "pos": [
+                -2.98385249841715e-09,
+                0.4003099799156189,
+                -1.9355731240011664e-08
+            ],
+            "rot": [
+                0.23442654311656952,
+                0.004583145957440138,
+                -0.001120298053137958,
+                0.9721223711967468
+            ],
+            "scale": [
+                0.9999998807907104,
+                0.9999999403953552,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 62,
+            "name": "DEF-foot.R",
+            "next_sibling": -1,
+            "parent": 60,
+            "pos": [
+                -1.00256491997186e-09,
+                0.42947983741760254,
+                -1.001141498591096e-07
+            ],
+            "rot": [
+                -0.5506553649902344,
+                0.0132056325674057,
+                0.0014282132033258677,
+                0.8346269726753235
+            ],
+            "scale": [
+                0.9999997615814209,
+                0.9999997615814209,
+                1.0000001192092896
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "DEF-toe.R",
+            "next_sibling": -1,
+            "parent": 61,
+            "pos": [
+                1.2940273741435249e-08,
+                0.1733008474111557,
+                4.762707561667412e-09
+            ],
+            "rot": [
+                0.009416121989488602,
+                0.8858766555786133,
+                -0.46382540464401245,
+                2.8433343686629087e-05
+            ],
+            "scale": [
+                0.9999998807907104,
+                1.0,
+                0.9999997615814209
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Mannequin",
+            "next_sibling": -1,
+            "parent": 9,
+            "pos": [
+                0.0,
+                -0.0032503604888916016,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 65,
+            "name": "particle",
             "next_sibling": -1,
             "parent": -1,
             "pos": [
-                0.0,
-                1.9076238870620728,
-                14.987882614135742
-            ],
-            "rot": [
-                0.0,
-                0.0,
-                0.0,
-                1.0
-            ],
-            "scale": [
-                0.07810142636299133,
-                0.07958490401506424,
-                0.35597240924835205
-            ],
-            "template": "assets/entity_templates/bullet.stkent",
-            "visible": 1
-        },
-        {
-            "first_child": 68,
-            "name": "Player",
-            "next_sibling": -1,
-            "parent": -1,
-            "pos": [
-                0.0,
-                1.8102784156799316,
-                20.645816802978516
+                2.5504422187805176,
+                2.794066905975342,
+                12.01605224609375
             ],
             "rot": [
                 0.0,
@@ -1981,113 +1829,18 @@
                 1.0,
                 1.0
             ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 69,
-            "name": "PlayerCamera",
-            "next_sibling": -1,
-            "parent": 67,
-            "pos": [
-                0.0,
-                1.250422477722168,
-                0.0
-            ],
-            "rot": [
-                0.0,
-                0.0,
-                0.0,
-                1.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 70,
-            "name": "TORCH",
-            "next_sibling": -1,
-            "parent": 68,
-            "pos": [
-                0.5399711728096008,
-                0.0,
-                -0.7233448028564453
-            ],
-            "rot": [
-                0.0,
-                0.0,
-                0.0,
-                1.0
-            ],
-            "scale": [
-                0.18663612008094788,
-                0.8992136120796204,
-                0.11618712544441223
-            ],
+            "tag": "",
             "template": "",
             "visible": 1
         },
         {
             "first_child": -1,
-            "name": "Cube",
-            "next_sibling": 71,
-            "parent": 69,
-            "pos": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "rot": [
-                0.0,
-                0.0,
-                0.0,
-                1.0
-            ],
-            "scale": [
-                0.5208362340927124,
-                1.0,
-                1.0
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 72,
-            "name": "fire",
+            "name": "light",
             "next_sibling": -1,
-            "parent": 69,
-            "pos": [
-                0.09605221450328827,
-                0.2473289966583252,
-                0.0
-            ],
-            "rot": [
-                0.0,
-                0.0,
-                0.0,
-                1.0
-            ],
-            "scale": [
-                5.358019828796387,
-                1.112082839012146,
-                8.606805801391602
-            ],
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": -1,
-            "name": "new_entity",
-            "next_sibling": -1,
-            "parent": 71,
+            "parent": 64,
             "pos": [
                 0.0,
-                0.44295454025268555,
+                0.600675106048584,
                 0.0
             ],
             "rot": [
@@ -2101,29 +1854,27 @@
                 1.0,
                 1.0
             ],
+            "tag": "",
             "template": "",
             "visible": 1
         }
     ],
     "resources": [
+        "assets/map/map.stkmodel",
         "assets/character/idle_state_machine.stkanim",
         "assets/character/character.stkmodel",
-        "assets/map/map.stkmodel",
-        "assets/audio/metal.stkaud",
-        "assets/entity_templates/bullet.stkent",
-        "assets/cube/cube.stkmodel",
         "assets/_defaults/particles/fire_core.stkparticle",
         "assets/_defaults/materials/particle_fire_core.stkmat"
     ],
     "tool_cam_pos": [
-        -3.5754029750823975,
-        4.4123148918151855,
-        21.487852096557617
+        -2.85029673576355,
+        6.399296760559082,
+        22.14141845703125
     ],
     "tool_cam_rot": [
-        -0.09320215880870819,
-        -0.6369612216949463,
-        -0.07798437774181366,
-        0.7612570524215698
+        -0.15346546471118927,
+        -0.05171428248286247,
+        -0.00804278627038002,
+        0.986767053604126
     ]
 }

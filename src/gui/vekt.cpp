@@ -640,7 +640,7 @@ namespace vekt
 		// if (widget != NULL_WIDGET_ID)
 		// {
 		// 	mouse_callback& mb			  = _mouse_callbacks[widget];
-		// 	const bool		receive_mouse = mb.on_widget_mouse || mb.on_drag;
+		// 	const bool		receive_mouse = mb.on_context_mouse || mb.on_drag;
 		// 	if (!receive_mouse)
 		// 		return;
 		// }

@@ -1464,7 +1464,8 @@ namespace SFG
 			sz.size.x			   = 1.0f;
 			sz.size.y			   = editor_theme::get().row_height;
 			sz.spacing			   = editor_theme::get().row_spacing;
-			sz.child_margins.right = editor_theme::get().outer_margin;
+			sz.child_margins.left  = _indent;
+			sz.child_margins.right = editor_theme::get().outer_margin * 2;
 
 			// widget_gfx& gfx = _builder->widget_get_gfx(w);
 			// gfx.flags		= gfx_flags::gfx_is_rect;
@@ -1562,21 +1563,35 @@ namespace SFG
 
 	gui_builder::id_trip gui_builder::add_component_title(const char* title)
 	{
-		const id w = new_widget();
+		const id w0 = new_widget(true);
 		{
-			pos_props& pp = _builder->widget_get_pos_props(w);
+			pos_props& pp = _builder->widget_get_pos_props(w0);
 			pp.flags	  = pos_flags::pf_x_relative;
 			pp.pos.x	  = 0.0f;
 
-			size_props& sz	 = _builder->widget_get_size_props(w);
+			size_props& sz	 = _builder->widget_get_size_props(w0);
 			sz.flags		 = size_flags::sf_x_relative | size_flags::sf_y_abs;
 			sz.size.x		 = 1.0f;
 			sz.size.y		 = editor_theme::get().row_height;
-			sz.child_margins = {editor_theme::get().inner_margin, editor_theme::get().inner_margin, editor_theme::get().inner_margin, editor_theme::get().inner_margin};
+			sz.child_margins = {0.0f, 0.0f, editor_theme::get().outer_margin, editor_theme::get().outer_margin * 2};
+		}
+
+		const id w = new_widget(true);
+		{
+			pos_props& pp = _builder->widget_get_pos_props(w);
+			pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_y_relative;
+			pp.pos.x	  = 0.0f;
+			pp.pos.y	  = 0.0f;
+
+			size_props& sz	 = _builder->widget_get_size_props(w);
+			sz.flags		 = size_flags::sf_x_relative | size_flags::sf_y_relative;
+			sz.size.x		 = 1.0f;
+			sz.size.y		 = 1.0f;
+			sz.child_margins = {0.0f, 0.0f, editor_theme::get().outer_margin, 0.0f};
 
 			widget_gfx& gfx = _builder->widget_get_gfx(w);
 			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_rounding | gfx_flags::gfx_has_press_color | gfx_flags::gfx_has_hover_color;
-			gfx.color		= editor_theme::get().col_frame_bg;
+			gfx.color		= editor_theme::get().col_button;
 			gfx.draw_order	= _draw_order;
 
 			rounding_props& rp = _builder->widget_get_rounding(w);
@@ -1594,12 +1609,12 @@ namespace SFG
 			ud.ptr				 = callbacks.user_data;
 		}
 
-		const id txt = _builder->allocate();
+		const id txt = new_widget();
 		{
 			widget_gfx& gfx = _builder->widget_get_gfx(txt);
 			gfx.flags		= gfx_flags::gfx_is_text;
-			gfx.color		= editor_theme::get().col_accent_second;
-			gfx.draw_order	= _draw_order + 1;
+			gfx.color		= editor_theme::get().col_text;
+			gfx.draw_order	= _draw_order;
 
 			pos_props& pp = _builder->widget_get_pos_props(txt);
 			pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_y_relative | pos_flags::pf_y_anchor_center;
@@ -1611,37 +1626,28 @@ namespace SFG
 			_builder->widget_set_text(txt, title);
 		}
 
-		const id actions = _builder->allocate();
+		const id actions = new_widget(true);
 		{
 			pos_props& pp = _builder->widget_get_pos_props(actions);
 			pp.flags	  = pos_flags::pf_x_relative | pos_flags::pf_x_anchor_end | pos_flags::pf_y_relative | pos_flags::pf_y_anchor_center | pos_flags::pf_child_pos_row;
 			pp.pos.x	  = 1.0f;
 			pp.pos.y	  = 0.5f;
 
-			size_props& sz	 = _builder->widget_get_size_props(actions);
-			sz.flags		 = size_flags::sf_x_total_children | size_flags::sf_y_max_children;
-			sz.spacing		 = editor_theme::get().inner_margin * 0.5f;
-			sz.child_margins = {0.0f, 0.0f, 0.0f, 0.0f};
+			size_props& sz = _builder->widget_get_size_props(actions);
+			sz.flags	   = size_flags::sf_x_total_children | size_flags::sf_y_relative;
+			sz.size.y	   = 1.0f;
+			sz.spacing	   = editor_theme::get().row_spacing;
 		}
 
-		const vector2 text_sz		= _builder->get_text_size({
-				  .text = "A",
-				  .font = editor_theme::get().font_icons,
-		  });
-		const float	  button_size	= text_sz.y * 1.15f;
-		const float	  button_margin = editor_theme::get().inner_margin * 0.25f;
-
-		const id reset_button = _builder->allocate();
+		const id reset_button = new_widget(true);
 		{
 			pos_props& pp = _builder->widget_get_pos_props(reset_button);
 			pp.flags	  = pos_flags::pf_y_relative | pos_flags::pf_y_anchor_center | pos_flags::pf_child_pos_row;
 			pp.pos.y	  = 0.5f;
 
-			size_props& sz	 = _builder->widget_get_size_props(reset_button);
-			sz.flags		 = size_flags::sf_x_abs | size_flags::sf_y_abs;
-			sz.size.x		 = button_size;
-			sz.size.y		 = button_size;
-			sz.child_margins = {button_margin, button_margin, button_margin, button_margin};
+			size_props& sz = _builder->widget_get_size_props(reset_button);
+			sz.flags	   = size_flags::sf_x_copy_y | size_flags::sf_y_relative;
+			sz.size.y	   = 1.0f;
 
 			widget_gfx& gfx = _builder->widget_get_gfx(reset_button);
 			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_press_color | gfx_flags::gfx_has_hover_color;
@@ -1659,11 +1665,11 @@ namespace SFG
 			ud.ptr				 = callbacks.user_data;
 		}
 
-		const id reset_icon = _builder->allocate();
+		const id reset_icon = new_widget();
 		{
 			widget_gfx& gfx = _builder->widget_get_gfx(reset_icon);
 			gfx.flags		= gfx_flags::gfx_is_text;
-			gfx.color		= editor_theme::get().col_accent_second_dim;
+			gfx.color		= editor_theme::get().col_accent_second;
 			gfx.draw_order	= _draw_order + 1;
 
 			pos_props& pp = _builder->widget_get_pos_props(reset_icon);
@@ -1677,19 +1683,18 @@ namespace SFG
 			_builder->widget_set_text(reset_icon, ICON_HAMMER);
 		}
 
-		_builder->widget_add_child(reset_button, reset_icon);
+		pop_stack(); // pop reset_button
 
-		const id remove_button = _builder->allocate();
+		const id remove_button = new_widget(true);
 		{
 			pos_props& pp = _builder->widget_get_pos_props(remove_button);
 			pp.flags	  = pos_flags::pf_y_relative | pos_flags::pf_y_anchor_center | pos_flags::pf_child_pos_row;
 			pp.pos.y	  = 0.5f;
 
-			size_props& sz	 = _builder->widget_get_size_props(remove_button);
-			sz.flags		 = size_flags::sf_x_abs | size_flags::sf_y_abs;
-			sz.size.x		 = button_size;
-			sz.size.y		 = button_size;
-			sz.child_margins = {button_margin, button_margin, button_margin, button_margin};
+			size_props& sz = _builder->widget_get_size_props(remove_button);
+			sz.flags	   = size_flags::sf_x_abs | size_flags::sf_y_abs;
+			sz.flags	   = size_flags::sf_x_copy_y | size_flags::sf_y_relative;
+			sz.size.y	   = 1.0f;
 
 			widget_gfx& gfx = _builder->widget_get_gfx(remove_button);
 			gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_press_color | gfx_flags::gfx_has_hover_color;
@@ -1707,11 +1712,11 @@ namespace SFG
 			ud.ptr				 = callbacks.user_data;
 		}
 
-		const id remove_icon = _builder->allocate();
+		const id remove_icon = new_widget();
 		{
 			widget_gfx& gfx = _builder->widget_get_gfx(remove_icon);
 			gfx.flags		= gfx_flags::gfx_is_text;
-			gfx.color		= editor_theme::get().col_accent_second_dim;
+			gfx.color		= editor_theme::get().col_accent_second;
 			gfx.draw_order	= _draw_order + 1;
 
 			pos_props& pp = _builder->widget_get_pos_props(remove_icon);
@@ -1725,12 +1730,10 @@ namespace SFG
 			_builder->widget_set_text(remove_icon, ICON_CROSS);
 		}
 
-		_builder->widget_add_child(remove_button, remove_icon);
-
-		_builder->widget_add_child(w, txt);
-		_builder->widget_add_child(w, actions);
-		_builder->widget_add_child(actions, reset_button);
-		_builder->widget_add_child(actions, remove_button);
+		pop_stack(); // remove button
+		pop_stack(); // actions;
+		pop_stack(); // inner;
+		pop_stack(); // outer;
 
 		return {w, reset_button, remove_button};
 	}

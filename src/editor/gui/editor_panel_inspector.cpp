@@ -230,7 +230,7 @@ namespace SFG
 		bump_text_allocator& alloc	  = editor::get().get_bump_text_allocator();
 
 		const char* name_txt = selected.is_null() ? "-" : em.get_entity_meta(selected).name;
-		const char* tag_txt  = selected.is_null() ? "-" : em.get_entity_meta(selected).tag;
+		const char* tag_txt	 = selected.is_null() ? "-" : em.get_entity_meta(selected).tag;
 		_gui_builder.set_text_field_text(_prop_name, name_txt, true);
 		_gui_builder.set_text_field_text(_prop_tag, tag_txt, true);
 		_gui_builder.set_checkbox_value(_prop_vis, selected.is_null() ? 0 : !em.get_entity_flags(selected).is_set(entity_flags::entity_flags_invisible));
@@ -283,6 +283,57 @@ namespace SFG
 				_gui_builder.set_text_field_value(_selected_scale_z, scale.z, true);
 			}
 		}
+	}
+
+	void editor_panel_inspector::on_context_item(vekt::id widget)
+	{
+		if (_selected_entity.is_null() || _add_component_buttons.empty())
+			return;
+
+		for (const add_comp_button& b : _add_component_buttons)
+		{
+			if (b.button == widget)
+			{
+				world&						w		 = editor::get().get_app().get_world();
+				entity_manager&				em		 = w.get_entity_manager();
+				component_manager&			cm		 = w.get_comp_manager();
+				const entity_comp_register& reg		 = em.get_component_register(_selected_entity);
+				bool						has_comp = false;
+				for (const entity_comp& c : reg.comps)
+				{
+					if (c.comp_type == b.type)
+					{
+						has_comp = true;
+						break;
+					}
+				}
+
+				if (has_comp)
+				{
+					open_info_popup("entity already has this component");
+					_add_component_buttons.resize(0);
+					return;
+				}
+
+				const world_handle new_handle = cm.add_component(b.type, _selected_entity);
+				if (new_handle.is_null())
+				{
+					open_info_popup("failed to add component, this component's limit has been reached.");
+					_add_component_buttons.resize(0);
+					return;
+				}
+
+				clear_component_view();
+				build_component_view();
+				_add_component_buttons.resize(0);
+				em.set_hierarchy_dirty(1);
+				return;
+			}
+		}
+	}
+
+	void editor_panel_inspector::on_popup_item(vekt::id widget)
+	{
 	}
 
 	void editor_panel_inspector::clear_component_view()
@@ -342,6 +393,8 @@ namespace SFG
 			void*					   comp_ptr		= cm.get_component(c.comp_type, c.comp_handle);
 			const bool				   is_collapsed = is_component_collapsed(c.comp_type);
 			const gui_builder::id_trip pair			= _gui_builder.add_component_title(m.get_title().c_str());
+			_gui_builder.set_indent(editor_theme::get().outer_margin * 3);
+
 			_comp_header_buttons.push_back({c.comp_handle, pair.first, pair.second, pair.third, c.comp_type});
 
 			if (!is_collapsed)
@@ -411,6 +464,7 @@ namespace SFG
 				});
 			}
 		}
+		_gui_builder.set_indent(0);
 		_gui_builder.set_draw_order(0);
 
 		_gui_builder.end_area();
@@ -470,13 +524,7 @@ namespace SFG
 	{
 		editor_gui_controller& ctr = editor::get().get_gui_controller();
 		ctr.begin_popup(text);
-		_popup_ok = ctr.popup_add_button("ok");
-		if (_popup_ok != NULL_WIDGET_ID)
-		{
-			vekt::mouse_callback& cb = _builder->widget_get_mouse_callbacks(_popup_ok);
-			cb.on_mouse				 = on_mouse;
-			_builder->widget_get_user_data(_popup_ok).ptr = this;
-		}
+		ctr.popup_add_button("ok");
 		ctr.end_popup();
 	}
 
@@ -580,216 +628,162 @@ namespace SFG
 
 		if (ev.type == vekt::input_event_type::released && ev.button == static_cast<uint16>(input_code::mouse_0))
 		{
-			if (widget == self->_popup_ok)
-			{
-				editor::get().get_gui_controller().kill_popup();
-				return vekt::input_event_result::handled;
-			}
-
 			if (self->_gui_builder.invoke_control_button(widget))
 				return vekt::input_event_result::handled;
 		}
 
-		if (phase == vekt::input_event_phase::tunneling)
+		if (ev.type == vekt::input_event_type::released && widget == self->_add_component && !self->_selected_entity.is_null())
 		{
-			if (ev.type == vekt::input_event_type::released && widget == self->_add_component && !self->_selected_entity.is_null())
+			self->_add_component_buttons.resize(0);
+			editor::get().get_gui_controller().begin_context_menu(ev.position.x, ev.position.y);
+
+			const auto& metas = reflection::get().get_metas();
+
+			struct meta_category
 			{
-				self->_add_component_buttons.resize(0);
-				editor::get().get_gui_controller().begin_context_menu(ev.position.x, ev.position.y);
+				string			  title = "";
+				vector<string_id> tids;
+			};
 
-				const auto& metas = reflection::get().get_metas();
+			vector<meta_category> categories;
 
-				struct meta_category
+			for (const auto& entry : metas)
+			{
+				const meta& meta = entry.meta;
+				if (meta.get_tag() == "component"_hs && !meta.get_title().empty())
 				{
-					string			  title = "";
-					vector<string_id> tids;
-				};
+					const string title = meta.get_category().c_str();
+					auto		 it	   = std::find_if(categories.begin(), categories.end(), [&](const meta_category& c) -> bool { return c.title.compare(title) == 0; });
 
-				vector<meta_category> categories;
-
-				for (const auto& entry : metas)
-				{
-					const meta& meta = entry.meta;
-					if (meta.get_tag() == "component"_hs && !meta.get_title().empty())
-					{
-						const string title = meta.get_category().c_str();
-						auto		 it	   = std::find_if(categories.begin(), categories.end(), [&](const meta_category& c) -> bool { return c.title.compare(title) == 0; });
-
-						if (it == categories.end())
-							categories.push_back({.title = title, .tids = {meta.get_type_id()}});
-						else
-							it->tids.push_back(meta.get_type_id());
-					}
+					if (it == categories.end())
+						categories.push_back({.title = title, .tids = {meta.get_type_id()}});
+					else
+						it->tids.push_back(meta.get_type_id());
 				}
+			}
 
-				for (const meta_category& cat : categories)
+			for (const meta_category& cat : categories)
+			{
+				editor::get().get_gui_controller().add_context_menu_title(cat.title.c_str());
+
+				for (string_id tid : cat.tids)
 				{
-					editor::get().get_gui_controller().add_context_menu_title(cat.title.c_str());
-
-					for (string_id tid : cat.tids)
-					{
-						const meta&			  meta	 = reflection::get().resolve(tid);
-						const vekt::id		  button = editor::get().get_gui_controller().add_context_menu_item(meta.get_title().c_str());
-						vekt::mouse_callback& cb	 = b->widget_get_mouse_callbacks(button);
-						cb.on_mouse					 = on_mouse;
-						vekt::widget_user_data& ud	 = b->widget_get_user_data(button);
-						ud.ptr						 = self;
-						self->_add_component_buttons.push_back({.button = button, .type = meta.get_type_id()});
-					}
+					const meta&	   meta	  = reflection::get().resolve(tid);
+					const vekt::id button = editor::get().get_gui_controller().add_context_menu_item(meta.get_title().c_str());
+					self->_add_component_buttons.push_back({.button = button, .type = meta.get_type_id()});
 				}
+			}
 
-				editor::get().get_gui_controller().end_context_menu();
+			editor::get().get_gui_controller().end_context_menu();
+			return vekt::input_event_result::handled;
+		}
+
+		if (ev.type == vekt::input_event_type::released && widget == self->_save_template && !self->_selected_entity.is_null())
+		{
+			world&		 w	  = editor::get().get_app().get_world();
+			const string file = process::save_file("save entity file", ".stkent");
+			if (file.empty())
 				return vekt::input_event_result::handled;
-			}
 
-			if (ev.type == vekt::input_event_type::pressed && !self->_selected_entity.is_null() && !self->_add_component_buttons.empty())
+			entity_template_raw::save_to_file(file.c_str(), w, {self->_selected_entity});
+
+			string relative = editor_settings::get().get_relative(file);
+			file_system::fix_path(relative);
+			w.get_resource_manager().load_resources({relative});
+
+			const resource_handle h = w.get_resource_manager().get_resource_handle_by_hash<entity_template>(TO_SID(relative));
+			w.get_entity_manager().set_entity_template(self->_selected_entity, h);
+			if (self->_entities)
+				self->_entities->set_entity_collapsed(self->_selected_entity, true);
+
+			self->set_selected_controls();
+			self->clear_component_view();
+			self->build_component_view();
+			return vekt::input_event_result::handled;
+		}
+
+		if (ev.type == vekt::input_event_type::released && widget == self->_unlock_template && !self->_selected_entity.is_null())
+		{
+			world& w = editor::get().get_app().get_world();
+			w.get_entity_manager().set_entity_template(self->_selected_entity, {});
+			if (self->_entities)
+				self->_entities->set_entity_collapsed(self->_selected_entity, false);
+			self->set_selected_controls();
+			self->clear_component_view();
+			self->build_component_view();
+			return vekt::input_event_result::handled;
+		}
+
+		if (ev.type == vekt::input_event_type::released && !self->_selected_entity.is_null())
+		{
+			for (const comp_header_button& b : self->_comp_header_buttons)
 			{
-				for (const add_comp_button& b : self->_add_component_buttons)
+				if (widget == b.collapse_row)
 				{
-					if (b.button == widget)
-					{
-						world&			   w  = editor::get().get_app().get_world();
-						entity_manager&	   em = w.get_entity_manager();
-						component_manager& cm = w.get_comp_manager();
-						const entity_comp_register& reg = em.get_component_register(self->_selected_entity);
-						bool						has_comp = false;
-						for (const entity_comp& c : reg.comps)
-						{
-							if (c.comp_type == b.type)
-							{
-								has_comp = true;
-								break;
-							}
-						}
-
-						if (has_comp)
-						{
-							self->open_info_popup("entity already has this component");
-							self->_add_component_buttons.resize(0);
-							return vekt::input_event_result::handled;
-						}
-
-						const world_handle new_handle = cm.add_component(b.type, self->_selected_entity);
-						if (new_handle.is_null())
-						{
-							self->open_info_popup("failed to add component");
-							self->_add_component_buttons.resize(0);
-							return vekt::input_event_result::handled;
-						}
-
-						self->clear_component_view();
-						self->build_component_view();
-						self->_add_component_buttons.resize(0);
-						em.set_hierarchy_dirty(1);
-						return vekt::input_event_result::handled;
-					}
-				}
-			}
-
-			if (ev.type == vekt::input_event_type::released && widget == self->_save_template && !self->_selected_entity.is_null())
-			{
-				world&		 w	  = editor::get().get_app().get_world();
-				const string file = process::save_file("save entity file", ".stkent");
-				if (file.empty())
+					const bool collapsed = self->is_component_collapsed(b.comp_type);
+					self->set_component_collapsed(b.comp_type, !collapsed);
+					self->clear_component_view();
+					self->build_component_view();
 					return vekt::input_event_result::handled;
-
-				entity_template_raw::save_to_file(file.c_str(), w, {self->_selected_entity});
-
-				string relative = editor_settings::get().get_relative(file);
-				file_system::fix_path(relative);
-				w.get_resource_manager().load_resources({relative});
-
-				const resource_handle h = w.get_resource_manager().get_resource_handle_by_hash<entity_template>(TO_SID(relative));
-				w.get_entity_manager().set_entity_template(self->_selected_entity, h);
-				if (self->_entities)
-					self->_entities->set_entity_collapsed(self->_selected_entity, true);
-
-				self->set_selected_controls();
-				self->clear_component_view();
-				self->build_component_view();
-				return vekt::input_event_result::handled;
-			}
-
-			if (ev.type == vekt::input_event_type::released && widget == self->_unlock_template && !self->_selected_entity.is_null())
-			{
-				world& w = editor::get().get_app().get_world();
-				w.get_entity_manager().set_entity_template(self->_selected_entity, {});
-				if (self->_entities)
-					self->_entities->set_entity_collapsed(self->_selected_entity, false);
-				self->set_selected_controls();
-				self->clear_component_view();
-				self->build_component_view();
-				return vekt::input_event_result::handled;
-			}
-
-			if (ev.type == vekt::input_event_type::released && !self->_selected_entity.is_null())
-			{
-				for (const comp_header_button& b : self->_comp_header_buttons)
-				{
-					if (widget == b.collapse_row)
-					{
-						const bool collapsed = self->is_component_collapsed(b.comp_type);
-						self->set_component_collapsed(b.comp_type, !collapsed);
-						self->clear_component_view();
-						self->build_component_view();
-						return vekt::input_event_result::handled;
-					}
-				}
-			}
-
-			if (ev.type == vekt::input_event_type::released && !self->_selected_entity.is_null())
-			{
-				for (const comp_header_button& b : self->_comp_header_buttons)
-				{
-					if (widget == b.reset_button)
-					{
-						world&			   w  = editor::get().get_app().get_world();
-						entity_manager&	   em = w.get_entity_manager();
-						component_manager& cm = w.get_comp_manager();
-						cm.remove_component(b.comp_type, self->_selected_entity, b.handle);
-						const world_handle new_handle = cm.add_component(b.comp_type, self->_selected_entity);
-						if (new_handle.is_null())
-						{
-							self->open_info_popup("failed to add component");
-							self->clear_component_view();
-							self->build_component_view();
-							em.set_hierarchy_dirty(1);
-							return vekt::input_event_result::handled;
-						}
-
-						meta& m = reflection::get().resolve(b.comp_type);
-						if (m.has_function("on_reflect_load"_hs))
-						{
-							void* comp_ptr = cm.get_component(b.comp_type, new_handle);
-							m.invoke_function<void, void*, world&>("on_reflect_load"_hs, comp_ptr, w);
-						}
-						self->clear_component_view();
-						self->build_component_view();
-						em.set_hierarchy_dirty(1);
-						return vekt::input_event_result::handled;
-					}
-				}
-			}
-
-			if (ev.type == vekt::input_event_type::released && !self->_selected_entity.is_null())
-			{
-				for (const comp_header_button& b : self->_comp_header_buttons)
-				{
-					if (widget == b.remove_button)
-					{
-						world&			   w  = editor::get().get_app().get_world();
-						entity_manager&	   em = w.get_entity_manager();
-						component_manager& cm = w.get_comp_manager();
-						cm.remove_component(b.comp_type, self->_selected_entity, b.handle);
-						self->clear_component_view();
-						self->build_component_view();
-						em.set_hierarchy_dirty(1);
-						return vekt::input_event_result::handled;
-					}
 				}
 			}
 		}
 
+		if (!self->_selected_entity.is_null())
+		{
+			for (const comp_header_button& b : self->_comp_header_buttons)
+			{
+				if (widget == b.reset_button)
+				{
+					// block but do nothing
+					if (ev.type == vekt::input_event_type::pressed)
+						return vekt::input_event_result::handled;
+
+					world&			   w  = editor::get().get_app().get_world();
+					entity_manager&	   em = w.get_entity_manager();
+					component_manager& cm = w.get_comp_manager();
+					cm.remove_component(b.comp_type, self->_selected_entity, b.handle);
+					const world_handle new_handle = cm.add_component(b.comp_type, self->_selected_entity);
+					if (new_handle.is_null())
+					{
+						self->open_info_popup("failed to add component, this component's limit has been reached.");
+						self->clear_component_view();
+						self->build_component_view();
+						em.set_hierarchy_dirty(1);
+						return vekt::input_event_result::handled;
+					}
+
+					meta& m = reflection::get().resolve(b.comp_type);
+					if (m.has_function("on_reflect_load"_hs))
+					{
+						void* comp_ptr = cm.get_component(b.comp_type, new_handle);
+						m.invoke_function<void, void*, world&>("on_reflect_load"_hs, comp_ptr, w);
+					}
+					self->clear_component_view();
+					self->build_component_view();
+					em.set_hierarchy_dirty(1);
+					return vekt::input_event_result::handled;
+				}
+			}
+		}
+
+		if (ev.type == vekt::input_event_type::released && !self->_selected_entity.is_null())
+		{
+			for (const comp_header_button& b : self->_comp_header_buttons)
+			{
+				if (widget == b.remove_button)
+				{
+					world&			   w  = editor::get().get_app().get_world();
+					entity_manager&	   em = w.get_entity_manager();
+					component_manager& cm = w.get_comp_manager();
+					cm.remove_component(b.comp_type, self->_selected_entity, b.handle);
+					self->clear_component_view();
+					self->build_component_view();
+					em.set_hierarchy_dirty(1);
+					return vekt::input_event_result::handled;
+				}
+			}
+		}
 		return vekt::input_event_result::not_handled;
 	}
 }

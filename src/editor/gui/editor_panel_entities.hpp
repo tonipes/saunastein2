@@ -59,6 +59,8 @@ namespace SFG
 		void kill_drag();
 		void update_entity_name(world_handle h);
 		void set_entity_collapsed(world_handle h, bool collapsed);
+		void on_context_item(vekt::id id);
+		void on_popup_item(vekt::id id) {};
 
 		// -----------------------------------------------------------------------------
 		// accessors

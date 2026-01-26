@@ -86,7 +86,6 @@ namespace SFG
 		void			  uninit();
 		void			  draw(const vector2ui16& window_size);
 		bool			  on_mouse_move(const vector2& p);
-		bool			  on_mouse_event(const window_event& ev);
 		bool			  on_key_event(const window_event& ev);
 		const vector2ui16 get_world_size() const;
 		bool			  get_mouse_world_ray(const vector2& mouse_pos, vector3& origin, vector3& direction) const;
@@ -103,6 +102,8 @@ namespace SFG
 		void set_audio_style(audio_style aud);
 		void set_stats_view(stats_view_style style);
 		void set_playmode(playmode m);
+		void on_context_item(vekt::id widget);
+		void on_popup_item(vekt::id widget);
 
 		static vekt::input_event_result on_widget_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase);
 		static void						on_toggle_button(void* callback_ud, vekt::builder* b, vekt::id id, bool toggled);
@@ -139,8 +140,8 @@ namespace SFG
 		inline void kill_popup()
 		{
 			_popup_save_yes = NULL_WIDGET_ID;
-			_popup_save_no  = NULL_WIDGET_ID;
-			_popup_action   = popup_action::none;
+			_popup_save_no	= NULL_WIDGET_ID;
+			_popup_action	= popup_action::none;
 		}
 
 		inline vekt::id get_root() const

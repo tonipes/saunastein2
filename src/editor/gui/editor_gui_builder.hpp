@@ -304,6 +304,11 @@ namespace SFG
 			_draw_order = o;
 		}
 
+		inline void set_indent(float f)
+		{
+			_indent = f;
+		}
+
 		static vekt::input_event_result on_text_field_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase);
 		static vekt::input_event_result on_text_field_key(vekt::builder* b, vekt::id widget, const vekt::key_event& ev);
 		static void						on_text_field_draw(vekt::builder* b, vekt::id widget);
@@ -344,6 +349,7 @@ namespace SFG
 		vekt::id _root				= NULL_WIDGET_ID;
 		vekt::id _stack_ptr			= 0;
 
+		float		 _indent	 = 0.0f;
 		unsigned int _draw_order = 0;
 	};
 

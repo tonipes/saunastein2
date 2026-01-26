@@ -193,7 +193,7 @@ namespace SFG
 		property_cell_div	= 0.3f;
 
 		area_rounding	 = 8.0f;
-		scroll_thickness = DPI_SCALE * 4;
+		scroll_thickness = DPI_SCALE * 8;
 		scroll_rounding	 = 8.0f;
 
 		inner_margin				   = DPI_SCALE * 4;
