@@ -57,7 +57,7 @@ namespace SFG
 
 		void create_from_loader(const particle_properties_raw& raw, world& w, resource_handle handle);
 		void destroy(world& w, resource_handle handle);
-		void update_data(world& w);
+		void update_data(world& w, resource_handle handle);
 
 		// -----------------------------------------------------------------------------
 		// accessors

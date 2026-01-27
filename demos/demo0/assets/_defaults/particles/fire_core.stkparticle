@@ -8,13 +8,13 @@
     "max_lifetime": 1
   },
   "pos": {
-    "min_start": [0,0,0],
-    "max_start": [0,0,0],
+    "min_start": [-0.1, 1.0, -0.2],
+    "max_start": [0.1, 0.2, 0.2],
     "cone_radius": 0.04
   },
   "velocity": {
-    "min_start": [0,0,0],
-    "max_start": [1,0,0],
+    "min_start": [-0.4, 0.8, -0.05],
+    "max_start": [0.4, 0.8, 0.05],
     "min_mid": [-0.0, 0.0, -0.0],
     "max_mid": [0.0, 0.0, 0.0],
     "min_end": [-0.0, -0.0, -0.0],

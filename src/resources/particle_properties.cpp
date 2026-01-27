@@ -49,7 +49,7 @@ namespace SFG
 		_flags.set(particle_properties::flags::created);
 
 		_emit = raw.props;
-		update_data(w);
+		update_data(w, handle);
 	}
 
 	void particle_properties::destroy(world& w, resource_handle handle)
@@ -58,13 +58,13 @@ namespace SFG
 			return;
 		_flags.remove(particle_properties::flags::created);
 
-		w.get_render_stream().add_event({.index = 0, .event_type = render_event_type::destroy_particle_res});
+		w.get_render_stream().add_event({.index = handle.index, .event_type = render_event_type::destroy_particle_res});
 	}
-	void particle_properties::update_data(world& w)
+	void particle_properties::update_data(world& w, resource_handle handle)
 	{
 		const render_event_particle_res ev = {
 			.props = _emit,
 		};
-		w.get_render_stream().add_event({.index = 0, .event_type = render_event_type::particle_res}, ev);
+		w.get_render_stream().add_event({.index = handle.index, .event_type = render_event_type::particle_res}, ev);
 	}
 }
