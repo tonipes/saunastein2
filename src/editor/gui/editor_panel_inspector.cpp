@@ -123,8 +123,6 @@ namespace SFG
 
 	void editor_panel_inspector::draw(world& w, const vector2ui16& window_size)
 	{
-		(void)window_size;
-
 		sync_selected(w);
 
 		entity_manager&	   em = w.get_entity_manager();

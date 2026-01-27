@@ -62,7 +62,6 @@ namespace SFG
 	{
 		vekt::input_event_result on_popup_background_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase)
 		{
-			(void)phase;
 			if (ev.button != input_code::mouse_0)
 				return vekt::input_event_result::not_handled;
 
@@ -79,10 +78,6 @@ namespace SFG
 
 		vekt::input_event_result on_popup_window_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase)
 		{
-			(void)b;
-			(void)widget;
-			(void)ev;
-			(void)phase;
 			return vekt::input_event_result::handled;
 		}
 	}

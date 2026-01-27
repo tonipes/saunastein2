@@ -346,9 +346,8 @@ namespace SFG
 	void draw_stream_sprite::build()
 	{
 		ZoneScoped;
-		std::stable_sort(_commands, _commands + _commands_count, [&](const draw_command_sprite& a, const draw_command_sprite& b) {
-			return draw_stream_bound_state_pipeline::make_sort_key(a.pipeline_hw) < draw_stream_bound_state_pipeline::make_sort_key(b.pipeline_hw);
-		});
+		std::stable_sort(
+			_commands, _commands + _commands_count, [&](const draw_command_sprite& a, const draw_command_sprite& b) { return draw_stream_bound_state_pipeline::make_sort_key(a.pipeline_hw) < draw_stream_bound_state_pipeline::make_sort_key(b.pipeline_hw); });
 	}
 
 	void draw_stream_sprite::draw(gfx_id cmd_buffer)
@@ -359,6 +358,8 @@ namespace SFG
 
 		draw_stream_bound_state_pipeline bound = {};
 
+		uint32 icounter = 0;
+
 		for (uint32 i = 0; i < _commands_count; i++)
 		{
 			draw_command_sprite& draw = _commands[i];
@@ -368,14 +369,17 @@ namespace SFG
 				backend->cmd_bind_pipeline(cmd_buffer, {.pipeline = draw.pipeline_hw});
 
 			const uint32 mat_constants[3] = {draw.material_constant_index, draw.texture_constant_index, draw.sampler_constant_index};
+			const uint32 rp_constant	  = icounter;
 			backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)mat_constants, .offset = constant_index_mat_constant0, .count = 3, .param_index = rpi_constants});
+			backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)&rp_constant, .offset = constant_index_rp_constant3, .count = 1, .param_index = rpi_constants});
+			icounter += draw.instance_count;
 
 			backend->cmd_draw_instanced(cmd_buffer,
 										{
 											.vertex_count_per_instance = 4,
-											.instance_count			  = draw.instance_count,
-											.start_vertex_location	  = 0,
-											.start_instance_location  = draw.start_instance,
+											.instance_count			   = draw.instance_count,
+											.start_vertex_location	   = 0,
+											.start_instance_location   = draw.start_instance,
 										});
 		}
 

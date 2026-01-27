@@ -131,16 +131,16 @@ namespace SFG
 #ifndef SFG_STRIP_DEBUG_NAMES
 		chunk_handle32 _name;
 #endif
-		chunk_handle32 _material_indices = {};
-		uint16		   _material_count	 = 0;
-		uint16		   _node_index		 = 0;
-		int16		   _skin_index		 = 0;
+		chunk_handle32 _material_indices	  = {};
+		uint16		   _material_count		  = 0;
+		uint16		   _node_index			  = 0;
+		int16		   _skin_index			  = 0;
 		chunk_handle32 _collider_vertices	  = {};
 		chunk_handle32 _collider_indices	  = {};
 		chunk_handle32 _mesh_shape			  = {};
 		uint32		   _collider_vertex_count = 0;
 		uint32		   _collider_index_count  = 0;
-		bitmask<uint8> _flags			 = 0;
+		bitmask<uint8> _flags				  = 0;
 	};
 
 	REFLECT_TYPE(mesh);

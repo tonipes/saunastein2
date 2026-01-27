@@ -7,6 +7,9 @@
 #include "gfx/proxy/proxy_manager.hpp"
 #include "gfx/common/render_target_definitions.hpp"
 #include "gfx/world/view.hpp"
+#include "math/math.hpp"
+#include "math/vector3.hpp"
+#include "math/vector4.hpp"
 
 #include <tracy/Tracy.hpp>
 
@@ -94,6 +97,15 @@ namespace SFG
 			if (entity._assigned_index == UINT32_MAX)
 				continue;
 
+			const vector3 pos		= entity.model.get_translation();
+			const vector3 scale		= entity.model.get_scale();
+			float		  max_scale = math::max(scale.x, scale.y);
+			max_scale				= math::max(max_scale, scale.z);
+			const float radius		= max_scale * 0.70710678f;
+
+			if (frustum::test(main_camera_view.view_frustum, pos, radius) == frustum_result::outside)
+				continue;
+
 			render_proxy_material_runtime& mat = materials->get(sprite.material);
 			if (!mat.flags.is_set(material_flags::material_flags_is_sprite))
 				continue;
@@ -157,6 +169,15 @@ namespace SFG
 					continue;
 
 				if (entity._assigned_index == UINT32_MAX)
+					continue;
+
+				const vector3 pos		= entity.model.get_translation();
+				const vector3 scale		= entity.model.get_scale();
+				float		  max_scale = math::max(scale.x, scale.y);
+				max_scale				= math::max(max_scale, scale.z);
+				const float radius		= max_scale * 0.70710678f;
+
+				if (frustum::test(main_camera_view.view_frustum, pos, radius) == frustum_result::outside)
 					continue;
 
 				render_proxy_material_runtime& mat = materials->get(sprite.material);

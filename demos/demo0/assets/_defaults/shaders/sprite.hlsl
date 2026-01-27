@@ -38,8 +38,8 @@ vs_output VSMain(uint vid : SV_VertexID, uint iid : SV_InstanceID)
     ConstantBuffer<render_pass_data> pass_params = sfg_get_cbv<render_pass_data>(sfg_rp_constant0);
     StructuredBuffer<gpu_entity> entities = sfg_get_ssbo<gpu_entity>(sfg_rp_constant1);
     StructuredBuffer<sprite_instance> instances = sfg_get_ssbo<sprite_instance>(sfg_rp_constant2);
-
-    uint entity_index = instances[iid].entity_index;
+    uint iid_base = sfg_rp_constant3 + iid;
+    uint entity_index = instances[iid_base].entity_index;
     gpu_entity e = entities[entity_index];
 
     float2 corner = k_corners[vid];
