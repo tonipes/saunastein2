@@ -514,7 +514,7 @@ namespace SFG
 						}
 						else
 						{
-							target_field->value(comp_ptr).cast_ref<resource_handle>() = val.empty() ? resource_handle() : rm.get_resource_handle_by_hash(sub_type, TO_SID(val));
+							target_field->value(comp_ptr).cast_ref<resource_handle>() = val.empty() ? resource_handle() : rm.get_resource_handle_by_hash_if_exists(sub_type, TO_SID(val));
 						}
 					}
 				}

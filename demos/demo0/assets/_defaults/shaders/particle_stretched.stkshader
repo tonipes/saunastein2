@@ -1,4 +1,4 @@
 {
-    "source": "assets/_defaults/shaders/particle_bullet_trail.hlsl",
+    "source": "assets/_defaults/shaders/particle_stretched.hlsl",
     "variant_style": "particle_additive"
 }

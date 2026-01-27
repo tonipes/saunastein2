@@ -173,7 +173,6 @@ float3 sample_cone_volume(
             state.pos_z = rand_mm(emit.min_pos_z, emit.max_pos_z, seed * 1664541u);
         }
 
-
         // write age - life
         state.age = 0.0f;
         state.lifetime = rand_mm(emit.min_lifetime, emit.max_lifetime, seed * 1261545u);

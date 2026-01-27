@@ -132,7 +132,7 @@ namespace SFG
 			if (cur_pipe == pipeline)
 				return 0;
 
-			cur_pipe = pipeline;
+			pipeline = cur_pipe;
 			return 1;
 		}
 

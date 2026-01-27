@@ -126,12 +126,17 @@ namespace SFG
 
 		for (string_id sid : raw.textures)
 		{
-			const resource_handle handle = rm.get_resource_handle_by_hash<texture>(sid);
-			ev.textures.push_back(handle.index);
-		}
-		const resource_handle shader_handle = rm.get_resource_handle_by_hash<shader>(raw.shader);
-		ev.shader_index						= shader_handle.index;
+			const resource_handle handle = rm.get_resource_handle_by_hash_if_exists<texture>(sid);
 
+			if (handle.is_null())
+				ev.textures.push_back(NULL_RESOURCE_ID);
+			else
+				ev.textures.push_back(handle.index);
+		}
+		const resource_handle shader_handle = rm.get_resource_handle_by_hash_if_exists<shader>(raw.shader);
+		ev.shader_index						= shader_handle.is_null() ? NULL_RESOURCE_ID : shader_handle.index;
+
+	
 #ifndef SFG_STRIP_DEBUG_NAMES
 		ev.name = raw.name;
 #endif

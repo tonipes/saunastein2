@@ -1,6 +1,6 @@
 {
    "pass": "particle",
-   "shader": "assets/_defaults/shaders/particle_additive.stkshader",
+   "shader": "assets/_defaults/shaders/particle_billboard.stkshader",
    "textures": [
       "assets/_defaults/textures/smoke_01.stktexture"
    ],

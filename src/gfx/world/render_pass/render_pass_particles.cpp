@@ -368,8 +368,11 @@ namespace SFG
 			emit_count = 0;
 			emit_dead  = false;
 
-			const render_proxy_material_runtime& mat	= pm.get_material_runtime(material_res);
-			const render_proxy_shader&			 shader = pm.get_shader(mat.shader_handle);
+			const render_proxy_material_runtime& mat = pm.get_material_runtime(material_res);
+			if (mat.shader_handle == NULL_RESOURCE_ID)
+				continue;
+
+			const render_proxy_shader& shader = pm.get_shader(mat.shader_handle);
 			SFG_ASSERT(shader.status == render_proxy_status::rps_active);
 
 			const gfx_id target_shader = pm.get_shader_variant(shader.handle, 0);
