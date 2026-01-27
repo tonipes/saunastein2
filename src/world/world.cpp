@@ -78,6 +78,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "components/comp_canvas.hpp"
 #include "components/comp_animation_controller.hpp"
 #include "components/comp_particle_emitter.hpp"
+#include "components/comp_sprite.hpp"
 
 #include <vendor/miniaudio/miniaudio.h>
 #include <tracy/Tracy.hpp>
@@ -124,6 +125,7 @@ namespace SFG
 		_comp_manager.register_cache<comp_canvas, MAX_WORLD_COMP_CANVAS>();
 		_comp_manager.register_cache<comp_animation_controller, MAX_WORLD_COMP_ANIMS>();
 		_comp_manager.register_cache<comp_particle_emitter, MAX_WORLD_COMP_PARTICLE_EMITTERS>();
+		_comp_manager.register_cache<comp_sprite, MAX_WORLD_COMP_SPRITES>();
 
 		_phy_world.init();
 		_audio_manager.init();

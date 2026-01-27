@@ -178,6 +178,7 @@ namespace SFG
 		_pass_forward.init(size);
 		_pass_canvas_2d.init(size);
 		_pass_particles.init(bind_layout, bind_layout_compute);
+		_pass_sprite.init(size);
 
 #ifdef SFG_TOOLMODE
 		_pass_debug_rendering.init(size, _world);
@@ -198,6 +199,7 @@ namespace SFG
 		_pass_forward.uninit();
 		_pass_canvas_2d.uninit();
 		_pass_particles.uninit();
+		_pass_sprite.uninit();
 
 #ifdef SFG_TOOLMODE
 		_pass_debug_rendering.uninit();
@@ -297,6 +299,7 @@ namespace SFG
 		_pass_bloom.prepare(_proxy_manager, frame_index);
 		_pass_post.prepare(_proxy_manager, frame_index, _base_size);
 		_pass_particles.prepare(frame_index, _proxy_manager, _main_camera_view);
+		_pass_sprite.prepare(frame_index, _proxy_manager, _main_camera_view);
 	}
 
 	void game_world_renderer::run_pre_depth(const void* context)
@@ -456,6 +459,19 @@ namespace SFG
 
 		});
 	}
+	void game_world_renderer::run_sprite(const void* ctx)
+	{
+		const game_world_renderer::task_common* cmn = static_cast<const game_world_renderer::task_common*>(ctx);
+		cmn->rend->_pass_sprite.render({
+			.frame_index		= cmn->frame_index,
+			.size				= cmn->resolution,
+			.global_layout		= cmn->layout_global,
+			.global_group		= cmn->bind_group_global,
+			.input_texture		= cmn->lighting_texture,
+			.depth_texture		= cmn->depth_texture,
+			.gpu_index_entities = cmn->gpu_index_entities,
+		});
+	}
 	void game_world_renderer::run_post(const void* ctx)
 	{
 		const game_world_renderer::task_common* cmn = static_cast<const game_world_renderer::task_common*>(ctx);
@@ -515,6 +531,7 @@ namespace SFG
 		const gfx_id cmd_forward		   = _pass_forward.get_cmd_buffer(frame_index);
 		const gfx_id cmd_particles		   = _pass_particles.get_cmd_buffer(frame_index);
 		const gfx_id cmd_particles_compute = _pass_particles.get_cmd_buffer_compute(frame_index);
+		const gfx_id cmd_sprite			   = _pass_sprite.get_cmd_buffer(frame_index);
 
 #ifdef SFG_TOOLMODE
 		const gfx_id cmd_debug	   = _pass_debug_rendering.get_cmd_buffer(frame_index);
@@ -605,6 +622,7 @@ namespace SFG
 		tt.push_back({run_lighting, (void*)&common_data});
 		tt.push_back({run_forward, (void*)&common_data});
 		tt.push_back({run_particles_render, (void*)&common_data});
+		tt.push_back({run_sprite, (void*)&common_data});
 
 		std::for_each(std::execution::par, tt.begin(), tt.end(), [](auto&& task) { task(); });
 
@@ -617,11 +635,11 @@ namespace SFG
 		backend->queue_wait(queue_gfx, &sem_ssao, &sem_ssao_val1, 1);
 
 #ifdef SFG_TOOLMODE
-		const gfx_id fw_commands[4] = {cmd_lighting, cmd_particles, cmd_forward, cmd_debug};
-		backend->submit_commands(queue_gfx, fw_commands, 4);
+		const gfx_id fw_commands[5] = {cmd_lighting, cmd_particles, cmd_sprite, cmd_forward, cmd_debug};
+		backend->submit_commands(queue_gfx, fw_commands, 5);
 #else
-		const gfx_id fw_commands[3] = {cmd_lighting, cmd_particles, cmd_forward};
-		backend->submit_commands(queue_gfx, fw_commands, 3);
+		const gfx_id fw_commands[4] = {cmd_lighting, cmd_particles, cmd_sprite, cmd_forward};
+		backend->submit_commands(queue_gfx, fw_commands, 4);
 #endif
 		backend->queue_signal(queue_gfx, &sem_lighting, &sem_lighting_val0, 1);
 

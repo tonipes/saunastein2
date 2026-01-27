@@ -67,6 +67,7 @@ namespace SFG
 		_dir_lights			= new dir_lights_type();
 		_canvases			= new canvas_type();
 		_emitters			= new emitters_type();
+		_sprites			= new sprites_type();
 		_material_updates	= new material_updates_type();
 		_particle_resources = new particle_res_type();
 	}
@@ -92,6 +93,7 @@ namespace SFG
 		delete _dir_lights;
 		delete _canvases;
 		delete _emitters;
+		delete _sprites;
 		delete _material_updates;
 		delete _particle_resources;
 	}
@@ -117,12 +119,14 @@ namespace SFG
 		_dir_lights->reset();
 		_canvases->reset();
 		_emitters->reset();
+		_sprites->reset();
 		_particle_resources->reset();
 		_material_updates->resize(0);
 		_ambient_exists		 = 0;
 		_bloom_exists		 = 0;
 		_ssao_exists		 = 0;
 		_post_process_exists = 0;
+		_peak_sprites		 = 0;
 	}
 
 	void proxy_manager::init()
@@ -1324,10 +1328,25 @@ namespace SFG
 			proxy.current_life		= 0.0f;
 			_peak_particle_emitters = math::max(_peak_particle_emitters, index);
 		}
+		else if (type == render_event_type::sprite)
+		{
+			render_proxy_sprite& proxy = _sprites->get(index);
+			render_event_sprite	 ev	   = {};
+			ev.deserialize(stream);
+			proxy.material = ev.material;
+			proxy.entity   = ev.entity;
+			proxy.status   = render_proxy_status::rps_active;
+			_peak_sprites  = math::max(_peak_sprites, index);
+		}
 		else if (type == render_event_type::remove_particle_emitter)
 		{
 			render_proxy_particle_emitter& proxy = get_emitter(index);
 			proxy								 = {};
+		}
+		else if (type == render_event_type::remove_sprite)
+		{
+			render_proxy_sprite& proxy = get_sprite(index);
+			proxy					   = {};
 		}
 		else if (type == render_event_type::reset_particle_emitter)
 		{

@@ -335,4 +335,58 @@ namespace SFG
 		SFG_ASSERT(_commands_count <= _max_commands);
 		_commands[_commands_count++] = cmd;
 	}
+
+	void draw_stream_sprite::prepare(bump_allocator& alloc, size_t max_commands)
+	{
+		_commands		= alloc.allocate<draw_command_sprite>(max_commands);
+		_commands_count = 0;
+		_max_commands	= max_commands;
+	}
+
+	void draw_stream_sprite::build()
+	{
+		ZoneScoped;
+		std::stable_sort(_commands, _commands + _commands_count, [&](const draw_command_sprite& a, const draw_command_sprite& b) {
+			return draw_stream_bound_state_pipeline::make_sort_key(a.pipeline_hw) < draw_stream_bound_state_pipeline::make_sort_key(b.pipeline_hw);
+		});
+	}
+
+	void draw_stream_sprite::draw(gfx_id cmd_buffer)
+	{
+		ZoneScoped;
+
+		gfx_backend* backend = gfx_backend::get();
+
+		draw_stream_bound_state_pipeline bound = {};
+
+		for (uint32 i = 0; i < _commands_count; i++)
+		{
+			draw_command_sprite& draw = _commands[i];
+
+			const uint8 diff = bound.diff_mask(draw.pipeline_hw);
+			if (diff)
+				backend->cmd_bind_pipeline(cmd_buffer, {.pipeline = draw.pipeline_hw});
+
+			const uint32 mat_constants[3] = {draw.material_constant_index, draw.texture_constant_index, draw.sampler_constant_index};
+			backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)mat_constants, .offset = constant_index_mat_constant0, .count = 3, .param_index = rpi_constants});
+
+			backend->cmd_draw_instanced(cmd_buffer,
+										{
+											.vertex_count_per_instance = 4,
+											.instance_count			  = draw.instance_count,
+											.start_vertex_location	  = 0,
+											.start_instance_location  = draw.start_instance,
+										});
+		}
+
+#ifdef SFG_TOOLMODE
+		frame_info::add_draw_call(_commands_count);
+#endif
+	}
+
+	void draw_stream_sprite::add_command(const draw_command_sprite& cmd)
+	{
+		SFG_ASSERT(_commands_count <= _max_commands);
+		_commands[_commands_count++] = cmd;
+	}
 }

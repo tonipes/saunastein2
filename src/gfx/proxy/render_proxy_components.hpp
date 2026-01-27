@@ -184,4 +184,11 @@ namespace SFG
 		float				current_life	= 0.0f;
 		render_proxy_status status			= render_proxy_status::rps_inactive;
 	};
+
+	struct render_proxy_sprite
+	{
+		world_id			entity	 = {};
+		resource_id			material = NULL_RESOURCE_ID;
+		render_proxy_status status	 = render_proxy_status::rps_inactive;
+	};
 }

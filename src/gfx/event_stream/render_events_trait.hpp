@@ -205,4 +205,13 @@ namespace SFG
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);
 	};
+
+	struct render_event_sprite
+	{
+		world_id	entity	 = NULL_WORLD_ID;
+		resource_id material = NULL_RESOURCE_ID;
+
+		void serialize(ostream& stream) const;
+		void deserialize(istream& stream);
+	};
 }

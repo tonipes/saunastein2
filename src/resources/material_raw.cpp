@@ -82,7 +82,6 @@ namespace SFG
 		stream >> double_sided;
 		stream >> use_alpha_cutoff;
 		stream >> sampler_definition;
-
 	}
 
 #ifdef SFG_TOOLMODE
@@ -121,6 +120,8 @@ namespace SFG
 				pass_mode = material_pass_mode::forward;
 			else if (pass.compare("gui") == 0)
 				pass_mode = material_pass_mode::gui;
+			else if (pass.compare("sprite") == 0)
+				pass_mode = material_pass_mode::sprite;
 			else
 				pass_mode = material_pass_mode::gbuffer;
 

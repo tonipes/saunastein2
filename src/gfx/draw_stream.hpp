@@ -116,10 +116,21 @@ namespace SFG
 		gfx_id	  pipeline_hw		   = 0;
 	};
 
+	struct draw_command_sprite
+	{
+		uint32	  start_instance		  = 0;
+		uint32	  instance_count		  = 0;
+		gpu_index material_constant_index = NULL_GPU_INDEX;
+		gpu_index texture_constant_index  = NULL_GPU_INDEX;
+		gpu_index sampler_constant_index  = NULL_GPU_INDEX;
+		gfx_id	  pipeline_hw			  = 0;
+	};
+
 	static_assert(sizeof(draw_command) <= 64, "cache line pls");
 	static_assert(sizeof(draw_command_distance) <= 64, "cache line pls");
 	static_assert(sizeof(draw_command_gui) <= 64, "cache line pls");
 	static_assert(sizeof(draw_command_particle) <= 64, "cache line pls");
+	static_assert(sizeof(draw_command_sprite) <= 64, "cache line pls");
 
 	class bump_allocator;
 
@@ -232,5 +243,19 @@ namespace SFG
 		draw_command_particle* _commands	   = nullptr;
 		uint32				   _max_commands   = 0;
 		uint32				   _commands_count = 0;
+	};
+
+	class draw_stream_sprite
+	{
+	public:
+		void prepare(bump_allocator& alloc, size_t max_commands);
+		void build();
+		void draw(gfx_id command_buffer);
+		void add_command(const draw_command_sprite& cmd);
+
+	private:
+		draw_command_sprite* _commands	   = nullptr;
+		uint32				 _max_commands   = 0;
+		uint32				 _commands_count = 0;
 	};
 }

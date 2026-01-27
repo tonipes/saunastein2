@@ -66,6 +66,7 @@ namespace SFG
 		_flags.set(material_flags::material_flags_is_forward, p.pass_mode == material_pass_mode::forward);
 		_flags.set(material_flags::material_flags_is_gui, p.pass_mode == material_pass_mode::gui);
 		_flags.set(material_flags::material_flags_is_particle, p.pass_mode == material_pass_mode::particle);
+		_flags.set(material_flags::material_flags_is_sprite, p.pass_mode == material_pass_mode::sprite);
 
 		for (uint8 i = 0; i < p.textures_count; i++)
 		{
@@ -110,6 +111,7 @@ namespace SFG
 		_flags.set(material_flags::material_flags_is_alpha_cutoff, raw.use_alpha_cutoff);
 		_flags.set(material_flags::material_flags_is_double_sided, raw.double_sided);
 		_flags.set(material_flags::material_flags_is_gui, raw.pass_mode == material_pass_mode::gui);
+		_flags.set(material_flags::material_flags_is_sprite, raw.pass_mode == material_pass_mode::sprite);
 		SFG_ASSERT(raw.shader != 0);
 
 		render_event_material ev = {};

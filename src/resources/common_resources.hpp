@@ -84,7 +84,8 @@ namespace SFG
 		material_flags_is_double_sided = 1 << 3,
 		material_flags_is_gui		   = 1 << 4,
 		material_flags_is_particle	   = 1 << 5,
-		material_flags_created		   = 1 << 6,
+		material_flags_is_sprite	   = 1 << 6,
+		material_flags_created		   = 1 << 7,
 	};
 
 	enum shader_variant_flags : uint32

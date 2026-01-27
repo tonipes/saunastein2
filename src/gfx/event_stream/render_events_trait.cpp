@@ -279,6 +279,18 @@ namespace SFG
 		stream >> entity;
 	}
 
+	void render_event_sprite::serialize(ostream& stream) const
+	{
+		stream << material;
+		stream << entity;
+	}
+
+	void render_event_sprite::deserialize(istream& stream)
+	{
+		stream >> material;
+		stream >> entity;
+	}
+
 	void render_event_mesh_instance_material::serialize(ostream& stream) const
 	{
 		stream << material;

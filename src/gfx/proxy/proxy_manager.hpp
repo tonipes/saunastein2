@@ -197,9 +197,19 @@ namespace SFG
 			return _canvases;
 		}
 
+		inline auto get_sprites()
+		{
+			return _sprites;
+		}
+
 		inline render_proxy_particle_emitter& get_emitter(world_id id)
 		{
 			return _emitters->get(id);
+		}
+
+		inline render_proxy_sprite& get_sprite(world_id id)
+		{
+			return _sprites->get(id);
 		}
 
 		inline world_id get_main_camera() const
@@ -215,6 +225,11 @@ namespace SFG
 		inline uint32 get_peak_mesh_instances() const
 		{
 			return _peak_mesh_instances + 1;
+		}
+
+		inline uint32 get_peak_sprites() const
+		{
+			return _peak_sprites + 1;
 		}
 
 		inline uint32 get_ambient_exists() const
@@ -345,6 +360,7 @@ namespace SFG
 		using dir_lights_type		 = static_array<render_proxy_dir_light, MAX_WORLD_COMP_DIR_LIGHTS>;
 		using canvas_type			 = static_array<render_proxy_canvas, MAX_WORLD_COMP_CANVAS>;
 		using emitters_type			 = static_array<render_proxy_particle_emitter, MAX_WORLD_COMP_PARTICLE_EMITTERS>;
+		using sprites_type			 = static_array<render_proxy_sprite, MAX_WORLD_COMP_SPRITES>;
 		using particle_res_type		 = static_array<render_proxy_particle_resource, MAX_WORLD_PARTICLE_PROPERTIES>;
 		using material_updates_type	 = static_vector<material_update, 124>;
 
@@ -370,6 +386,7 @@ namespace SFG
 		dir_lights_type*		_dir_lights			= nullptr;
 		canvas_type*			_canvases			= nullptr;
 		emitters_type*			_emitters			= nullptr;
+		sprites_type*			_sprites			= nullptr;
 		material_updates_type*	_material_updates	= nullptr;
 		particle_res_type*		_particle_resources = nullptr;
 
@@ -379,6 +396,7 @@ namespace SFG
 		uint32	 _peak_point_lights		 = 0;
 		uint32	 _peak_spot_lights		 = 0;
 		uint32	 _peak_dir_lights		 = 0;
+		uint32	 _peak_sprites			 = 0;
 		uint32	 _count_dir_lights		 = 0;
 		uint32	 _count_spot_lights		 = 0;
 		uint32	 _count_point_lights	 = 0;

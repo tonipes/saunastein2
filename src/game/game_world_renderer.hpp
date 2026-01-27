@@ -43,6 +43,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gfx/world/render_pass/render_pass_forward.hpp"
 #include "gfx/world/render_pass/render_pass_canvas_2d.hpp"
 #include "gfx/world/render_pass/render_pass_particles.hpp"
+#include "gfx/world/render_pass/render_pass_sprite.hpp"
 #include "gfx/proxy/proxy_manager.hpp"
 
 #ifdef SFG_TOOLMODE
@@ -101,6 +102,7 @@ namespace SFG
 		static void run_lighting(const void* ctx);
 		static void run_forward(const void* ctx);
 		static void run_particles_render(const void* ctx);
+		static void run_sprite(const void* ctx);
 		static void run_post(const void* ctx);
 		static void run_bloom(const void* ctx);
 		static void run_canvas_2d(const void* ctx);
@@ -272,6 +274,7 @@ namespace SFG
 		render_pass_forward		  _pass_forward	  = {};
 		render_pass_canvas_2d	  _pass_canvas_2d = {};
 		render_pass_particles	  _pass_particles = {};
+		render_pass_sprite		  _pass_sprite	  = {};
 
 #ifdef SFG_TOOLMODE
 		render_pass_debug			  _pass_debug_rendering	  = {};

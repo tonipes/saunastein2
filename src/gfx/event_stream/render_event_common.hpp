@@ -82,6 +82,8 @@ namespace SFG
 		particle_emitter,
 		remove_particle_emitter,
 		reset_particle_emitter,
+		sprite,
+		remove_sprite,
 	};
 
 }
