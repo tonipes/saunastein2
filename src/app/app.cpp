@@ -320,12 +320,6 @@ namespace SFG
 				while (accumulator_ns >= FIXED_FRAMERATE_NS && ticks < FIXED_FRAMERATE_MAX_TICKS)
 				{
 					accumulator_ns -= FIXED_FRAMERATE_NS;
-
-#ifdef SFG_TOOLMODE
-					_editor->pre_world_tick(dt_seconds);
-#else
-					_game->pre_world_tick(dt_seconds);
-#endif
 					_world->tick(ws, dt_seconds);
 
 #ifdef SFG_TOOLMODE
@@ -336,19 +330,17 @@ namespace SFG
 					ticks++;
 				}
 
-				if (ticks != 0)
-					_world->calculate_abs_transforms();
-
 				// interpolation
 #if FIXED_FRAMERATE_USE_INTERPOLATION
 				const double interpolation = static_cast<double>(accumulator_ns) / FIXED_FRAMERATE_NS_D;
 				_world->interpolate(interpolation);
-				_render_stream.publish();
-#else
-				if (ticks != 0)
-					_render_stream.publish();
-
 #endif
+
+				if (ticks != 0)
+				{
+					_world->calculate_abs_transforms();
+					_render_stream.publish();
+				}
 			}
 
 #else
@@ -358,12 +350,6 @@ namespace SFG
 
 			{
 				const float dtt = static_cast<float>(static_cast<double>(delta_micro) * 1e-6);
-
-#ifdef SFG_TOOLMODE
-				_editor->pre_world_tick(dtt);
-#else
-				_game->pre_world_tick(dtt);
-#endif
 
 				_world->tick(ws, dtt);
 
@@ -393,7 +379,6 @@ namespace SFG
 			_game->tick();
 #endif
 			_renderer->tick();
-
 			_world->end_debug_tick();
 
 			// pipeline render events.

@@ -78,6 +78,7 @@ void CSMain(uint3 dtid : SV_DispatchThreadID)
     float age_ratio = states[particle_index].age / states[particle_index].lifetime;
 
     float3 position = float3(states[particle_index].pos_x, states[particle_index].pos_y, states[particle_index].pos_z);
+    float3 vel = float3(states[particle_index].vel_x, states[particle_index].vel_y, states[particle_index].vel_z);
     float rotation = states[particle_index].rotation;
 
     float2 start_size_opacity = unpack_range(states[particle_index].start_size_opacity, 2.0f);
@@ -134,6 +135,7 @@ void CSMain(uint3 dtid : SV_DispatchThreadID)
 
     particle_instance_data pid = (particle_instance_data)0;
     pid.pos_rot_size = float4(position.x, position.y, position.z, pack_rot_size(rotation, size));
+    pid.velocity = float4(vel.x, vel.y, vel.z, 0.0f);
     pid.color = pack_rgba8_unorm(col);
 
     instance_data[start + idx] = pid;

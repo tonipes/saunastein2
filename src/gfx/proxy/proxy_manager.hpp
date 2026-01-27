@@ -289,8 +289,11 @@ namespace SFG
 
 		struct destroy_data
 		{
-			gfx_id			  id   = 0;
-			destroy_data_type type = {};
+			gfx_id			  id		   = 0;
+			destroy_data_type type		   = {};
+			uint64			  target_frame = 0;
+			bool			  destroyed	   = false;
+			bool			  aq		   = false;
 		};
 
 		struct destroy_bucket
@@ -307,8 +310,7 @@ namespace SFG
 		void destroy_mesh(render_proxy_mesh& proxy);
 		void destroy_canvas(render_proxy_canvas& proxy);
 		void destroy_skin(render_proxy_skin& proxy);
-		void destroy_target_bucket(uint8 index);
-		void add_to_destroy_bucket(const destroy_data& data, uint8 bucket);
+		void add_to_destroy_list(gfx_id id, destroy_data_type type);
 		void reset();
 
 	private:
@@ -346,7 +348,7 @@ namespace SFG
 		using particle_res_type		 = static_array<render_proxy_particle_resource, MAX_WORLD_PARTICLE_PROPERTIES>;
 		using material_updates_type	 = static_vector<material_update, 124>;
 
-		destroy_bucket _destroy_bucket[BACK_BUFFER_COUNT + 1];
+		vector<destroy_data> _destroy_list;
 
 		chunk_allocator32		_aux_memory;
 		textures_type*			_textures			= nullptr;

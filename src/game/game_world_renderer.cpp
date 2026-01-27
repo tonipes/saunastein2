@@ -877,7 +877,7 @@ namespace SFG
 			if (e._assigned_index == UINT32_MAX)
 			{
 				mi._assigned_bone_index = UINT32_MAX;
-				return;
+				continue;
 			}
 
 			if (mi.skin == NULL_RESOURCE_ID)

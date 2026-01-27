@@ -72,7 +72,6 @@ namespace SFG
 			input_field_fn	  on_input_field_changed = nullptr;
 			checkbox_fn		  on_checkbox_changed	 = nullptr;
 			resource_fn		  on_resource_changed	 = nullptr;
-			dropdown_fn		  on_dropdown_item		 = nullptr;
 			control_button_fn on_control_button		 = nullptr;
 			toggle_button_fn  on_toggle_button		 = nullptr;
 		};
@@ -206,6 +205,7 @@ namespace SFG
 
 		void init(vekt::builder* b);
 		void uninit();
+		void on_context_item(vekt::id widget);
 
 		// -----------------------------------------------------------------------------
 		// big layout
@@ -321,7 +321,6 @@ namespace SFG
 		static vekt::input_event_result on_checkbox_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase);
 		static vekt::input_event_result on_resource_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase);
 		static vekt::input_event_result on_dropdown_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase);
-		static vekt::input_event_result on_dropdown_item_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase);
 
 		vekt::id new_widget(bool push_to_stack = false);
 		vekt::id pop_stack();

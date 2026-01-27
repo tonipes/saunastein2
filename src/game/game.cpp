@@ -44,12 +44,10 @@ namespace SFG
 	void game::tick()
 	{
 	}
-	void game::pre_world_tick(float delta)
-	{
-	}
+
 	void game::post_world_tick(float delta)
 	{
-		_app.get_gameplay().on_world_tick(_app.get_world(), delta);
+		_app.get_gameplay().on_world_tick(_app.get_world(), delta, vector2ui16());
 	}
 	bool game::on_window_event(const window_event& ev)
 	{

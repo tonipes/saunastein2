@@ -491,6 +491,7 @@ namespace SFG
 			const window_event eev = {
 				.value	  = vector2i16(ev.position.x, ev.position.y),
 				.button	  = static_cast<uint16>(ev.button),
+				.type	  = window_event_type::mouse,
 				.sub_type = static_cast<window_event_sub_type>(ev.type),
 			};
 			if (self->_gizmo_2d.on_mouse_event(eev))

@@ -91,21 +91,24 @@ namespace SFG
 		_last_root_size		   = root_size;
 		_last_game_render_size = game_render_size;
 
-		world&			w  = editor::get().get_app().get_world();
-		entity_manager& em = w.get_entity_manager();
+		world&			   w  = editor::get().get_app().get_world();
+		entity_manager&	   em = w.get_entity_manager();
+		component_manager& cm = w.get_comp_manager();
 
-		const world_handle main_cam_entity = em.get_main_camera_entity();
-		const world_handle main_cam_comp   = em.get_main_camera_comp();
-		if (main_cam_entity.is_null() || main_cam_comp.is_null())
-			return;
+		{
+			const world_handle main_cam_entity = em.get_main_camera_entity();
+			const world_handle main_cam_comp   = em.get_main_camera_comp();
+			if (main_cam_entity.is_null() || main_cam_comp.is_null())
+				return;
 
-		component_manager& cm		   = w.get_comp_manager();
-		comp_camera&	   camera_comp = cm.get_component<comp_camera>(main_cam_comp);
+			component_manager& cm		   = w.get_comp_manager();
+			comp_camera&	   camera_comp = cm.get_component<comp_camera>(main_cam_comp);
 
-		const float		aspect	  = game_render_size.y > 0.0f ? game_render_size.x / game_render_size.y : 1.0f;
-		const matrix4x4 view	  = matrix4x4::view(em.get_entity_rotation_abs(main_cam_entity), em.get_entity_position_abs(main_cam_entity));
-		const matrix4x4 proj	  = matrix4x4::perspective_reverse_z(camera_comp.get_fov_degrees(), aspect, camera_comp.get_near(), camera_comp.get_far());
-		const matrix4x4 view_proj = proj * view;
+			const float		aspect = _last_game_render_size.y > 0.0f ? _last_game_render_size.x / _last_game_render_size.y : 1.0f;
+			const matrix4x4 view   = matrix4x4::view(em.get_entity_rotation_abs(main_cam_entity), em.get_entity_position_abs(main_cam_entity));
+			const matrix4x4 proj   = matrix4x4::perspective_reverse_z(camera_comp.get_fov_degrees(), aspect, camera_comp.get_near(), camera_comp.get_far());
+			_cam_view_proj		   = proj * view;
+		}
 
 		const world_handle selected = editor::get().get_gui_controller().get_entities()->get_selected();
 
@@ -116,7 +119,7 @@ namespace SFG
 			const vector3 pos	 = em.get_entity_position_abs(c.get_header().entity);
 			vector2		  screen = vector2::zero;
 
-			if (project_point(view_proj, root_pos, root_size, pos, screen))
+			if (project_point(_cam_view_proj, root_pos, root_size, pos, screen))
 				draw_icon(_builder, ICON_LIGHT_BULB, screen, editor_theme::get().col_text);
 			return comp_view_result::cont;
 		});
@@ -127,7 +130,7 @@ namespace SFG
 
 			const vector3 pos	 = em.get_entity_position_abs(c.get_header().entity);
 			vector2		  screen = vector2::zero;
-			if (project_point(view_proj, root_pos, root_size, pos, screen))
+			if (project_point(_cam_view_proj, root_pos, root_size, pos, screen))
 				draw_icon(_builder, ICON_SPOT, screen, editor_theme::get().col_text);
 			return comp_view_result::cont;
 		});
@@ -138,7 +141,7 @@ namespace SFG
 
 			const vector3 pos	 = em.get_entity_position_abs(c.get_header().entity);
 			vector2		  screen = vector2::zero;
-			if (project_point(view_proj, root_pos, root_size, pos, screen))
+			if (project_point(_cam_view_proj, root_pos, root_size, pos, screen))
 				draw_icon(_builder, ICON_SUN, screen, editor_theme::get().col_text);
 			return comp_view_result::cont;
 		});
@@ -149,7 +152,7 @@ namespace SFG
 
 			const vector3 pos	 = em.get_entity_position_abs(c.get_header().entity);
 			vector2		  screen = vector2::zero;
-			if (project_point(view_proj, root_pos, root_size, pos, screen))
+			if (project_point(_cam_view_proj, root_pos, root_size, pos, screen))
 				draw_icon(_builder, ICON_EXPLOSION, screen, editor_theme::get().col_text);
 			return comp_view_result::cont;
 		});
@@ -159,7 +162,7 @@ namespace SFG
 				return comp_view_result::cont;
 			const vector3 pos	 = em.get_entity_position_abs(c.get_header().entity);
 			vector2		  screen = vector2::zero;
-			if (project_point(view_proj, root_pos, root_size, pos, screen))
+			if (project_point(_cam_view_proj, root_pos, root_size, pos, screen))
 				draw_icon(_builder, ICON_AUDIO, screen, editor_theme::get().col_text);
 			return comp_view_result::cont;
 		});
@@ -170,7 +173,7 @@ namespace SFG
 
 			const vector3 pos	 = em.get_entity_position_abs(c.get_header().entity);
 			vector2		  screen = vector2::zero;
-			if (project_point(view_proj, root_pos, root_size, pos, screen))
+			if (project_point(_cam_view_proj, root_pos, root_size, pos, screen))
 				draw_icon(_builder, ICON_CAMERA, screen, editor_theme::get().col_text);
 			return comp_view_result::cont;
 		});
@@ -187,7 +190,7 @@ namespace SFG
 
 			const vector3 pos	 = em.get_entity_position_abs(handle);
 			vector2		  screen = vector2::zero;
-			if (project_point(view_proj, root_pos, root_size, pos, screen))
+			if (project_point(_cam_view_proj, root_pos, root_size, pos, screen))
 				draw_icon(_builder, ICON_HAMMER, screen, editor_theme::get().col_accent_third);
 		}
 	}
@@ -204,29 +207,17 @@ namespace SFG
 		if (mp.x < _last_root_pos.x || mp.y < _last_root_pos.y || mp.x > _last_root_pos.x + _last_root_size.x || mp.y > _last_root_pos.y + _last_root_size.y)
 			return false;
 
-		world&			w  = editor::get().get_app().get_world();
-		entity_manager& em = w.get_entity_manager();
-
-		const world_handle main_cam_entity = em.get_main_camera_entity();
-		const world_handle main_cam_comp   = em.get_main_camera_comp();
-		if (main_cam_entity.is_null() || main_cam_comp.is_null())
-			return false;
-
-		component_manager& cm		   = w.get_comp_manager();
-		comp_camera&	   camera_comp = cm.get_component<comp_camera>(main_cam_comp);
-
-		const float		aspect	  = _last_game_render_size.y > 0.0f ? _last_game_render_size.x / _last_game_render_size.y : 1.0f;
-		const matrix4x4 view	  = matrix4x4::view(em.get_entity_rotation_abs(main_cam_entity), em.get_entity_position_abs(main_cam_entity));
-		const matrix4x4 proj	  = matrix4x4::perspective_reverse_z(camera_comp.get_fov_degrees(), aspect, camera_comp.get_near(), camera_comp.get_far());
-		const matrix4x4 view_proj = proj * view;
-
 		editor_panel_entities* entities = editor::get().get_gui_controller().get_entities();
 		if (!entities)
 			return false;
 
+		world&			   w  = editor::get().get_app().get_world();
+		component_manager& cm = w.get_comp_manager();
+		entity_manager&	   em = w.get_entity_manager();
+
 		auto hit_test = [&](const vector3& pos, const char* icon, const world_handle& entity) {
 			vector2 screen = vector2::zero;
-			if (!project_point(view_proj, _last_root_pos, _last_root_size, pos, screen))
+			if (!project_point(_cam_view_proj, _last_root_pos, _last_root_size, pos, screen))
 				return false;
 
 			vekt::text_props tp = {};

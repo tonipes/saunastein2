@@ -1680,7 +1680,7 @@ namespace SFG
 			text_props& tp = _builder->widget_get_text(reset_icon);
 			tp.font		   = editor_theme::get().font_icons;
 			tp.scale	   = 0.75f;
-			_builder->widget_set_text(reset_icon, ICON_HAMMER);
+			_builder->widget_set_text(reset_icon, ICON_ROTATE);
 		}
 
 		pop_stack(); // pop reset_button
@@ -2223,8 +2223,10 @@ namespace SFG
 			if (is_slider)
 			{
 				pp.flags |= pos_flags::pf_x_anchor_center;
+				gfx.draw_order = _draw_order + 2;
 			}
-			gfx.draw_order = _draw_order + 1;
+			else
+				gfx.draw_order = _draw_order + 1;
 		}
 
 		text_props& tp = _builder->widget_get_text(txt);
@@ -2261,6 +2263,7 @@ namespace SFG
 				widget_gfx& gfx = _builder->widget_get_gfx(w2);
 				gfx.flags		= gfx_flags::gfx_is_rect | gfx_flags::gfx_has_rounding;
 				gfx.color		= editor_theme::get().col_accent_dim;
+				gfx.draw_order	= _draw_order + 1;
 
 				rounding_props& rp = _builder->widget_get_rounding(w2);
 				rp.rounding		   = editor_theme::get().frame_rounding;
@@ -2526,14 +2529,8 @@ namespace SFG
 
 		for (uint8 i = 0; i < sz; ++i)
 		{
-			const char*			  item_label = it->items[i];
-			const vekt::id		  btn		 = editor::get().get_gui_controller().add_context_menu_item_toggle(item_label, i == it->selected);
-			vekt::mouse_callback& cb		 = b->widget_get_mouse_callbacks(btn);
-			cb.on_mouse						 = on_dropdown_item_mouse;
-
-			vekt::widget_user_data& ud = b->widget_get_user_data(btn);
-			ud.ptr					   = gb;
-
+			const char*	   item_label = it->items[i];
+			const vekt::id btn		  = editor::get().get_gui_controller().add_context_menu_item_toggle(item_label, i == it->selected);
 			gb->_dropdown_ctx_bindings.push_back({.item_widget = btn, .dropdown_widget = widget, .index = i});
 		}
 		editor::get().get_gui_controller().end_context_menu();
@@ -2541,33 +2538,24 @@ namespace SFG
 		return vekt::input_event_result::handled;
 	}
 
-	vekt::input_event_result gui_builder::on_dropdown_item_mouse(vekt::builder* b, vekt::id widget, const vekt::mouse_event& ev, vekt::input_event_phase phase)
+	void gui_builder::on_context_item(vekt::id widget)
 	{
-		if (ev.type != vekt::input_event_type::pressed || ev.button != static_cast<uint16>(input_code::mouse_0))
-			return vekt::input_event_result::not_handled;
-
-		gui_builder* gb = static_cast<gui_builder*>(b->widget_get_user_data(widget).ptr);
-		auto		 it = std::find_if(gb->_dropdown_ctx_bindings.begin(), gb->_dropdown_ctx_bindings.end(), [widget](const dropdown_ctx_binding& d) { return d.item_widget == widget; });
-		if (it == gb->_dropdown_ctx_bindings.end())
-			return vekt::input_event_result::not_handled;
+		auto it = std::find_if(_dropdown_ctx_bindings.begin(), _dropdown_ctx_bindings.end(), [widget](const dropdown_ctx_binding& d) { return d.item_widget == widget; });
+		if (it == _dropdown_ctx_bindings.end())
+			return;
 
 		// Update visible text
-		auto it_dd = std::find_if(gb->_dropdowns.begin(), gb->_dropdowns.end(), [it](const gui_dropdown& d) { return d.widget == it->dropdown_widget; });
-		if (it_dd != gb->_dropdowns.end())
+		auto it_dd = std::find_if(_dropdowns.begin(), _dropdowns.end(), [it](const gui_dropdown& d) { return d.widget == it->dropdown_widget; });
+		if (it_dd != _dropdowns.end())
 		{
 			const unsigned int idx = it->index;
 
 			it_dd->selected = idx;
 			if (idx < it_dd->items.size())
-				b->widget_set_text(it_dd->text_widget, it_dd->items[idx]);
+				_builder->widget_set_text(it_dd->text_widget, it_dd->items[idx]);
 		}
 
-		gb->invoke_reflection(it->dropdown_widget, &it->index, 0);
-
-		if (gb->callbacks.on_dropdown_item)
-			gb->callbacks.on_dropdown_item(gb->callbacks.callback_ud, b, it->dropdown_widget, it->index);
-
-		return vekt::input_event_result::handled;
+		invoke_reflection(it->dropdown_widget, &it->index, 0);
 	}
 
 };

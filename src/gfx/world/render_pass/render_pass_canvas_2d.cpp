@@ -38,6 +38,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gfx/world/renderable.hpp"
 #include "gfx/world/renderable_collector.hpp"
 #include "gui/vekt.hpp"
+#include "common/system_info.hpp"
 
 #include <tracy/Tracy.hpp>
 

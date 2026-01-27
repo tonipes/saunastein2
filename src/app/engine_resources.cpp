@@ -296,7 +296,7 @@ namespace SFG
 		{
 			def.sid = TO_SID(def.path);
 
-			const uint16 type_u16 = static_cast<uint16>(def.res_type);
+			const uint16 type_u16 = static_cast<uint16>(def.ident);
 
 			if (def.res_type == engine_resource_type::shader)
 			{

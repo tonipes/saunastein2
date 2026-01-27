@@ -147,6 +147,9 @@ namespace SFG
 			float end_vel_x;
 			float end_vel_y;
 			float end_vel_z;
+			float vel_x;
+			float vel_y;
+			float vel_z;
 
 			float rotation;
 			float start_ang_vel;
@@ -169,6 +172,7 @@ namespace SFG
 		struct particle_instance_data
 		{
 			vector4 pos_rot_size;
+			vector4 velocity;
 			uint32	color;
 		};
 

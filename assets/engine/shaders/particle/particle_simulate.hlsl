@@ -125,6 +125,9 @@ void CSMain(uint3 dtid : SV_DispatchThreadID, uint3 gtid : SV_GroupThreadID)
     states[particle_index].pos_x = pos.x;
     states[particle_index].pos_y = pos.y;
     states[particle_index].pos_z = pos.z;
+    states[particle_index].vel_x = vel.x;
+    states[particle_index].vel_y = vel.y;
+    states[particle_index].vel_z = vel.z;
     states[particle_index].rotation = rot;
 
     // write into alive_count_b.

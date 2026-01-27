@@ -28,6 +28,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include "math/vector2.hpp"
+#include "math/matrix4x4.hpp"
 #include "platform/window_common.hpp"
 
 namespace vekt
@@ -37,6 +38,8 @@ namespace vekt
 
 namespace SFG
 {
+	class world;
+
 	class editor_gizmo_2d
 	{
 	public:
@@ -45,9 +48,10 @@ namespace SFG
 		bool on_mouse_event(const window_event& ev);
 
 	private:
-		vekt::builder* _builder = nullptr;
-		vector2		   _last_root_pos = vector2::zero;
-		vector2		   _last_root_size = vector2::zero;
+		vekt::builder* _builder				  = nullptr;
+		matrix4x4	   _cam_view_proj		  = matrix4x4::identity;
+		vector2		   _last_root_pos		  = vector2::zero;
+		vector2		   _last_root_size		  = vector2::zero;
 		vector2		   _last_game_render_size = vector2::zero;
 	};
 }

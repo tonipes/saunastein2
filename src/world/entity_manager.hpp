@@ -46,7 +46,7 @@ namespace SFG
 	struct entity_transform
 	{
 		vector3 position = vector3::zero;
-		vector3 scale	 = vector3::zero;
+		vector3 scale	 = vector3::one;
 		quat	rotation = quat::identity;
 	};
 
@@ -265,19 +265,18 @@ namespace SFG
 		};
 		world& _world;
 
-		pool_allocator_gen<world_id, world_id, MAX_ENTITIES>* _entities			   = {};
-		static_array<resource_handle, MAX_ENTITIES>*		  _template_references = {};
-		static_array<entity_meta, MAX_ENTITIES>*			  _metas			   = {};
-		static_array<entity_family, MAX_ENTITIES>*			  _families			   = {};
-		static_array<aabb, MAX_ENTITIES>*					  _aabbs			   = {};
-		static_array<entity_comp_register, MAX_ENTITIES>*	  _comp_registers	   = {};
-		static_array<entity_transform, MAX_ENTITIES>*		  _local_transforms	   = {};
-		static_array<bitmask<uint16>, MAX_ENTITIES>*		  _flags			   = {};
-		static_array<matrix4x3, MAX_ENTITIES>*				  _abs_matrices		   = {};
-		static_array<matrix4x3, MAX_ENTITIES>*				  _prev_abs_matrices   = {};
-		static_array<quat, MAX_ENTITIES>*					  _abs_rots			   = {};
-		static_array<quat, MAX_ENTITIES>*					  _prev_abs_rots	   = {};
-		vector<instantiated_model>							  _instantiated_models = {};
+		pool_allocator_gen<world_id, world_id, MAX_ENTITIES>* _entities				 = {};
+		static_array<resource_handle, MAX_ENTITIES>*		  _template_references	 = {};
+		static_array<entity_meta, MAX_ENTITIES>*			  _metas				 = {};
+		static_array<entity_family, MAX_ENTITIES>*			  _families				 = {};
+		static_array<aabb, MAX_ENTITIES>*					  _aabbs				 = {};
+		static_array<entity_comp_register, MAX_ENTITIES>*	  _comp_registers		 = {};
+		static_array<entity_transform, MAX_ENTITIES>*		  _local_transforms		 = {};
+		static_array<entity_transform, MAX_ENTITIES>*		  _prev_local_transforms = {};
+		static_array<bitmask<uint16>, MAX_ENTITIES>*		  _flags				 = {};
+		static_array<matrix4x3, MAX_ENTITIES>*				  _abs_matrices			 = {};
+		static_array<quat, MAX_ENTITIES>*					  _abs_rots				 = {};
+		vector<instantiated_model>							  _instantiated_models	 = {};
 
 		static_vector<world_handle, MAX_ENTITIES>* _proxy_entities = {};
 

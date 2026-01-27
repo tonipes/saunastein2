@@ -29,6 +29,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "world/world.hpp"
 #include "world/components/comp_camera.hpp"
 #include "world/components/comp_character_controller.hpp"
+#include "world/components/comp_canvas.hpp"
 #include "platform/window_common.hpp"
 #include "platform/window.hpp"
 #include "input/input_mappings.hpp"
@@ -36,8 +37,15 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "world/entity_manager.hpp"
 #include "math/quat.hpp"
 #include "math/math.hpp"
+
+#include "gui/vekt.hpp"
+#include "math/matrix4x4.hpp"
+
 namespace SFG
 {
+	vekt::id	   rect;
+	vekt::builder* b;
+
 	void gameplay::on_world_begin(world& w)
 	{
 		entity_manager&	   em = w.get_entity_manager();
@@ -63,7 +71,7 @@ namespace SFG
 		if (!_player_entity.is_null())
 			_player_controller = em.get_entity_component<comp_character_controller>(_player_entity);
 
-		_bullet_template = rm.get_resource_handle_by_hash<entity_template>(TO_SID("assets/entity_templates/bullet.stkent"));
+		//_bullet_template = rm.get_resource_handle_by_hash<entity_template>(TO_SID("assets/entity_templates/bullet.stkent"));
 
 		_direction_input	= vector3::zero;
 		_mouse_delta		= vector2::zero;
@@ -75,15 +83,40 @@ namespace SFG
 		_app.get_main_window().confine_cursor(cursor_confinement::pointer);
 		_app.get_main_window().set_cursor_visible(false);
 		_is_looking = true;
+
+		const world_handle cnv_entity = em.create_entity("cnv");
+		const world_handle cnv_comp	  = cm.add_component<comp_canvas>(cnv_entity);
+		comp_canvas&	   comp		  = cm.get_component<comp_canvas>(cnv_comp);
+		comp.update_counts_and_init(w, 512, 4);
+		b = comp.get_builder();
+
+		rect = b->allocate();
+		{
+			vekt::pos_props& pp = b->widget_get_pos_props(rect);
+			pp.pos.x			= 0.5f;
+			pp.pos.y			= 0.5f;
+			pp.flags			= vekt::pos_flags::pf_x_abs | vekt::pos_flags::pf_y_abs | vekt::pos_flags::pf_x_anchor_center | vekt::pos_flags::pf_y_anchor_center;
+
+			vekt::size_props& sz = b->widget_get_size_props(rect);
+			sz.size.x			 = 30;
+			sz.size.y			 = 30;
+			sz.flags			 = vekt::size_flags::sf_x_abs | vekt::size_flags::sf_y_abs;
+
+			vekt::widget_gfx& gfx = b->widget_get_gfx(rect);
+			gfx.flags			  = vekt::gfx_flags::gfx_is_rect;
+			gfx.color			  = vector4(1, 0, 0, 1);
+		}
+		b->widget_add_child(b->get_root(), rect);
+		b->build_hierarchy();
 	}
 
 	void gameplay::on_world_end(world& w)
 	{
-		_player_entity	 = {};
+		_player_entity	   = {};
 		_player_controller = {};
-		_camera_entity	 = {};
-		_camera_comp	 = {};
-		_bullet_template = {};
+		_camera_entity	   = {};
+		_camera_comp	   = {};
+		//_bullet_template = {};
 		_direction_input = vector3::zero;
 		_mouse_delta	 = vector2::zero;
 		_is_looking		 = false;
@@ -92,7 +125,28 @@ namespace SFG
 		_app.get_main_window().set_cursor_visible(true);
 	}
 
-	void gameplay::on_world_tick(world& w, float dt)
+	namespace
+	{
+		bool project_point(const matrix4x4& view_proj, const vector2& panel_pos, const vector2& panel_size, const vector3& world_pos, vector2& out)
+		{
+			vector4 clip = view_proj * vector4(world_pos.x, world_pos.y, world_pos.z, 1.0f);
+			if (math::abs(clip.w) < MATH_EPS)
+				return false;
+
+			if (clip.w < 0.0f)
+				return false;
+
+			const float inv_w = 1.0f / clip.w;
+			const float ndc_x = clip.x * inv_w;
+			const float ndc_y = clip.y * inv_w;
+
+			out.x = panel_pos.x + (ndc_x * 0.5f + 0.5f) * panel_size.x;
+			out.y = panel_pos.y + (1.0f - (ndc_y * 0.5f + 0.5f)) * panel_size.y;
+			return true;
+		}
+	}
+
+	void gameplay::on_world_tick(world& w, float dt, const vector2ui16& game_res)
 	{
 		if (_is_active == 0 || _player_entity.is_null() || _camera_entity.is_null() || _player_controller.is_null())
 			return;
@@ -101,9 +155,9 @@ namespace SFG
 		_pitch_degrees -= _mouse_delta.y * _mouse_sensitivity;
 		_pitch_degrees = math::clamp(_pitch_degrees, -89.0f, 89.0f);
 
-		entity_manager& em		= w.get_entity_manager();
-		component_manager& cm	= w.get_comp_manager();
-		const quat		new_rot = quat::from_euler(_pitch_degrees, _yaw_degrees, 0.0f);
+		entity_manager&	   em	   = w.get_entity_manager();
+		component_manager& cm	   = w.get_comp_manager();
+		const quat		   new_rot = quat::from_euler(_pitch_degrees, _yaw_degrees, 0.0f);
 		em.set_entity_rotation(_camera_entity, new_rot);
 
 		_mouse_delta = vector2::zero;
@@ -120,6 +174,23 @@ namespace SFG
 		comp_character_controller& controller = cm.get_component<comp_character_controller>(_player_controller);
 		controller.update(w, move_dir * _current_move_speed, dt);
 
+		{
+			const world_handle main_cam_entity = em.get_main_camera_entity();
+			const world_handle main_cam_comp   = em.get_main_camera_comp();
+			if (main_cam_entity.is_null() || main_cam_comp.is_null())
+				return;
+
+			component_manager& cm		   = w.get_comp_manager();
+			comp_camera&	   camera_comp = cm.get_component<comp_camera>(main_cam_comp);
+
+			const float		aspect	  = (float)game_res.x / (float)game_res.y;
+			const matrix4x4 view	  = matrix4x4::view(em.get_entity_rotation_abs(main_cam_entity), em.get_entity_position_abs(main_cam_entity));
+			const matrix4x4 proj	  = matrix4x4::perspective_reverse_z(camera_comp.get_fov_degrees(), aspect, camera_comp.get_near(), camera_comp.get_far());
+			matrix4x4		view_proj = proj * view;
+			vector2			out		  = vector2::zero;
+			project_point(view_proj, vector2::zero, game_res, vector3::zero, out);
+			b->widget_get_pos_props(rect).pos = out;
+		}
 	}
 
 	void gameplay::on_window_event(const window_event& ev, window* wnd)

@@ -51,6 +51,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "resources/skin.hpp"
 #include "resources/common_skin.hpp"
 #include "resources/mesh.hpp"
+#include "data/hash_map.hpp"
 
 // misc
 #include "math/math.hpp"
@@ -65,19 +66,18 @@ namespace SFG
 {
 	entity_manager::entity_manager(world& w) : _world(w)
 	{
-		_entities			 = new pool_allocator_gen<world_id, world_id, MAX_ENTITIES>();
-		_template_references = new static_array<resource_handle, MAX_ENTITIES>();
-		_metas				 = new static_array<entity_meta, MAX_ENTITIES>();
-		_families			 = new static_array<entity_family, MAX_ENTITIES>();
-		_aabbs				 = new static_array<aabb, MAX_ENTITIES>();
-		_comp_registers		 = new static_array<entity_comp_register, MAX_ENTITIES>();
-		_local_transforms	 = new static_array<entity_transform, MAX_ENTITIES>();
-		_flags				 = new static_array<bitmask<uint16>, MAX_ENTITIES>();
-		_abs_matrices		 = new static_array<matrix4x3, MAX_ENTITIES>();
-		_prev_abs_matrices	 = new static_array<matrix4x3, MAX_ENTITIES>();
-		_abs_rots			 = new static_array<quat, MAX_ENTITIES>();
-		_prev_abs_rots		 = new static_array<quat, MAX_ENTITIES>();
-		_proxy_entities		 = new static_vector<world_handle, MAX_ENTITIES>();
+		_entities			   = new pool_allocator_gen<world_id, world_id, MAX_ENTITIES>();
+		_template_references   = new static_array<resource_handle, MAX_ENTITIES>();
+		_metas				   = new static_array<entity_meta, MAX_ENTITIES>();
+		_families			   = new static_array<entity_family, MAX_ENTITIES>();
+		_aabbs				   = new static_array<aabb, MAX_ENTITIES>();
+		_comp_registers		   = new static_array<entity_comp_register, MAX_ENTITIES>();
+		_local_transforms	   = new static_array<entity_transform, MAX_ENTITIES>();
+		_prev_local_transforms = new static_array<entity_transform, MAX_ENTITIES>();
+		_flags				   = new static_array<bitmask<uint16>, MAX_ENTITIES>();
+		_abs_matrices		   = new static_array<matrix4x3, MAX_ENTITIES>();
+		_abs_rots			   = new static_array<quat, MAX_ENTITIES>();
+		_proxy_entities		   = new static_vector<world_handle, MAX_ENTITIES>();
 
 #ifdef SFG_TOOLMODE
 		_instantiated_models.reserve(512);
@@ -93,11 +93,10 @@ namespace SFG
 		delete _aabbs;
 		delete _comp_registers;
 		delete _local_transforms;
+		delete _prev_local_transforms;
 		delete _flags;
 		delete _abs_matrices;
-		delete _prev_abs_matrices;
 		delete _abs_rots;
-		delete _prev_abs_rots;
 		delete _proxy_entities;
 	}
 
@@ -106,82 +105,6 @@ namespace SFG
 #ifdef SFG_TOOLMODE
 		_hierarchy_dirty = 1;
 #endif
-	}
-
-	void entity_manager::calculate_abs_transform(world_id e)
-	{
-		bitmask<uint16>& f = _flags->get(e);
-
-		if (!f.is_set(entity_flags::entity_flags_transient_abs_transform_mark))
-			return;
-
-		const world_handle parent = _families->get(e).parent;
-		entity_transform&  local  = _local_transforms->get(e);
-
-		if (parent.is_null())
-		{
-
-#if FIXED_FRAMERATE_ENABLED
-			if (!f.is_set(entity_flags::entity_flags_prev_transform_init))
-			{
-				const matrix4x3 abs		   = matrix4x3::transform(local.position, local.rotation, local.scale);
-				const quat		abs_rot	   = local.rotation;
-				_prev_abs_matrices->get(e) = abs;
-				_prev_abs_rots->get(e)	   = abs_rot;
-				_abs_matrices->get(e)	   = abs;
-				_abs_rots->get(e)		   = abs_rot;
-				f.set(entity_flags::entity_flags_prev_transform_init);
-			}
-			else
-			{
-				matrix4x3& abs	   = _abs_matrices->get(e);
-				quat&	   abs_rot = _abs_rots->get(e);
-
-				_prev_abs_matrices->get(e) = abs;
-				_prev_abs_rots->get(e)	   = abs_rot;
-
-				abs		= matrix4x3::transform(local.position, local.rotation, local.scale);
-				abs_rot = local.rotation;
-			}
-#else
-			_abs_matrices->get(e) = matrix4x3::transform(local.position, local.rotation, local.scale);
-			_abs_rots->get(e)	  = local.rotation;
-#endif
-		}
-		else
-		{
-			calculate_abs_transform(parent.index);
-
-#if FIXED_FRAMERATE_ENABLED
-			if (!f.is_set(entity_flags::entity_flags_prev_transform_init))
-			{
-				const matrix4x3 abs		   = _abs_matrices->get(parent.index) * matrix4x3::transform(local.position, local.rotation, local.scale);
-				const quat		abs_rot	   = _abs_rots->get(parent.index) * local.rotation;
-				_prev_abs_matrices->get(e) = abs;
-				_prev_abs_rots->get(e)	   = abs_rot;
-				_abs_matrices->get(e)	   = abs;
-				_abs_rots->get(e)		   = abs_rot;
-				f.set(entity_flags::entity_flags_prev_transform_init);
-			}
-			else
-			{
-				matrix4x3& abs	   = _abs_matrices->get(e);
-				quat&	   abs_rot = _abs_rots->get(e);
-
-				_prev_abs_matrices->get(e) = abs;
-				_prev_abs_rots->get(e)	   = abs_rot;
-
-				abs		= _abs_matrices->get(parent.index) * matrix4x3::transform(local.position, local.rotation, local.scale);
-				abs_rot = _abs_rots->get(parent.index) * local.rotation;
-			}
-#else
-			const matrix4x3& parent_abs_mat = _abs_matrices->get(parent.index);
-			_abs_matrices->get(e)			= parent_abs_mat * matrix4x3::transform(local.position, local.rotation, local.scale);
-			_abs_rots->get(e)				= _abs_rots->get(parent.index) * local.rotation;
-#endif
-		}
-
-		f.remove(entity_flags::entity_flags_transient_abs_transform_mark);
 	}
 
 	void entity_manager::calculate_abs_transform_direct(world_id e)
@@ -245,6 +168,35 @@ namespace SFG
 		}
 	}
 
+	void entity_manager::calculate_abs_transform(world_id e)
+	{
+		bitmask<uint16>& f = _flags->get(e);
+
+		if (!f.is_set(entity_flags::entity_flags_transient_abs_transform_mark))
+			return;
+
+		const world_handle parent = _families->get(e).parent;
+		entity_transform&  local  = _local_transforms->get(e);
+
+		if (parent.is_null())
+		{
+			matrix4x3& abs	   = _abs_matrices->get(e);
+			quat&	   abs_rot = _abs_rots->get(e);
+			abs				   = matrix4x3::transform(local.position, local.rotation, local.scale);
+			abs_rot			   = local.rotation;
+		}
+		else
+		{
+			calculate_abs_transform(parent.index);
+			matrix4x3& abs	   = _abs_matrices->get(e);
+			quat&	   abs_rot = _abs_rots->get(e);
+			abs				   = _abs_matrices->get(parent.index) * matrix4x3::transform(local.position, local.rotation, local.scale);
+			abs_rot			   = _abs_rots->get(parent.index) * local.rotation;
+		}
+
+		f.remove(entity_flags::entity_flags_transient_abs_transform_mark);
+	}
+
 	void entity_manager::calculate_abs_transforms()
 	{
 		render_event_stream& stream = _world.get_render_stream();
@@ -281,9 +233,11 @@ namespace SFG
 			matrix4x3& abs_mat = abs_mats.get(index);
 			quat&	   abs_rot = rots.get(index);
 
-#if !(FIXED_FRAMERATE_ENABLED && FIXED_FRAMERATE_USE_INTERPOLATION)
+			if (index == 125)
+			{
+				// SFG_WARN("sending cam rotation {0} {1} {2} {3}", abs_rot.x, abs_rot.y, abs_rot.z, abs_rot.w);
+			}
 			stream.add_entity_transform_event(index, abs_mat, abs_rot);
-#endif
 		}
 	}
 
@@ -303,20 +257,27 @@ namespace SFG
 		{
 			const world_id handle_index = p.index;
 
-			const bitmask<uint16>& ff = flags.get(handle_index);
+			bitmask<uint16>& ff = flags.get(handle_index);
 			if (ff.is_set(entity_flags::entity_flags_invisible))
 				continue;
 
-			const matrix4x3& prev_abs	  = _prev_abs_matrices->get(handle_index);
-			const matrix4x3& abs		  = _abs_matrices->get(handle_index);
-			const quat&		 abs_rot	  = _abs_rots->get(handle_index);
-			const quat&		 prev_abs_rot = _prev_abs_rots->get(handle_index);
+			entity_transform& prev_locals	 = _prev_local_transforms->get(handle_index);
+			entity_transform& current_locals = _local_transforms->get(handle_index);
 
-			const vector3 pos	= vector3::lerp(prev_abs.get_translation(), abs.get_translation(), interp);
-			const quat	  rot	= quat::slerp(prev_abs_rot, abs_rot, interp);
-			const vector3 scale = vector3::lerp(prev_abs.get_scale(), abs.get_scale(), interp);
+			if (!ff.is_set(entity_flags::entity_flags_prev_transform_init))
+			{
+				prev_locals = current_locals;
+				ff.set(entity_flags::entity_flags_prev_transform_init);
+				continue;
+			}
 
-			stream.add_entity_transform_event(handle_index, matrix4x3::transform(pos, rot, scale), rot);
+			const vector3 pos		= vector3::lerp(prev_locals.position, current_locals.position, interp);
+			const quat	  rot		= quat::slerp(prev_locals.rotation, current_locals.rotation, interp);
+			const vector3 scale		= vector3::lerp(prev_locals.scale, current_locals.scale, interp);
+			prev_locals				= current_locals;
+			current_locals.position = pos;
+			current_locals.rotation = rot;
+			current_locals.scale	= scale;
 		}
 	}
 
@@ -359,11 +320,12 @@ namespace SFG
 		_families->reset();
 		_comp_registers->reset();
 		_local_transforms->reset();
+		_prev_local_transforms->reset();
 		_flags->reset();
 		_abs_matrices->reset();
-		_prev_abs_matrices->reset();
+		//_prev_local_matrices->reset();
 		_abs_rots->reset();
-		_prev_abs_rots->reset();
+		//_prev_abs_rots->reset();
 		_proxy_entities->resize(0);
 	}
 
@@ -387,11 +349,12 @@ namespace SFG
 		_families->reset(id);
 		_comp_registers->reset(id);
 		_local_transforms->reset(id);
+		_prev_local_transforms->reset(id);
 		_flags->reset(id);
 		_abs_matrices->reset(id);
-		_prev_abs_matrices->reset(id);
+		//_prev_local_matrices->reset(id);
 		_abs_rots->reset(id);
-		_prev_abs_rots->reset(id);
+		//_prev_abs_rots->reset(id);
 
 		// whatever makes entity proxy is assumed to clean already.
 		// _proxy_entities->remove(handle);
@@ -412,9 +375,9 @@ namespace SFG
 	{
 		world_handle handle = _entities->add();
 		set_entity_scale(handle, vector3::one);
-		const matrix4x3 def					  = matrix4x3::transform(vector3::zero, quat::identity, vector3::one);
-		_prev_abs_matrices->get(handle.index) = def;
-		_abs_matrices->get(handle.index)	  = def;
+		const matrix4x3 def = matrix4x3::transform(vector3::zero, quat::identity, vector3::one);
+		//_prev_local_matrices->get(handle.index) = def;
+		_abs_matrices->get(handle.index) = def;
 
 		entity_meta& meta = _metas->get(handle.index);
 		meta.name		  = _world.get_text_allocator().allocate(name);
@@ -461,94 +424,158 @@ namespace SFG
 	{
 		SFG_ASSERT(_entities->is_valid(source));
 
-		const char*	 src_name = _metas->get(source.index).name;
-		world_handle clone	  = create_entity(src_name);
-		set_entity_tag(clone, _metas->get(source.index).tag);
+		hash_map<uint32, world_handle> clone_by_source;
+		vector<world_handle>		   cloned_entities;
 
-		const entity_transform& src_tr		= _local_transforms->get(source.index);
-		_local_transforms->get(clone.index) = src_tr;
-		teleport_entity(clone);
+		component_manager& cm = _world.get_comp_manager();
 
-		const entity_family& source_family = _families->get(source.index);
-		if (target_parent.is_null())
-		{
-			if (_entities->is_valid(source_family.parent))
-				add_child(source_family.parent, clone);
-		}
-		else
-			add_child(target_parent, clone);
+		auto clone_recursive = [&](auto&& self, world_handle source_entity, world_handle parent_override) -> world_handle {
+			const char*	 src_name = _metas->get(source_entity.index).name;
+			world_handle clone	  = create_entity(src_name);
+			set_entity_tag(clone, _metas->get(source_entity.index).tag);
 
-		component_manager&			cm	= _world.get_comp_manager();
-		const entity_comp_register& reg = _comp_registers->get(source.index);
+			clone_by_source[source_entity.index] = clone;
+			cloned_entities.push_back(clone);
 
-		const play_mode pm = _world.get_playmode();
-		physics_world&	pw = _world.get_physics_world();
+			_local_transforms->get(clone.index)		 = _local_transforms->get(source_entity.index);
+			_prev_local_transforms->get(clone.index) = _prev_local_transforms->get(source_entity.index);
+			teleport_entity(clone);
 
-		for (const entity_comp& c : reg.comps)
-		{
-			void*			   source_ptr = cm.get_component(c.comp_type, c.comp_handle);
-			const world_handle new_comp	  = cm.add_component(c.comp_type, clone);
-			void*			   dst_ptr	  = cm.get_component(c.comp_type, new_comp);
-
-			meta& m = reflection::get().resolve(c.comp_type);
-
-			const auto& fields = m.get_fields();
-			for (field_base* f : fields)
+			const entity_family& source_family = _families->get(source_entity.index);
+			if (parent_override.is_null())
 			{
-				void* val  = f->value(source_ptr).get_ptr();
-				void* dest = f->value(dst_ptr).get_ptr();
+				if (_entities->is_valid(source_family.parent))
+					add_child(source_family.parent, clone);
+			}
+			else
+				add_child(parent_override, clone);
 
-				if (f->_is_list)
+			const entity_comp_register& reg = _comp_registers->get(source_entity.index);
+
+			const play_mode pm = _world.get_playmode();
+			physics_world&	pw = _world.get_physics_world();
+
+			for (const entity_comp& c : reg.comps)
+			{
+				void*			   source_ptr = cm.get_component(c.comp_type, c.comp_handle);
+				const world_handle new_comp	  = cm.add_component(c.comp_type, clone);
+				void*			   dst_ptr	  = cm.get_component(c.comp_type, new_comp);
+
+				meta& m = reflection::get().resolve(c.comp_type);
+
+				const bool	skip_reflect_load = c.comp_type == type_id<comp_mesh_instance>::value;
+				const auto& fields			  = m.get_fields();
+				for (field_base* f : fields)
 				{
-					if (f->_type == reflected_field_type::rf_resource)
+					void* val  = f->value(source_ptr).get_ptr();
+					void* dest = f->value(dst_ptr).get_ptr();
+
+					if (f->_is_list)
 					{
-						vector<resource_handle>& src_v = f->value(source_ptr).cast_ref<vector<resource_handle>>();
-						vector<resource_handle>& dst_v = f->value(dst_ptr).cast_ref<vector<resource_handle>>();
-						dst_v						   = src_v;
+						if (f->_type == reflected_field_type::rf_resource)
+						{
+							vector<resource_handle>& src_v = f->value(source_ptr).cast_ref<vector<resource_handle>>();
+							vector<resource_handle>& dst_v = f->value(dst_ptr).cast_ref<vector<resource_handle>>();
+							dst_v						   = src_v;
+						}
+						else if (f->_type == reflected_field_type::rf_entity)
+						{
+							vector<world_handle>& src_v = f->value(source_ptr).cast_ref<vector<world_handle>>();
+							vector<world_handle>& dst_v = f->value(dst_ptr).cast_ref<vector<world_handle>>();
+							dst_v						= src_v;
+						}
+						else
+						{
+							SFG_ASSERT(false);
+						}
 					}
-					else if (f->_type == reflected_field_type::rf_entity)
+					else if (f->_type == reflected_field_type::rf_string)
 					{
-						vector<world_handle>& src_v = f->value(source_ptr).cast_ref<vector<world_handle>>();
-						vector<world_handle>& dst_v = f->value(dst_ptr).cast_ref<vector<world_handle>>();
-						dst_v						= src_v;
+						string& src_string = f->value(source_ptr).cast_ref<string>();
+						string& dst_string = f->value(dst_ptr).cast_ref<string>();
+						dst_string		   = src_string;
+					}
+					else
+						SFG_MEMCPY(dest, val, f->get_type_size());
+
+					if (!skip_reflect_load)
+						m.invoke_function<void, void*, world&>("on_reflect_load"_hs, dst_ptr, _world);
+				}
+
+				if (pm != play_mode::none && c.comp_type == type_id<comp_physics>::value)
+				{
+					comp_physics& phy = cm.get_component<comp_physics>(c.comp_handle);
+					phy.set_is_in_simulation(true);
+					pw.add_body_to_world(*phy.create_body(_world));
+				}
+			}
+
+			const bitmask<uint16> fl = _flags->get(source_entity.index);
+			set_entity_visible(clone, !fl.is_set(entity_flags::entity_flags_invisible));
+			set_entity_template(clone, get_entity_template_ref(source_entity));
+
+			world_handle source_child = source_family.first_child;
+			while (!source_child.is_null())
+			{
+				self(self, source_child, clone);
+				source_child = _families->get(source_child.index).next_sibling;
+			}
+
+			return clone;
+		};
+
+		const world_handle root = clone_recursive(clone_recursive, source, target_parent);
+
+		for (const world_handle& cloned_entity : cloned_entities)
+		{
+			const entity_comp_register& reg = _comp_registers->get(cloned_entity.index);
+			for (const entity_comp& c : reg.comps)
+			{
+				void* comp_ptr = cm.get_component(c.comp_type, c.comp_handle);
+				meta& m		   = reflection::get().resolve(c.comp_type);
+
+				bool updated = false;
+				for (field_base* f : m.get_fields())
+				{
+					if (f->_type != reflected_field_type::rf_entity)
+						continue;
+
+					if (f->_is_list)
+					{
+						vector<world_handle>& v	 = f->value(comp_ptr).cast_ref<vector<world_handle>>();
+						const uint32		  sz = static_cast<uint32>(v.size());
+						for (uint32 i = 0; i < sz; ++i)
+						{
+							if (v[i].is_null())
+								continue;
+							auto it = clone_by_source.find(v[i].index);
+							if (it != clone_by_source.end() && v[i] != it->second)
+							{
+								v[i]	= it->second;
+								updated = true;
+							}
+						}
 					}
 					else
 					{
-						SFG_ASSERT(false);
+						world_handle& h = f->value(comp_ptr).cast_ref<world_handle>();
+						if (h.is_null())
+							continue;
+						auto it = clone_by_source.find(h.index);
+						if (it != clone_by_source.end() && h != it->second)
+						{
+							h		= it->second;
+							updated = true;
+						}
 					}
 				}
-				else if (f->_type == reflected_field_type::rf_string)
-				{
-					string& src_string = f->value(source_ptr).cast_ref<string>();
-					string& dst_string = f->value(dst_ptr).cast_ref<string>();
-					dst_string		   = src_string;
-				}
-				else
-					SFG_MEMCPY(dest, val, f->get_type_size());
 
-				m.invoke_function<void, void*, world&>("on_reflect_load"_hs, dst_ptr, _world);
-			}
-
-			if (pm != play_mode::none && c.comp_type == type_id<comp_physics>::value)
-			{
-				comp_physics& phy = cm.get_component<comp_physics>(c.comp_handle);
-				phy.set_is_in_simulation(true);
-				pw.add_body_to_world(*phy.create_body(_world));
+				if ((updated || c.comp_type == type_id<comp_mesh_instance>::value) && m.has_function("on_reflect_load"_hs))
+					m.invoke_function<void, void*, world&>("on_reflect_load"_hs, comp_ptr, _world);
 			}
 		}
 
-		const bitmask<uint16> fl = _flags->get(source.index);
-		set_entity_visible(clone, !fl.is_set(entity_flags::entity_flags_invisible));
-		set_entity_template(clone, get_entity_template_ref(source));
-
-		world_handle source_child = source_family.first_child;
-		while (!source_child.is_null())
-		{
-			clone_entity(source_child, clone);
-			source_child = _families->get(source_child.index).next_sibling;
-		}
-
-		return clone;
+		return root;
 	}
 
 	void entity_manager::destroy_entity(world_handle entity)

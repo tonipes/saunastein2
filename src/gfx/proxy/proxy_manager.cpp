@@ -127,10 +127,7 @@ namespace SFG
 
 	void proxy_manager::init()
 	{
-		for (uint8 i = 0; i < BACK_BUFFER_COUNT + 1; i++)
-		{
-			_destroy_bucket[i].list.reserve(1000);
-		}
+		_destroy_list.reserve(1024);
 
 		_aux_memory.init(1024 * 1024 * 2);
 	}
@@ -244,17 +241,38 @@ namespace SFG
 		gfx_backend* backend = gfx_backend::get();
 
 		const uint64 frame = frame_info::get_render_frame();
-		if (frame < BACK_BUFFER_COUNT + 1)
+		if (!force && frame < BACK_BUFFER_COUNT + 1)
 			return;
 
-		const uint8 mod			= BACK_BUFFER_COUNT + 1;
-		const uint8 safe_bucket = (frame - BACK_BUFFER_COUNT) % mod;
-		destroy_target_bucket(safe_bucket);
-		if (force)
+		bool waiting = false;
+
+		for (destroy_data& dd : _destroy_list)
 		{
-			for (uint32 i = 0; i < mod; i++)
-				destroy_target_bucket(i);
+			if (dd.destroyed)
+				continue;
+
+			if (!force && dd.target_frame > frame)
+			{
+				waiting = true;
+				continue;
+			}
+
+			dd.destroyed = true;
+
+			if (dd.type == destroy_data_type::texture)
+				backend->destroy_texture(dd.id);
+			else if (dd.type == destroy_data_type::sampler)
+				backend->destroy_sampler(dd.id);
+			else if (dd.type == destroy_data_type::bind_group)
+				backend->destroy_bind_group(dd.id);
+			else if (dd.type == destroy_data_type::resource)
+				backend->destroy_resource(dd.id);
+			else if (dd.type == destroy_data_type::shader)
+				backend->destroy_shader(dd.id);
 		}
+
+		if (!waiting)
+			_destroy_list.resize(0);
 	}
 
 	gfx_id proxy_manager::get_shader_variant(resource_id shader_handle, uint32 flags)
@@ -504,10 +522,9 @@ namespace SFG
 			};
 
 			auto kill_shadow_texture = [&]() {
-				const uint8 safe_bucket = frame_info::get_render_frame() % (BACK_BUFFER_COUNT + 1);
 				for (uint8 i = 0; i < BACK_BUFFER_COUNT; i++)
 				{
-					add_to_destroy_bucket({.id = proxy.shadow_texture_hw[i], .type = destroy_data_type::texture}, safe_bucket);
+					add_to_destroy_list(proxy.shadow_texture_hw[i], destroy_data_type::texture);
 					proxy.shadow_texture_hw[i] = NULL_GFX_ID;
 				}
 			};
@@ -596,10 +613,9 @@ namespace SFG
 			};
 
 			auto kill_shadow_texture = [&]() {
-				const uint8 safe_bucket = frame_info::get_render_frame() % (BACK_BUFFER_COUNT + 1);
 				for (uint8 i = 0; i < BACK_BUFFER_COUNT; i++)
 				{
-					add_to_destroy_bucket({.id = proxy.shadow_texture_hw[i], .type = destroy_data_type::texture}, safe_bucket);
+					add_to_destroy_list(proxy.shadow_texture_hw[i], destroy_data_type::texture);
 					proxy.shadow_texture_hw[i] = NULL_GFX_ID;
 				}
 			};
@@ -688,10 +704,9 @@ namespace SFG
 			};
 
 			auto kill_shadow_texture = [&]() {
-				const uint8 safe_bucket = frame_info::get_render_frame() % (BACK_BUFFER_COUNT + 1);
 				for (uint8 i = 0; i < BACK_BUFFER_COUNT; i++)
 				{
-					add_to_destroy_bucket({.id = proxy.shadow_texture_hw[i], .type = destroy_data_type::texture}, safe_bucket);
+					add_to_destroy_list(proxy.shadow_texture_hw[i], destroy_data_type::texture);
 					proxy.shadow_texture_hw[i] = NULL_GFX_ID;
 				}
 			};
@@ -751,11 +766,9 @@ namespace SFG
 
 			if (proxy.shadow_texture_hw[0] != NULL_GFX_ID)
 			{
-				const uint8 safe_bucket = frame_info::get_render_frame() % (BACK_BUFFER_COUNT + 1);
-
 				for (uint8 i = 0; i < BACK_BUFFER_COUNT; i++)
 				{
-					add_to_destroy_bucket({.id = proxy.shadow_texture_hw[i], .type = destroy_data_type::texture}, safe_bucket);
+					add_to_destroy_list(proxy.shadow_texture_hw[i], destroy_data_type::texture);
 					proxy.shadow_texture_hw[i] = NULL_GFX_ID;
 				}
 			}
@@ -772,11 +785,9 @@ namespace SFG
 
 			if (proxy.shadow_texture_hw[0] != NULL_GFX_ID)
 			{
-				const uint8 safe_bucket = frame_info::get_render_frame() % (BACK_BUFFER_COUNT + 1);
-
 				for (uint8 i = 0; i < BACK_BUFFER_COUNT; i++)
 				{
-					add_to_destroy_bucket({.id = proxy.shadow_texture_hw[i], .type = destroy_data_type::texture}, safe_bucket);
+					add_to_destroy_list(proxy.shadow_texture_hw[i], destroy_data_type::texture);
 					proxy.shadow_texture_hw[i] = NULL_GFX_ID;
 				}
 			}
@@ -793,11 +804,9 @@ namespace SFG
 
 			if (proxy.shadow_texture_hw[0] != NULL_GFX_ID)
 			{
-				const uint8 safe_bucket = frame_info::get_render_frame() % (BACK_BUFFER_COUNT + 1);
-
 				for (uint8 i = 0; i < BACK_BUFFER_COUNT; i++)
 				{
-					add_to_destroy_bucket({.id = proxy.shadow_texture_hw[i], .type = destroy_data_type::texture}, safe_bucket);
+					add_to_destroy_list(proxy.shadow_texture_hw[i], destroy_data_type::texture);
 					proxy.shadow_texture_hw[i] = NULL_GFX_ID;
 				}
 			}
@@ -1344,36 +1353,31 @@ namespace SFG
 
 	void proxy_manager::destroy_texture(render_proxy_texture& proxy)
 	{
-		const uint8 safe_bucket = frame_info::get_render_frame() % (BACK_BUFFER_COUNT + 1);
-		add_to_destroy_bucket({.id = proxy.hw, .type = destroy_data_type::texture}, safe_bucket);
-		add_to_destroy_bucket({.id = proxy.intermediate, .type = destroy_data_type::resource}, safe_bucket);
+		add_to_destroy_list(proxy.hw, destroy_data_type::texture);
+		add_to_destroy_list(proxy.intermediate, destroy_data_type::resource);
 		proxy = {};
 	}
 
 	void proxy_manager::destroy_sampler(render_proxy_sampler& proxy)
 	{
-		const uint8 safe_bucket = frame_info::get_render_frame() % (BACK_BUFFER_COUNT + 1);
-		add_to_destroy_bucket({.id = proxy.hw, .type = destroy_data_type::sampler}, safe_bucket);
+		add_to_destroy_list(proxy.hw, destroy_data_type::sampler);
 		proxy = {};
 	}
 
 	void proxy_manager::destroy_shader(render_proxy_shader& proxy)
 	{
-		const uint8 safe_bucket = frame_info::get_render_frame() % (BACK_BUFFER_COUNT + 1);
-
 		render_proxy_shader_variant* vars = _aux_memory.get<render_proxy_shader_variant>(proxy.variants);
 		for (uint32 i = 0; i < proxy.variant_count; i++)
-			add_to_destroy_bucket({.id = vars[i].hw, .type = destroy_data_type::shader}, safe_bucket);
+			add_to_destroy_list(vars[i].hw, destroy_data_type::shader);
 		proxy = {};
 	}
 
 	void proxy_manager::destroy_mesh(render_proxy_mesh& proxy)
 	{
-		const uint8 safe_bucket = frame_info::get_render_frame() % (BACK_BUFFER_COUNT + 1);
-		add_to_destroy_bucket({.id = proxy.vertex_buffer.get_staging(), .type = destroy_data_type::resource}, safe_bucket);
-		add_to_destroy_bucket({.id = proxy.vertex_buffer.get_gpu(), .type = destroy_data_type::resource}, safe_bucket);
-		add_to_destroy_bucket({.id = proxy.index_buffer.get_staging(), .type = destroy_data_type::resource}, safe_bucket);
-		add_to_destroy_bucket({.id = proxy.index_buffer.get_gpu(), .type = destroy_data_type::resource}, safe_bucket);
+		add_to_destroy_list(proxy.vertex_buffer.get_staging(), destroy_data_type::resource);
+		add_to_destroy_list(proxy.vertex_buffer.get_gpu(), destroy_data_type::resource);
+		add_to_destroy_list(proxy.index_buffer.get_staging(), destroy_data_type::resource);
+		add_to_destroy_list(proxy.index_buffer.get_gpu(), destroy_data_type::resource);
 
 		if (proxy.primitives.size != 0)
 			_aux_memory.free(proxy.primitives);
@@ -1384,11 +1388,10 @@ namespace SFG
 	{
 		for (uint8 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
-			const uint8 safe_bucket = (frame_info::get_render_frame() + i) % (BACK_BUFFER_COUNT + 1);
-			add_to_destroy_bucket({.id = proxy.vertex_buffers[i].get_staging(), .type = destroy_data_type::resource}, safe_bucket);
-			add_to_destroy_bucket({.id = proxy.vertex_buffers[i].get_gpu(), .type = destroy_data_type::resource}, safe_bucket);
-			add_to_destroy_bucket({.id = proxy.index_buffers[i].get_staging(), .type = destroy_data_type::resource}, safe_bucket);
-			add_to_destroy_bucket({.id = proxy.index_buffers[i].get_gpu(), .type = destroy_data_type::resource}, safe_bucket);
+			add_to_destroy_list(proxy.vertex_buffers[i].get_staging(), destroy_data_type::resource);
+			add_to_destroy_list(proxy.vertex_buffers[i].get_gpu(), destroy_data_type::resource);
+			add_to_destroy_list(proxy.index_buffers[i].get_staging(), destroy_data_type::resource);
+			add_to_destroy_list(proxy.index_buffers[i].get_gpu(), destroy_data_type::resource);
 		}
 
 		proxy = {};
@@ -1405,47 +1408,17 @@ namespace SFG
 
 		for (uint8 i = 0; i < BACK_BUFFER_COUNT; i++)
 		{
-			const uint8 safe_bucket = (frame_info::get_render_frame() + i) % (BACK_BUFFER_COUNT + 1);
 			if (proxy.texture_buffers[i].get_gpu() != NULL_GFX_ID)
-			{
-				add_to_destroy_bucket({.id = proxy.texture_buffers[i].get_gpu(), .type = destroy_data_type::resource}, safe_bucket);
-			}
+				add_to_destroy_list(proxy.texture_buffers[i].get_gpu(), destroy_data_type::resource);
 
 			if (proxy.buffers[i].get_gpu() != NULL_GFX_ID)
-			{
-				add_to_destroy_bucket({.id = proxy.buffers[i].get_gpu(), .type = destroy_data_type::resource}, safe_bucket);
-			}
+				add_to_destroy_list(proxy.buffers[i].get_gpu(), destroy_data_type::resource);
 		}
 		proxy = {};
 	}
 
-	void proxy_manager::destroy_target_bucket(uint8 index)
+	void proxy_manager::add_to_destroy_list(gfx_id id, destroy_data_type type)
 	{
-		destroy_bucket& bucket = _destroy_bucket[index];
-		if (bucket.list.empty())
-			return;
-
-		gfx_backend* backend = gfx_backend::get();
-
-		for (const destroy_data& destroy : bucket.list)
-		{
-			if (destroy.type == destroy_data_type::texture)
-				backend->destroy_texture(destroy.id);
-			else if (destroy.type == destroy_data_type::sampler)
-				backend->destroy_sampler(destroy.id);
-			else if (destroy.type == destroy_data_type::bind_group)
-				backend->destroy_bind_group(destroy.id);
-			else if (destroy.type == destroy_data_type::resource)
-				backend->destroy_resource(destroy.id);
-			else if (destroy.type == destroy_data_type::shader)
-				backend->destroy_shader(destroy.id);
-		}
-		bucket.list.resize(0);
-	}
-
-	void proxy_manager::add_to_destroy_bucket(const destroy_data& data, uint8 index)
-	{
-		destroy_bucket& bucket = _destroy_bucket[index];
-		bucket.list.push_back(data);
+		_destroy_list.push_back({.id = id, .type = type, .target_frame = frame_info::get_render_frame() + BACK_BUFFER_COUNT + 1});
 	}
 }

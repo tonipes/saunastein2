@@ -234,16 +234,12 @@ namespace SFG
 		_camera_controller.uninit();
 	}
 
-	void editor::pre_world_tick(float delta)
-	{
-	}
-
 	void editor::post_world_tick(float delta)
 	{
 		_camera_controller.tick(delta);
 		world& w = _app.get_world();
 		if (w.get_playmode() == play_mode::full)
-			_app.get_gameplay().on_world_tick(w, delta);
+			_app.get_gameplay().on_world_tick(w, delta, _app.get_game_resolution());
 	}
 
 	void editor::tick()

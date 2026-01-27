@@ -85,7 +85,7 @@ namespace SFG
 #define COLOR_CONSOLE_BG		color(12.0f / 255.0f, 16.0f / 255.0f, 12.0f / 255.0f, 0.95f).srgb_to_linear().to_vector()
 #define COLOR_CONSOLE_BG_OPAQUE color(12.0f / 255.0f, 16.0f / 255.0f, 12.0f / 255.0f, 1.0f).srgb_to_linear().to_vector()
 #define COLOR_BORDER			color(89.0f / 255.0f, 180.0f / 255.0f, 108.0f / 255.0f, 1.0f).srgb_to_linear().to_vector()
-#define DEBUG_FONT_SIZE			20
+#define DEBUG_FONT_SIZE			28
 #define INPUT_FIELD_HEIGHT		static_cast<float>(get_font_size()) * 1.5f
 #define CONSOLE_SPACING			static_cast<float>(get_font_size()) * 0.5f
 #define MAX_HISTORY				8
@@ -545,7 +545,7 @@ namespace SFG
 		font_raw* icon_font_raw = reinterpret_cast<font_raw*>(engine_resources::get().get_def(engine_resource_ident::font_debug_console_icons).raw);
 
 		_vekt_data.font_debug = _vekt_data.font_manager->load_font(reinterpret_cast<unsigned char*>(def_font_raw->font_data.data()), def_font_raw->font_data.size(), get_font_size(), 32, 128);
-		_vekt_data.font_icon  = _vekt_data.font_manager->load_font(reinterpret_cast<unsigned char*>(icon_font_raw->font_data.data()), icon_font_raw->font_data.size(), 12, 32, 128, vekt::font_type::sdf);
+		_vekt_data.font_icon  = _vekt_data.font_manager->load_font(reinterpret_cast<unsigned char*>(icon_font_raw->font_data.data()), icon_font_raw->font_data.size(), get_font_size(), 32, 128, vekt::font_type::sdf);
 
 		_vekt_data.console_texts.reserve(MAX_CONSOLE_TEXT);
 		_input_field.history.reserve(MAX_CONSOLE_TEXT);

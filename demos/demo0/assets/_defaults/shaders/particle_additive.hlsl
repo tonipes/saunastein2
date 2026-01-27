@@ -36,30 +36,6 @@
 // In & Outs
 //------------------------------------------------------------------------------
 
-#ifdef USE_SKINNING
-
-struct vs_input
-{
-	float3 pos : POSITION;
-	float3 normal : NORMAL0;
-	float4 tangent : TANGENT0;
-	float2 uv : TEXCOORD0;
-    float4 bone_weights : BLENDWEIGHT0;
-    uint4  bone_indices : BLENDINDICES0;
-};
-
-#else
-
-struct vs_input
-{
-    float3 pos : POSITION;
-    float3 normal : NORMAL0;
-    float4 tangent : TANGENT0;
-    float2 uv : TEXCOORD0;
-};
-
-#endif
-
 struct vs_output
 {
     float4 pos : SV_POSITION;

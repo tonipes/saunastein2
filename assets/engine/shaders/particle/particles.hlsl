@@ -126,6 +126,9 @@ struct particle_state
     float end_vel_x;
     float end_vel_y;
     float end_vel_z;
+    float vel_x;
+    float vel_y;
+    float vel_z;
 
     float rotation;
     float start_ang_vel;
@@ -148,6 +151,7 @@ struct particle_state
 struct particle_instance_data
 {
     float4 pos_rot_size;
+    float4 velocity;
     uint color;
 };
 

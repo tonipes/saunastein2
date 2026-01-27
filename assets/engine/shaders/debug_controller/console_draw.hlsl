@@ -72,8 +72,8 @@ float4 PSMain(VSOutput IN) : SV_TARGET
 	Texture2D txt_render_target = sfg_get_texture<Texture2D>(sfg_object_constant0);
 	float2 screen_size = float2(float(sfg_object_constant1), float(sfg_object_constant2));
     // --- Barrel distortion ---
-	const float distortionAmount = 0.0065f;
-	const float baseAberration = 0.006; 
+	const float distortionAmount = 0.0015f;
+	const float baseAberration = 0.002; 
 	
 	float2 centeredUV = uv * 2.0f - 1.0f;
 	float r2 = dot(centeredUV, centeredUV);

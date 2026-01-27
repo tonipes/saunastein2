@@ -287,6 +287,8 @@ namespace SFG
 
 	void editor_panel_inspector::on_context_item(vekt::id widget)
 	{
+		_gui_builder.on_context_item(widget);
+
 		if (_selected_entity.is_null() || _add_component_buttons.empty())
 			return;
 

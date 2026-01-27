@@ -38,6 +38,7 @@ namespace SFG
 	class app;
 	class window;
 	struct window_event;
+	struct vector2ui16;
 
 	class gameplay
 	{
@@ -46,7 +47,7 @@ namespace SFG
 
 		void on_world_begin(world& w);
 		void on_world_end(world& w);
-		void on_world_tick(world& w, float dt);
+		void on_world_tick(world& w, float dt, const vector2ui16& game_res);
 		void on_window_event(const window_event& ev, window* wnd);
 
 	private:

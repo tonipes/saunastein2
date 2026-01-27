@@ -636,7 +636,7 @@ namespace vekt
 			_hover_callbacks[_pressed_widget].is_pressing = 1;
 			_press_relative_pos							  = press_pos - _pos_results[_pressed_widget].pos;
 		}
-		V_LOG("pressing %d", widget);
+
 		// if (widget != NULL_WIDGET_ID)
 		// {
 		// 	mouse_callback& mb			  = _mouse_callbacks[widget];

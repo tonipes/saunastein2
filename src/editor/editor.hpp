@@ -94,7 +94,6 @@ namespace SFG
 		void			   uninit();
 		void			   tick();
 		void			   render(const render_params& p);
-		void			   pre_world_tick(float delta);
 		void			   post_world_tick(float delta);
 		bool			   on_window_event(const window_event& ev);
 		void			   resize(const vector2ui16& size);
