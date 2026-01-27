@@ -1,7 +1,7 @@
 {
   "spawn": {
     "emitter_lifetime": 0.0,
-    "wait_between_emits": 0.03,
+    "wait_between_emits": 0.05,
     "min_particle_count": 1,
     "max_particle_count": 2,
     "min_lifetime": 2,
@@ -9,12 +9,12 @@
   },
   "pos": {
     "min_start": [-0.05, 0.0, -0.05],
-    "max_start": [0.05, 0.1, 0.05],
-    "cone_radius": 0.06
+    "max_start": [0.05, 0.4, 0.05],
+    "cone_radius": 0.08
   },
   "velocity": {
     "min_start": [-0.05, 0.25, -0.05],
-    "max_start": [0.05, 0.45, 0.05],
+    "max_start": [0.05, 0.75, 0.05],
     "min_mid": [-0.03, 0.15, -0.03],
     "max_mid": [0.03, 0.3, 0.03],
     "min_end": [-0.02, 0.05, -0.02],

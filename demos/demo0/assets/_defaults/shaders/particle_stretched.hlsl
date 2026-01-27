@@ -37,7 +37,9 @@ vs_output VSMain(uint vid : SV_VertexID, uint iid : SV_InstanceID)
     ConstantBuffer<particle_pass_data> pass_params = sfg_get_cbv<particle_pass_data>(sfg_rp_constant0);
     ConstantBuffer<material_data> mat = sfg_get_cbv<material_data>(sfg_mat_constant0);
 
-    particle_instance_data p = instance_data[iid];
+   uint iid_base = sfg_rp_constant2;
+
+    particle_instance_data p = instance_data[iid_base + iid];
 
     float3 center = p.pos_rot_size.xyz;
     float2 rot_size = unpack_rot_size((uint)p.pos_rot_size.w);

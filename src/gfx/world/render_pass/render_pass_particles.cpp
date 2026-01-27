@@ -1026,7 +1026,7 @@ namespace SFG
 
 		backend->cmd_barrier(cmd_buffer, {.barriers = barriers.data(), .barrier_count = static_cast<uint16>(barriers.size())});
 
-		const uint32 constants[2] = {gpu_index_ubo, gpu_index_instances};
+		const uint32 constants[3] = {gpu_index_ubo, gpu_index_instances, 0};
 		backend->cmd_bind_constants(cmd_buffer, {.data = (uint8*)&constants, .offset = constant_index_rp_constant0, .count = 3, .param_index = rpi_constants});
 
 		if (_num_systems != 0)

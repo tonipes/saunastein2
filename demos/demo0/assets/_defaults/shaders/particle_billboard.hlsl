@@ -67,8 +67,9 @@ vs_output VSMain(uint vid : SV_VertexID, uint iid : SV_InstanceID)
 
     StructuredBuffer<particle_instance_data> instance_data    = sfg_get_ssbo<particle_instance_data>(sfg_rp_constant1);
     ConstantBuffer<particle_pass_data> pass_params = sfg_get_cbv<particle_pass_data>(sfg_rp_constant0);
+    uint iid_base = sfg_rp_constant2;
 
-    particle_instance_data p = instance_data[iid];
+    particle_instance_data p = instance_data[iid_base + iid];
 
     float3 center = p.pos_rot_size.xyz;
     float2 rot_size = unpack_rot_size((uint)p.pos_rot_size.w);
