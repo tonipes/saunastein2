@@ -64,6 +64,7 @@ add_compile_definitions($<$<CONFIG:DebugToolmode>:SFG_USE_DEBUG_CONTROLLER>)
 add_compile_definitions($<$<CONFIG:DebugToolmode>:SFG_DUMP_LOG_TRACE>)
 add_compile_definitions($<$<CONFIG:DebugToolmode>:SFG_TOOLMODE>)
 add_compile_definitions($<$<CONFIG:DebugToolmode>:JPH_DEBUG_RENDERER>)
+add_compile_definitions($<$<CONFIG:DebugToolmode>:USE_PIX>)
 
 add_compile_definitions($<$<CONFIG:Debug>:_ITERATOR_DEBUG_LEVEL=1>)
 add_compile_definitions($<$<CONFIG:Debug>:SFG_DEBUG>)

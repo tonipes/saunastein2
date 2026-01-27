@@ -38,6 +38,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "world/world.hpp"
 #include "world/components/comp_light.hpp"
 #include "world/components/comp_particle_emitter.hpp"
+#include "world/components/comp_sprite.hpp"
 #include "world/components/comp_audio.hpp"
 #include "world/components/comp_camera.hpp"
 
@@ -154,6 +155,17 @@ namespace SFG
 			vector2		  screen = vector2::zero;
 			if (project_point(_cam_view_proj, root_pos, root_size, pos, screen))
 				draw_icon(_builder, ICON_EXPLOSION, screen, editor_theme::get().col_text);
+			return comp_view_result::cont;
+		});
+
+		cm.view<comp_sprite>([&](comp_sprite& c) {
+			if (c.get_header().entity == selected)
+				return comp_view_result::cont;
+
+			const vector3 pos	 = em.get_entity_position_abs(c.get_header().entity);
+			vector2		  screen = vector2::zero;
+			if (project_point(_cam_view_proj, root_pos, root_size, pos, screen))
+				draw_icon(_builder, ICON_GUI, screen, editor_theme::get().col_text);
 			return comp_view_result::cont;
 		});
 
@@ -287,6 +299,19 @@ namespace SFG
 			if (handled)
 				return comp_view_result::stop;
 			handled = hit_test(em.get_entity_position_abs(c.get_header().entity), ICON_EXPLOSION, c.get_header().entity);
+			return handled ? comp_view_result::stop : comp_view_result::cont;
+		});
+
+		if (handled)
+			return true;
+
+		cm.view<comp_sprite>([&](comp_sprite& c) {
+			if (c.get_header().entity == selected)
+				return comp_view_result::cont;
+
+			if (handled)
+				return comp_view_result::stop;
+			handled = hit_test(em.get_entity_position_abs(c.get_header().entity), ICON_GUI, c.get_header().entity);
 			return handled ? comp_view_result::stop : comp_view_result::cont;
 		});
 
