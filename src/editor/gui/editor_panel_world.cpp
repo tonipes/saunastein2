@@ -226,39 +226,6 @@ namespace SFG
 		return vector2ui16(sz.x, sz.y);
 	}
 
-	bool editor_panel_world::get_mouse_world_ray(const vector2& mouse_pos, vector3& origin, vector3& direction) const
-	{
-		const vector4 clip = _builder->widget_get_clip(_world_viewer);
-		if (!clip.is_point_inside(mouse_pos.x, mouse_pos.y))
-			return false;
-
-		const vector2 panel_pos	 = _builder->widget_get_pos(_world_viewer);
-		const vector2 panel_size = _builder->widget_get_size(_world_viewer);
-		if (panel_size.x <= 0.0f || panel_size.y <= 0.0f)
-			return false;
-
-		const float nx = math::clamp((mouse_pos.x - panel_pos.x) / panel_size.x, 0.0f, 1.0f);
-		const float ny = math::clamp((mouse_pos.y - panel_pos.y) / panel_size.y, 0.0f, 1.0f);
-
-		const float ndc_x = nx * 2.0f - 1.0f;
-		const float ndc_y = 1.0f - ny * 2.0f;
-
-		game_world_renderer* wr = editor::get().get_app().get_renderer().get_world_renderer();
-		if (!wr)
-			return false;
-		const view& main_view = wr->get_main_view();
-
-		const vector4 near_v = main_view.inv_view_proj_matrix * vector4(ndc_x, ndc_y, 0.0f, 1.0f);
-		const vector4 far_v	 = main_view.inv_view_proj_matrix * vector4(ndc_x, ndc_y, 1.0f, 1.0f);
-
-		const vector3 near_ws = vector3(near_v.x, near_v.y, near_v.z) / near_v.w;
-		const vector3 far_ws  = vector3(far_v.x, far_v.y, far_v.z) / far_v.w;
-
-		origin	  = main_view.position;
-		direction = (far_ws - near_ws).normalized();
-		return true;
-	}
-
 	void editor_panel_world::set_gizmo_style(gizmo_style style)
 	{
 		_gizmo_controls.set_style(style);

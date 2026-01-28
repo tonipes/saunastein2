@@ -155,9 +155,10 @@ namespace SFG
 		_renderer = new renderer(*_main_window, *_world, _render_stream, nullptr);
 #endif
 
-		_game_resolution = vector2ui16(1920, 1080);
+		const vector2ui16 initial_resolution = vector2ui16(1920, 1080);
+		_world->get_screen().set_world_resolution(initial_resolution);
 
-		if (!_renderer->init(_game_resolution))
+		if (!_renderer->init(initial_resolution))
 		{
 			time::uninit();
 			debug_console::uninit();
@@ -425,16 +426,22 @@ namespace SFG
 
 	void app::set_game_resolution(const vector2ui16& size)
 	{
-		if (_game_resolution.x == size.x && _game_resolution.y == size.y)
+		const vector2ui16& current = _world->get_screen().get_world_resolution();
+		if (current.x == size.x && current.y == size.y)
 			return;
 
 		if (size.x > 8000 || size.y > 8000)
 			return;
 
-		_game_resolution = size;
+		_world->get_screen().set_world_resolution(size);
 		join_render();
-		_renderer->on_world_resolution(_game_resolution);
+		_renderer->on_world_resolution(size);
 		kick_off_render();
+	}
+
+	const vector2ui16& app::get_game_resolution() const
+	{
+		return _world->get_screen().get_world_resolution();
 	}
 
 	void app::kick_off_render()

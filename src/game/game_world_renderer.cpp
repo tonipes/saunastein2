@@ -267,6 +267,7 @@ namespace SFG
 						.far_plane			  = cam_proxy.far_plane,
 						.fov_degrees		  = cam_proxy.fov_degrees,
 			};
+			_world.get_screen().set_camera_data(view_proj, _main_camera_view.inv_view_proj_matrix, pos);
 
 			if (cam_proxy.cascades.size != 0)
 			{

@@ -36,6 +36,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "world/common_world.hpp"
 #include "world/time_manager.hpp"
 #include "world/world_debug_rendering.hpp"
+#include "world/world_screen.hpp"
 
 #include "resources/resource_manager.hpp"
 #include "physics/physics_world.hpp"
@@ -116,6 +117,11 @@ namespace SFG
 		inline world_debug_rendering& get_debug_rendering()
 		{
 			return _debug_rendering;
+		}
+
+		inline world_screen& get_screen()
+		{
+			return _screen;
 		}
 
 		inline physics_world& get_physics_world()
@@ -222,6 +228,7 @@ namespace SFG
 		animation_graph		  _anim_graph	   = {};
 		time_manager		  _time_manager	   = {};
 		world_debug_rendering _debug_rendering = {};
+		world_screen		  _screen		   = {};
 
 		vector<atlas_data>	 _vekt_atlases = {};
 		render_event_stream& _render_stream;

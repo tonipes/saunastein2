@@ -88,7 +88,6 @@ namespace SFG
 		bool			  on_mouse_move(const vector2& p);
 		bool			  on_key_event(const window_event& ev);
 		const vector2ui16 get_world_size() const;
-		bool			  get_mouse_world_ray(const vector2& mouse_pos, vector3& origin, vector3& direction) const;
 		void			  fetch_stats();
 
 		// -----------------------------------------------------------------------------

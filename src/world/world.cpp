@@ -239,6 +239,8 @@ namespace SFG
 			const vector3 p = _entity_manager.get_entity_position_abs(mc);
 			ma_engine_listener_set_position(_audio_manager.get_engine(), 0, p.x, p.y, p.z);
 		}
+
+		_screen.fetch_camera_data(*this);
 	}
 
 	void world::begin_debug_tick(const vector2ui16& res)

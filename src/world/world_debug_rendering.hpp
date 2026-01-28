@@ -51,7 +51,8 @@ namespace SFG
 	public:
 		struct gui_draw_call_data
 		{
-			vector4 pos_and_size = vector4(0.0f, 0.0f, 0.0f, 1.0f);
+			vector4 pos_and_scale = vector4(0.0f, 0.0f, 0.0f, 1.0f);
+			vector2 size		  = vector2::zero;
 		};
 
 		struct gui_draw_call
@@ -156,10 +157,10 @@ namespace SFG
 		uint32		   _font_id_default		   = 0;
 		uint32		   _font_id_icons		   = 0;
 
-		snapshot	   _snapshots[3] = {};
-		atomic<uint32> _published	 = UINT32_MAX;
-		atomic<uint32> _snapshot_in_use	 = UINT32_MAX;
-		uint32		   _writer_slot	 = 0;
-		uint32		   _current_read = UINT32_MAX;
+		snapshot	   _snapshots[3]	= {};
+		atomic<uint32> _published		= UINT32_MAX;
+		atomic<uint32> _snapshot_in_use = UINT32_MAX;
+		uint32		   _writer_slot		= 0;
+		uint32		   _current_read	= UINT32_MAX;
 	};
 }

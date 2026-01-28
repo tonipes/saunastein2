@@ -566,7 +566,8 @@ namespace SFG
 		gui_draw_call_data& dd = s.draw_data_gui[s.draw_data_count_gui];
 
 		_builder->add_text(tp, col.to_vector(), vector2::zero, sz, 0, &dd, true);
-		dd.pos_and_size = vector4(pos.x, pos.y, pos.z, 1.0f);
+		dd.pos_and_scale = vector4(pos.x, pos.y, pos.z, 1.0f);
+		dd.size = sz;
 		s.draw_data_count_gui++;
 	}
 

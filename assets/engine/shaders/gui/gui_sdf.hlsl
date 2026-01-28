@@ -83,6 +83,7 @@ struct render_pass_data
 struct draw_data
 {
 	float4 position_and_size;
+	float2 size_2d;
 };
 #endif
 
@@ -98,15 +99,19 @@ VSOutput VSMain(VSInput IN)
 	StructuredBuffer<draw_data> draw_data_buffer = sfg_get_ssbo<draw_data>(sfg_mat_constant1);
 	draw_data dd = draw_data_buffer[draw_index];
 
-    float3 anchor_ws = dd.position_and_size.xyz;
-    float  scale_ws  = dd.position_and_size.w;
+	float scale_ws = dd.position_and_size.w;
+	float3 anchor_ws = dd.position_and_size.xyz;
+	
+	float2 size_2d   = dd.size_2d;         
+	float2 pivot_2d  = size_2d * 0.5f;      
+	float2 centered  = IN.pos - pivot_2d;   
+	float2 local_ws  = centered * rp_ubo.cam_right_and_pixel_size.w * scale_ws;
 
-    float2 local_ws_2d = (IN.pos * rp_ubo.cam_right_and_pixel_size.w) * scale_ws;
+	float3 world_pos =
+	    anchor_ws +
+	    rp_ubo.cam_right_and_pixel_size.xyz * local_ws.x +
+	    rp_ubo.cam_up.xyz                   * local_ws.y;
 
-    float3 world_pos =
-        anchor_ws +
-        rp_ubo.cam_right_and_pixel_size.xyz * local_ws_2d.x +
-        rp_ubo.cam_up.xyz    * local_ws_2d.y;
 
     OUT.pos = mul(rp_ubo.view_proj, float4(world_pos, 1.0f));
 

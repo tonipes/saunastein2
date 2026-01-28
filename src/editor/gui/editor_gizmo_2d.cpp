@@ -32,9 +32,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gui/icon_defs.hpp"
 #include "gui/vekt.hpp"
 #include "app/app.hpp"
-#include "math/math.hpp"
-#include "math/matrix4x4.hpp"
-#include "math/vector4.hpp"
+#include "math/color.hpp"
 #include "world/world.hpp"
 #include "world/components/comp_light.hpp"
 #include "world/components/comp_particle_emitter.hpp"
@@ -47,66 +45,31 @@ namespace SFG
 
 	namespace
 	{
-		bool project_point(const matrix4x4& view_proj, const vector2& panel_pos, const vector2& panel_size, const vector3& world_pos, vector2& out)
+		color to_color(const vector4& v)
 		{
-			vector4 clip = view_proj * vector4(world_pos.x, world_pos.y, world_pos.z, 1.0f);
-			if (math::abs(clip.w) < MATH_EPS)
-				return false;
-
-			if (clip.w < 0.0f)
-				return false;
-
-			const float inv_w = 1.0f / clip.w;
-			const float ndc_x = clip.x * inv_w;
-			const float ndc_y = clip.y * inv_w;
-
-			out.x = panel_pos.x + (ndc_x * 0.5f + 0.5f) * panel_size.x;
-			out.y = panel_pos.y + (1.0f - (ndc_y * 0.5f + 0.5f)) * panel_size.y;
-			return true;
-		}
-
-		void draw_icon(vekt::builder* builder, const char* icon, const vector2& screen_pos, const vector4& color)
-		{
-			vekt::text_props tp = {};
-			tp.text				= icon;
-			tp.font				= editor_theme::get().font_icons;
-			tp.scale			= 2.0f;
-
-			const vector2 text_size = vekt::builder::get_text_size(tp);
-			const vector2 text_pos	= vector2(screen_pos.x - text_size.x * 0.5f, screen_pos.y - text_size.y * 0.5f);
-			builder->add_text(tp, color, text_pos, text_size, 7, nullptr);
+			return color(v.x, v.y, v.z, v.w);
 		}
 	}
 
 	void editor_gizmo_2d::init(vekt::builder* builder)
 	{
 		_builder = builder;
+		_icons.reserve(256);
 	}
 
 	void editor_gizmo_2d::draw(const vector2& root_pos, const vector2& root_size, const vector2& game_render_size)
 	{
-		if (!_builder)
-			return;
+		(void)game_render_size;
+		world&				   w			= editor::get().get_app().get_world();
+		entity_manager&		   em			= w.get_entity_manager();
+		component_manager&	   cm			= w.get_comp_manager();
+		world_debug_rendering& wdr			= w.get_debug_rendering();
+		const color			   col_text		= to_color(editor_theme::get().col_text);
+		const color			   col_template = to_color(editor_theme::get().col_accent_third);
 
-		_last_root_pos		   = root_pos;
-		_last_root_size		   = root_size;
-		_last_game_render_size = game_render_size;
-
-		world&			   w  = editor::get().get_app().get_world();
-		entity_manager&	   em = w.get_entity_manager();
-		component_manager& cm = w.get_comp_manager();
-
-		const world_handle main_cam_entity = em.get_main_camera_entity();
-		const world_handle main_cam_comp   = em.get_main_camera_comp();
-		if (main_cam_entity.is_null() || main_cam_comp.is_null())
-			return;
-
-		comp_camera& camera_comp = cm.get_component<comp_camera>(main_cam_comp);
-
-		const float		aspect = _last_game_render_size.y > 0.0f ? _last_game_render_size.x / _last_game_render_size.y : 1.0f;
-		const matrix4x4 view   = matrix4x4::view(em.get_entity_rotation_abs(main_cam_entity, false), em.get_entity_position_abs(main_cam_entity, false));
-		const matrix4x4 proj   = matrix4x4::perspective_reverse_z(camera_comp.get_fov_degrees(), aspect, camera_comp.get_near(), camera_comp.get_far());
-		_cam_view_proj		   = proj * view;
+		_last_root_pos	= root_pos;
+		_last_root_size = root_size;
+		_icons.resize(0);
 
 		const world_handle selected = editor::get().get_gui_controller().get_entities()->get_selected();
 
@@ -114,11 +77,9 @@ namespace SFG
 			if (c.get_header().entity == selected)
 				return comp_view_result::cont;
 
-			const vector3 pos	 = em.get_entity_position_abs(c.get_header().entity);
-			vector2		  screen = vector2::zero;
-
-			if (project_point(_cam_view_proj, root_pos, root_size, pos, screen))
-				draw_icon(_builder, ICON_LIGHT_BULB, screen, editor_theme::get().col_text);
+			const vector3 pos = em.get_entity_position_abs(c.get_header().entity);
+			wdr.draw_icon(pos, col_text, ICON_LIGHT_BULB);
+			_icons.push_back({.entity = c.get_header().entity, .pos = pos, .icon = ICON_LIGHT_BULB});
 			return comp_view_result::cont;
 		});
 
@@ -126,10 +87,9 @@ namespace SFG
 			if (c.get_header().entity == selected)
 				return comp_view_result::cont;
 
-			const vector3 pos	 = em.get_entity_position_abs(c.get_header().entity);
-			vector2		  screen = vector2::zero;
-			if (project_point(_cam_view_proj, root_pos, root_size, pos, screen))
-				draw_icon(_builder, ICON_SPOT, screen, editor_theme::get().col_text);
+			const vector3 pos = em.get_entity_position_abs(c.get_header().entity);
+			wdr.draw_icon(pos, col_text, ICON_SPOT);
+			_icons.push_back({.entity = c.get_header().entity, .pos = pos, .icon = ICON_SPOT});
 			return comp_view_result::cont;
 		});
 
@@ -137,10 +97,9 @@ namespace SFG
 			if (c.get_header().entity == selected)
 				return comp_view_result::cont;
 
-			const vector3 pos	 = em.get_entity_position_abs(c.get_header().entity);
-			vector2		  screen = vector2::zero;
-			if (project_point(_cam_view_proj, root_pos, root_size, pos, screen))
-				draw_icon(_builder, ICON_SUN, screen, editor_theme::get().col_text);
+			const vector3 pos = em.get_entity_position_abs(c.get_header().entity);
+			wdr.draw_icon(pos, col_text, ICON_SUN);
+			_icons.push_back({.entity = c.get_header().entity, .pos = pos, .icon = ICON_SUN});
 			return comp_view_result::cont;
 		});
 
@@ -148,10 +107,9 @@ namespace SFG
 			if (c.get_header().entity == selected)
 				return comp_view_result::cont;
 
-			const vector3 pos	 = em.get_entity_position_abs(c.get_header().entity);
-			vector2		  screen = vector2::zero;
-			if (project_point(_cam_view_proj, root_pos, root_size, pos, screen))
-				draw_icon(_builder, ICON_EXPLOSION, screen, editor_theme::get().col_text);
+			const vector3 pos = em.get_entity_position_abs(c.get_header().entity);
+			wdr.draw_icon(pos, col_text, ICON_EXPLOSION);
+			_icons.push_back({.entity = c.get_header().entity, .pos = pos, .icon = ICON_EXPLOSION});
 			return comp_view_result::cont;
 		});
 
@@ -159,20 +117,18 @@ namespace SFG
 			if (c.get_header().entity == selected)
 				return comp_view_result::cont;
 
-			const vector3 pos	 = em.get_entity_position_abs(c.get_header().entity);
-			vector2		  screen = vector2::zero;
-			if (project_point(_cam_view_proj, root_pos, root_size, pos, screen))
-				draw_icon(_builder, ICON_GUI, screen, editor_theme::get().col_text);
+			const vector3 pos = em.get_entity_position_abs(c.get_header().entity);
+			wdr.draw_icon(pos, col_text, ICON_GUI);
+			_icons.push_back({.entity = c.get_header().entity, .pos = pos, .icon = ICON_GUI});
 			return comp_view_result::cont;
 		});
 
 		cm.view<comp_audio>([&](comp_audio& c) {
 			if (c.get_header().entity == selected)
 				return comp_view_result::cont;
-			const vector3 pos	 = em.get_entity_position_abs(c.get_header().entity);
-			vector2		  screen = vector2::zero;
-			if (project_point(_cam_view_proj, root_pos, root_size, pos, screen))
-				draw_icon(_builder, ICON_AUDIO, screen, editor_theme::get().col_text);
+			const vector3 pos = em.get_entity_position_abs(c.get_header().entity);
+			wdr.draw_icon(pos, col_text, ICON_AUDIO);
+			_icons.push_back({.entity = c.get_header().entity, .pos = pos, .icon = ICON_AUDIO});
 			return comp_view_result::cont;
 		});
 
@@ -184,10 +140,9 @@ namespace SFG
 			if (e == selected || e == editor_camera)
 				return comp_view_result::cont;
 
-			const vector3 pos	 = em.get_entity_position_abs(c.get_header().entity);
-			vector2		  screen = vector2::zero;
-			if (project_point(_cam_view_proj, root_pos, root_size, pos, screen))
-				draw_icon(_builder, ICON_CAMERA, screen, editor_theme::get().col_text);
+			const vector3 pos = em.get_entity_position_abs(c.get_header().entity);
+			wdr.draw_icon(pos, col_text, ICON_CAMERA);
+			_icons.push_back({.entity = c.get_header().entity, .pos = pos, .icon = ICON_CAMERA});
 			return comp_view_result::cont;
 		});
 
@@ -201,10 +156,9 @@ namespace SFG
 			if (!em.get_entity_flags(handle).is_set(entity_flags_template))
 				continue;
 
-			const vector3 pos	 = em.get_entity_position_abs(handle);
-			vector2		  screen = vector2::zero;
-			if (project_point(_cam_view_proj, root_pos, root_size, pos, screen))
-				draw_icon(_builder, ICON_HAMMER, screen, editor_theme::get().col_accent_third);
+			const vector3 pos = em.get_entity_position_abs(handle);
+			wdr.draw_icon(pos, col_template, ICON_HAMMER);
+			_icons.push_back({.entity = handle, .pos = pos, .icon = ICON_HAMMER});
 		}
 	}
 
@@ -216,147 +170,43 @@ namespace SFG
 		if (_last_root_size.x <= 0.0f || _last_root_size.y <= 0.0f)
 			return false;
 
-		const vector2 mp = vector2(static_cast<float>(ev.value.x), static_cast<float>(ev.value.y));
-		if (mp.x < _last_root_pos.x || mp.y < _last_root_pos.y || mp.x > _last_root_pos.x + _last_root_size.x || mp.y > _last_root_pos.y + _last_root_size.y)
+		const vector2 mp = vector2(static_cast<float>(ev.value.x), static_cast<float>(ev.value.y)) - _last_root_pos;
+		if (mp.x < 0 || mp.y < 0 || mp.x > _last_root_size.x || mp.y > _last_root_size.y)
 			return false;
 
 		editor_panel_entities* entities = editor::get().get_gui_controller().get_entities();
 		if (!entities)
 			return false;
 
-		world&			   w  = editor::get().get_app().get_world();
-		component_manager& cm = w.get_comp_manager();
-		entity_manager&	   em = w.get_entity_manager();
+		world&		  w		 = editor::get().get_app().get_world();
+		world_screen& screen = w.get_screen();
 
-		auto hit_test = [&](const vector3& pos, const char* icon, const world_handle& entity) {
-			vector2 screen = vector2::zero;
-			if (!project_point(_cam_view_proj, _last_root_pos, _last_root_size, pos, screen))
-				return false;
+		vekt::text_props tp = {};
+		tp.font				= editor_theme::get().font_icons;
+		tp.scale			= 1.0f;
 
-			vekt::text_props tp = {};
-			tp.text				= icon;
-			tp.font				= editor_theme::get().font_icons;
-			tp.scale			= 2.0f;
+		for (const icon_entry& icon : _icons)
+		{
+			vector2 screen_pos = vector2::zero;
+			float	distance   = 0.0f;
 
-			const vector2 text_size = vekt::builder::get_text_size(tp);
-			const vector2 text_pos	= vector2(screen.x - text_size.x * 0.5f, screen.y - text_size.y * 0.5f);
-			const vector2 rect_min	= text_pos;
-			const vector2 rect_max	= text_pos + text_size;
+			if (!screen.world_to_screen(icon.pos, screen_pos, distance))
+				continue;
+
+			tp.text = icon.icon;
+
+			float		  multip	= 25.0f / distance;
+			const vector2 text_size = vekt::builder::get_text_size(tp) * multip;
+			const vector2 rect_min	= vector2(screen_pos.x - text_size.x * 0.5f, screen_pos.y - text_size.y * 0.5f);
+			const vector2 rect_max	= rect_min + text_size ;
+
 			if (mp.x >= rect_min.x && mp.x <= rect_max.x && mp.y >= rect_min.y && mp.y <= rect_max.y)
 			{
-				entities->set_selected(entity);
+				entities->set_selected(icon.entity);
 				return true;
 			}
-			return false;
-		};
-
-		bool handled = false;
-
-		const world_handle selected = entities->get_selected();
-
-		cm.view<comp_point_light>([&](comp_point_light& c) {
-			if (c.get_header().entity == selected)
-				return comp_view_result::cont;
-
-			if (handled)
-				return comp_view_result::stop;
-			handled = hit_test(em.get_entity_position_abs(c.get_header().entity), ICON_LIGHT_BULB, c.get_header().entity);
-			return handled ? comp_view_result::stop : comp_view_result::cont;
-		});
-
-		if (handled)
-			return true;
-
-		cm.view<comp_spot_light>([&](comp_spot_light& c) {
-			if (c.get_header().entity == selected)
-				return comp_view_result::cont;
-
-			if (handled)
-				return comp_view_result::stop;
-			handled = hit_test(em.get_entity_position_abs(c.get_header().entity), ICON_SPOT, c.get_header().entity);
-			return handled ? comp_view_result::stop : comp_view_result::cont;
-		});
-
-		if (handled)
-			return true;
-
-		cm.view<comp_dir_light>([&](comp_dir_light& c) {
-			if (c.get_header().entity == selected)
-				return comp_view_result::cont;
-
-			if (handled)
-				return comp_view_result::stop;
-			handled = hit_test(em.get_entity_position_abs(c.get_header().entity), ICON_SUN, c.get_header().entity);
-			return handled ? comp_view_result::stop : comp_view_result::cont;
-		});
-
-		if (handled)
-			return true;
-
-		cm.view<comp_particle_emitter>([&](comp_particle_emitter& c) {
-			if (c.get_header().entity == selected)
-				return comp_view_result::cont;
-
-			if (handled)
-				return comp_view_result::stop;
-			handled = hit_test(em.get_entity_position_abs(c.get_header().entity), ICON_EXPLOSION, c.get_header().entity);
-			return handled ? comp_view_result::stop : comp_view_result::cont;
-		});
-
-		if (handled)
-			return true;
-
-		cm.view<comp_sprite>([&](comp_sprite& c) {
-			if (c.get_header().entity == selected)
-				return comp_view_result::cont;
-
-			if (handled)
-				return comp_view_result::stop;
-			handled = hit_test(em.get_entity_position_abs(c.get_header().entity), ICON_GUI, c.get_header().entity);
-			return handled ? comp_view_result::stop : comp_view_result::cont;
-		});
-
-		if (handled)
-			return true;
-
-		cm.view<comp_audio>([&](comp_audio& c) {
-			if (c.get_header().entity == selected)
-				return comp_view_result::cont;
-
-			if (handled)
-				return comp_view_result::stop;
-			handled = hit_test(em.get_entity_position_abs(c.get_header().entity), ICON_AUDIO, c.get_header().entity);
-			return handled ? comp_view_result::stop : comp_view_result::cont;
-		});
-
-		if (handled)
-			return true;
-
-		cm.view<comp_camera>([&](comp_camera& c) {
-			if (c.get_header().entity == selected)
-				return comp_view_result::cont;
-
-			if (handled)
-				return comp_view_result::stop;
-			handled = hit_test(em.get_entity_position_abs(c.get_header().entity), ICON_CAMERA, c.get_header().entity);
-			return handled ? comp_view_result::stop : comp_view_result::cont;
-		});
-
-		if (handled)
-			return true;
-
-		auto* pool = em.get_entities();
-		for (auto it = pool->handles_begin(); it != pool->handles_end(); ++it)
-		{
-			const world_handle handle = *it;
-			if (handle == selected)
-				continue;
-			if (!em.get_entity_flags(handle).is_set(entity_flags_template))
-				continue;
-			if (hit_test(em.get_entity_position_abs(handle), ICON_HAMMER, handle))
-				return true;
 		}
 
-		return handled;
+		return false;
 	}
 }

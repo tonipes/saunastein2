@@ -1,5 +1,4 @@
 /*
-/*
 This file is a part of stakeforge_engine: https://github.com/inanevin/stakeforge
 Copyright [2025-] Inan Evin
 
@@ -27,39 +26,54 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include "data/vector.hpp"
+#include "common/size_definitions.hpp"
+#include "data/atomic.hpp"
+#include "math/matrix4x4.hpp"
 #include "math/vector2.hpp"
+#include "math/vector2ui16.hpp"
 #include "math/vector3.hpp"
-#include "world/world_constants.hpp"
-#include "platform/window_common.hpp"
-
-namespace vekt
-{
-	class builder;
-}
+#include "data/atomic.hpp"
 
 namespace SFG
 {
 	class world;
 
-	class editor_gizmo_2d
+	class world_screen
 	{
 	public:
-		void init(vekt::builder* builder);
-		void draw(const vector2& root_pos, const vector2& root_size, const vector2& game_render_size);
-		bool on_mouse_event(const window_event& ev);
-
-	private:
-		struct icon_entry
+		struct camera_snapshot
 		{
-			world_handle entity = {};
-			vector3		 pos	= vector3::zero;
-			const char*	 icon	= nullptr;
+			matrix4x4 view_proj		= matrix4x4::identity;
+			matrix4x4 inv_view_proj = matrix4x4::identity;
+			vector3	  cam_pos		= vector3::zero;
+			uint8	  valid			= 0;
 		};
 
-		vekt::builder* _builder = nullptr;
-		vector2		   _last_root_pos = vector2::zero;
-		vector2		   _last_root_size = vector2::zero;
-		vector<icon_entry> _icons = {};
+	public:
+		void			   set_world_resolution(const vector2ui16& res);
+		const vector2ui16& get_world_resolution() const;
+
+		void fetch_camera_data(world& w);
+
+		void set_camera_data(const matrix4x4& view_proj, const matrix4x4& inv_view_proj, const vector3& cam_pos);
+
+		bool world_to_screen(const vector3& world_pos, vector2& out) const;
+		bool world_to_screen(const vector3& world_pos, vector2& out, float& out_distance) const;
+		bool screen_to_world(const vector2& screen_pos, vector3& out_origin, vector3& out_dir) const;
+		bool screen_to_world(const vector2& screen_pos, vector3& out_pos, float distance) const;
+
+	private:
+		bool get_camera_snapshot(camera_snapshot& out) const;
+
+	private:
+		vector2ui16 _world_resolution  = vector2ui16::zero;
+		matrix4x4	_cam_view_proj	   = {};
+		matrix4x4	_cam_inv_view_proj = {};
+		vector3		_cam_pos		   = vector3::zero;
+
+		camera_snapshot _snapshots[3]	 = {};
+		atomic<int8>	_snapshot_latest = -1;
+		atomic<int8>	_snapshot_in_use = -1;
+		uint8			_snapshot_write	 = 0;
 	};
 }

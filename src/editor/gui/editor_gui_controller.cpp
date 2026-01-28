@@ -973,13 +973,6 @@ namespace SFG
 		return _panel_world->get_world_size();
 	}
 
-	bool editor_gui_controller::get_world_ray(const vector2& mouse_pos, vector3& origin, vector3& direction) const
-	{
-		if (!_panel_world)
-			return false;
-		return _panel_world->get_mouse_world_ray(mouse_pos, origin, direction);
-	}
-
 	void editor_gui_controller::on_exited_playmode()
 	{
 		_panel_world->kill_playmode();
