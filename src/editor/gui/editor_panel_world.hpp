@@ -169,6 +169,8 @@ namespace SFG
 		void build_toolbar();
 		void destroy_toolbar();
 
+		void draw_world_axes();
+
 	private:
 		gui_builder			  _gui_builder	  = {};
 		vekt::builder*		  _builder		  = nullptr;

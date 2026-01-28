@@ -218,6 +218,12 @@ namespace SFG
 			break;
 		}
 		}
+
+		draw_world_axes();
+	}
+
+	void editor_panel_world::draw_world_axes()
+	{
 	}
 
 	const vector2ui16 editor_panel_world::get_world_size() const
@@ -638,5 +644,65 @@ namespace SFG
 		const vector2 viewer_sz = b->widget_get_size(self->_world_viewer);
 		self->_gizmo_controls.draw(b->widget_get_pos(self->_world_viewer), viewer_sz, viewer_sz);
 		self->_gizmo_2d.draw(b->widget_get_pos(self->_world_viewer), viewer_sz, viewer_sz);
+
+		proxy_manager& pm = editor::get().get_app().get_renderer().get_proxy_manager();
+
+		const world_id cam_id = pm.get_main_camera();
+		if (cam_id == NULL_WORLD_ID)
+			return;
+
+		const render_proxy_camera& cam		  = pm.get_camera(cam_id);
+		const render_proxy_entity& cam_entity = pm.get_entity(cam.entity);
+		if (cam_entity.status != render_proxy_status::rps_active)
+			return;
+
+		const vector3 cam_forward = cam_entity.rotation.get_forward();
+
+		const vector3 x_cam = (cam_entity.rotation.inverse() * vector3::right).normalized();
+		const vector2 x_dir = vector2(x_cam.x, -x_cam.y);
+
+		const vector3 y_cam = (cam_entity.rotation.inverse() * vector3::up).normalized();
+		const vector2 y_dir = vector2(y_cam.x, -y_cam.y);
+
+		const vector3 z_cam = (cam_entity.rotation.inverse() * vector3::forward).normalized();
+		const vector2 z_dir = vector2(z_cam.x, -z_cam.y);
+
+		const vector2 wv_pos = b->widget_get_pos(self->_world_viewer);
+
+		constexpr float box_size_multiplier = 0.03f;
+		constexpr float thickness			= 2.0f;
+		const vector2	size				= viewer_sz;
+		const vector2	box_size			= vector2(static_cast<float>(size.x) * box_size_multiplier, static_cast<float>(size.x) * box_size_multiplier);
+		const vector2	min					= wv_pos + vector2(editor_theme::get().outer_margin + box_size.x * 0.5f, size.y - editor_theme::get().outer_margin - box_size.y);
+		const vector2	max					= min + box_size;
+		const vector2	center				= (min + max) * 0.5f;
+
+		b->add_line_aa({
+			.p0			  = vector2(center),
+			.p1			  = center + x_dir * box_size.x,
+			.color		  = editor_theme::get().color_axis_x,
+			.thickness	  = thickness,
+			.aa_thickness = 2,
+			.draw_order	  = 15,
+		});
+
+		b->add_line_aa({
+			.p0			  = vector2(center),
+			.p1			  = center + y_dir * box_size.x,
+			.color		  = editor_theme::get().color_axis_y,
+			.thickness	  = thickness,
+			.aa_thickness = 2,
+			.draw_order	  = 15,
+		});
+
+		b->add_line_aa({
+			.p0			  = vector2(center),
+			.p1			  = center + z_dir * box_size.x,
+			.color		  = editor_theme::get().color_axis_z,
+			.thickness	  = thickness,
+			.aa_thickness = 2,
+			.draw_order	  = 15,
+
+		});
 	}
 }

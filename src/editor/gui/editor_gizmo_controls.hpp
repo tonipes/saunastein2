@@ -42,6 +42,7 @@ namespace vekt
 namespace SFG
 {
 	class vector2;
+	class world_screen;
 	struct window_event;
 
 	enum class gizmo_axis
@@ -71,7 +72,6 @@ namespace SFG
 		vector2		 root_pos	   = vector2::zero;
 		vector2		 root_size	   = vector2::zero;
 		matrix4x4	 view		   = matrix4x4::identity;
-		matrix4x4	 view_proj	   = matrix4x4::identity;
 		vector2		 center_screen = vector2::zero;
 		vector3		 entity_pos	   = vector3::zero;
 		quat		 entity_rot	   = quat::identity;
@@ -79,6 +79,7 @@ namespace SFG
 		vector3		 cam_pos	   = vector3::zero;
 		float		 fov		   = 0.0f;
 		world_handle selected	   = {};
+		world_screen* screen	   = nullptr;
 	};
 
 	class editor_gizmo_controls

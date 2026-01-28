@@ -1,0 +1,184 @@
+{
+    "components": [
+        {
+            "cast_shadows": 0,
+            "color": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "comp_type": 444826457028991798,
+            "entity": 1,
+            "intensity": 125.0,
+            "near_plane": 0.10000000149011612,
+            "range": 10.0,
+            "shadow_res": [
+                256,
+                256
+            ]
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 2,
+            "material": 1,
+            "material0": "assets/ground_plane/default_ground.stkmodel/Ground",
+            "mesh": "assets/ground_plane/default_ground.stkmodel/Plane",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "color": [
+                0.10000000149011612,
+                0.10000000149011612,
+                0.10000000149011612,
+                1.0
+            ],
+            "comp_type": 2366491877753393331,
+            "entity": 3
+        },
+        {
+            "comp_type": 5982976533233335892,
+            "entity": 3,
+            "filter_radius": 0.009999999776482582
+        },
+        {
+            "bias": 0.03999999910593033,
+            "comp_type": 14361218452736007875,
+            "entity": 3,
+            "intensity": 1.25,
+            "num_dirs": 8,
+            "num_steps": 6,
+            "power": 1.25,
+            "radius_world": 0.75,
+            "random_rot_strength": 1.5
+        },
+        {
+            "bloom_strength": 0.03999999910593033,
+            "comp_type": 12646063331636911837,
+            "entity": 3,
+            "exposure": 1.0,
+            "reinhard_white_point": 6.0,
+            "saturation": 1.0,
+            "tonemap_mode": 1,
+            "wb_temp": 0.0,
+            "wb_tint": 0.0
+        }
+    ],
+    "entities": [
+        {
+            "first_child": 1,
+            "name": "_Scene",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                0.0,
+                0.0,
+                -3.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "PointLight",
+            "next_sibling": 2,
+            "parent": 0,
+            "pos": [
+                4.076245307922363,
+                5.245293140411377,
+                -1.0054540634155273
+            ],
+            "rot": [
+                -0.2841663062572479,
+                0.7269423007965088,
+                0.3420340120792389,
+                0.5232754349708557
+            ],
+            "scale": [
+                1.0000001192092896,
+                0.9999999403953552,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "PlaneMesh",
+            "next_sibling": 3,
+            "parent": 0,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                500.0,
+                500.0,
+                500.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "PostProcess",
+            "next_sibling": -1,
+            "parent": 0,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        }
+    ],
+    "resources": [
+        "assets/ground_plane/default_ground.stkmodel"
+    ],
+    "tool_cam_pos": [
+        -4.892176151275635,
+        5.6550703048706055,
+        8.380123138427734
+    ],
+    "tool_cam_rot": [
+        -0.1283278614282608,
+        -0.3081601560115814,
+        -0.041993606835603714,
+        0.9417036771774292
+    ]
+}

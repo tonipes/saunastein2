@@ -45,22 +45,21 @@ namespace SFG
 
 	namespace
 	{
-
-		bool project_point(const matrix4x4& view_proj, const vector2& panel_pos, const vector2& panel_size, const vector3& world_pos, vector2& out)
+		bool project_point_render_thread(world_screen& screen, const vector2& panel_pos, const vector2& panel_size, const vector3& world_pos, vector2& out)
 		{
-			vector4 clip = view_proj * vector4(world_pos.x, world_pos.y, world_pos.z, 1.0f);
-			if (math::abs(clip.w) < MATH_EPS)
+			vector2 screen_pos = vector2::zero;
+			if (!screen.world_to_screen_render_thread(world_pos, screen_pos))
 				return false;
 
-			if (clip.w < 0.0f)
+			const vector2ui16& res = screen.get_world_resolution();
+			if (res.x == 0 || res.y == 0)
 				return false;
 
-			const float inv_w = 1.0f / clip.w;
-			const float ndc_x = clip.x * inv_w;
-			const float ndc_y = clip.y * inv_w;
+			const float scale_x = panel_size.x / static_cast<float>(res.x);
+			const float scale_y = panel_size.y / static_cast<float>(res.y);
 
-			out.x = panel_pos.x + (ndc_x * 0.5f + 0.5f) * panel_size.x;
-			out.y = panel_pos.y + (1.0f - (ndc_y * 0.5f + 0.5f)) * panel_size.y;
+			out.x = panel_pos.x + screen_pos.x * scale_x;
+			out.y = panel_pos.y + screen_pos.y * scale_y;
 			return true;
 		}
 
@@ -135,7 +134,7 @@ namespace SFG
 			for (const axis_draw& axis : axes)
 			{
 				vector2 end_screen = vector2::zero;
-				if (!project_point(ctx.view_proj, ctx.root_pos, ctx.root_size, ctx.entity_pos + axis.axis * gizmo_len, end_screen))
+				if (!project_point_render_thread(*ctx.screen, ctx.root_pos, ctx.root_size, ctx.entity_pos + axis.axis * gizmo_len, end_screen))
 					continue;
 
 				builder->add_line_aa({
@@ -253,7 +252,7 @@ namespace SFG
 					const float	  s			= math::sin(ang);
 					const vector3 world_pos = ctx.entity_pos + (circle.basis0 * c + circle.basis1 * s) * radius;
 					vector2		  cur		= vector2::zero;
-					if (!project_point(ctx.view_proj, ctx.root_pos, ctx.root_size, world_pos, cur))
+					if (!project_point_render_thread(*ctx.screen, ctx.root_pos, ctx.root_size, world_pos, cur))
 					{
 						has_prev = false;
 						continue;
@@ -297,7 +296,7 @@ namespace SFG
 			for (const axis_draw& axis : axes)
 			{
 				vector2 end_screen = vector2::zero;
-				if (!project_point(ctx.view_proj, ctx.root_pos, ctx.root_size, ctx.entity_pos + axis.axis * gizmo_len, end_screen))
+				if (!project_point_render_thread(*ctx.screen, ctx.root_pos, ctx.root_size, ctx.entity_pos + axis.axis * gizmo_len, end_screen))
 					continue;
 
 				builder->add_line_aa({
@@ -495,7 +494,7 @@ namespace SFG
 			{
 				axis_world				= axis_from_gizmo(_active_axis, _drag_start_rot, _space);
 				vector2 axis_end_screen = vector2::zero;
-				if (!project_point(ctx.view_proj, _last_root_pos, _last_root_size, ctx.entity_pos + axis_world * gizmo_len, axis_end_screen))
+				if (!project_point_render_thread(*ctx.screen, _last_root_pos, _last_root_size, ctx.entity_pos + axis_world * gizmo_len, axis_end_screen))
 					return false;
 
 				axis_dir_screen		 = axis_end_screen - ctx.center_screen;
@@ -535,7 +534,7 @@ namespace SFG
 
 				axis_world				= axis_from_gizmo(_active_axis, _drag_start_rot, _space);
 				vector2 axis_end_screen = vector2::zero;
-				if (!project_point(ctx.view_proj, _last_root_pos, _last_root_size, ctx.entity_pos + axis_world * gizmo_len, axis_end_screen))
+				if (!project_point_render_thread(*ctx.screen, _last_root_pos, _last_root_size, ctx.entity_pos + axis_world * gizmo_len, axis_end_screen))
 					return false;
 
 				axis_dir_screen		 = axis_end_screen - ctx.center_screen;
@@ -606,32 +605,35 @@ namespace SFG
 		entity_manager& em = w.get_entity_manager();
 
 		const world_handle main_cam_entity = em.get_main_camera_entity();
-		const world_handle main_cam_comp   = em.get_main_camera_comp();
-		if (main_cam_entity.is_null() || main_cam_comp.is_null())
+		if (main_cam_entity.is_null())
 		{
 			_hovered_axis = gizmo_axis::none;
 			return false;
 		}
-
-		component_manager& cm		   = w.get_comp_manager();
-		comp_camera&	   camera_comp = cm.get_component<comp_camera>(main_cam_comp);
-
-		const float		aspect	  = _last_game_render_size.y > 0.0f ? _last_game_render_size.x / _last_game_render_size.y : 1.0f;
-		const matrix4x4 view	  = matrix4x4::view(em.get_entity_rotation_abs(main_cam_entity), em.get_entity_position_abs(main_cam_entity));
-		const matrix4x4 proj	  = matrix4x4::perspective_reverse_z(camera_comp.get_fov_degrees(), aspect, camera_comp.get_near(), camera_comp.get_far());
-		const matrix4x4 view_proj = proj * view;
 
 		const vector3 entity_pos	= em.get_entity_position_abs(selected);
 		const quat	  entity_rot	= em.get_entity_rotation_abs(selected);
-		const vector3 cam_pos		= em.get_entity_position_abs(main_cam_entity);
+		world_screen& screen		= w.get_screen();
 		vector2		  center_screen = vector2::zero;
-		if (!project_point(view_proj, _last_root_pos, _last_root_size, entity_pos, center_screen))
+		float		  dist			= 0.0f;
+		vector2		  screen_pos	= vector2::zero;
+		if (!screen.world_to_screen_render_thread(entity_pos, screen_pos, dist))
 		{
 			_hovered_axis = gizmo_axis::none;
 			return false;
 		}
 
-		const float dist	  = vector3::distance(entity_pos, cam_pos);
+		const vector2ui16& res = screen.get_world_resolution();
+		if (res.x == 0 || res.y == 0)
+		{
+			_hovered_axis = gizmo_axis::none;
+			return false;
+		}
+
+		const float scale_x = _last_root_size.x / static_cast<float>(res.x);
+		const float scale_y = _last_root_size.y / static_cast<float>(res.y);
+		center_screen		  = vector2(_last_root_pos.x + screen_pos.x * scale_x, _last_root_pos.y + screen_pos.y * scale_y);
+
 		const float gizmo_len = math::max(0.5f, dist * 0.1f);
 		const float threshold = 8.0f;
 
@@ -654,7 +656,7 @@ namespace SFG
 			{
 				const vector3 axis_world = axis_from_gizmo(axis, entity_rot, _space);
 				vector2		  end_screen = vector2::zero;
-				if (!project_point(view_proj, _last_root_pos, _last_root_size, entity_pos + axis_world * gizmo_len, end_screen))
+				if (!project_point_render_thread(screen, _last_root_pos, _last_root_size, entity_pos + axis_world * gizmo_len, end_screen))
 					continue;
 
 				const float d = distance_point_segment(pos, center_screen, end_screen);
@@ -714,7 +716,7 @@ namespace SFG
 					const float	  s			= math::sin(ang);
 					const vector3 world_pos = entity_pos + (circle.basis0 * c + circle.basis1 * s) * radius;
 					vector2		  cur		= vector2::zero;
-					if (!project_point(view_proj, _last_root_pos, _last_root_size, world_pos, cur))
+					if (!project_point_render_thread(screen, _last_root_pos, _last_root_size, world_pos, cur))
 					{
 						has_prev = false;
 						continue;
@@ -762,20 +764,18 @@ namespace SFG
 		component_manager& cm		   = w.get_comp_manager();
 		comp_camera&	   camera_comp = cm.get_component<comp_camera>(main_cam_comp);
 
-		const matrix4x4 view	  = matrix4x4::view(em.get_entity_rotation_abs(main_cam_entity), em.get_entity_position_abs(main_cam_entity));
-		const matrix4x4 proj	  = matrix4x4::perspective_reverse_z(camera_comp.get_fov_degrees(), static_cast<float>(_last_game_render_size.x) / static_cast<float>(_last_game_render_size.y), camera_comp.get_near(), camera_comp.get_far());
-		const matrix4x4 view_proj = proj * view;
+		const matrix4x4 view = matrix4x4::view(em.get_entity_rotation_abs(main_cam_entity), em.get_entity_position_abs(main_cam_entity));
 
 		const vector3 entity_pos   = em.get_entity_position_abs(selected);
 		vector2		  gizmo_screen = vector2::zero;
-		if (!project_point(view_proj, _last_root_pos, _last_root_size, entity_pos, gizmo_screen))
+		world_screen& screen = w.get_screen();
+		if (!project_point_render_thread(screen, _last_root_pos, _last_root_size, entity_pos, gizmo_screen))
 			return false;
 
 		out = {
 			.root_pos	   = _last_root_pos,
 			.root_size	   = _last_root_size,
 			.view		   = view,
-			.view_proj	   = view_proj,
 			.center_screen = gizmo_screen,
 			.entity_pos	   = entity_pos,
 			.entity_rot	   = em.get_entity_rotation_abs(selected),
@@ -783,6 +783,7 @@ namespace SFG
 			.cam_pos	   = em.get_entity_position_abs(main_cam_entity),
 			.fov		   = camera_comp.get_fov_degrees(),
 			.selected	   = selected,
+			.screen		   = &screen,
 		};
 
 		return true;

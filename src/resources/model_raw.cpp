@@ -57,11 +57,11 @@ namespace SFG
 {
 	model_raw::model_raw()
 	{
-		//SFG_WARN("yeah");
+		// SFG_WARN("yeah");
 	}
 	model_raw::~model_raw()
 	{
-		//SFG_ERR("nah");
+		// SFG_ERR("nah");
 	}
 	void model_raw::serialize(ostream& stream) const
 	{
@@ -320,7 +320,15 @@ namespace SFG
 		loader.SetPreserveImageChannels(false);
 
 		string err = "", warn = "";
-		bool   ret = loader.LoadASCIIFromFile(&model, &err, &warn, file);
+
+		bool ret = false;
+
+		const string ext = file_system::get_file_extension(file);
+
+		if (ext.compare("glb") == 0)
+			ret = loader.LoadBinaryFromFile(&model, &err, &warn, file);
+		else
+			ret = loader.LoadASCIIFromFile(&model, &err, &warn, file);
 
 		if (!warn.empty())
 		{
@@ -359,6 +367,10 @@ namespace SFG
 
 			for (const tinygltf::Primitive& tprim : tmesh.primitives)
 			{
+				if (tprim.material == -1)
+				{
+					int a = 5;
+				}
 				mesh.materials.push_back(tprim.material);
 
 				const tinygltf::Accessor&	vertex_accessor	   = model.accessors[tprim.attributes.find("POSITION")->second];

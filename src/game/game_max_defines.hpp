@@ -45,7 +45,7 @@ namespace SFG
 #define MAX_WORLD_MESHES			   256
 #define MAX_WORLD_ANIMS				   1024
 #define MAX_WORLD_SKINS				   12
-#define MAX_WORLD_MATERIALS			   20
+#define MAX_WORLD_MATERIALS			   256
 #define MAX_WORLD_SHADERS			   30
 #define MAX_WORLD_AUDIO				   50
 #define MAX_WORLD_FONTS				   20

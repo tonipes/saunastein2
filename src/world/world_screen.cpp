@@ -128,6 +128,44 @@ namespace SFG
 		return true;
 	}
 
+	bool world_screen::world_to_screen_render_thread(const vector3& world_pos, vector2& out) const
+	{
+		camera_snapshot snap = {};
+		if (!get_camera_snapshot(snap))
+			return false;
+
+		if (_world_resolution.x == 0 || _world_resolution.y == 0)
+			return false;
+
+		vector4 clip = snap.view_proj * vector4(world_pos.x, world_pos.y, world_pos.z, 1.0f);
+		if (math::abs(clip.w) < MATH_EPS)
+			return false;
+
+		if (clip.w < 0.0f)
+			return false;
+
+		const float inv_w = 1.0f / clip.w;
+		const float ndc_x = clip.x * inv_w;
+		const float ndc_y = clip.y * inv_w;
+
+		out.x = (ndc_x * 0.5f + 0.5f) * static_cast<float>(_world_resolution.x);
+		out.y = (1.0f - (ndc_y * 0.5f + 0.5f)) * static_cast<float>(_world_resolution.y);
+		return true;
+	}
+
+	bool world_screen::world_to_screen_render_thread(const vector3& world_pos, vector2& out, float& out_distance) const
+	{
+		camera_snapshot snap = {};
+		if (!get_camera_snapshot(snap))
+			return false;
+
+		if (!world_to_screen_render_thread(world_pos, out))
+			return false;
+
+		out_distance = (world_pos - snap.cam_pos).magnitude();
+		return true;
+	}
+
 	bool world_screen::screen_to_world(const vector2& screen_pos, vector3& out_origin, vector3& out_dir) const
 	{
 		if (_world_resolution.x == 0 || _world_resolution.y == 0)
@@ -156,6 +194,44 @@ namespace SFG
 		vector3 out_dir = vector3::zero;
 
 		if (!screen_to_world(screen_pos, out_cam, out_dir))
+			return false;
+
+		out_pos = out_cam + out_dir * distance;
+		return true;
+	}
+
+	bool world_screen::screen_to_world_render_thread(const vector2& screen_pos, vector3& out_origin, vector3& out_dir) const
+	{
+		camera_snapshot snap = {};
+		if (!get_camera_snapshot(snap))
+			return false;
+
+		if (_world_resolution.x == 0 || _world_resolution.y == 0)
+			return false;
+
+		const float nx = math::clamp(screen_pos.x / static_cast<float>(_world_resolution.x), 0.0f, 1.0f);
+		const float ny = math::clamp(screen_pos.y / static_cast<float>(_world_resolution.y), 0.0f, 1.0f);
+
+		const float ndc_x = nx * 2.0f - 1.0f;
+		const float ndc_y = 1.0f - ny * 2.0f;
+
+		const vector4 near_v = snap.inv_view_proj * vector4(ndc_x, ndc_y, 0.0f, 1.0f);
+		const vector4 far_v  = snap.inv_view_proj * vector4(ndc_x, ndc_y, 1.0f, 1.0f);
+
+		const vector3 near_ws = vector3(near_v.x, near_v.y, near_v.z) / near_v.w;
+		const vector3 far_ws  = vector3(far_v.x, far_v.y, far_v.z) / far_v.w;
+
+		out_origin = snap.cam_pos;
+		out_dir	   = (far_ws - near_ws).normalized();
+		return true;
+	}
+
+	bool world_screen::screen_to_world_render_thread(const vector2& screen_pos, vector3& out_pos, float distance) const
+	{
+		vector3 out_cam = vector3::zero;
+		vector3 out_dir = vector3::zero;
+
+		if (!screen_to_world_render_thread(screen_pos, out_cam, out_dir))
 			return false;
 
 		out_pos = out_cam + out_dir * distance;

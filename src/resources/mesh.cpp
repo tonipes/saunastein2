@@ -80,10 +80,11 @@ namespace SFG
 		if (m_size != 0)
 		{
 			_material_indices = alloc.allocate<int16>(raw.materials.size());
-			int16* idx		  = alloc.get<int16>(_material_indices);
+			uint16* idx		  = alloc.get<uint16>(_material_indices);
 			for (uint32 i = 0; i < m_size; i++)
 			{
-				idx[i] = raw.materials[i];
+				const int16 mat = raw.materials[i];
+				idx[i]			= mat >= 0 ? static_cast<uint16>(raw.materials[i]) : 0;
 			}
 		}
 
@@ -97,7 +98,7 @@ namespace SFG
 			for (uint32 i = 0; i < _collider_vertex_count; i++)
 				vtx[i] = raw.collider_vertices[i];
 
-			_collider_indices = alloc.allocate<primitive_index>(_collider_index_count);
+			_collider_indices	 = alloc.allocate<primitive_index>(_collider_index_count);
 			primitive_index* idx = alloc.get<primitive_index>(_collider_indices);
 			for (uint32 i = 0; i < _collider_index_count; i++)
 				idx[i] = raw.collider_indices[i];
@@ -108,7 +109,7 @@ namespace SFG
 				vertices.push_back(JPH::Float3(vtx[i].x, vtx[i].y, vtx[i].z));
 
 			JPH::IndexedTriangleList triangles;
-			const uint32 tri_count = _collider_index_count / 3;
+			const uint32			 tri_count = _collider_index_count / 3;
 			triangles.reserve(tri_count);
 			for (uint32 i = 0; i < tri_count; i++)
 			{
@@ -116,7 +117,7 @@ namespace SFG
 				triangles.push_back(JPH::IndexedTriangle(idx[base], idx[base + 1], idx[base + 2]));
 			}
 
-			JPH::MeshShapeSettings settings(vertices, triangles);
+			JPH::MeshShapeSettings			settings(vertices, triangles);
 			JPH::ShapeSettings::ShapeResult result = settings.Create();
 			if (!result.HasError())
 			{
@@ -124,9 +125,9 @@ namespace SFG
 				if (shape != nullptr)
 				{
 					shape->AddRef();
-					_mesh_shape = alloc.allocate<JPH::Shape*>(1);
+					_mesh_shape			   = alloc.allocate<JPH::Shape*>(1);
 					JPH::Shape** shape_ptr = alloc.get<JPH::Shape*>(_mesh_shape);
-					shape_ptr[0]			  = shape;
+					shape_ptr[0]		   = shape;
 				}
 			}
 		}

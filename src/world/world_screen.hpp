@@ -59,8 +59,12 @@ namespace SFG
 
 		bool world_to_screen(const vector3& world_pos, vector2& out) const;
 		bool world_to_screen(const vector3& world_pos, vector2& out, float& out_distance) const;
+		bool world_to_screen_render_thread(const vector3& world_pos, vector2& out) const;
+		bool world_to_screen_render_thread(const vector3& world_pos, vector2& out, float& out_distance) const;
 		bool screen_to_world(const vector2& screen_pos, vector3& out_origin, vector3& out_dir) const;
 		bool screen_to_world(const vector2& screen_pos, vector3& out_pos, float distance) const;
+		bool screen_to_world_render_thread(const vector2& screen_pos, vector3& out_origin, vector3& out_dir) const;
+		bool screen_to_world_render_thread(const vector2& screen_pos, vector3& out_pos, float distance) const;
 
 	private:
 		bool get_camera_snapshot(camera_snapshot& out) const;
