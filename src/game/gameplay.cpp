@@ -212,6 +212,7 @@ namespace SFG
 			return;
 		}
 		case window_event_type::key: {
+
 			if (button == input_code::key_w && ev.sub_type == window_event_sub_type::press)
 				_direction_input.z += 1.0f;
 			else if (button == input_code::key_w && ev.sub_type == window_event_sub_type::release && _direction_input.z > 0.1f)

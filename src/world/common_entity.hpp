@@ -40,9 +40,8 @@ namespace SFG
 		entity_flags_invisible					  = 1 << 0,
 		entity_flags_transient_abs_transform_mark = 1 << 1,
 		entity_flags_is_render_proxy			  = 1 << 2,
-		entity_flags_prev_transform_init		  = 1 << 3,
-		entity_flags_template					  = 1 << 4,
-		entity_flags_no_save					  = 1 << 5,
+		entity_flags_template					  = 1 << 3,
+		entity_flags_no_save					  = 1 << 4,
 	};
 
 	struct entity_meta

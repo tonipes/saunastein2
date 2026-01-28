@@ -253,15 +253,22 @@ namespace SFG
 
 	void world::calculate_abs_transforms()
 	{
-		ZoneScoped;
 		_entity_manager.calculate_abs_transforms();
 	}
 
+#if FIXED_FRAMERATE_ENABLED && FIXED_FRAMERATE_USE_INTERPOLATION
+
 	void world::interpolate(double interpolation)
 	{
-		ZoneScoped;
 		_entity_manager.interpolate_entities(interpolation);
 	}
+
+	void world::set_prev_transforms()
+	{
+		_entity_manager.set_previous_transforms();
+	}
+
+#endif
 
 	bool world::on_window_event(const window_event& ev, window* wnd)
 	{

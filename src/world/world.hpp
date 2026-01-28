@@ -86,7 +86,11 @@ namespace SFG
 		void begin_debug_tick(const vector2ui16& res);
 		void end_debug_tick();
 		void calculate_abs_transforms();
+
+#if FIXED_FRAMERATE_ENABLED && FIXED_FRAMERATE_USE_INTERPOLATION
 		void interpolate(double interpolation);
+		void set_prev_transforms();
+#endif
 		bool on_window_event(const window_event& ev, window* wnd);
 
 		// -----------------------------------------------------------------------------

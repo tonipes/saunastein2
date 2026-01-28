@@ -37,6 +37,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "game/game_max_defines.hpp"
 #include "common/type_id.hpp"
 #include "resources/common_resources.hpp"
+#include "game/app_defines.hpp"
 
 namespace SFG
 {
@@ -68,7 +69,11 @@ namespace SFG
 		void init();
 		void uninit();
 		void calculate_abs_transforms();
+
+#if FIXED_FRAMERATE_ENABLED && FIXED_FRAMERATE_USE_INTERPOLATION
 		void interpolate_entities(double interpolation);
+		void set_previous_transforms();
+#endif
 
 		// -----------------------------------------------------------------------------
 		// entity api
@@ -265,18 +270,23 @@ namespace SFG
 		};
 		world& _world;
 
-		pool_allocator_gen<world_id, world_id, MAX_ENTITIES>* _entities				 = {};
-		static_array<resource_handle, MAX_ENTITIES>*		  _template_references	 = {};
-		static_array<entity_meta, MAX_ENTITIES>*			  _metas				 = {};
-		static_array<entity_family, MAX_ENTITIES>*			  _families				 = {};
-		static_array<aabb, MAX_ENTITIES>*					  _aabbs				 = {};
-		static_array<entity_comp_register, MAX_ENTITIES>*	  _comp_registers		 = {};
-		static_array<entity_transform, MAX_ENTITIES>*		  _local_transforms		 = {};
-		static_array<entity_transform, MAX_ENTITIES>*		  _prev_local_transforms = {};
-		static_array<bitmask<uint16>, MAX_ENTITIES>*		  _flags				 = {};
-		static_array<matrix4x3, MAX_ENTITIES>*				  _abs_matrices			 = {};
-		static_array<quat, MAX_ENTITIES>*					  _abs_rots				 = {};
-		vector<instantiated_model>							  _instantiated_models	 = {};
+		pool_allocator_gen<world_id, world_id, MAX_ENTITIES>* _entities			   = {};
+		static_array<resource_handle, MAX_ENTITIES>*		  _template_references = {};
+		static_array<entity_meta, MAX_ENTITIES>*			  _metas			   = {};
+		static_array<entity_family, MAX_ENTITIES>*			  _families			   = {};
+		static_array<aabb, MAX_ENTITIES>*					  _aabbs			   = {};
+		static_array<entity_comp_register, MAX_ENTITIES>*	  _comp_registers	   = {};
+		static_array<entity_transform, MAX_ENTITIES>*		  _local_transforms	   = {};
+		static_array<bitmask<uint16>, MAX_ENTITIES>*		  _flags			   = {};
+		static_array<matrix4x3, MAX_ENTITIES>*				  _abs_matrices		   = {};
+		static_array<quat, MAX_ENTITIES>*					  _abs_rots			   = {};
+
+#if FIXED_FRAMERATE_ENABLED && FIXED_FRAMERATE_USE_INTERPOLATION
+		static_array<entity_transform, MAX_ENTITIES>* _prev_local_transforms   = {};
+		static_array<entity_transform, MAX_ENTITIES>* _render_local_transforms = {};
+#endif
+
+		vector<instantiated_model> _instantiated_models = {};
 
 		static_vector<world_handle, MAX_ENTITIES>* _proxy_entities = {};
 

@@ -320,6 +320,11 @@ namespace SFG
 				while (accumulator_ns >= FIXED_FRAMERATE_NS && ticks < FIXED_FRAMERATE_MAX_TICKS)
 				{
 					accumulator_ns -= FIXED_FRAMERATE_NS;
+
+#if FIXED_FRAMERATE_USE_INTERPOLATION
+					_world->set_prev_transforms();
+#endif
+
 					_world->tick(ws, dt_seconds);
 
 #ifdef SFG_TOOLMODE
@@ -336,11 +341,8 @@ namespace SFG
 				_world->interpolate(interpolation);
 #endif
 
-				if (ticks != 0)
-				{
-					_world->calculate_abs_transforms();
-					_render_stream.publish();
-				}
+				_world->calculate_abs_transforms();
+				_render_stream.publish();
 			}
 
 #else

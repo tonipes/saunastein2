@@ -55,7 +55,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // misc
 #include "math/math.hpp"
-#include "game/app_defines.hpp"
 #include "reflection/reflection.hpp"
 
 #include <Jolt/Jolt.h>
@@ -66,18 +65,22 @@ namespace SFG
 {
 	entity_manager::entity_manager(world& w) : _world(w)
 	{
-		_entities			   = new pool_allocator_gen<world_id, world_id, MAX_ENTITIES>();
-		_template_references   = new static_array<resource_handle, MAX_ENTITIES>();
-		_metas				   = new static_array<entity_meta, MAX_ENTITIES>();
-		_families			   = new static_array<entity_family, MAX_ENTITIES>();
-		_aabbs				   = new static_array<aabb, MAX_ENTITIES>();
-		_comp_registers		   = new static_array<entity_comp_register, MAX_ENTITIES>();
-		_local_transforms	   = new static_array<entity_transform, MAX_ENTITIES>();
-		_prev_local_transforms = new static_array<entity_transform, MAX_ENTITIES>();
-		_flags				   = new static_array<bitmask<uint16>, MAX_ENTITIES>();
-		_abs_matrices		   = new static_array<matrix4x3, MAX_ENTITIES>();
-		_abs_rots			   = new static_array<quat, MAX_ENTITIES>();
-		_proxy_entities		   = new static_vector<world_handle, MAX_ENTITIES>();
+		_entities			 = new pool_allocator_gen<world_id, world_id, MAX_ENTITIES>();
+		_template_references = new static_array<resource_handle, MAX_ENTITIES>();
+		_metas				 = new static_array<entity_meta, MAX_ENTITIES>();
+		_families			 = new static_array<entity_family, MAX_ENTITIES>();
+		_aabbs				 = new static_array<aabb, MAX_ENTITIES>();
+		_comp_registers		 = new static_array<entity_comp_register, MAX_ENTITIES>();
+		_local_transforms	 = new static_array<entity_transform, MAX_ENTITIES>();
+		_flags				 = new static_array<bitmask<uint16>, MAX_ENTITIES>();
+		_abs_matrices		 = new static_array<matrix4x3, MAX_ENTITIES>();
+		_abs_rots			 = new static_array<quat, MAX_ENTITIES>();
+		_proxy_entities		 = new static_vector<world_handle, MAX_ENTITIES>();
+
+#if FIXED_FRAMERATE_ENABLED && FIXED_FRAMERATE_USE_INTERPOLATION
+		_prev_local_transforms	 = new static_array<entity_transform, MAX_ENTITIES>();
+		_render_local_transforms = new static_array<entity_transform, MAX_ENTITIES>();
+#endif
 
 #ifdef SFG_TOOLMODE
 		_instantiated_models.reserve(512);
@@ -93,11 +96,15 @@ namespace SFG
 		delete _aabbs;
 		delete _comp_registers;
 		delete _local_transforms;
-		delete _prev_local_transforms;
 		delete _flags;
 		delete _abs_matrices;
 		delete _abs_rots;
 		delete _proxy_entities;
+
+#if FIXED_FRAMERATE_ENABLED && FIXED_FRAMERATE_USE_INTERPOLATION
+		delete _prev_local_transforms;
+		delete _render_local_transforms;
+#endif
 	}
 
 	void entity_manager::init()
@@ -176,7 +183,12 @@ namespace SFG
 			return;
 
 		const world_handle parent = _families->get(e).parent;
-		entity_transform&  local  = _local_transforms->get(e);
+
+#if FIXED_FRAMERATE_ENABLED && FIXED_FRAMERATE_USE_INTERPOLATION
+		const entity_transform& local = f.is_set(entity_flags::entity_flags_is_render_proxy) ? _render_local_transforms->get(e) : _local_transforms->get(e);
+#else
+		const entity_transform& local = _local_transforms->get(e);
+#endif
 
 		if (parent.is_null())
 		{
@@ -199,17 +211,14 @@ namespace SFG
 
 	void entity_manager::calculate_abs_transforms()
 	{
+		ZoneScoped;
+
 		render_event_stream& stream = _world.get_render_stream();
 
 		auto& abs_mats = *_abs_matrices;
 		auto& rots	   = *_abs_rots;
 		auto& flags	   = *_flags;
 		auto& proxies  = *_proxy_entities;
-
-		for (const world_handle& p : proxies)
-		{
-			flags.get(p.index).set(entity_flags::entity_flags_transient_abs_transform_mark);
-		}
 
 		auto end = _entities->handles_end();
 
@@ -232,12 +241,33 @@ namespace SFG
 
 			matrix4x3& abs_mat = abs_mats.get(index);
 			quat&	   abs_rot = rots.get(index);
-
-			if (index == 125)
-			{
-				// SFG_WARN("sending cam rotation {0} {1} {2} {3}", abs_rot.x, abs_rot.y, abs_rot.z, abs_rot.w);
-			}
 			stream.add_entity_transform_event(index, abs_mat, abs_rot);
+		}
+	}
+
+#if FIXED_FRAMERATE_ENABLED && FIXED_FRAMERATE_USE_INTERPOLATION
+
+	void entity_manager::set_previous_transforms()
+	{
+		ZoneScoped;
+
+		render_event_stream& stream = _world.get_render_stream();
+
+		auto& flags = *_flags;
+
+		auto& proxies = *_proxy_entities;
+
+		for (const world_handle& p : proxies)
+		{
+			const world_id handle_index = p.index;
+
+			bitmask<uint16>& ff = flags.get(handle_index);
+			if (ff.is_set(entity_flags::entity_flags_invisible))
+				continue;
+
+			entity_transform& prev_locals	 = _prev_local_transforms->get(handle_index);
+			entity_transform& current_locals = _local_transforms->get(handle_index);
+			prev_locals						 = current_locals;
 		}
 	}
 
@@ -263,23 +293,18 @@ namespace SFG
 
 			entity_transform& prev_locals	 = _prev_local_transforms->get(handle_index);
 			entity_transform& current_locals = _local_transforms->get(handle_index);
+			entity_transform& render_locals	 = _render_local_transforms->get(handle_index);
 
-			if (!ff.is_set(entity_flags::entity_flags_prev_transform_init))
-			{
-				prev_locals = current_locals;
-				ff.set(entity_flags::entity_flags_prev_transform_init);
-				continue;
-			}
-
-			const vector3 pos		= vector3::lerp(prev_locals.position, current_locals.position, interp);
-			const quat	  rot		= quat::slerp(prev_locals.rotation, current_locals.rotation, interp);
-			const vector3 scale		= vector3::lerp(prev_locals.scale, current_locals.scale, interp);
-			prev_locals				= current_locals;
-			current_locals.position = pos;
-			current_locals.rotation = rot;
-			current_locals.scale	= scale;
+			const vector3 pos	   = vector3::lerp(prev_locals.position, current_locals.position, interp);
+			const quat	  rot	   = quat::slerp(prev_locals.rotation, current_locals.rotation, interp);
+			const vector3 scale	   = vector3::lerp(prev_locals.scale, current_locals.scale, interp);
+			render_locals.position = pos;
+			render_locals.rotation = rot;
+			render_locals.scale	   = scale;
 		}
 	}
+
+#endif
 
 	void entity_manager::uninit()
 	{
@@ -320,13 +345,15 @@ namespace SFG
 		_families->reset();
 		_comp_registers->reset();
 		_local_transforms->reset();
-		_prev_local_transforms->reset();
 		_flags->reset();
 		_abs_matrices->reset();
-		//_prev_local_matrices->reset();
 		_abs_rots->reset();
-		//_prev_abs_rots->reset();
 		_proxy_entities->resize(0);
+
+#if FIXED_FRAMERATE_ENABLED && FIXED_FRAMERATE_USE_INTERPOLATION
+		_prev_local_transforms->reset();
+		_render_local_transforms->reset();
+#endif
 	}
 
 	void entity_manager::reset_entity_data(world_handle handle)
@@ -349,12 +376,14 @@ namespace SFG
 		_families->reset(id);
 		_comp_registers->reset(id);
 		_local_transforms->reset(id);
-		_prev_local_transforms->reset(id);
 		_flags->reset(id);
 		_abs_matrices->reset(id);
-		//_prev_local_matrices->reset(id);
 		_abs_rots->reset(id);
-		//_prev_abs_rots->reset(id);
+
+#if FIXED_FRAMERATE_ENABLED && FIXED_FRAMERATE_USE_INTERPOLATION
+		_prev_local_transforms->reset(id);
+		_render_local_transforms->reset(id);
+#endif
 
 		// whatever makes entity proxy is assumed to clean already.
 		// _proxy_entities->remove(handle);
@@ -437,8 +466,11 @@ namespace SFG
 			clone_by_source[source_entity.index] = clone;
 			cloned_entities.push_back(clone);
 
-			_local_transforms->get(clone.index)		 = _local_transforms->get(source_entity.index);
-			_prev_local_transforms->get(clone.index) = _prev_local_transforms->get(source_entity.index);
+			_local_transforms->get(clone.index) = _local_transforms->get(source_entity.index);
+#if FIXED_FRAMERATE_ENABLED && FIXED_FRAMERATE_USE_INTERPOLATION
+			_prev_local_transforms->get(clone.index)   = _prev_local_transforms->get(source_entity.index);
+			_render_local_transforms->get(clone.index) = _render_local_transforms->get(source_entity.index);
+#endif
 			teleport_entity(clone);
 
 			const entity_family& source_family = _families->get(source_entity.index);
@@ -1174,6 +1206,10 @@ namespace SFG
 			else
 				created_handle = create_entity(r.name.c_str());
 
+			if (created_handle.index == 66)
+			{
+				int a = 5;
+			}
 			set_entity_tag(created_handle, r.tag.c_str());
 			set_entity_position(created_handle, r.position);
 			set_entity_rotation(created_handle, r.rotation);
@@ -1275,7 +1311,9 @@ namespace SFG
 	void entity_manager::teleport_entity(world_handle entity)
 	{
 		SFG_ASSERT(_entities->is_valid(entity));
-		_flags->get(entity.index).remove(entity_flags::entity_flags_prev_transform_init);
+#if FIXED_FRAMERATE_ENABLED && FIXED_FRAMERATE_USE_INTERPOLATION
+		_prev_local_transforms->get(entity.index) = _local_transforms->get(entity.index);
+#endif
 	}
 
 	void entity_manager::set_entity_position(world_handle entity, const vector3& pos)
