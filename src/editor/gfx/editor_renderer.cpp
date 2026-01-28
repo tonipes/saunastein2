@@ -189,6 +189,7 @@ namespace SFG
 
 			_reader_slot.store(r, std::memory_order_release);
 
+			SFG_TRACE("editor renderer reading slot {0}", r);
 			const vekt::vector<vekt::draw_buffer>& draw_buffers = _snapshots[r].draw_buffers;
 			for (const vekt::draw_buffer& db : draw_buffers)
 				draw_vekt(frame_index, db);

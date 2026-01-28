@@ -100,14 +100,14 @@ namespace SFG
 
 	private:
 		buffered_data	  _stream_data[RENDER_STREAM_MAX_BATCHES];
-		proxy_entity_data _xform_data[TRANSFORM_BUFFERS];
-		atomic<int8>	  _latest			= {-1};
-		atomic<int8>	  _rendered			= {-1};
+		proxy_entity_data _transform_data[TRANSFORM_BUFFERS];
+		atomic<int8>	  _events_latest	= {-1};
+		atomic<int8>	  _events_rendered	= {-1};
+		uint8			  _events_write		= 0;
 		ostream			  _main_thread_data = {};
-		uint8			  _write_index		= 0;
 
-		std::atomic<int8> _xform_latest = {-1}; // last published transform buffer
-		std::atomic<int8> _xform_in_use = {-1}; // render thread sets while reading
-		uint8			  _xform_write	= 0;	// game thread writes here
+		std::atomic<int8> _transform_latest = {-1}; // last published transform buffer
+		std::atomic<int8> _transform_in_use = {-1}; // render thread sets while reading
+		uint8			  _transform_write	= 0;	// game thread writes here
 	};
 }

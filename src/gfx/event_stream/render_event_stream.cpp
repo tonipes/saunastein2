@@ -41,11 +41,11 @@ namespace SFG
 
 		for (uint32 i = 0; i < TRANSFORM_BUFFERS; i++)
 		{
-			_xform_data[i].entities = new proxy_entity_transform_data[MAX_ENTITIES];
-			_xform_data[i].dirty_indices.reserve(MAX_ENTITIES);
-			_xform_data[i].dirty_flags = new uint8[MAX_ENTITIES];
-			SFG_MEMSET(_xform_data[i].dirty_flags, 0, sizeof(uint8) * MAX_ENTITIES);
-			_xform_data[i].peak_size = 0;
+			_transform_data[i].entities = new proxy_entity_transform_data[MAX_ENTITIES];
+			_transform_data[i].dirty_indices.reserve(MAX_ENTITIES);
+			_transform_data[i].dirty_flags = new uint8[MAX_ENTITIES];
+			SFG_MEMSET(_transform_data[i].dirty_flags, 0, sizeof(uint8) * MAX_ENTITIES);
+			_transform_data[i].peak_size = 0;
 		}
 	}
 
@@ -62,11 +62,11 @@ namespace SFG
 
 		for (uint32 i = 0; i < TRANSFORM_BUFFERS; i++)
 		{
-			delete[] _xform_data[i].entities;
-			delete[] _xform_data[i].dirty_flags;
-			_xform_data[i].entities	   = nullptr;
-			_xform_data[i].dirty_flags = nullptr;
-			_xform_data[i].dirty_indices.resize(0);
+			delete[] _transform_data[i].entities;
+			delete[] _transform_data[i].dirty_flags;
+			_transform_data[i].entities	   = nullptr;
+			_transform_data[i].dirty_flags = nullptr;
+			_transform_data[i].dirty_indices.resize(0);
 		}
 	}
 
@@ -79,10 +79,10 @@ namespace SFG
 		{
 			SFG_ASSERT(sz < RENDER_STREAM_BATCH_SIZE);
 
-			const int8 last_rendered = _rendered.load(std::memory_order_acquire);
-			_write_index			 = (last_rendered + 1) % RENDER_STREAM_MAX_BATCHES;
+			const int8 last_rendered = _events_rendered.load(std::memory_order_acquire);
+			_events_write			 = (last_rendered + 1) % RENDER_STREAM_MAX_BATCHES;
 
-			buffered_data& buf	   = _stream_data[_write_index];
+			buffered_data& buf	   = _stream_data[_events_write];
 			const size_t   data_sz = _main_thread_data.get_size();
 
 			if (buf.size + data_sz >= RENDER_STREAM_BATCH_SIZE)
@@ -95,27 +95,27 @@ namespace SFG
 			buf.size += data_sz;
 
 			_main_thread_data.shrink(0);
-			_latest.store(_write_index, std::memory_order_release);
+			_events_latest.store(_events_write, std::memory_order_release);
 		}
 
-		const uint8 published = _xform_write;
-		_xform_latest.store((int8)published, std::memory_order_release);
+		const uint8 published = _transform_write;
+		_transform_latest.store((int8)published, std::memory_order_release);
 
 		// pick next write buffer that is NOT currently in use by render
-		const int8 in_use = _xform_in_use.load(std::memory_order_acquire);
+		const int8 in_use = _transform_in_use.load(std::memory_order_acquire);
 
 		uint8 next = (published + 1) % TRANSFORM_BUFFERS;
 		if ((int8)next == in_use)
 			next = (next + 1) % TRANSFORM_BUFFERS;
 
-		_xform_write = next;
+		_transform_write = next;
 
-		reset_xform_buffer(_xform_data[_xform_write]);
+		reset_xform_buffer(_transform_data[_transform_write]);
 	}
 
 	void render_event_stream::add_entity_transform_event(world_id index, const matrix4x3& model, const quat& rot)
 	{
-		proxy_entity_data& ped = _xform_data[_xform_write];
+		proxy_entity_data& ped = _transform_data[_transform_write];
 
 		if (index + 1 > ped.peak_size)
 			ped.peak_size = index + 1;
@@ -136,12 +136,12 @@ namespace SFG
 	{
 		ZoneScoped;
 
-		const int8 xidx = _xform_latest.load(std::memory_order_acquire);
+		const int8 xidx = _transform_latest.load(std::memory_order_acquire);
 		if (xidx >= 0)
 		{
-			_xform_in_use.store(xidx, std::memory_order_release);
+			_transform_in_use.store(xidx, std::memory_order_release);
 
-			proxy_entity_data& ped = _xform_data[(uint8)xidx];
+			proxy_entity_data& ped = _transform_data[(uint8)xidx];
 
 			for (world_id d : ped.dirty_indices)
 			{
@@ -155,17 +155,18 @@ namespace SFG
 
 			out_size = ped.peak_size;
 			reset_xform_buffer(ped);
-			_xform_in_use.store(-1, std::memory_order_release);
+			_transform_in_use.store(-1, std::memory_order_release);
+			SFG_TRACE("proxy reading slot {0}", (uint32)xidx);
 		}
 
-		const int8 idx = _latest.load(std::memory_order_acquire);
+		const int8 idx = _events_latest.load(std::memory_order_acquire);
 		if (idx < 0)
 			return;
 
 		buffered_data& buf = _stream_data[idx];
 		stream.open(buf.data, buf.size);
 		buf.size = 0;
-		_rendered.store(idx, std::memory_order_release);
+		_events_rendered.store(idx, std::memory_order_release);
 	}
 
 }

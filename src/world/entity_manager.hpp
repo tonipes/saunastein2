@@ -199,9 +199,9 @@ namespace SFG
 		const vector3&	 get_entity_position(world_handle entity) const;
 		const quat&		 get_entity_rotation(world_handle entity) const;
 		const vector3&	 get_entity_scale(world_handle entity) const;
-		vector3			 get_entity_position_abs(world_handle entity);
-		const quat&		 get_entity_rotation_abs(world_handle entity);
-		vector3			 get_entity_scale_abs(world_handle entity);
+		vector3			 get_entity_position_abs(world_handle entity, bool recalculate = true);
+		const quat&		 get_entity_rotation_abs(world_handle entity, bool recalculate = true);
+		vector3			 get_entity_scale_abs(world_handle entity, bool recalculate = true);
 		matrix4x3		 get_entity_matrix(world_handle entity) const;
 		const matrix4x3& get_entity_matrix_abs(world_handle entity);
 

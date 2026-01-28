@@ -106,7 +106,7 @@ namespace SFG
 			comp_camera&	   camera_comp = cm.get_component<comp_camera>(main_cam_comp);
 
 			const float		aspect = _last_game_render_size.y > 0.0f ? _last_game_render_size.x / _last_game_render_size.y : 1.0f;
-			const matrix4x4 view   = matrix4x4::view(em.get_entity_rotation_abs(main_cam_entity), em.get_entity_position_abs(main_cam_entity));
+			const matrix4x4 view   = matrix4x4::view(em.get_entity_rotation_abs(main_cam_entity, false), em.get_entity_position_abs(main_cam_entity, false));
 			const matrix4x4 proj   = matrix4x4::perspective_reverse_z(camera_comp.get_fov_degrees(), aspect, camera_comp.get_near(), camera_comp.get_far());
 			_cam_view_proj		   = proj * view;
 		}

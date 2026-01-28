@@ -1415,25 +1415,28 @@ namespace SFG
 		return _local_transforms->get(entity.index).scale;
 	}
 
-	vector3 entity_manager::get_entity_position_abs(world_handle entity)
+	vector3 entity_manager::get_entity_position_abs(world_handle entity, bool recalculate)
 	{
 		SFG_ASSERT(_entities->is_valid(entity));
-		calculate_abs_transform_direct(entity.index);
+		if (recalculate)
+			calculate_abs_transform_direct(entity.index);
 		const matrix4x3& abs = _abs_matrices->get(entity.index);
 		return abs.get_translation();
 	}
 
-	const quat& entity_manager::get_entity_rotation_abs(world_handle entity)
+	const quat& entity_manager::get_entity_rotation_abs(world_handle entity, bool recalculate)
 	{
 		SFG_ASSERT(_entities->is_valid(entity));
-		calculate_abs_rot_direct(entity.index);
+		if (recalculate)
+			calculate_abs_rot_direct(entity.index);
 		return _abs_rots->get(entity.index);
 	}
 
-	vector3 entity_manager::get_entity_scale_abs(world_handle entity)
+	vector3 entity_manager::get_entity_scale_abs(world_handle entity, bool recalculate)
 	{
 		SFG_ASSERT(_entities->is_valid(entity));
-		calculate_abs_transform_direct(entity.index);
+		if (recalculate)
+			calculate_abs_transform_direct(entity.index);
 		const matrix4x3& abs = _abs_matrices->get(entity.index);
 		return abs.get_scale();
 	}
