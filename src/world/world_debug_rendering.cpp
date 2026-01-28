@@ -82,7 +82,7 @@ namespace SFG
 		_builder->init(conf);
 
 		_published.store(UINT32_MAX, std::memory_order_relaxed);
-		_reader_slot.store(UINT32_MAX, std::memory_order_relaxed);
+		_snapshot_in_use.store(UINT32_MAX, std::memory_order_relaxed);
 		_writer_slot  = 0;
 		_current_read = UINT32_MAX;
 	}
@@ -161,9 +161,9 @@ namespace SFG
 
 		const uint32 next = (_writer_slot + 1) % 3;
 		_published.store(_writer_slot, std::memory_order_release);
-		uint32 cur_reader = _reader_slot.load(std::memory_order_acquire);
+		uint32 cur_reader = _snapshot_in_use.load(std::memory_order_acquire);
 		if (cur_reader != UINT32_MAX)
-			_reader_slot.store(UINT32_MAX, std::memory_order_release);
+			_snapshot_in_use.store(UINT32_MAX, std::memory_order_release);
 		_writer_slot = next;
 	}
 

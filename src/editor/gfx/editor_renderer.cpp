@@ -101,11 +101,6 @@ namespace SFG
 		_snapshots = new vekt::snapshot[SNAPSHOTS_SIZE];
 		for (uint32 i = 0; i < SNAPSHOTS_SIZE; i++)
 			_snapshots[i].init(vtx_sz, idx_sz);
-
-		_published_snapshot.store(UINT32_MAX, std::memory_order_relaxed);
-		_reader_slot.store(UINT32_MAX, std::memory_order_relaxed);
-		_writer_slot	   = 0;
-		_current_read_slot = UINT32_MAX;
 	}
 
 	void editor_renderer::uninit()
@@ -139,20 +134,19 @@ namespace SFG
 
 	void editor_renderer::draw_end(vekt::builder* builder)
 	{
+		
 		const vekt::vector<vekt::draw_buffer>& draw_buffers = builder->get_draw_buffers();
 
-		const uint32 w = _writer_slot;
-		_snapshots[w].copy(draw_buffers);
+		const uint8 published = _snapshot_write;
+		_snapshots[published].copy(draw_buffers);
 
-		_published_snapshot.store(w, std::memory_order_release);
-
-		const uint32 in_use = _reader_slot.load(std::memory_order_acquire);
-
-		uint32 next = (w + 1) % SNAPSHOTS_SIZE;
-		if (next == in_use)
+		_snapshot_latest.store((int8)published, std::memory_order_release);
+		const int8 in_use = _snapshot_in_use.load(std::memory_order_acquire);
+		uint8	   next	  = (published + 1) % SNAPSHOTS_SIZE;
+		if ((int8)next == in_use)
 			next = (next + 1) % SNAPSHOTS_SIZE;
 
-		_writer_slot = next;
+		_snapshot_write = next;
 	}
 
 	void editor_renderer::prepare(proxy_manager& pm, gfx_id cmd_buffer, uint8 frame_index)
@@ -179,22 +173,17 @@ namespace SFG
 		// flush commands and draw gui here.
 		// -----------------------------------------------------------------------------
 
-		uint32 idx = _published_snapshot.load(std::memory_order_acquire);
-		if (idx != UINT32_MAX)
-			_current_read_slot = idx;
-
-		if (_current_read_slot != UINT32_MAX)
+		const int8 idx = _snapshot_latest.load(std::memory_order_acquire);
+		if (idx >= 0)
 		{
-			const uint32 r = _current_read_slot;
+			SFG_TRACE("editor renderer reading slot {0}", (uint32)idx);
 
-			_reader_slot.store(r, std::memory_order_release);
+			_snapshot_in_use.store(idx, std::memory_order_release);
 
-			SFG_TRACE("editor renderer reading slot {0}", r);
-			const vekt::vector<vekt::draw_buffer>& draw_buffers = _snapshots[r].draw_buffers;
+			const vekt::vector<vekt::draw_buffer>& draw_buffers = _snapshots[idx].draw_buffers;
 			for (const vekt::draw_buffer& db : draw_buffers)
 				draw_vekt(frame_index, db);
-
-			_reader_slot.store(UINT32_MAX, std::memory_order_release);
+			_snapshot_in_use.store(-1, std::memory_order_release);
 		}
 
 		// -----------------------------------------------------------------------------

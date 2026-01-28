@@ -192,13 +192,12 @@ namespace SFG
 		per_frame_data _pfd[BACK_BUFFER_COUNT] = {};
 		gui_draw_call  _gui_draw_calls[128]	   = {};
 
-		static constexpr uint32 SNAPSHOTS_SIZE = 3;
+		static constexpr uint8 SNAPSHOTS_SIZE = 3;
 
 		// GUI snapshot mailbox (lock-free)
-		vekt::snapshot* _snapshots			= nullptr;
-		atomic<uint32>	_published_snapshot = UINT32_MAX;
-		atomic<uint32>	_reader_slot		= 0;
-		uint32			_writer_slot		= 0;
-		uint32			_current_read_slot	= UINT32_MAX;
+		vekt::snapshot* _snapshots		 = nullptr;
+		atomic<int8>	_snapshot_latest = UINT32_MAX;
+		atomic<int8>	_snapshot_in_use = 0;
+		uint8			_snapshot_write	 = 0;
 	};
 }

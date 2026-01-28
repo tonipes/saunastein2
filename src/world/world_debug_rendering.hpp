@@ -158,7 +158,7 @@ namespace SFG
 
 		snapshot	   _snapshots[3] = {};
 		atomic<uint32> _published	 = UINT32_MAX;
-		atomic<uint32> _reader_slot	 = UINT32_MAX;
+		atomic<uint32> _snapshot_in_use	 = UINT32_MAX;
 		uint32		   _writer_slot	 = 0;
 		uint32		   _current_read = UINT32_MAX;
 	};

@@ -136,12 +136,14 @@ namespace SFG
 	{
 		ZoneScoped;
 
-		const int8 xidx = _transform_latest.load(std::memory_order_acquire);
-		if (xidx >= 0)
+		const int8 transform_idx = _transform_latest.load(std::memory_order_acquire);
+		if (transform_idx >= 0)
 		{
-			_transform_in_use.store(xidx, std::memory_order_release);
+			SFG_TRACE("proxy reading slot {0}", (uint32)transform_idx);
 
-			proxy_entity_data& ped = _transform_data[(uint8)xidx];
+			_transform_in_use.store(transform_idx, std::memory_order_release);
+
+			proxy_entity_data& ped = _transform_data[(uint8)transform_idx];
 
 			for (world_id d : ped.dirty_indices)
 			{
@@ -156,7 +158,6 @@ namespace SFG
 			out_size = ped.peak_size;
 			reset_xform_buffer(ped);
 			_transform_in_use.store(-1, std::memory_order_release);
-			SFG_TRACE("proxy reading slot {0}", (uint32)xidx);
 		}
 
 		const int8 idx = _events_latest.load(std::memory_order_acquire);
