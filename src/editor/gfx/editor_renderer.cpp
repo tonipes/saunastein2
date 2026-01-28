@@ -176,8 +176,6 @@ namespace SFG
 		const int8 idx = _snapshot_latest.load(std::memory_order_acquire);
 		if (idx >= 0)
 		{
-			SFG_TRACE("editor renderer reading slot {0}", (uint32)idx);
-
 			_snapshot_in_use.store(idx, std::memory_order_release);
 
 			const vekt::vector<vekt::draw_buffer>& draw_buffers = _snapshots[idx].draw_buffers;

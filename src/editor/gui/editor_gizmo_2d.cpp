@@ -96,20 +96,17 @@ namespace SFG
 		entity_manager&	   em = w.get_entity_manager();
 		component_manager& cm = w.get_comp_manager();
 
-		{
-			const world_handle main_cam_entity = em.get_main_camera_entity();
-			const world_handle main_cam_comp   = em.get_main_camera_comp();
-			if (main_cam_entity.is_null() || main_cam_comp.is_null())
-				return;
+		const world_handle main_cam_entity = em.get_main_camera_entity();
+		const world_handle main_cam_comp   = em.get_main_camera_comp();
+		if (main_cam_entity.is_null() || main_cam_comp.is_null())
+			return;
 
-			component_manager& cm		   = w.get_comp_manager();
-			comp_camera&	   camera_comp = cm.get_component<comp_camera>(main_cam_comp);
+		comp_camera& camera_comp = cm.get_component<comp_camera>(main_cam_comp);
 
-			const float		aspect = _last_game_render_size.y > 0.0f ? _last_game_render_size.x / _last_game_render_size.y : 1.0f;
-			const matrix4x4 view   = matrix4x4::view(em.get_entity_rotation_abs(main_cam_entity, false), em.get_entity_position_abs(main_cam_entity, false));
-			const matrix4x4 proj   = matrix4x4::perspective_reverse_z(camera_comp.get_fov_degrees(), aspect, camera_comp.get_near(), camera_comp.get_far());
-			_cam_view_proj		   = proj * view;
-		}
+		const float		aspect = _last_game_render_size.y > 0.0f ? _last_game_render_size.x / _last_game_render_size.y : 1.0f;
+		const matrix4x4 view   = matrix4x4::view(em.get_entity_rotation_abs(main_cam_entity, false), em.get_entity_position_abs(main_cam_entity, false));
+		const matrix4x4 proj   = matrix4x4::perspective_reverse_z(camera_comp.get_fov_degrees(), aspect, camera_comp.get_near(), camera_comp.get_far());
+		_cam_view_proj		   = proj * view;
 
 		const world_handle selected = editor::get().get_gui_controller().get_entities()->get_selected();
 
@@ -179,8 +176,12 @@ namespace SFG
 			return comp_view_result::cont;
 		});
 
+		const world_handle editor_camera = editor::get().get_camera().get_entity();
+
 		cm.view<comp_camera>([&](comp_camera& c) {
-			if (c.get_header().entity == selected)
+			const world_handle e = c.get_header().entity;
+
+			if (e == selected || e == editor_camera)
 				return comp_view_result::cont;
 
 			const vector3 pos	 = em.get_entity_position_abs(c.get_header().entity);

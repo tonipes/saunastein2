@@ -20,6 +20,7 @@ namespace SFG
 	{
 		_alloc.init(PASS_ALLOC_SIZE_SPRITE, 8);
 		_reuse_groups.reserve(MAX_DRAW_CALLS_SPRITE);
+		_reuse_instances.reserve(MAX_DRAW_CALLS_SPRITE);
 
 		gfx_backend* backend = gfx_backend::get();
 
@@ -77,9 +78,8 @@ namespace SFG
 		auto*		 entities	  = pm.get_entities();
 		const uint32 peak_sprites = pm.get_peak_sprites();
 
-		_reuse_groups;
 		_reuse_groups.resize(0);
-		_instance_count = 0;
+		_reuse_instances.resize(0);
 
 		for (uint32 i = 0; i < peak_sprites; i++)
 		{
@@ -94,7 +94,9 @@ namespace SFG
 			if (entity.status != render_proxy_status::rps_active)
 				continue;
 
-			if (entity._assigned_index == UINT32_MAX)
+			const world_id e_index = entity._assigned_index;
+
+			if (e_index == UINT32_MAX)
 				continue;
 
 			const vector3 pos		= entity.model.get_translation();
@@ -140,7 +142,7 @@ namespace SFG
 			}
 
 			_reuse_groups[group_index].count++;
-			_instance_count++;
+			_reuse_instances.push_back({.group = static_cast<uint32>(group_index), .idx = i, .entity_index = e_index});
 		}
 
 		uint32 offset = 0;
@@ -151,66 +153,22 @@ namespace SFG
 			offset += _reuse_groups[g].count;
 		}
 
-		if (_instance_count != 0)
+		sprite_instance_data* instance_data = reinterpret_cast<sprite_instance_data*>(pfd.instance_data.get_mapped());
+
+		for (const sprite_instance& i : _reuse_instances)
 		{
-			sprite_instance_data* instance_data = reinterpret_cast<sprite_instance_data*>(pfd.instance_data.get_mapped());
+			sprite_group& group			= _reuse_groups[i.group];
+			const uint32  target_index	= group.start + group.cursor;
+			instance_data[target_index] = {
+				.entity_index = i.entity_index,
+			};
+			group.cursor++;
+		}
 
-			for (uint32 i = 0; i < peak_sprites; i++)
-			{
-				render_proxy_sprite& sprite = sprites->get(i);
-				if (sprite.status != render_proxy_status::rps_active)
-					continue;
+		const uint32 inst_count = static_cast<uint32>(_reuse_instances.size());
 
-				if (sprite.material == NULL_RESOURCE_ID)
-					continue;
-
-				render_proxy_entity& entity = entities->get(sprite.entity);
-				if (entity.status != render_proxy_status::rps_active)
-					continue;
-
-				if (entity._assigned_index == UINT32_MAX)
-					continue;
-
-				const vector3 pos		= entity.model.get_translation();
-				const vector3 scale		= entity.model.get_scale();
-				float		  max_scale = math::max(scale.x, scale.y);
-				max_scale				= math::max(max_scale, scale.z);
-				const float radius		= max_scale * 0.70710678f;
-
-				if (frustum::test(main_camera_view.view_frustum, pos, radius) == frustum_result::outside)
-					continue;
-
-				render_proxy_material_runtime& mat = materials->get(sprite.material);
-				if (!mat.flags.is_set(material_flags::material_flags_is_sprite))
-					continue;
-				if (mat.shader_handle == NULL_RESOURCE_ID)
-					continue;
-
-				const gfx_id pipeline = pm.get_shader_variant(mat.shader_handle, 0);
-				if (pipeline == NULL_GFX_ID)
-					continue;
-
-				int32 group_index = -1;
-				for (uint32 g = 0; g < _reuse_groups.size(); g++)
-				{
-					sprite_group& group = _reuse_groups[g];
-					if (group.pipeline == pipeline && group.material == sprite.material)
-					{
-						group_index = static_cast<int32>(g);
-						break;
-					}
-				}
-
-				if (group_index == -1)
-					continue;
-
-				sprite_group& group			= _reuse_groups[group_index];
-				const uint32  target_index	= group.start + group.cursor;
-				instance_data[target_index] = {
-					.entity_index = entity._assigned_index,
-				};
-				group.cursor++;
-			}
+		if (inst_count != 0)
+		{
 
 			static_vector<barrier, 1> barriers;
 			barriers.push_back({
@@ -221,7 +179,7 @@ namespace SFG
 			});
 			backend->cmd_barrier(cmd_buffer, {.barriers = barriers.data(), .barrier_count = static_cast<uint16>(barriers.size())});
 
-			pfd.instance_data.copy_region(cmd_buffer, 0, sizeof(sprite_instance_data) * _instance_count);
+			pfd.instance_data.copy_region(cmd_buffer, 0, sizeof(sprite_instance_data) * inst_count);
 
 			barriers[0] = {
 				.from_states = resource_state::resource_state_copy_dest,
@@ -236,7 +194,6 @@ namespace SFG
 		{
 			sprite_group&				   group = _reuse_groups[g];
 			render_proxy_material_runtime& mat	 = materials->get(group.material);
-
 			_draw_stream.add_command({
 				.start_instance			 = group.start,
 				.instance_count			 = group.count,
@@ -261,7 +218,7 @@ namespace SFG
 		per_frame_data& pfd		   = _pfd[p.frame_index];
 		const gfx_id	cmd_buffer = pfd.cmd_buffer;
 
-		if (_instance_count == 0)
+		if (_reuse_instances.empty())
 		{
 			backend->close_command_buffer(cmd_buffer);
 			return;

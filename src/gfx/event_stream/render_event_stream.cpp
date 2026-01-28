@@ -139,8 +139,6 @@ namespace SFG
 		const int8 transform_idx = _transform_latest.load(std::memory_order_acquire);
 		if (transform_idx >= 0)
 		{
-			SFG_TRACE("proxy reading slot {0}", (uint32)transform_idx);
-
 			_transform_in_use.store(transform_idx, std::memory_order_release);
 
 			proxy_entity_data& ped = _transform_data[(uint8)transform_idx];

@@ -42,6 +42,13 @@ namespace SFG
 			uint32		cursor	 = 0;
 		};
 
+		struct sprite_instance
+		{
+			uint32 group		= 0;
+			uint32 idx			= 0;
+			uint32 entity_index = 0;
+		};
+
 	public:
 		struct render_params
 		{
@@ -73,10 +80,10 @@ namespace SFG
 		}
 
 	private:
-		vector<sprite_group> _reuse_groups;
-		per_frame_data		 _pfd[BACK_BUFFER_COUNT];
-		draw_stream_sprite	 _draw_stream;
-		bump_allocator		 _alloc			 = {};
-		uint32				 _instance_count = 0;
+		vector<sprite_group>	_reuse_groups;
+		vector<sprite_instance> _reuse_instances;
+		per_frame_data			_pfd[BACK_BUFFER_COUNT];
+		draw_stream_sprite		_draw_stream;
+		bump_allocator			_alloc = {};
 	};
 }
