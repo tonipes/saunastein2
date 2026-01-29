@@ -70,7 +70,10 @@ namespace SFG
 
 		for (uint8 i = 0; i < p.textures_count; i++)
 		{
-			ev.textures.push_back(p.textures[i].index);
+			if (p.textures[i].index == NULL_RESOURCE_ID)
+				ev.textures.push_back(DUMMY_COLOR_TEXTURE_SID);
+			else
+				ev.textures.push_back(p.textures[i].index);
 		}
 
 		if (p.data && p.data_size != 0)
@@ -131,14 +134,16 @@ namespace SFG
 			const resource_handle handle = rm.get_resource_handle_by_hash_if_exists<texture>(sid);
 
 			if (handle.is_null())
-				ev.textures.push_back(NULL_RESOURCE_ID);
+			{
+				const resource_handle dummy = rm.get_resource_handle_by_hash_if_exists<texture>(DUMMY_COLOR_TEXTURE_SID);
+				ev.textures.push_back(dummy.index);
+			}
 			else
 				ev.textures.push_back(handle.index);
 		}
 		const resource_handle shader_handle = rm.get_resource_handle_by_hash_if_exists<shader>(raw.shader);
 		ev.shader_index						= shader_handle.is_null() ? NULL_RESOURCE_ID : shader_handle.index;
 
-	
 #ifndef SFG_STRIP_DEBUG_NAMES
 		ev.name = raw.name;
 #endif

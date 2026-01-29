@@ -348,6 +348,15 @@ namespace SFG
 		}
 	}
 
+	void editor_gui_controller::set_selected_entity(world_handle h)
+	{
+		if (h == editor::get().get_camera().get_entity())
+			return;
+
+		if (_panel_entities)
+			_panel_entities->set_selected(h);
+	}
+
 	vekt::id editor_gui_controller::begin_context_menu(float abs_x, float abs_y)
 	{
 		kill_context();

@@ -46,6 +46,38 @@ namespace SFG
 
 	namespace
 	{
+
+		static UINT map_numpad_vs_extended(USHORT sc, bool is_extended, UINT fallback_vk)
+		{
+			switch (sc)
+			{
+			case 0x47:
+				return is_extended ? VK_HOME : VK_NUMPAD7;
+			case 0x48:
+				return is_extended ? VK_UP : VK_NUMPAD8;
+			case 0x49:
+				return is_extended ? VK_PRIOR : VK_NUMPAD9;
+			case 0x4B:
+				return is_extended ? VK_LEFT : VK_NUMPAD4;
+			case 0x4C:
+				return VK_NUMPAD5; // no extended version
+			case 0x4D:
+				return is_extended ? VK_RIGHT : VK_NUMPAD6;
+			case 0x4F:
+				return is_extended ? VK_END : VK_NUMPAD1;
+			case 0x50:
+				return is_extended ? VK_DOWN : VK_NUMPAD2;
+			case 0x51:
+				return is_extended ? VK_NEXT : VK_NUMPAD3;
+			case 0x52:
+				return is_extended ? VK_INSERT : VK_NUMPAD0;
+			case 0x53:
+				return is_extended ? VK_DELETE : VK_DECIMAL;
+			default:
+				return fallback_vk;
+			}
+		}
+
 		auto composition_enabled() -> bool
 		{
 			BOOL composition_enabled = FALSE;
@@ -278,8 +310,10 @@ namespace SFG
 				if (raw->data.keyboard.Flags & RI_KEY_E1)
 					sc |= 0xE100;
 
-				UINT	   key		  = MapVirtualKey(sc, MAPVK_VSC_TO_VK_EX);
-				const bool is_release = raw->data.keyboard.Flags & RI_KEY_BREAK;
+				UINT	   key		   = MapVirtualKey(sc, MAPVK_VSC_TO_VK_EX);
+				const bool is_release  = raw->data.keyboard.Flags & RI_KEY_BREAK;
+				const bool is_extended = raw->data.keyboard.Flags & RI_KEY_E0;
+				key					   = map_numpad_vs_extended(sc, is_extended, key);
 
 				uint8 is_repeat = 0;
 				if (!is_release)

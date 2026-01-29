@@ -1384,14 +1384,14 @@ namespace SFG
 			const uint32 object_id	 = world_renderer->get_render_pass_object_id().read_location(x, y, frame_index);
 			if (object_id == NULL_WORLD_ID)
 			{
-				entities->set_selected({});
+				editor::get().get_gui_controller().set_selected_entity({});
 				return true;
 			}
 
 			const world_handle handle = em.get_valid_handle_by_index(object_id);
 			if (em.is_valid(handle))
 			{
-				entities->set_selected(handle);
+				editor::get().get_gui_controller().set_selected_entity(handle);
 				return true;
 			}
 

@@ -202,7 +202,7 @@ namespace SFG
 
 			if (mp.x >= rect_min.x && mp.x <= rect_max.x && mp.y >= rect_min.y && mp.y <= rect_max.y)
 			{
-				entities->set_selected(icon.entity);
+				editor::get().get_gui_controller().set_selected_entity(icon.entity);
 				return true;
 			}
 		}

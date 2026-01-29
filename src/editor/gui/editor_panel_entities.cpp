@@ -139,7 +139,7 @@ namespace SFG
 		_builder->widget_set_scroll_offset(_entity_area, old_scroll);
 
 		if (!em.is_valid(_selected_entity))
-			set_selected({});
+			editor::get().get_gui_controller().set_selected_entity({});
 
 		_builder->build_hierarchy();
 	}
@@ -435,7 +435,7 @@ namespace SFG
 			world&			   w  = editor::get().get_app().get_world();
 			entity_manager&	   em = w.get_entity_manager();
 			const world_handle h  = em.create_entity("new_entity");
-			set_selected(h);
+			editor::get().get_gui_controller().set_selected_entity(h);
 			return;
 		}
 
@@ -448,7 +448,7 @@ namespace SFG
 			_entity_meta[_selected_entity.index].collapsed = 0;
 			em.add_child(_selected_entity, h);
 
-			set_selected(h);
+			editor::get().get_gui_controller().set_selected_entity(h);
 			return;
 		}
 
@@ -457,7 +457,7 @@ namespace SFG
 			world&			   w  = editor::get().get_app().get_world();
 			entity_manager&	   em = w.get_entity_manager();
 			const world_handle h  = em.clone_entity(_selected_entity);
-			set_selected(h);
+			editor::get().get_gui_controller().set_selected_entity(h);
 			return;
 		}
 
@@ -466,7 +466,7 @@ namespace SFG
 			world&			w  = editor::get().get_app().get_world();
 			entity_manager& em = w.get_entity_manager();
 			em.destroy_entity(_selected_entity);
-			set_selected({});
+			editor::get().get_gui_controller().set_selected_entity({});
 			return;
 		}
 	}
@@ -479,7 +479,7 @@ namespace SFG
 		{
 			if (ev.type == vekt::input_event_type::pressed)
 			{
-				self->set_selected({});
+				editor::get().get_gui_controller().set_selected_entity({});
 
 				if (ev.button == input_code::mouse_1)
 				{
@@ -531,13 +531,13 @@ namespace SFG
 					self->_ctx_delete	 = editor::get().get_gui_controller().add_context_menu_item("delete");
 					editor::get().get_gui_controller().end_context_menu();
 
-					self->set_selected(clicked);
+					editor::get().get_gui_controller().set_selected_entity(clicked);
 
 					return vekt::input_event_result::handled;
 				}
 				else
 				{
-					self->set_selected(clicked);
+					editor::get().get_gui_controller().set_selected_entity(clicked);
 					self->_drag_source	   = clicked;
 					self->_drag_src_widget = widget;
 					self->_drag_y		   = ev.position.y;
@@ -551,7 +551,7 @@ namespace SFG
 				const uint8 is_template = editor::get().get_app().get_world().get_entity_manager().get_entity_flags(clicked).is_set(entity_flags::entity_flags_template);
 				if (!is_template)
 					self->toggle_collapse(clicked);
-				self->set_selected(clicked);
+				editor::get().get_gui_controller().set_selected_entity(clicked);
 				return vekt::input_event_result::handled;
 			}
 
@@ -575,7 +575,7 @@ namespace SFG
 			world&			   w  = editor::get().get_app().get_world();
 			entity_manager&	   em = w.get_entity_manager();
 			const world_handle h  = em.clone_entity(self->_selected_entity);
-			self->set_selected(h);
+			editor::get().get_gui_controller().set_selected_entity(h);
 			return vekt::input_event_result::handled;
 		}
 
@@ -584,7 +584,7 @@ namespace SFG
 			world&			w  = editor::get().get_app().get_world();
 			entity_manager& em = w.get_entity_manager();
 			em.destroy_entity(self->_selected_entity);
-			self->set_selected({});
+			editor::get().get_gui_controller().set_selected_entity({});
 			return vekt::input_event_result::handled;
 		}
 
@@ -628,7 +628,7 @@ namespace SFG
 		{
 			if (binding.inner_row == widget)
 			{
-				self->set_selected(binding.handle);
+				editor::get().get_gui_controller().set_selected_entity(binding.handle);
 				return;
 			}
 		}

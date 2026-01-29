@@ -29,7 +29,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "editor/editor_theme.hpp"
 #include "editor/editor_settings.hpp"
 #include "editor/gui/editor_panel_stats.hpp"
-#include "editor/gui/editor_panel_entities.hpp"
 
 // math
 #include "math/vector2ui16.hpp"
@@ -484,18 +483,18 @@ namespace SFG
 				const uint8		frame_index = rend.get_frame_index();
 				const uint32	object_id	= rend.get_world_renderer()->get_render_pass_object_id().read_location(x, y, frame_index);
 
-				editor_panel_entities* entities = editor::get().get_gui_controller().get_entities();
+				editor_gui_controller& controller = editor::get().get_gui_controller();
 
 				if (object_id == NULL_WORLD_ID)
 				{
-					entities->set_selected({});
+					controller.set_selected_entity({});
 					return vekt::input_event_result::handled;
 				}
 
 				entity_manager&	   em	  = editor::get().get_app().get_world().get_entity_manager();
 				const world_handle handle = em.get_valid_handle_by_index(object_id);
 				if (em.is_valid(handle))
-					entities->set_selected(handle);
+					controller.set_selected_entity(handle);
 			}
 
 			return vekt::input_event_result::handled;

@@ -165,4 +165,17 @@ namespace SFG
 		null_terminate_in_place(cur, end);
 		return true;
 	}
+
+	void char_util::replace_all(char* c, char to_replace, char replacement)
+	{
+		if (!c)
+			return;
+
+		while (*c)
+		{
+			if (*c == to_replace)
+				*c = replacement;
+			++c;
+		}
+	}
 }

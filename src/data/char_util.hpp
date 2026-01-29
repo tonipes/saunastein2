@@ -44,5 +44,6 @@ namespace SFG
 		static bool append_u64(char*& cur, char* end, uint64 v);
 		static bool append_double(char*& cur, char* end, double v, int precision);
 		static bool appendf_va(char*& cur, char* end, const char* fmt, va_list args);
+		static void replace_all(char* c, char to_replace, char replacement);
 	};
 }

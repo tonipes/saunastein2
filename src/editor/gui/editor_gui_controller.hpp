@@ -68,6 +68,7 @@ namespace SFG
 		bool	on_key_event(const window_event& ev);
 		vector2 get_world_size();
 		void	on_exited_playmode();
+		void	set_selected_entity(world_handle h);
 
 		// -----------------------------------------------------------------------------
 		// gui

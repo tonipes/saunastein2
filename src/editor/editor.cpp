@@ -384,7 +384,7 @@ namespace SFG
 		_font_manager->unload_font(_font_title);
 		_font_manager->unload_font(_font_icons);
 
-		const float base_text_height = 14 * window::UI_SCALE;
+		const float	 base_text_height = 14 * window::UI_SCALE;
 		const string default_font_str = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/Quantico-Regular.ttf");
 		const string title_font_str	  = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/VT323-Regular.ttf");
 		const string icon_font_str	  = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/icons.ttf");
@@ -460,7 +460,7 @@ namespace SFG
 			const world_handle instantiated = em.instantiate_template(handle);
 			em.set_entity_position(instantiated, placement_pos);
 			em.teleport_entity(instantiated);
-			_gui_controller.get_entities()->set_selected(instantiated);
+			_gui_controller.set_selected_entity(instantiated);
 
 			return;
 		}
@@ -487,7 +487,7 @@ namespace SFG
 			em.set_entity_position(instantiated, placement_pos);
 			em.teleport_entity(instantiated);
 
-			_gui_controller.get_entities()->set_selected(instantiated);
+			_gui_controller.set_selected_entity(instantiated);
 
 			return;
 		}
@@ -519,6 +519,8 @@ namespace SFG
 	void editor::load_level(const char* relative_path)
 	{
 		const string file = relative_path;
+
+		_gui_controller.set_selected_entity({});
 
 		world_raw raw = {};
 		raw.load_from_file(relative_path, editor_settings::get().working_dir.c_str());
@@ -608,7 +610,7 @@ namespace SFG
 		{
 			const world_handle selected = entities->get_selected();
 			_playmode_selected_index	= selected.is_null() ? NULL_WORLD_ID : selected.index;
-			entities->set_selected({});
+			_gui_controller.set_selected_entity({});
 		}
 		else
 		{
@@ -648,9 +650,9 @@ namespace SFG
 			entity_manager& em	   = w.get_entity_manager();
 			world_handle	handle = em.get_valid_handle_by_index(_playmode_selected_index);
 			if (em.is_valid(handle))
-				_gui_controller.get_entities()->set_selected(handle);
+				_gui_controller.set_selected_entity(handle);
 			else
-				_gui_controller.get_entities()->set_selected({});
+				_gui_controller.set_selected_entity({});
 		}
 
 		_playmode_selected_index = NULL_WORLD_ID;

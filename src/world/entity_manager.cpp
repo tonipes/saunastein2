@@ -491,7 +491,9 @@ namespace SFG
 			{
 				void*			   source_ptr = cm.get_component(c.comp_type, c.comp_handle);
 				const world_handle new_comp	  = cm.add_component(c.comp_type, clone);
-				void*			   dst_ptr	  = cm.get_component(c.comp_type, new_comp);
+				if (new_comp.is_null())
+					continue;
+				void* dst_ptr = cm.get_component(c.comp_type, new_comp);
 
 				meta& m = reflection::get().resolve(c.comp_type);
 
