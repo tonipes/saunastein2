@@ -42,6 +42,7 @@ namespace SFG
 {
 	uint8		 window::s_key_down_map[512] = {};
 	cursor_state window::s_cursor_state		 = cursor_state::arrow;
+	float		 window::UI_SCALE			 = 1.0f;
 
 	namespace
 	{
@@ -115,6 +116,16 @@ namespace SFG
 			info.dpi_scale	= static_cast<float>(dpiX) / 96.0f;
 			return info;
 		}
+
+		float compute_ui_scale(const monitor_info& info)
+		{
+			float ui_scale = 1.0f;
+			if (info.size.y < 1400)
+				ui_scale = 0.75f;
+			else if (info.size.y < 2000)
+				ui_scale = 0.9f;
+			return ui_scale * info.dpi_scale;
+		}
 	} // namespace
 
 	LRESULT __stdcall window::wnd_proc(HWND__* hwnd, unsigned int msg, unsigned __int64 wParam, __int64 lParam)
@@ -178,7 +189,12 @@ namespace SFG
 		}
 		case WM_DPICHANGED:
 		case WM_DISPLAYCHANGE: {
-			wnd->_monitor_info = fetch_monitor_info(MonitorFromWindow(hwnd, MONITOR_DEFAULTTOPRIMARY));
+			wnd->_monitor_info	  = fetch_monitor_info(MonitorFromWindow(hwnd, MONITOR_DEFAULTTOPRIMARY));
+			window::UI_SCALE	  = compute_ui_scale(wnd->_monitor_info);
+			const window_event ev = {
+				.type = window_event_type::display_change,
+			};
+			wnd->add_event(ev);
 			break;
 		}
 		case WM_CLOSE: {
@@ -677,6 +693,7 @@ namespace SFG
 		_platform_handle = static_cast<void*>(hinst);
 		_window_handle	 = static_cast<void*>(hwnd);
 		_monitor_info	 = fetch_monitor_info(MonitorFromWindow(hwnd, MONITOR_DEFAULTTOPRIMARY));
+		UI_SCALE		 = compute_ui_scale(_monitor_info);
 
 		SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
 

@@ -30,6 +30,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "data/vector.hpp"
 #include "data/static_vector.hpp"
 #include "math/vector3.hpp"
+#include "math/vector4.hpp"
 #include "math/vector2ui16.hpp"
 #include "math/vector4ui16.hpp"
 #include "game/game_max_defines.hpp"
@@ -118,6 +119,20 @@ namespace SFG
 		float	 wb_tint			  = 0.0f;
 		float	 reinhard_white_point = 6.0f;
 		world_id entity_index		  = 0;
+
+		void serialize(ostream& stream) const;
+		void deserialize(istream& stream);
+	};
+
+	struct render_event_skybox
+	{
+		vector4	 start_color  = vector4(0.2f, 0.1f, 0.2f, 1.0f);
+		vector4	 mid_color	  = vector4(0.1f, 0.1f, 0.2f, 1.0f);
+		vector4	 end_color	  = vector4(0.2f, 0.1f, 0.1f, 1.0f);
+		vector4	 fog_color	  = vector4(0.0f, 0.0f, 0.0f, 0.0f);
+		float	 fog_start	  = 0.0f;
+		float	 fog_end	  = 0.0f;
+		world_id entity_index = 0;
 
 		void serialize(ostream& stream) const;
 		void deserialize(istream& stream);

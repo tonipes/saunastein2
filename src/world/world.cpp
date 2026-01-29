@@ -71,6 +71,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "components/comp_bloom.hpp"
 #include "components/comp_ssao.hpp"
 #include "components/comp_post_process.hpp"
+#include "components/comp_skybox.hpp"
 #include "components/comp_physics_settings.hpp"
 #include "components/comp_physics.hpp"
 #include "components/comp_character_controller.hpp"
@@ -118,6 +119,7 @@ namespace SFG
 		_comp_manager.register_cache<comp_bloom, MAX_WORLD_COMP_BLOOM>();
 		_comp_manager.register_cache<comp_ssao, MAX_WORLD_COMP_SSAO>();
 		_comp_manager.register_cache<comp_post_process, MAX_WORLD_COMP_POST_PROCESS>();
+		_comp_manager.register_cache<comp_skybox, MAX_WORLD_COMP_SKYBOX>();
 		_comp_manager.register_cache<comp_physics_settings, MAX_WORLD_COMP_PHYSICS_SETTINGS>();
 		_comp_manager.register_cache<comp_physics, MAX_WORLD_COMP_PHYSICS>();
 		_comp_manager.register_cache<comp_character_controller, MAX_WORLD_COMP_CHARACTER_CONTROLLERS>();

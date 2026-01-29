@@ -149,15 +149,16 @@ namespace SFG
 
 		_renderer.init(_app.get_main_window(), _app.get_renderer().get_texture_queue(), VTX_SZ, IDX_SZ);
 
-		const float dpi_scale	= _app.get_main_window().get_monitor_info().dpi_scale;
-		editor_theme::DPI_SCALE = dpi_scale;
+		editor_theme::UI_SCALING = window::UI_SCALE;
+
+		const float base_text_height = 14 * window::UI_SCALE;
 
 		const string default_font_str = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/Quantico-Regular.ttf");
 		const string title_font_str	  = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/VT323-Regular.ttf");
 		const string icon_font_str	  = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/icons.ttf");
-		_font_main					  = _font_manager->load_font_from_file(default_font_str.c_str(), 14 * dpi_scale);
-		_font_title					  = _font_manager->load_font_from_file(title_font_str.c_str(), 20 * dpi_scale);
-		_font_icons					  = _font_manager->load_font_from_file(icon_font_str.c_str(), 16 * dpi_scale, 32, 128, vekt::font_type::sdf, 3, 128, 32);
+		_font_main					  = _font_manager->load_font_from_file(default_font_str.c_str(), base_text_height);
+		_font_title					  = _font_manager->load_font_from_file(title_font_str.c_str(), base_text_height + base_text_height * 0.7f);
+		_font_icons					  = _font_manager->load_font_from_file(icon_font_str.c_str(), base_text_height + base_text_height * 0.2f, 32, 128, vekt::font_type::sdf, 3, 128, 32);
 
 		world_debug_rendering& wdr = editor::get().get_app().get_world().get_debug_rendering();
 		wdr.set_default_font(_font_main, _renderer.get_atlas_gpu_index(_font_main->_atlas));
@@ -179,6 +180,8 @@ namespace SFG
 			}
 		}
 		editor_theme::get().init(editor_settings::get()._editor_folder.c_str());
+		editor_theme::get().apply_scaling();
+
 		editor_layout::get().init(editor_settings::get()._editor_folder.c_str());
 
 		editor_theme::get().font_default = _font_main;
@@ -295,6 +298,12 @@ namespace SFG
 
 	bool editor::on_window_event(const window_event& ev)
 	{
+		if (ev.type == window_event_type::display_change)
+		{
+			on_display_change();
+			return true;
+		}
+
 		const play_mode pm = _app.get_world().get_playmode();
 
 		if (_camera_controller.get_is_looking())
@@ -361,6 +370,37 @@ namespace SFG
 
 		_camera_controller.on_window_event(ev);
 		return true;
+	}
+
+	void editor::on_display_change()
+	{
+		editor_theme::UI_SCALING = window::UI_SCALE;
+		editor_theme::get().init(editor_settings::get()._editor_folder.c_str());
+		editor_theme::get().apply_scaling();
+
+		_gui_controller.uninit();
+
+		_font_manager->unload_font(_font_main);
+		_font_manager->unload_font(_font_title);
+		_font_manager->unload_font(_font_icons);
+
+		const float base_text_height = 14 * window::UI_SCALE;
+		const string default_font_str = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/Quantico-Regular.ttf");
+		const string title_font_str	  = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/VT323-Regular.ttf");
+		const string icon_font_str	  = SFG_ROOT_DIRECTORY + string("assets/engine/fonts/icons.ttf");
+		_font_main					  = _font_manager->load_font_from_file(default_font_str.c_str(), base_text_height);
+		_font_title					  = _font_manager->load_font_from_file(title_font_str.c_str(), base_text_height + base_text_height * 0.7f);
+		_font_icons					  = _font_manager->load_font_from_file(icon_font_str.c_str(), base_text_height + base_text_height * 0.2f, 32, 128, vekt::font_type::sdf, 3, 128, 32);
+
+		editor_theme::get().font_default = _font_main;
+		editor_theme::get().font_title	 = _font_title;
+		editor_theme::get().font_icons	 = _font_icons;
+
+		world_debug_rendering& wdr = editor::get().get_app().get_world().get_debug_rendering();
+		wdr.set_default_font(_font_main, _renderer.get_atlas_gpu_index(_font_main->_atlas));
+		wdr.set_icon_font(_font_icons, _renderer.get_atlas_gpu_index(_font_icons->_atlas));
+
+		_gui_controller.init(_builder);
 	}
 
 	void editor::resize(const vector2ui16& size)

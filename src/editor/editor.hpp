@@ -164,6 +164,7 @@ namespace SFG
 	private:
 		static const char* on_vekt_allocate_text(void* ud, size_t sz);
 		static void		   on_vekt_deallocate_text(void* ud, const char* ptr);
+		void			   on_display_change();
 
 	private:
 		app& _app;

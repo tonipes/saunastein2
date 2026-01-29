@@ -34,7 +34,7 @@ using json = nlohmann::json;
 
 namespace SFG
 {
-	float editor_theme::DPI_SCALE = 1.0f;
+	float editor_theme::UI_SCALING = 1.0f;
 
 	void to_json(nlohmann::json& j, const editor_theme& t)
 	{
@@ -177,43 +177,59 @@ namespace SFG
 		col_frame_outline		 = color::from255(60, 60, 60, 255).srgb_to_linear().to_vector();
 		col_context_menu_outline = color::from255(60, 60, 60, 255).srgb_to_linear().to_vector();
 
-		root_rounding = 6.0f;
-
-		outer_margin	  = DPI_SCALE * 8;
-		item_spacing	  = DPI_SCALE * 5;
-		root_spacing	  = DPI_SCALE * 6;
-		row_spacing		  = DPI_SCALE * 6;
-		row_height		  = DPI_SCALE * 24;
-		title_line_width  = 0.8f;
-		title_line_height = DPI_SCALE * 2;
-
-		item_height			= DPI_SCALE * 20;
-		table_cell_height	= DPI_SCALE * 10;
-		seperator_thickness = DPI_SCALE * 2;
-		property_cell_div	= 0.3f;
-
-		area_rounding	 = 8.0f;
-		scroll_thickness = DPI_SCALE * 8;
-		scroll_rounding	 = 8.0f;
-
-		inner_margin				   = DPI_SCALE * 4;
-		frame_thickness				   = DPI_SCALE * 1;
+		root_rounding				   = 6.0f;
+		outer_margin				   = 8;
+		item_spacing				   = 5;
+		root_spacing				   = 6;
+		row_spacing					   = 6;
+		row_height					   = 24;
+		title_line_width			   = 0.8f;
+		title_line_height			   = 2;
+		item_height					   = 20;
+		table_cell_height			   = 10;
+		seperator_thickness			   = 2;
+		property_cell_div			   = 0.3f;
+		area_rounding				   = 8.0f;
+		scroll_thickness			   = 8;
+		scroll_rounding				   = 8.0f;
+		inner_margin				   = 4;
+		frame_thickness				   = 1;
 		frame_rounding				   = 2.0f;
-		context_menu_outline_thickness = DPI_SCALE * 2.0f;
+		context_menu_outline_thickness = 2.0f;
 	}
+
+	void editor_theme::apply_scaling()
+	{
+		const float f = UI_SCALING;
+		outer_margin *= f;
+		item_spacing *= f;
+		root_spacing *= f;
+		row_spacing *= f;
+		row_height *= f;
+		title_line_height *= f;
+		item_height *= f;
+		table_cell_height *= f;
+		seperator_thickness *= f;
+		scroll_thickness *= f;
+		inner_margin *= f;
+		frame_thickness *= f;
+		context_menu_outline_thickness *= f;
+	}
+
 	void editor_theme::init(const char* base_directory)
 	{
 		const string last_path = string(base_directory) + "editor_theme.stksettings";
+		init_defaults();
 
-		if (file_system::exists(last_path.c_str()))
-		{
-			load(last_path.c_str());
-		}
-		else
-		{
-			init_defaults();
-			save(last_path.c_str());
-		}
+		// if (file_system::exists(last_path.c_str()))
+		// {
+		// 	load(last_path.c_str());
+		// }
+		// else
+		// {
+		// 	init_defaults();
+		// 	save(last_path.c_str());
+		// }
 		_last_path = last_path;
 	}
 
@@ -256,4 +272,5 @@ namespace SFG
 		SFG_ERR("failed while writing json! {0}", path);
 		return false;
 	}
+
 }

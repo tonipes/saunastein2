@@ -35,6 +35,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "math/color.hpp"
 #include "math/vector2ui16.hpp"
 #include "math/vector4ui16.hpp"
+#include "math/vector4.hpp"
 
 // gfx
 #include "gfx/common/gfx_constants.hpp"
@@ -107,6 +108,18 @@ namespace SFG
 		float				reinhard_white_point = 6.0f;
 		world_id			entity				 = 0;
 		render_proxy_status status				 = render_proxy_status::rps_inactive;
+	};
+
+	struct render_proxy_skybox
+	{
+		vector4				start_color = vector4(0.2f, 0.1f, 0.2f, 1.0f);
+		vector4				mid_color   = vector4(0.1f, 0.1f, 0.2f, 1.0f);
+		vector4				end_color   = vector4(0.2f, 0.1f, 0.1f, 1.0f);
+		vector4				fog_color   = vector4(0.0f, 0.0f, 0.0f, 0.0f);
+		float				fog_start   = 0.0f;
+		float				fog_end		= 0.0f;
+		world_id			entity		= 0;
+		render_proxy_status status		= render_proxy_status::rps_inactive;
 	};
 
 	struct render_proxy_dir_light

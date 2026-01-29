@@ -50,12 +50,17 @@ namespace SFG
 			matrix4x4 inverse_view_proj			  = {};
 			vector4	  ambient_color_plights_count = vector4::zero;
 			vector4	  view_position_slights_count = vector4::zero;
+			vector4	  sky_start					  = vector4::zero;
+			vector4	  sky_mid					  = vector4::zero;
+			vector4	  sky_end					  = vector4::zero;
+			vector4	  fog_color_and_density		  = vector4::zero;
+			vector2	  fog_start_end				  = vector2::zero;
 			uint32	  dir_lights_count			  = 0;
 			uint32	  cascade_levels_gpu_index	  = 0;
 			uint32	  cascade_count				  = 0;
 			float	  near_plane				  = 0.0f;
 			float	  far_plane					  = 0.0f;
-			float	  padding[3]				  = {};
+			float	  padding[5]				  = {};
 		};
 
 		struct per_frame_data

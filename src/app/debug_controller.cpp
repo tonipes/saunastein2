@@ -85,7 +85,7 @@ namespace SFG
 #define COLOR_CONSOLE_BG		color(12.0f / 255.0f, 16.0f / 255.0f, 12.0f / 255.0f, 0.95f).srgb_to_linear().to_vector()
 #define COLOR_CONSOLE_BG_OPAQUE color(12.0f / 255.0f, 16.0f / 255.0f, 12.0f / 255.0f, 1.0f).srgb_to_linear().to_vector()
 #define COLOR_BORDER			color(89.0f / 255.0f, 180.0f / 255.0f, 108.0f / 255.0f, 1.0f).srgb_to_linear().to_vector()
-#define DEBUG_FONT_SIZE			28
+#define DEBUG_FONT_SIZE			20
 #define INPUT_FIELD_HEIGHT		static_cast<float>(get_font_size()) * 1.5f
 #define CONSOLE_SPACING			static_cast<float>(get_font_size()) * 0.5f
 #define MAX_HISTORY				8
@@ -96,11 +96,9 @@ namespace SFG
 
 	namespace
 	{
-		float _dpi_scale = 1.0f;
-
 		uint32 get_font_size()
 		{
-			return _dpi_scale * DEBUG_FONT_SIZE;
+			return window::UI_SCALE * DEBUG_FONT_SIZE;
 		}
 
 		float get_spacing()
@@ -425,10 +423,84 @@ namespace SFG
 		_vekt_data.builder->build_hierarchy();
 	}
 
+	void debug_controller::rebuild_ui()
+	{
+		if (_input_field.text)
+		{
+			_text_allocator.deallocate(_input_field.text);
+			_input_field.text = nullptr;
+		}
+		_input_field.scroll_amt = 0;
+		_input_field.caret_pos	= 0;
+		_input_field.text_size	= 0;
+
+		uninit_fonts();
+		uninit_builder();
+
+		_vekt_data.console_texts.clear();
+		_vekt_data.console_total_text_size_y = 0.0f;
+		_vekt_data.widget_console_bg		 = 0;
+		_vekt_data.widget_input_field		 = 0;
+		_vekt_data.widget_input_text		 = 0;
+		_vekt_data.widget_border			 = 0;
+		_vekt_data.widget_fps				 = 0;
+		_vekt_data.widget_main_thread		 = 0;
+		_vekt_data.widget_render_thread		 = 0;
+		_vekt_data.widget_global_mem		 = 0;
+		_vekt_data.widget_gfx_mem			 = 0;
+
+		_vekt_data.console_texts.reserve(MAX_CONSOLE_TEXT);
+
+		init_builder();
+		init_fonts();
+		build_console();
+		set_console_visible(_console_state == console_state::visible);
+	}
+
+	void debug_controller::init_fonts()
+	{
+		_vekt_data.font_manager->init();
+		_vekt_data.font_manager->set_callback_user_data(this);
+		_vekt_data.font_manager->set_atlas_created_callback(on_atlas_created);
+		_vekt_data.font_manager->set_atlas_updated_callback(on_atlas_updated);
+		_vekt_data.font_manager->set_atlas_destroyed_callback(on_atlas_destroyed);
+
+		font_raw* def_font_raw	= reinterpret_cast<font_raw*>(engine_resources::get().get_def(engine_resource_ident::font_debug_console_default).raw);
+		font_raw* icon_font_raw = reinterpret_cast<font_raw*>(engine_resources::get().get_def(engine_resource_ident::font_debug_console_icons).raw);
+		_vekt_data.font_debug	= _vekt_data.font_manager->load_font(reinterpret_cast<unsigned char*>(def_font_raw->font_data.data()), def_font_raw->font_data.size(), get_font_size(), 32, 128);
+		_vekt_data.font_icon	= _vekt_data.font_manager->load_font(reinterpret_cast<unsigned char*>(icon_font_raw->font_data.data()), icon_font_raw->font_data.size(), get_font_size(), 32, 128, vekt::font_type::sdf);
+	}
+
+	void debug_controller::init_builder()
+	{
+		_vekt_data.builder		= new vekt::builder();
+		_vekt_data.font_manager = new vekt::font_manager();
+		_vekt_data.builder->init({
+			.vertex_buffer_sz			 = 1024 * 1024 * 10,
+			.index_buffer_sz			 = 1024 * 1024 * 20,
+			.text_cache_vertex_buffer_sz = 1024 * 1024 * 10,
+			.text_cache_index_buffer_sz	 = 1024 * 1024 * 20,
+			.buffer_count				 = 5,
+		});
+	}
+
+	void debug_controller::uninit_fonts()
+	{
+		_vekt_data.font_manager->unload_font(_vekt_data.font_debug);
+		_vekt_data.font_manager->unload_font(_vekt_data.font_icon);
+		_vekt_data.font_manager->uninit();
+		delete _vekt_data.font_manager;
+		_vekt_data.font_manager = nullptr;
+	}
+
+	void debug_controller::uninit_builder()
+	{
+		_vekt_data.builder->uninit();
+		delete _vekt_data.builder;
+	}
+
 	void debug_controller::init(window& w, texture_queue* texture_queue, gfx_id global_bind_layout, const vector2ui16& screen_size)
 	{
-		_dpi_scale = w.get_monitor_info().dpi_scale * 0.75f;
-
 		_text_allocator.init(100000);
 		_gfx_data.texture_queue = texture_queue;
 		_gfx_data.rt_size		= vector2ui16(screen_size.x, screen_size.y / 2);
@@ -525,31 +597,11 @@ namespace SFG
 				});
 		}
 
-		_vekt_data.builder		= new vekt::builder();
-		_vekt_data.font_manager = new vekt::font_manager();
-		_vekt_data.builder->init({
-			.vertex_buffer_sz			 = 1024 * 1024 * 10,
-			.index_buffer_sz			 = 1024 * 1024 * 20,
-			.text_cache_vertex_buffer_sz = 1024 * 1024 * 10,
-			.text_cache_index_buffer_sz	 = 1024 * 1024 * 20,
-			.buffer_count				 = 5,
-		});
-
-		_vekt_data.font_manager->init();
-		_vekt_data.font_manager->set_callback_user_data(this);
-		_vekt_data.font_manager->set_atlas_created_callback(on_atlas_created);
-		_vekt_data.font_manager->set_atlas_updated_callback(on_atlas_updated);
-		_vekt_data.font_manager->set_atlas_destroyed_callback(on_atlas_destroyed);
-
-		font_raw* def_font_raw	= reinterpret_cast<font_raw*>(engine_resources::get().get_def(engine_resource_ident::font_debug_console_default).raw);
-		font_raw* icon_font_raw = reinterpret_cast<font_raw*>(engine_resources::get().get_def(engine_resource_ident::font_debug_console_icons).raw);
-
-		_vekt_data.font_debug = _vekt_data.font_manager->load_font(reinterpret_cast<unsigned char*>(def_font_raw->font_data.data()), def_font_raw->font_data.size(), get_font_size(), 32, 128);
-		_vekt_data.font_icon  = _vekt_data.font_manager->load_font(reinterpret_cast<unsigned char*>(icon_font_raw->font_data.data()), icon_font_raw->font_data.size(), get_font_size(), 32, 128, vekt::font_type::sdf);
-
 		_vekt_data.console_texts.reserve(MAX_CONSOLE_TEXT);
 		_input_field.history.reserve(MAX_CONSOLE_TEXT);
 
+		init_builder();
+		init_fonts();
 		build_console();
 
 		// load history
@@ -580,7 +632,6 @@ namespace SFG
 
 	void debug_controller::uninit()
 	{
-
 		// save history
 		{
 			const uint8 history_sz = static_cast<uint8>(_input_field.history.size());
@@ -599,16 +650,10 @@ namespace SFG
 			out.destroy();
 		}
 
-		_vekt_data.font_manager->unload_font(_vekt_data.font_debug);
-		_vekt_data.font_manager->unload_font(_vekt_data.font_icon);
-		_vekt_data.font_manager->uninit();
-		delete _vekt_data.font_manager;
-		_vekt_data.font_manager = nullptr;
+		uninit_fonts();
+		uninit_builder();
 
 		SFG_ASSERT(_gfx_data.atlases.empty());
-
-		_vekt_data.builder->uninit();
-		delete _vekt_data.builder;
 
 		gfx_backend* backend = gfx_backend::get();
 
@@ -1104,7 +1149,7 @@ namespace SFG
 	{
 		if (level == log_level::trace)
 			return;
-
+	
 		_input_field.scroll_amt = 0.0f;
 
 		if (_vekt_data.console_texts.size() == MAX_CONSOLE_TEXT - 1)
@@ -1305,6 +1350,12 @@ namespace SFG
 
 	bool debug_controller::on_window_event(const window_event& ev)
 	{
+		if (ev.type == window_event_type::display_change)
+		{
+			// rebuild_ui();
+			return false;
+		}
+
 		const bool def_val = _console_state == console_state::visible;
 
 		if (ev.type == window_event_type::key && ev.sub_type != window_event_sub_type::release)

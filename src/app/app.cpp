@@ -396,8 +396,19 @@ namespace SFG
 		if (ev.type != window_event_type::focus && !self->_main_window->get_flags().is_set(window_flags::wf_has_focus))
 			return;
 
-		if (self->_renderer && self->_renderer->on_window_event(ev))
-			return;
+		if (self->_renderer)
+		{
+			if (ev.type == window_event_type::display_change)
+			{
+				self->join_render();
+				self->_renderer->on_window_event(ev);
+				self->kick_off_render();
+				return;
+			}
+
+			if (self->_renderer->on_window_event(ev))
+				return;
+		}
 
 #ifdef SFG_TOOLMODE
 		if (self->_editor && self->_editor->on_window_event(ev))

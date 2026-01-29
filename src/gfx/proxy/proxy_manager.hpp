@@ -128,6 +128,11 @@ namespace SFG
 			return _post_processes->get(0);
 		}
 
+		inline render_proxy_skybox& get_skybox()
+		{
+			return _skyboxes->get(0);
+		}
+
 		inline render_proxy_canvas& get_canvas(world_id idx)
 		{
 			return _canvases->get(idx);
@@ -252,6 +257,11 @@ namespace SFG
 			return _post_process_exists;
 		}
 
+		inline uint32 get_skybox_exists() const
+		{
+			return _skybox_exists;
+		}
+
 		inline uint32 get_peak_dir_lights() const
 		{
 			return _peak_dir_lights + 1;
@@ -355,6 +365,7 @@ namespace SFG
 		using blooms_type			 = static_array<render_proxy_bloom, MAX_WORLD_COMP_BLOOM>;
 		using ssaos_type			 = static_array<render_proxy_ssao, MAX_WORLD_COMP_SSAO>;
 		using post_processes_type	 = static_array<render_proxy_post_process, MAX_WORLD_COMP_POST_PROCESS>;
+		using skyboxes_type			 = static_array<render_proxy_skybox, MAX_WORLD_COMP_SKYBOX>;
 		using point_lights_type		 = static_array<render_proxy_point_light, MAX_WORLD_COMP_POINT_LIGHTS>;
 		using spot_lights_type		 = static_array<render_proxy_spot_light, MAX_WORLD_COMP_SPOT_LIGHTS>;
 		using dir_lights_type		 = static_array<render_proxy_dir_light, MAX_WORLD_COMP_DIR_LIGHTS>;
@@ -381,6 +392,7 @@ namespace SFG
 		blooms_type*			_blooms				= nullptr;
 		ssaos_type*				_ssaos				= nullptr;
 		post_processes_type*	_post_processes		= nullptr;
+		skyboxes_type*			_skyboxes			= nullptr;
 		point_lights_type*		_point_lights		= nullptr;
 		spot_lights_type*		_spot_lights		= nullptr;
 		dir_lights_type*		_dir_lights			= nullptr;
@@ -406,5 +418,6 @@ namespace SFG
 		uint8	 _bloom_exists			 = 0;
 		uint8	 _ssao_exists			 = 0;
 		uint8	 _post_process_exists	 = 0;
+		uint8	 _skybox_exists			 = 0;
 	};
 }

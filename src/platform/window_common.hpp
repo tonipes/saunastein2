@@ -78,6 +78,7 @@ namespace SFG
 		wheel,
 		delta,
 		focus,
+		display_change,
 	};
 
 	enum class window_event_sub_type : uint8

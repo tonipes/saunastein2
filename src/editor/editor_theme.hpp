@@ -43,7 +43,7 @@ namespace SFG
 		vekt::font* font_default = nullptr;
 		vekt::font* font_icons	 = nullptr;
 
-		static float DPI_SCALE;
+		static float UI_SCALING;
 
 		float root_rounding					 = 0.0f;
 		float root_spacing					 = 0.0f;
@@ -106,6 +106,7 @@ namespace SFG
 		void init_defaults();
 		bool load(const char* path);
 		bool save(const char* path);
+		void apply_scaling();
 
 		inline bool save_last()
 		{

@@ -90,6 +90,13 @@ namespace SFG
 		const uint8					ambient_exists = pm.get_ambient_exists();
 		const render_proxy_ambient& ambient		   = pm.get_ambient();
 		const vector3				ambient_color  = ambient_exists ? ambient.base_color : vector3(0.1f, 0.1f, 0.1f);
+		const uint8					skybox_exists  = pm.get_skybox_exists();
+		const render_proxy_skybox&	skybox		   = pm.get_skybox();
+		const vector4				sky_start	   = skybox_exists ? skybox.start_color : vector4(0.2f, 0.1f, 0.2f, 1.0f);
+		const vector4				sky_mid		   = skybox_exists ? skybox.mid_color : vector4(0.1f, 0.1f, 0.2f, 1.0f);
+		const vector4				sky_end		   = skybox_exists ? skybox.end_color : vector4(0.2f, 0.1f, 0.1f, 1.0f);
+		const vector4				fog_color	   = skybox_exists ? skybox.fog_color : vector4(0.0f, 0.0f, 0.0f, 0.0f);
+		const vector2				fog_start_end  = skybox_exists ? vector2(skybox.fog_start, skybox.fog_end) : vector2::zero;
 
 		per_frame_data& pfd = _pfd[frame_index];
 
@@ -97,6 +104,11 @@ namespace SFG
 			.inverse_view_proj			 = camera_view.view_proj_matrix.inverse(),
 			.ambient_color_plights_count = vector4(ambient_color.x, ambient_color.y, ambient_color.z, static_cast<float>(_points_count_this_frame)),
 			.view_position_slights_count = vector4(camera_view.position.x, camera_view.position.y, camera_view.position.z, static_cast<float>(_spots_count_this_frame)),
+			.sky_start					 = sky_start,
+			.sky_mid					 = sky_mid,
+			.sky_end					 = sky_end,
+			.fog_color_and_density		 = fog_color,
+			.fog_start_end				 = fog_start_end,
 			.dir_lights_count			 = _dirs_count_this_frame,
 			.cascade_levels_gpu_index	 = camera_view.cascsades_gpu_index,
 			.cascade_count				 = static_cast<uint32>(camera_view.cascades.size()),

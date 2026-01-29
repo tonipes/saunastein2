@@ -97,10 +97,15 @@ namespace SFG
 		void flush_key_events();
 		void build_console();
 		void console_logic();
+		void rebuild_ui();
 		void add_console_text(const char* text, log_level level);
 		void update_console_input_field();
 		void draw_vekt(uint8 frame_index, const vekt::draw_buffer& db);
 		void set_console_visible(bool visible);
+		void init_fonts();
+		void init_builder();
+		void uninit_fonts();
+		void uninit_builder();
 
 		static void on_atlas_created(vekt::atlas* atlas, void* user_data);
 		static void on_atlas_updated(vekt::atlas* atlas, void* user_data);

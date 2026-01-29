@@ -354,7 +354,8 @@ namespace SFG
 			b->add_filled_rect({
 				.gfx			 = gfx,
 				.min			 = pos + vector2(min_offset, 0.0f),
-				.max			 = pos + vector2(min_offset + 1.0f * editor_theme::DPI_SCALE, text_size.y),
+				.max			 = pos + vector2(min_offset + 1.0f * editor_theme::UI_SCALING
+					, text_size.y),
 				.color_start	 = editor_theme::get().col_text_dim,
 				.color_end		 = editor_theme::get().col_text_dim,
 				.color_direction = vekt::direction::horizontal,

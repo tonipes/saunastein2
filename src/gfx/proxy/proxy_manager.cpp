@@ -62,6 +62,7 @@ namespace SFG
 		_blooms				= new blooms_type();
 		_ssaos				= new ssaos_type();
 		_post_processes		= new post_processes_type();
+		_skyboxes			= new skyboxes_type();
 		_point_lights		= new point_lights_type();
 		_spot_lights		= new spot_lights_type();
 		_dir_lights			= new dir_lights_type();
@@ -88,6 +89,7 @@ namespace SFG
 		delete _blooms;
 		delete _ssaos;
 		delete _post_processes;
+		delete _skyboxes;
 		delete _point_lights;
 		delete _spot_lights;
 		delete _dir_lights;
@@ -114,6 +116,7 @@ namespace SFG
 		_blooms->reset();
 		_ssaos->reset();
 		_post_processes->reset();
+		_skyboxes->reset();
 		_point_lights->reset();
 		_spot_lights->reset();
 		_dir_lights->reset();
@@ -126,6 +129,7 @@ namespace SFG
 		_bloom_exists		 = 0;
 		_ssao_exists		 = 0;
 		_post_process_exists = 0;
+		_skybox_exists		 = 0;
 		_peak_sprites		 = 0;
 	}
 
@@ -462,6 +466,22 @@ namespace SFG
 			proxy.wb_tint					 = ev.wb_tint;
 			proxy.reinhard_white_point		 = ev.reinhard_white_point;
 		}
+		else if (type == render_event_type::update_skybox)
+		{
+			render_event_skybox ev = {};
+			ev.deserialize(stream);
+			_skybox_exists = 1;
+
+			render_proxy_skybox& proxy = get_skybox();
+			proxy.status			   = render_proxy_status::rps_active;
+			proxy.entity			   = ev.entity_index;
+			proxy.start_color		   = ev.start_color;
+			proxy.mid_color			   = ev.mid_color;
+			proxy.end_color			   = ev.end_color;
+			proxy.fog_color			   = ev.fog_color;
+			proxy.fog_start			   = ev.fog_start;
+			proxy.fog_end			   = ev.fog_end;
+		}
 		else if (type == render_event_type::update_spot_light)
 		{
 			render_event_spot_light ev = {};
@@ -760,6 +780,13 @@ namespace SFG
 			proxy.status					 = render_proxy_status::rps_active;
 			proxy							 = {};
 			_post_process_exists			 = 0;
+		}
+		else if (type == render_event_type::remove_skybox)
+		{
+			render_proxy_skybox& proxy = get_skybox();
+			proxy.status			   = render_proxy_status::rps_active;
+			proxy					   = {};
+			_skybox_exists			   = 0;
 		}
 		else if (type == render_event_type::remove_point_light)
 		{

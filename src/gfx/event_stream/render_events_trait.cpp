@@ -147,6 +147,28 @@ namespace SFG
 		stream >> reinhard_white_point;
 	}
 
+	void render_event_skybox::serialize(ostream& stream) const
+	{
+		stream << entity_index;
+		stream << start_color;
+		stream << mid_color;
+		stream << end_color;
+		stream << fog_color;
+		stream << fog_start;
+		stream << fog_end;
+	}
+
+	void render_event_skybox::deserialize(istream& stream)
+	{
+		stream >> entity_index;
+		stream >> start_color;
+		stream >> mid_color;
+		stream >> end_color;
+		stream >> fog_color;
+		stream >> fog_start;
+		stream >> fog_end;
+	}
+
 	void render_event_point_light::serialize(ostream& stream) const
 	{
 		stream << shadow_resolution;

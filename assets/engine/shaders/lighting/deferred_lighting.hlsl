@@ -55,6 +55,11 @@ struct render_pass_data
     float4x4 inv_view_proj;
     float4 ambient_color_plights_count;
     float4 view_pos_slights_count;
+    float4	  sky_start;
+	float4	  sky_mid;
+	float4	  sky_end;
+	float4	  fog_color_and_density;
+	float2	  fog_start_end;
     uint dir_lights_count;
     uint cascade_levels_gpu_index;
     uint cascades_count;
@@ -85,6 +90,86 @@ vs_output VSMain(uint vertexID : SV_VertexID)
     return OUT;
 }
 
+float fog_amount_exp_gated(float distToCam, float fogStart, float fogEnd, float density)
+{
+    float gate = smoothstep(fogStart, fogEnd, distToCam); // 0..1 between start/end
+    float expo = 1.0 - exp2(-density * distToCam);        // grows with distance
+    return saturate(expo * gate);
+}
+
+float3 apply_fog(float3 in_color, float3 cam_pos, float3 world_pos,
+                 float3 fog_color, float fog_density, float fog_start, float fog_end)
+{
+    float dist_to_cam = length(world_pos - cam_pos);
+    float fog_amt = fog_amount_exp_gated(dist_to_cam, fog_start, fog_end, fog_density);
+    return lerp(in_color, fog_color, fog_amt);
+}
+
+void get_sun_data(StructuredBuffer<gpu_dir_light> dir_light_buffer,
+                  StructuredBuffer<gpu_entity> entity_buffer,
+                  uint dir_light_count,
+                  out float3 sun_dir,
+                  out float3 sun_color,
+                  out float sun_intensity)
+{
+    sun_dir = float3(0.0, 1.0, 0.0);
+    sun_color = float3(1.0, 1.0, 1.0);
+    sun_intensity = 0.0;
+    if (dir_light_count > 0)
+    {
+        gpu_dir_light sky_light = dir_light_buffer[0];
+        gpu_entity sky_entity = entity_buffer[uint(sky_light.color_entity_index.w)];
+        sun_dir = normalize(-sky_entity.forward.xyz);
+        sun_color = sky_light.color_entity_index.xyz;
+        sun_intensity = sky_light.intensity.x;
+    }
+}
+
+float3 compute_sky_color(float3 view_dir, float3 sun_dir, float3 sun_color, float sun_intensity)
+{
+   render_pass_data rp_data = sfg_get_cbv<render_pass_data>(sfg_rp_constant0);
+
+    float3 rayleigh_coeff = float3(5.5e-6, 13.0e-6, 22.4e-6);
+    float mie_coeff = 21e-6;
+    float mie_g = 0.8;
+    float rayleigh_strength = 80000.0;
+    float mie_strength = 0.1;
+    float sky_exposure = 1.2;
+    float sun_disk_power = 6000.0;
+    float sun_disk_intensity = 20.0;
+    float horizon_fade = 4.0;
+    float3 night_sky = rp_data.sky_end.xyz;
+
+    float mu = saturate(dot(view_dir, sun_dir));
+    float sun_elevation = saturate(dot(sun_dir, float3(0.0, 1.0, 0.0)));
+    float sunset = saturate(1.0 - sun_elevation);
+
+    float3 beta_r = rayleigh_coeff * rayleigh_strength;
+    float3 beta_m = mie_coeff * mie_strength;
+
+    float r_phase = 0.75 * (1.0 + mu * mu);
+    float g2 = mie_g * mie_g;
+    float m_phase = (1.0 - g2) / pow(1.0 + g2 - 2.0 * mie_g * mu, 1.5);
+
+    float view_horizon = saturate(1.0 - view_dir.y);
+    float3 extinction = exp(-(beta_r + beta_m) * (1.0 + view_horizon * horizon_fade));
+
+    float3 scattering = (beta_r * r_phase + beta_m * m_phase) * (1.0 - extinction);
+    float3 sun_radiance = sun_color * sun_intensity;
+    float3 sky_color = sun_radiance * scattering;
+
+    float3 sunset_tint = lerp(rp_data.sky_start.xyz, rp_data.sky_mid.xyz, sunset);
+    sky_color *= lerp(float3(1.0, 1.0, 1.0), sunset_tint, sunset);
+
+    float sun_disk = pow(saturate(mu), sun_disk_power) * sun_disk_intensity;
+    sky_color += sun_radiance * sun_disk;
+
+    float night_amount = saturate(1.0 - sun_elevation * 1.2);
+    sky_color = lerp(sky_color, night_sky, night_amount);
+
+    sky_color = 1.0 - exp(-sky_color * sky_exposure);
+    return sky_color;
+}
 
 //------------------------------------------------------------------------------
 // Pixel Shader 
@@ -106,69 +191,47 @@ float4 PSMain(vs_output IN) : SV_TARGET
     Texture2D tex_gbuffer_depth = sfg_get_texture<Texture2D>(sfg_rp_constant11);
     Texture2D tex_ao = sfg_get_texture<Texture2D>(sfg_rp_constant12);
 
+
+    float3 cam_pos = rp_data.view_pos_slights_count.xyz;
+    float3 fog_color = rp_data.fog_color_and_density.xyz;    
+    float fog_density = 0.01 * rp_data.fog_color_and_density.w;
+    float fog_start = rp_data.fog_start_end.x;
+    float fog_end   = rp_data.fog_start_end.y;
+
      // pixel for .Load()
     int2 ip = int2(IN.pos.xy);
 
     // fetch depth
     float device_depth = tex_gbuffer_depth.Load(int3(ip, 0)).r;
 
+    float3 sun_dir;
+    float3 sun_color;
+    float sun_intensity;
+    get_sun_data(dir_light_buffer, entity_buffer, rp_data.dir_lights_count, sun_dir, sun_color, sun_intensity);
+
     // background early-out (reversed-Z)
     if (is_background(device_depth))
-       {
-          float2 uv = IN.uv;
+     {
+        float2 uv = IN.uv;
+        float3 cam_pos = rp_data.view_pos_slights_count.xyz;
+        float3 world_pos_ray = reconstruct_world_position(uv, 0.0, rp_data.inv_view_proj);
+        float3 view_dir = normalize(world_pos_ray - cam_pos);
+        float3 sky_color = compute_sky_color(view_dir, sun_dir, sun_color, sun_intensity);
 
-        // --- World-space view ray ---
-        float3 camPos = rp_data.view_pos_slights_count.xyz;
-        // Use depth 0.0 (will still lie on the correct ray whether reversed-Z or not)
-        float3 worldPosOnRay = reconstruct_world_position(uv, 0.0, rp_data.inv_view_proj);
-        float3 viewDir = normalize(worldPosOnRay - camPos);  // world-space view direction
+        float distSky = fog_end;
+        float fogSky  = fog_amount_exp_gated(distSky, fog_start, fog_end, fog_density);
+        float horizon = smoothstep(0.0, 1.0, uv.y);
+        fogSky *= horizon;
+        sky_color = lerp(sky_color, fog_color, fogSky);
 
-        // --- Simple vertical gradient in screen-space (sunrise-ish) ---
-        float3 bottomColor = float3(0.2, 0.1, 0.2); // orange near horizon
-        float3 midColor    = float3(0.1, 0.1, 0.2); // peach
-        float3 topColor    = float3(0.2, 0.10, 0.1); // deep blue
+        return float4(sky_color, 1.0);
+    }
 
-        // uv.y: 0 = top, 1 = bottom
-        float t = saturate(1.0 - uv.y); // 0 bottom, 1 top
-
-        float midBlend = saturate((t - 0.3) / 0.4);
-        float3 lowSky  = lerp(bottomColor, midColor, midBlend);
-        float3 skyCol  = lerp(lowSky,     topColor,  saturate((t - 0.7) / 0.3));
-
-        // --- World-space circular sun ---
-
-        // Hardcoded world-space sun direction (rising a bit above horizon)
-        // Think of this as “where in the world the sun actually is”.
-        float3 sunDir = normalize(float3(0.3, 0.4, -0.8));  // tweak to taste
-
-        // Cosine of angle between view ray and sun direction
-        float cosTheta = dot(normalize(viewDir), sunDir);
-
-        // Hardcoded angular radius & softness via cosine thresholds
-        // (values very close to 1.0 => small angles)
-        float innerCos = 0.9995; // core radius
-        float outerCos = 0.9980; // soft edge
-
-        // 0 outside, 1 at center; perfectly circular on the unit sphere
-        float sunFactor = smoothstep(outerCos, innerCos, cosTheta);
-
-        // Make center a bit “punchier”
-        float innerCoreCos = 0.9998;
-        float coreFactor = smoothstep(innerCos, innerCoreCos, cosTheta);
-        sunFactor = max(sunFactor, coreFactor);
-
-        float3 sunColor = float3(1.0, 0.95, 0.75)* 200;
-
-        // Additive glow over the gradient
-
-        return float4(skyCol, 1.0);
-       }
-
-    
     // reconstruct world position
     float2 uv = IN.uv;
     float3 world_pos = reconstruct_world_position(uv, device_depth, rp_data.inv_view_proj);
     float3 V = normalize(rp_data.view_pos_slights_count.xyz - world_pos);
+
 
     // decode gbuffer
     float4 albedo_data   = tex_gbuffer_color.SampleLevel(smp_nearest, uv, 0);      // sRGB RT was linearized when written; this is now linear
@@ -182,8 +245,10 @@ float4 PSMain(vs_output IN) : SV_TARGET
     float  metallic  = saturate(orm_data.b);
     float3 N = oct_decode(normal_data.xy);
 
+    float sky_ambient_strength = 0.6;
     float3 ambientColor = rp_data.ambient_color_plights_count.xyz;
-    float3 lighting = ambientColor * albedo * ao;
+    float3 sky_ambient = compute_sky_color(normalize(N), sun_dir, sun_color, sun_intensity) * sky_ambient_strength;
+    float3 lighting = (ambientColor + sky_ambient) * albedo * ao;
 
     // fetch light prep
     uint point_light_count = uint(rp_data.ambient_color_plights_count.w);
@@ -332,6 +397,8 @@ float4 PSMain(vs_output IN) : SV_TARGET
     }
 
     lighting += emissive;
+
+    lighting = apply_fog(lighting, cam_pos, world_pos, fog_color, fog_density, fog_start, fog_end);
 
     //return float4((float)layer / (float)rp_data.cascades_count,0,0,1);
     return float4(lighting, 1.0f);

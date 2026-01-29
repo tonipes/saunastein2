@@ -64,7 +64,7 @@ namespace SFG
 		entity_manager&		   em			= w.get_entity_manager();
 		component_manager&	   cm			= w.get_comp_manager();
 		world_debug_rendering& wdr			= w.get_debug_rendering();
-		const color			   col_text		= to_color(editor_theme::get().col_text);
+		const color			   col_text		= to_color(editor_theme::get().col_accent);
 		const color			   col_template = to_color(editor_theme::get().col_accent_third);
 
 		_last_root_pos	= root_pos;
@@ -198,7 +198,7 @@ namespace SFG
 			float		  multip	= 25.0f / distance;
 			const vector2 text_size = vekt::builder::get_text_size(tp) * multip;
 			const vector2 rect_min	= vector2(screen_pos.x - text_size.x * 0.5f, screen_pos.y - text_size.y * 0.5f);
-			const vector2 rect_max	= rect_min + text_size ;
+			const vector2 rect_max	= rect_min + text_size;
 
 			if (mp.x >= rect_min.x && mp.x <= rect_max.x && mp.y >= rect_min.y && mp.y <= rect_max.y)
 			{

@@ -26,66 +26,48 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include "common/size_definitions.hpp"
+#include "world/components/common_comps.hpp"
+#include "reflection/type_reflection.hpp"
+#include "math/vector4.hpp"
 
 namespace SFG
 {
-	enum class render_event_type : uint8
+	class world;
+
+	class comp_skybox
 	{
-		create_texture = 0,
-		create_sampler,
-		create_material,
-		create_mesh,
-		create_shader,
-		create_skin,
-		particle_res,
-		destroy_texture,
-		destroy_sampler,
-		destroy_material,
-		destroy_mesh,
-		destroy_shader,
-		destroy_skin,
-		destroy_particle_res,
-		update_material_sampler,
-		update_material_textures,
-		update_material_data,
-		update_mesh_instance,
-		update_mesh_instance_material,
-		remove_mesh_instance,
-		create_entity,
-		remove_entity,
-		update_entity_flags,
-		set_main_camera,
-		update_camera,
-		remove_camera,
-		reload_shader,
-		reload_material,
-		update_ambient,
-		update_bloom,
-		update_ssao,
-		update_post_process,
-		update_skybox,
-		update_dir_light,
-		update_point_light,
-		update_spot_light,
-		remove_ambient,
-		remove_bloom,
-		remove_ssao,
-		remove_post_process,
-		remove_skybox,
-		remove_dir_light,
-		remove_point_light,
-		remove_spot_light,
-		create_canvas,
-		destroy_canvas,
-		canvas_add_draw,
-		canvas_reset_draws,
-		canvas_update,
-		particle_emitter,
-		remove_particle_emitter,
-		reset_particle_emitter,
-		sprite,
-		remove_sprite,
+	public:
+		static void reflect();
+
+		// -----------------------------------------------------------------------------
+		// trait
+		// -----------------------------------------------------------------------------
+
+		void on_add(world& w);
+		void on_remove(world& w);
+		void set_values(world& w, const vector4& start_color, const vector4& mid_color, const vector4& end_color, const vector4& fog_color, float fog_start, float fog_end);
+
+		// -----------------------------------------------------------------------------
+		// accessors
+		// -----------------------------------------------------------------------------
+
+		inline const component_header& get_header() const
+		{
+			return _header;
+		}
+
+	private:
+		template <typename T, int> friend class comp_cache;
+
+	private:
+		component_header _header	  = {};
+		vector4			 _start_color = vector4(0.2f, 0.1f, 0.2f, 1.0f);
+		vector4			 _mid_color	  = vector4(0.1f, 0.1f, 0.2f, 1.0f);
+		vector4			 _end_color	  = vector4(0.2f, 0.1f, 0.1f, 1.0f);
+		vector4			 _fog_color	  = vector4(0.0f, 0.0f, 0.0f, 0.0f);
+		float			 _fog_start	  = 0.0f;
+		float			 _fog_end	  = 0.0f;
 	};
 
+	REFLECT_TYPE(comp_skybox);
 }

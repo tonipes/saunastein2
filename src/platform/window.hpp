@@ -138,6 +138,7 @@ namespace SFG
 #ifdef SFG_PLATFORM_WINDOWS
 		static __int64 wnd_proc(HWND__* hwnd, unsigned int msg, unsigned __int64 wParam, __int64 lParam);
 #endif
+		static float UI_SCALE;
 
 	private:
 		void add_event(const window_event& ev);
