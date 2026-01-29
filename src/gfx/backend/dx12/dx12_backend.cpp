@@ -960,8 +960,8 @@ namespace SFG
 		PUSH_ALLOCATION_SZ(desc.size);
 		POP_MEMORY_CATEGORY();
 
-		TracyAllocN(res.ptr, res.ptr->GetSize(), "GPU: Resource");
-		TracyAllocN(res.ptr, res.ptr->GetSize(), "GPU: Total");
+		// TracyAllocN(res.ptr, res.ptr->GetSize(), "GPU: Resource");
+		// TracyAllocN(res.ptr, res.ptr->GetSize(), "GPU: Total");
 
 		if (desc.flags.is_set(resource_flags::rf_constant_buffer))
 		{
@@ -1065,8 +1065,8 @@ namespace SFG
 		PUSH_DEALLOCATION_SZ(res.size);
 		POP_MEMORY_CATEGORY();
 
-		TracyFreeN(res.ptr, "GPU: Total");
-		TracyFreeN(res.ptr, "GPU: Resource");
+		// TracyFreeN(res.ptr, "GPU: Total");
+		// TracyFreeN(res.ptr, "GPU: Resource");
 
 		if (res.descriptor_index != -1)
 		{
@@ -1163,8 +1163,8 @@ namespace SFG
 		POP_MEMORY_CATEGORY();
 #endif
 
-		TracyAllocN(txt.ptr, txt.ptr->GetSize(), "GPU: Texture");
-		TracyAllocN(txt.ptr, txt.ptr->GetSize(), "GPU: Total");
+		// TracyAllocN(txt.ptr, txt.ptr->GetSize(), "GPU: Texture");
+		// TracyAllocN(txt.ptr, txt.ptr->GetSize(), "GPU: Total");
 
 		if (desc.flags.is_set(texture_flags::tf_shared))
 		{
@@ -1429,8 +1429,8 @@ namespace SFG
 			_descriptors.remove(v.handle);
 		}
 
-		TracyFreeN(txt.ptr, "GPU: Total");
-		TracyFreeN(txt.ptr, "GPU: Texture");
+		// TracyFreeN(txt.ptr, "GPU: Total");
+		// TracyFreeN(txt.ptr, "GPU: Texture");
 		txt.ptr->Release();
 		txt.ptr = NULL;
 		_textures.remove(id);
@@ -1520,7 +1520,7 @@ namespace SFG
 				},
 			.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
 			.BufferCount = BACK_BUFFER_COUNT,
-			.SwapEffect	 = DXGI_SWAP_EFFECT_FLIP_DISCARD,
+			.SwapEffect	 = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL,
 #if USE_WAITABLE_SWAPCHAIN
 			.Flags = (tearing ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : (UINT)0) | DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT,
 #else
@@ -1544,8 +1544,8 @@ namespace SFG
 		POP_MEMORY_CATEGORY();
 #endif
 
-		TracyAllocN(swp.ptr.Get(), swapchain_desc.Width * swapchain_desc.Height * 4, "GPU: Texture");
-		TracyAllocN(swp.ptr.Get(), swapchain_desc.Width * swapchain_desc.Height * 4, "GPU: Total");
+		// TracyAllocN(swp.ptr.Get(), swapchain_desc.Width * swapchain_desc.Height * 4, "GPU: Texture");
+		// TracyAllocN(swp.ptr.Get(), swapchain_desc.Width * swapchain_desc.Height * 4, "GPU: Total");
 
 #if USE_WAITABLE_SWAPCHAIN
 		Microsoft::WRL::ComPtr<IDXGISwapChain2> sc2;
@@ -1619,8 +1619,8 @@ namespace SFG
 
 #endif
 
-		TracyFreeN(swp.ptr.Get(), "GPU: Total");
-		TracyFreeN(swp.ptr.Get(), "GPU: Texture");
+		// TracyFreeN(swp.ptr.Get(), "GPU: Total");
+		// TracyFreeN(swp.ptr.Get(), "GPU: Texture");
 
 #if USE_WAITABLE_SWAPCHAIN
 		UINT flags = (tearing ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : (UINT)0) | DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
@@ -1631,8 +1631,8 @@ namespace SFG
 		throw_if_failed(swp.ptr->ResizeBuffers(BACK_BUFFER_COUNT, static_cast<UINT>(desc.size.x), static_cast<UINT>(desc.size.y), swp_desc.BufferDesc.Format, flags));
 		swp.image_index = swp.ptr->GetCurrentBackBufferIndex();
 
-		TracyAllocN(swp.ptr.Get(), desc.size.x * desc.size.y * 4, "GPU: Total");
-		TracyAllocN(swp.ptr.Get(), desc.size.x * desc.size.y * 4, "GPU: Texture");
+		// TracyAllocN(swp.ptr.Get(), desc.size.x * desc.size.y * 4, "GPU: Total");
+		// TracyAllocN(swp.ptr.Get(), desc.size.x * desc.size.y * 4, "GPU: Texture");
 
 		// Re-apply frame latency settings and refresh waitable object after resize
 		{
@@ -1687,8 +1687,8 @@ namespace SFG
 		POP_MEMORY_CATEGORY();
 #endif
 
-		TracyFreeN(swp.ptr.Get(), "GPU: Texture");
-		TracyFreeN(swp.ptr.Get(), "GPU: Total");
+		// TracyFreeN(swp.ptr.Get(), "GPU: Texture");
+		// TracyFreeN(swp.ptr.Get(), "GPU: Total");
 
 		swp.ptr.Reset();
 		_swapchains.remove(id);

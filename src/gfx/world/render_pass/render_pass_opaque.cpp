@@ -116,6 +116,7 @@ namespace SFG
 			att.load_op						  = load_op::clear;
 			att.store_op					  = store_op::store;
 			att.texture						  = txt;
+			att.view_index					  = 0;
 
 			// normals for compute
 			uint32 extra_state = i == 1 ? resource_state_non_ps_resource : 0;

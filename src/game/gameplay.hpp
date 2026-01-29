@@ -62,8 +62,8 @@ namespace SFG
 		vector2			_mouse_delta		= vector2::zero;
 		float			_yaw_degrees		= 0.0f;
 		float			_pitch_degrees		= 0.0f;
-		float			_current_move_speed = 3.0f;
-		float			_base_move_speed	= 3.0f;
+		float			_current_move_speed = 12.0f;
+		float			_base_move_speed	= 12.0f;
 		float			_boost_multiplier	= 8.0f;
 		float			_mouse_sensitivity	= 0.08f;
 		bool			_is_looking			= false;

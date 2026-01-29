@@ -80,6 +80,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "components/comp_animation_controller.hpp"
 #include "components/comp_particle_emitter.hpp"
 #include "components/comp_sprite.hpp"
+#include "components/comp_character_controller.hpp"
 
 #include <vendor/miniaudio/miniaudio.h>
 #include <tracy/Tracy.hpp>
@@ -223,7 +224,7 @@ namespace SFG
 
 		if (_play_mode != play_mode::none)
 			_phy_world.simulate(dt);
-
+			
 		auto& canvases = _comp_manager.underlying_pool<comp_cache<comp_canvas, MAX_WORLD_COMP_CANVAS>, comp_canvas>();
 		for (comp_canvas& c : canvases)
 			c.draw(*this, res);

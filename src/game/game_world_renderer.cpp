@@ -963,91 +963,94 @@ namespace SFG
 		gpu_point_light* plights = reinterpret_cast<gpu_point_light*>(pfd.point_lights_buffer.get_mapped());
 		gpu_shadow_data* sdata	 = reinterpret_cast<gpu_shadow_data*>(pfd.shadow_data_buffer.get_mapped());
 
-		for (uint32 i = 0; i < points_peak; i++)
 		{
-			render_proxy_point_light& light = points.get(i);
-			if (light.status != render_proxy_status::rps_active)
-				continue;
-
-			const render_proxy_entity& proxy_entity = entities.get(light.entity);
-			SFG_ASSERT(proxy_entity.status == render_proxy_status::rps_active);
-
-			if (proxy_entity.flags.is_set(render_proxy_entity_flags::render_proxy_entity_invisible))
-				continue;
-
-			const vector3 pos = proxy_entity.model.get_translation();
-
-			constexpr float energy_thresh = LIGHT_CULLING_ENERGY_THRESHOLD;
-			const float		radius		  = math::sqrt(light.intensity / (4.0f * MATH_PI * energy_thresh));
-
-			const frustum_result res = frustum::test(_main_camera_view.view_frustum, pos, radius);
-			if (res == frustum_result::outside)
-				continue;
-
-			int32		first_shadow_index = -1;
-			const float far_plane		   = math::almost_equal(light.range, 0.0f) ? main_cam_far : light.range;
-			const float near_plane		   = light.near_plane;
-
-			if (light.cast_shadows)
+			ZoneScopedN("plightbase");
+			for (uint32 i = 0; i < points_peak; i++)
 			{
-				const float light_aspect = static_cast<float>(light.shadow_res.x) / static_cast<float>(light.shadow_res.y);
-				first_shadow_index		 = static_cast<int32>(shadow_data_count);
+				render_proxy_point_light& light = points.get(i);
+				if (light.status != render_proxy_status::rps_active)
+					continue;
 
-				static_vector<vector3, 6> dirs;
-				static_vector<vector3, 6> fws;
+				const render_proxy_entity& proxy_entity = entities.get(light.entity);
+				SFG_ASSERT(proxy_entity.status == render_proxy_status::rps_active);
 
-				dirs.push_back(vector3::right * 0.1);
-				dirs.push_back(-vector3::right * 0.1);
-				dirs.push_back(vector3::up * 0.1);
-				dirs.push_back(-vector3::up * 0.1);
-				dirs.push_back(vector3::forward * 0.1);
-				dirs.push_back(-vector3::forward * 0.1);
+				if (proxy_entity.flags.is_set(render_proxy_entity_flags::render_proxy_entity_invisible))
+					continue;
 
-				fws.push_back(vector3::up);
-				fws.push_back(vector3::up);
-				fws.push_back(vector3::forward);
-				fws.push_back(vector3::forward);
-				fws.push_back(vector3::up);
-				fws.push_back(vector3::up);
+				const vector3 pos = proxy_entity.model.get_translation();
 
-				for (uint8 j = 0; j < 6; j++)
+				constexpr float energy_thresh = LIGHT_CULLING_ENERGY_THRESHOLD;
+				const float		radius		  = math::sqrt(light.intensity / (4.0f * MATH_PI * energy_thresh));
+
+				const frustum_result res = frustum::test(_main_camera_view.view_frustum, pos, radius);
+				if (res == frustum_result::outside)
+					continue;
+
+				int32		first_shadow_index = -1;
+				const float far_plane		   = math::almost_equal(light.range, 0.0f) ? main_cam_far : light.range;
+				const float near_plane		   = light.near_plane;
+
+				if (light.cast_shadows)
 				{
-					const matrix4x4 light_view		 = matrix4x4::look_at(pos, pos + dirs[j], fws[j]);
-					const matrix4x4 light_projection = matrix4x4::perspective(90 + near_plane, light_aspect, near_plane, far_plane);
+					const float light_aspect = static_cast<float>(light.shadow_res.x) / static_cast<float>(light.shadow_res.y);
+					first_shadow_index		 = static_cast<int32>(shadow_data_count);
 
-					const gpu_shadow_data sh = {
-						.light_space_matrix = light_projection * light_view,
-					};
+					static_vector<vector3, 6> dirs;
+					static_vector<vector3, 6> fws;
 
-					sdata[shadow_data_count].light_space_matrix = light_projection * light_view;
-					shadow_data_count++;
+					dirs.push_back(vector3::right * 0.1);
+					dirs.push_back(-vector3::right * 0.1);
+					dirs.push_back(vector3::up * 0.1);
+					dirs.push_back(-vector3::up * 0.1);
+					dirs.push_back(vector3::forward * 0.1);
+					dirs.push_back(-vector3::forward * 0.1);
 
-					_pass_shadows.add_pass({
-						.pm				  = _proxy_manager,
-						.frame_index	  = frame_index,
-						.res			  = light.shadow_res,
-						.texture		  = light.shadow_texture_hw[frame_index],
-						.transition_owner = j == 0,
-						.view_index		  = j,
-						.proj			  = light_projection,
-						.view			  = light_view,
-						.position		  = pos,
-						.cascade_near	  = main_cam_near,
-						.cascade_far	  = far_plane,
-						.fov			  = main_cam_fov,
-					});
+					fws.push_back(vector3::up);
+					fws.push_back(vector3::up);
+					fws.push_back(vector3::forward);
+					fws.push_back(vector3::forward);
+					fws.push_back(vector3::up);
+					fws.push_back(vector3::up);
+
+					for (uint8 j = 0; j < 6; j++)
+					{
+						const matrix4x4 light_view		 = matrix4x4::look_at(pos, pos + dirs[j], fws[j]);
+						const matrix4x4 light_projection = matrix4x4::perspective(90 + near_plane, light_aspect, near_plane, far_plane);
+
+						const gpu_shadow_data sh = {
+							.light_space_matrix = light_projection * light_view,
+						};
+
+						sdata[shadow_data_count].light_space_matrix = light_projection * light_view;
+						shadow_data_count++;
+
+						_pass_shadows.add_pass({
+							.pm				  = _proxy_manager,
+							.frame_index	  = frame_index,
+							.res			  = light.shadow_res,
+							.texture		  = light.shadow_texture_hw[frame_index],
+							.transition_owner = j == 0,
+							.view_index		  = j,
+							.proj			  = light_projection,
+							.view			  = light_view,
+							.position		  = pos,
+							.cascade_near	  = main_cam_near,
+							.cascade_far	  = far_plane,
+							.fov			  = main_cam_fov,
+						});
+					}
 				}
+
+				plights[points_count] = {
+					.color_entity_index			   = vector4(light.base_color.x, light.base_color.y, light.base_color.z, proxy_entity._assigned_index),
+					.intensity_range			   = vector4(light.intensity, light.range, 0.0f, 0.0f),
+					.shadow_res_map_and_data_index = vector4(light.shadow_res.x, light.shadow_res.y, static_cast<float>(light.shadow_texture_gpu_index[frame_index]), static_cast<float>(first_shadow_index)),
+					.near_plane					   = near_plane,
+					.far_plane					   = far_plane,
+				};
+
+				points_count++;
 			}
-
-			plights[points_count] = {
-				.color_entity_index			   = vector4(light.base_color.x, light.base_color.y, light.base_color.z, proxy_entity._assigned_index),
-				.intensity_range			   = vector4(light.intensity, light.range, 0.0f, 0.0f),
-				.shadow_res_map_and_data_index = vector4(light.shadow_res.x, light.shadow_res.y, static_cast<float>(light.shadow_texture_gpu_index[frame_index]), static_cast<float>(first_shadow_index)),
-				.near_plane					   = near_plane,
-				.far_plane					   = far_plane,
-			};
-
-			points_count++;
 		}
 
 		gpu_spot_light* slights = reinterpret_cast<gpu_spot_light*>(pfd.spot_lights_buffer.get_mapped());

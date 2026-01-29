@@ -101,7 +101,7 @@ namespace SFG
 		_controller->SetPosition(JPH::RVec3(pos.x, pos.y, pos.z));
 	}
 
-	void comp_character_controller::update(world& w, const vector3& desired_velocity, float dt)
+	void comp_character_controller::update(world& w, float dt)
 	{
 		if (_controller == nullptr)
 			create_controller(w);
@@ -114,7 +114,7 @@ namespace SFG
 		physics_world& pw = w.get_physics_world();
 		const vector3& g  = pw.get_gravity();
 
-		vector3			velocity		 = desired_velocity;
+		vector3			velocity		 = _target_velocity;
 		const JPH::Vec3 current_velocity = _controller->GetLinearVelocity();
 		velocity.y						 = current_velocity.GetY();
 		velocity += g * dt;
@@ -136,7 +136,6 @@ namespace SFG
 		JPH::TempAllocatorImpl* allocator = pw.get_allocator();
 		if (allocator)
 			_controller->ExtendedUpdate(dt, to_jph_vec3(g), settings, bp_filter, obj_filter, body_filter, shape_filter, *allocator);
-
 		entity_manager& em	 = w.get_entity_manager();
 		const JPH::Vec3 jpos = JPH::Vec3(_controller->GetPosition());
 		em.set_entity_position_abs(_header.entity, from_jph_vec3(jpos));

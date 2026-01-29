@@ -34,6 +34,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "physics/physics_bp_layer_interface.hpp"
 #include "resources/physical_material.hpp"
 #include "world/components/comp_physics.hpp"
+#include "world/components/comp_character_controller.hpp"
 #include "platform/time.hpp"
 
 #include <Jolt/Jolt.h>
@@ -190,30 +191,36 @@ namespace SFG
 		constexpr int collision_steps = 2;
 
 #if !FIXED_FRAMERATE_ENABLED
-		if (_dt_counter < PHYSICS_RATE_WITHOUT_FIXED_FRAMERATE_S)
+		const float used_rate = PHYSICS_RATE_WITHOUT_FIXED_FRAMERATE_S;
+		if (_dt_counter < used_rate)
 		{
 			_dt_counter += rate;
 			return;
 		}
-
-		_system->Update(PHYSICS_RATE_WITHOUT_FIXED_FRAMERATE_S, collision_steps, _allocator, _job_system);
-		_dt_counter -= PHYSICS_RATE_WITHOUT_FIXED_FRAMERATE_S;
+		_dt_counter -= used_rate;
 #else
-		_system->Update(rate, collision_steps, _allocator, _job_system);
+		const float used_rate = rate;
 #endif
 
-		entity_manager& em = _game_world.get_entity_manager();
+		_system->Update(used_rate, collision_steps, _allocator, _job_system);
 
 		component_manager& cm = _game_world.get_comp_manager();
-		cm.view<comp_physics>([&](comp_physics& trait) -> comp_view_result {
-			JPH::Body* body = trait.get_body();
+		entity_manager&	   em = _game_world.get_entity_manager();
+
+		auto& controllers = cm.underlying_pool<comp_cache<comp_character_controller, MAX_WORLD_COMP_CHARACTER_CONTROLLERS>, comp_character_controller>();
+		for (comp_character_controller& c : controllers)
+			c.update(_game_world, used_rate);
+
+		auto& phys = cm.underlying_pool<comp_cache<comp_physics, MAX_WORLD_COMP_PHYSICS>, comp_physics>();
+		for (comp_physics& c : phys)
+		{
+			JPH::Body* body = c.get_body();
 			SFG_ASSERT(body != nullptr);
 
-			const world_handle e_handle = trait.get_header().entity;
-			em.set_entity_position_abs(e_handle, from_jph_vec3(body->GetPosition()) - trait.get_offset());
+			const world_handle e_handle = c.get_header().entity;
+			em.set_entity_position_abs(e_handle, from_jph_vec3(body->GetPosition()) - c.get_offset());
 			em.set_entity_rotation_abs(e_handle, from_jph_quat(body->GetRotation()));
-			return comp_view_result::cont;
-		});
+		}
 	}
 
 	void physics_world::add_bodies_to_world(JPH::BodyID* body_ids, uint32 count)

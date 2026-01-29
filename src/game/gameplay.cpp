@@ -172,7 +172,7 @@ namespace SFG
 			move_dir.normalize();
 
 		comp_character_controller& controller = cm.get_component<comp_character_controller>(_player_controller);
-		controller.update(w, move_dir * _current_move_speed, dt);
+		controller.set_target_velocity(move_dir);
 
 		{
 			const world_handle main_cam_entity = em.get_main_camera_entity();

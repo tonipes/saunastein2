@@ -516,6 +516,8 @@ namespace SFG
 
 	void render_pass_debug::render(const render_params& p)
 	{
+		ZoneScoped;
+
 		gfx_backend*	backend			 = gfx_backend::get();
 		per_frame_data& pfd				 = _pfd[p.frame_index];
 		const gfx_id	texture			 = p.input_texture;

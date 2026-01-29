@@ -258,7 +258,6 @@ namespace SFG
 
 		{
 			ZoneScopedN("wait semaphore");
-
 			// Wait for frame's fence, then send any uploads needed.
 			backend->wait_semaphore(pfd.sem_frame.semaphore, pfd.sem_frame.value);
 		}
@@ -374,6 +373,7 @@ namespace SFG
 			attachment->load_op						 = load_op::clear;
 			attachment->store_op					 = store_op::store;
 			attachment->texture						 = swapchain_rt;
+			attachment->view_index					 = 0;
 
 			BEGIN_DEBUG_EVENT(backend, cmd_list, "swapchain_pass");
 			backend->cmd_begin_render_pass_swapchain(cmd_list, {.color_attachments = attachment, .color_attachment_count = 1});
@@ -442,10 +442,9 @@ namespace SFG
 			ZoneScopedN("present");
 			backend->present(&swapchain_rt, 1);
 		}
+		backend->queue_signal(queue_gfx, &sem_frame, &next_frame_value, 1);
 
 		_gfx_data.frame_index = backend->get_back_buffer_index(_gfx_data.swapchain);
-
-		backend->queue_signal(queue_gfx, &sem_frame, &next_frame_value, 1);
 	}
 
 	bool renderer::on_window_event(const window_event& ev)

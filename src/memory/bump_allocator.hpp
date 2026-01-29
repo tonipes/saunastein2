@@ -62,8 +62,8 @@ namespace SFG
 
 			void* ptr	   = allocate(sizeof(T) * count, std::alignment_of<T>::value);
 			T*	  arrayPtr = reinterpret_cast<T*>(ptr);
-			for (size_t i = 0; i < count; ++i)
-				new (&arrayPtr[i]) T(std::forward<Args>(args)...);
+			//for (size_t i = 0; i < count; ++i)
+			//	new (&arrayPtr[i]) T(std::forward<Args>(args)...);
 			return arrayPtr;
 		}
 

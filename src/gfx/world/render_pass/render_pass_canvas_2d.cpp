@@ -236,6 +236,7 @@ namespace SFG
 		att.load_op								  = load_op::load;
 		att.store_op							  = store_op::store;
 		att.texture								  = target_texture;
+		att.view_index							  = 0;
 
 		BEGIN_DEBUG_EVENT(backend, cmd_buffer, "canvas_2d_pass");
 

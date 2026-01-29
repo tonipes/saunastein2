@@ -122,6 +122,8 @@ namespace SFG
 
 	void render_pass_shadows::add_pass(const pass_props& props)
 	{
+		ZoneScoped;
+
 		SFG_ASSERT(_pass_count < MAX_GPU_SHADOW_DATA);
 
 		pass& p			   = _passes[_pass_count];

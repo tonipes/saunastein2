@@ -77,11 +77,13 @@ add_compile_definitions($<$<CONFIG:Debug>:SFG_DUMP_LOG_TRACE>)
 add_compile_definitions($<$<CONFIG:Release>:_ITERATOR_DEBUG_LEVEL=0>)
 add_compile_definitions($<$<CONFIG:Release>:NDEBUG>)
 add_compile_definitions($<$<CONFIG:Release>:SFG_DUMP_LOG_TRACE>)
+add_compile_definitions($<$<CONFIG:Release>:TRACY_ENABLE>)
 
 add_compile_definitions($<$<CONFIG:ReleaseToolmode>:_ITERATOR_DEBUG_LEVEL=0>)
 add_compile_definitions($<$<CONFIG:ReleaseToolmode>:NDEBUG>)
 add_compile_definitions($<$<CONFIG:ReleaseToolmode>:SFG_TOOLMODE>)
 add_compile_definitions($<$<CONFIG:ReleaseToolmode>:SFG_USE_DEBUG_CONTROLLER>)
+add_compile_definitions($<$<CONFIG:ReleaseToolmode>:TRACY_ENABLE>)
 
 add_definitions(-DSFG_CONFIGURATION="$<CONFIGURATION>")
 add_definitions(-DSFG_ROOT_DIRECTORY="${CMAKE_SOURCE_DIR}/")
