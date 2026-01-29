@@ -235,7 +235,9 @@ namespace SFG
 				  .debug_name	  = "object_id_rt",
 			  });
 
-			pfd.readback_buffer = backend->create_resource({.size = static_cast<uint32>(sz.x * sz.y * 4), .flags = resource_flags::rf_readback, .debug_name = "object_id_readback"});
+		const uint32 aligned = backend->align_texture_size(sz.x * 4);
+
+			pfd.readback_buffer = backend->create_resource({.size = static_cast<uint32>(aligned * sz.y), .flags = resource_flags::rf_readback, .debug_name = "object_id_readback"});
 			backend->map_resource(pfd.readback_buffer, pfd.readback_mapped);
 		}
 	}

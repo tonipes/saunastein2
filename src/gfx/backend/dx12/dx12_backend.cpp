@@ -876,7 +876,7 @@ namespace SFG
 			DXGI_PRESENT_PARAMETERS params = {};
 
 			throw_if_failed(swp.ptr->Present1(swp.vsync, swp.tearing ? DXGI_PRESENT_ALLOW_TEARING : 0, &params));
-			swp.image_index = swp.ptr->GetCurrentBackBufferIndex();
+			// swp.image_index = swp.ptr->GetCurrentBackBufferIndex();
 		}
 	}
 
@@ -894,6 +894,7 @@ namespace SFG
 	uint8 dx12_backend::get_back_buffer_index(gfx_id s)
 	{
 		swapchain& swp = _swapchains.get(s);
+		swp.image_index = swp.ptr->GetCurrentBackBufferIndex();
 		return swp.image_index;
 	}
 
@@ -906,13 +907,12 @@ namespace SFG
 		resource&	 res = _resources.get(id);
 
 		const uint32 aligned_size = ALIGN_SIZE_POW(desc.size, D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-		const uint32 final_size	  = desc.flags.is_set(resource_flags::rf_constant_buffer) ? aligned_size : desc.size;
-		res.size				  = final_size;
+		res.size				  = desc.flags.is_set(resource_flags::rf_constant_buffer) ? aligned_size : desc.size;
 
 		const D3D12_RESOURCE_DESC resource_desc = {
 			.Dimension		  = D3D12_RESOURCE_DIMENSION_BUFFER,
 			.Alignment		  = 0,
-			.Width			  = static_cast<uint64>(final_size),
+			.Width			  = static_cast<uint64>(res.size),
 			.Height			  = 1,
 			.DepthOrArraySize = 1,
 			.MipLevels		  = 1,
@@ -934,10 +934,10 @@ namespace SFG
 			allocation_desc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
 			state					 = D3D12_RESOURCE_STATE_COMMON;
 
-			if (desc.flags.is_set(resource_flags::rf_vertex_buffer) || desc.flags.is_set(resource_flags::rf_constant_buffer))
-				state = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
-			else if (desc.flags.is_set(resource_flags::rf_index_buffer))
-				state = D3D12_RESOURCE_STATE_INDEX_BUFFER;
+		//if (desc.flags.is_set(resource_flags::rf_vertex_buffer) || desc.flags.is_set(resource_flags::rf_constant_buffer))
+		//	state = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+		//else if (desc.flags.is_set(resource_flags::rf_index_buffer))
+		//	state = D3D12_RESOURCE_STATE_INDEX_BUFFER;
 		}
 		else if (desc.flags.is_set(resource_flags::rf_cpu_visible))
 		{
@@ -967,7 +967,7 @@ namespace SFG
 		{
 			const D3D12_CONSTANT_BUFFER_VIEW_DESC desc = {
 				.BufferLocation = res.ptr->GetResource()->GetGPUVirtualAddress(),
-				.SizeInBytes	= static_cast<UINT>(final_size),
+				.SizeInBytes	= static_cast<UINT>(res.size),
 			};
 			res.descriptor_index  = static_cast<int16>(_descriptors.add());
 			descriptor_handle& dh = _descriptors.get(res.descriptor_index);
@@ -1571,10 +1571,11 @@ namespace SFG
 
 				_device->CreateRenderTargetView(swp.textures[i].Get(), &rtv_desc, {dh.cpu});
 				NAME_DX12_OBJECT_CSTR(swp.textures[i], "Swapchain RTV");
+				SFG_TRACE("swapchain {0} descriptor {1}", i, dh.cpu);
 			}
 		}
 
-		swp.image_index = swp.ptr->GetCurrentBackBufferIndex();
+		// swp.image_index = swp.ptr->GetCurrentBackBufferIndex();
 		return id;
 	}
 
@@ -1629,7 +1630,7 @@ namespace SFG
 #endif
 
 		throw_if_failed(swp.ptr->ResizeBuffers(BACK_BUFFER_COUNT, static_cast<UINT>(desc.size.x), static_cast<UINT>(desc.size.y), swp_desc.BufferDesc.Format, flags));
-		swp.image_index = swp.ptr->GetCurrentBackBufferIndex();
+		// swp.image_index = swp.ptr->GetCurrentBackBufferIndex();
 
 		// TracyAllocN(swp.ptr.Get(), desc.size.x * desc.size.y * 4, "GPU: Total");
 		// TracyAllocN(swp.ptr.Get(), desc.size.x * desc.size.y * 4, "GPU: Texture");
@@ -3084,6 +3085,8 @@ namespace SFG
 		ID3D12GraphicsCommandList4*		  cmd_list		= buffer.ptr.Get();
 		const texture&					  txt			= _textures.get(cmd.src_texture);
 		const resource&					  res			= _resources.get(cmd.dest_buffer);
+		const uint32 row_pitch =  static_cast<UINT>((cmd.size.x * cmd.bpp + (D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1)) & ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1));
+
 		const D3D12_TEXTURE_COPY_LOCATION dest_location = {
 			.pResource = res.ptr->GetResource(),
 			.Type	   = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT,
@@ -3096,7 +3099,7 @@ namespace SFG
 							.Width	  = static_cast<UINT>(cmd.size.x),
 							.Height	  = static_cast<UINT>(cmd.size.y),
 							.Depth	  = 1,
-							.RowPitch = static_cast<UINT>(cmd.size.x * cmd.bpp),
+							.RowPitch = row_pitch,
 						},
 				},
 		};
@@ -3235,7 +3238,9 @@ namespace SFG
 			ID3D12Resource* res = nullptr;
 
 			if (barrier.flags.is_set(barrier_flags::baf_is_resource))
+			{
 				res = _resources.get(barrier.resource).ptr->GetResource();
+			}
 			else if (barrier.flags.is_set(barrier_flags::baf_is_swapchain))
 			{
 				swapchain& swp = _swapchains.get(barrier.resource);

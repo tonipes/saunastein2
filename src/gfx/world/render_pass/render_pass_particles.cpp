@@ -52,7 +52,7 @@ namespace SFG
 	{
 		gfx_backend* backend = gfx_backend::get();
 
-		_indirect_sig_dispatch = backend->create_dispatch_indirect_signature(NULL_GFX_ID, sizeof(particle_sim_count_args));
+		_indirect_sig_dispatch = backend->create_dispatch_indirect_signature(NULL_GFX_ID, sizeof(uint32) * 3);
 		_indirect_sig_draw	   = backend->create_draw_indirect_signature(NULL_GFX_ID, sizeof(particle_indirect_args));
 		_alloc.init(PASS_ALLOC_SIZE_PARTICLES, 8);
 

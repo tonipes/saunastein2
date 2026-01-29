@@ -230,12 +230,8 @@ namespace SFG
 	{
 		ZoneScoped;
 
-		const uint8 frame_index = _gfx_data.frame_index;
+		gfx_backend* backend = gfx_backend::get();
 
-		_proxy_manager.fetch_render_events(_event_stream, frame_index);
-		_proxy_manager.flush_destroys(false);
-
-		gfx_backend*	  backend		 = gfx_backend::get();
 		const gfx_id	  queue_gfx		 = backend->get_queue_gfx();
 		const gfx_id	  queue_transfer = backend->get_queue_transfer();
 		const vector2ui16 size			 = _base_size;
@@ -245,6 +241,12 @@ namespace SFG
 			// Gate frame start to DXGI frame latency waitable for stable pacing
 			backend->wait_for_swapchain_latency(_gfx_data.swapchain);
 		}
+
+		_gfx_data.frame_index	= backend->get_back_buffer_index(_gfx_data.swapchain);
+		const uint8 frame_index = _gfx_data.frame_index;
+
+		_proxy_manager.fetch_render_events(_event_stream, frame_index);
+		_proxy_manager.flush_destroys(false);
 
 		/* access frame data */
 		const gfx_id layout_global		   = s_bind_layout_global;
@@ -317,9 +319,10 @@ namespace SFG
 		};
 		pfd.buf_engine_global.buffer_data(0, (void*)&globals, sizeof(buf_engine_global));
 
-		static_vector<barrier, 1> barriers;
+		static_vector<barrier, 2> barriers;
+
 		barriers.push_back({
-			.from_states = resource_state::resource_state_present,
+			.from_states = resource_state::resource_state_common,
 			.to_states	 = resource_state::resource_state_render_target,
 			.resource	 = swapchain_rt,
 			.flags		 = barrier_flags::baf_is_swapchain,
@@ -413,7 +416,7 @@ namespace SFG
 
 		barriers.push_back({
 			.from_states = resource_state::resource_state_render_target,
-			.to_states	 = resource_state::resource_state_present,
+			.to_states	 = resource_state::resource_state_common,
 			.resource	 = swapchain_rt,
 			.flags		 = barrier_flags::baf_is_swapchain,
 		});
@@ -443,8 +446,6 @@ namespace SFG
 			backend->present(&swapchain_rt, 1);
 		}
 		backend->queue_signal(queue_gfx, &sem_frame, &next_frame_value, 1);
-
-		_gfx_data.frame_index = backend->get_back_buffer_index(_gfx_data.swapchain);
 	}
 
 	bool renderer::on_window_event(const window_event& ev)
@@ -458,6 +459,9 @@ namespace SFG
 	void renderer::on_window_resize(const vector2ui16& size)
 	{
 		SFG_VERIFY_THREAD_MAIN();
+		if (size == _base_size)
+			return;
+
 		_base_size = (size.x == 0 || size.y == 0) ? vector2ui16(32, 32) : size;
 
 		gfx_backend* backend = gfx_backend::get();
