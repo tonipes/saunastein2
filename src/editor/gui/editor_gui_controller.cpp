@@ -948,10 +948,7 @@ namespace SFG
 				return true;
 			}
 
-			if (_builder->widget_get_hover_callbacks(_panel_entities->get_root()).is_hovered)
-				return true;
-
-			if (_builder->widget_get_hover_callbacks(_panel_inspector->get_root()).is_hovered)
+			if (res == vekt::input_event_result::handled)
 				return true;
 		}
 

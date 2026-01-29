@@ -95,6 +95,23 @@ namespace SFG
 		_is_active = false;
 	}
 
+	void editor_camera::set_is_looking(bool b)
+	{
+		if (b)
+		{
+			_window->confine_cursor(cursor_confinement::pointer);
+			_window->set_cursor_visible(false);
+			_is_looking = true;
+		}
+		else
+		{
+			_window->confine_cursor(cursor_confinement::none);
+			_window->set_cursor_visible(true);
+			_is_looking	 = false;
+			_mouse_delta = vector2::zero;
+		}
+	}
+
 	void editor_camera::reset_runtime()
 	{
 		_direction_input = vector3::zero;
@@ -154,30 +171,6 @@ namespace SFG
 				return true;
 			break;
 		}
-		case window_event_type::mouse: {
-			if (button == static_cast<uint16>(input_code::mouse_1))
-			{
-				const bool was_looking = _is_looking;
-
-				if (ev.sub_type == window_event_sub_type::press || ev.sub_type == window_event_sub_type::repeat)
-				{
-					_window->confine_cursor(cursor_confinement::pointer);
-					_window->set_cursor_visible(false);
-					_is_looking = true;
-				}
-				else if (ev.sub_type == window_event_sub_type::release)
-				{
-					_window->confine_cursor(cursor_confinement::none);
-					_window->set_cursor_visible(true);
-					_is_looking	 = false;
-					_mouse_delta = vector2::zero;
-				}
-				return true;
-			}
-			return false;
-		}
-		case window_event_type::wheel:
-			break;
 		case window_event_type::delta: {
 			if (_is_looking)
 			{

@@ -22,7 +22,7 @@
             "comp_type": 12829486272651206750,
             "entity": 2,
             "material": 1,
-            "material0": "assets/ground_plane/default_ground.stkmodel/Ground",
+            "material0": "assets/gbuffer.stkmat",
             "mesh": "assets/ground_plane/default_ground.stkmodel/Plane",
             "skin": "",
             "skin_entities": 0
@@ -283,17 +283,18 @@
     ],
     "resources": [
         "assets/ground_plane/default_ground.stkmodel",
+        "assets/gbuffer.stkmat",
         "assets/cube/cube.stkmodel"
     ],
     "tool_cam_pos": [
-        5.252967834472656,
-        3.3446569442749023,
-        2.024677038192749
+        29.604997634887695,
+        8.437969207763672,
+        12.928098678588867
     ],
     "tool_cam_rot": [
-        -0.1688074916601181,
-        0.5796866416931152,
-        0.12427420914173126,
-        0.787415623664856
+        0.0031977551989257336,
+        0.5533889532089233,
+        -0.002124591963365674,
+        0.8329141139984131
     ]
 }

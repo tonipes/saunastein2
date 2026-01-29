@@ -289,6 +289,7 @@ namespace SFG
 
 		uint32 get_texture_size(uint32 width, uint32 height, uint32 bpp) const;
 		uint32 align_texture_size(uint32 size) const;
+		uint32 align_texture_size_pitch(uint32 size) const;
 		void*  adjust_buffer_pitch(void* data, uint32 width, uint32 height, uint8 bpp, uint32& out_total_size) const;
 
 		void cmd_begin_event(gfx_id cmd_list, const char* label);

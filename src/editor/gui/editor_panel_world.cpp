@@ -500,6 +500,12 @@ namespace SFG
 			return vekt::input_event_result::handled;
 		}
 
+		if (ev.button == input_code::mouse_1 && widget == self->_world_viewer && ev.type == vekt::input_event_type::pressed)
+		{
+			editor::get().get_camera().set_is_looking(true);
+			return vekt::input_event_result::handled;
+		}
+
 		if (widget == self->_btn_file)
 		{
 			editor_gui_controller& ctr = editor::get().get_gui_controller();

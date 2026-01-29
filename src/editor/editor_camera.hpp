@@ -58,6 +58,7 @@ namespace SFG
 
 		void activate();
 		void deactivate();
+		void set_is_looking(bool b);
 
 		// -----------------------------------------------------------------------------
 		// accessors/muts

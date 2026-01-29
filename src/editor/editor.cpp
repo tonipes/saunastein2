@@ -304,6 +304,12 @@ namespace SFG
 			return true;
 		}
 
+		if (ev.type == window_event_type::mouse && ev.button == input_code::mouse_1 && ev.sub_type == window_event_sub_type::release)
+		{
+			_camera_controller.set_is_looking(false);
+			return true;
+		}
+
 		const play_mode pm = _app.get_world().get_playmode();
 
 		if (_camera_controller.get_is_looking())
@@ -312,17 +318,23 @@ namespace SFG
 			return true;
 		}
 
-		if (pm == play_mode::full)
+		if (ev.type == window_event_type::key && ev.button == input_code::key_escape && ev.sub_type == window_event_sub_type::press)
 		{
-			if (ev.type == window_event_type::key && ev.button == input_code::key_escape && ev.sub_type == window_event_sub_type::press)
+			if (pm == play_mode::full)
 			{
 				_gui_controller.on_exited_playmode();
 				exit_playmode();
 				return true;
 			}
 
-			return false;
+			_app.get_main_window().confine_cursor(cursor_confinement::none);
+			_app.get_main_window().set_cursor_visible(true);
+
+			return true;
 		}
+
+		if (pm == play_mode::full)
+			return false;
 
 		if (ev.type == window_event_type::delta)
 		{
@@ -339,7 +351,6 @@ namespace SFG
 		}
 		else if (ev.type == window_event_type::mouse)
 		{
-
 			if (_gui_controller.on_mouse_event(ev))
 				return true;
 		}

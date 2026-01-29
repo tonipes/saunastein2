@@ -197,10 +197,14 @@ namespace SFG
 
 	uint32 render_pass_object_id::read_location(uint16 x, uint16 y, uint8 frame_index)
 	{
-		per_frame_data& pfd	  = _pfd[frame_index];
-		const uint32	pixel = _size.x * y + x;
-		uint32*			data  = reinterpret_cast<uint32*>(pfd.readback_mapped);
-		uint32			val	  = data[pixel];
+		per_frame_data& pfd		   = _pfd[frame_index];
+		gfx_backend*	backend	   = gfx_backend::get();
+		const uint32	aligned	   = backend->align_texture_size_pitch(_size.x * 4);
+		const uint32	data_index = aligned * y + x * 4;
+
+		const uint32 pixel = _size.x * y + x;
+		uint8*		 data  = reinterpret_cast<uint8*>(pfd.readback_mapped);
+		uint32		 val   = *reinterpret_cast<uint32*>(&data[data_index]);
 		return val;
 	}
 
@@ -235,7 +239,7 @@ namespace SFG
 				  .debug_name	  = "object_id_rt",
 			  });
 
-		const uint32 aligned = backend->align_texture_size(sz.x * 4);
+			const uint32 aligned = backend->align_texture_size_pitch(sz.x * 4);
 
 			pfd.readback_buffer = backend->create_resource({.size = static_cast<uint32>(aligned * sz.y), .flags = resource_flags::rf_readback, .debug_name = "object_id_readback"});
 			backend->map_resource(pfd.readback_buffer, pfd.readback_mapped);

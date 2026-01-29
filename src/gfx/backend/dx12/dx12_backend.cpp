@@ -893,7 +893,7 @@ namespace SFG
 
 	uint8 dx12_backend::get_back_buffer_index(gfx_id s)
 	{
-		swapchain& swp = _swapchains.get(s);
+		swapchain& swp	= _swapchains.get(s);
 		swp.image_index = swp.ptr->GetCurrentBackBufferIndex();
 		return swp.image_index;
 	}
@@ -934,10 +934,10 @@ namespace SFG
 			allocation_desc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
 			state					 = D3D12_RESOURCE_STATE_COMMON;
 
-		//if (desc.flags.is_set(resource_flags::rf_vertex_buffer) || desc.flags.is_set(resource_flags::rf_constant_buffer))
-		//	state = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
-		//else if (desc.flags.is_set(resource_flags::rf_index_buffer))
-		//	state = D3D12_RESOURCE_STATE_INDEX_BUFFER;
+			// if (desc.flags.is_set(resource_flags::rf_vertex_buffer) || desc.flags.is_set(resource_flags::rf_constant_buffer))
+			//	state = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+			// else if (desc.flags.is_set(resource_flags::rf_index_buffer))
+			//	state = D3D12_RESOURCE_STATE_INDEX_BUFFER;
 		}
 		else if (desc.flags.is_set(resource_flags::rf_cpu_visible))
 		{
@@ -3011,6 +3011,11 @@ namespace SFG
 		return (size + D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT - 1) & ~(D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT - 1);
 	}
 
+	uint32 dx12_backend::align_texture_size_pitch(uint32 size) const
+	{
+		return (size + D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1) & ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1);
+	}
+
 	void* dx12_backend::adjust_buffer_pitch(void* data, uint32 width, uint32 height, uint8 bpp, uint32& out_total_size) const
 	{
 		const uint32 _bpp	   = static_cast<uint32>(bpp);
@@ -3081,11 +3086,11 @@ namespace SFG
 
 	void dx12_backend::cmd_copy_texture_to_buffer(gfx_id cmd_id, const command_copy_texture_to_buffer& cmd) const
 	{
-		const command_buffer&			  buffer		= _command_buffers.get(cmd_id);
-		ID3D12GraphicsCommandList4*		  cmd_list		= buffer.ptr.Get();
-		const texture&					  txt			= _textures.get(cmd.src_texture);
-		const resource&					  res			= _resources.get(cmd.dest_buffer);
-		const uint32 row_pitch =  static_cast<UINT>((cmd.size.x * cmd.bpp + (D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1)) & ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1));
+		const command_buffer&		buffer	  = _command_buffers.get(cmd_id);
+		ID3D12GraphicsCommandList4* cmd_list  = buffer.ptr.Get();
+		const texture&				txt		  = _textures.get(cmd.src_texture);
+		const resource&				res		  = _resources.get(cmd.dest_buffer);
+		const uint32				row_pitch = static_cast<UINT>((cmd.size.x * cmd.bpp + (D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1)) & ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1));
 
 		const D3D12_TEXTURE_COPY_LOCATION dest_location = {
 			.pResource = res.ptr->GetResource(),

@@ -284,6 +284,9 @@ ps_output PSMain(vs_output IN)
     float2 emissive_offset = mat_data.emissive_tiling_offset.zw;
     float2 emissive_uv = IN.uv * emissive_tiling + emissive_offset;
 
+    float a = sfg_global_delta;
+    albedo_uv *= float2(frac(a), frac(a));
+
     // --- Base color ---
     float4 albedo_tex = tex_albedo.Sample(sampler_default, albedo_uv);
     float4 albedo = albedo_tex * mat_data.base_color_factor;
@@ -318,10 +321,10 @@ ps_output PSMain(vs_output IN)
     float3 emissive = emissive_tex * mat_data.emissive_and_metallic_factor.xyz * 3;
 
     // outs
-    OUT.rt0 = float4(albedo.xyz, 1.0);
+    OUT.rt0 = float4(frac(sfg_global_elapsed),2,0, 1.0);
     OUT.rt1 = float4(encoded_normal, 0.0, 0.0);
     OUT.rt2 = float4(ao, roughness, metallic, 1.0);
-    OUT.rt3 = float4(emissive, 1.0);
+    OUT.rt3 = float4(0,0,0, 1.0);
 
     return OUT;
 }
