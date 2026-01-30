@@ -24,53 +24,39 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISE
 OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#pragma once
-
-#include "common/string_id.hpp"
-#include "math/vector2.hpp"
-#include "math/vector3.hpp"
-#include "resources/common_resources.hpp"
-#include "world/world_constants.hpp"
+#include "comp_player.hpp"
+#include "world/world.hpp"
+#include "gfx/event_stream/render_event_stream.hpp"
+#include "gfx/event_stream/render_events_trait.hpp"
+#include "reflection/reflection.hpp"
 
 namespace SFG
 {
-	class world;
-	class app;
-	class window;
-	struct window_event;
-	struct vector2ui16;
-
-	class gameplay
+	void comp_player::reflect()
 	{
-	public:
-		gameplay(app& app) : _app(app) {};
+		meta& m = reflection::get().register_meta(type_id<comp_player>::value, 0, "component");
+		m.set_title("player");
+		m.set_category("game");
+		m.add_field<&comp_player::_movement_speed, comp_player>("movement_speed", reflected_field_type::rf_float, "");
+		m.add_field<&comp_player::_rotation_speed, comp_player>("rotation_speed", reflected_field_type::rf_float, "");
 
-		void init();
-		void uninit();
+		m.add_function<void, const reflected_field_changed_params&>("on_reflected_changed"_hs, [](const reflected_field_changed_params& params) { comp_player* c = static_cast<comp_player*>(params.object_ptr); });
 
-		void on_world_begin(world& w);
-		void on_world_end(world& w);
-		void on_world_tick(world& w, float dt, const vector2ui16& game_res);
-		void on_window_event(const window_event& ev, window* wnd);
+		m.add_function<void, void*, world&>("on_reflect_load"_hs, [](void* obj, world& w) { comp_player* c = static_cast<comp_player*>(obj); });
+	}
 
-	private:
-		app&			_app;
-		window*			_window				= nullptr;
-		world_handle	_player_entity		= {};
-		world_handle	_player_controller	= {};
-		world_handle	_camera_entity		= {};
-		world_handle	_camera_comp		= {};
-		resource_handle _bullet_template	= {};
-		vector3			_direction_input	= vector3::zero;
-		vector2			_mouse_delta		= vector2::zero;
-		float			_yaw_degrees		= 0.0f;
-		float			_pitch_degrees		= 0.0f;
-		float			_current_move_speed = 12.0f;
-		float			_base_move_speed	= 12.0f;
-		float			_boost_multiplier	= 8.0f;
-		float			_mouse_sensitivity	= 0.08f;
-		bool			_is_looking			= false;
-		uint8			_is_active			= 0;
-	};
+	void comp_player::on_add(world& w)
+	{
+		w.get_entity_manager().add_render_proxy(_header.entity);
+	}
+
+	void comp_player::on_remove(world& w)
+	{
+		w.get_entity_manager().remove_render_proxy(_header.entity);
+	}
+
+	void comp_player::set_values(world& w, const color& base_color)
+	{
+	}
 
 }

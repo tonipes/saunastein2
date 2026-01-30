@@ -198,6 +198,8 @@ namespace SFG
 
 		engine_resources::get().clear_init();
 
+		_gameplay->init();
+
 		return init_status::ok;
 	}
 
@@ -228,6 +230,7 @@ namespace SFG
 		_renderer = nullptr;
 		_render_stream.uninit();
 
+		_gameplay->uninit();
 		delete _gameplay;
 		_gameplay = nullptr;
 

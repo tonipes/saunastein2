@@ -595,14 +595,16 @@ namespace SFG
 		editor_panel_entities* entities = cont.get_entities();
 
 		const world_handle selected = entities->get_selected();
-		if (selected.is_null())
+
+
+		world&			w  = editor::get().get_app().get_world();
+		entity_manager& em = w.get_entity_manager();
+
+		if (!em.is_valid(selected))
 		{
 			_hovered_axis = gizmo_axis::none;
 			return false;
 		}
-
-		world&			w  = editor::get().get_app().get_world();
-		entity_manager& em = w.get_entity_manager();
 
 		const world_handle main_cam_entity = em.get_main_camera_entity();
 		if (main_cam_entity.is_null())
