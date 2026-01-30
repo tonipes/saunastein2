@@ -197,10 +197,13 @@ namespace SFG
 		}
 		const entity_template_raw& tr = raw.entities_raw;
 
+		_loaded_extra_resources = raw.extra_resources;
+
 #ifdef SFG_TOOLMODE
 		_tool_camera_pos = raw.tool_cam_pos;
 		_tool_camera_rot = raw.tool_cam_rot;
 		_resource_manager.load_resources(tr.resources);
+		_resource_manager.load_resources(raw.extra_resources);
 #else
 		package& pkg = package_manager::get().open_package_res();
 		_resource_manager.load_resources(tr.resources, pkg);
@@ -224,7 +227,7 @@ namespace SFG
 
 		if (_play_mode != play_mode::none)
 			_phy_world.simulate(dt);
-			
+
 		auto& canvases = _comp_manager.underlying_pool<comp_cache<comp_canvas, MAX_WORLD_COMP_CANVAS>, comp_canvas>();
 		for (comp_canvas& c : canvases)
 			c.draw(*this, res);

@@ -27,6 +27,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "world_raw.hpp"
 #include "data/ostream.hpp"
 #include "data/istream.hpp"
+#include "data/ostream_vector.hpp"
+#include "data/istream_vector.hpp"
 
 #ifdef SFG_TOOLMODE
 #include "io/file_system.hpp"
@@ -53,11 +55,13 @@ namespace SFG
 	void world_raw::serialize(ostream& stream) const
 	{
 		entities_raw.serialize(stream);
+		stream << extra_resources;
 	}
 
 	void world_raw::deserialize(istream& stream)
 	{
 		entities_raw.deserialize(stream);
+		stream >> extra_resources;
 	}
 
 	void world_raw::destroy()
@@ -83,8 +87,9 @@ namespace SFG
 
 			destroy();
 
-			tool_cam_pos = json_data.value<vector3>("tool_cam_pos", vector3::zero);
-			tool_cam_rot = json_data.value<quat>("tool_cam_rot", quat::identity);
+			tool_cam_pos	= json_data.value<vector3>("tool_cam_pos", vector3::zero);
+			tool_cam_rot	= json_data.value<quat>("tool_cam_rot", quat::identity);
+			extra_resources = json_data.value<vector<string>>("extra_resources", {});
 
 			entity_template_raw::load_from_json(json_data, entities_raw);
 
@@ -115,9 +120,10 @@ namespace SFG
 			to_serialize.push_back(handle);
 		}
 
-		json j			  = {};
-		j["tool_cam_pos"] = w.get_tool_camera_pos();
-		j["tool_cam_rot"] = w.get_tool_camera_rot();
+		json j				 = {};
+		j["tool_cam_pos"]	 = w.get_tool_camera_pos();
+		j["tool_cam_rot"]	 = w.get_tool_camera_rot();
+		j["extra_resources"] = w.get_extra_resources();
 
 		entity_template_raw::save_to_json(j, w, to_serialize);
 
@@ -138,6 +144,8 @@ namespace SFG
 		resource_manager&  rm = w.get_resource_manager();
 
 		destroy();
+
+		extra_resources = w.get_extra_resources();
 
 		// top-level entities
 		vector<world_handle> roots;

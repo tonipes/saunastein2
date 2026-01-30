@@ -179,6 +179,11 @@ namespace SFG
 			return _time_manager;
 		}
 
+		inline const vector<string>& get_extra_resources() const
+		{
+			return _loaded_extra_resources;
+		}
+
 #ifdef SFG_TOOLMODE
 
 		inline void set_tool_camera_pos(const vector3& p)
@@ -230,7 +235,8 @@ namespace SFG
 		world_debug_rendering _debug_rendering = {};
 		world_screen		  _screen		   = {};
 
-		vector<atlas_data>	 _vekt_atlases = {};
+		vector<atlas_data>	 _vekt_atlases			 = {};
+		vector<string>		 _loaded_extra_resources = {};
 		render_event_stream& _render_stream;
 
 		bitmask<uint8> _flags	  = 0;

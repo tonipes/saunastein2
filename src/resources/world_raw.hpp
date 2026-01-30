@@ -54,8 +54,9 @@ namespace SFG
 		void fill_from_world(world& w);
 #endif
 
-		vector3				tool_cam_pos = vector3::zero;
-		quat				tool_cam_rot = quat::identity;
-		entity_template_raw entities_raw = {};
+		vector3				tool_cam_pos	= vector3::zero;
+		quat				tool_cam_rot	= quat::identity;
+		entity_template_raw entities_raw	= {};
+		vector<string>		extra_resources = {};
 	};
 }
