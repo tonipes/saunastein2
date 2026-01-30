@@ -1,0 +1,19 @@
+{
+  "initial_state": "Walk",
+  "parameters": [
+  ],
+  "states": [
+    {
+      "name": "Walk",
+      "loop": 1,
+      "blend": "none",
+      "samples": [
+        {
+          "animation": "assets/models/saunaguy.stkmodel/Walk_Loop"
+        }
+      ]
+    }
+  ],
+  "masks": [],
+  "transitions": []
+}

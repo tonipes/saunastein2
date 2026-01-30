@@ -1,0 +1,4 @@
+{
+  "source": "assets/models/default_ground.glb",
+  "import_pbr_materials": 1
+}
