@@ -40,6 +40,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "gui/vekt.hpp"
 #include "math/matrix4x4.hpp"
+#include <resources/audio.hpp>
+#include <world/components/comp_audio.hpp>
 
 namespace SFG
 {
@@ -51,7 +53,25 @@ namespace SFG
 		entity_manager&	   em = w.get_entity_manager();
 		component_manager& cm = w.get_comp_manager();
 		resource_manager&  rm = w.get_resource_manager();
+		audio_manager&	   am = w.get_audio_manager();
+		
+		//auto audio_handle = rm.get_resource_handle_by_hash<audio>("path"_hs);
+		//auto audio_res	  = rm.get_resource<audio>(audio_handle);
 
+		world_handle music_entity = em.find_entity("music");
+		if (!music_entity.is_null())
+		{
+			world_handle audio_comp = em.get_entity_component<comp_audio>(music_entity);
+			if (!audio_comp.is_null())
+			{
+				comp_audio& comp = cm.get_component<comp_audio>(audio_comp);
+				comp.reset(w);
+				comp.play(w);
+			}
+		}
+		SFG_TRACE("music_entity: {0}", music_entity.is_null());
+
+		
 		_player_entity = em.find_entity("Player");
 		if (!_player_entity.is_null())
 			_camera_entity = em.find_entity(_player_entity, "PlayerCamera");
