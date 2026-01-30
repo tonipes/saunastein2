@@ -1,0 +1,183 @@
+{
+    "components": [
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 1,
+            "material": 1,
+            "material0": "assets/models/level.stkmodel/DummyFloor",
+            "mesh": "assets/models/level.stkmodel/Plane",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "body_type": 0,
+            "comp_type": 14536826215375575722,
+            "entity": 1,
+            "extents": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "is_sensor": 0,
+            "material": "",
+            "offset": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "shape_type": 5
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 3,
+            "material": 1,
+            "material0": "assets/models/cube.stkmodel/saunaguy",
+            "mesh": "assets/models/cube.stkmodel/Cube.001",
+            "skin": "",
+            "skin_entities": 0
+        }
+    ],
+    "entities": [
+        {
+            "first_child": 1,
+            "name": "level",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Plane",
+            "next_sibling": -1,
+            "parent": 0,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 3,
+            "name": "assets/models/cube.stkmodel",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                -111.77851867675781,
+                69.6092529296875,
+                74.40715026855469
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "cube",
+            "next_sibling": -1,
+            "parent": 2,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "new_entity",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                0.0,
+                1.2996361255645752,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        }
+    ],
+    "extra_resources": [],
+    "resources": [
+        "assets/models/level.stkmodel",
+        "assets/models/cube.stkmodel"
+    ],
+    "tool_cam_pos": [
+        3.4065723419189453,
+        2.7372162342071533,
+        7.814878463745117
+    ],
+    "tool_cam_rot": [
+        -0.17072132229804993,
+        0.2981342077255249,
+        0.05428744852542877,
+        0.9375623464584351
+    ]
+}

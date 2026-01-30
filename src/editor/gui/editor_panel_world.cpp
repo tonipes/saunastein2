@@ -610,12 +610,6 @@ namespace SFG
 			return true;
 		}
 
-		if (ev.button == input_code::key_s && is_ctrl)
-		{
-			editor::get().save_lavel();
-			return true;
-		}
-
 		return false;
 	}
 

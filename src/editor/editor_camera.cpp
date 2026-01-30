@@ -64,7 +64,7 @@ namespace SFG
 		em.set_entity_transient(_entity, true);
 
 		comp_camera& cam_trait = cm.get_component<comp_camera>(_camera_trait);
-		cam_trait.set_values(w, 0.01f, 250.0f, 60.0f, {0.01f, 0.04f, 0.125f});
+		cam_trait.set_values(w, 0.01f, 1250.0f, 60.0f, {0.01f, 0.04f, 0.125f});
 		cam_trait.set_main(w);
 
 		em.set_entity_position(_entity, w.get_tool_camera_pos());
@@ -112,11 +112,24 @@ namespace SFG
 		}
 	}
 
+	void editor_camera::focus_to(const vector3& pos)
+	{
+		_focus_on	 = true;
+		_focus_point = pos;
+
+		entity_manager& em = _world->get_entity_manager();
+
+		const vector3 cam_pos = em.get_entity_position(_entity);
+		const float	  dist	  = (cam_pos - _focus_point).magnitude();
+		_focus_multip		  = dist * 0.075f;
+	}
+
 	void editor_camera::reset_runtime()
 	{
 		_direction_input = vector3::zero;
 		_mouse_delta	 = vector2::zero;
 		_is_looking		 = false;
+		_focus_on		 = false;
 		_window->set_cursor_visible(true);
 	}
 
@@ -194,6 +207,25 @@ namespace SFG
 	{
 		if (_is_active == 0)
 			return;
+
+		if (_focus_on)
+		{
+			entity_manager& em = _world->get_entity_manager();
+
+			const vector3 cam_pos = em.get_entity_position(_entity);
+			const quat	  cam_rot = em.get_entity_rotation(_entity);
+
+			const float dist_sqr = (cam_pos - _focus_point).magnitude_sqr();
+
+			const quat target_rot = quat::look_at(cam_pos, _focus_point, vector3::up);
+
+			//em.set_entity_rotation(_entity, quat::slerp(cam_rot, target_rot, dt_seconds));
+			em.set_entity_position(_entity, vector3::lerp(cam_pos, _focus_point, dt_seconds * _focus_multip));
+
+			if (dist_sqr < 4.0f)
+				_focus_on = false;
+			return;
+		}
 
 		update_rotation();
 		apply_movement(dt_seconds);

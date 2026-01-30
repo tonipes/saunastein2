@@ -1,0 +1,5 @@
+{
+  "source": "assets/models/level.glb",
+  "import_pbr_materials": 1,
+  "generate_colliders": 1
+}

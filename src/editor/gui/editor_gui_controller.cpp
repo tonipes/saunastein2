@@ -357,6 +357,14 @@ namespace SFG
 			_panel_entities->set_selected(h);
 	}
 
+	world_handle editor_gui_controller::get_selected_entity() const
+	{
+		if (!_panel_entities)
+			return {};
+
+		return _panel_entities->get_selected();
+	}
+
 	vekt::id editor_gui_controller::begin_context_menu(float abs_x, float abs_y)
 	{
 		kill_context();
