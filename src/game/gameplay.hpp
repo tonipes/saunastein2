@@ -31,7 +31,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "math/vector3.hpp"
 #include "resources/common_resources.hpp"
 #include "world/world_constants.hpp"
-#include <physics/physics_contact_listener.hpp>
+#include "physics/physics_contact_listener.hpp"
+#include "physics/physics_character_contact_listener.hpp"
 
 namespace SFG
 {
@@ -41,7 +42,7 @@ namespace SFG
 		world_handle door_root_handle;
 		float		 t;
 		float		 open_angle;
-		bool		 is_opened;	
+		bool		 is_opened;
 		float		 auto_open_distance;
 		float		 direction;
 	};
@@ -61,7 +62,7 @@ namespace SFG
 	struct window_event;
 	struct vector2ui16;
 
-	class gameplay: physics_contact_listener
+	class gameplay : public physics_contact_listener, public physics_character_contact_listener
 	{
 	public:
 		gameplay(app& app) : _app(app) {};
@@ -71,15 +72,19 @@ namespace SFG
 
 		void on_world_begin(world& w);
 		void on_world_end(world& w);
+		void on_debug_tick(world& w, float dt, const vector2ui16& game_res);
 		void on_world_tick(world& w, float dt, const vector2ui16& game_res);
 		void on_window_event(const window_event& ev, window* wnd);
-
-		void on_contact_begin(world_handle e1, world_handle e2, const vector3& p1, const vector3& p2);
-		void on_contact(world_handle e1, world_handle e2, const vector3& p1, const vector3& p2);
-		void on_contact_end(world_handle e1, world_handle e2);
+		void on_contact_begin(world_handle e1, world_handle e2, const vector3& p1, const vector3& p2) override;
+		void on_contact(world_handle e1, world_handle e2, const vector3& p1, const vector3& p2) override;
+		void on_contact_end(world_handle e1, world_handle e2) override;
+		void on_character_contact_begin(world_handle character, world_handle other, const vector3& position, const vector3& normal) override;
+		void on_character_contact(world_handle character, world_handle other, const vector3& position, const vector3& normal) override;
+		void on_character_contact_end(world_handle character, world_handle other) override;
 
 	private:
 		void tick_player(float dt);
+		void tick_player_debug(float dt);
 		void begin_player();
 		void tick_enemies(float dt);
 		void begin_enemies();
@@ -97,5 +102,4 @@ namespace SFG
 		vector<managed_entity> _managed_entities = {};
 		bool		 _player_initialized = false;		
 	};
-
 }

@@ -31,6 +31,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "math/color.hpp"
 #include "math/vector2.hpp"
 #include "math/vector3.hpp"
+#include "physics/physics_ray_collector.hpp"
 
 namespace SFG
 {
@@ -53,6 +54,7 @@ namespace SFG
 
 		void begin_game(world& w, window& wnd);
 		void tick(world& w, float dt);
+		void tick_debug(world& w, float dt);
 
 		void on_window_event(const window_event& ev);
 
@@ -71,24 +73,28 @@ namespace SFG
 	private:
 		component_header _header = {};
 
+		physics_raycast_single _ray_caster = {};
+
 		world_handle _char_controller = {};
 		world_handle _camera_entity	  = {};
 		world_handle _camera_comp	  = {};
+		world_handle _player_stats	  = {};
 
 		vector2 _mouse_delta = vector2::zero;
 		vector2 _move_input	 = vector2::zero;
 
-		float	_movement_speed	   = 15.0f;
-		float	_rotation_speed	   = 5.0f;
-		float	_camera_distance   = 4.0f;
-		float	_orbit_yaw_speed   = 0.08f;
-		float	_orbit_pitch_speed = 0.08f;
-		float	_orbit_min_pitch   = -80.0f;
-		float	_orbit_max_pitch   = 80.0f;
-		float	_yaw_degrees	   = 0.0f;
-		float	_pitch_degrees	   = 20.0f;
-		vector3 _camera_offset	   = vector3(0.0f, 1.5f, 0.0f);
-		bool	_inited			   = false;
+		float	_movement_speed		  = 15.0f;
+		float	_rotation_speed		  = 5.0f;
+		float	_camera_distance	  = 4.0f;
+		float	_real_camera_distance = 4.0f;
+		float	_orbit_yaw_speed	  = 0.08f;
+		float	_orbit_pitch_speed	  = 0.08f;
+		float	_orbit_min_pitch	  = -80.0f;
+		float	_orbit_max_pitch	  = 80.0f;
+		float	_yaw_degrees		  = 0.0f;
+		float	_pitch_degrees		  = 20.0f;
+		vector3 _camera_offset		  = vector3(0.0f, 1.5f, 0.0f);
+		bool	_inited				  = false;
 	};
 
 	REFLECT_TYPE(comp_player);
