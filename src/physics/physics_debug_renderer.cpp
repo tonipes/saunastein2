@@ -132,6 +132,7 @@ namespace SFG
 		JPH::BodyManager::DrawSettings ds = {};
 		ds.mDrawShape					  = true;
 		ds.mDrawVelocity				  = true;
+		ds.mDrawMassAndInertia			  = true;
 		w.get_physics_world().get_system()->DrawBodies(ds, this);
 	}
 

@@ -82,6 +82,8 @@ namespace SFG
 			_target_velocity = v;
 		}
 
+		void set_radius(world& w, float radius);
+
 	private:
 		template <typename T, int> friend class comp_cache;
 

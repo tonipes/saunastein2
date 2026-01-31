@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -56,30 +56,30 @@ namespace SFG
 			return _hydration_score;
 		}
 
-		inline int get_available_slow_mo_count() const
+		inline int get_available_dive_count() const
 		{
-			return _available_slow_mo_count;
+			return _available_dive_count;
 		}
 
-		inline bool can_slow_mo() const
+		inline bool can_dive() const
 		{
-			return _available_slow_mo_count > 0;
+			return _available_dive_count > 0;
 		}
 
 		void add_health(float delta);
 		void add_hydration_score(float delta);
-		void add_slow_mo_count(int delta);
-		bool try_consume_slow_mo();
-		void consume_slow_mo();
+		void add_dive_count(int delta);
+		bool try_consume_dive();
+		void consume_dive();
 
 	private:
 		template <typename T, int> friend class comp_cache;
 
 	private:
-		component_header _header = {};
-		float				 _health = 100.0f;
-		float				 _hydration_score = 0.0f;
-		int					 _available_slow_mo_count = 0;
+		component_header _header			   = {};
+		float			 _health			   = 100.0f;
+		float			 _hydration_score	   = 0.0f;
+		int				 _available_dive_count = 0;
 	};
 
 	REFLECT_TYPE(comp_player_stats);

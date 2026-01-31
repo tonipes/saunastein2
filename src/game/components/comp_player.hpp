@@ -38,6 +38,7 @@ namespace SFG
 	class world;
 	class window;
 	struct window_event;
+	class comp_character_controller;
 
 	class comp_player
 	{
@@ -68,6 +69,9 @@ namespace SFG
 		}
 
 	private:
+		void start_dive(world& w, comp_character_controller& controller, const vector3& dir);
+		void end_dive(world& w, comp_character_controller& controller);
+
 		template <typename T, int> friend class comp_cache;
 
 	private:
@@ -95,6 +99,16 @@ namespace SFG
 		float	_pitch_degrees		  = 20.0f;
 		vector3 _camera_offset		  = vector3(0.0f, 1.5f, 0.0f);
 		bool	_inited				  = false;
+
+		bool	_dive_requested			= false;
+		bool	_is_diving				= false;
+		float	_dive_timer				= 0.0f;
+		float	_dive_duration			= 0.45f;
+		float	_dive_speed				= 22.0f;
+		float	_dive_slowmo			= 0.2f;
+		float	_dive_jump_velocity		= 6.5f;
+		float	_base_controller_radius = 0.0f;
+		vector3 _dive_direction			= vector3::zero;
 	};
 
 	REFLECT_TYPE(comp_player);

@@ -101,6 +101,16 @@ namespace SFG
 		_controller->SetPosition(JPH::RVec3(pos.x, pos.y, pos.z));
 	}
 
+	void comp_character_controller::set_radius(world& w, float radius)
+	{
+		const float clamped = math::max(radius, 0.01f);
+		if (math::almost_equal(_radius, clamped))
+			return;
+
+		_radius = clamped;
+		rebuild(w);
+	}
+
 	void comp_character_controller::update(world& w, float dt)
 	{
 		if (_controller == nullptr)

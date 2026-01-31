@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
+	  list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
+	  this list of conditions and the following disclaimer in the documentation
+	  and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -36,7 +36,7 @@ namespace SFG
 		m.set_category("game");
 		m.add_field<&comp_player_stats::_health, comp_player_stats>("health", reflected_field_type::rf_float, "");
 		m.add_field<&comp_player_stats::_hydration_score, comp_player_stats>("hydration_score", reflected_field_type::rf_float, "");
-		m.add_field<&comp_player_stats::_available_slow_mo_count, comp_player_stats>("available_slow_mo_count", reflected_field_type::rf_int, "");
+		m.add_field<&comp_player_stats::_available_dive_count, comp_player_stats>("available_dive_count", reflected_field_type::rf_int, "");
 	}
 
 	void comp_player_stats::on_add(world& w)
@@ -58,28 +58,28 @@ namespace SFG
 		if (_hydration_score >= 100.0f)
 		{
 			_hydration_score = 0.0f;
-			++_available_slow_mo_count;
+			++_available_dive_count;
 		}
 	}
 
-	void comp_player_stats::add_slow_mo_count(int delta)
+	void comp_player_stats::add_dive_count(int delta)
 	{
-		const int next = _available_slow_mo_count + delta;
-		_available_slow_mo_count = next < 0 ? 0 : next;
+		const int next		  = _available_dive_count + delta;
+		_available_dive_count = next < 0 ? 0 : next;
 	}
 
-	bool comp_player_stats::try_consume_slow_mo()
+	bool comp_player_stats::try_consume_dive()
 	{
-		if (_available_slow_mo_count <= 0)
+		if (_available_dive_count <= 0)
 			return false;
 
-		--_available_slow_mo_count;
+		--_available_dive_count;
 		return true;
 	}
 
-	void comp_player_stats::consume_slow_mo()
+	void comp_player_stats::consume_dive()
 	{
-		if (_available_slow_mo_count > 0)
-			--_available_slow_mo_count;
+		if (_available_dive_count > 0)
+			--_available_dive_count;
 	}
 }
