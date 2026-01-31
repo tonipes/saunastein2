@@ -52,6 +52,9 @@ namespace SFG
 
 	void gameplay::on_world_begin(world& w)
 	{
+		physics_world& ph = w.get_physics_world();
+		ph.add_contact_listener(*this);
+
 		begin_player();
 		begin_doors();
 		begin_enemies();
@@ -192,12 +195,13 @@ namespace SFG
 	}
 
 	void gameplay::on_contact_begin(world_handle e1, world_handle e2, const vector3& p1, const vector3& p2) {
-
+		 SFG_TRACE("on_contact_begin: {0} {0}", e1.index, e2.index);
 	}
+
 	void gameplay::on_contact(world_handle e1, world_handle e2, const vector3& p1, const vector3& p2) {
 
 	}
 	void gameplay::on_contact_end(world_handle e1, world_handle e2) {
-		
+		SFG_TRACE("on_contact_end: {0} {0}", e1.index, e2.index);
 	}
 }

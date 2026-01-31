@@ -360,4 +360,9 @@ namespace SFG
 		_graivty = g;
 		_system->SetGravity(to_jph_vec3(g));
 	}
+
+	void physics_world::add_contact_listener(physics_contact_listener& listener) 
+	{
+		// TODO:
+	}
 }
