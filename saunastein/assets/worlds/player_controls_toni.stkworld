@@ -143,60 +143,6 @@
             "far": 250.0,
             "fov_degrees": 80.0,
             "near": 0.10000000149011612
-        },
-        {
-            "comp_type": 12829486272651206750,
-            "entity": 13,
-            "material": 1,
-            "material0": "assets/models/door.stkmodel/dungeon_floor",
-            "mesh": "assets/models/door.stkmodel/Cube",
-            "skin": "",
-            "skin_entities": 0
-        },
-        {
-            "body_type": 1,
-            "comp_type": 14536826215375575722,
-            "entity": 14,
-            "extents": [
-                2.0,
-                3.0,
-                0.5
-            ],
-            "is_sensor": 0,
-            "material": "",
-            "offset": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "shape_type": 1
-        },
-        {
-            "comp_type": 12829486272651206750,
-            "entity": 15,
-            "material": 1,
-            "material0": "assets/models/door.stkmodel/dungeon_floor",
-            "mesh": "assets/models/door.stkmodel/Cube",
-            "skin": "",
-            "skin_entities": 0
-        },
-        {
-            "body_type": 1,
-            "comp_type": 14536826215375575722,
-            "entity": 16,
-            "extents": [
-                2.0,
-                1.0,
-                1.0
-            ],
-            "is_sensor": 0,
-            "material": "",
-            "offset": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "shape_type": 1
         }
     ],
     "entities": [
@@ -501,12 +447,12 @@
             "visible": 1
         },
         {
-            "first_child": 13,
+            "first_child": -1,
             "name": "assets/models/door.stkmodel",
             "next_sibling": -1,
             "parent": -1,
             "pos": [
-                -3.0482006072998047,
+                -28.908641815185547,
                 -10.836820602416992,
                 0.7741068005561829
             ],
@@ -522,107 +468,7 @@
                 1.0
             ],
             "tag": "door_root",
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 14,
-            "name": "door",
-            "next_sibling": 15,
-            "parent": 12,
-            "pos": [
-                4.0,
-                0.0,
-                0.0
-            ],
-            "rot": [
-                0.0,
-                0.0,
-                0.0,
-                1.0
-            ],
-            "scale": [
-                -1.0,
-                1.0,
-                1.0
-            ],
-            "tag": "door",
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": -1,
-            "name": "collider",
-            "next_sibling": -1,
-            "parent": 13,
-            "pos": [
-                2.0,
-                3.0,
-                0.0
-            ],
-            "rot": [
-                0.0,
-                0.0,
-                0.0,
-                1.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0
-            ],
-            "tag": "",
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 16,
-            "name": "door",
-            "next_sibling": -1,
-            "parent": 12,
-            "pos": [
-                -4.0,
-                0.0,
-                0.0
-            ],
-            "rot": [
-                0.0,
-                0.0,
-                0.0,
-                1.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0
-            ],
-            "tag": "door",
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": -1,
-            "name": "collider",
-            "next_sibling": -1,
-            "parent": 15,
-            "pos": [
-                2.0,
-                3.0,
-                0.0
-            ],
-            "rot": [
-                0.0,
-                0.0,
-                0.0,
-                1.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0
-            ],
-            "tag": "",
-            "template": "",
+            "template": "assets/entities/autodoor_double.stkent",
             "visible": 1
         },
         {
@@ -649,23 +495,123 @@
             "tag": "trigger",
             "template": "",
             "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "assets/models/door.stkmodel",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                -60.39768981933594,
+                -10.836820602416992,
+                43.51340103149414
+            ],
+            "rot": [
+                -5.115907697472721e-13,
+                0.7071070075035095,
+                -5.115907697472721e-13,
+                0.7071065306663513
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "door_root",
+            "template": "assets/entities/autodoor_double.stkent",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "assets/models/door.stkmodel",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                -60.39768981933594,
+                -10.836820602416992,
+                136.31436157226563
+            ],
+            "rot": [
+                -5.115907697472721e-13,
+                0.7071070075035095,
+                -5.115907697472721e-13,
+                0.7071065306663513
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "door_root",
+            "template": "assets/entities/autodoor_double.stkent",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "assets/models/door.stkmodel",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                -51.7174186706543,
+                -10.836820602416992,
+                87.54292297363281
+            ],
+            "rot": [
+                1.8303282445231162e-07,
+                0.9996437430381775,
+                -1.4281749827205203e-07,
+                -0.026691051200032234
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "door_root",
+            "template": "assets/entities/autodoor_double.stkent",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "assets/models/door.stkmodel",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                -20.098024368286133,
+                -10.836820602416992,
+                20.432044982910156
+            ],
+            "rot": [
+                -3.063087977706047e-15,
+                0.0042340755462646484,
+                -7.234921212476153e-13,
+                0.9999910593032837
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "door_root",
+            "template": "assets/entities/autodoor_double.stkent",
+            "visible": 1
         }
     ],
     "extra_resources": [],
     "resources": [
         "assets/models/level.stkmodel",
         "assets/models/cube.stkmodel",
-        "assets/models/door.stkmodel"
+        "assets/entities/autodoor_double.stkent"
     ],
     "tool_cam_pos": [
-        16.782489776611328,
-        10.546209335327148,
-        0.1946260929107666
+        10.231201171875,
+        36.809078216552734,
+        2.5003981590270996
     ],
     "tool_cam_rot": [
-        0.4980255961418152,
-        0.5018819570541382,
-        -0.49319833517074585,
-        0.5067942142486572
+        -0.3612545430660248,
+        0.607592761516571,
+        0.36076250672340393,
+        0.6084214448928833
     ]
 }

@@ -42,6 +42,8 @@ namespace SFG
 		float		 t;
 		float		 open_angle;
 		bool		 is_opened;	
+		float		 auto_open_distance;
+		float		 direction;
 	};
 
 	class world;

@@ -132,6 +132,32 @@ namespace SFG
 		{
 			if (_doors[i].door_root_handle.is_null())
 				continue;
+			
+			if (!_doors[i].is_opened) 
+			{
+				vector3 player_pos = em.get_entity_position_abs(_player_entity);
+				vector3 door_pos = em.get_entity_position_abs(_doors[i].door_root_handle);
+				quat door_rot = em.get_entity_rotation_abs(_doors[i].door_root_handle);
+
+				float distance = (player_pos - door_pos).magnitude();
+				if (distance < _doors[i].auto_open_distance) {
+					_doors[i].is_opened = true;
+					vector3 door_forward = door_rot.get_forward();
+					vector3 to_player = (player_pos - door_pos).normalized();
+					float	dot					 = vector3::dot(door_forward, to_player);
+					bool	should_open_backward = dot > 0.0f;
+					if (should_open_backward) {
+						_doors[i].direction *= -1.0f;
+					}
+					
+					SFG_TRACE("OPEN DOOR: door_forward: [{0}, {1}], to_player: [{2}, {3}]: DOT {4}, BACKWARD: {5}", door_forward.x, door_forward.z, to_player.x, to_player.z, dot, should_open_backward);
+				
+
+					//SFG_TRACE("OPEN DOOR: PLAYER: [{0}, {1}], DOOR: [{2}, {3}]: DIST {4}, BACKWARD: {5}", player_pos.x, player_pos.z, door_pos.x, door_pos.z, distance, _doors[i].direction);
+				}
+			}
+
+			if (!_doors[i].is_opened) continue;
 
 			float speed = 1.0f;
 			_doors[i].t += dt * speed;
@@ -142,9 +168,9 @@ namespace SFG
 				tt = 0.0f;
 
 			em.visit_children(_doors[i].door_root_handle, [&](world_handle child) {
-				float ss = 1.0f;
+				float ss = _doors[i].direction;
 				if (em.get_entity_scale(child).x < 0.0f)
-					ss = -1.0f;
+					ss *= -1.0f;
 
 				const quat rot = quat::from_euler(0.0f, ss*tt * _doors[i].open_angle, 0.0f);
 				em.set_entity_rotation(child, rot);
@@ -179,6 +205,8 @@ namespace SFG
 				.t			 = 0,
 				.open_angle	 = 165.0f,
 				.is_opened	 = false,
+				.auto_open_distance = 10.0f,
+				.direction = 1.0f,
 			};
 
 			_doors.push_back(d);
@@ -195,7 +223,7 @@ namespace SFG
 	}
 
 	void gameplay::on_contact_begin(world_handle e1, world_handle e2, const vector3& p1, const vector3& p2) {
-		 SFG_TRACE("on_contact_begin: {0} {0}", e1.index, e2.index);
+		SFG_TRACE("on_contact_begin: {0} {0}", e1.index, e2.index);
 	}
 
 	void gameplay::on_contact(world_handle e1, world_handle e2, const vector3& p1, const vector3& p2) {
