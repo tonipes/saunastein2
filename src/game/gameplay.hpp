@@ -48,6 +48,13 @@ namespace SFG
 		.destroy_on_collision = true
 	};
 
+	struct pickup
+	{
+		world_handle root_handle;
+		world_handle visual;
+		bool has_been_picked_up;
+	};
+
 	struct door
 	{
 		// world_handle door_handle;
@@ -108,7 +115,7 @@ namespace SFG
 		void tick_enemies(float dt);
 		void begin_enemies();
 
-		void tick_doors(float dt);
+		void tick_doors(float dt) ;
 		void begin_doors();
 
 		void begin_managed_entities();
@@ -123,5 +130,7 @@ namespace SFG
 		vector<managed_entity> _managed_entities = {};
 		bool		 _player_initialized = false;	
 		static gameplay*	   _inst;
+
+		vector<pickup> _pickups;
 	};
 }

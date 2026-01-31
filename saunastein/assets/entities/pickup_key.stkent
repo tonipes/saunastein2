@@ -1,0 +1,181 @@
+{
+    "components": [
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 2,
+            "material": 1,
+            "material0": "assets/models/key.stkmodel/metal",
+            "mesh": "assets/models/key.stkmodel/key",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "cast_shadows": 0,
+            "color": [
+                1.0,
+                1.0,
+                0.0,
+                1.0
+            ],
+            "comp_type": 444826457028991798,
+            "entity": 3,
+            "intensity": 100.0,
+            "near_plane": 0.0,
+            "range": 5.0,
+            "shadow_res": [
+                256,
+                256
+            ]
+        },
+        {
+            "cast_shadows": 0,
+            "color": [
+                1.0,
+                1.0,
+                0.0,
+                1.0
+            ],
+            "comp_type": 13525139508269883138,
+            "entity": 4,
+            "inner_cone": 1.552893877029419,
+            "intensity": 1000.0,
+            "near_plane": 0.0,
+            "outer_cone": 5.573216915130615,
+            "range": 20.0,
+            "shadow_res": [
+                256,
+                256
+            ]
+        }
+    ],
+    "entities": [
+        {
+            "first_child": 1,
+            "name": "pickup_key",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "pickup",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 2,
+            "name": "visual",
+            "next_sibling": -1,
+            "parent": 0,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.1042732298374176,
+                0.0,
+                0.9945486783981323
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "pickup_visual",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "key",
+            "next_sibling": 3,
+            "parent": 1,
+            "pos": [
+                -0.15432187914848328,
+                0.9047262668609619,
+                1.9510266780853271
+            ],
+            "rot": [
+                -0.3229067623615265,
+                0.17244921624660492,
+                -0.05996320769190788,
+                0.9286532998085022
+            ],
+            "scale": [
+                3.0,
+                3.0,
+                3.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "light",
+            "next_sibling": 4,
+            "parent": 1,
+            "pos": [
+                -0.06090874969959259,
+                2.2195847034454346,
+                0.28727811574935913
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "light",
+            "next_sibling": -1,
+            "parent": 1,
+            "pos": [
+                -0.06090874969959259,
+                15.49081039428711,
+                0.28727811574935913
+            ],
+            "rot": [
+                -0.7071070075035095,
+                0.0,
+                0.0,
+                0.7071065306663513
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        }
+    ],
+    "resources": [
+        "assets/models/key.stkmodel"
+    ]
+}
