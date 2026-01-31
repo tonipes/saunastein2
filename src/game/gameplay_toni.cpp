@@ -38,6 +38,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace SFG
 {
+	
 	void gameplay::tick_doors(float dt)
 	{
 		world&			   w  = _app.get_world();
@@ -45,6 +46,9 @@ namespace SFG
 		entity_manager&	   em = w.get_entity_manager();
 		physics_world&	   ph = w.get_physics_world();
 
+		float t = w.get_time_manager().get_elapsed_game_time();
+
+		// doors
 		for (int i = 0; i < _doors.size(); ++i)
 		{
 			if (_doors[i].door_root_handle.is_null())
@@ -96,10 +100,41 @@ namespace SFG
 				phys_comp.set_body_position_and_rotation(w, em.get_entity_position_abs(phys_ent_handle), em.get_entity_rotation_abs(phys_ent_handle));
 			});
 		}
+		
+		// pickups
+		for (int i = _pickups.size() - 1; i >= 0; --i)
+		{
+			pickup& p = _pickups[i];
+
+			if (!em.is_valid(p.root_handle))
+			{
+				_pickups.pop_back();
+				continue;
+			}
+
+			vector3 player_pos = em.get_entity_position_abs(_player_entity);
+			vector3 pickup_pos   = em.get_entity_position_abs(_pickups[i].root_handle);
+			float dist = vector2::distance({player_pos.x, player_pos.z}, {pickup_pos.x, pickup_pos.z});
+
+			if (!p.visual.is_null() && em.is_valid(p.visual))
+			{
+				em.set_entity_rotation(p.visual, quat::from_euler(0.0f, t*200.0f, 0.0f));
+				em.set_entity_position(p.visual, {0.0f, sinf(t*2), 0.0f});
+			}
+
+			if (!em.is_valid(p.root_handle) || dist < 1.0f)
+			{
+				em.destroy_entity(p.root_handle);
+				_pickups.pop_back();
+			}
+		}
 	}
 
 	void gameplay::begin_doors()
 	{
+		_doors.clear();
+		_pickups.clear();
+
 		world&			   w  = _app.get_world();
 		component_manager& cm = w.get_comp_manager();
 		entity_manager&	   em = w.get_entity_manager();
@@ -112,16 +147,37 @@ namespace SFG
 		for (int i = 0; i < tmp.size(); ++i)
 		{
 			// SFG_TRACE("DOOR: {0}", i);
+			auto name = em.get_entity_meta(tmp[i]).name;
+			bool is_auto = strstr(name, "noauto") == NULL;
+
 			door d = {
 				.door_root_handle	= tmp[i],
 				.t					= 0,
 				.open_angle			= 165.0f,
 				.is_opened			= false,
-				.auto_open_distance = 10.0f,
+				.auto_open_distance = is_auto ? 10.0f : 0.0f,
 				.direction			= 1.0f,
 			};
 
 			_doors.push_back(d);
+		}
+
+		tmp.clear();
+		em.find_entities_by_tag("pickup", tmp);
+		//SFG_TRACE("PICKUPs: {0}", tmp.size());
+		for (int i = 0; i < tmp.size(); ++i)
+		{
+			//SFG_TRACE("PICKUP: {0}", i);
+			auto name = em.get_entity_meta(tmp[i]).name;
+			world_handle visual = em.find_entity(tmp[i], "visual");
+			//SFG_TRACE("VISUAL: {0}", !visual.is_null());
+
+			pickup p = {
+				.root_handle	= tmp[i], 
+				.visual = visual
+			};
+
+			_pickups.push_back(p);
 		}
 	}
 
