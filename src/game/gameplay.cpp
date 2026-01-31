@@ -32,6 +32,9 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace SFG
 {
 
+
+
+
 #define MAX_PLAYERS 1
 
 	void gameplay::init()
@@ -46,15 +49,18 @@ namespace SFG
 	void gameplay::on_world_begin(world& w)
 	{
 		begin_player();
+		begin_doors();
 	}
 
 	void gameplay::on_world_end(world& w)
 	{
+		_doors.clear();
 	}
 
 	void gameplay::on_world_tick(world& w, float dt, const vector2ui16& game_res)
 	{
 		tick_player(dt);
+		tick_doors(dt);
 	}
 
 	void gameplay::on_window_event(const window_event& ev, window* wnd)
@@ -82,5 +88,46 @@ namespace SFG
 		auto&			   players = cm.underlying_pool<comp_cache<comp_player, MAX_PLAYERS>, comp_player>();
 		for (comp_player& p : players)
 			p.begin_game(w, _app.get_main_window());
+	}
+
+	void gameplay::tick_doors(float dt)
+	{
+		world&			   w  = _app.get_world();
+		component_manager& cm = w.get_comp_manager();
+		entity_manager&	   em = w.get_entity_manager();
+		physics_world&	   ph = w.get_physics_world();
+
+		for (int i = 0; i < _doors.size(); ++i)
+		{
+			float speed = 3.0f;
+			_doors[i].t += dt * speed;
+			if (_doors[i].t > 1.0f) _doors[i].t = 1.0f;
+
+			const quat rot = quat::from_euler(0.0f, _doors[i].t * _doors[i].open_angle, 0.0f);
+			em.set_entity_rotation(_doors[i].door_handle, rot);
+		}
+	}
+
+	void gameplay::begin_doors()
+	{
+		world&			   w  = _app.get_world();
+		component_manager& cm = w.get_comp_manager();
+		entity_manager&	   em = w.get_entity_manager();
+
+		vector<world_handle> door_handles = {};
+		em.find_entities_by_tag("door", door_handles);
+		SFG_TRACE("DOOR COUNT {0}", door_handles.size());
+		for (int i = 0; i < door_handles.size(); ++i)
+		{
+			SFG_TRACE("DOOR {0} {1}", i, door_handles[i].index);
+			
+			door d = {
+				.door_handle = door_handles[i],
+				.t			  = 0,
+				.open_angle   = 165.0f,
+			};
+
+			_doors.push_back(d);
+		}
 	}
 }

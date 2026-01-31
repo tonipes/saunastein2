@@ -34,6 +34,13 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace SFG
 {
+	struct door
+	{
+		world_handle door_handle;
+		float		 t;
+		float		 open_angle;
+	};
+
 	class world;
 	class app;
 	class window;
@@ -57,9 +64,13 @@ namespace SFG
 		void tick_player(float dt);
 		void begin_player();
 
+		void tick_doors(float dt);
+		void begin_doors();
+
 	private:
 		app&		 _app;
 		world_handle _player_entity = {};
+		vector<door> _doors			= {};
 	};
 
 }

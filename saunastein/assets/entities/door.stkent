@@ -1,0 +1,120 @@
+{
+    "components": [
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 1,
+            "material": 1,
+            "material0": "assets/models/door.stkmodel/dungeon_floor",
+            "mesh": "assets/models/door.stkmodel/Cube.005",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 2,
+            "material": 1,
+            "material0": "assets/models/door.stkmodel/dungeon_floor",
+            "mesh": "assets/models/door.stkmodel/Cube",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "body_type": 1,
+            "comp_type": 14536826215375575722,
+            "entity": 2,
+            "extents": [
+                2.0,
+                3.0,
+                0.30000001192092896
+            ],
+            "is_sensor": 0,
+            "material": "",
+            "offset": [
+                2.0,
+                3.0,
+                0.0
+            ],
+            "shape_type": 1
+        }
+    ],
+    "entities": [
+        {
+            "first_child": 1,
+            "name": "assets/models/door.stkmodel",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                -7.8319926261901855,
+                0.0,
+                -26.19460105895996
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 2,
+            "name": "door_root",
+            "next_sibling": -1,
+            "parent": 0,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "door",
+            "next_sibling": -1,
+            "parent": 1,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "door",
+            "template": "",
+            "visible": 1
+        }
+    ],
+    "resources": [
+        "assets/models/door.stkmodel"
+    ]
+}
