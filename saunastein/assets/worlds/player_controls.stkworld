@@ -2587,23 +2587,49 @@
             "tag": "",
             "template": "assets/prefabs/mask.stkent",
             "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "toni_stuff",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                42.58123016357422,
+                66.26826477050781,
+                21.357772827148438
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "assets/entities/tonistuff.stkent",
+            "visible": 1
         }
     ],
     "extra_resources": [],
     "resources": [
         "assets/models/level.stkmodel",
         "assets/models/saunaguy.stkmodel",
-        "assets/prefabs/mask.stkent"
+        "assets/prefabs/mask.stkent",
+        "assets/entities/tonistuff.stkent"
     ],
     "tool_cam_pos": [
-        -141.52395629882813,
-        88.57136535644531,
-        94.3140869140625
+        78.97723388671875,
+        88.69293975830078,
+        18.654836654663086
     ],
     "tool_cam_rot": [
-        -0.28270044922828674,
-        0.09223747998476028,
-        0.027322230860590935,
-        0.9543721079826355
+        -0.19193091988563538,
+        0.689211368560791,
+        0.19736932218074799,
+        0.6702205538749695
     ]
 }
