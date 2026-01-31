@@ -49,6 +49,8 @@ namespace SFG
 		_app.get_world().get_comp_manager().register_cache<comp_player_stats, MAX_PLAYERS>();
 		_app.get_world().get_comp_manager().register_cache<comp_enemy_ai_basic, MAX_WORLD_ENEMY_AI_BASIC>();
 		_inst = this;
+
+		_app.get_world().get_entity_manager().find_entities_by_tag("enemy", _all_enemies);
 	}
 
 	void gameplay::uninit()

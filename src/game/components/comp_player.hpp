@@ -95,11 +95,14 @@ namespace SFG
 		resource_handle _player_anim_machine	 = {};
 		pool_handle16	_player_move_x_param	 = {};
 		pool_handle16	_player_move_y_param	 = {};
+		pool_handle16	_player_throw_state		 = {};
 		pool_handle16	_player_default_state	 = {};
 		pool_handle16	_player_dive_right_state = {};
 		pool_handle16	_player_dive_left_state	 = {};
-		pool_handle16	_player_throw_state		 = {};
 		pool_handle16	_player_prev_state		 = {};
+		pool_handle16	_player_dive_right_param = {};
+		pool_handle16	_player_dive_left_param	 = {};
+		pool_handle16	_player_throw_param		 = {};
 		float			_throw_timer			 = 0.0f;
 		float			_throw_duration			 = 0.0f;
 		bool			_is_throwing			 = false;

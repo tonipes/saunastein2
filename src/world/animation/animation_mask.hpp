@@ -42,8 +42,9 @@ namespace SFG
 			uint8 is_masked = 0;
 		};
 
-		void mask_joints(world& w, resource_handle skin, string_id* name_hashes, uint16 name_hashes_count);
+		void unmask_joints(world& w, resource_handle skin, string_id* name_hashes, uint16 name_hashes_count);
 		void mask_joint(world& w, resource_handle skin, string_id hash);
+		void mask_all(world& w, resource_handle skin_handle);
 
 		inline const joint_data* get_mask() const
 		{

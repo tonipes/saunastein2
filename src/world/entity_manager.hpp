@@ -139,7 +139,7 @@ namespace SFG
 			while (!entity.is_null())
 			{
 				f(entity);
-				visit_children(entity, f);
+				visit_children_deep(entity, f);
 				entity = get_entity_family(entity).next_sibling;
 			}
 		}

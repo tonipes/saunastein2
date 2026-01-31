@@ -216,6 +216,7 @@ namespace SFG
 				ent.marked_for_removal = true;
 				continue;
 			}
+				
 
 			world_handle phys_comp_handle = em.get_entity_component<comp_physics>(ent.handle);
 			if (!phys_comp_handle.is_null())

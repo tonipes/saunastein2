@@ -19,6 +19,12 @@
             "shape_type": 1
         },
         {
+            "comp_type": 1084153302536849766,
+            "entity": 0,
+            "material": "assets/_defaults/materials/particle_bullet_trail.stkmat",
+            "particle": "assets/_defaults/particles/bullet_trail.stkparticle"
+        },
+        {
             "comp_type": 12829486272651206750,
             "entity": 1,
             "material": 1,
@@ -35,9 +41,9 @@
             "next_sibling": -1,
             "parent": -1,
             "pos": [
-                -201.88108825683594,
-                102.50762176513672,
-                77.93061828613281
+                -163.3195037841797,
+                5.151586055755615,
+                5.184696197509766
             ],
             "rot": [
                 0.0,
@@ -46,9 +52,9 @@
                 1.0
             ],
             "scale": [
-                0.12000054121017456,
-                0.12000054121017456,
-                0.12000054121017456
+                0.1814703494310379,
+                0.21360090374946594,
+                0.21360090374946594
             ],
             "tag": "",
             "template": "",
@@ -71,9 +77,9 @@
                 1.0
             ],
             "scale": [
-                1.0,
-                1.0,
-                1.0
+                2.2199649810791016,
+                2.3003618717193604,
+                0.08333295583724976
             ],
             "tag": "",
             "template": "",
@@ -81,6 +87,8 @@
         }
     ],
     "resources": [
+        "assets/_defaults/particles/bullet_trail.stkparticle",
+        "assets/_defaults/materials/particle_bullet_trail.stkmat",
         "assets/models/cube.stkmodel"
     ]
 }

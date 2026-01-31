@@ -1,0 +1,53 @@
+{
+  "initial_state": "Idle",
+  "parameters": [
+  
+  ],
+  "states": [
+    {
+      "name": "Idle",
+      "loop": 1,
+      "blend": "none",
+      "samples": [
+        {
+          "animation": "assets/models/enemy_final.stkmodel/Idle"
+        }
+      ]
+    },
+    {
+      "name": "Walk",
+      "loop": 1,
+      "blend": "none",
+      "samples": [
+        {
+          "animation": "assets/models/enemy_final.stkmodel/Walk"
+        }
+      ]
+    },
+     {
+      "name": "Attack",
+      "loop": 1,
+      "blend": "none",
+      "samples": [
+        {
+          "animation": "assets/models/enemy_final.stkmodel/MeleeAttack1"
+        }
+      ]
+    },
+     {
+      "name": "Death",
+      "loop": 1,
+      "blend": "none",
+      "samples": [
+        {
+          "animation": "assets/models/enemy_final.stkmodel/T-Pose"
+        }
+      ]
+    }
+  ],
+  "masks": [
+  ],
+  "transitions": [
+     
+  ]
+}

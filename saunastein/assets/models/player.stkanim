@@ -1,0 +1,95 @@
+{
+  "initial_state": "Player",
+  "parameters": [
+    {
+      "name": "move_x",
+      "value": 0.0
+    },
+    {
+      "name": "move_y",
+      "value": 0.0
+    },
+    {
+      "name": "dive_right",
+      "value": 0.0
+    },
+    {
+      "name": "dive_left",
+      "value": 0.0
+    },
+    {
+      "name": "throw",
+      "value": 0.0
+    }
+  ],
+  "states": [
+    {
+      "name": "Player",
+      "loop": 1,
+      "blend": "2d",
+      "blend_param_x": "move_x",
+      "blend_param_y": "move_y",
+      "samples": [
+        {
+          "animation": "assets/models/player_final.stkmodel/PlayerIdle",
+          "point": [0.0, 0.0]
+        },
+        {
+          "animation": "assets/models/player_final.stkmodel/PlayerJogRight",
+          "point": [1.0, 0.0]
+        },
+        {
+          "animation": "assets/models/player_final.stkmodel/PlayerJogLeft",
+          "point": [-1.0, 0.0]
+        },
+        {
+          "animation": "assets/models/player_final.stkmodel/PlayerJogBackwards",
+          "point": [0.0, -1.0]
+        },
+        {
+          "animation": "assets/models/player_final.stkmodel/PlayerJogForward",
+          "point": [0.0, 1.0]
+        }
+      ]
+    },
+    {
+      "name": "PlayerDiveRight",
+      "loop": 1,
+      "blend": "none",
+      "speed" : 2.5,
+      "samples": [
+        {
+          "animation": "assets/models/player_final.stkmodel/PlayerDiveRight"
+        }
+      ]
+    },
+    {
+      "name": "PlayerDiveLeft",
+      "loop": 1,
+      "blend": "none",
+      "speed" : 2.5,
+      "samples": [
+        {
+          "animation": "assets/models/player_final.stkmodel/PlayerDiveLeft"
+        }
+      ]
+    },
+    {
+      "name": "PlayerThrow",
+      "loop": 0,
+      "blend": "none",
+      "speed" : 2.5,
+      "duration": 2.5,
+      "samples": [
+        {
+          "animation": "assets/models/player_final.stkmodel/PlayerThrow"
+        }
+      ]
+    }
+  ],
+  "masks": [
+  ],
+  "transitions": [
+  
+  ]
+}
