@@ -8,6 +8,24 @@
             "mesh": "assets/models/waterplane.stkmodel/Plane",
             "skin": "",
             "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 8,
+            "material": 1,
+            "material0": "assets/materials/water_forward.stkmat",
+            "mesh": "assets/models/waterplane_circle.stkmodel/Circle",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 9,
+            "material": 1,
+            "material0": "assets/materials/water_forward.stkmat",
+            "mesh": "assets/models/waterplane_circle.stkmodel/Circle",
+            "skin": "",
+            "skin_entities": 0
         }
     ],
     "entities": [
@@ -189,7 +207,7 @@
         {
             "first_child": -1,
             "name": "waterplane",
-            "next_sibling": -1,
+            "next_sibling": 8,
             "parent": 0,
             "pos": [
                 -140.1583709716797,
@@ -210,12 +228,63 @@
             "tag": "",
             "template": "",
             "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "waterplane_circle",
+            "next_sibling": 9,
+            "parent": 0,
+            "pos": [
+                -162.68983459472656,
+                3.70743465423584,
+                10.450019836425781
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                10.0,
+                10.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "waterplane_circle",
+            "next_sibling": -1,
+            "parent": 0,
+            "pos": [
+                -162.68983459472656,
+                3.70743465423584,
+                36.52634811401367
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                10.0,
+                10.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
         }
     ],
     "resources": [
         "assets/entities/autodoor_double.stkent",
         "assets/entities/bullet.stkent",
         "assets/models/waterplane.stkmodel",
-        "assets/materials/water_forward.stkmat"
+        "assets/materials/water_forward.stkmat",
+        "assets/models/waterplane_circle.stkmodel"
     ]
 }
