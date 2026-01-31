@@ -26,10 +26,15 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "comp_player.hpp"
 #include "world/world.hpp"
+#include "platform/window.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"
 #include "gfx/event_stream/render_events_trait.hpp"
 #include "reflection/reflection.hpp"
 #include "world/components/comp_character_controller.hpp"
+#include "world/components/comp_camera.hpp"
+#include "math/quat.hpp"
+#include "math/math.hpp"
+#include "platform/window_common.hpp"
 
 namespace SFG
 {
@@ -40,6 +45,12 @@ namespace SFG
 		m.set_category("game");
 		m.add_field<&comp_player::_movement_speed, comp_player>("movement_speed", reflected_field_type::rf_float, "");
 		m.add_field<&comp_player::_rotation_speed, comp_player>("rotation_speed", reflected_field_type::rf_float, "");
+		m.add_field<&comp_player::_camera_distance, comp_player>("camera_distance", reflected_field_type::rf_float, "", 0.1f, 1000.0f);
+		m.add_field<&comp_player::_camera_offset, comp_player>("camera_offset", reflected_field_type::rf_vector3, "");
+		m.add_field<&comp_player::_orbit_yaw_speed, comp_player>("orbit_yaw_speed", reflected_field_type::rf_float, "", 0.001f, 10.0f);
+		m.add_field<&comp_player::_orbit_pitch_speed, comp_player>("orbit_pitch_speed", reflected_field_type::rf_float, "", 0.001f, 10.0f);
+		m.add_field<&comp_player::_orbit_min_pitch, comp_player>("orbit_min_pitch", reflected_field_type::rf_float, "", -89.0f, 0.0f);
+		m.add_field<&comp_player::_orbit_max_pitch, comp_player>("orbit_max_pitch", reflected_field_type::rf_float, "", 0.0f, 89.0f);
 
 		m.add_function<void, const reflected_field_changed_params&>("on_reflected_changed"_hs, [](const reflected_field_changed_params& params) { comp_player* c = static_cast<comp_player*>(params.object_ptr); });
 
@@ -60,25 +71,92 @@ namespace SFG
 	{
 	}
 
-	void comp_player::begin_game(world& w)
+	void comp_player::begin_game(world& w, window& wnd)
 	{
-		entity_manager&				em = w.get_entity_manager();
-		const entity_comp_register& e  = em.get_component_register(_header.entity);
-		_char_controller			   = em.get_entity_component<comp_character_controller>(_header.entity);
+		_inited = false;
+
+		entity_manager& em = w.get_entity_manager();
+
+		_camera_entity = em.find_entity("PlayerCamera");
+		if (_camera_entity.is_null())
+			return;
+
+		_camera_comp = em.get_entity_component<comp_camera>(_camera_entity);
+
+		if (_camera_comp.is_null())
+			return;
+
+		const entity_comp_register& e = em.get_component_register(_header.entity);
+		_char_controller			  = em.get_entity_component<comp_character_controller>(_header.entity);
+
+		if (_char_controller.is_null())
+			return;
+
+		{
+			const vector3 player_pos = em.get_entity_position_abs(_header.entity);
+			const vector3 cam_pos	 = em.get_entity_position_abs(_camera_entity);
+			const vector3 target	 = player_pos + _camera_offset;
+			if (!(target - cam_pos).is_zero())
+			{
+				const quat	  look_rot = quat::look_at(cam_pos, target, vector3::up);
+				const vector3 euler	   = quat::to_euler(look_rot);
+				_yaw_degrees		   = euler.y;
+				_pitch_degrees		   = euler.x;
+			}
+		}
+
+		component_manager& cm = w.get_comp_manager();
+		comp_camera&	   c  = cm.get_component<comp_camera>(_camera_comp);
+		c.set_main(w);
+		_inited = true;
+
+		wnd.confine_cursor(cursor_confinement::window);
+		wnd.set_cursor_visible(false);
 	}
 
 	void comp_player::tick(world& w, float dt)
 	{
-		if (_char_controller.is_null())
+		if (!_inited)
 			return;
+
+		entity_manager& em = w.get_entity_manager();
 
 		component_manager&		   cm			  = w.get_comp_manager();
 		comp_character_controller& comp_char_cont = cm.get_component<comp_character_controller>(_char_controller);
-		comp_char_cont.set_target_velocity(vector3::one);
+		// comp_char_cont.set_target_velocity(vector3::one);
+
+		_yaw_degrees -= _mouse_delta.x * _orbit_yaw_speed;
+		_pitch_degrees -= _mouse_delta.y * _orbit_pitch_speed;
+		_pitch_degrees = math::clamp(_pitch_degrees, _orbit_min_pitch, _orbit_max_pitch);
+		_mouse_delta   = vector2::zero;
+
+		const vector3 player_pos = em.get_entity_position_abs(_header.entity);
+		const vector3 target	 = player_pos + _camera_offset;
+		const quat	  orbit_rot	 = quat::from_euler(_pitch_degrees, _yaw_degrees, 0.0f);
+		const vector3 forward	 = orbit_rot.get_forward();
+		const float	  cam_dist	 = math::max(_camera_distance, 0.1f);
+		const vector3 cam_pos	 = target - forward * cam_dist;
+		em.set_entity_position_abs(_camera_entity, cam_pos);
+		em.set_entity_rotation_abs(_camera_entity, orbit_rot);
 	}
 
 	void comp_player::on_window_event(const window_event& ev)
 	{
+		if (!_inited)
+			return;
+
+		switch (ev.type)
+		{
+		case window_event_type::focus:
+			_mouse_delta = vector2::zero;
+			break;
+		case window_event_type::delta:
+			_mouse_delta.x += static_cast<float>(ev.value.x);
+			_mouse_delta.y += static_cast<float>(ev.value.y);
+			break;
+		default:
+			break;
+		}
 	}
 
 }
