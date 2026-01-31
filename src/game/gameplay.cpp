@@ -128,8 +128,7 @@ namespace SFG
 
 	void gameplay::on_character_contact_end(world_handle character, world_handle other)
 	{
-		(void)character;
-		(void)other;
+	
 	}
 
 	void gameplay::tick_player(float dt)
