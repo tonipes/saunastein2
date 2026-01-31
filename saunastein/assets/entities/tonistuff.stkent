@@ -753,7 +753,7 @@
         {
             "first_child": -1,
             "name": "new_entity",
-            "next_sibling": -1,
+            "next_sibling": 23,
             "parent": 0,
             "pos": [
                 -217.18528747558594,
@@ -774,6 +774,156 @@
             "tag": "",
             "template": "",
             "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "pickup_key",
+            "next_sibling": 24,
+            "parent": 0,
+            "pos": [
+                33.788551330566406,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "pickup",
+            "template": "assets/entities/pickup_key.stkent",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "pickup_key",
+            "next_sibling": 25,
+            "parent": 0,
+            "pos": [
+                -126.3362045288086,
+                0.0,
+                -4.933436870574951
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "pickup",
+            "template": "assets/entities/pickup_key.stkent",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "pickup_key",
+            "next_sibling": 26,
+            "parent": 0,
+            "pos": [
+                -151.42527770996094,
+                0.0,
+                23.020931243896484
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "pickup",
+            "template": "assets/entities/pickup_key.stkent",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "pickup_key",
+            "next_sibling": 27,
+            "parent": 0,
+            "pos": [
+                -217.4281768798828,
+                0.0,
+                -264.546875
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "pickup",
+            "template": "assets/entities/pickup_key.stkent",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "pickup_key",
+            "next_sibling": 28,
+            "parent": 0,
+            "pos": [
+                -93.54503631591797,
+                0.0,
+                96.78457641601563
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "pickup",
+            "template": "assets/entities/pickup_key.stkent",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "pickup_key",
+            "next_sibling": -1,
+            "parent": 0,
+            "pos": [
+                -93.54503631591797,
+                0.0,
+                -198.67376708984375
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "pickup",
+            "template": "assets/entities/pickup_key.stkent",
+            "visible": 1
         }
     ],
     "resources": [
@@ -782,6 +932,7 @@
         "assets/models/waterplane.stkmodel",
         "assets/materials/water_forward.stkmat",
         "assets/models/waterplane_circle.stkmodel",
-        "assets/particles/steam.stkent"
+        "assets/particles/steam.stkent",
+        "assets/entities/pickup_key.stkent"
     ]
 }
