@@ -29,10 +29,13 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "world/components/common_comps.hpp"
 #include "reflection/type_reflection.hpp"
 #include "math/color.hpp"
+#include "math/vector2.hpp"
+#include "math/vector3.hpp"
 
 namespace SFG
 {
 	class world;
+	class window;
 	struct window_event;
 
 	class comp_player
@@ -48,7 +51,7 @@ namespace SFG
 		void on_remove(world& w);
 		void set_values(world& w, const color& base_color);
 
-		void begin_game(world& w);
+		void begin_game(world& w, window& wnd);
 		void tick(world& w, float dt);
 
 		void on_window_event(const window_event& ev);
@@ -69,9 +72,23 @@ namespace SFG
 		component_header _header = {};
 
 		world_handle _char_controller = {};
+		world_handle _camera_entity	  = {};
+		world_handle _camera_comp	  = {};
 
-		float _movement_speed = 15.0f;
-		float _rotation_speed = 5.0f;
+		vector2 _mouse_delta = vector2::zero;
+		vector2 _move_input	 = vector2::zero;
+
+		float	_movement_speed	   = 15.0f;
+		float	_rotation_speed	   = 5.0f;
+		float	_camera_distance   = 4.0f;
+		float	_orbit_yaw_speed   = 0.08f;
+		float	_orbit_pitch_speed = 0.08f;
+		float	_orbit_min_pitch   = -80.0f;
+		float	_orbit_max_pitch   = 80.0f;
+		float	_yaw_degrees	   = 0.0f;
+		float	_pitch_degrees	   = 20.0f;
+		vector3 _camera_offset	   = vector3(0.0f, 1.5f, 0.0f);
+		bool	_inited			   = false;
 	};
 
 	REFLECT_TYPE(comp_player);
