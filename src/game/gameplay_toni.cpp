@@ -131,7 +131,8 @@ namespace SFG
 		{
 			managed_entity& ent = _managed_entities[i];
 
-			if (!ent.params.destroy_on_collision) continue;
+			if (!ent.params.destroy_on_collision)
+				continue;
 
 			if (ent.handle == e1 || ent.handle == e2)
 			{
@@ -181,7 +182,7 @@ namespace SFG
 		if (!phys_comp_handle.is_null())
 		{
 			comp_physics& phys_comp = cm.get_component<comp_physics>(phys_comp_handle);
-			phys_comp.set_body_position(w, position);
+			phys_comp.set_body_position_and_rotation(w, position, direction);
 		}
 		else
 		{
@@ -189,9 +190,9 @@ namespace SFG
 		}
 
 		managed_entity ent = {};
-		ent.handle	= handle;
-		ent.params  = params;
-		ent.t		= 0.0f;
+		ent.handle		   = handle;
+		ent.params		   = params;
+		ent.t			   = 0.0f;
 
 		_managed_entities.push_back(ent);
 
