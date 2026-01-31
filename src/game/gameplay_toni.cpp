@@ -125,14 +125,15 @@ namespace SFG
 		}
 	}
 
-
-	void gameplay::check_managed_entities_collision(world_handle e1, world_handle e2){
+	void gameplay::check_managed_entities_collision(world_handle e1, world_handle e2)
+	{
 		for (int i = 0; i < _managed_entities.size(); ++i)
 		{
 			managed_entity& ent = _managed_entities[i];
-			if (!ent.destroy_on_collision) continue;
-			
-			if (ent.handle == e1 || ent.handle == e2) {
+			// if (!ent.destroy_on_collision) continue;
+
+			if (ent.handle == e1 || ent.handle == e2)
+			{
 				SFG_TRACE("Managed entity collides");
 				ent.marked_for_removal = true;
 			}
@@ -143,10 +144,10 @@ namespace SFG
 	{
 		world&			  w	 = _app.get_world();
 		resource_manager& rm = w.get_resource_manager();
-		
+
 		_managed_entities.clear();
 
-		string_id bullet_template = "assets/entities/bullet.stkent"_hs;\
+		string_id bullet_template = "assets/entities/bullet.stkent"_hs;
 		spawn_managed_entity(bullet_template, {2.0f, -5.0f, 0.0f}, {5.0f, 0.0f, 0.0f}, 100.0f);
 
 		// for (int i = 0; i < 100; ++i)
@@ -154,16 +155,15 @@ namespace SFG
 		// 	spawn_managed_entity(bullet_template, {2.0f * i, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f * i}, 20.0f - 0.1f * i);
 		// }
 
-
 		SFG_TRACE("begin_managed_entities");
 	}
 
 	void gameplay::spawn_managed_entity(string_id resource, vector3 position, vector3 velocity, float max_lifetime)
 	{
-		world&			  w	 = _app.get_world();
-		resource_manager& rm = w.get_resource_manager();
-		entity_manager&	  em  = w.get_entity_manager();
-		component_manager& cm  = w.get_comp_manager();
+		world&			   w  = _app.get_world();
+		resource_manager&  rm = w.get_resource_manager();
+		entity_manager&	   em = w.get_entity_manager();
+		component_manager& cm = w.get_comp_manager();
 
 		auto res = rm.get_resource_handle_by_hash_if_exists<entity_template>(resource);
 
@@ -211,7 +211,7 @@ namespace SFG
 				ent.marked_for_removal = true;
 				continue;
 			}
-			
+
 			world_handle phys_comp_handle = em.get_entity_component<comp_physics>(ent.handle);
 			if (!phys_comp_handle.is_null())
 			{
@@ -219,9 +219,9 @@ namespace SFG
 				phys_comp.set_body_velocity(w, ent.velocity);
 			}
 
-			//vector3 position = em.get_entity_position_abs(ent.handle);
-			//vector3 new_position = position + ent.velocity * dt;
-			//em.set_entity_position_abs(ent.handle, new_position);
+			// vector3 position = em.get_entity_position_abs(ent.handle);
+			// vector3 new_position = position + ent.velocity * dt;
+			// em.set_entity_position_abs(ent.handle, new_position);
 		}
 
 		for (int i = _managed_entities.size() - 1; i >= 0; --i)

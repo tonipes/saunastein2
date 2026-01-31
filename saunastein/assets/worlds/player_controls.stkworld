@@ -1217,22 +1217,48 @@
             "tag": "",
             "template": "",
             "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "toni_stuff",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "assets/entities/tonistuff.stkent",
+            "visible": 1
         }
     ],
     "extra_resources": [],
     "resources": [
         "assets/models/level.stkmodel",
-        "assets/models/saunaguy.stkmodel"
+        "assets/models/saunaguy.stkmodel",
+        "assets/entities/tonistuff.stkent"
     ],
     "tool_cam_pos": [
-        26.12873077392578,
-        -14.117907524108887,
-        -2.3602914810180664
+        -15.951742172241211,
+        168.69171142578125,
+        47.9251823425293
     ],
     "tool_cam_rot": [
-        0.03720036894083023,
-        0.7683172821998596,
-        -0.04484020918607712,
-        0.6374119520187378
+        0.5048701167106628,
+        0.4947497546672821,
+        -0.4861895442008972,
+        0.5137592554092407
     ]
 }
