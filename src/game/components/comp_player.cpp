@@ -59,4 +59,12 @@ namespace SFG
 	{
 	}
 
+	void comp_player::tick(float dt)
+	{
+	}
+
+	void comp_player::on_window_event(const window_event& ev)
+	{
+	}
+
 }

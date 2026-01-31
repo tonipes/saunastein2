@@ -54,6 +54,9 @@ namespace SFG
 		void on_window_event(const window_event& ev, window* wnd);
 
 	private:
+		void tick_players(float dt);
+
+	private:
 		app&			_app;
 		window*			_window				= nullptr;
 		world_handle	_player_entity		= {};

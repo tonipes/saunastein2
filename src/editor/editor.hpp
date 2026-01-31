@@ -109,6 +109,7 @@ namespace SFG
 		void save_lavel();
 		void new_level();
 		void new_project(const char* dir);
+		void focus_selected();
 
 		// -----------------------------------------------------------------------------
 		// playmode

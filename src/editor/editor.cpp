@@ -365,6 +365,21 @@ namespace SFG
 			}
 			else
 			{
+
+				const bool is_ctrl = window::is_key_down(input_code::key_lctrl);
+
+				if (ev.button == input_code::key_s && is_ctrl)
+				{
+					save_lavel();
+					return true;
+				}
+
+				if (ev.button == input_code::key_f && is_ctrl)
+				{
+					focus_selected();
+					return true;
+				}
+
 				if (_gui_controller.on_key_event(ev))
 					return true;
 
@@ -592,6 +607,18 @@ namespace SFG
 		_loaded_level = "";
 		w.init();
 		_camera_controller.activate();
+	}
+
+	void editor::focus_selected()
+	{
+		const world_handle handle = _gui_controller.get_selected_entity();
+		if (handle.is_null())
+			return;
+
+		world&			w	= _app.get_world();
+		entity_manager& em	= w.get_entity_manager();
+		const vector3	pos = em.get_entity_position_abs(handle);
+		_camera_controller.focus_to(pos);
 	}
 
 	void editor::new_level()

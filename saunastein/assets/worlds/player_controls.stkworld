@@ -1,0 +1,213 @@
+{
+    "components": [
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 1,
+            "material": 1,
+            "material0": "assets/models/level.stkmodel/DummyFloor",
+            "mesh": "assets/models/level.stkmodel/Plane",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "body_type": 0,
+            "comp_type": 14536826215375575722,
+            "entity": 1,
+            "extents": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "is_sensor": 0,
+            "material": "",
+            "offset": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "shape_type": 5
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 3,
+            "material": 1,
+            "material0": "assets/models/cube.stkmodel/saunaguy",
+            "mesh": "assets/models/cube.stkmodel/Cube.001",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 7590390715442638056,
+            "entity": 4,
+            "movement_speed": 15.0,
+            "rotation_speed": 5.0
+        },
+        {
+            "character_padding": 0.019999999552965164,
+            "comp_type": 17190279333344653665,
+            "enhanced_internal_edge_removal": 0,
+            "entity": 4,
+            "half_height": 0.8999999761581421,
+            "mass": 70.0,
+            "max_slope_degrees": 50.0,
+            "max_strength": 100.0,
+            "object_layer": 1,
+            "penetration_recovery_speed": 1.0,
+            "predictive_contact_distance": 0.10000000149011612,
+            "radius": 0.4000000059604645,
+            "shape_offset": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "step_down": 0.5,
+            "step_forward": 0.019999999552965164,
+            "step_forward_contact_angle_degrees": 75.0,
+            "step_forward_test": 0.15000000596046448,
+            "step_up": 0.4000000059604645
+        }
+    ],
+    "entities": [
+        {
+            "first_child": 1,
+            "name": "level",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Plane",
+            "next_sibling": -1,
+            "parent": 0,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 3,
+            "name": "assets/models/cube.stkmodel",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                -111.77851867675781,
+                69.6092529296875,
+                74.40715026855469
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "cube",
+            "next_sibling": -1,
+            "parent": 2,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Player",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                0.0,
+                1.6737785339355469,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        }
+    ],
+    "extra_resources": [],
+    "resources": [
+        "assets/models/level.stkmodel",
+        "assets/models/cube.stkmodel"
+    ],
+    "tool_cam_pos": [
+        0.28934770822525024,
+        6.631369590759277,
+        11.320277214050293
+    ],
+    "tool_cam_rot": [
+        -0.18398918211460114,
+        0.0822385773062706,
+        0.015449892729520798,
+        0.9793601036071777
+    ]
+}

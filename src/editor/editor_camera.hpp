@@ -59,6 +59,7 @@ namespace SFG
 		void activate();
 		void deactivate();
 		void set_is_looking(bool b);
+		void focus_to(const vector3& pos);
 
 		// -----------------------------------------------------------------------------
 		// accessors/muts
@@ -93,7 +94,9 @@ namespace SFG
 		world_handle _camera_trait = {};
 
 		vector3 _direction_input	= vector3::zero;
+		vector3 _focus_point		= vector3::zero;
 		vector2 _mouse_delta		= vector2::zero;
+		float	_focus_multip		= 1.0f;
 		float	_yaw_degrees		= 0.0f;
 		float	_pitch_degrees		= 0.0f;
 		float	_current_move_speed = 12.0f;
@@ -102,5 +105,6 @@ namespace SFG
 		float	_mouse_sensitivity	= 0.08f;
 		bool	_is_looking			= false;
 		bool	_is_active			= false;
+		bool	_focus_on			= false;
 	};
 }
