@@ -104,7 +104,7 @@
         {
             "first_child": -1,
             "name": "assets/models/door.stkmodel",
-            "next_sibling": -1,
+            "next_sibling": 5,
             "parent": 0,
             "pos": [
                 -60.707969665527344,
@@ -125,9 +125,35 @@
             "tag": "door_root",
             "template": "assets/entities/autodoor_double.stkent",
             "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "bullet",
+            "next_sibling": -1,
+            "parent": 0,
+            "pos": [
+                18.689931869506836,
+                10.976231575012207,
+                8.705429077148438
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "assets/entities/bullet.stkent",
+            "visible": 1
         }
     ],
     "resources": [
-        "assets/entities/autodoor_double.stkent"
+        "assets/entities/autodoor_double.stkent",
+        "assets/entities/bullet.stkent"
     ]
 }
