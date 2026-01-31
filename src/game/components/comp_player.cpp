@@ -113,7 +113,12 @@ namespace SFG
 
 		wnd.confine_cursor(cursor_confinement::window);
 		wnd.set_cursor_visible(false);
+
+		_pitch_degrees		  = -45.0f;
+		_real_camera_distance = _camera_distance;
 	}
+
+	float dbg_line = 10.0f;
 
 	void comp_player::tick(world& w, float dt)
 	{
@@ -154,6 +159,26 @@ namespace SFG
 		const vector3 cam_pos  = target - forward * cam_dist;
 		em.set_entity_position_abs(_camera_entity, cam_pos);
 		em.set_entity_rotation_abs(_camera_entity, orbit_rot);
+
+		const bool res = _ray_caster.cast(w.get_physics_world(), player_pos, em.get_entity_rotation(_header.entity).get_right(), 15);
+		if (res)
+		{
+			const ray_result& ray_result = _ray_caster.get_result();
+			dbg_line					 = ray_result.hit_distance;
+		}
+		else
+			dbg_line = 15.0f;
+	}
+
+	void comp_player::tick_debug(world& w, float dt)
+	{
+		if (!_inited)
+			return;
+
+		entity_manager& em		   = w.get_entity_manager();
+		const vector3	player_pos = em.get_entity_position_abs(_header.entity);
+
+		w.get_debug_rendering().draw_line(player_pos, player_pos + em.get_entity_rotation(_header.entity).get_right() * dbg_line, color::red, .5f);
 	}
 
 	void comp_player::on_window_event(const window_event& ev)

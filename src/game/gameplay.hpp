@@ -57,11 +57,13 @@ namespace SFG
 
 		void on_world_begin(world& w);
 		void on_world_end(world& w);
+		void on_debug_tick(world& w, float dt, const vector2ui16& game_res);
 		void on_world_tick(world& w, float dt, const vector2ui16& game_res);
 		void on_window_event(const window_event& ev, window* wnd);
 
 	private:
 		void tick_player(float dt);
+		void tick_player_debug(float dt);
 		void begin_player();
 
 		void tick_doors(float dt);

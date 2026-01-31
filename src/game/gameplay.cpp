@@ -32,9 +32,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace SFG
 {
 
-
-
-
 #define MAX_PLAYERS 1
 
 	void gameplay::init()
@@ -55,6 +52,11 @@ namespace SFG
 	void gameplay::on_world_end(world& w)
 	{
 		_doors.clear();
+	}
+
+	void gameplay::on_debug_tick(world& w, float dt, const vector2ui16& game_res)
+	{
+		tick_player_debug(dt);
 	}
 
 	void gameplay::on_world_tick(world& w, float dt, const vector2ui16& game_res)
@@ -81,6 +83,15 @@ namespace SFG
 			p.tick(w, dt);
 	}
 
+	void gameplay::tick_player_debug(float dt)
+	{
+		world&			   w	   = _app.get_world();
+		component_manager& cm	   = w.get_comp_manager();
+		auto&			   players = cm.underlying_pool<comp_cache<comp_player, MAX_PLAYERS>, comp_player>();
+		for (comp_player& p : players)
+			p.tick_debug(w, dt);
+	}
+
 	void gameplay::begin_player()
 	{
 		world&			   w	   = _app.get_world();
@@ -101,7 +112,8 @@ namespace SFG
 		{
 			float speed = 3.0f;
 			_doors[i].t += dt * speed;
-			if (_doors[i].t > 1.0f) _doors[i].t = 1.0f;
+			if (_doors[i].t > 1.0f)
+				_doors[i].t = 1.0f;
 
 			const quat rot = quat::from_euler(0.0f, _doors[i].t * _doors[i].open_angle, 0.0f);
 			em.set_entity_rotation(_doors[i].door_handle, rot);
@@ -120,11 +132,11 @@ namespace SFG
 		for (int i = 0; i < door_handles.size(); ++i)
 		{
 			SFG_TRACE("DOOR {0} {1}", i, door_handles[i].index);
-			
+
 			door d = {
 				.door_handle = door_handles[i],
-				.t			  = 0,
-				.open_angle   = 165.0f,
+				.t			 = 0,
+				.open_angle	 = 165.0f,
 			};
 
 			_doors.push_back(d);

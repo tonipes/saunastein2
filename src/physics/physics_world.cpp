@@ -218,8 +218,11 @@ namespace SFG
 			SFG_ASSERT(body != nullptr);
 
 			const world_handle e_handle = c.get_header().entity;
-			em.set_entity_position_abs(e_handle, from_jph_vec3(body->GetPosition()) - c.get_offset());
-			em.set_entity_rotation_abs(e_handle, from_jph_quat(body->GetRotation()));
+			const quat	   body_rot		= from_jph_quat(body->GetRotation());
+			const vector3  scale			= em.get_entity_scale_abs(e_handle);
+			const vector3  offset_world	= body_rot * (c.get_offset() * scale);
+			em.set_entity_position_abs(e_handle, from_jph_vec3(body->GetPosition()) - offset_world);
+			em.set_entity_rotation_abs(e_handle, body_rot);
 		}
 	}
 

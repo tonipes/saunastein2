@@ -269,6 +269,9 @@ namespace SFG
 
 		// notify buffer swap
 		_renderer.draw_end(_builder);
+
+		if (w.get_playmode() == play_mode::full)
+			_app.get_gameplay().on_debug_tick(w, 0.016f, _app.get_game_resolution());
 	}
 
 	void editor::render(const render_params& p)
