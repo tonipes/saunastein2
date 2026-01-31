@@ -226,8 +226,8 @@ namespace SFG
 			state.flags.set(animation_state_flags_is_2d, sr.blend_type == 2);
 			state.flags.set(animation_state_flags_is_1d, sr.blend_type == 1);
 			state.flags.set(animation_state_flags_is_looping, sr.is_looping);
-			state.blend_weight_param_x = get_parameter_handle(sm, sr.name.c_str());
-			state.blend_weight_param_y = get_parameter_handle(sm, sr.name.c_str());
+			state.blend_weight_param_x = get_parameter_handle(sm, sr.blend_param_x.c_str());
+			state.blend_weight_param_y = get_parameter_handle(sm, sr.blend_param_y.c_str());
 			state.mask				   = get_mask_handle(sr.mask.c_str());
 
 			const uint8 zero_dur = math::almost_equal(state.duration, 0.0f);

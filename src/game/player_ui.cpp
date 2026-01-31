@@ -49,12 +49,7 @@ namespace SFG
 			sz.size.y			 = 0.0025f;
 			sz.flags			 = vekt::size_flags::sf_y_relative | vekt::size_flags::sf_x_copy_y;
 
-			_builder->widget_set_pos(_crosshair,
-									 VEKT_VEC2(0.5f, 0.5f),
-									 vekt::helper_pos_type::relative,
-									 vekt::helper_pos_type::relative,
-									 vekt::helper_anchor_type::center,
-									 vekt::helper_anchor_type::center);
+			_builder->widget_set_pos(_crosshair, VEKT_VEC2(0.5f, 0.5f), vekt::helper_pos_type::relative, vekt::helper_pos_type::relative, vekt::helper_anchor_type::center, vekt::helper_anchor_type::center);
 		}
 
 		if (_health_bg == NULL_WIDGET_ID)
@@ -67,15 +62,10 @@ namespace SFG
 			bg_gfx.color			 = VEKT_VEC4(0.0f, 0.0f, 0.0f, 0.65f);
 
 			_builder->widget_set_size_abs(_health_bg, VEKT_VEC2(220.0f, 40.0f));
-			_builder->widget_set_pos(_health_bg,
-									 VEKT_VEC2(0.02f, 0.98f),
-									 vekt::helper_pos_type::relative,
-									 vekt::helper_pos_type::relative,
-									 vekt::helper_anchor_type::start,
-									 vekt::helper_anchor_type::end);
+			_builder->widget_set_pos(_health_bg, VEKT_VEC2(0.02f, 0.98f), vekt::helper_pos_type::relative, vekt::helper_pos_type::relative, vekt::helper_anchor_type::start, vekt::helper_anchor_type::end);
 
 			vekt::size_props& bg_sz = _builder->widget_get_size_props(_health_bg);
-			bg_sz.child_margins	   = {2.0f, 2.0f, 2.0f, 2.0f};
+			bg_sz.child_margins		= {2.0f, 2.0f, 2.0f, 2.0f};
 
 			_health_bar = _builder->allocate();
 			_builder->widget_add_child(_health_bg, _health_bar);
@@ -84,16 +74,34 @@ namespace SFG
 			bar_gfx.flags			  = vekt::gfx_flags::gfx_is_rect;
 			bar_gfx.color			  = VEKT_VEC4(0.85f, 0.1f, 0.1f, 0.95f);
 
-			_builder->widget_set_size(_health_bar,
-									  VEKT_VEC2(1.0f, 1.0f),
-									  vekt::helper_size_type::relative,
-									  vekt::helper_size_type::relative);
-			_builder->widget_set_pos(_health_bar,
-									 VEKT_VEC2(0.0f, 0.0f),
-									 vekt::helper_pos_type::relative,
-									 vekt::helper_pos_type::relative,
-									 vekt::helper_anchor_type::start,
-									 vekt::helper_anchor_type::start);
+			_builder->widget_set_size(_health_bar, VEKT_VEC2(1.0f, 1.0f), vekt::helper_size_type::relative, vekt::helper_size_type::relative);
+			_builder->widget_set_pos(_health_bar, VEKT_VEC2(0.0f, 0.0f), vekt::helper_pos_type::relative, vekt::helper_pos_type::relative, vekt::helper_anchor_type::start, vekt::helper_anchor_type::start);
+		}
+
+		if (_hydration_bg == NULL_WIDGET_ID)
+		{
+			_hydration_bg = _builder->allocate();
+			_builder->widget_add_child(_builder->get_root(), _hydration_bg);
+
+			vekt::widget_gfx& bg_gfx = _builder->widget_get_gfx(_hydration_bg);
+			bg_gfx.flags			 = vekt::gfx_flags::gfx_is_rect;
+			bg_gfx.color			 = VEKT_VEC4(0.0f, 0.0f, 0.0f, 0.65f);
+
+			_builder->widget_set_size_abs(_hydration_bg, VEKT_VEC2(220.0f, 28.0f));
+			_builder->widget_set_pos(_hydration_bg, VEKT_VEC2(0.02f, 0.92f), vekt::helper_pos_type::relative, vekt::helper_pos_type::relative, vekt::helper_anchor_type::start, vekt::helper_anchor_type::end);
+
+			vekt::size_props& bg_sz = _builder->widget_get_size_props(_hydration_bg);
+			bg_sz.child_margins		= {2.0f, 2.0f, 2.0f, 2.0f};
+
+			_hydration_bar = _builder->allocate();
+			_builder->widget_add_child(_hydration_bg, _hydration_bar);
+
+			vekt::widget_gfx& bar_gfx = _builder->widget_get_gfx(_hydration_bar);
+			bar_gfx.flags			  = vekt::gfx_flags::gfx_is_rect;
+			bar_gfx.color			  = VEKT_VEC4(0.1f, 0.45f, 0.9f, 0.95f);
+
+			_builder->widget_set_size(_hydration_bar, VEKT_VEC2(1.0f, 1.0f), vekt::helper_size_type::relative, vekt::helper_size_type::relative);
+			_builder->widget_set_pos(_hydration_bar, VEKT_VEC2(0.0f, 0.0f), vekt::helper_pos_type::relative, vekt::helper_pos_type::relative, vekt::helper_anchor_type::start, vekt::helper_anchor_type::start);
 		}
 
 		_builder->build_hierarchy();
@@ -101,6 +109,8 @@ namespace SFG
 
 	void player_ui::uninit()
 	{
+		return;
+
 		if (_builder == nullptr)
 			return;
 
@@ -110,11 +120,17 @@ namespace SFG
 			_builder->deallocate(_health_bg);
 		if (_crosshair != NULL_WIDGET_ID)
 			_builder->deallocate(_crosshair);
+		if (_hydration_bar != NULL_WIDGET_ID)
+			_builder->deallocate(_hydration_bar);
+		if (_hydration_bg != NULL_WIDGET_ID)
+			_builder->deallocate(_hydration_bg);
 
-		_health_bar = NULL_WIDGET_ID;
-		_health_bg  = NULL_WIDGET_ID;
-		_crosshair	= NULL_WIDGET_ID;
-		_builder	= nullptr;
+		_health_bar	   = NULL_WIDGET_ID;
+		_health_bg	   = NULL_WIDGET_ID;
+		_crosshair	   = NULL_WIDGET_ID;
+		_hydration_bar = NULL_WIDGET_ID;
+		_hydration_bg  = NULL_WIDGET_ID;
+		_builder	   = nullptr;
 	}
 
 	void player_ui::set_health_fraction(float health_fraction)
@@ -123,9 +139,15 @@ namespace SFG
 			return;
 
 		const float clamped = math::clamp(health_fraction, 0.0f, 1.0f);
-		_builder->widget_set_size(_health_bar,
-								  VEKT_VEC2(clamped, 1.0f),
-								  vekt::helper_size_type::relative,
-								  vekt::helper_size_type::relative);
+		_builder->widget_set_size(_health_bar, VEKT_VEC2(clamped, 1.0f), vekt::helper_size_type::relative, vekt::helper_size_type::relative);
+	}
+
+	void player_ui::set_hydration_fraction(float hydration_fraction)
+	{
+		if (_builder == nullptr || _hydration_bar == NULL_WIDGET_ID)
+			return;
+
+		const float clamped = math::clamp(hydration_fraction, 0.0f, 1.0f);
+		_builder->widget_set_size(_hydration_bar, VEKT_VEC2(clamped, 1.0f), vekt::helper_size_type::relative, vekt::helper_size_type::relative);
 	}
 }

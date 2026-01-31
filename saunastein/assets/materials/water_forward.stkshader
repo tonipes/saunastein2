@@ -1,0 +1,4 @@
+{
+    "source": "assets/materials/water_forward.hlsl",
+    "variant_style": "forward_object"
+}

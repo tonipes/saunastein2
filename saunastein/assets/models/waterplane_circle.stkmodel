@@ -1,0 +1,4 @@
+{
+  "source": "assets/models/waterplane_circle.glb",
+  "import_pbr_materials": 1
+}

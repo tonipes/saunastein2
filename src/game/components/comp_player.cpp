@@ -33,6 +33,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "reflection/reflection.hpp"
 #include "world/components/comp_character_controller.hpp"
 #include "world/components/comp_camera.hpp"
+#include "world/components/comp_animation_controller.hpp"
 #include "world/components/comp_canvas.hpp"
 #include "math/quat.hpp"
 #include "math/math.hpp"
@@ -90,6 +91,10 @@ namespace SFG
 		_dive_requested		 = false;
 		_mask_fire_requested = false;
 		_dive_timer			 = 0.0f;
+		_player_anim_comp	 = {};
+		_player_anim_machine = {};
+		_player_move_x_param = {};
+		_player_move_y_param = {};
 
 		entity_manager& em = w.get_entity_manager();
 
@@ -121,8 +126,30 @@ namespace SFG
 			_ui.init(cnv.get_builder());
 		}
 
-		_spawn_offset_entity = em.find_entity("PlayerSpawnOffset");
-		_player_mesh_entity	 = em.find_entity("PlayerMesh");
+		_spawn_offset_entity		   = em.find_entity("PlayerSpawnOffset");
+		_player_mesh_entity			   = em.find_entity("PlayerMesh");
+		const world_handle anim_entity = em.find_entity_by_tag("player_anim");
+		if (!anim_entity.is_null())
+		{
+			world_handle anim_comp = em.get_entity_component<comp_animation_controller>(anim_entity);
+			if (anim_comp.is_null())
+				return;
+
+			comp_animation_controller& controller = cm.get_component<comp_animation_controller>(anim_comp);
+			const resource_handle	   runtime_sm = controller.get_runtime_machine();
+			if (runtime_sm.is_null())
+				return;
+
+			_player_anim_comp	 = anim_comp;
+			_player_anim_machine = runtime_sm;
+		}
+		
+		if (!_player_anim_machine.is_null())
+		{
+			animation_graph& anim_graph = w.get_animation_graph();
+			_player_move_x_param		= anim_graph.get_parameter_handle(_player_anim_machine, "move_x");
+			_player_move_y_param		= anim_graph.get_parameter_handle(_player_anim_machine, "move_y");
+		}
 
 		_player_stats = em.get_entity_component<comp_player_stats>(_header.entity);
 		if (_player_stats.is_null())
@@ -151,7 +178,7 @@ namespace SFG
 		c.set_main(w);
 		_inited = true;
 
-		wnd.confine_cursor(cursor_confinement::window);
+		wnd.confine_cursor(cursor_confinement::pointer);
 		wnd.set_cursor_visible(false);
 
 		_pitch_degrees		  = -45.0f;
@@ -201,10 +228,9 @@ namespace SFG
 			return;
 
 		forward.normalize();
-		const quat spawn_rot = quat::look_at(spawn_pos, spawn_pos + forward, vector3::up);
+		const quat spawn_rot = quat::look_at(spawn_pos, spawn_pos - forward, vector3::up);
 
-		
-		//gameplay::get().spawn_managed_entity("assets/prefabs/mask.stkent"_hs, spawn_pos, spawn_rot.get_forward() * -50.0f, 5.0f);
+		// gameplay::get().spawn_managed_entity("assets/prefabs/mask.stkent"_hs, spawn_pos, spawn_rot.get_forward() * -50.0f, 5.0f);
 		gameplay::get().spawn_managed_entity("assets/prefabs/mask.stkent"_hs, spawn_pos, spawn_rot, bullet_params);
 	}
 
@@ -241,10 +267,30 @@ namespace SFG
 		right_xz.normalize();
 		vector3 move_dir = (forward_xz * _move_input.y) + (right_xz * _move_input.x);
 
+		if (!_player_anim_machine.is_null())
+		{
+			float move_x = 0.0f;
+			float move_y = 0.0f;
+			if (!move_dir.is_zero())
+			{
+				vector3 anim_dir = move_dir;
+				anim_dir.normalize();
+				move_x = vector3::dot(anim_dir, right_xz);
+				move_y = vector3::dot(anim_dir, forward_xz);
+			}
+
+			animation_graph& anim_graph = w.get_animation_graph();
+			if (!_player_move_x_param.is_null())
+				anim_graph.get_parameter(_player_move_x_param).value = move_x;
+			if (!_player_move_y_param.is_null())
+				anim_graph.get_parameter(_player_move_y_param).value = move_y;
+		}
+
 		if (!_player_stats.is_null())
 		{
 			comp_player_stats& stats = cm.get_component<comp_player_stats>(_player_stats);
 			_ui.set_health_fraction(stats.get_health() / 100.0f);
+			_ui.set_hydration_fraction(stats.get_hydration_score() / 100.0f);
 		}
 
 		if (_mask_fire_requested)

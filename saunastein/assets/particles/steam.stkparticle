@@ -5,12 +5,12 @@
     "min_particle_count": 1,
     "max_particle_count": 2,
     "min_lifetime": 2,
-    "max_lifetime": 3
+    "max_lifetime": 4
   },
   "pos": {
     "min_start": [-0.05, 0.0, -0.05],
     "max_start": [0.05, 0.4, 0.05],
-    "cone_radius": 0.08
+    "cone_radius": 2
   },
   "velocity": {
     "min_start": [-0.05, 0.25, -0.05],

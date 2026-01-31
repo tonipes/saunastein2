@@ -102,27 +102,7 @@ vs_output VSMain(vs_input IN)
 
     float4 obj_pos;
 
-#ifdef USE_SKINNING
-    StructuredBuffer<gpu_bone> bone_buffer =  sfg_get_ssbo<gpu_bone>(sfg_rp_constant2);
-
-    // skinning in object space
-    float4 skinned_pos    = float4(0, 0, 0, 0);
-    float3 skinned_normal = 0;
-    float3 skinned_tan    = 0;
-
-    [unroll]
-    for (int i = 0; i < 4; ++i)
-    {
-        uint bone_index   = sfg_object_constant1 + IN.bone_indices[i];
-        float weight      = IN.bone_weights[i];
-        float4x4 bone_mat = bone_buffer[bone_index].bone;
-        skinned_pos += mul(bone_mat, float4(IN.pos, 1.0f)) * weight;
-    }
-
-    obj_pos  = skinned_pos;
-#else
     obj_pos = float4(IN.pos, 1.0f);
-#endif
 
     float3 world_pos = mul(entity.model, obj_pos).xyz;
     OUT.pos = mul(rp_data.view_proj, float4(world_pos, 1.0f));
@@ -144,35 +124,9 @@ vs_output VSMain(vs_input IN)
     float3 obj_norm;
     float3 obj_tan;
 
-#ifdef USE_SKINNING
-
-    StructuredBuffer<gpu_bone> bone_buffer =  sfg_get_ssbo<gpu_bone>(sfg_rp_constant2);
-
-    // skinning in object space
-    float4 skinned_pos    = float4(0, 0, 0, 0);
-    float3 skinned_normal = 0;
-    float3 skinned_tan    = 0;
-
-    [unroll]
-    for (int i = 0; i < 4; ++i)
-    {
-        uint bone_index   = sfg_object_constant1 + IN.bone_indices[i];
-        float weight      = IN.bone_weights[i];
-        float4x4 bone_mat = bone_buffer[bone_index].bone;
-
-        skinned_pos    += mul(bone_mat, float4(IN.pos, 1.0f)) * weight;
-        skinned_normal += mul((float3x3)bone_mat, IN.normal) * weight;
-        skinned_tan    += mul((float3x3)bone_mat, IN.tangent.xyz) * weight;
-    }
-
-    obj_pos  = skinned_pos;
-    obj_norm = skinned_normal;
-    obj_tan  = skinned_tan;
-#else
     obj_pos = float4(IN.pos, 1.0f);
     obj_norm = IN.normal;
     obj_tan = IN.tangent.xyz;
-#endif
 
     float3 world_pos = mul(entity.model, obj_pos).xyz;
     float3 N = normalize(mul(entity.normal_matrix, float4(obj_norm, 1.0)).xyz);
@@ -186,7 +140,7 @@ vs_output VSMain(vs_input IN)
     OUT.world_norm = N;
     OUT.world_tan = T;
     OUT.world_bit = B;
-    OUT.uv = IN.uv;
+    OUT.uv = float2(world_pos.x, world_pos.z) * 0.1;
 
     return OUT;
 }
@@ -204,10 +158,6 @@ struct material_data
     float4 base_color_factor;
     float4 emissive_and_metallic_factor;
     float4 roughness_normal_strength_alpha;
-    float4 albedo_tiling_offset;
-    float4 normal_tiling_offset;
-    float4 orm_tiling_offset;
-    float4 emissive_tiling_offset;
 };
 
 struct texture_data
@@ -217,6 +167,21 @@ struct texture_data
     uint gpu_index_orm;
     uint gpu_index_emissive;
 };
+
+float2 hash2(float2 p)
+{
+    float2 k = float2(127.1f, 311.7f);
+    float2 k2 = float2(269.5f, 183.3f);
+    float2 s = float2(dot(p, k), dot(p, k2));
+    return frac(sin(s) * 43758.5453f);
+}
+
+float2 rot2(float2 p, float a)
+{
+    float s = sin(a);
+    float c = cos(a);
+    return float2(c * p.x - s * p.y, s * p.x + c * p.y);
+}
 
 #ifdef WRITE_ID
 
@@ -237,7 +202,29 @@ void PSMain(vs_output IN)
     Texture2D tex_albedo = sfg_get_texture<Texture2D>(txt_data.gpu_index_albedo);
     SamplerState sampler_default = sfg_get_sampler_state(sfg_mat_constant2);
 
-    float4 albedo_tex = tex_albedo.Sample(sampler_default, IN.uv);
+    float t = sfg_global_elapsed;
+    float2 uv = IN.uv;
+    uv += float2(t * 0.05f, t * 0.03f);
+    uv += sin(float2(uv.y, uv.x) * 10.0f + t * 1.4f) * 0.025f;
+    uv += sin(float2(uv.y, uv.x) * 22.0f - t * 2.3f) * 0.012f;
+
+    float2 tile = floor(uv);
+    float2 local_uv = frac(uv);
+    float2 rnd = hash2(tile);
+    float angle = (rnd.x * 2.0f - 1.0f) * 0.35f;
+    float2 uv0 = rot2(local_uv - 0.5f, angle) + 0.5f + (rnd - 0.5f) * 0.12f;
+
+    float2 tile_b = tile + float2(1.0f, 1.0f);
+    float2 rnd_b = hash2(tile_b);
+    float angle_b = (rnd_b.x * 2.0f - 1.0f) * 0.35f;
+    float2 uv1 = rot2(local_uv - 0.5f, angle_b) + 0.5f + (rnd_b - 0.5f) * 0.12f;
+
+    float blend = smoothstep(0.35f, 0.65f, rnd.y);
+    float4 albedo_tex = lerp(
+        tex_albedo.Sample(sampler_default, uv0),
+        tex_albedo.Sample(sampler_default, uv1),
+        blend
+    );
 	if(albedo_tex.a < mat_data.roughness_normal_strength_alpha.z)
 	{
 		discard;
@@ -257,74 +244,46 @@ struct ps_output
 
 ps_output PSMain(vs_output IN)
 {
-    
     ps_output OUT;
 
     material_data mat_data = sfg_get_cbv<material_data>(sfg_mat_constant0);
     texture_data txt_data = sfg_get_cbv<texture_data>(sfg_mat_constant1);
+
     Texture2D tex_albedo = sfg_get_texture<Texture2D>(txt_data.gpu_index_albedo);
-    Texture2D tex_normal = sfg_get_texture<Texture2D>(txt_data.gpu_index_normal);
-    Texture2D tex_orm = sfg_get_texture<Texture2D>(txt_data.gpu_index_orm);
-    Texture2D tex_emissive = sfg_get_texture<Texture2D>(txt_data.gpu_index_emissive);
     SamplerState sampler_default = sfg_get_sampler_state(sfg_mat_constant2);
 
-    float2 albedo_tiling = mat_data.albedo_tiling_offset.xy;
-    float2 albedo_offset = mat_data.albedo_tiling_offset.zw;
-    float2 albedo_uv = IN.uv * albedo_tiling + albedo_offset;
+    float t = sfg_global_elapsed;
+    float2 uv = IN.uv;
+    uv += float2(t * 0.05f, t * 0.03f);
+    uv += sin(float2(uv.y, uv.x) * 10.0f + t * 1.4f) * 0.025f;
+    uv += sin(float2(uv.y, uv.x) * 22.0f - t * 2.3f) * 0.012f;
 
-    float2 normal_tiling = mat_data.normal_tiling_offset.xy;
-    float2 normal_offset = mat_data.normal_tiling_offset.zw;
-    float2 normal_uv = IN.uv * normal_tiling + normal_offset;
+    float2 tile = floor(uv);
+    float2 local_uv = frac(uv);
+    float2 rnd = hash2(tile);
+    float angle = (rnd.x * 2.0f - 1.0f) * 0.35f;
+    float2 uv0 = rot2(local_uv - 0.5f, angle) + 0.5f + (rnd - 0.5f) * 0.12f;
 
-    float2 orm_tiling = mat_data.orm_tiling_offset.xy;
-    float2 orm_offset = mat_data.orm_tiling_offset.zw;
-    float2 orm_uv = IN.uv * orm_tiling + orm_offset;
+    float2 tile_b = tile + float2(1.0f, 1.0f);
+    float2 rnd_b = hash2(tile_b);
+    float angle_b = (rnd_b.x * 2.0f - 1.0f) * 0.35f;
+    float2 uv1 = rot2(local_uv - 0.5f, angle_b) + 0.5f + (rnd_b - 0.5f) * 0.12f;
 
-    float2 emissive_tiling = mat_data.emissive_tiling_offset.xy;
-    float2 emissive_offset = mat_data.emissive_tiling_offset.zw;
-    float2 emissive_uv = IN.uv * emissive_tiling + emissive_offset;
-
-    float a = sfg_global_delta;
-    albedo_uv *= float2(frac(a), frac(a));
-
-    // --- Base color ---
-    float4 albedo_tex = tex_albedo.Sample(sampler_default, albedo_uv);
+    float blend = smoothstep(0.35f, 0.65f, rnd.y);
+    float4 albedo_tex = lerp(
+        tex_albedo.Sample(sampler_default, uv0),
+        tex_albedo.Sample(sampler_default, uv1),
+        blend
+    );
     float4 albedo = albedo_tex * mat_data.base_color_factor;
-#ifdef USE_ALPHA_CUTOFF
-	if(albedo.a < mat_data.roughness_normal_strength_alpha.z)
-	{
-		discard;
-	}
-#endif
 
-    // normal, convert to -1, 1 vector 
-    float3 tangent_normal = tex_normal.Sample(sampler_default, normal_uv).xyz * 2.0 - 1.0;
-    float s = mat_data.roughness_normal_strength_alpha.y;
-    float2 xy = tangent_normal.xy * s;
-    float z = sqrt(saturate(1.0 - dot(xy, xy)));
-    tangent_normal = float3(xy, z);
-    //tangent_normal = normalize(tangent_normal);
-
-    // convert normal to world space normal, [-1, 1]
-    float3x3 TBN = float3x3(IN.world_tan, IN.world_bit, IN.world_norm);
-    float3 world_normal = normalize(mul(tangent_normal, TBN));
-    float2 encoded_normal = oct_encode(world_normal);
-
-    // --- orm ---
-    float3 orm_tex = tex_orm.Sample(sampler_default, orm_uv).rgb;
-    float ao = saturate(orm_tex.r);
-    float roughness = saturate(orm_tex.g * mat_data.roughness_normal_strength_alpha.x);
-    float metallic = saturate(orm_tex.b * mat_data.emissive_and_metallic_factor.w);
-
-    // emissive
-    float3 emissive_tex = tex_emissive.Sample(sampler_default, emissive_uv).rgb;
-    float3 emissive = emissive_tex * mat_data.emissive_and_metallic_factor.xyz * 3;
-
-    // outs
-    OUT.rt0 = float4(frac(sfg_global_elapsed),2,0, 1.0);
-    OUT.rt1 = float4(encoded_normal, 0.0, 0.0);
-    OUT.rt2 = float4(ao, roughness, metallic, 1.0);
+    // OUT.rt0 = float4(frac(sfg_global_elapsed),2,0, 1.0);
+    OUT.rt0 = albedo_tex;
+    OUT.rt1 = float4(IN.world_norm, 0.0);
+    OUT.rt2 = float4(1.0, 0.0, 0.0, 1.0);
     OUT.rt3 = float4(0,0,0, 1.0);
+    
+
 
     return OUT;
 }

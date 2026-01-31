@@ -1,5 +1,204 @@
 {
-    "components": [],
+    "components": [
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 7,
+            "material": 1,
+            "material0": "assets/materials/water_forward.stkmat",
+            "mesh": "assets/models/waterplane.stkmodel/Plane",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 8,
+            "material": 1,
+            "material0": "assets/materials/water_forward.stkmat",
+            "mesh": "assets/models/waterplane_circle.stkmodel/Circle",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 9,
+            "material": 1,
+            "material0": "assets/materials/water_forward.stkmat",
+            "mesh": "assets/models/waterplane_circle.stkmodel/Circle",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "cast_shadows": 1,
+            "color": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "comp_type": 444826457028991798,
+            "entity": 11,
+            "intensity": 1000.0,
+            "near_plane": 0.0,
+            "range": 15.0,
+            "shadow_res": [
+                256,
+                256
+            ]
+        },
+        {
+            "cast_shadows": 1,
+            "color": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "comp_type": 444826457028991798,
+            "entity": 12,
+            "intensity": 1000.0,
+            "near_plane": 0.0,
+            "range": 15.0,
+            "shadow_res": [
+                256,
+                256
+            ]
+        },
+        {
+            "cast_shadows": 0,
+            "color": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "comp_type": 444826457028991798,
+            "entity": 13,
+            "intensity": 1000.0,
+            "near_plane": 0.0,
+            "range": 15.0,
+            "shadow_res": [
+                256,
+                256
+            ]
+        },
+        {
+            "cast_shadows": 0,
+            "color": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "comp_type": 444826457028991798,
+            "entity": 14,
+            "intensity": 1000.0,
+            "near_plane": 0.0,
+            "range": 15.0,
+            "shadow_res": [
+                256,
+                256
+            ]
+        },
+        {
+            "cast_shadows": 0,
+            "color": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "comp_type": 444826457028991798,
+            "entity": 15,
+            "intensity": 1000.0,
+            "near_plane": 0.0,
+            "range": 15.0,
+            "shadow_res": [
+                256,
+                256
+            ]
+        },
+        {
+            "cast_shadows": 0,
+            "color": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "comp_type": 444826457028991798,
+            "entity": 16,
+            "intensity": 1000.0,
+            "near_plane": 0.0,
+            "range": 15.0,
+            "shadow_res": [
+                256,
+                256
+            ]
+        },
+        {
+            "cast_shadows": 0,
+            "color": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "comp_type": 444826457028991798,
+            "entity": 17,
+            "intensity": 1000.0,
+            "near_plane": 0.0,
+            "range": 15.0,
+            "shadow_res": [
+                256,
+                256
+            ]
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 20,
+            "material": 1,
+            "material0": "assets/materials/water_forward.stkmat",
+            "mesh": "assets/models/waterplane.stkmodel/Plane",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "cast_shadows": 1,
+            "color": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "comp_type": 444826457028991798,
+            "entity": 21,
+            "intensity": 1000.0,
+            "near_plane": 0.0,
+            "range": 20.0,
+            "shadow_res": [
+                256,
+                256
+            ]
+        },
+        {
+            "cast_shadows": 1,
+            "color": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "comp_type": 444826457028991798,
+            "entity": 22,
+            "intensity": 1000.0,
+            "near_plane": 0.0,
+            "range": 20.0,
+            "shadow_res": [
+                256,
+                256
+            ]
+        }
+    ],
     "entities": [
         {
             "first_child": 1,
@@ -28,7 +227,7 @@
         },
         {
             "first_child": -1,
-            "name": "assets/models/door.stkmodel",
+            "name": "double_door",
             "next_sibling": 2,
             "parent": 0,
             "pos": [
@@ -53,7 +252,7 @@
         },
         {
             "first_child": -1,
-            "name": "assets/models/door.stkmodel",
+            "name": "double_door",
             "next_sibling": 3,
             "parent": 0,
             "pos": [
@@ -78,7 +277,7 @@
         },
         {
             "first_child": -1,
-            "name": "assets/models/door.stkmodel",
+            "name": "double_door",
             "next_sibling": 4,
             "parent": 0,
             "pos": [
@@ -103,7 +302,7 @@
         },
         {
             "first_child": -1,
-            "name": "assets/models/door.stkmodel",
+            "name": "double_door",
             "next_sibling": 5,
             "parent": 0,
             "pos": [
@@ -153,8 +352,8 @@
         },
         {
             "first_child": -1,
-            "name": "assets/models/door.stkmodel",
-            "next_sibling": -1,
+            "name": "double_door",
+            "next_sibling": 7,
             "parent": 0,
             "pos": [
                 -179.03204345703125,
@@ -175,10 +374,414 @@
             "tag": "door_root",
             "template": "assets/entities/autodoor_double.stkent",
             "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "waterplane",
+            "next_sibling": 8,
+            "parent": 0,
+            "pos": [
+                -140.1583709716797,
+                -5.89405632019043,
+                -202.0212860107422
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                5.0,
+                5.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "waterplane_circle",
+            "next_sibling": 9,
+            "parent": 0,
+            "pos": [
+                -162.68983459472656,
+                3.70743465423584,
+                10.450019836425781
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                10.0,
+                10.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "waterplane_circle",
+            "next_sibling": 10,
+            "parent": 0,
+            "pos": [
+                -162.68983459472656,
+                3.70743465423584,
+                36.52634811401367
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                10.0,
+                10.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "particle_steam",
+            "next_sibling": 11,
+            "parent": 0,
+            "pos": [
+                -124.21305084228516,
+                3.942622184753418,
+                -13.634506225585938
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "assets/particles/steam.stkent",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "new_entity",
+            "next_sibling": 12,
+            "parent": 0,
+            "pos": [
+                -163.2652130126953,
+                5.266597270965576,
+                9.319467544555664
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "new_entity",
+            "next_sibling": 13,
+            "parent": 0,
+            "pos": [
+                -163.45199584960938,
+                5.311988830566406,
+                35.715858459472656
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "new_entity",
+            "next_sibling": 14,
+            "parent": 0,
+            "pos": [
+                -217.48309326171875,
+                5.311988830566406,
+                -17.030681610107422
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "new_entity",
+            "next_sibling": 15,
+            "parent": 0,
+            "pos": [
+                -217.48309326171875,
+                5.311988830566406,
+                -45.789344787597656
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "new_entity",
+            "next_sibling": 16,
+            "parent": 0,
+            "pos": [
+                -162.6391143798828,
+                5.311988830566406,
+                -176.4324951171875
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "new_entity",
+            "next_sibling": 17,
+            "parent": 0,
+            "pos": [
+                -138.94187927246094,
+                5.311988830566406,
+                -176.4324951171875
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "new_entity",
+            "next_sibling": 18,
+            "parent": 0,
+            "pos": [
+                -114.41300964355469,
+                5.311988830566406,
+                -176.4324951171875
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "particle_steam",
+            "next_sibling": 19,
+            "parent": 0,
+            "pos": [
+                -210.99803161621094,
+                4.331974029541016,
+                -16.78383445739746
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "assets/particles/steam.stkent",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "particle_steam",
+            "next_sibling": 20,
+            "parent": 0,
+            "pos": [
+                -211.22213745117188,
+                4.331974029541016,
+                -45.98652648925781
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "assets/particles/steam.stkent",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "waterplane",
+            "next_sibling": 21,
+            "parent": 0,
+            "pos": [
+                -215.6488800048828,
+                -1.7046961784362793,
+                26.364646911621094
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                3.0,
+                5.0,
+                6.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "new_entity",
+            "next_sibling": 22,
+            "parent": 0,
+            "pos": [
+                -217.18528747558594,
+                5.266597270965576,
+                9.319467544555664
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "new_entity",
+            "next_sibling": -1,
+            "parent": 0,
+            "pos": [
+                -217.18528747558594,
+                5.266597270965576,
+                39.403873443603516
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
         }
     ],
     "resources": [
         "assets/entities/autodoor_double.stkent",
-        "assets/entities/bullet.stkent"
+        "assets/entities/bullet.stkent",
+        "assets/models/waterplane.stkmodel",
+        "assets/materials/water_forward.stkmat",
+        "assets/models/waterplane_circle.stkmodel",
+        "assets/particles/steam.stkent"
     ]
 }
