@@ -229,7 +229,7 @@ namespace SFG
 		{
 			managed_entity& ent = _managed_entities[i];
 
-			if (!ent.handle.is_null() || !em.is_valid(ent.handle))
+			if (ent.handle.is_null() || !em.is_valid(ent.handle))
 			{
 				_managed_entities.pop_back();
 			}
