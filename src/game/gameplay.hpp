@@ -58,8 +58,8 @@ namespace SFG
 		void begin_player();
 
 	private:
-		app&			_app;
-		
+		app&		 _app;
+		world_handle _player_entity = {};
 	};
 
 }

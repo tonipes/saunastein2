@@ -31,9 +31,11 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "math/math.hpp"
 #include "resources/physical_material.hpp"
 #include "resources/mesh.hpp"
+#include "physics/physics_convert.hpp"
 
 #include <Jolt/Jolt.h>
 #include <Jolt/Physics/Body/Body.h>
+#include <Jolt/Physics/PhysicsSystem.h>
 
 namespace SFG
 {
@@ -160,6 +162,25 @@ namespace SFG
 		physics_world& phy_world = w.get_physics_world();
 		phy_world.remove_body_from_world(*_body);
 		_flags.remove(comp_physics_flags_in_sim);
+	}
+
+	void comp_physics::set_body_position(world& w, const vector3& pos)
+	{
+		SFG_ASSERT(_body != nullptr);
+
+		JPH::PhysicsSystem* sys = w.get_physics_world().get_system();
+		JPH::BodyInterface& inf = sys->GetBodyInterface();
+		inf.SetPosition(_body->GetID(), to_jph_vec3(pos), JPH::EActivation::Activate);
+	}
+
+	void comp_physics::set_body_position_and_rotation(world& w, const vector3& pos, const quat& q)
+	{
+		SFG_ASSERT(_body != nullptr);
+
+		JPH::PhysicsSystem* sys = w.get_physics_world().get_system();
+		JPH::BodyInterface& inf = sys->GetBodyInterface();
+		inf.SetPosition(_body->GetID(), to_jph_vec3(pos), JPH::EActivation::Activate);
+		inf.SetPositionAndRotation(_body->GetID(), to_jph_vec3(pos), to_jph_quat(rot), JPH::EActivation::Activate);
 	}
 
 }

@@ -69,6 +69,9 @@ namespace SFG
 		void add_to_simulation(world& w);
 		void remove_from_simulation(world& w);
 
+		void set_body_position(world& w, const vector3& pos);
+		void set_body_position_and_rotation(world& w, const vector3& pos, const quat& q);
+
 		// -----------------------------------------------------------------------------
 		// accessors
 		// -----------------------------------------------------------------------------
