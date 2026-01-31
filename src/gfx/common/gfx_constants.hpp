@@ -31,8 +31,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace SFG
 {
-#define MAX_RESOURCES		   1024
-#define MAX_TEXTURES		   1024
+#define MAX_RESOURCES		   2048
+#define MAX_TEXTURES		   2048
 #define MAX_SAMPLERS		   128
 #define MAX_SEMAPHORES		   64
 #define MAX_SHADERS			   2048

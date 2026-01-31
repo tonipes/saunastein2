@@ -1267,6 +1267,7 @@ namespace SFG
 				{
 					world&			  wrld		   = editor::get().get_app().get_world();
 					resource_manager& rm		   = wrld.get_resource_manager();
+					// TODO: null check this bullshit
 					void*			  resource_ptr = rm.get_resource(field_type_id, h);
 					const string&	  path		   = rm.get_loaded_path_by_handle(field_type_id, h);
 					ids							   = add_property_row_resource(title, extension, path.c_str(), field->_sub_type_id, 512);
