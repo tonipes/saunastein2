@@ -3,8 +3,9 @@
         {
             "comp_type": 12829486272651206750,
             "entity": 1,
-            "material": 1,
-            "material0": "assets/models/level.stkmodel/DummyFloor",
+            "material": 2,
+            "material0": "assets/models/level.stkmodel/floor",
+            "material1": "assets/models/level.stkmodel/walls",
             "mesh": "assets/models/level.stkmodel/Plane",
             "skin": "",
             "skin_entities": 0
@@ -29,32 +30,93 @@
         },
         {
             "comp_type": 12829486272651206750,
-            "entity": 3,
+            "entity": 2,
             "material": 1,
-            "material0": "assets/models/cube.stkmodel/saunaguy",
-            "mesh": "assets/models/cube.stkmodel/Cube.001",
+            "material0": "assets/models/level.stkmodel/ShowerKaakel",
+            "mesh": "assets/models/level.stkmodel/Cube.008",
             "skin": "",
             "skin_entities": 0
         },
         {
-            "comp_type": 7590390715442638056,
+            "comp_type": 12829486272651206750,
+            "entity": 3,
+            "material": 3,
+            "material0": "assets/models/level.stkmodel/SaunaWood",
+            "material1": "assets/models/level.stkmodel/MetalFence",
+            "material2": "assets/models/level.stkmodel/Rocks",
+            "mesh": "assets/models/level.stkmodel/Cube.003",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
             "entity": 4,
+            "material": 3,
+            "material0": "assets/models/level.stkmodel/SaunaWood",
+            "material1": "assets/models/level.stkmodel/MetalFence",
+            "material2": "assets/models/level.stkmodel/Rocks",
+            "mesh": "assets/models/level.stkmodel/Cube.023",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 5,
+            "material": 2,
+            "material0": "assets/models/level.stkmodel/SaunaWood",
+            "material1": "assets/models/level.stkmodel/ShowerKaakel",
+            "mesh": "assets/models/level.stkmodel/Cube.006",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 6,
+            "material": 1,
+            "material0": "assets/models/level.stkmodel/floor",
+            "mesh": "assets/models/level.stkmodel/Cylinder.001",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 7,
+            "material": 2,
+            "material0": "assets/models/level.stkmodel/SaunaWood",
+            "material1": "assets/models/level.stkmodel/Marble",
+            "mesh": "assets/models/level.stkmodel/Cube.017",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "camera_distance": 15.0,
+            "camera_offset": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "comp_type": 7590390715442638056,
+            "entity": 8,
             "movement_speed": 15.0,
+            "orbit_max_pitch": 89.0,
+            "orbit_min_pitch": -89.0,
+            "orbit_pitch_speed": 0.20000000298023224,
+            "orbit_yaw_speed": 0.10000000149011612,
             "rotation_speed": 5.0
         },
         {
             "character_padding": 0.019999999552965164,
             "comp_type": 17190279333344653665,
             "enhanced_internal_edge_removal": 0,
-            "entity": 4,
-            "half_height": 0.8999999761581421,
+            "entity": 8,
+            "half_height": 1.9000002145767212,
             "mass": 70.0,
             "max_slope_degrees": 50.0,
             "max_strength": 100.0,
             "object_layer": 1,
             "penetration_recovery_speed": 1.0,
             "predictive_contact_distance": 0.10000000149011612,
-            "radius": 0.4000000059604645,
+            "radius": 0.9000000953674316,
             "shape_offset": [
                 0.0,
                 0.0,
@@ -65,18 +127,34 @@
             "step_forward_contact_angle_degrees": 75.0,
             "step_forward_test": 0.15000000596046448,
             "step_up": 0.4000000059604645
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 10,
+            "material": 1,
+            "material0": "assets/models/cube.stkmodel/saunaguy",
+            "mesh": "assets/models/cube.stkmodel/Cube.001",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 2550096278038808870,
+            "entity": 11,
+            "far": 250.0,
+            "fov_degrees": 80.0,
+            "near": 0.10000000149011612
         }
     ],
     "entities": [
         {
             "first_child": 1,
-            "name": "level",
+            "name": "assets/models/level.stkmodel",
             "next_sibling": -1,
             "parent": -1,
             "pos": [
-                0.0,
-                0.0,
-                0.0
+                14.408449172973633,
+                -10.936785697937012,
+                0.7218794226646423
             ],
             "rot": [
                 0.0,
@@ -95,8 +173,8 @@
         },
         {
             "first_child": -1,
-            "name": "Plane",
-            "next_sibling": -1,
+            "name": "levelFLoor",
+            "next_sibling": 2,
             "parent": 0,
             "pos": [
                 0.0,
@@ -119,14 +197,14 @@
             "visible": 1
         },
         {
-            "first_child": 3,
-            "name": "assets/models/cube.stkmodel",
-            "next_sibling": -1,
-            "parent": -1,
+            "first_child": -1,
+            "name": "ShowerDepartment",
+            "next_sibling": 3,
+            "parent": 0,
             "pos": [
-                -111.77851867675781,
-                69.6092529296875,
-                74.40715026855469
+                -90.19383239746094,
+                5.791877746582031,
+                36.819034576416016
             ],
             "rot": [
                 0.0,
@@ -145,11 +223,61 @@
         },
         {
             "first_child": -1,
-            "name": "cube",
-            "next_sibling": -1,
-            "parent": 2,
+            "name": "SaunaR",
+            "next_sibling": 4,
+            "parent": 0,
             "pos": [
+                -93.70511627197266,
+                4.3059587478637695,
+                -13.252942085266113
+            ],
+            "rot": [
                 0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0428624153137207,
+                1.0428624153137207,
+                1.0428624153137207
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "SaunaL",
+            "next_sibling": 5,
+            "parent": 0,
+            "pos": [
+                -125.24815368652344,
+                4.3059587478637695,
+                -13.252942085266113
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0428624153137207,
+                1.0428624153137207,
+                1.0428624153137207
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "SaunaFrontWalls",
+            "next_sibling": 6,
+            "parent": 0,
+            "pos": [
+                -109.00069427490234,
                 0.0,
                 0.0
             ],
@@ -170,12 +298,137 @@
         },
         {
             "first_child": -1,
+            "name": "Pillar",
+            "next_sibling": 7,
+            "parent": 0,
+            "pos": [
+                -106.77838134765625,
+                2.7651798725128174,
+                16.267833709716797
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "DressingRoom",
+            "next_sibling": -1,
+            "parent": 0,
+            "pos": [
+                -99.01580047607422,
+                1.03953218460083,
+                38.282737731933594
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 9,
             "name": "Player",
             "next_sibling": -1,
             "parent": -1,
             "pos": [
                 0.0,
-                1.6737785339355469,
+                -6.217260837554932,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 10,
+            "name": "assets/models/cube.stkmodel",
+            "next_sibling": -1,
+            "parent": 8,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                0.5900001525878906,
+                1.9009230136871338,
+                0.5900001525878906
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "cube",
+            "next_sibling": -1,
+            "parent": 9,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                0.8441554307937622,
+                1.3208043575286865,
+                1.4555141925811768
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "PlayerCamera",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                0.0,
+                0.0,
                 0.0
             ],
             "rot": [
@@ -200,14 +453,14 @@
         "assets/models/cube.stkmodel"
     ],
     "tool_cam_pos": [
-        0.28934770822525024,
-        6.631369590759277,
-        11.320277214050293
+        19.53927230834961,
+        -1.4387333393096924,
+        0.49178966879844666
     ],
     "tool_cam_rot": [
-        -0.18398918211460114,
-        0.0822385773062706,
-        0.015449892729520798,
-        0.9793601036071777
+        -0.11197859048843384,
+        0.6881238222122192,
+        0.10874195396900177,
+        0.7086054086685181
     ]
 }

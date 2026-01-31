@@ -87,7 +87,7 @@ namespace SFG
 		component_manager& cm	   = w.get_comp_manager();
 		auto&			   players = cm.underlying_pool<comp_cache<comp_player, MAX_PLAYERS>, comp_player>();
 		for (comp_player& p : players)
-			p.begin_game(w);
+			p.begin_game(w, _app.get_main_window());
 	}
 
 	void gameplay::tick_doors(float dt)

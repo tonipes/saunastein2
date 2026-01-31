@@ -324,7 +324,6 @@ namespace SFG
 			{
 				_gui_controller.on_exited_playmode();
 				exit_playmode();
-				return true;
 			}
 
 			_app.get_main_window().confine_cursor(cursor_confinement::none);
