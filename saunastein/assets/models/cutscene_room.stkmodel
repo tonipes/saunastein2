@@ -1,0 +1,4 @@
+{
+  "source": "assets/models/cutscene_room.glb",
+  "import_pbr_materials": 1
+}
