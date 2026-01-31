@@ -68,24 +68,9 @@ namespace SFG
 		void begin_doors();
 
 	private:
-		app&			_app;
-		window*			_window				= nullptr;
-		world_handle	_player_entity		= {};
-		world_handle	_player_controller	= {};
-		world_handle	_camera_entity		= {};
-		world_handle	_camera_comp		= {};
-		resource_handle _bullet_template	= {};
-		vector3			_direction_input	= vector3::zero;
-		vector2			_mouse_delta		= vector2::zero;
-		float			_yaw_degrees		= 0.0f;
-		float			_pitch_degrees		= 0.0f;
-		float			_current_move_speed = 12.0f;
-		float			_base_move_speed	= 12.0f;
-		float			_boost_multiplier	= 8.0f;
-		float			_mouse_sensitivity	= 0.08f;
-		bool			_is_looking			= false;
-		uint8			_is_active			= 0;
-		vector<door>	_doors				= {};
+		app&		 _app;
+		world_handle _player_entity = {};
+		vector<door> _doors			= {};
 	};
 
 }
