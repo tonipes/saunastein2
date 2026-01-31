@@ -180,7 +180,7 @@ namespace SFG
 		JPH::PhysicsSystem* sys = w.get_physics_world().get_system();
 		JPH::BodyInterface& inf = sys->GetBodyInterface();
 		inf.SetPosition(_body->GetID(), to_jph_vec3(pos), JPH::EActivation::Activate);
-		inf.SetPositionAndRotation(_body->GetID(), to_jph_vec3(pos), to_jph_quat(rot), JPH::EActivation::Activate);
+		inf.SetPositionAndRotation(_body->GetID(), to_jph_vec3(pos), to_jph_quat(q), JPH::EActivation::Activate);
 	}
 
 }
