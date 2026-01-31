@@ -31,6 +31,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "math/vector3.hpp"
 #include "resources/common_resources.hpp"
 #include "world/world_constants.hpp"
+#include <physics/physics_contact_listener.hpp>
 
 namespace SFG
 {
@@ -49,7 +50,7 @@ namespace SFG
 	struct window_event;
 	struct vector2ui16;
 
-	class gameplay
+	class gameplay: physics_contact_listener
 	{
 	public:
 		gameplay(app& app) : _app(app) {};
@@ -61,6 +62,10 @@ namespace SFG
 		void on_world_end(world& w);
 		void on_world_tick(world& w, float dt, const vector2ui16& game_res);
 		void on_window_event(const window_event& ev, window* wnd);
+
+		void on_contact_begin(world_handle e1, world_handle e2, const vector3& p1, const vector3& p2);
+		void on_contact(world_handle e1, world_handle e2, const vector3& p1, const vector3& p2);
+		void on_contact_end(world_handle e1, world_handle e2);
 
 	private:
 		void tick_player(float dt);

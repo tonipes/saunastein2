@@ -145,26 +145,8 @@
             "near": 0.10000000149011612
         },
         {
-            "body_type": 0,
-            "comp_type": 14536826215375575722,
-            "entity": 13,
-            "extents": [
-                3.0,
-                5.0,
-                3.0
-            ],
-            "is_sensor": 1,
-            "material": "",
-            "offset": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "shape_type": 1
-        },
-        {
             "comp_type": 12829486272651206750,
-            "entity": 14,
+            "entity": 13,
             "material": 1,
             "material0": "assets/models/door.stkmodel/dungeon_floor",
             "mesh": "assets/models/door.stkmodel/Cube",
@@ -174,7 +156,7 @@
         {
             "body_type": 1,
             "comp_type": 14536826215375575722,
-            "entity": 15,
+            "entity": 14,
             "extents": [
                 2.0,
                 3.0,
@@ -191,7 +173,7 @@
         },
         {
             "comp_type": 12829486272651206750,
-            "entity": 16,
+            "entity": 15,
             "material": 1,
             "material0": "assets/models/door.stkmodel/dungeon_floor",
             "mesh": "assets/models/door.stkmodel/Cube",
@@ -201,7 +183,7 @@
         {
             "body_type": 1,
             "comp_type": 14536826215375575722,
-            "entity": 17,
+            "entity": 16,
             "extents": [
                 2.0,
                 1.0,
@@ -524,40 +506,15 @@
             "next_sibling": -1,
             "parent": -1,
             "pos": [
-                -2.7737159729003906,
-                -11.519190788269043,
-                4.471506118774414
+                -3.0482006072998047,
+                -10.836820602416992,
+                0.7741068005561829
             ],
             "rot": [
-                0.0,
-                0.0,
-                0.0,
-                1.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0
-            ],
-            "tag": "",
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 14,
-            "name": "door_root",
-            "next_sibling": -1,
-            "parent": 12,
-            "pos": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "rot": [
-                0.0,
-                0.0,
-                0.0,
-                1.0
+                -5.115907697472721e-13,
+                0.7071070075035095,
+                -5.115907697472721e-13,
+                0.7071065306663513
             ],
             "scale": [
                 1.0,
@@ -569,12 +526,12 @@
             "visible": 1
         },
         {
-            "first_child": 15,
+            "first_child": 14,
             "name": "door",
-            "next_sibling": 16,
-            "parent": 13,
+            "next_sibling": 15,
+            "parent": 12,
             "pos": [
-                2.0443501472473145,
+                4.0,
                 0.0,
                 0.0
             ],
@@ -597,7 +554,7 @@
             "first_child": -1,
             "name": "collider",
             "next_sibling": -1,
-            "parent": 14,
+            "parent": 13,
             "pos": [
                 2.0,
                 3.0,
@@ -619,12 +576,12 @@
             "visible": 1
         },
         {
-            "first_child": 17,
+            "first_child": 16,
             "name": "door",
             "next_sibling": -1,
-            "parent": 13,
+            "parent": 12,
             "pos": [
-                -5.989995956420898,
+                -4.0,
                 0.0,
                 0.0
             ],
@@ -647,7 +604,7 @@
             "first_child": -1,
             "name": "collider",
             "next_sibling": -1,
-            "parent": 16,
+            "parent": 15,
             "pos": [
                 2.0,
                 3.0,
@@ -667,6 +624,31 @@
             "tag": "",
             "template": "",
             "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "trigger_test",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "trigger",
+            "template": "",
+            "visible": 1
         }
     ],
     "extra_resources": [],
@@ -676,14 +658,14 @@
         "assets/models/door.stkmodel"
     ],
     "tool_cam_pos": [
-        -5.24836540222168,
-        -2.1652743816375732,
-        -8.188680648803711
+        16.782489776611328,
+        10.546209335327148,
+        0.1946260929107666
     ],
     "tool_cam_rot": [
-        0.002829120960086584,
-        0.957172691822052,
-        0.2893523573875427,
-        -0.009358684532344341
+        0.4980255961418152,
+        0.5018819570541382,
+        -0.49319833517074585,
+        0.5067942142486572
     ]
 }

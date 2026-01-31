@@ -30,6 +30,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "game/components/comp_player.hpp"
 #include <world/components/comp_physics.hpp>
 #include "game/components/comp_enemy_ai_basic.hpp"
+#include <physics/physics_contact_listener.hpp>
 
 namespace SFG
 {
@@ -158,19 +159,20 @@ namespace SFG
 
 	void gameplay::begin_doors()
 	{
-		world&			   w  = _app.get_world();
-		component_manager& cm = w.get_comp_manager();
-		entity_manager&	   em = w.get_entity_manager();
+		world&				w  = _app.get_world();
+		component_manager&	cm = w.get_comp_manager();
+		entity_manager&		em = w.get_entity_manager();
+		physics_world&		ph	= w.get_physics_world();
 
-		vector<world_handle> door_handles = {};
+		vector<world_handle> tmp = {};
 
-		em.find_entities_by_tag("door_root", door_handles);
-		// SFG_TRACE("DOORS: {0}", door_handles.size());
-		for (int i = 0; i < door_handles.size(); ++i)
+		tmp.clear();
+		em.find_entities_by_tag("door_root", tmp);
+		for (int i = 0; i < tmp.size(); ++i)
 		{
 			// SFG_TRACE("DOOR: {0}", i);
 			door d = {
-				.door_root_handle = door_handles[i],
+				.door_root_handle = tmp[i],
 				.t			 = 0,
 				.open_angle	 = 165.0f,
 				.is_opened	 = false,
@@ -178,5 +180,24 @@ namespace SFG
 
 			_doors.push_back(d);
 		}
+
+		//tmp.clear();
+		//em.find_entities_by_tag("trigger", tmp);
+		//for (int i = 0; i < tmp.size(); ++i)
+		//{
+		//	world_handle handle = tmp[i];
+		//	world_handle phys_comp_handle = em.get_entity_component<comp_physics>(handle);
+		//	comp_physics& phys_comp = cm.get_component<comp_physics>(phys_comp_handle);
+		//}
+	}
+
+	void gameplay::on_contact_begin(world_handle e1, world_handle e2, const vector3& p1, const vector3& p2) {
+
+	}
+	void gameplay::on_contact(world_handle e1, world_handle e2, const vector3& p1, const vector3& p2) {
+
+	}
+	void gameplay::on_contact_end(world_handle e1, world_handle e2) {
+		
 	}
 }
