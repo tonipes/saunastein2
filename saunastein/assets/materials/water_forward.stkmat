@@ -1,6 +1,6 @@
 {
-   "pass": "gbuffer",
-   "shader": "assets/materials/water.stkshader",
+   "pass": "forward",
+   "shader": "assets/materials/water_forward.stkshader",
    "textures": [
       "assets/materials/water.stktexture",
       "",
@@ -24,8 +24,6 @@
    },
    "priority": 0,
    "parameters": [
-      {"name": "base_color_factor", "value": [1,0,1,1]},
-      {"name": "emissive_and_metallic_factor", "value": [1,1,1,1]},
-      {"name": "roughness_normal_strength_alpha", "value": [1,1,1,1]}
+      {"name": "base_color_factor", "value": [1,1,1,1]}
    ]
 }

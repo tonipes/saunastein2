@@ -1,5 +1,15 @@
 {
-    "components": [],
+    "components": [
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 7,
+            "material": 1,
+            "material0": "assets/materials/water_forward.stkmat",
+            "mesh": "assets/models/waterplane.stkmodel/Plane",
+            "skin": "",
+            "skin_entities": 0
+        }
+    ],
     "entities": [
         {
             "first_child": 1,
@@ -28,7 +38,7 @@
         },
         {
             "first_child": -1,
-            "name": "assets/models/door.stkmodel",
+            "name": "double_door",
             "next_sibling": 2,
             "parent": 0,
             "pos": [
@@ -53,7 +63,7 @@
         },
         {
             "first_child": -1,
-            "name": "assets/models/door.stkmodel",
+            "name": "double_door",
             "next_sibling": 3,
             "parent": 0,
             "pos": [
@@ -78,7 +88,7 @@
         },
         {
             "first_child": -1,
-            "name": "assets/models/door.stkmodel",
+            "name": "double_door",
             "next_sibling": 4,
             "parent": 0,
             "pos": [
@@ -103,7 +113,7 @@
         },
         {
             "first_child": -1,
-            "name": "assets/models/door.stkmodel",
+            "name": "double_door",
             "next_sibling": 5,
             "parent": 0,
             "pos": [
@@ -153,8 +163,8 @@
         },
         {
             "first_child": -1,
-            "name": "assets/models/door.stkmodel",
-            "next_sibling": -1,
+            "name": "double_door",
+            "next_sibling": 7,
             "parent": 0,
             "pos": [
                 -179.03204345703125,
@@ -175,10 +185,37 @@
             "tag": "door_root",
             "template": "assets/entities/autodoor_double.stkent",
             "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "waterplane",
+            "next_sibling": -1,
+            "parent": 0,
+            "pos": [
+                -140.1583709716797,
+                -5.89405632019043,
+                -202.0212860107422
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                10.0,
+                5.0,
+                5.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
         }
     ],
     "resources": [
         "assets/entities/autodoor_double.stkent",
-        "assets/entities/bullet.stkent"
+        "assets/entities/bullet.stkent",
+        "assets/models/waterplane.stkmodel",
+        "assets/materials/water_forward.stkmat"
     ]
 }
