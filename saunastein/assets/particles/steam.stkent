@@ -1,0 +1,41 @@
+{
+    "components": [
+        {
+            "comp_type": 1084153302536849766,
+            "entity": 0,
+            "material": "assets/particles/steam.stkmat",
+            "particle": "assets/particles/steam.stkparticle"
+        }
+    ],
+    "entities": [
+        {
+            "first_child": -1,
+            "name": "particle_steam",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        }
+    ],
+    "resources": [
+        "assets/particles/steam.stkparticle",
+        "assets/particles/steam.stkmat"
+    ]
+}
