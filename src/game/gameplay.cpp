@@ -45,6 +45,7 @@ namespace SFG
 
 	void gameplay::on_world_begin(world& w)
 	{
+		begin_player();
 	}
 
 	void gameplay::on_world_end(world& w)
@@ -58,7 +59,11 @@ namespace SFG
 
 	void gameplay::on_window_event(const window_event& ev, window* wnd)
 	{
-
+		world&			   w	   = _app.get_world();
+		component_manager& cm	   = w.get_comp_manager();
+		auto&			   players = cm.underlying_pool<comp_cache<comp_player, MAX_PLAYERS>, comp_player>();
+		for (comp_player& p : players)
+			p.on_window_event(ev);
 	}
 
 	void gameplay::tick_player(float dt)
@@ -67,6 +72,15 @@ namespace SFG
 		component_manager& cm	   = w.get_comp_manager();
 		auto&			   players = cm.underlying_pool<comp_cache<comp_player, MAX_PLAYERS>, comp_player>();
 		for (comp_player& p : players)
-			p.tick(dt);
+			p.tick(w, dt);
+	}
+
+	void gameplay::begin_player()
+	{
+		world&			   w	   = _app.get_world();
+		component_manager& cm	   = w.get_comp_manager();
+		auto&			   players = cm.underlying_pool<comp_cache<comp_player, MAX_PLAYERS>, comp_player>();
+		for (comp_player& p : players)
+			p.begin_game(w);
 	}
 }

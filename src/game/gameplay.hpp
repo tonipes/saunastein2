@@ -54,7 +54,8 @@ namespace SFG
 		void on_window_event(const window_event& ev, window* wnd);
 
 	private:
-		void tick_players(float dt);
+		void tick_player(float dt);
+		void begin_player();
 
 	private:
 		app&			_app;

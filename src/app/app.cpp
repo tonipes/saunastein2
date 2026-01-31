@@ -183,6 +183,7 @@ namespace SFG
 		_render_stream.init();
 
 		_gameplay = new gameplay(*this);
+		_gameplay->init();
 
 #ifdef SFG_TOOLMODE
 		_editor->init();
@@ -198,7 +199,6 @@ namespace SFG
 
 		engine_resources::get().clear_init();
 
-		_gameplay->init();
 
 		return init_status::ok;
 	}

@@ -29,6 +29,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gfx/event_stream/render_event_stream.hpp"
 #include "gfx/event_stream/render_events_trait.hpp"
 #include "reflection/reflection.hpp"
+#include "world/components/comp_character_controller.hpp"
 
 namespace SFG
 {
@@ -59,8 +60,21 @@ namespace SFG
 	{
 	}
 
-	void comp_player::tick(float dt)
+	void comp_player::begin_game(world& w)
 	{
+		entity_manager&				em = w.get_entity_manager();
+		const entity_comp_register& e  = em.get_component_register(_header.entity);
+		_char_controller			   = em.get_entity_component<comp_character_controller>(_header.entity);
+	}
+
+	void comp_player::tick(world& w, float dt)
+	{
+		if (_char_controller.is_null())
+			return;
+
+		component_manager&		   cm			  = w.get_comp_manager();
+		comp_character_controller& comp_char_cont = cm.get_component<comp_character_controller>(_char_controller);
+		comp_char_cont.set_target_velocity(vector3::one);
 	}
 
 	void comp_player::on_window_event(const window_event& ev)

@@ -47,7 +47,9 @@ namespace SFG
 		void on_add(world& w);
 		void on_remove(world& w);
 		void set_values(world& w, const color& base_color);
-		void tick(float dt);
+
+		void begin_game(world& w);
+		void tick(world& w, float dt);
 
 		void on_window_event(const window_event& ev);
 
@@ -65,6 +67,8 @@ namespace SFG
 
 	private:
 		component_header _header = {};
+
+		world_handle _char_controller = {};
 
 		float _movement_speed = 15.0f;
 		float _rotation_speed = 5.0f;
