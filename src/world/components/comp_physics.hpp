@@ -73,6 +73,7 @@ namespace SFG
 
 		void set_body_position(world& w, const vector3& pos);
 		void set_body_position_and_rotation(world& w, const vector3& pos, const quat& q);
+		void set_body_velocity(world& w, const vector3& velocity);
 
 		// -----------------------------------------------------------------------------
 		// accessors

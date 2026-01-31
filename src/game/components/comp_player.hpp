@@ -27,16 +27,19 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include "world/components/common_comps.hpp"
+#include "game/player_ui.hpp"
 #include "reflection/type_reflection.hpp"
 #include "math/color.hpp"
 #include "math/vector2.hpp"
 #include "math/vector3.hpp"
+#include "physics/physics_ray_collector.hpp"
 
 namespace SFG
 {
 	class world;
 	class window;
 	struct window_event;
+	class comp_character_controller;
 
 	class comp_player
 	{
@@ -53,8 +56,9 @@ namespace SFG
 
 		void begin_game(world& w, window& wnd);
 		void tick(world& w, float dt);
+		void tick_debug(world& w, float dt);
 
-		void on_window_event(const window_event& ev);
+		void on_window_event(world& w, const window_event& ev);
 
 		// -----------------------------------------------------------------------------
 		// accessors
@@ -66,29 +70,53 @@ namespace SFG
 		}
 
 	private:
+		void start_dive(world& w, comp_character_controller& controller, const vector3& dir);
+		void end_dive(world& w, comp_character_controller& controller);
+		void fire_mask(world& w);
+
 		template <typename T, int> friend class comp_cache;
 
 	private:
 		component_header _header = {};
 
-		world_handle _char_controller = {};
-		world_handle _camera_entity	  = {};
-		world_handle _camera_comp	  = {};
+		physics_raycast_single _ray_caster = {};
+
+		world_handle _char_controller	  = {};
+		world_handle _camera_entity		  = {};
+		world_handle _camera_comp		  = {};
+		world_handle _player_stats		  = {};
+		world_handle _canvas_comp		  = {};
+		world_handle _spawn_offset_entity = {};
+		world_handle _player_mesh_entity  = {};
+
+		player_ui _ui = {};
 
 		vector2 _mouse_delta = vector2::zero;
 		vector2 _move_input	 = vector2::zero;
 
-		float	_movement_speed	   = 15.0f;
-		float	_rotation_speed	   = 5.0f;
-		float	_camera_distance   = 4.0f;
-		float	_orbit_yaw_speed   = 0.08f;
-		float	_orbit_pitch_speed = 0.08f;
-		float	_orbit_min_pitch   = -80.0f;
-		float	_orbit_max_pitch   = 80.0f;
-		float	_yaw_degrees	   = 0.0f;
-		float	_pitch_degrees	   = 20.0f;
-		vector3 _camera_offset	   = vector3(0.0f, 1.5f, 0.0f);
-		bool	_inited			   = false;
+		float	_movement_speed		  = 15.0f;
+		float	_rotation_speed		  = 5.0f;
+		float	_camera_distance	  = 4.0f;
+		float	_real_camera_distance = 4.0f;
+		float	_orbit_yaw_speed	  = 0.08f;
+		float	_orbit_pitch_speed	  = 0.08f;
+		float	_orbit_min_pitch	  = -80.0f;
+		float	_orbit_max_pitch	  = 80.0f;
+		float	_yaw_degrees		  = 0.0f;
+		float	_pitch_degrees		  = 20.0f;
+		vector3 _camera_offset		  = vector3(0.0f, 1.5f, 0.0f);
+		bool	_inited				  = false;
+
+		bool	_dive_requested			= false;
+		bool	_mask_fire_requested	= false;
+		bool	_is_diving				= false;
+		float	_dive_timer				= 0.0f;
+		float	_dive_duration			= 0.45f;
+		float	_dive_speed				= 22.0f;
+		float	_dive_slowmo			= 0.2f;
+		float	_dive_jump_velocity		= 6.5f;
+		float	_base_controller_radius = 0.0f;
+		vector3 _dive_direction			= vector3::zero;
 	};
 
 	REFLECT_TYPE(comp_player);

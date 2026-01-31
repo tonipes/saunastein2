@@ -39,19 +39,19 @@ namespace SFG
 	{
 	}
 
-	bool physics_raycast_single::cast(physics_world* world, const vector3& position, const vector3& normal, float maxDistance)
+	bool physics_raycast_single::cast(physics_world& world, const vector3& position, const vector3& normal, float maxDistance)
 	{
 		_result						 = {};
 		const vector3	   direction = normal * maxDistance;
 		JPH::RRayCast	   ray(to_jph_vec3(position), to_jph_vec3(direction));
 		JPH::RayCastResult ioHit;
-		const bool		   hit = world->get_system()->GetNarrowPhaseQuery().CastRay(ray, ioHit);
+		const bool		   hit = world.get_system()->GetNarrowPhaseQuery().CastRay(ray, ioHit);
 
 		if (hit)
 		{
 			_result.hit_point	 = position + normal * ioHit.mFraction;
-			_result.hit_entity	 = world->get_game_world().get_entity_manager().get_valid_handle_by_index(0);
-			_result.hit_distance = ioHit.mFraction * normal.magnitude();
+			_result.hit_entity	 = world.get_comp_physics_entity_by_id(ioHit.mBodyID);
+			_result.hit_distance = ioHit.mFraction * direction.magnitude();
 		}
 
 		return hit;
@@ -62,7 +62,7 @@ namespace SFG
 		_jph_results.push_back(res);
 	}
 
-	bool physics_raycast_multi::cast(physics_world* world, const vector3& position, const vector3& normal, float max_distance)
+	bool physics_raycast_multi::cast(physics_world& world, const vector3& position, const vector3& normal, float max_distance)
 	{
 		_jph_results.resize(0);
 		_results.resize(0);
@@ -71,14 +71,14 @@ namespace SFG
 		JPH::RRayCast ray(to_jph_vec3(position), to_jph_vec3(direction));
 
 		JPH::RayCastSettings settings;
-		world->get_system()->GetNarrowPhaseQuery().CastRay(ray, settings, *this);
+		world.get_system()->GetNarrowPhaseQuery().CastRay(ray, settings, *this);
 
 		_results.reserve(_jph_results.size());
 
 		for (const JPH::RayCastResult& jph_res : _jph_results)
 		{
 			ray_result res = {
-				.hit_entity	  = world->get_game_world().get_entity_manager().get_valid_handle_by_index(0),
+				.hit_entity	  = world.get_comp_physics_entity_by_id(jph_res.mBodyID),
 				.hit_point	  = position + normal * jph_res.mFraction,
 				.hit_distance = jph_res.mFraction * direction.magnitude(),
 			};
@@ -93,7 +93,7 @@ namespace SFG
 		_jph_results.push_back(res);
 	}
 
-	bool physics_broadphase::cast(physics_world* world, const vector3& position, const vector3& normal, float max_distance)
+	bool physics_broadphase::cast(physics_world& world, const vector3& position, const vector3& normal, float max_distance)
 	{
 		_jph_results.resize(0);
 		_results.resize(0);
@@ -102,12 +102,12 @@ namespace SFG
 		JPH::RayCast  ray(to_jph_vec3(position), to_jph_vec3(direction));
 
 		JPH::RayCastSettings settings;
-		world->get_system()->GetBroadPhaseQuery().CastRay(ray, *this);
+		world.get_system()->GetBroadPhaseQuery().CastRay(ray, *this);
 
 		for (const JPH::BroadPhaseCastResult& jph_res : _jph_results)
 		{
 			ray_result res = {
-				.hit_entity	  = world->get_game_world().get_entity_manager().get_valid_handle_by_index(0),
+				.hit_entity	  = world.get_comp_physics_entity_by_id(jph_res.mBodyID),
 				.hit_point	  = position + normal * jph_res.mFraction,
 				.hit_distance = jph_res.mFraction * direction.magnitude(),
 			};

@@ -28,21 +28,26 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "app/app.hpp"
 #include "world/world.hpp"
 #include "game/components/comp_player.hpp"
+#include "game/components/comp_player_stats.hpp"
 #include <world/components/comp_physics.hpp>
 #include "game/components/comp_enemy_ai_basic.hpp"
+#include <physics/physics_contact_listener.hpp>
+#include "platform/window_common.hpp"
+#include "input/input_mappings.hpp"
 
 namespace SFG
 {
 
-
-
-
 #define MAX_PLAYERS 1
+
+	gameplay* gameplay::_inst = nullptr;
 
 	void gameplay::init()
 	{
 		_app.get_world().get_comp_manager().register_cache<comp_player, MAX_PLAYERS>();
+		_app.get_world().get_comp_manager().register_cache<comp_player_stats, MAX_PLAYERS>();
 		_app.get_world().get_comp_manager().register_cache<comp_enemy_ai_basic, MAX_WORLD_ENEMY_AI_BASIC>();
+		_inst = this;
 	}
 
 	void gameplay::uninit()
@@ -51,21 +56,30 @@ namespace SFG
 
 	void gameplay::on_world_begin(world& w)
 	{
+		w.get_physics_world().set_contact_listener(this);
+		w.get_physics_world().set_character_contact_listener(this);
 		begin_player();
 		begin_doors();
-		begin_enemies();
+		begin_managed_entities();
 	}
 
 	void gameplay::on_world_end(world& w)
 	{
+		w.get_physics_world().set_contact_listener(nullptr);
+		w.get_physics_world().set_character_contact_listener(nullptr);
 		_doors.clear();
+	}
+
+	void gameplay::on_debug_tick(world& w, float dt, const vector2ui16& game_res)
+	{
+		tick_player_debug(dt);
 	}
 
 	void gameplay::on_world_tick(world& w, float dt, const vector2ui16& game_res)
 	{
 		tick_player(dt);
 		tick_doors(dt);
-		tick_enemies(dt);
+		tick_managed_entities(dt);
 	}
 
 	void gameplay::on_window_event(const window_event& ev, window* wnd)
@@ -74,7 +88,47 @@ namespace SFG
 		component_manager& cm	   = w.get_comp_manager();
 		auto&			   players = cm.underlying_pool<comp_cache<comp_player, MAX_PLAYERS>, comp_player>();
 		for (comp_player& p : players)
-			p.on_window_event(ev);
+			p.on_window_event(_app.get_world(), ev);
+
+
+		switch (ev.type)
+		{
+			case window_event_type::key: {
+				if (ev.button == input_code::key_space && ev.sub_type == window_event_sub_type::press)
+				{
+					SFG_TRACE("SPACE PRESSED");
+				}
+			}
+			default:
+				break;
+		}
+	}
+
+	void gameplay::on_contact_begin(world_handle e1, world_handle e2, const vector3& p1, const vector3& p2)
+	{
+		check_managed_entities_collision(e1, e2);
+	}
+
+	void gameplay::on_contact(world_handle e1, world_handle e2, const vector3& p1, const vector3& p2)
+	{
+	}
+
+	void gameplay::on_contact_end(world_handle e1, world_handle e2)
+	{
+	}
+
+	void gameplay::on_character_contact_begin(world_handle character, world_handle other, const vector3& position, const vector3& normal)
+	{
+		check_managed_entities_collision(character, other);
+	}
+
+	void gameplay::on_character_contact(world_handle character, world_handle other, const vector3& position, const vector3& normal)
+	{
+	}
+
+	void gameplay::on_character_contact_end(world_handle character, world_handle other)
+	{
+	
 	}
 
 	void gameplay::tick_player(float dt)
@@ -86,6 +140,15 @@ namespace SFG
 			p.tick(w, dt);
 	}
 
+	void gameplay::tick_player_debug(float dt)
+	{
+		world&			   w	   = _app.get_world();
+		component_manager& cm	   = w.get_comp_manager();
+		auto&			   players = cm.underlying_pool<comp_cache<comp_player, MAX_PLAYERS>, comp_player>();
+		for (comp_player& p : players)
+			p.tick_debug(w, dt);
+	}
+
 	void gameplay::begin_player()
 	{
 		world&			   w	   = _app.get_world();
@@ -95,88 +158,6 @@ namespace SFG
 		{
 			p.begin_game(w, _app.get_main_window());
 			_player_entity = p.get_header().entity;
-			_player_initialized = true;
-		}
-	}
-
-	void gameplay::tick_enemies(float dt)
-	{
-		world&	   w		 = _app.get_world();
-		auto&	   enemies	 = w.get_comp_manager().underlying_pool<comp_cache<comp_enemy_ai_basic, MAX_WORLD_ENEMY_AI_BASIC>, comp_enemy_ai_basic>();
-		if (!_player_initialized) return;
-		const auto playerPos = w.get_entity_manager().get_entity_position(_player_entity);
-		for (comp_enemy_ai_basic& e : enemies)
-			e.tick(playerPos, dt);
-	}
-
-	void gameplay::begin_enemies()
-	{
-		world& w	   = _app.get_world();
-		auto&  enemies = w.get_comp_manager().underlying_pool<comp_cache<comp_enemy_ai_basic, MAX_WORLD_ENEMY_AI_BASIC>, comp_enemy_ai_basic>();
-		for (comp_enemy_ai_basic& e : enemies)
-			e.begin_play(w);
-	}
-
-	void gameplay::tick_doors(float dt)
-	{
-		world&			   w  = _app.get_world();
-		component_manager& cm = w.get_comp_manager();
-		entity_manager&	   em = w.get_entity_manager();
-		physics_world&	   ph = w.get_physics_world();
-
-		for (int i = 0; i < _doors.size(); ++i)
-		{
-			if (_doors[i].door_root_handle.is_null())
-				continue;
-
-			float speed = 1.0f;
-			_doors[i].t += dt * speed;
-			float tt = _doors[i].t;
-			if (tt > 1.0f)
-				tt = 1.0f;
-			if (tt < 0.0f)
-				tt = 0.0f;
-
-			em.visit_children(_doors[i].door_root_handle, [&](world_handle child) {
-				float ss = 1.0f;
-				if (em.get_entity_scale(child).x < 0.0f)
-					ss = -1.0f;
-
-				const quat rot = quat::from_euler(0.0f, ss*tt * _doors[i].open_angle, 0.0f);
-				em.set_entity_rotation(child, rot);
-
-				world_handle phys_ent_handle = em.get_child_by_index(child, 0);
-				world_handle phys_comp_handle = em.get_entity_component<comp_physics>(phys_ent_handle);
-				comp_physics& phys_comp = cm.get_component<comp_physics>(phys_comp_handle);
-				phys_comp.set_body_position_and_rotation(w,
-					em.get_entity_position_abs(phys_ent_handle),
-					em.get_entity_rotation_abs(phys_ent_handle)
-				);
-			});
-		}
-	}
-
-	void gameplay::begin_doors()
-	{
-		world&			   w  = _app.get_world();
-		component_manager& cm = w.get_comp_manager();
-		entity_manager&	   em = w.get_entity_manager();
-
-		vector<world_handle> door_handles = {};
-
-		em.find_entities_by_tag("door_root", door_handles);
-		// SFG_TRACE("DOORS: {0}", door_handles.size());
-		for (int i = 0; i < door_handles.size(); ++i)
-		{
-			// SFG_TRACE("DOOR: {0}", i);
-			door d = {
-				.door_root_handle = door_handles[i],
-				.t			 = 0,
-				.open_angle	 = 165.0f,
-				.is_opened	 = false,
-			};
-
-			_doors.push_back(d);
 		}
 	}
 }

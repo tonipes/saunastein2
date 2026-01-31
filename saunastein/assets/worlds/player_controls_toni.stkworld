@@ -96,6 +96,10 @@
                 0.0
             ],
             "comp_type": 7590390715442638056,
+            "dive_duration": 0.0,
+            "dive_jump_velocity": 0.0,
+            "dive_slowmo": 0.0,
+            "dive_speed": 0.0,
             "entity": 8,
             "movement_speed": 15.0,
             "orbit_max_pitch": 89.0,
@@ -129,6 +133,14 @@
             "step_up": 0.4000000059604645
         },
         {
+            "available_dive_count": 0,
+            "comp_type": 15818663065171639868,
+            "entity": 8,
+            "health": 100.0,
+            "hydration_score": 0.0,
+            "mask_count": 0
+        },
+        {
             "comp_type": 12829486272651206750,
             "entity": 10,
             "material": 1,
@@ -143,78 +155,6 @@
             "far": 250.0,
             "fov_degrees": 80.0,
             "near": 0.10000000149011612
-        },
-        {
-            "body_type": 0,
-            "comp_type": 14536826215375575722,
-            "entity": 13,
-            "extents": [
-                3.0,
-                5.0,
-                3.0
-            ],
-            "is_sensor": 1,
-            "material": "",
-            "offset": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "shape_type": 1
-        },
-        {
-            "comp_type": 12829486272651206750,
-            "entity": 14,
-            "material": 1,
-            "material0": "assets/models/door.stkmodel/dungeon_floor",
-            "mesh": "assets/models/door.stkmodel/Cube",
-            "skin": "",
-            "skin_entities": 0
-        },
-        {
-            "body_type": 1,
-            "comp_type": 14536826215375575722,
-            "entity": 15,
-            "extents": [
-                2.0,
-                3.0,
-                0.5
-            ],
-            "is_sensor": 0,
-            "material": "",
-            "offset": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "shape_type": 1
-        },
-        {
-            "comp_type": 12829486272651206750,
-            "entity": 16,
-            "material": 1,
-            "material0": "assets/models/door.stkmodel/dungeon_floor",
-            "mesh": "assets/models/door.stkmodel/Cube",
-            "skin": "",
-            "skin_entities": 0
-        },
-        {
-            "body_type": 1,
-            "comp_type": 14536826215375575722,
-            "entity": 17,
-            "extents": [
-                2.0,
-                1.0,
-                1.0
-            ],
-            "is_sensor": 0,
-            "material": "",
-            "offset": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "shape_type": 1
         }
     ],
     "entities": [
@@ -264,7 +204,7 @@
                 1.0,
                 1.0
             ],
-            "tag": "",
+            "tag": "walls",
             "template": "",
             "visible": 1
         },
@@ -519,45 +459,20 @@
             "visible": 1
         },
         {
-            "first_child": 13,
+            "first_child": -1,
             "name": "assets/models/door.stkmodel",
             "next_sibling": -1,
             "parent": -1,
             "pos": [
-                -2.7737159729003906,
-                -11.519190788269043,
-                4.471506118774414
+                -29.118303298950195,
+                -10.809270858764648,
+                0.8593707084655762
             ],
             "rot": [
-                0.0,
-                0.0,
-                0.0,
-                1.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0
-            ],
-            "tag": "",
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 14,
-            "name": "door_root",
-            "next_sibling": -1,
-            "parent": 12,
-            "pos": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "rot": [
-                0.0,
-                0.0,
-                0.0,
-                1.0
+                -5.115907697472721e-13,
+                0.7071070075035095,
+                -5.115907697472721e-13,
+                0.7071065306663513
             ],
             "scale": [
                 1.0,
@@ -565,43 +480,43 @@
                 1.0
             ],
             "tag": "door_root",
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 15,
-            "name": "door",
-            "next_sibling": 16,
-            "parent": 13,
-            "pos": [
-                2.0443501472473145,
-                0.0,
-                0.0
-            ],
-            "rot": [
-                0.0,
-                0.0,
-                0.0,
-                1.0
-            ],
-            "scale": [
-                -1.0,
-                1.0,
-                1.0
-            ],
-            "tag": "door",
-            "template": "",
+            "template": "assets/entities/autodoor_double.stkent",
             "visible": 1
         },
         {
             "first_child": -1,
-            "name": "collider",
+            "name": "assets/models/door.stkmodel",
             "next_sibling": -1,
-            "parent": 14,
+            "parent": -1,
             "pos": [
-                2.0,
-                3.0,
-                0.0
+                -42.328216552734375,
+                -10.809270858764648,
+                0.8593793511390686
+            ],
+            "rot": [
+                6.181723932741079e-08,
+                0.7071065306663513,
+                6.181723932741079e-08,
+                -0.7071070075035095
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "door_root",
+            "template": "assets/entities/autodoor_double.stkent",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "bullet",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                0.0,
+                0.0,
+                -11.281639099121094
             ],
             "rot": [
                 0.0,
@@ -615,57 +530,7 @@
                 1.0
             ],
             "tag": "",
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 17,
-            "name": "door",
-            "next_sibling": -1,
-            "parent": 13,
-            "pos": [
-                -5.989995956420898,
-                0.0,
-                0.0
-            ],
-            "rot": [
-                0.0,
-                0.0,
-                0.0,
-                1.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0
-            ],
-            "tag": "door",
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": -1,
-            "name": "collider",
-            "next_sibling": -1,
-            "parent": 16,
-            "pos": [
-                2.0,
-                3.0,
-                0.0
-            ],
-            "rot": [
-                0.0,
-                0.0,
-                0.0,
-                1.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0
-            ],
-            "tag": "",
-            "template": "",
+            "template": "assets/entities/bullet.stkent",
             "visible": 1
         }
     ],
@@ -673,17 +538,18 @@
     "resources": [
         "assets/models/level.stkmodel",
         "assets/models/cube.stkmodel",
-        "assets/models/door.stkmodel"
+        "assets/entities/autodoor_double.stkent",
+        "assets/entities/bullet.stkent"
     ],
     "tool_cam_pos": [
-        -5.24836540222168,
-        -2.1652743816375732,
-        -8.188680648803711
+        -41.684898376464844,
+        35.163143157958984,
+        17.48114776611328
     ],
     "tool_cam_rot": [
-        0.002829120960086584,
-        0.957172691822052,
-        0.2893523573875427,
-        -0.009358684532344341
+        -0.2993629574775696,
+        -0.4740467369556427,
+        -0.17535904049873352,
+        0.8092656135559082
     ]
 }

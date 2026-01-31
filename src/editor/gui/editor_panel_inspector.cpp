@@ -144,17 +144,19 @@ namespace SFG
 			{
 				if (dd.type == debug_draw_type::physics)
 				{
-					const comp_physics&		 c	 = cm.get_component<comp_physics>(dd.component);
-					const physics_shape_type st	 = c.get_shape_type();
-					const vector3&			 val = c.get_extent_or_rad_height();
+					const comp_physics&		 c			  = cm.get_component<comp_physics>(dd.component);
+					const physics_shape_type st			  = c.get_shape_type();
+					const vector3&			 val		  = c.get_extent_or_rad_height();
+					const vector3			 offset_world = selected_rot * (c.get_offset() * selected_scale);
+					const vector3&			 scale		  = em.get_entity_scale_abs(c.get_header().entity);
 
 					const vector3 orientation = selected_rot.get_up();
 					if (st == physics_shape_type::box)
-						debug_rendering.draw_box(selected_pos + c.get_offset(), val, selected_rot.get_forward(), color::red, thickness);
+						debug_rendering.draw_box(selected_pos + offset_world, val * scale, selected_rot.get_forward(), color::red, thickness);
 					else if (st == physics_shape_type::capsule)
-						debug_rendering.draw_capsule(selected_pos + c.get_offset(), val.x * vector2(selected_scale.x, selected_scale.z).magnitude(), val.y * 0.5f * selected_scale.y, orientation, col_phy, thickness);
+						debug_rendering.draw_capsule(selected_pos + offset_world, val.x * vector2(selected_scale.x, selected_scale.z).magnitude(), val.y * 0.5f * selected_scale.y, orientation, col_phy, thickness);
 					else if (st == physics_shape_type::cylinder)
-						debug_rendering.draw_cylinder(selected_pos + c.get_offset(), val.x * vector2(selected_scale.x, selected_scale.z).magnitude(), val.y * selected_scale.y, orientation, col_phy, thickness);
+						debug_rendering.draw_cylinder(selected_pos + offset_world, val.x * vector2(selected_scale.x, selected_scale.z).magnitude(), val.y * selected_scale.y, orientation, col_phy, thickness);
 					else if (st == physics_shape_type::mesh)
 					{
 						const world_handle mesh_comp = em.get_entity_component<comp_mesh_instance>(c.get_header().entity);
@@ -172,7 +174,7 @@ namespace SFG
 								{
 									const vector3*		   vtx	= rm.get_aux().get<vector3>(res.get_collider_vertices());
 									const primitive_index* idx	= rm.get_aux().get<primitive_index>(res.get_collider_indices());
-									const vector3		   base = selected_pos + c.get_offset();
+									const vector3		   base = selected_pos + offset_world;
 									for (uint32 i = 0; i + 2 < idx_count; i += 3)
 									{
 										const vector3 p0 = selected_rot * (vtx[idx[i + 0]] * selected_scale) + base;
@@ -185,16 +187,17 @@ namespace SFG
 						}
 					}
 					else if (st == physics_shape_type::sphere)
-						debug_rendering.draw_sphere(selected_pos + c.get_offset(), val.x * selected_scale.magnitude(), col_phy, thickness);
+						debug_rendering.draw_sphere(selected_pos + offset_world, val.x * selected_scale.magnitude(), col_phy, thickness);
 					else if (st == physics_shape_type::plane)
-						debug_rendering.draw_oriented_plane(selected_pos + c.get_offset(), val.x * selected_scale.x, val.z * selected_scale.z, vector3::up, col_phy, thickness);
+						debug_rendering.draw_oriented_plane(selected_pos + offset_world, val.x * selected_scale.x, val.z * selected_scale.z, vector3::up, col_phy, thickness);
 				}
 				else if (dd.type == debug_draw_type::character_controller)
 				{
-					const comp_character_controller& c			 = cm.get_component<comp_character_controller>(dd.component);
-					const float						 radius		 = c.get_radius() * vector2(selected_scale.x, selected_scale.z).magnitude();
-					const float						 half_height = c.get_half_height() * selected_scale.y;
-					debug_rendering.draw_capsule(selected_pos + c.get_shape_offset(), radius, half_height, selected_rot.get_up(), col_phy, thickness);
+					const comp_character_controller& c			  = cm.get_component<comp_character_controller>(dd.component);
+					const float						 radius		  = c.get_radius() * vector2(selected_scale.x, selected_scale.z).magnitude();
+					const float						 half_height  = c.get_half_height() * selected_scale.y;
+					const vector3					 offset_world = selected_rot * (c.get_shape_offset() * selected_scale);
+					debug_rendering.draw_capsule(selected_pos + offset_world, radius, half_height, selected_rot.get_up(), col_phy, thickness);
 				}
 				else if (dd.type == debug_draw_type::audio)
 				{

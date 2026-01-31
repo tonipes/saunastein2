@@ -31,20 +31,24 @@
         {
             "comp_type": 12829486272651206750,
             "entity": 2,
-            "material": 1,
-            "material0": "assets/models/level.stkmodel/ShowerKaakel",
-            "mesh": "assets/models/level.stkmodel/Cube.008",
+            "material": 4,
+            "material0": "assets/models/level.stkmodel/SaunaWood",
+            "material1": "assets/models/level.stkmodel/MetalFence",
+            "material2": "assets/models/level.stkmodel/Rocks",
+            "material3": "assets/models/level.stkmodel/BlackTiles",
+            "mesh": "assets/models/level.stkmodel/Cube.003",
             "skin": "",
             "skin_entities": 0
         },
         {
             "comp_type": 12829486272651206750,
             "entity": 3,
-            "material": 3,
+            "material": 4,
             "material0": "assets/models/level.stkmodel/SaunaWood",
             "material1": "assets/models/level.stkmodel/MetalFence",
             "material2": "assets/models/level.stkmodel/Rocks",
-            "mesh": "assets/models/level.stkmodel/Cube.003",
+            "material3": "assets/models/level.stkmodel/BlackTiles",
+            "mesh": "assets/models/level.stkmodel/Cube.023",
             "skin": "",
             "skin_entities": 0
         },
@@ -53,19 +57,36 @@
             "entity": 4,
             "material": 3,
             "material0": "assets/models/level.stkmodel/SaunaWood",
-            "material1": "assets/models/level.stkmodel/MetalFence",
-            "material2": "assets/models/level.stkmodel/Rocks",
-            "mesh": "assets/models/level.stkmodel/Cube.023",
+            "material1": "assets/models/level.stkmodel/ShowerKaakel",
+            "material2": "assets/models/level.stkmodel/BlackTiles",
+            "mesh": "assets/models/level.stkmodel/Cube.006",
             "skin": "",
             "skin_entities": 0
         },
         {
+            "body_type": 0,
+            "comp_type": 14536826215375575722,
+            "entity": 4,
+            "extents": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "is_sensor": 0,
+            "material": "",
+            "offset": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "shape_type": 5
+        },
+        {
             "comp_type": 12829486272651206750,
             "entity": 5,
-            "material": 2,
-            "material0": "assets/models/level.stkmodel/SaunaWood",
-            "material1": "assets/models/level.stkmodel/ShowerKaakel",
-            "mesh": "assets/models/level.stkmodel/Cube.006",
+            "material": 1,
+            "material0": "assets/models/level.stkmodel/BlackTiles",
+            "mesh": "assets/models/level.stkmodel/Cylinder.001",
             "skin": "",
             "skin_entities": 0
         },
@@ -74,17 +95,377 @@
             "entity": 6,
             "material": 1,
             "material0": "assets/models/level.stkmodel/floor",
-            "mesh": "assets/models/level.stkmodel/Cylinder.001",
+            "mesh": "assets/models/level.stkmodel/Cube.005",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "body_type": 0,
+            "comp_type": 14536826215375575722,
+            "entity": 6,
+            "extents": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "is_sensor": 0,
+            "material": "",
+            "offset": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "shape_type": 5
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 7,
+            "material": 1,
+            "material0": "assets/models/level.stkmodel/floor",
+            "mesh": "assets/models/level.stkmodel/Cube.007",
             "skin": "",
             "skin_entities": 0
         },
         {
             "comp_type": 12829486272651206750,
-            "entity": 7,
-            "material": 2,
+            "entity": 8,
+            "material": 1,
+            "material0": "assets/models/level.stkmodel/floor",
+            "mesh": "assets/models/level.stkmodel/Plane.001",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 9,
+            "material": 1,
+            "material0": "assets/models/level.stkmodel/floor",
+            "mesh": "assets/models/level.stkmodel/Cube.009",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 10,
+            "material": 1,
+            "material0": "assets/models/level.stkmodel/floor",
+            "mesh": "assets/models/level.stkmodel/Cube.011",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 11,
+            "material": 1,
+            "material0": "assets/models/level.stkmodel/floor",
+            "mesh": "assets/models/level.stkmodel/Cube.012",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 12,
+            "material": 1,
+            "material0": "assets/models/level.stkmodel/floor",
+            "mesh": "assets/models/level.stkmodel/Cube.013",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 13,
+            "material": 1,
+            "material0": "assets/models/level.stkmodel/floor",
+            "mesh": "assets/models/level.stkmodel/Cube.014",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 14,
+            "material": 1,
+            "material0": "assets/models/level.stkmodel/floor",
+            "mesh": "assets/models/level.stkmodel/Cube.015",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 15,
+            "material": 1,
+            "material0": "assets/models/level.stkmodel/floor",
+            "mesh": "assets/models/level.stkmodel/Cube.016",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 16,
+            "material": 3,
             "material0": "assets/models/level.stkmodel/SaunaWood",
-            "material1": "assets/models/level.stkmodel/Marble",
-            "mesh": "assets/models/level.stkmodel/Cube.017",
+            "material1": "assets/models/level.stkmodel/ShowerKaakel",
+            "material2": "assets/models/level.stkmodel/BlackTiles",
+            "mesh": "assets/models/level.stkmodel/Cube.019",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 17,
+            "material": 1,
+            "material0": "assets/models/level.stkmodel/floor",
+            "mesh": "assets/models/level.stkmodel/Cube.020",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 18,
+            "material": 1,
+            "material0": "assets/models/level.stkmodel/Marble",
+            "mesh": "assets/models/level.stkmodel/Cylinder.002",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 19,
+            "material": 1,
+            "material0": "assets/models/level.stkmodel/floor",
+            "mesh": "assets/models/level.stkmodel/Cube.024",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 20,
+            "material": 1,
+            "material0": "assets/models/level.stkmodel/Marble",
+            "mesh": "assets/models/level.stkmodel/Cylinder.005",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 21,
+            "material": 1,
+            "material0": "assets/models/level.stkmodel/floor",
+            "mesh": "assets/models/level.stkmodel/Cube.025",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 22,
+            "material": 1,
+            "material0": "assets/models/level.stkmodel/floor",
+            "mesh": "assets/models/level.stkmodel/Plane.002",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "body_type": 0,
+            "comp_type": 14536826215375575722,
+            "entity": 22,
+            "extents": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "is_sensor": 0,
+            "material": "",
+            "offset": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "shape_type": 5
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 23,
+            "material": 1,
+            "material0": "assets/models/level.stkmodel/floor",
+            "mesh": "assets/models/level.stkmodel/Cube.026",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 24,
+            "material": 1,
+            "material0": "assets/models/level.stkmodel/floor",
+            "mesh": "assets/models/level.stkmodel/Cube.027",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 25,
+            "material": 1,
+            "material0": "assets/models/level.stkmodel/floor",
+            "mesh": "assets/models/level.stkmodel/Cube.028",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 26,
+            "material": 1,
+            "material0": "assets/models/level.stkmodel/floor",
+            "mesh": "assets/models/level.stkmodel/Cube.029",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 27,
+            "material": 1,
+            "material0": "assets/models/level.stkmodel/floor",
+            "mesh": "assets/models/level.stkmodel/Cube.030",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 28,
+            "material": 1,
+            "material0": "assets/models/level.stkmodel/floor",
+            "mesh": "assets/models/level.stkmodel/Cube.031",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 29,
+            "material": 1,
+            "material0": "assets/models/level.stkmodel/floor",
+            "mesh": "assets/models/level.stkmodel/Cube.032",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 30,
+            "material": 1,
+            "material0": "assets/models/level.stkmodel/floor",
+            "mesh": "assets/models/level.stkmodel/Cube.033",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 31,
+            "material": 1,
+            "material0": "assets/models/level.stkmodel/floor",
+            "mesh": "assets/models/level.stkmodel/Cube.034",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 32,
+            "material": 1,
+            "material0": "assets/models/level.stkmodel/floor",
+            "mesh": "assets/models/level.stkmodel/Cube.035",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 33,
+            "material": 1,
+            "material0": "assets/models/level.stkmodel/BlackTiles",
+            "mesh": "assets/models/level.stkmodel/Cylinder.006",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 34,
+            "material": 1,
+            "material0": "assets/models/level.stkmodel/BlackTiles",
+            "mesh": "assets/models/level.stkmodel/Cylinder.007",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 35,
+            "material": 1,
+            "material0": "assets/models/level.stkmodel/BlackTiles",
+            "mesh": "assets/models/level.stkmodel/Cylinder.008",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 36,
+            "material": 1,
+            "material0": "assets/models/level.stkmodel/floor",
+            "mesh": "assets/models/level.stkmodel/Cube.036",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 37,
+            "material": 3,
+            "material0": "assets/models/level.stkmodel/SaunaWood",
+            "material1": "assets/models/level.stkmodel/ShowerKaakel",
+            "material2": "assets/models/level.stkmodel/BlackTiles",
+            "mesh": "assets/models/level.stkmodel/Cube.037",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 38,
+            "material": 4,
+            "material0": "assets/models/level.stkmodel/SaunaWood",
+            "material1": "assets/models/level.stkmodel/MetalFence",
+            "material2": "assets/models/level.stkmodel/Rocks",
+            "material3": "assets/models/level.stkmodel/BlackTiles",
+            "mesh": "assets/models/level.stkmodel/Cube.038",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 39,
+            "material": 4,
+            "material0": "assets/models/level.stkmodel/SaunaWood",
+            "material1": "assets/models/level.stkmodel/MetalFence",
+            "material2": "assets/models/level.stkmodel/Rocks",
+            "material3": "assets/models/level.stkmodel/BlackTiles",
+            "mesh": "assets/models/level.stkmodel/Cube.039",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 40,
+            "material": 1,
+            "material0": "assets/models/level.stkmodel/MetalFence",
+            "mesh": "assets/models/level.stkmodel/levelFLoor.003",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 41,
+            "material": 1,
+            "material0": "assets/models/level.stkmodel/SaunaWood",
+            "mesh": "assets/models/level.stkmodel/Cube.041",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 42,
+            "material": 1,
+            "material0": "assets/models/level.stkmodel/SaunaWood",
+            "mesh": "assets/models/level.stkmodel/Cube.042",
             "skin": "",
             "skin_entities": 0
         },
@@ -92,11 +473,15 @@
             "camera_distance": 15.0,
             "camera_offset": [
                 0.0,
-                0.0,
+                3.0,
                 0.0
             ],
             "comp_type": 7590390715442638056,
-            "entity": 8,
+            "dive_duration": 1.5,
+            "dive_jump_velocity": 6.0,
+            "dive_slowmo": 0.20000000298023224,
+            "dive_speed": 20.0,
+            "entity": 43,
             "movement_speed": 15.0,
             "orbit_max_pitch": 89.0,
             "orbit_min_pitch": -89.0,
@@ -108,7 +493,7 @@
             "character_padding": 0.019999999552965164,
             "comp_type": 17190279333344653665,
             "enhanced_internal_edge_removal": 0,
-            "entity": 8,
+            "entity": 43,
             "half_height": 1.9000002145767212,
             "mass": 70.0,
             "max_slope_degrees": 50.0,
@@ -129,20 +514,127 @@
             "step_up": 0.4000000059604645
         },
         {
+            "available_dive_count": 48,
+            "comp_type": 15818663065171639868,
+            "entity": 43,
+            "health": 100.0,
+            "hydration_score": 0.0,
+            "mask_count": 15
+        },
+        {
+            "comp_type": 14356981188726125758,
+            "entity": 73,
+            "machine": "",
+            "skin_entities": 27,
+            "skin_entities0": 54,
+            "skin_entities1": 53,
+            "skin_entities10": 59,
+            "skin_entities11": 51,
+            "skin_entities12": 50,
+            "skin_entities13": 49,
+            "skin_entities14": 67,
+            "skin_entities15": 66,
+            "skin_entities16": 65,
+            "skin_entities17": 64,
+            "skin_entities18": 63,
+            "skin_entities19": 72,
+            "skin_entities2": 52,
+            "skin_entities20": 71,
+            "skin_entities21": 70,
+            "skin_entities22": 69,
+            "skin_entities23": 68,
+            "skin_entities24": 48,
+            "skin_entities25": 73,
+            "skin_entities26": 47,
+            "skin_entities3": 58,
+            "skin_entities4": 57,
+            "skin_entities5": 56,
+            "skin_entities6": 55,
+            "skin_entities7": 62,
+            "skin_entities8": 61,
+            "skin_entities9": 60
+        },
+        {
             "comp_type": 12829486272651206750,
-            "entity": 10,
+            "entity": 73,
             "material": 1,
-            "material0": "assets/models/cube.stkmodel/saunaguy",
-            "mesh": "assets/models/cube.stkmodel/Cube.001",
-            "skin": "",
-            "skin_entities": 0
+            "material0": "assets/models/saunaguy.stkmodel/saunaguy",
+            "mesh": "assets/models/saunaguy.stkmodel/saunaguy",
+            "skin": "assets/models/saunaguy.stkmodel/Armature",
+            "skin_entities": 27,
+            "skin_entities0": 54,
+            "skin_entities1": 53,
+            "skin_entities10": 59,
+            "skin_entities11": 51,
+            "skin_entities12": 50,
+            "skin_entities13": 49,
+            "skin_entities14": 67,
+            "skin_entities15": 66,
+            "skin_entities16": 65,
+            "skin_entities17": 64,
+            "skin_entities18": 63,
+            "skin_entities19": 72,
+            "skin_entities2": 52,
+            "skin_entities20": 71,
+            "skin_entities21": 70,
+            "skin_entities22": 69,
+            "skin_entities23": 68,
+            "skin_entities24": 48,
+            "skin_entities25": 73,
+            "skin_entities26": 47,
+            "skin_entities3": 58,
+            "skin_entities4": 57,
+            "skin_entities5": 56,
+            "skin_entities6": 55,
+            "skin_entities7": 62,
+            "skin_entities8": 61,
+            "skin_entities9": 60
         },
         {
             "comp_type": 2550096278038808870,
-            "entity": 11,
-            "far": 250.0,
+            "entity": 74,
+            "far": 1000.0,
             "fov_degrees": 80.0,
             "near": 0.10000000149011612
+        },
+        {
+            "color": [
+                0.20000000298023224,
+                0.20000000298023224,
+                0.20000000298023224,
+                1.0
+            ],
+            "comp_type": 2366491877753393331,
+            "entity": 75
+        },
+        {
+            "cast_shadows": 1,
+            "color": [
+                11.800008773803711,
+                6.299996376037598,
+                12.70001220703125,
+                1.0
+            ],
+            "comp_type": 444826457028991798,
+            "entity": 76,
+            "intensity": 550.0,
+            "near_plane": 0.10000000149011612,
+            "range": 25.0,
+            "shadow_res": [
+                512,
+                512
+            ]
+        },
+        {
+            "bloom_strength": 0.03999999910593033,
+            "comp_type": 12646063331636911837,
+            "entity": 76,
+            "exposure": 1.0,
+            "reinhard_white_point": 6.0,
+            "saturation": 1.0,
+            "tonemap_mode": 1,
+            "wb_temp": 0.0,
+            "wb_tint": 0.0
         }
     ],
     "entities": [
@@ -152,9 +644,9 @@
             "next_sibling": -1,
             "parent": -1,
             "pos": [
-                14.408449172973633,
-                -10.936785697937012,
-                0.7218794226646423
+                0.0,
+                0.0,
+                0.0
             ],
             "rot": [
                 0.0,
@@ -192,44 +684,19 @@
                 1.0,
                 1.0
             ],
-            "tag": "",
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": -1,
-            "name": "ShowerDepartment",
-            "next_sibling": 3,
-            "parent": 0,
-            "pos": [
-                -90.19383239746094,
-                5.791877746582031,
-                36.819034576416016
-            ],
-            "rot": [
-                0.0,
-                0.0,
-                0.0,
-                1.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0
-            ],
-            "tag": "",
+            "tag": "walls",
             "template": "",
             "visible": 1
         },
         {
             "first_child": -1,
             "name": "SaunaR",
-            "next_sibling": 4,
+            "next_sibling": 3,
             "parent": 0,
             "pos": [
-                -93.70511627197266,
-                4.3059587478637695,
-                -13.252942085266113
+                0.0,
+                87.58407592773438,
+                0.0
             ],
             "rot": [
                 0.0,
@@ -242,17 +709,17 @@
                 1.0428624153137207,
                 1.0428624153137207
             ],
-            "tag": "",
+            "tag": "walls",
             "template": "",
             "visible": 1
         },
         {
             "first_child": -1,
             "name": "SaunaL",
-            "next_sibling": 5,
+            "next_sibling": 4,
             "parent": 0,
             "pos": [
-                -125.24815368652344,
+                -124.23350524902344,
                 4.3059587478637695,
                 -13.252942085266113
             ],
@@ -274,7 +741,7 @@
         {
             "first_child": -1,
             "name": "SaunaFrontWalls",
-            "next_sibling": 6,
+            "next_sibling": 5,
             "parent": 0,
             "pos": [
                 -109.00069427490234,
@@ -292,19 +759,19 @@
                 1.0,
                 1.0
             ],
-            "tag": "",
+            "tag": "walls",
             "template": "",
             "visible": 1
         },
         {
             "first_child": -1,
             "name": "Pillar",
-            "next_sibling": 7,
+            "next_sibling": 6,
             "parent": 0,
             "pos": [
                 -106.77838134765625,
                 2.7651798725128174,
-                16.267833709716797
+                24.690101623535156
             ],
             "rot": [
                 0.0,
@@ -323,13 +790,13 @@
         },
         {
             "first_child": -1,
-            "name": "DressingRoom",
-            "next_sibling": -1,
+            "name": "Cube.002",
+            "next_sibling": 7,
             "parent": 0,
             "pos": [
-                -99.01580047607422,
-                1.03953218460083,
-                38.282737731933594
+                -104.36998748779297,
+                1.4483389854431152,
+                -129.8262481689453
             ],
             "rot": [
                 0.0,
@@ -347,14 +814,914 @@
             "visible": 1
         },
         {
-            "first_child": 9,
+            "first_child": -1,
+            "name": "Cube.003",
+            "next_sibling": 8,
+            "parent": 0,
+            "pos": [
+                -195.52377319335938,
+                1.4483389854431152,
+                -129.8262481689453
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "levelFLoor.001",
+            "next_sibling": 9,
+            "parent": 0,
+            "pos": [
+                0.0,
+                -1.2370773553848267,
+                29.23872184753418
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Cube.004",
+            "next_sibling": 10,
+            "parent": 0,
+            "pos": [
+                -237.12420654296875,
+                0.4471588134765625,
+                -167.75
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Cube.005",
+            "next_sibling": 11,
+            "parent": 0,
+            "pos": [
+                -220.38214111328125,
+                0.4471588134765625,
+                -167.75
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Cube.006",
+            "next_sibling": 12,
+            "parent": 0,
+            "pos": [
+                -235.50344848632813,
+                8.858476638793945,
+                -196.6161346435547
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                -0.7071068286895752,
+                0.7071067094802856
+            ],
+            "scale": [
+                1.0000001192092896,
+                1.0000001192092896,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Cube.007",
+            "next_sibling": 13,
+            "parent": 0,
+            "pos": [
+                -235.50344848632813,
+                13.214437484741211,
+                -196.6161346435547
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                -0.7071068286895752,
+                0.7071067094802856
+            ],
+            "scale": [
+                1.0000001192092896,
+                1.0000001192092896,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Cube.008",
+            "next_sibling": 14,
+            "parent": 0,
+            "pos": [
+                -140.2213897705078,
+                8.625417709350586,
+                -128.37225341796875
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                1.0,
+                -7.549790126404332e-08
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Cube.009",
+            "next_sibling": 15,
+            "parent": 0,
+            "pos": [
+                -108.2234115600586,
+                8.625417709350586,
+                -128.37225341796875
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                1.0,
+                -7.549790126404332e-08
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Cube.010",
+            "next_sibling": 16,
+            "parent": 0,
+            "pos": [
+                -223.0060577392578,
+                8.625417709350586,
+                -128.37225341796875
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                1.0,
+                -7.549790126404332e-08
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "SaunaFrontWalls.001",
+            "next_sibling": 17,
+            "parent": 0,
+            "pos": [
+                -109.00069427490234,
+                0.0,
+                51.292354583740234
+            ],
+            "rot": [
+                0.0,
+                1.0,
+                0.0,
+                -1.6292068494294654e-07
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Cube.011",
+            "next_sibling": 18,
+            "parent": 0,
+            "pos": [
+                -108.8157958984375,
+                1.6338348388671875,
+                68.58872985839844
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Pillar.001",
+            "next_sibling": 19,
+            "parent": 0,
+            "pos": [
+                -186.31434631347656,
+                6.020843505859375,
+                -252.43740844726563
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Cube.013",
+            "next_sibling": 20,
+            "parent": 0,
+            "pos": [
+                -186.3142852783203,
+                6.678367614746094,
+                -252.43728637695313
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Pillar.002",
+            "next_sibling": 21,
+            "parent": 0,
+            "pos": [
+                -163.10008239746094,
+                6.020843505859375,
+                -162.16488647460938
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Cube.012",
+            "next_sibling": 22,
+            "parent": 0,
+            "pos": [
+                -163.1000213623047,
+                6.678367614746094,
+                -162.16476440429688
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "levelFLoor.002",
+            "next_sibling": 23,
+            "parent": 0,
+            "pos": [
+                -174.914306640625,
+                -3.860772132873535,
+                -199.4443359375
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                -0.224058598279953,
+                0.9745756983757019
+            ],
+            "scale": [
+                0.9999999403953552,
+                0.9999999403953552,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Cube.014",
+            "next_sibling": 24,
+            "parent": 0,
+            "pos": [
+                -102.47233581542969,
+                4.792083740234375,
+                68.59149932861328
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                0.5782464146614075,
+                0.5782464146614075,
+                0.5782464146614075
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Cube.015",
+            "next_sibling": 25,
+            "parent": 0,
+            "pos": [
+                -102.47233581542969,
+                4.792083740234375,
+                68.59149932861328
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                0.5782464146614075,
+                0.5782464146614075,
+                0.5782464146614075
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Cube.016",
+            "next_sibling": 26,
+            "parent": 0,
+            "pos": [
+                -135.02987670898438,
+                4.792083740234375,
+                68.59149932861328
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                0.5782464146614075,
+                0.5782464146614075,
+                0.5782464146614075
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Cube.017",
+            "next_sibling": 27,
+            "parent": 0,
+            "pos": [
+                -195.55360412597656,
+                0.603759765625,
+                164.8472900390625
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                0.6836392879486084,
+                0.6836392879486084,
+                0.6836392879486084
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Cube.018",
+            "next_sibling": 28,
+            "parent": 0,
+            "pos": [
+                -195.40341186523438,
+                0.603759765625,
+                200.44537353515625
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Cube.019",
+            "next_sibling": 29,
+            "parent": 0,
+            "pos": [
+                -195.40341186523438,
+                0.603759765625,
+                188.81167602539063
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Cube.020",
+            "next_sibling": 30,
+            "parent": 0,
+            "pos": [
+                -195.40341186523438,
+                0.603759765625,
+                177.03463745117188
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Cube.021",
+            "next_sibling": 31,
+            "parent": 0,
+            "pos": [
+                -206.95065307617188,
+                0.603759765625,
+                163.8863983154297
+            ],
+            "rot": [
+                0.0,
+                0.7071068286895752,
+                0.0,
+                0.7071067094802856
+            ],
+            "scale": [
+                1.0000001192092896,
+                1.0,
+                1.0000001192092896
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Cube.022",
+            "next_sibling": 32,
+            "parent": 0,
+            "pos": [
+                -218.5843505859375,
+                0.603759765625,
+                163.8863983154297
+            ],
+            "rot": [
+                0.0,
+                0.7071068286895752,
+                0.0,
+                0.7071067094802856
+            ],
+            "scale": [
+                1.0000001192092896,
+                1.0,
+                1.0000001192092896
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Cube.023",
+            "next_sibling": 33,
+            "parent": 0,
+            "pos": [
+                -230.36138916015625,
+                0.603759765625,
+                163.8863983154297
+            ],
+            "rot": [
+                0.0,
+                0.7071068286895752,
+                0.0,
+                0.7071067094802856
+            ],
+            "scale": [
+                1.0000001192092896,
+                1.0,
+                1.0000001192092896
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Pillar.003",
+            "next_sibling": 34,
+            "parent": 0,
+            "pos": [
+                -187.3688201904297,
+                3.703216552734375,
+                36.43640899658203
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Pillar.004",
+            "next_sibling": 35,
+            "parent": 0,
+            "pos": [
+                -162.77452087402344,
+                6.063396453857422,
+                9.637468338012695
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.439841866493225,
+                1.439841866493225,
+                1.439841866493225
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Pillar.005",
+            "next_sibling": 36,
+            "parent": 0,
+            "pos": [
+                -162.76515197753906,
+                6.063396453857422,
+                36.27326965332031
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.439841866493225,
+                1.439841866493225,
+                1.439841866493225
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Cube.024",
+            "next_sibling": 37,
+            "parent": 0,
+            "pos": [
+                -221.16873168945313,
+                24.125120162963867,
+                -1.1129875183105469
+            ],
+            "rot": [
+                0.0,
+                0.7071068286895752,
+                0.0,
+                0.7071067094802856
+            ],
+            "scale": [
+                1.0000001192092896,
+                1.0,
+                1.0000001192092896
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "SaunaFrontWalls.002",
+            "next_sibling": 38,
+            "parent": 0,
+            "pos": [
+                -197.6809844970703,
+                0.07692575454711914,
+                -31.766647338867188
+            ],
+            "rot": [
+                0.0,
+                0.7071068286895752,
+                0.0,
+                0.7071067094802856
+            ],
+            "scale": [
+                1.0000001192092896,
+                1.0,
+                1.0000001192092896
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "SaunaL.001",
+            "next_sibling": 39,
+            "parent": 0,
+            "pos": [
+                -210.94473266601563,
+                4.3059587478637695,
+                -46.01847839355469
+            ],
+            "rot": [
+                0.0,
+                0.7071068286895752,
+                0.0,
+                0.7071067094802856
+            ],
+            "scale": [
+                1.0428625345230103,
+                1.0428624153137207,
+                1.0428625345230103
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "SaunaL.002",
+            "next_sibling": 40,
+            "parent": 0,
+            "pos": [
+                -210.94473266601563,
+                4.3059587478637695,
+                -16.78553581237793
+            ],
+            "rot": [
+                0.0,
+                0.7071068286895752,
+                0.0,
+                0.7071067094802856
+            ],
+            "scale": [
+                1.0428625345230103,
+                1.0428624153137207,
+                1.0428625345230103
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "levelFLoor.003",
+            "next_sibling": 41,
+            "parent": 0,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "SaunaR.001",
+            "next_sibling": 42,
+            "parent": 0,
+            "pos": [
+                -143.78829956054688,
+                3.3080458641052246,
+                198.99075317382813
+            ],
+            "rot": [
+                0.0,
+                0.7071068286895752,
+                0.0,
+                0.7071067094802856
+            ],
+            "scale": [
+                1.0428625345230103,
+                1.0428624153137207,
+                1.0428625345230103
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "SaunaR.002",
+            "next_sibling": -1,
+            "parent": 0,
+            "pos": [
+                -143.78829956054688,
+                3.3080458641052246,
+                198.99075317382813
+            ],
+            "rot": [
+                0.0,
+                0.7071068286895752,
+                0.0,
+                0.7071067094802856
+            ],
+            "scale": [
+                1.0428625345230103,
+                1.0428624153137207,
+                1.0428625345230103
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 44,
             "name": "Player",
             "next_sibling": -1,
             "parent": -1,
             "pos": [
-                0.0,
-                -6.217260837554932,
-                0.0
+                -161.95376586914063,
+                6.965605735778809,
+                -17.420894622802734
             ],
             "rot": [
                 0.0,
@@ -366,31 +1733,6 @@
                 1.0,
                 1.0,
                 1.0
-            ],
-            "tag": "",
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 10,
-            "name": "assets/models/cube.stkmodel",
-            "next_sibling": -1,
-            "parent": 8,
-            "pos": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "rot": [
-                0.0,
-                0.0,
-                0.0,
-                1.0
-            ],
-            "scale": [
-                0.5900001525878906,
-                1.9009230136871338,
-                0.5900001525878906
             ],
             "tag": "",
             "template": "",
@@ -398,9 +1740,9 @@
         },
         {
             "first_child": -1,
-            "name": "cube",
-            "next_sibling": -1,
-            "parent": 9,
+            "name": "PlayerSpawnOffset",
+            "next_sibling": 45,
+            "parent": 43,
             "pos": [
                 0.0,
                 0.0,
@@ -413,9 +1755,734 @@
                 1.0
             ],
             "scale": [
-                0.8441554307937622,
-                1.3208043575286865,
-                1.4555141925811768
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 46,
+            "name": "PlayerMesh",
+            "next_sibling": -1,
+            "parent": 43,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 47,
+            "name": "Mesh",
+            "next_sibling": -1,
+            "parent": 45,
+            "pos": [
+                0.0,
+                -2.960092067718506,
+                0.0
+            ],
+            "rot": [
+                -0.0,
+                1.0,
+                -0.0,
+                -6.397578431460715e-07
+            ],
+            "scale": [
+                2.943598508834839,
+                2.943598508834839,
+                2.943598508834839
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 48,
+            "name": "Armature",
+            "next_sibling": -1,
+            "parent": 46,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.7071068286895752,
+                0.0,
+                0.0,
+                0.7071067094802856
+            ],
+            "scale": [
+                0.009999999776482582,
+                0.010000000707805157,
+                0.010000000707805157
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 49,
+            "name": "mixamorig:Hips",
+            "next_sibling": 73,
+            "parent": 47,
+            "pos": [
+                0.0,
+                0.02991604618728161,
+                -100.44189453125
+            ],
+            "rot": [
+                -0.7071067094802856,
+                0.0,
+                0.0,
+                0.7071068286895752
+            ],
+            "scale": [
+                1.0,
+                0.9999999403953552,
+                0.9999999403953552
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 50,
+            "name": "mixamorig:Spine",
+            "next_sibling": 63,
+            "parent": 48,
+            "pos": [
+                0.0,
+                10.297843933105469,
+                -0.8582945466041565
+            ],
+            "rot": [
+                -0.04156547784805298,
+                0.0,
+                0.0,
+                0.9991357922554016
+            ],
+            "scale": [
+                1.0,
+                0.9999998807907104,
+                0.9999998807907104
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 51,
+            "name": "mixamorig:Spine1",
+            "next_sibling": -1,
+            "parent": 49,
+            "pos": [
+                0.0,
+                12.055791854858398,
+                -8.344650268554688e-07
+            ],
+            "rot": [
+                2.2351747119842003e-08,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                0.9999999403953552,
+                0.9999999403953552
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 52,
+            "name": "mixamorig:Spine2",
+            "next_sibling": -1,
+            "parent": 50,
+            "pos": [
+                0.0,
+                13.778057098388672,
+                -4.76837158203125e-07
+            ],
+            "rot": [
+                -3.3527616238870905e-08,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                0.9999999403953552,
+                0.9999999403953552
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 53,
+            "name": "mixamorig:Neck",
+            "next_sibling": 55,
+            "parent": 51,
+            "pos": [
+                0.0,
+                15.500309944152832,
+                4.76837158203125e-07
+            ],
+            "rot": [
+                0.041565489023923874,
+                0.0,
+                0.0,
+                0.9991357922554016
+            ],
+            "scale": [
+                1.0,
+                0.9999997615814209,
+                0.9999997615814209
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 54,
+            "name": "mixamorig:Head",
+            "next_sibling": -1,
+            "parent": 52,
+            "pos": [
+                0.0,
+                10.851470947265625,
+                4.6039838790893555
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                0.9999999403953552,
+                0.9999999403953552
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "mixamorig:HeadTop_End",
+            "next_sibling": -1,
+            "parent": 53,
+            "pos": [
+                0.0,
+                18.906326293945313,
+                8.02143383026123
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                0.9999999403953552,
+                0.9999999403953552
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 56,
+            "name": "mixamorig:LeftShoulder",
+            "next_sibling": 59,
+            "parent": 51,
+            "pos": [
+                5.970677375793457,
+                13.275018692016602,
+                -0.19603824615478516
+            ],
+            "rot": [
+                -0.571941614151001,
+                -0.4087785482406616,
+                0.5911829471588135,
+                -0.3953297734260559
+            ],
+            "scale": [
+                0.9999999403953552,
+                0.9999998807907104,
+                0.9999998807907104
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 57,
+            "name": "mixamorig:LeftArm",
+            "next_sibling": -1,
+            "parent": 55,
+            "pos": [
+                -2.980232238769531e-07,
+                12.625598907470703,
+                1.2487173080444336e-05
+            ],
+            "rot": [
+                -0.17625592648983002,
+                -0.00518117705360055,
+                0.02892255038022995,
+                0.9839057326316833
+            ],
+            "scale": [
+                1.000000238418579,
+                1.0000001192092896,
+                1.0000001192092896
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 58,
+            "name": "mixamorig:LeftForeArm",
+            "next_sibling": -1,
+            "parent": 56,
+            "pos": [
+                1.1920928955078125e-07,
+                29.10831069946289,
+                -1.4990568161010742e-05
+            ],
+            "rot": [
+                0.0037856583949178457,
+                -7.943542004795745e-05,
+                -0.020970921963453293,
+                0.9997729659080505
+            ],
+            "scale": [
+                1.0,
+                0.9999999403953552,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "mixamorig:LeftHand",
+            "next_sibling": -1,
+            "parent": 57,
+            "pos": [
+                -2.384185791015625e-07,
+                26.11846160888672,
+                -1.2159347534179688e-05
+            ],
+            "rot": [
+                -1.0477378964424133e-09,
+                4.365576788956105e-10,
+                -1.1641532182693481e-09,
+                1.0
+            ],
+            "scale": [
+                1.0000001192092896,
+                1.0,
+                0.9999998807907104
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 60,
+            "name": "mixamorig:RightShoulder",
+            "next_sibling": -1,
+            "parent": 51,
+            "pos": [
+                -5.970677375793457,
+                13.273268699645996,
+                -0.175048828125
+            ],
+            "rot": [
+                0.57304447889328,
+                -0.40798497200012207,
+                0.5902312994003296,
+                0.3959738612174988
+            ],
+            "scale": [
+                0.9999998807907104,
+                0.9999998807907104,
+                0.9999998807907104
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 61,
+            "name": "mixamorig:RightArm",
+            "next_sibling": -1,
+            "parent": 59,
+            "pos": [
+                -1.1920928955078125e-07,
+                12.625598907470703,
+                -1.6033649444580078e-05
+            ],
+            "rot": [
+                -0.17666886746883392,
+                0.004458746872842312,
+                -0.024833310395479202,
+                0.9839469194412231
+            ],
+            "scale": [
+                1.0000001192092896,
+                0.9999998807907104,
+                0.9999999403953552
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 62,
+            "name": "mixamorig:RightForeArm",
+            "next_sibling": -1,
+            "parent": 60,
+            "pos": [
+                -1.9073486328125e-06,
+                29.10579490661621,
+                2.276897430419922e-05
+            ],
+            "rot": [
+                0.00408504344522953,
+                7.602371624670923e-05,
+                0.018595781177282333,
+                0.999818742275238
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "mixamorig:RightHand",
+            "next_sibling": -1,
+            "parent": 61,
+            "pos": [
+                2.6226043701171875e-06,
+                26.118228912353516,
+                -1.9162893295288086e-05
+            ],
+            "rot": [
+                1.7462298274040222e-10,
+                6.730260793119669e-09,
+                6.490154191851616e-09,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 64,
+            "name": "mixamorig:LeftUpLeg",
+            "next_sibling": 68,
+            "parent": 48,
+            "pos": [
+                7.478411674499512,
+                -5.747161865234375,
+                0.4222813844680786
+            ],
+            "rot": [
+                3.165761654599919e-06,
+                0.0002847732976078987,
+                0.9999383091926575,
+                -0.011105921119451523
+            ],
+            "scale": [
+                0.9999998211860657,
+                0.9999999403953552,
+                0.9999999403953552
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 65,
+            "name": "mixamorig:LeftLeg",
+            "next_sibling": -1,
+            "parent": 63,
+            "pos": [
+                -2.6190764401690103e-07,
+                45.98395919799805,
+                4.4455141789967456e-08
+            ],
+            "rot": [
+                -0.050593260675668716,
+                -0.0006205192767083645,
+                0.012209681794047356,
+                0.9986445307731628
+            ],
+            "scale": [
+                1.0000001192092896,
+                0.9999998807907104,
+                1.0000001192092896
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 66,
+            "name": "mixamorig:LeftFoot",
+            "next_sibling": -1,
+            "parent": 64,
+            "pos": [
+                1.0308795026503503e-06,
+                39.350311279296875,
+                1.5050172805786133e-06
+            ],
+            "rot": [
+                0.46232903003692627,
+                0.047561682760715485,
+                -0.024844098836183548,
+                0.8850833773612976
+            ],
+            "scale": [
+                0.9999997019767761,
+                0.9999999403953552,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 67,
+            "name": "mixamorig:LeftToeBase",
+            "next_sibling": -1,
+            "parent": 65,
+            "pos": [
+                5.960464477539063e-07,
+                19.316822052001953,
+                -1.1920928955078125e-07
+            ],
+            "rot": [
+                0.3281439542770386,
+                0.022292284294962883,
+                -0.007746295537799597,
+                0.9443328976631165
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                0.9999998807907104
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "mixamorig:LeftToe_End",
+            "next_sibling": -1,
+            "parent": 66,
+            "pos": [
+                -1.1175870895385742e-06,
+                7.391306400299072,
+                -1.1920928955078125e-07
+            ],
+            "rot": [
+                2.0023435354232788e-08,
+                2.3050230169019414e-08,
+                -1.3969839729455202e-09,
+                1.0
+            ],
+            "scale": [
+                1.0000001192092896,
+                1.0,
+                1.0000001192092896
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 69,
+            "name": "mixamorig:RightUpLeg",
+            "next_sibling": -1,
+            "parent": 48,
+            "pos": [
+                -7.478411674499512,
+                -5.747161865234375,
+                0.6489816904067993
+            ],
+            "rot": [
+                3.974409628426656e-05,
+                -0.003584175370633602,
+                0.9999319314956665,
+                0.011105559766292572
+            ],
+            "scale": [
+                1.000000238418579,
+                0.9999999403953552,
+                0.9999999403953552
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 70,
+            "name": "mixamorig:RightLeg",
+            "next_sibling": -1,
+            "parent": 68,
+            "pos": [
+                1.3269163900986314e-07,
+                45.98513412475586,
+                -9.666615596870543e-08
+            ],
+            "rot": [
+                -0.04414598271250725,
+                0.0005451575852930546,
+                -0.012197153642773628,
+                0.9989504814147949
+            ],
+            "scale": [
+                0.9999999403953552,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 71,
+            "name": "mixamorig:RightFoot",
+            "next_sibling": -1,
+            "parent": 69,
+            "pos": [
+                1.2473901733756065e-06,
+                39.33026885986328,
+                -7.450580596923828e-09
+            ],
+            "rot": [
+                0.4576808214187622,
+                -0.04818449541926384,
+                0.024849677458405495,
+                0.8874621391296387
+            ],
+            "scale": [
+                1.0,
+                0.9999998807907104,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 72,
+            "name": "mixamorig:RightToeBase",
+            "next_sibling": -1,
+            "parent": 70,
+            "pos": [
+                1.691281795501709e-06,
+                19.198280334472656,
+                8.344650268554688e-07
+            ],
+            "rot": [
+                0.33080533146858215,
+                -0.020025068894028664,
+                0.007021417375653982,
+                0.9434604048728943
+            ],
+            "scale": [
+                1.0,
+                0.9999998807907104,
+                0.9999998807907104
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "mixamorig:RightToe_End",
+            "next_sibling": -1,
+            "parent": 71,
+            "pos": [
+                -1.1920928955078125e-07,
+                7.460336685180664,
+                -1.1920928955078125e-07
+            ],
+            "rot": [
+                -3.67872416973114e-08,
+                -1.6880221664905548e-08,
+                2.1886080503463745e-08,
+                1.0
+            ],
+            "scale": [
+                1.0000001192092896,
+                0.9999999403953552,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "saunaguy",
+            "next_sibling": -1,
+            "parent": 47,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
             ],
             "tag": "",
             "template": "",
@@ -445,22 +2512,124 @@
             "tag": "",
             "template": "",
             "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "new_entity",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "new_entity",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                -225.5339813232422,
+                17.138607025146484,
+                -195.11865234375
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "mask",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                -201.88108825683594,
+                102.50762176513672,
+                77.93061828613281
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                0.12000054121017456,
+                0.12000054121017456,
+                0.12000054121017456
+            ],
+            "tag": "",
+            "template": "assets/prefabs/mask.stkent",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "toni_stuff",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "assets/entities/tonistuff.stkent",
+            "visible": 1
         }
     ],
     "extra_resources": [],
     "resources": [
         "assets/models/level.stkmodel",
-        "assets/models/cube.stkmodel"
+        "assets/models/saunaguy.stkmodel",
+        "assets/prefabs/mask.stkent",
+        "assets/entities/tonistuff.stkent"
     ],
     "tool_cam_pos": [
-        19.53927230834961,
-        -1.4387333393096924,
-        0.49178966879844666
+        -169.86573791503906,
+        19.666488647460938,
+        -27.82943344116211
     ],
     "tool_cam_rot": [
-        -0.11197859048843384,
-        0.6881238222122192,
-        0.10874195396900177,
-        0.7086054086685181
+        -0.3613418638706207,
+        0.11028134077787399,
+        0.04308560490608215,
+        0.9248858094215393
     ]
 }
