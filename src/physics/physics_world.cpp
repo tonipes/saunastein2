@@ -217,10 +217,10 @@ namespace SFG
 			JPH::Body* body = c.get_body();
 			SFG_ASSERT(body != nullptr);
 
-			const world_handle e_handle = c.get_header().entity;
-			const quat	   body_rot		= from_jph_quat(body->GetRotation());
-			const vector3  scale			= em.get_entity_scale_abs(e_handle);
-			const vector3  offset_world	= body_rot * (c.get_offset() * scale);
+			const world_handle e_handle		= c.get_header().entity;
+			const quat		   body_rot		= from_jph_quat(body->GetRotation());
+			const vector3	   scale		= em.get_entity_scale_abs(e_handle);
+			const vector3	   offset_world = body_rot * (c.get_offset() * scale);
 			em.set_entity_position_abs(e_handle, from_jph_vec3(body->GetPosition()) - offset_world);
 			em.set_entity_rotation_abs(e_handle, body_rot);
 		}
@@ -362,5 +362,38 @@ namespace SFG
 	{
 		_graivty = g;
 		_system->SetGravity(to_jph_vec3(g));
+	}
+
+	world_handle physics_world::get_comp_physics_entity_by_id(JPH::BodyID id)
+	{
+		component_manager& cm = _game_world.get_comp_manager();
+
+		auto& phys = cm.underlying_pool<comp_cache<comp_physics, MAX_WORLD_COMP_PHYSICS>, comp_physics>();
+		for (comp_physics& c : phys)
+		{
+			JPH::Body* body = c.get_body();
+			if (!body)
+				continue;
+			if (body->GetID() == id)
+				return c.get_header().entity;
+		}
+
+		return {};
+	}
+	world_handle physics_world::get_comp_physics_by_id(JPH::BodyID id)
+	{
+		component_manager& cm = _game_world.get_comp_manager();
+
+		auto& phys = cm.underlying_pool<comp_cache<comp_physics, MAX_WORLD_COMP_PHYSICS>, comp_physics>();
+		for (comp_physics& c : phys)
+		{
+			JPH::Body* body = c.get_body();
+			if (!body)
+				continue;
+			if (body->GetID() == id)
+				return c.get_header().own_handle;
+		}
+
+		return {};
 	}
 }

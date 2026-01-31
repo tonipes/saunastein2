@@ -37,6 +37,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "platform/window_common.hpp"
 #include "input/input_mappings.hpp"
 
+#include <cmath>
+
 namespace SFG
 {
 	void comp_player::reflect()
@@ -118,7 +120,8 @@ namespace SFG
 		_real_camera_distance = _camera_distance;
 	}
 
-	float dbg_line = 10.0f;
+	float dbg_line	= 10.0f;
+	color hit_color = color::red;
 
 	void comp_player::tick(world& w, float dt)
 	{
@@ -155,19 +158,40 @@ namespace SFG
 		{
 			comp_char_cont.set_target_velocity(vector3::zero);
 		}
-		const float	  cam_dist = math::max(_camera_distance, 0.1f);
-		const vector3 cam_pos  = target - forward * cam_dist;
-		em.set_entity_position_abs(_camera_entity, cam_pos);
-		em.set_entity_rotation_abs(_camera_entity, orbit_rot);
 
-		const bool res = _ray_caster.cast(w.get_physics_world(), player_pos, em.get_entity_rotation(_header.entity).get_right(), 15);
+		const float cam_dist		  = math::max(_camera_distance, 0.1f);
+		const float cam_min_dist	  = 0.25f;
+		const float cam_collision_pad = 0.2f;
+		const float cam_in_speed	  = 18.0f;
+		const float cam_out_speed	  = 8.0f;
+
+		vector3 ray_dir = -forward;
+		ray_dir.normalize();
+
+		const bool res = _ray_caster.cast(w.get_physics_world(), target, ray_dir, cam_dist + cam_collision_pad);
+
+		float desired_dist = cam_dist;
 		if (res)
 		{
-			const ray_result& ray_result = _ray_caster.get_result();
-			dbg_line					 = ray_result.hit_distance;
+			const ray_result& hit = _ray_caster.get_result();
+			desired_dist		  = math::max(hit.hit_distance - cam_collision_pad, cam_min_dist);
+			hit_color			  = color::green;
+			dbg_line			  = hit.hit_distance;
 		}
 		else
-			dbg_line = 15.0f;
+		{
+			dbg_line  = 15.0f;
+			hit_color = color::red;
+		}
+
+		const float speed	  = desired_dist < _real_camera_distance ? cam_in_speed : cam_out_speed;
+		const float t		  = 1.0f - std::exp(-speed * dt);
+		_real_camera_distance = math::lerp(_real_camera_distance, desired_dist, t);
+
+		vector3 desired_cam_pos = target - forward * _real_camera_distance;
+
+		em.set_entity_position_abs(_camera_entity, desired_cam_pos);
+		em.set_entity_rotation_abs(_camera_entity, orbit_rot);
 	}
 
 	void comp_player::tick_debug(world& w, float dt)
@@ -177,8 +201,9 @@ namespace SFG
 
 		entity_manager& em		   = w.get_entity_manager();
 		const vector3	player_pos = em.get_entity_position_abs(_header.entity);
+		const vector3	cam_pos	   = em.get_entity_position_abs(_camera_entity);
 
-		w.get_debug_rendering().draw_line(player_pos, player_pos + em.get_entity_rotation(_header.entity).get_right() * dbg_line, color::red, .5f);
+		w.get_debug_rendering().draw_line(cam_pos + vector3(0, -0.5, 0), player_pos, hit_color, .25f);
 	}
 
 	void comp_player::on_window_event(const window_event& ev)

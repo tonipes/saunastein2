@@ -50,7 +50,7 @@ namespace SFG
 		if (hit)
 		{
 			_result.hit_point	 = position + normal * ioHit.mFraction;
-			_result.hit_entity	 = world.get_game_world().get_entity_manager().get_valid_handle_by_index(0);
+			_result.hit_entity	 = world.get_comp_physics_entity_by_id(ioHit.mBodyID);
 			_result.hit_distance = ioHit.mFraction * direction.magnitude();
 		}
 
@@ -78,7 +78,7 @@ namespace SFG
 		for (const JPH::RayCastResult& jph_res : _jph_results)
 		{
 			ray_result res = {
-				.hit_entity	  = world.get_game_world().get_entity_manager().get_valid_handle_by_index(0),
+				.hit_entity	  = world.get_comp_physics_entity_by_id(jph_res.mBodyID),
 				.hit_point	  = position + normal * jph_res.mFraction,
 				.hit_distance = jph_res.mFraction * direction.magnitude(),
 			};
@@ -107,7 +107,7 @@ namespace SFG
 		for (const JPH::BroadPhaseCastResult& jph_res : _jph_results)
 		{
 			ray_result res = {
-				.hit_entity	  = world.get_game_world().get_entity_manager().get_valid_handle_by_index(0),
+				.hit_entity	  = world.get_comp_physics_entity_by_id(jph_res.mBodyID),
 				.hit_point	  = position + normal * jph_res.mFraction,
 				.hit_distance = jph_res.mFraction * direction.magnitude(),
 			};

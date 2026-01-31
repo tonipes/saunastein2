@@ -449,6 +449,13 @@ namespace SFG
 		return h;
 	}
 
+	const char* entity_manager::get_entity_tag(world_handle entity)
+	{
+		SFG_ASSERT(_entities->is_valid(entity));
+		entity_meta& meta = _metas->get(entity.index);
+		return meta.tag;
+	}
+
 	world_handle entity_manager::clone_entity(world_handle source, world_handle target_parent)
 	{
 		SFG_ASSERT(_entities->is_valid(source));
