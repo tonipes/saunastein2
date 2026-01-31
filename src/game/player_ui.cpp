@@ -24,77 +24,45 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISE
 OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#pragma once
-
-#include "world/components/common_comps.hpp"
-#include "reflection/type_reflection.hpp"
+#include "player_ui.hpp"
 
 namespace SFG
 {
-	class world;
-
-	class comp_player_stats
+	void player_ui::init(vekt::builder* builder)
 	{
-	public:
-		static void reflect();
+		if (builder == nullptr)
+			return;
 
-		void on_add(world& w);
-		void on_remove(world& w);
+		_builder = builder;
 
-		inline const component_header& get_header() const
-		{
-			return _header;
-		}
+		if (_crosshair != NULL_WIDGET_ID)
+			return;
 
-		inline float get_health() const
-		{
-			return _health;
-		}
+		_crosshair = _builder->allocate();
+		_builder->widget_add_child(_builder->get_root(), _crosshair);
 
-		inline float get_hydration_score() const
-		{
-			return _hydration_score;
-		}
+		vekt::widget_gfx& gfx = _builder->widget_get_gfx(_crosshair);
+		gfx.flags			  = vekt::gfx_flags::gfx_is_rect;
+		gfx.color			  = VEKT_VEC4(1.0f, 1.0f, 1.0f, 1.0f);
 
-		inline int get_available_dive_count() const
-		{
-			return _available_dive_count;
-		}
+		_builder->widget_set_size_abs(_crosshair, VEKT_VEC2(6.0f, 6.0f));
+		_builder->widget_set_pos(_crosshair,
+								 VEKT_VEC2(0.5f, 0.5f),
+								 vekt::helper_pos_type::relative,
+								 vekt::helper_pos_type::relative,
+								 vekt::helper_anchor_type::center,
+								 vekt::helper_anchor_type::center);
+	}
 
-		inline int get_mask_count() const
-		{
-			return _mask_count;
-		}
+	void player_ui::uninit()
+	{
+		if (_builder == nullptr)
+			return;
 
-		inline bool can_dive() const
-		{
-			return _available_dive_count > 0;
-		}
+		if (_crosshair != NULL_WIDGET_ID)
+			_builder->deallocate(_crosshair);
 
-		inline bool can_throw_mask() const
-		{
-			return _mask_count > 0;
-		}
-
-		void add_health(float delta);
-		void add_hydration_score(float delta);
-		void add_dive_count(int delta);
-		bool try_consume_dive();
-		void consume_dive();
-		void add_mask_count(int delta);
-		bool try_consume_mask();
-		void consume_mask();
-
-	private:
-		template <typename T, int> friend class comp_cache;
-
-	private:
-		component_header _header			   = {};
-		float			 _health			   = 100.0f;
-		float			 _hydration_score	   = 0.0f;
-		int				 _available_dive_count = 0;
-		int				 _mask_count		   = 0;
-	};
-
-	REFLECT_TYPE(comp_player_stats);
+		_crosshair = NULL_WIDGET_ID;
+		_builder	  = nullptr;
+	}
 }

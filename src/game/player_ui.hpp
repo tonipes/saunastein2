@@ -26,75 +26,18 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include "world/components/common_comps.hpp"
-#include "reflection/type_reflection.hpp"
+#include "gui/vekt.hpp"
 
 namespace SFG
 {
-	class world;
-
-	class comp_player_stats
+	class player_ui
 	{
 	public:
-		static void reflect();
-
-		void on_add(world& w);
-		void on_remove(world& w);
-
-		inline const component_header& get_header() const
-		{
-			return _header;
-		}
-
-		inline float get_health() const
-		{
-			return _health;
-		}
-
-		inline float get_hydration_score() const
-		{
-			return _hydration_score;
-		}
-
-		inline int get_available_dive_count() const
-		{
-			return _available_dive_count;
-		}
-
-		inline int get_mask_count() const
-		{
-			return _mask_count;
-		}
-
-		inline bool can_dive() const
-		{
-			return _available_dive_count > 0;
-		}
-
-		inline bool can_throw_mask() const
-		{
-			return _mask_count > 0;
-		}
-
-		void add_health(float delta);
-		void add_hydration_score(float delta);
-		void add_dive_count(int delta);
-		bool try_consume_dive();
-		void consume_dive();
-		void add_mask_count(int delta);
-		bool try_consume_mask();
-		void consume_mask();
+		void init(vekt::builder* builder);
+		void uninit();
 
 	private:
-		template <typename T, int> friend class comp_cache;
-
-	private:
-		component_header _header			   = {};
-		float			 _health			   = 100.0f;
-		float			 _hydration_score	   = 0.0f;
-		int				 _available_dive_count = 0;
-		int				 _mask_count		   = 0;
+		vekt::builder* _builder = nullptr;
+		vekt::id	   _crosshair = NULL_WIDGET_ID;
 	};
-
-	REFLECT_TYPE(comp_player_stats);
 }

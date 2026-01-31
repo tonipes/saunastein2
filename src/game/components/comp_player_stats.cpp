@@ -37,6 +37,7 @@ namespace SFG
 		m.add_field<&comp_player_stats::_health, comp_player_stats>("health", reflected_field_type::rf_float, "");
 		m.add_field<&comp_player_stats::_hydration_score, comp_player_stats>("hydration_score", reflected_field_type::rf_float, "");
 		m.add_field<&comp_player_stats::_available_dive_count, comp_player_stats>("available_dive_count", reflected_field_type::rf_int, "");
+		m.add_field<&comp_player_stats::_mask_count, comp_player_stats>("mask_count", reflected_field_type::rf_int, "");
 	}
 
 	void comp_player_stats::on_add(world& w)
@@ -81,5 +82,26 @@ namespace SFG
 	{
 		if (_available_dive_count > 0)
 			--_available_dive_count;
+	}
+
+	void comp_player_stats::add_mask_count(int delta)
+	{
+		const int next = _mask_count + delta;
+		_mask_count = next < 0 ? 0 : next;
+	}
+
+	bool comp_player_stats::try_consume_mask()
+	{
+		if (_mask_count <= 0)
+			return false;
+
+		--_mask_count;
+		return true;
+	}
+
+	void comp_player_stats::consume_mask()
+	{
+		if (_mask_count > 0)
+			--_mask_count;
 	}
 }
