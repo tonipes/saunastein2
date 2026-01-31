@@ -148,7 +148,13 @@ namespace SFG
 		resource_manager& rm = w.get_resource_manager();
 		entity_manager&	  em  = w.get_entity_manager();
 
-		auto res = rm.get_resource_handle_by_hash<entity_template>(resource);
+		auto res = rm.get_resource_handle_by_hash_if_exists<entity_template>(resource);
+
+		if (res.is_null())
+		{
+			SFG_ERR("can't find resource to spawn! {0}", resource);
+			return;
+		}
 		world_handle handle = em.instantiate_template(res);
 		em.set_entity_position_abs(handle, position);
 
