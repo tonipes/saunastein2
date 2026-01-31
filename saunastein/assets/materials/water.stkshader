@@ -1,0 +1,4 @@
+{
+    "source": "assets/materials/water.hlsl",
+    "variant_style": "gbuffer_object"
+}
