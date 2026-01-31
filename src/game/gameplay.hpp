@@ -34,6 +34,13 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace SFG
 {
+	struct door
+	{
+		world_handle door_handle;
+		float		 t;
+		float		 open_angle;
+	};
+
 	class world;
 	class app;
 	class window;
@@ -57,6 +64,9 @@ namespace SFG
 		void tick_player(float dt);
 		void begin_player();
 
+		void tick_doors(float dt);
+		void begin_doors();
+
 	private:
 		app&			_app;
 		window*			_window				= nullptr;
@@ -75,6 +85,7 @@ namespace SFG
 		float			_mouse_sensitivity	= 0.08f;
 		bool			_is_looking			= false;
 		uint8			_is_active			= 0;
+		vector<door>	_doors				= {};
 	};
 
 }

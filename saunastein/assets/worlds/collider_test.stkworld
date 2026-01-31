@@ -116,6 +116,123 @@
                 0.0
             ],
             "shape_type": 1
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 21,
+            "material": 1,
+            "material0": "assets/models/collider_test.stkmodel/yellow",
+            "mesh": "assets/models/collider_test.stkmodel/Cube.003",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "body_type": 2,
+            "comp_type": 14536826215375575722,
+            "entity": 21,
+            "extents": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "is_sensor": 0,
+            "material": "",
+            "offset": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "shape_type": 1
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 22,
+            "material": 1,
+            "material0": "assets/models/collider_test.stkmodel/yellow",
+            "mesh": "assets/models/collider_test.stkmodel/Cube.003",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "body_type": 2,
+            "comp_type": 14536826215375575722,
+            "entity": 22,
+            "extents": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "is_sensor": 0,
+            "material": "",
+            "offset": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "shape_type": 1
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 24,
+            "material": 1,
+            "material0": "assets/models/door.stkmodel/dungeon_floor",
+            "mesh": "assets/models/door.stkmodel/Cube.005",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 25,
+            "material": 1,
+            "material0": "assets/models/door.stkmodel/dungeon_floor",
+            "mesh": "assets/models/door.stkmodel/Cube",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "body_type": 0,
+            "comp_type": 14536826215375575722,
+            "entity": 25,
+            "extents": [
+                2.0,
+                3.0,
+                0.30000001192092896
+            ],
+            "is_sensor": 0,
+            "material": "",
+            "offset": [
+                2.0,
+                3.0,
+                0.0
+            ],
+            "shape_type": 1
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 26,
+            "material": 1,
+            "material0": "assets/models/collider_test.stkmodel/yellow",
+            "mesh": "assets/models/collider_test.stkmodel/Cube.003",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "body_type": 2,
+            "comp_type": 14536826215375575722,
+            "entity": 26,
+            "extents": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "is_sensor": 0,
+            "material": "",
+            "offset": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "shape_type": 1
         }
     ],
     "entities": [
@@ -543,22 +660,274 @@
             "tag": "",
             "template": "assets/entities/saunaguy.stkent",
             "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "assets/models/door.stkmodel",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                -7.8319926261901855,
+                0.0,
+                -26.19460105895996
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "assets/entities/door.stkent",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "assets/models/door.stkmodel",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                4.433889389038086,
+                0.0,
+                -37.638729095458984
+            ],
+            "rot": [
+                0.0,
+                0.6750581860542297,
+                0.0,
+                -0.7377645373344421
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "assets/entities/door.stkent",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "assets/models/door.stkmodel",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                -14.4618501663208,
+                0.0,
+                -37.638729095458984
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "assets/entities/door.stkent",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "assets/models/door.stkmodel",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                -3.6787567138671875,
+                0.0,
+                -37.638729095458984
+            ],
+            "rot": [
+                0.0,
+                0.40083661675453186,
+                0.0,
+                0.9161495566368103
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "assets/entities/door.stkent",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "cube",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                -6.5926513671875,
+                1.311180591583252,
+                -28.335887908935547
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "cube",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                -6.5926513671875,
+                4.193718910217285,
+                -29.204118728637695
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 24,
+            "name": "assets/models/door.stkmodel",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                -19.136547088623047,
+                1.3448433876037598,
+                -24.394943237304688
+            ],
+            "rot": [
+                0.02271588332951069,
+                0.7109066247940063,
+                -0.7025609016418457,
+                -0.022449210286140442
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 25,
+            "name": "door_root",
+            "next_sibling": -1,
+            "parent": 23,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "door",
+            "next_sibling": -1,
+            "parent": 24,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "cube",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                -21.080646514892578,
+                5.894617557525635,
+                -27.577259063720703
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
         }
     ],
     "extra_resources": [],
     "resources": [
         "assets/models/collider_test.stkmodel",
-        "assets/entities/saunaguy.stkent"
+        "assets/entities/saunaguy.stkent",
+        "assets/entities/door.stkent",
+        "assets/models/door.stkmodel"
     ],
     "tool_cam_pos": [
-        -25.169233322143555,
-        5.51527214050293,
-        3.8513827323913574
+        -30.619550704956055,
+        33.028900146484375,
+        -6.772689342498779
     ],
     "tool_cam_rot": [
-        -0.10033399611711502,
-        -0.4652125835418701,
-        -0.0531693734228611,
-        0.8778857588768005
+        -0.3956981599330902,
+        -0.3325524628162384,
+        -0.15634670853614807,
+        0.8416575789451599
     ]
 }

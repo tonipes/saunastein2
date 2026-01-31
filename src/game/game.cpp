@@ -33,6 +33,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace SFG
 {
+
+
 	void game::init()
 	{
 		load_level("assets/world/world0.stkworld");
