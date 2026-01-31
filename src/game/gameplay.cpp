@@ -34,6 +34,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <physics/physics_contact_listener.hpp>
 #include "platform/window_common.hpp"
 #include "input/input_mappings.hpp"
+#include "game/components/comp_enemy_ai_basic.hpp"
 
 namespace SFG
 {
@@ -61,6 +62,7 @@ namespace SFG
 		begin_player();
 		begin_doors();
 		begin_managed_entities();
+		begin_enemies();
 	}
 
 	void gameplay::on_world_end(world& w)
@@ -80,6 +82,7 @@ namespace SFG
 		tick_player(dt);
 		tick_doors(dt);
 		tick_managed_entities(dt);
+		tick_enemies(dt);
 	}
 
 	void gameplay::on_window_event(const window_event& ev, window* wnd)
@@ -158,6 +161,29 @@ namespace SFG
 		{
 			p.begin_game(w, _app.get_main_window());
 			_player_entity = p.get_header().entity;
+		}
+	}
+
+	void gameplay::tick_enemies(float dt)
+	{
+		world&			   w	   = _app.get_world();
+		component_manager& cm	   = w.get_comp_manager();
+		auto&			   enemies	  = cm.underlying_pool<comp_cache<comp_enemy_ai_basic, MAX_WORLD_ENEMY_AI_BASIC>, comp_enemy_ai_basic>();
+		auto			   player  = cm.get_component<comp_player_stats>(w.get_entity_manager().get_entity_component<comp_player_stats>(_player_entity));
+		for (auto& e : enemies)
+		{
+			e.tick(player, dt);
+		}
+	}
+
+	void gameplay::begin_enemies()
+	{
+		world&			   w	   = _app.get_world();
+		component_manager& cm	   = w.get_comp_manager();
+		auto&			   enemies = cm.underlying_pool<comp_cache<comp_enemy_ai_basic, MAX_WORLD_ENEMY_AI_BASIC>, comp_enemy_ai_basic>();
+		for (auto& e : enemies)
+		{
+			e.begin_play(w);
 		}
 	}
 }

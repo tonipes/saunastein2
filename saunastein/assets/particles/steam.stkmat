@@ -1,0 +1,10 @@
+{
+   "pass": "particle",
+   "shader": "assets/_defaults/shaders/particle_billboard.stkshader",
+   "textures": [
+      "assets/particles/steam.stktexture"
+   ],
+   "parameters": [
+      {"name": "base_color", "value": [1,1,1,1]}
+   ]
+}

@@ -2,20 +2,20 @@
     "components": [
         {
             "comp_type": 12829486272651206750,
-            "entity": 1,
+            "entity": 2,
             "material": 1,
-            "material0": "assets/models/door.stkmodel/dungeon_floor",
-            "mesh": "assets/models/door.stkmodel/Cube",
+            "material0": "assets/models/door.stkmodel/door",
+            "mesh": "assets/models/door.stkmodel/Cube.005",
             "skin": "",
             "skin_entities": 0
         },
         {
             "body_type": 1,
             "comp_type": 14536826215375575722,
-            "entity": 2,
+            "entity": 3,
             "extents": [
-                2.0,
                 3.0,
+                6.0,
                 0.5
             ],
             "is_sensor": 0,
@@ -29,19 +29,19 @@
         },
         {
             "comp_type": 12829486272651206750,
-            "entity": 3,
+            "entity": 5,
             "material": 1,
-            "material0": "assets/models/door.stkmodel/dungeon_floor",
-            "mesh": "assets/models/door.stkmodel/Cube",
+            "material0": "assets/models/door.stkmodel/door",
+            "mesh": "assets/models/door.stkmodel/Cube.005",
             "skin": "",
             "skin_entities": 0
         },
         {
             "body_type": 1,
             "comp_type": 14536826215375575722,
-            "entity": 4,
+            "entity": 6,
             "extents": [
-                2.0,
+                3.0,
                 1.0,
                 1.0
             ],
@@ -58,19 +58,19 @@
     "entities": [
         {
             "first_child": 1,
-            "name": "assets/models/door.stkmodel",
+            "name": "double_door",
             "next_sibling": -1,
             "parent": -1,
             "pos": [
-                -28.908641815185547,
-                -10.836820602416992,
-                0.7741068005561829
+                -53.11296844482422,
+                67.65921020507813,
+                39.41917037963867
             ],
             "rot": [
-                -5.115907697472721e-13,
-                0.7071070075035095,
-                -5.115907697472721e-13,
-                0.7071065306663513
+                0.0,
+                0.0,
+                0.0,
+                1.0
             ],
             "scale": [
                 1.0,
@@ -84,10 +84,10 @@
         {
             "first_child": 2,
             "name": "door",
-            "next_sibling": 3,
+            "next_sibling": 4,
             "parent": 0,
             "pos": [
-                4.0,
+                -6.464603424072266,
                 0.0,
                 0.0
             ],
@@ -102,7 +102,32 @@
                 1.0,
                 1.0
             ],
-            "tag": "door",
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "mesh",
+            "next_sibling": 3,
+            "parent": 1,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                0.9999998807907104,
+                1.0,
+                0.9999998807907104
+            ],
+            "tag": "",
             "template": "",
             "visible": 1
         },
@@ -112,8 +137,33 @@
             "next_sibling": -1,
             "parent": 1,
             "pos": [
-                2.0,
-                3.0,
+                -3.0,
+                6.0,
+                7.152554530875932e-07
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                0.9999997615814209
+            ],
+            "scale": [
+                0.9999986290931702,
+                1.0,
+                0.9999986290931702
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 5,
+            "name": "door",
+            "next_sibling": -1,
+            "parent": 0,
+            "pos": [
+                6.0964813232421875,
+                0.0,
                 0.0
             ],
             "rot": [
@@ -132,12 +182,12 @@
             "visible": 1
         },
         {
-            "first_child": 4,
-            "name": "door",
-            "next_sibling": -1,
-            "parent": 0,
+            "first_child": -1,
+            "name": "mesh",
+            "next_sibling": 6,
+            "parent": 4,
             "pos": [
-                -4.0,
+                0.0,
                 0.0,
                 0.0
             ],
@@ -148,11 +198,11 @@
                 1.0
             ],
             "scale": [
+                0.9999998807907104,
                 1.0,
-                1.0,
-                1.0
+                0.9999998807907104
             ],
-            "tag": "door",
+            "tag": "",
             "template": "",
             "visible": 1
         },
@@ -160,22 +210,22 @@
             "first_child": -1,
             "name": "collider",
             "next_sibling": -1,
-            "parent": 3,
+            "parent": 4,
             "pos": [
-                2.0,
-                3.0,
-                0.0
+                -3.0,
+                6.0,
+                7.152554530875932e-07
             ],
             "rot": [
                 0.0,
                 0.0,
                 0.0,
-                1.0
+                0.9999997615814209
             ],
             "scale": [
+                0.9999986290931702,
                 1.0,
-                1.0,
-                1.0
+                0.9999986290931702
             ],
             "tag": "",
             "template": "",

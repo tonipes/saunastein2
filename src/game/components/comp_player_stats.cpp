@@ -105,4 +105,8 @@ namespace SFG
 		if (_mask_count > 0)
 			--_mask_count;
 	}
+	void comp_player_stats::take_damage(float damage)
+	{
+		_health = math::max(_health - damage, 0.0f);
+	}
 }

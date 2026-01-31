@@ -1,6 +1,7 @@
 #include "comp_enemy_ai_basic.hpp"
 #include "reflection/reflection.hpp"
 #include "world/components/comp_animation_controller.hpp"
+#include "physics/physics_ray_collector.hpp"
 
 namespace SFG
 {
@@ -10,15 +11,19 @@ namespace SFG
 		m.set_title("enemy_ai_basic");
 		m.set_category("enemy");
 		m.add_field<&comp_enemy_ai_basic::_movement_speed, comp_enemy_ai_basic>("movement_speed", reflected_field_type::rf_float, "");
+		m.add_field<&comp_enemy_ai_basic::_attack_range, comp_enemy_ai_basic>("attack_range", reflected_field_type::rf_float, "");
+		m.add_field<&comp_enemy_ai_basic::_damage, comp_enemy_ai_basic>("damage", reflected_field_type::rf_float, "");
+		m.add_field<&comp_enemy_ai_basic::_attack_cooldown, comp_enemy_ai_basic>("attack_cooldown", reflected_field_type::rf_float, "");
 	}
 
 	void comp_enemy_ai_basic::begin_play(world& w)
 	{
-		auto& cm			 = w.get_comp_manager();
+		_comp_manager		 = &w.get_comp_manager();
 		_entity_manager		 = &w.get_entity_manager();
 		auto  char_comp		 = _entity_manager->get_entity_component<comp_character_controller>(_header.entity);
-		_char_controller	 = &cm.get_component<comp_character_controller>(char_comp);
+		_char_controller	 = &_comp_manager->get_component<comp_character_controller>(char_comp);
 		_anim_graph			 = &w.get_animation_graph();
+		_physics_world		 = &w.get_physics_world();
 
 		// Animation stuff
 		world_handle		 anim_comp = {};
@@ -31,30 +36,44 @@ namespace SFG
 		});
 		if (anim_comp.is_null())
 			return;
-		auto anim_controller = &cm.get_component<comp_animation_controller>(anim_comp);
-		_anim_state_machine	 = anim_controller->get_runtime_machine();
+		auto anim_controller = _comp_manager->get_component<comp_animation_controller>(anim_comp);
+		_anim_state_machine	 = anim_controller.get_runtime_machine();
 		_walk_state			 = _anim_graph->get_state_handle(_anim_state_machine, "Walk");
 		_idle_state			 = _anim_graph->get_state_handle(_anim_state_machine, "Idle");
 	}
 
-	void comp_enemy_ai_basic::tick(vector3 player_pos, float dt)
+	void comp_enemy_ai_basic::tick(comp_player_stats& player, float dt)
 	{
-		_life_time += dt;
+		_lifetime += dt;
+		auto player_pos = _entity_manager->get_entity_position(player.get_header().entity);
 		auto pos	 = _entity_manager->get_entity_position(_header.entity);
 		player_pos.y = pos.y;
 		auto diff	 = player_pos - pos;
-		if ((int)_life_time % 2 || diff.is_zero())
+
+		// Attack check
+		if (vector3::distance_sqr(player_pos, pos) < _attack_range * _attack_range)
+		{
+			if (_lifetime - _last_attack_time > _attack_cooldown)
+			{
+				// Attack player
+				_last_attack_time = _lifetime;
+				player.take_damage(_damage);
+			}
+		}
+
+		if ((int)_lifetime % 2 || diff.is_zero())
 		{
 			_char_controller->set_target_velocity(vector3::zero);
 			set_animation_state_machine(true);
-			return;
 		}
-
-		diff			  = diff.normalized();
-		const vector3 vel = diff * _movement_speed;
-		_char_controller->set_target_velocity(vel);
-		set_animation_state_machine(false);
-		_entity_manager->set_entity_rotation(_header.entity, quat::look_at(pos, player_pos, vector3::up));
+		else
+		{
+			diff			  = diff.normalized();
+			const vector3 vel = diff * _movement_speed;
+			_char_controller->set_target_velocity(vel);
+			set_animation_state_machine(false);
+			_entity_manager->set_entity_rotation(_header.entity, quat::look_at(pos, player_pos, vector3::up));
+		}
 	}
 
 	void comp_enemy_ai_basic::set_animation_state_machine(bool idle)

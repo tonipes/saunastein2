@@ -83,14 +83,14 @@ namespace SFG
 				tt = 0.0f;
 
 			em.visit_children(_doors[i].door_root_handle, [&](world_handle child) {
-				float ss = _doors[i].direction;
+				float ss = _doors[i].direction * -1.0f;
 				if (em.get_entity_scale(child).x < 0.0f)
 					ss *= -1.0f;
 
 				const quat rot = quat::from_euler(0.0f, ss * tt * _doors[i].open_angle, 0.0f);
 				em.set_entity_rotation(child, rot);
 
-				world_handle  phys_ent_handle  = em.get_child_by_index(child, 0);
+				world_handle  phys_ent_handle  = em.get_child_by_index(child, 1);
 				world_handle  phys_comp_handle = em.get_entity_component<comp_physics>(phys_ent_handle);
 				comp_physics& phys_comp		   = cm.get_component<comp_physics>(phys_comp_handle);
 				phys_comp.set_body_position_and_rotation(w, em.get_entity_position_abs(phys_ent_handle), em.get_entity_rotation_abs(phys_ent_handle));
