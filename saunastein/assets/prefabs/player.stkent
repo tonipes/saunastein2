@@ -1,0 +1,133 @@
+{
+    "components": [
+        {
+            "camera_distance": 15.0,
+            "camera_offset": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "comp_type": 7590390715442638056,
+            "entity": 0,
+            "movement_speed": 15.0,
+            "orbit_max_pitch": 89.0,
+            "orbit_min_pitch": -89.0,
+            "orbit_pitch_speed": 0.20000000298023224,
+            "orbit_yaw_speed": 0.10000000149011612,
+            "rotation_speed": 5.0
+        },
+        {
+            "character_padding": 0.019999999552965164,
+            "comp_type": 17190279333344653665,
+            "enhanced_internal_edge_removal": 0,
+            "entity": 0,
+            "half_height": 1.9000002145767212,
+            "mass": 70.0,
+            "max_slope_degrees": 50.0,
+            "max_strength": 100.0,
+            "object_layer": 1,
+            "penetration_recovery_speed": 1.0,
+            "predictive_contact_distance": 0.10000000149011612,
+            "radius": 0.9000000953674316,
+            "shape_offset": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "step_down": 0.5,
+            "step_forward": 0.019999999552965164,
+            "step_forward_contact_angle_degrees": 75.0,
+            "step_forward_test": 0.15000000596046448,
+            "step_up": 0.4000000059604645
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 2,
+            "material": 1,
+            "material0": "assets/models/cube.stkmodel/saunaguy",
+            "mesh": "assets/models/cube.stkmodel/Cube.001",
+            "skin": "",
+            "skin_entities": 0
+        }
+    ],
+    "entities": [
+        {
+            "first_child": 1,
+            "name": "Player",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                0.0,
+                -6.217260837554932,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 2,
+            "name": "assets/models/cube.stkmodel",
+            "next_sibling": -1,
+            "parent": 0,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                0.5900001525878906,
+                1.9009230136871338,
+                0.5900001525878906
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "cube",
+            "next_sibling": -1,
+            "parent": 1,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                0.8441554307937622,
+                1.3208043575286865,
+                1.4555141925811768
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        }
+    ],
+    "resources": [
+        "assets/models/cube.stkmodel"
+    ]
+}
