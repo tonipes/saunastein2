@@ -46,6 +46,15 @@ namespace SFG
 		float		 direction;
 	};
 
+	struct managed_entity
+	{
+		world_handle handle;
+		float		 t;
+		float		 max_lifetime;
+		vector3		 velocity;
+		bool marked_for_removal;
+	};
+
 	class world;
 	class app;
 	class window;
@@ -78,12 +87,15 @@ namespace SFG
 		void tick_doors(float dt);
 		void begin_doors();
 
+		void tick_managed_entities(float dt);
+		void spawn_managed_entity(resource_handle resource, vector3 position, vector3 velocity, float max_lifetime);
+
 	private:
 		app&		 _app;
 		world_handle _player_entity = {};
 		vector<door> _doors			= {};
-		bool		 _player_initialized = false;
-		
+		vector<managed_entity> _managed_entities = {};
+		bool		 _player_initialized = false;		
 	};
 
 }

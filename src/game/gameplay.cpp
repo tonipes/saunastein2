@@ -31,6 +31,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <world/components/comp_physics.hpp>
 #include "game/components/comp_enemy_ai_basic.hpp"
 #include <physics/physics_contact_listener.hpp>
+#include "platform/window_common.hpp"
+#include "input/input_mappings.hpp"
 
 namespace SFG
 {
@@ -79,6 +81,18 @@ namespace SFG
 		auto&			   players = cm.underlying_pool<comp_cache<comp_player, MAX_PLAYERS>, comp_player>();
 		for (comp_player& p : players)
 			p.on_window_event(ev);
+
+		switch (ev.type)
+		{
+			case window_event_type::key: {
+				if (ev.button == input_code::key_space && ev.sub_type == window_event_sub_type::press)
+				{
+					SFG_TRACE("SPACE PRESSED");
+				}
+			}
+			default:
+				break;
+		}
 	}
 
 	void gameplay::tick_player(float dt)
@@ -151,8 +165,6 @@ namespace SFG
 					}
 					
 					SFG_TRACE("OPEN DOOR: door_forward: [{0}, {1}], to_player: [{2}, {3}]: DOT {4}, BACKWARD: {5}", door_forward.x, door_forward.z, to_player.x, to_player.z, dot, should_open_backward);
-				
-
 					//SFG_TRACE("OPEN DOOR: PLAYER: [{0}, {1}], DOOR: [{2}, {3}]: DIST {4}, BACKWARD: {5}", player_pos.x, player_pos.z, door_pos.x, door_pos.z, distance, _doors[i].direction);
 				}
 			}
@@ -211,17 +223,42 @@ namespace SFG
 
 			_doors.push_back(d);
 		}
-
-		//tmp.clear();
-		//em.find_entities_by_tag("trigger", tmp);
-		//for (int i = 0; i < tmp.size(); ++i)
-		//{
-		//	world_handle handle = tmp[i];
-		//	world_handle phys_comp_handle = em.get_entity_component<comp_physics>(handle);
-		//	comp_physics& phys_comp = cm.get_component<comp_physics>(phys_comp_handle);
-		//}
 	}
+	
+	void gameplay::tick_managed_entities(float dt) {
+		world&				w  = _app.get_world();
+		component_manager&	cm = w.get_comp_manager();
+		entity_manager&		em = w.get_entity_manager();
 
+		for (int i = 0; i < _managed_entities.size(); ++i)
+		{
+			managed_entity& ent = _managed_entities[i];
+			ent.t += dt;
+
+			if (!em.is_valid(ent.handle) || ent.t >= ent.max_lifetime) {
+				ent.marked_for_removal = true;
+				continue;
+			}
+
+			vector3 position = em.get_entity_position_abs(ent.handle);
+			vector3 new_position = position + ent.velocity * dt;
+			em.set_entity_position_abs(ent.handle, new_position);
+		}
+
+		for (int i = _managed_entities.size()-1; i >= 0; ++i)
+		{
+			managed_entity& ent = _managed_entities[i];
+			if (ent.marked_for_removal) {
+				em.destroy_entity(ent.handle);
+				_managed_entities.pop_back();
+			}
+		}
+	}
+	
+	void gameplay::spawn_managed_entity(resource_handle resource, vector3 position, vector3 velocity, float max_lifetime) {
+		SFG_TRACE("spawn_managed_entity: {0}", resource.generation);
+	}
+	
 	void gameplay::on_contact_begin(world_handle e1, world_handle e2, const vector3& p1, const vector3& p2) {
 		SFG_TRACE("on_contact_begin: {0} {0}", e1.index, e2.index);
 	}
