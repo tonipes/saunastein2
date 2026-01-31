@@ -35,9 +35,12 @@ namespace SFG
 	public:
 		void init(vekt::builder* builder);
 		void uninit();
+		void set_health_fraction(float health_fraction);
 
 	private:
 		vekt::builder* _builder = nullptr;
 		vekt::id	   _crosshair = NULL_WIDGET_ID;
+		vekt::id	   _health_bg = NULL_WIDGET_ID;
+		vekt::id	   _health_bar = NULL_WIDGET_ID;
 	};
 }

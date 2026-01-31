@@ -79,6 +79,9 @@ namespace SFG
 			{
 				const render_proxy_primitive& prim		= primitives[j];
 				const uint16				  mat_index = prim.material_index;
+				if (mat_index >= mi_mat_count)
+					continue;
+
 				SFG_ASSERT(mat_index < mi_mat_count);
 				const resource_id mat = materials[mat_index];
 

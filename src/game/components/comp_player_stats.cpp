@@ -26,6 +26,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "comp_player_stats.hpp"
 #include "reflection/reflection.hpp"
+#include "math/math.hpp"
 
 namespace SFG
 {
@@ -50,7 +51,7 @@ namespace SFG
 
 	void comp_player_stats::add_health(float delta)
 	{
-		_health += delta;
+		_health = math::clamp(_health + delta, 0.0f, 100.0f);
 	}
 
 	void comp_player_stats::add_hydration_score(float delta)

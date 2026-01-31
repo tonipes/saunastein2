@@ -40,11 +40,14 @@ namespace SFG
 
 #define MAX_PLAYERS 1
 
+	gameplay* gameplay::_inst = nullptr;
+
 	void gameplay::init()
 	{
 		_app.get_world().get_comp_manager().register_cache<comp_player, MAX_PLAYERS>();
 		_app.get_world().get_comp_manager().register_cache<comp_player_stats, MAX_PLAYERS>();
 		_app.get_world().get_comp_manager().register_cache<comp_enemy_ai_basic, MAX_WORLD_ENEMY_AI_BASIC>();
+		_inst = this;
 	}
 
 	void gameplay::uninit()
@@ -85,7 +88,7 @@ namespace SFG
 		component_manager& cm	   = w.get_comp_manager();
 		auto&			   players = cm.underlying_pool<comp_cache<comp_player, MAX_PLAYERS>, comp_player>();
 		for (comp_player& p : players)
-			p.on_window_event(ev);
+			p.on_window_event(_app.get_world(), ev);
 
 
 		switch (ev.type)
@@ -125,8 +128,7 @@ namespace SFG
 
 	void gameplay::on_character_contact_end(world_handle character, world_handle other)
 	{
-		(void)character;
-		(void)other;
+	
 	}
 
 	void gameplay::tick_player(float dt)
