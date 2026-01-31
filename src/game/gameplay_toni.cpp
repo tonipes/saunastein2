@@ -131,7 +131,7 @@ namespace SFG
 		{
 			managed_entity& ent = _managed_entities[i];
 
-			 if (!ent.params.destroy_on_collision) continue;
+			if (!ent.params.destroy_on_collision) continue;
 
 			if (ent.handle == e1 || ent.handle == e2)
 			{
@@ -228,7 +228,12 @@ namespace SFG
 		for (int i = _managed_entities.size() - 1; i >= 0; --i)
 		{
 			managed_entity& ent = _managed_entities[i];
-			if (ent.marked_for_removal && !ent.handle.is_null())
+
+			if (!ent.handle.is_null() || !em.is_valid(ent.handle))
+			{
+				_managed_entities.pop_back();
+			}
+			else if (ent.marked_for_removal)
 			{
 				em.destroy_entity(ent.handle);
 				_managed_entities.pop_back();

@@ -45,7 +45,7 @@ namespace SFG
 	static inline managed_entity_params bullet_params = {
 		.max_lifetime = 10.0f,
 		.speed = 10.0f,
-		.destroy_on_collision = true
+		.destroy_on_collision = false
 	};
 
 	struct door

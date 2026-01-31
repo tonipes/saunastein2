@@ -203,9 +203,9 @@ namespace SFG
 		forward.normalize();
 		const quat spawn_rot = quat::look_at(spawn_pos, spawn_pos + forward, vector3::up);
 
+		
 		//gameplay::get().spawn_managed_entity("assets/prefabs/mask.stkent"_hs, spawn_pos, spawn_rot.get_forward() * -50.0f, 5.0f);
-
-		// TODO: spawn mask entity at spawn_pos with spawn_rot, and set its velocity toward forward.
+		gameplay::get().spawn_managed_entity("assets/prefabs/mask.stkent"_hs, spawn_pos, spawn_rot, bullet_params);
 	}
 
 	void comp_player::tick(world& w, float dt)
