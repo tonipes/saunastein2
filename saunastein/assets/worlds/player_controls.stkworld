@@ -35,6 +35,36 @@
             "mesh": "assets/models/cube.stkmodel/Cube.001",
             "skin": "",
             "skin_entities": 0
+        },
+        {
+            "comp_type": 7590390715442638056,
+            "entity": 4,
+            "movement_speed": 15.0,
+            "rotation_speed": 5.0
+        },
+        {
+            "character_padding": 0.019999999552965164,
+            "comp_type": 17190279333344653665,
+            "enhanced_internal_edge_removal": 0,
+            "entity": 4,
+            "half_height": 0.8999999761581421,
+            "mass": 70.0,
+            "max_slope_degrees": 50.0,
+            "max_strength": 100.0,
+            "object_layer": 1,
+            "penetration_recovery_speed": 1.0,
+            "predictive_contact_distance": 0.10000000149011612,
+            "radius": 0.4000000059604645,
+            "shape_offset": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "step_down": 0.5,
+            "step_forward": 0.019999999552965164,
+            "step_forward_contact_angle_degrees": 75.0,
+            "step_forward_test": 0.15000000596046448,
+            "step_up": 0.4000000059604645
         }
     ],
     "entities": [
@@ -140,12 +170,12 @@
         },
         {
             "first_child": -1,
-            "name": "new_entity",
+            "name": "Player",
             "next_sibling": -1,
             "parent": -1,
             "pos": [
                 0.0,
-                1.2996361255645752,
+                1.6737785339355469,
                 0.0
             ],
             "rot": [
@@ -170,14 +200,14 @@
         "assets/models/cube.stkmodel"
     ],
     "tool_cam_pos": [
-        3.4065723419189453,
-        2.7372162342071533,
-        7.814878463745117
+        0.28934770822525024,
+        6.631369590759277,
+        11.320277214050293
     ],
     "tool_cam_rot": [
-        -0.17072132229804993,
-        0.2981342077255249,
-        0.05428744852542877,
-        0.9375623464584351
+        -0.18398918211460114,
+        0.0822385773062706,
+        0.015449892729520798,
+        0.9793601036071777
     ]
 }

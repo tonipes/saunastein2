@@ -33,6 +33,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace SFG
 {
 	class world;
+	struct window_event;
 
 	class comp_player
 	{
@@ -40,12 +41,15 @@ namespace SFG
 		static void reflect();
 
 		// -----------------------------------------------------------------------------
-		// trait
+		// comp
 		// -----------------------------------------------------------------------------
 
 		void on_add(world& w);
 		void on_remove(world& w);
 		void set_values(world& w, const color& base_color);
+		void tick(float dt);
+
+		void on_window_event(const window_event& ev);
 
 		// -----------------------------------------------------------------------------
 		// accessors
