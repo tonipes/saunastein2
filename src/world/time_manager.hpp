@@ -44,6 +44,7 @@ namespace SFG
 			const float modified = dt * _time_speed;
 			_elapsed_real_time += dt;
 			_elapsed_game_time += modified;
+			_real_dt = dt;
 			return modified;
 		}
 
@@ -79,9 +80,15 @@ namespace SFG
 			return in_dt * _time_speed;
 		}
 
+		inline float get_real_dt()
+		{
+			return _real_dt;
+		}
+
 	private:
 		float _elapsed_real_time = 0.0f;
 		float _elapsed_game_time = 0.0f;
 		float _time_speed		 = 1.0f;
+		float _real_dt			 = 0.0f;
 	};
 }

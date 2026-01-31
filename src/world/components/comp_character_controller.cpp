@@ -87,7 +87,7 @@ namespace SFG
 
 	void comp_character_controller::on_remove(world& w)
 	{
-		destroy_controller();
+		destroy_controller(w);
 	}
 
 	void comp_character_controller::set_position(world& w, const vector3& pos)
@@ -99,6 +99,16 @@ namespace SFG
 			return;
 
 		_controller->SetPosition(JPH::RVec3(pos.x, pos.y, pos.z));
+	}
+
+	void comp_character_controller::set_radius(world& w, float radius)
+	{
+		const float clamped = math::max(radius, 0.01f);
+		if (math::almost_equal(_radius, clamped))
+			return;
+
+		_radius = clamped;
+		rebuild(w);
 	}
 
 	void comp_character_controller::update(world& w, float dt)
@@ -143,7 +153,7 @@ namespace SFG
 
 	void comp_character_controller::rebuild(world& w)
 	{
-		destroy_controller();
+		destroy_controller(w);
 		create_controller(w);
 	}
 
@@ -189,13 +199,16 @@ namespace SFG
 		settings.mEnhancedInternalEdgeRemoval  = _enhanced_internal_edge_removal;
 
 		_controller = new JPH::CharacterVirtual(&settings, to_jph_vec3(pos), to_jph_quat(rot), pw.get_system());
+		pw.register_character_controller(_controller, _header.entity);
 	}
 
-	void comp_character_controller::destroy_controller()
+	void comp_character_controller::destroy_controller(world& w)
 	{
 		if (_controller == nullptr)
 			return;
 
+		physics_world& pw = w.get_physics_world();
+		pw.unregister_character_controller(_controller);
 		delete _controller;
 		_controller = nullptr;
 	}

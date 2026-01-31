@@ -26,17 +26,41 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include "world/world_constants.hpp"
+#include <Jolt/Jolt.h>
+#include <Jolt/Physics/Collision/ContactListener.h>
+
+namespace JPH
+{
+	class Body;
+	class ContactManifold;
+	class SubShapeIDPair;
+	class ContactSettings;
+}
 
 namespace SFG
 {
-	class vector3;
+	class physics_world;
+	class physics_contact_listener;
+	struct vector3;
 
-	class physics_contact_listener
+	class physics_world_contact_listener final : public JPH::ContactListener
 	{
 	public:
-		virtual void on_contact_begin(world_handle e1, world_handle e2, const vector3& p1, const vector3& p2) = 0;
-		virtual void on_contact(world_handle e1, world_handle e2, const vector3& p1, const vector3& p2)		  = 0;
-		virtual void on_contact_end(world_handle e1, world_handle e2)										  = 0;
+		explicit physics_world_contact_listener(physics_world& world);
+
+		void set_listener(physics_contact_listener* listener);
+
+		void OnContactAdded(const JPH::Body& inBody1, const JPH::Body& inBody2, const JPH::ContactManifold& inManifold, JPH::ContactSettings& ioSettings) override;
+		void OnContactPersisted(const JPH::Body& inBody1, const JPH::Body& inBody2, const JPH::ContactManifold& inManifold, JPH::ContactSettings& ioSettings) override;
+		void OnContactRemoved(const JPH::SubShapeIDPair& inSubShapePair) override;
+
+	private:
+		static vector3 to_vector3(const JPH::RVec3& v);
+
+		void dispatch_contact_begin(const JPH::Body& inBody1, const JPH::Body& inBody2, const JPH::ContactManifold& inManifold);
+		void dispatch_contact(const JPH::Body& inBody1, const JPH::Body& inBody2, const JPH::ContactManifold& inManifold);
+
+		physics_world&			  _world;
+		physics_contact_listener* _listener = nullptr;
 	};
 }

@@ -24,19 +24,45 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISE
 OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#pragma once
-
-#include "world/world_constants.hpp"
+#include "player_ui.hpp"
 
 namespace SFG
 {
-	class vector3;
-
-	class physics_contact_listener
+	void player_ui::init(vekt::builder* builder)
 	{
-	public:
-		virtual void on_contact_begin(world_handle e1, world_handle e2, const vector3& p1, const vector3& p2) = 0;
-		virtual void on_contact(world_handle e1, world_handle e2, const vector3& p1, const vector3& p2)		  = 0;
-		virtual void on_contact_end(world_handle e1, world_handle e2)										  = 0;
-	};
+		if (builder == nullptr)
+			return;
+
+		_builder = builder;
+
+		if (_crosshair != NULL_WIDGET_ID)
+			return;
+
+		_crosshair = _builder->allocate();
+		_builder->widget_add_child(_builder->get_root(), _crosshair);
+
+		vekt::widget_gfx& gfx = _builder->widget_get_gfx(_crosshair);
+		gfx.flags			  = vekt::gfx_flags::gfx_is_rect;
+		gfx.color			  = VEKT_VEC4(1.0f, 1.0f, 1.0f, 1.0f);
+
+		_builder->widget_set_size_abs(_crosshair, VEKT_VEC2(6.0f, 6.0f));
+		_builder->widget_set_pos(_crosshair,
+								 VEKT_VEC2(0.5f, 0.5f),
+								 vekt::helper_pos_type::relative,
+								 vekt::helper_pos_type::relative,
+								 vekt::helper_anchor_type::center,
+								 vekt::helper_anchor_type::center);
+	}
+
+	void player_ui::uninit()
+	{
+		if (_builder == nullptr)
+			return;
+
+		if (_crosshair != NULL_WIDGET_ID)
+			_builder->deallocate(_crosshair);
+
+		_crosshair = NULL_WIDGET_ID;
+		_builder	  = nullptr;
+	}
 }

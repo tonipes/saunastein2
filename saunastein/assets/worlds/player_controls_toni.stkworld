@@ -96,6 +96,10 @@
                 0.0
             ],
             "comp_type": 7590390715442638056,
+            "dive_duration": 0.0,
+            "dive_jump_velocity": 0.0,
+            "dive_slowmo": 0.0,
+            "dive_speed": 0.0,
             "entity": 8,
             "movement_speed": 15.0,
             "orbit_max_pitch": 89.0,
@@ -127,6 +131,13 @@
             "step_forward_contact_angle_degrees": 75.0,
             "step_forward_test": 0.15000000596046448,
             "step_up": 0.4000000059604645
+        },
+        {
+            "available_dive_count": 0,
+            "comp_type": 15818663065171639868,
+            "entity": 8,
+            "health": 100.0,
+            "hydration_score": 0.0
         },
         {
             "comp_type": 12829486272651206750,
@@ -192,7 +203,7 @@
                 1.0,
                 1.0
             ],
-            "tag": "",
+            "tag": "walls",
             "template": "",
             "visible": 1
         },
@@ -452,59 +463,9 @@
             "next_sibling": -1,
             "parent": -1,
             "pos": [
-                -28.908641815185547,
-                -10.836820602416992,
-                0.7741068005561829
-            ],
-            "rot": [
-                -5.115907697472721e-13,
-                0.7071070075035095,
-                -5.115907697472721e-13,
-                0.7071065306663513
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0
-            ],
-            "tag": "door_root",
-            "template": "assets/entities/autodoor_double.stkent",
-            "visible": 1
-        },
-        {
-            "first_child": -1,
-            "name": "trigger_test",
-            "next_sibling": -1,
-            "parent": -1,
-            "pos": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "rot": [
-                0.0,
-                0.0,
-                0.0,
-                1.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0
-            ],
-            "tag": "trigger",
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": -1,
-            "name": "assets/models/door.stkmodel",
-            "next_sibling": -1,
-            "parent": -1,
-            "pos": [
-                -60.39768981933594,
-                -10.836820602416992,
-                43.51340103149414
+                -29.118303298950195,
+                -10.809270858764648,
+                0.8593707084655762
             ],
             "rot": [
                 -5.115907697472721e-13,
@@ -527,15 +488,15 @@
             "next_sibling": -1,
             "parent": -1,
             "pos": [
-                -60.39768981933594,
-                -10.836820602416992,
-                136.31436157226563
+                -42.328216552734375,
+                -10.809270858764648,
+                0.8593793511390686
             ],
             "rot": [
-                -5.115907697472721e-13,
-                0.7071070075035095,
-                -5.115907697472721e-13,
-                0.7071065306663513
+                6.181723932741079e-08,
+                0.7071065306663513,
+                6.181723932741079e-08,
+                -0.7071070075035095
             ],
             "scale": [
                 1.0,
@@ -548,52 +509,27 @@
         },
         {
             "first_child": -1,
-            "name": "assets/models/door.stkmodel",
+            "name": "bullet",
             "next_sibling": -1,
             "parent": -1,
             "pos": [
-                -51.7174186706543,
-                -10.836820602416992,
-                87.54292297363281
+                0.0,
+                0.0,
+                -11.281639099121094
             ],
             "rot": [
-                1.8303282445231162e-07,
-                0.9996437430381775,
-                -1.4281749827205203e-07,
-                -0.026691051200032234
+                0.0,
+                0.0,
+                0.0,
+                1.0
             ],
             "scale": [
                 1.0,
                 1.0,
                 1.0
             ],
-            "tag": "door_root",
-            "template": "assets/entities/autodoor_double.stkent",
-            "visible": 1
-        },
-        {
-            "first_child": -1,
-            "name": "assets/models/door.stkmodel",
-            "next_sibling": -1,
-            "parent": -1,
-            "pos": [
-                -20.098024368286133,
-                -10.836820602416992,
-                20.432044982910156
-            ],
-            "rot": [
-                -3.063087977706047e-15,
-                0.0042340755462646484,
-                -7.234921212476153e-13,
-                0.9999910593032837
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0
-            ],
-            "tag": "door_root",
-            "template": "assets/entities/autodoor_double.stkent",
+            "tag": "",
+            "template": "assets/entities/bullet.stkent",
             "visible": 1
         }
     ],
@@ -601,17 +537,18 @@
     "resources": [
         "assets/models/level.stkmodel",
         "assets/models/cube.stkmodel",
-        "assets/entities/autodoor_double.stkent"
+        "assets/entities/autodoor_double.stkent",
+        "assets/entities/bullet.stkent"
     ],
     "tool_cam_pos": [
-        10.231201171875,
-        36.809078216552734,
-        2.5003981590270996
+        -21.202383041381836,
+        21.48662757873535,
+        23.050731658935547
     ],
     "tool_cam_rot": [
-        -0.3612545430660248,
-        0.607592761516571,
-        0.36076250672340393,
-        0.6084214448928833
+        -0.3305562138557434,
+        -0.40484291315078735,
+        -0.15980134904384613,
+        0.8374356031417847
     ]
 }

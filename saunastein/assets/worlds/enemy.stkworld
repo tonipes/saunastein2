@@ -46,104 +46,6 @@
             "shape_type": 4
         },
         {
-            "comp_type": 2868544828885607743,
-            "entity": 3,
-            "movement_speed": 10.0
-        },
-        {
-            "character_padding": 0.019999999552965164,
-            "comp_type": 17190279333344653665,
-            "enhanced_internal_edge_removal": 0,
-            "entity": 3,
-            "half_height": 0.8999999761581421,
-            "mass": 70.0,
-            "max_slope_degrees": 50.0,
-            "max_strength": 100.0,
-            "object_layer": 1,
-            "penetration_recovery_speed": 1.0,
-            "predictive_contact_distance": 0.10000000149011612,
-            "radius": 0.4000000059604645,
-            "shape_offset": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "step_down": 0.5,
-            "step_forward": 0.019999999552965164,
-            "step_forward_contact_angle_degrees": 75.0,
-            "step_forward_test": 0.15000000596046448,
-            "step_up": 0.4000000059604645
-        },
-        {
-            "comp_type": 14356981188726125758,
-            "entity": 30,
-            "machine": "",
-            "skin_entities": 27,
-            "skin_entities0": 11,
-            "skin_entities1": 10,
-            "skin_entities10": 16,
-            "skin_entities11": 8,
-            "skin_entities12": 7,
-            "skin_entities13": 6,
-            "skin_entities14": 24,
-            "skin_entities15": 23,
-            "skin_entities16": 22,
-            "skin_entities17": 21,
-            "skin_entities18": 20,
-            "skin_entities19": 29,
-            "skin_entities2": 9,
-            "skin_entities20": 28,
-            "skin_entities21": 27,
-            "skin_entities22": 26,
-            "skin_entities23": 25,
-            "skin_entities24": 5,
-            "skin_entities25": 30,
-            "skin_entities26": 4,
-            "skin_entities3": 15,
-            "skin_entities4": 14,
-            "skin_entities5": 13,
-            "skin_entities6": 12,
-            "skin_entities7": 19,
-            "skin_entities8": 18,
-            "skin_entities9": 17
-        },
-        {
-            "comp_type": 12829486272651206750,
-            "entity": 30,
-            "material": 1,
-            "material0": "assets/models/saunaguy.stkmodel/saunaguy",
-            "mesh": "assets/models/saunaguy.stkmodel/saunaguy",
-            "skin": "assets/models/saunaguy.stkmodel/Armature",
-            "skin_entities": 27,
-            "skin_entities0": 11,
-            "skin_entities1": 10,
-            "skin_entities10": 16,
-            "skin_entities11": 8,
-            "skin_entities12": 7,
-            "skin_entities13": 6,
-            "skin_entities14": 24,
-            "skin_entities15": 23,
-            "skin_entities16": 22,
-            "skin_entities17": 21,
-            "skin_entities18": 20,
-            "skin_entities19": 29,
-            "skin_entities2": 9,
-            "skin_entities20": 28,
-            "skin_entities21": 27,
-            "skin_entities22": 26,
-            "skin_entities23": 25,
-            "skin_entities24": 5,
-            "skin_entities25": 30,
-            "skin_entities26": 4,
-            "skin_entities3": 15,
-            "skin_entities4": 14,
-            "skin_entities5": 13,
-            "skin_entities6": 12,
-            "skin_entities7": 19,
-            "skin_entities8": 18,
-            "skin_entities9": 17
-        },
-        {
             "camera_distance": 15.0,
             "camera_offset": [
                 0.0,
@@ -151,7 +53,7 @@
                 0.0
             ],
             "comp_type": 7590390715442638056,
-            "entity": 31,
+            "entity": 4,
             "movement_speed": 15.0,
             "orbit_max_pitch": 89.0,
             "orbit_min_pitch": -89.0,
@@ -163,7 +65,7 @@
             "character_padding": 0.019999999552965164,
             "comp_type": 17190279333344653665,
             "enhanced_internal_edge_removal": 0,
-            "entity": 31,
+            "entity": 4,
             "half_height": 1.9000002145767212,
             "mass": 70.0,
             "max_slope_degrees": 50.0,
@@ -185,7 +87,7 @@
         },
         {
             "comp_type": 12829486272651206750,
-            "entity": 33,
+            "entity": 6,
             "material": 1,
             "material0": "assets/models/cube.stkmodel/saunaguy",
             "mesh": "assets/models/cube.stkmodel/Cube.001",
@@ -194,7 +96,7 @@
         },
         {
             "comp_type": 2550096278038808870,
-            "entity": 34,
+            "entity": 7,
             "far": 50.0,
             "fov_degrees": 75.0,
             "near": 0.10000000149011612
@@ -277,13 +179,13 @@
             "visible": 1
         },
         {
-            "first_child": 4,
-            "name": "assets/models/saunaguy.stkmodel",
+            "first_child": -1,
+            "name": "enemy",
             "next_sibling": -1,
             "parent": -1,
             "pos": [
                 1.9365311861038208,
-                1.937766671180725,
+                0.0,
                 -0.5839486122131348
             ],
             "rot": [
@@ -298,686 +200,11 @@
                 1.0
             ],
             "tag": "",
-            "template": "",
+            "template": "assets/prefabs/enemy.stkent",
             "visible": 1
         },
         {
             "first_child": 5,
-            "name": "Armature",
-            "next_sibling": -1,
-            "parent": 3,
-            "pos": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "rot": [
-                0.7071068286895752,
-                0.0,
-                0.0,
-                0.7071067094802856
-            ],
-            "scale": [
-                0.009999999776482582,
-                0.010000000707805157,
-                0.010000000707805157
-            ],
-            "tag": "",
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 6,
-            "name": "mixamorig:Hips",
-            "next_sibling": 30,
-            "parent": 4,
-            "pos": [
-                0.0,
-                0.02991604618728161,
-                -100.44189453125
-            ],
-            "rot": [
-                -0.7071067094802856,
-                0.0,
-                0.0,
-                0.7071068286895752
-            ],
-            "scale": [
-                1.0,
-                0.9999999403953552,
-                0.9999999403953552
-            ],
-            "tag": "",
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 7,
-            "name": "mixamorig:Spine",
-            "next_sibling": 20,
-            "parent": 5,
-            "pos": [
-                0.0,
-                10.297843933105469,
-                -0.8582945466041565
-            ],
-            "rot": [
-                -0.04156547784805298,
-                0.0,
-                0.0,
-                0.9991357922554016
-            ],
-            "scale": [
-                1.0,
-                0.9999998807907104,
-                0.9999998807907104
-            ],
-            "tag": "",
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 8,
-            "name": "mixamorig:Spine1",
-            "next_sibling": -1,
-            "parent": 6,
-            "pos": [
-                0.0,
-                12.055791854858398,
-                -8.344650268554688e-07
-            ],
-            "rot": [
-                2.2351747119842003e-08,
-                0.0,
-                0.0,
-                1.0
-            ],
-            "scale": [
-                1.0,
-                0.9999999403953552,
-                0.9999999403953552
-            ],
-            "tag": "",
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 9,
-            "name": "mixamorig:Spine2",
-            "next_sibling": -1,
-            "parent": 7,
-            "pos": [
-                0.0,
-                13.778057098388672,
-                -4.76837158203125e-07
-            ],
-            "rot": [
-                -3.3527616238870905e-08,
-                0.0,
-                0.0,
-                1.0
-            ],
-            "scale": [
-                1.0,
-                0.9999999403953552,
-                0.9999999403953552
-            ],
-            "tag": "",
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 10,
-            "name": "mixamorig:Neck",
-            "next_sibling": 12,
-            "parent": 8,
-            "pos": [
-                0.0,
-                15.500309944152832,
-                4.76837158203125e-07
-            ],
-            "rot": [
-                0.041565489023923874,
-                0.0,
-                0.0,
-                0.9991357922554016
-            ],
-            "scale": [
-                1.0,
-                0.9999997615814209,
-                0.9999997615814209
-            ],
-            "tag": "",
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 11,
-            "name": "mixamorig:Head",
-            "next_sibling": -1,
-            "parent": 9,
-            "pos": [
-                0.0,
-                10.851470947265625,
-                4.6039838790893555
-            ],
-            "rot": [
-                0.0,
-                0.0,
-                0.0,
-                1.0
-            ],
-            "scale": [
-                1.0,
-                0.9999999403953552,
-                0.9999999403953552
-            ],
-            "tag": "",
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": -1,
-            "name": "mixamorig:HeadTop_End",
-            "next_sibling": -1,
-            "parent": 10,
-            "pos": [
-                0.0,
-                18.906326293945313,
-                8.02143383026123
-            ],
-            "rot": [
-                0.0,
-                0.0,
-                0.0,
-                1.0
-            ],
-            "scale": [
-                1.0,
-                0.9999999403953552,
-                0.9999999403953552
-            ],
-            "tag": "",
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 13,
-            "name": "mixamorig:LeftShoulder",
-            "next_sibling": 16,
-            "parent": 8,
-            "pos": [
-                5.970677375793457,
-                13.275018692016602,
-                -0.19603824615478516
-            ],
-            "rot": [
-                -0.571941614151001,
-                -0.4087785482406616,
-                0.5911829471588135,
-                -0.3953297734260559
-            ],
-            "scale": [
-                0.9999999403953552,
-                0.9999998807907104,
-                0.9999998807907104
-            ],
-            "tag": "",
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 14,
-            "name": "mixamorig:LeftArm",
-            "next_sibling": -1,
-            "parent": 12,
-            "pos": [
-                -2.980232238769531e-07,
-                12.625598907470703,
-                1.2487173080444336e-05
-            ],
-            "rot": [
-                -0.17625592648983002,
-                -0.00518117705360055,
-                0.02892255038022995,
-                0.9839057326316833
-            ],
-            "scale": [
-                1.000000238418579,
-                1.0000001192092896,
-                1.0000001192092896
-            ],
-            "tag": "",
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 15,
-            "name": "mixamorig:LeftForeArm",
-            "next_sibling": -1,
-            "parent": 13,
-            "pos": [
-                1.1920928955078125e-07,
-                29.10831069946289,
-                -1.4990568161010742e-05
-            ],
-            "rot": [
-                0.0037856583949178457,
-                -7.943542004795745e-05,
-                -0.020970921963453293,
-                0.9997729659080505
-            ],
-            "scale": [
-                1.0,
-                0.9999999403953552,
-                1.0
-            ],
-            "tag": "",
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": -1,
-            "name": "mixamorig:LeftHand",
-            "next_sibling": -1,
-            "parent": 14,
-            "pos": [
-                -2.384185791015625e-07,
-                26.11846160888672,
-                -1.2159347534179688e-05
-            ],
-            "rot": [
-                -1.0477378964424133e-09,
-                4.365576788956105e-10,
-                -1.1641532182693481e-09,
-                1.0
-            ],
-            "scale": [
-                1.0000001192092896,
-                1.0,
-                0.9999998807907104
-            ],
-            "tag": "",
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 17,
-            "name": "mixamorig:RightShoulder",
-            "next_sibling": -1,
-            "parent": 8,
-            "pos": [
-                -5.970677375793457,
-                13.273268699645996,
-                -0.175048828125
-            ],
-            "rot": [
-                0.57304447889328,
-                -0.40798497200012207,
-                0.5902312994003296,
-                0.3959738612174988
-            ],
-            "scale": [
-                0.9999998807907104,
-                0.9999998807907104,
-                0.9999998807907104
-            ],
-            "tag": "",
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 18,
-            "name": "mixamorig:RightArm",
-            "next_sibling": -1,
-            "parent": 16,
-            "pos": [
-                -1.1920928955078125e-07,
-                12.625598907470703,
-                -1.6033649444580078e-05
-            ],
-            "rot": [
-                -0.17666886746883392,
-                0.004458746872842312,
-                -0.024833310395479202,
-                0.9839469194412231
-            ],
-            "scale": [
-                1.0000001192092896,
-                0.9999998807907104,
-                0.9999999403953552
-            ],
-            "tag": "",
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 19,
-            "name": "mixamorig:RightForeArm",
-            "next_sibling": -1,
-            "parent": 17,
-            "pos": [
-                -1.9073486328125e-06,
-                29.10579490661621,
-                2.276897430419922e-05
-            ],
-            "rot": [
-                0.00408504344522953,
-                7.602371624670923e-05,
-                0.018595781177282333,
-                0.999818742275238
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0
-            ],
-            "tag": "",
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": -1,
-            "name": "mixamorig:RightHand",
-            "next_sibling": -1,
-            "parent": 18,
-            "pos": [
-                2.6226043701171875e-06,
-                26.118228912353516,
-                -1.9162893295288086e-05
-            ],
-            "rot": [
-                1.7462298274040222e-10,
-                6.730260793119669e-09,
-                6.490154191851616e-09,
-                1.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0
-            ],
-            "tag": "",
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 21,
-            "name": "mixamorig:LeftUpLeg",
-            "next_sibling": 25,
-            "parent": 5,
-            "pos": [
-                7.478411674499512,
-                -5.747161865234375,
-                0.4222813844680786
-            ],
-            "rot": [
-                3.165761654599919e-06,
-                0.0002847732976078987,
-                0.9999383091926575,
-                -0.011105921119451523
-            ],
-            "scale": [
-                0.9999998211860657,
-                0.9999999403953552,
-                0.9999999403953552
-            ],
-            "tag": "",
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 22,
-            "name": "mixamorig:LeftLeg",
-            "next_sibling": -1,
-            "parent": 20,
-            "pos": [
-                -2.6190764401690103e-07,
-                45.98395919799805,
-                4.4455141789967456e-08
-            ],
-            "rot": [
-                -0.050593260675668716,
-                -0.0006205192767083645,
-                0.012209681794047356,
-                0.9986445307731628
-            ],
-            "scale": [
-                1.0000001192092896,
-                0.9999998807907104,
-                1.0000001192092896
-            ],
-            "tag": "",
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 23,
-            "name": "mixamorig:LeftFoot",
-            "next_sibling": -1,
-            "parent": 21,
-            "pos": [
-                1.0308795026503503e-06,
-                39.350311279296875,
-                1.5050172805786133e-06
-            ],
-            "rot": [
-                0.46232903003692627,
-                0.047561682760715485,
-                -0.024844098836183548,
-                0.8850833773612976
-            ],
-            "scale": [
-                0.9999997019767761,
-                0.9999999403953552,
-                1.0
-            ],
-            "tag": "",
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 24,
-            "name": "mixamorig:LeftToeBase",
-            "next_sibling": -1,
-            "parent": 22,
-            "pos": [
-                5.960464477539063e-07,
-                19.316822052001953,
-                -1.1920928955078125e-07
-            ],
-            "rot": [
-                0.3281439542770386,
-                0.022292284294962883,
-                -0.007746295537799597,
-                0.9443328976631165
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                0.9999998807907104
-            ],
-            "tag": "",
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": -1,
-            "name": "mixamorig:LeftToe_End",
-            "next_sibling": -1,
-            "parent": 23,
-            "pos": [
-                -1.1175870895385742e-06,
-                7.391306400299072,
-                -1.1920928955078125e-07
-            ],
-            "rot": [
-                2.0023435354232788e-08,
-                2.3050230169019414e-08,
-                -1.3969839729455202e-09,
-                1.0
-            ],
-            "scale": [
-                1.0000001192092896,
-                1.0,
-                1.0000001192092896
-            ],
-            "tag": "",
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 26,
-            "name": "mixamorig:RightUpLeg",
-            "next_sibling": -1,
-            "parent": 5,
-            "pos": [
-                -7.478411674499512,
-                -5.747161865234375,
-                0.6489816904067993
-            ],
-            "rot": [
-                3.974409628426656e-05,
-                -0.003584175370633602,
-                0.9999319314956665,
-                0.011105559766292572
-            ],
-            "scale": [
-                1.000000238418579,
-                0.9999999403953552,
-                0.9999999403953552
-            ],
-            "tag": "",
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 27,
-            "name": "mixamorig:RightLeg",
-            "next_sibling": -1,
-            "parent": 25,
-            "pos": [
-                1.3269163900986314e-07,
-                45.98513412475586,
-                -9.666615596870543e-08
-            ],
-            "rot": [
-                -0.04414598271250725,
-                0.0005451575852930546,
-                -0.012197153642773628,
-                0.9989504814147949
-            ],
-            "scale": [
-                0.9999999403953552,
-                1.0,
-                1.0
-            ],
-            "tag": "",
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 28,
-            "name": "mixamorig:RightFoot",
-            "next_sibling": -1,
-            "parent": 26,
-            "pos": [
-                1.2473901733756065e-06,
-                39.33026885986328,
-                -7.450580596923828e-09
-            ],
-            "rot": [
-                0.4576808214187622,
-                -0.04818449541926384,
-                0.024849677458405495,
-                0.8874621391296387
-            ],
-            "scale": [
-                1.0,
-                0.9999998807907104,
-                1.0
-            ],
-            "tag": "",
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 29,
-            "name": "mixamorig:RightToeBase",
-            "next_sibling": -1,
-            "parent": 27,
-            "pos": [
-                1.691281795501709e-06,
-                19.198280334472656,
-                8.344650268554688e-07
-            ],
-            "rot": [
-                0.33080533146858215,
-                -0.020025068894028664,
-                0.007021417375653982,
-                0.9434604048728943
-            ],
-            "scale": [
-                1.0,
-                0.9999998807907104,
-                0.9999998807907104
-            ],
-            "tag": "",
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": -1,
-            "name": "mixamorig:RightToe_End",
-            "next_sibling": -1,
-            "parent": 28,
-            "pos": [
-                -1.1920928955078125e-07,
-                7.460336685180664,
-                -1.1920928955078125e-07
-            ],
-            "rot": [
-                -3.67872416973114e-08,
-                -1.6880221664905548e-08,
-                2.1886080503463745e-08,
-                1.0
-            ],
-            "scale": [
-                1.0000001192092896,
-                0.9999999403953552,
-                1.0
-            ],
-            "tag": "",
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": -1,
-            "name": "saunaguy",
-            "next_sibling": -1,
-            "parent": 4,
-            "pos": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "rot": [
-                0.0,
-                0.0,
-                0.0,
-                1.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0
-            ],
-            "tag": "",
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 32,
             "name": "Player",
             "next_sibling": -1,
             "parent": -1,
@@ -1002,10 +229,10 @@
             "visible": 1
         },
         {
-            "first_child": 33,
+            "first_child": 6,
             "name": "assets/models/cube.stkmodel",
             "next_sibling": -1,
-            "parent": 31,
+            "parent": 4,
             "pos": [
                 0.0,
                 0.0,
@@ -1030,7 +257,7 @@
             "first_child": -1,
             "name": "cube",
             "next_sibling": -1,
-            "parent": 32,
+            "parent": 5,
             "pos": [
                 0.0,
                 0.0,
@@ -1080,18 +307,18 @@
     "extra_resources": [],
     "resources": [
         "assets/models/default_ground.stkmodel",
-        "assets/models/saunaguy.stkmodel",
+        "assets/prefabs/enemy.stkent",
         "assets/models/cube.stkmodel"
     ],
     "tool_cam_pos": [
-        10.027053833007813,
-        4.544912338256836,
-        2.035776138305664
+        10.728067398071289,
+        3.87634539604187,
+        6.242732524871826
     ],
     "tool_cam_rot": [
-        -0.10023723542690277,
-        0.6122833490371704,
-        0.07865338027477264,
-        0.7803045511245728
+        -0.07806692272424698,
+        0.4700896739959717,
+        0.04178990051150322,
+        0.8781656622886658
     ]
 }

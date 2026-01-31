@@ -26,17 +26,18 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include "world/world_constants.hpp"
+#include "gui/vekt.hpp"
 
 namespace SFG
 {
-	class vector3;
-
-	class physics_contact_listener
+	class player_ui
 	{
 	public:
-		virtual void on_contact_begin(world_handle e1, world_handle e2, const vector3& p1, const vector3& p2) = 0;
-		virtual void on_contact(world_handle e1, world_handle e2, const vector3& p1, const vector3& p2)		  = 0;
-		virtual void on_contact_end(world_handle e1, world_handle e2)										  = 0;
+		void init(vekt::builder* builder);
+		void uninit();
+
+	private:
+		vekt::builder* _builder = nullptr;
+		vekt::id	   _crosshair = NULL_WIDGET_ID;
 	};
 }

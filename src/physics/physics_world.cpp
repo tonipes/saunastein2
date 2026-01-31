@@ -32,6 +32,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "physics/physics_layer_filter.hpp"
 #include "physics/physics_object_bp_layer_filter.hpp"
 #include "physics/physics_bp_layer_interface.hpp"
+#include "physics/physics_world_contact_listener.hpp"
+#include "physics/physics_world_character_contact_listener.hpp"
 #include "resources/physical_material.hpp"
 #include "world/components/comp_physics.hpp"
 #include "world/components/comp_character_controller.hpp"
@@ -44,6 +46,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <Jolt/Core/JobSystemThreadPool.h>
 #include <Jolt/Physics/Body/BodyID.h>
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
+#include <Jolt/Physics/Character/CharacterVirtual.h>
 #include <Jolt/Physics/Collision/Shape/Shape.h>
 #include <Jolt/Physics/Collision/Shape/RotatedTranslatedShape.h>
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
@@ -62,6 +65,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace
 {
+
 	static void trace_impl(const char* inFMT, ...)
 	{
 		va_list args;
@@ -105,21 +109,29 @@ namespace SFG
 		_allocator	= new JPH::TempAllocatorImpl(10 * 1024 * 1024);
 		_job_system = new JPH::JobSystemThreadPool(JPH::cMaxPhysicsJobs, JPH::cMaxPhysicsBarriers, JPH::thread::hardware_concurrency() - 1);
 
-		_layer_filter			= new physics_layer_filter();
-		_object_bp_layer_filter = new physics_object_bp_layer_filter();
-		_bp_layer_interface		= new physics_bp_layer_interface();
+		_layer_filter						= new physics_layer_filter();
+		_object_bp_layer_filter				= new physics_object_bp_layer_filter();
+		_bp_layer_interface					= new physics_bp_layer_interface();
+		_contact_listener_adapter			= new physics_world_contact_listener(*this);
+		_character_contact_listener_adapter = new physics_world_character_contact_listener(*this);
+		_contact_listener_adapter->set_listener(_contact_listener);
+		_character_contact_listener_adapter->set_listener(_character_contact_listener);
 
 		const uint32 cMaxBodies				= 1024;
 		const uint32 cNumBodyMutexes		= 0;
 		const uint32 cMaxBodyPairs			= 1024;
 		const uint32 cMaxContactConstraints = 1024;
 		_system->Init(cMaxBodies, cNumBodyMutexes, cMaxBodyPairs, cMaxContactConstraints, *_bp_layer_interface, *_object_bp_layer_filter, *_layer_filter);
+		_system->SetContactListener(_contact_listener_adapter);
 		set_gravity(vector3(0.0f, -9.81f, 0.0f));
 		_added_bodies.reserve(MAX_ENTITIES);
 	}
 
 	void physics_world::uninit()
 	{
+		_system->SetContactListener(nullptr);
+		delete _contact_listener_adapter;
+		delete _character_contact_listener_adapter;
 		delete _job_system;
 		delete _allocator;
 		delete _system;
@@ -127,12 +139,16 @@ namespace SFG
 		delete _object_bp_layer_filter;
 		delete _bp_layer_interface;
 
-		_layer_filter			= nullptr;
-		_object_bp_layer_filter = nullptr;
-		_bp_layer_interface		= nullptr;
-		_job_system				= nullptr;
-		_allocator				= nullptr;
-		_system					= nullptr;
+		_layer_filter						= nullptr;
+		_object_bp_layer_filter				= nullptr;
+		_bp_layer_interface					= nullptr;
+		_contact_listener_adapter			= nullptr;
+		_character_contact_listener_adapter = nullptr;
+		_contact_listener					= nullptr;
+		_character_contact_listener			= nullptr;
+		_job_system							= nullptr;
+		_allocator							= nullptr;
+		_system								= nullptr;
 
 		JPH::UnregisterTypes();
 		delete JPH::Factory::sInstance;
@@ -217,10 +233,59 @@ namespace SFG
 			JPH::Body* body = c.get_body();
 			SFG_ASSERT(body != nullptr);
 
-			const world_handle e_handle = c.get_header().entity;
-			em.set_entity_position_abs(e_handle, from_jph_vec3(body->GetPosition()) - c.get_offset());
-			em.set_entity_rotation_abs(e_handle, from_jph_quat(body->GetRotation()));
+			const world_handle e_handle		= c.get_header().entity;
+			const quat		   body_rot		= from_jph_quat(body->GetRotation());
+			const vector3	   scale		= em.get_entity_scale_abs(e_handle);
+			const vector3	   offset_world = body_rot * (c.get_offset() * scale);
+			em.set_entity_position_abs(e_handle, from_jph_vec3(body->GetPosition()) - offset_world);
+			em.set_entity_rotation_abs(e_handle, body_rot);
 		}
+	}
+
+	void physics_world::set_contact_listener(physics_contact_listener* listener)
+	{
+		_contact_listener = listener;
+		if (_contact_listener_adapter != nullptr)
+			_contact_listener_adapter->set_listener(listener);
+
+		if (_system != nullptr)
+			_system->SetContactListener(listener != nullptr ? _contact_listener_adapter : nullptr);
+	}
+
+	void physics_world::set_character_contact_listener(physics_character_contact_listener* listener)
+	{
+		_character_contact_listener = listener;
+		if (_character_contact_listener_adapter != nullptr)
+			_character_contact_listener_adapter->set_listener(listener);
+
+		component_manager& cm		   = _game_world.get_comp_manager();
+		auto&			   controllers = cm.underlying_pool<comp_cache<comp_character_controller, MAX_WORLD_COMP_CHARACTER_CONTROLLERS>, comp_character_controller>();
+		for (comp_character_controller& c : controllers)
+		{
+			JPH::CharacterVirtual* controller = c.get_controller();
+			if (controller == nullptr)
+				continue;
+			controller->SetListener(listener != nullptr ? _character_contact_listener_adapter : nullptr);
+		}
+	}
+
+	void physics_world::register_character_controller(JPH::CharacterVirtual* controller, world_handle entity)
+	{
+		if (controller == nullptr)
+			return;
+
+		const uint64 packed = (static_cast<uint64>(entity.generation) << 32) | static_cast<uint64>(entity.index);
+		controller->SetUserData(packed);
+		controller->SetListener(_character_contact_listener != nullptr ? _character_contact_listener_adapter : nullptr);
+	}
+
+	void physics_world::unregister_character_controller(JPH::CharacterVirtual* controller)
+	{
+		if (controller == nullptr)
+			return;
+
+		controller->SetListener(nullptr);
+		controller->SetUserData(0);
 	}
 
 	void physics_world::add_bodies_to_world(JPH::BodyID* body_ids, uint32 count)
@@ -361,8 +426,37 @@ namespace SFG
 		_system->SetGravity(to_jph_vec3(g));
 	}
 
-	void physics_world::add_contact_listener(physics_contact_listener& listener) 
+	world_handle physics_world::get_comp_physics_entity_by_id(JPH::BodyID id)
 	{
-		// TODO:
+		component_manager& cm = _game_world.get_comp_manager();
+
+		auto& phys = cm.underlying_pool<comp_cache<comp_physics, MAX_WORLD_COMP_PHYSICS>, comp_physics>();
+		for (comp_physics& c : phys)
+		{
+			JPH::Body* body = c.get_body();
+			if (!body)
+				continue;
+			if (body->GetID() == id)
+				return c.get_header().entity;
+		}
+
+		return {};
 	}
+	world_handle physics_world::get_comp_physics_by_id(JPH::BodyID id)
+	{
+		component_manager& cm = _game_world.get_comp_manager();
+
+		auto& phys = cm.underlying_pool<comp_cache<comp_physics, MAX_WORLD_COMP_PHYSICS>, comp_physics>();
+		for (comp_physics& c : phys)
+		{
+			JPH::Body* body = c.get_body();
+			if (!body)
+				continue;
+			if (body->GetID() == id)
+				return c.get_header().own_handle;
+		}
+
+		return {};
+	}
+
 }

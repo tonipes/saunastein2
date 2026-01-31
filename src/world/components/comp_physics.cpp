@@ -107,9 +107,10 @@ namespace SFG
 		entity_manager&	   em		  = w.get_entity_manager();
 		component_manager& cm		  = w.get_comp_manager();
 		resource_manager&  rm		  = w.get_resource_manager();
-		const vector3	   pos		  = em.get_entity_position_abs(_header.entity) + _offset;
 		const vector3	   scale	  = em.get_entity_scale_abs(_header.entity);
 		const quat		   rot		  = em.get_entity_rotation_abs(_header.entity);
+		const vector3	   offset_world = rot * (_offset * scale);
+		const vector3	   pos		  = em.get_entity_position_abs(_header.entity) + offset_world;
 		JPH::Shape*		   mesh_shape = nullptr;
 		physics_shape_type shape_type = _shape_type;
 
@@ -183,4 +184,12 @@ namespace SFG
 		inf.SetPositionAndRotation(_body->GetID(), to_jph_vec3(pos), to_jph_quat(q), JPH::EActivation::Activate);
 	}
 
+	void comp_physics::set_body_velocity(world& w, const vector3& velocity)
+	{
+		SFG_ASSERT(_body != nullptr);
+
+		JPH::PhysicsSystem* sys = w.get_physics_world().get_system();
+		JPH::BodyInterface& inf = sys->GetBodyInterface();
+		inf.SetLinearVelocity(_body->GetID(), to_jph_vec3(velocity));
+	}
 }

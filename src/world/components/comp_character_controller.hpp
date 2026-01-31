@@ -82,11 +82,13 @@ namespace SFG
 			_target_velocity = v;
 		}
 
+		void set_radius(world& w, float radius);
+
 	private:
 		template <typename T, int> friend class comp_cache;
 
 		void create_controller(world& w);
-		void destroy_controller();
+		void destroy_controller(world& w);
 
 	private:
 		component_header	   _header			= {};
