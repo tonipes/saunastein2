@@ -28,6 +28,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "app/app.hpp"
 #include "world/world.hpp"
 #include "game/components/comp_player.hpp"
+#include <world/components/comp_physics.hpp>
 
 namespace SFG
 {
@@ -99,12 +100,24 @@ namespace SFG
 
 		for (int i = 0; i < _doors.size(); ++i)
 		{
-			float speed = 3.0f;
+			if (_doors[i].door_handle.is_null())
+				continue;
+
+			float speed = 1.0f;
 			_doors[i].t += dt * speed;
 			if (_doors[i].t > 1.0f) _doors[i].t = 1.0f;
 
 			const quat rot = quat::from_euler(0.0f, _doors[i].t * _doors[i].open_angle, 0.0f);
 			em.set_entity_rotation(_doors[i].door_handle, rot);
+
+			world_handle phys_ent_handle = em.get_child_by_index(_doors[i].door_handle, 0);
+			world_handle  phys_comp_handle = em.get_entity_component<comp_physics>(phys_ent_handle);
+			comp_physics& phys_comp = cm.get_component<comp_physics>(phys_comp_handle);
+			phys_comp.set_body_position_and_rotation(w, 
+				// vector3(0.0f, 0.0f, 0.0f),
+			 	em.get_entity_position_abs(phys_ent_handle),
+				em.get_entity_rotation_abs(phys_ent_handle)
+			);
 		}
 	}
 
@@ -116,10 +129,10 @@ namespace SFG
 
 		vector<world_handle> door_handles = {};
 		em.find_entities_by_tag("door", door_handles);
-		SFG_TRACE("DOOR COUNT {0}", door_handles.size());
+		// SFG_TRACE("DOOR COUNT {0}", door_handles.size());
 		for (int i = 0; i < door_handles.size(); ++i)
 		{
-			SFG_TRACE("DOOR {0} {1}", i, door_handles[i].index);
+			// SFG_TRACE("DOOR {0} {1}", i, door_handles[i].index);
 			
 			door d = {
 				.door_handle = door_handles[i],
