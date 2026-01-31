@@ -125,13 +125,10 @@ namespace SFG
 		}
 	}
 
-
 	void gameplay::begin_managed_entities()
 	{
-		world&			   w  = _app.get_world();
+		world&			  w	 = _app.get_world();
 		resource_manager& rm = w.get_resource_manager();
-
-
 
 		string_id bullet_template = "assets/entities/bullet.stkent"_hs;
 		for (int i = 0; i < 100; ++i)
@@ -146,7 +143,7 @@ namespace SFG
 	{
 		world&			  w	 = _app.get_world();
 		resource_manager& rm = w.get_resource_manager();
-		entity_manager&	  em  = w.get_entity_manager();
+		entity_manager&	  em = w.get_entity_manager();
 
 		auto res = rm.get_resource_handle_by_hash_if_exists<entity_template>(resource);
 
@@ -167,30 +164,33 @@ namespace SFG
 		_managed_entities.push_back(ent);
 	}
 
-	void gameplay::tick_managed_entities(float dt) {
-		world&				w  = _app.get_world();
-		component_manager&	cm = w.get_comp_manager();
-		entity_manager&		em = w.get_entity_manager();
+	void gameplay::tick_managed_entities(float dt)
+	{
+		world&			   w  = _app.get_world();
+		component_manager& cm = w.get_comp_manager();
+		entity_manager&	   em = w.get_entity_manager();
 
 		for (int i = 0; i < _managed_entities.size(); ++i)
 		{
 			managed_entity& ent = _managed_entities[i];
 			ent.t += dt;
 
-			if (!em.is_valid(ent.handle) || ent.t >= ent.max_lifetime) {
+			if (!em.is_valid(ent.handle) || ent.t >= ent.max_lifetime)
+			{
 				ent.marked_for_removal = true;
 				continue;
 			}
 
-			vector3 position = em.get_entity_position_abs(ent.handle);
+			vector3 position	 = em.get_entity_position_abs(ent.handle);
 			vector3 new_position = position + ent.velocity * dt;
 			em.set_entity_position_abs(ent.handle, new_position);
 		}
 
-		for (int i = _managed_entities.size()-1; i >= 0; --i)
+		for (int i = _managed_entities.size() - 1; i >= 0; --i)
 		{
 			managed_entity& ent = _managed_entities[i];
-			if (ent.marked_for_removal) {
+			if (ent.marked_for_removal)
+			{
 				em.destroy_entity(ent.handle);
 				_managed_entities.pop_back();
 			}
