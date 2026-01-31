@@ -1,0 +1,564 @@
+{
+    "components": [
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 1,
+            "material": 1,
+            "material0": "assets/models/collider_test.stkmodel/dungeon_floor",
+            "mesh": "assets/models/collider_test.stkmodel/Cube.002",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "body_type": 0,
+            "comp_type": 14536826215375575722,
+            "entity": 1,
+            "extents": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "is_sensor": 0,
+            "material": "",
+            "offset": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "shape_type": 5
+        },
+        {
+            "cast_shadows": 0,
+            "color": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "comp_type": 444826457028991798,
+            "entity": 2,
+            "intensity": 127.3239517211914,
+            "near_plane": 0.0,
+            "range": 0.0,
+            "shadow_res": [
+                256,
+                256
+            ]
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 3,
+            "material": 1,
+            "material0": "assets/models/collider_test.stkmodel/yellow",
+            "mesh": "assets/models/collider_test.stkmodel/Cube.004",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "cast_shadows": 0,
+            "color": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "comp_type": 444826457028991798,
+            "entity": 4,
+            "intensity": 127.3239517211914,
+            "near_plane": 0.0,
+            "range": 0.0,
+            "shadow_res": [
+                256,
+                256
+            ]
+        },
+        {
+            "cast_shadows": 0,
+            "color": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "comp_type": 444826457028991798,
+            "entity": 5,
+            "intensity": 127.3239517211914,
+            "near_plane": 0.0,
+            "range": 0.0,
+            "shadow_res": [
+                256,
+                256
+            ]
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 6,
+            "material": 1,
+            "material0": "assets/models/collider_test.stkmodel/yellow",
+            "mesh": "assets/models/collider_test.stkmodel/Cube.003",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "body_type": 2,
+            "comp_type": 14536826215375575722,
+            "entity": 6,
+            "extents": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "is_sensor": 0,
+            "material": "",
+            "offset": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "shape_type": 1
+        }
+    ],
+    "entities": [
+        {
+            "first_child": 1,
+            "name": "assets/models/collider_test.stkmodel",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                0.0,
+                0.0,
+                -3.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "collider_test",
+            "next_sibling": 2,
+            "parent": 0,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "light_1",
+            "next_sibling": 3,
+            "parent": 0,
+            "pos": [
+                0.0,
+                4.0,
+                0.0
+            ],
+            "rot": [
+                -0.7071068286895752,
+                0.0,
+                0.0,
+                0.7071067094802856
+            ],
+            "scale": [
+                1.0,
+                1.0000001192092896,
+                1.0000001192092896
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "cube.002",
+            "next_sibling": 4,
+            "parent": 0,
+            "pos": [
+                5.0,
+                1.0,
+                6.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "light_1.001",
+            "next_sibling": 5,
+            "parent": 0,
+            "pos": [
+                5.0,
+                4.0,
+                -27.0
+            ],
+            "rot": [
+                -0.7071068286895752,
+                0.0,
+                0.0,
+                0.7071067094802856
+            ],
+            "scale": [
+                1.0,
+                1.0000001192092896,
+                1.0000001192092896
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "light_1.002",
+            "next_sibling": -1,
+            "parent": 0,
+            "pos": [
+                -14.0,
+                3.0,
+                -26.0
+            ],
+            "rot": [
+                -0.7071068286895752,
+                0.0,
+                0.0,
+                0.7071067094802856
+            ],
+            "scale": [
+                1.0,
+                1.0000001192092896,
+                1.0000001192092896
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "cube",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                4.0,
+                10.117172241210938,
+                -16.7913818359375
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "assets/models/saunaguy.stkmodel",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                0.0,
+                0.0,
+                -4.979931831359863
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                3.0,
+                3.0,
+                3.0
+            ],
+            "tag": "",
+            "template": "assets/entities/saunaguy.stkent",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "assets/models/saunaguy.stkmodel",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                -16.702699661254883,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                3.0,
+                3.0,
+                3.0
+            ],
+            "tag": "",
+            "template": "assets/entities/saunaguy.stkent",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "assets/models/saunaguy.stkmodel",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                -6.938239574432373,
+                0.0,
+                -7.5854387283325195
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                3.0,
+                3.0,
+                3.0
+            ],
+            "tag": "",
+            "template": "assets/entities/saunaguy.stkent",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "assets/models/saunaguy.stkmodel",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                -14.195568084716797,
+                0.0,
+                -13.015532493591309
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                3.0,
+                3.0,
+                3.0
+            ],
+            "tag": "",
+            "template": "assets/entities/saunaguy.stkent",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "assets/models/saunaguy.stkmodel",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                5.675323963165283,
+                0.0,
+                -6.5782365798950195
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                3.0,
+                3.0,
+                3.0
+            ],
+            "tag": "",
+            "template": "assets/entities/saunaguy.stkent",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "assets/models/saunaguy.stkmodel",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                -10.08069896697998,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                3.0,
+                3.0,
+                3.0
+            ],
+            "tag": "",
+            "template": "assets/entities/saunaguy.stkent",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "assets/models/saunaguy.stkmodel",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                6.289676189422607,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                3.0,
+                3.0,
+                3.0
+            ],
+            "tag": "",
+            "template": "assets/entities/saunaguy.stkent",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "assets/models/saunaguy.stkmodel",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                -6.740272521972656,
+                0.0,
+                -15.263166427612305
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                3.0,
+                3.0,
+                3.0
+            ],
+            "tag": "",
+            "template": "assets/entities/saunaguy.stkent",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "assets/models/saunaguy.stkmodel",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                0.0,
+                2.11753511428833,
+                -16.801870346069336
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                3.0,
+                3.0,
+                3.0
+            ],
+            "tag": "",
+            "template": "assets/entities/saunaguy.stkent",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "assets/models/saunaguy.stkmodel",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                3.0,
+                3.0,
+                3.0
+            ],
+            "tag": "",
+            "template": "assets/entities/saunaguy.stkent",
+            "visible": 1
+        }
+    ],
+    "extra_resources": [],
+    "resources": [
+        "assets/models/collider_test.stkmodel",
+        "assets/entities/saunaguy.stkent"
+    ],
+    "tool_cam_pos": [
+        -25.169233322143555,
+        5.51527214050293,
+        3.8513827323913574
+    ],
+    "tool_cam_rot": [
+        -0.10033399611711502,
+        -0.4652125835418701,
+        -0.0531693734228611,
+        0.8778857588768005
+    ]
+}

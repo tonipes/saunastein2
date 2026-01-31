@@ -1,0 +1,19 @@
+{
+  "initial_state": "Open",
+  "parameters": [
+  ],
+  "states": [
+    {
+      "name": "Open",
+      "loop": 1,
+      "blend": "none",
+      "samples": [
+        {
+          "animation": "assets/models/door.stkmodel/door_test"
+        }
+      ]
+    }
+  ],
+  "masks": [],
+  "transitions": []
+}
