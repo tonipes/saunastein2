@@ -92,8 +92,9 @@ namespace SFG
 		void tick_doors(float dt);
 		void begin_doors();
 
+		void begin_managed_entities();
 		void tick_managed_entities(float dt);
-		void spawn_managed_entity(resource_handle resource, vector3 position, vector3 velocity, float max_lifetime);
+		void spawn_managed_entity(string_id resource, vector3 position, vector3 velocity, float max_lifetime);
 
 	private:
 		app&		 _app;

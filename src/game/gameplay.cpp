@@ -56,6 +56,7 @@ namespace SFG
 		w.get_physics_world().set_character_contact_listener(this);
 		begin_player();
 		begin_doors();
+		begin_managed_entities();
 	}
 
 	void gameplay::on_world_end(world& w)
@@ -74,6 +75,7 @@ namespace SFG
 	{
 		tick_player(dt);
 		tick_doors(dt);
+		tick_managed_entities(dt);
 	}
 
 	void gameplay::on_window_event(const window_event& ev, window* wnd)
@@ -83,6 +85,7 @@ namespace SFG
 		auto&			   players = cm.underlying_pool<comp_cache<comp_player, MAX_PLAYERS>, comp_player>();
 		for (comp_player& p : players)
 			p.on_window_event(ev);
+
 
 		switch (ev.type)
 		{
@@ -150,123 +153,6 @@ namespace SFG
 		{
 			p.begin_game(w, _app.get_main_window());
 			_player_entity = p.get_header().entity;
-		}
-	}
-
-	void gameplay::tick_doors(float dt)
-	{
-		world&			   w  = _app.get_world();
-		component_manager& cm = w.get_comp_manager();
-		entity_manager&	   em = w.get_entity_manager();
-		physics_world&	   ph = w.get_physics_world();
-
-		for (int i = 0; i < _doors.size(); ++i)
-		{
-			if (_doors[i].door_root_handle.is_null())
-				continue;
-
-			if (!_doors[i].is_opened)
-			{
-				vector3 player_pos = em.get_entity_position_abs(_player_entity);
-				vector3 door_pos   = em.get_entity_position_abs(_doors[i].door_root_handle);
-				quat	door_rot   = em.get_entity_rotation_abs(_doors[i].door_root_handle);
-
-				float distance = (player_pos - door_pos).magnitude();
-				if (distance < _doors[i].auto_open_distance)
-				{
-					_doors[i].is_opened			 = true;
-					vector3 door_forward		 = door_rot.get_forward();
-					vector3 to_player			 = (player_pos - door_pos).normalized();
-					float	dot					 = vector3::dot(door_forward, to_player);
-					bool	should_open_backward = dot > 0.0f;
-					if (should_open_backward)
-					{
-						_doors[i].direction *= -1.0f;
-					}
-				}
-			}
-
-			if (!_doors[i].is_opened)
-				continue;
-
-			float speed = 1.0f;
-			_doors[i].t += dt * speed;
-			float tt = _doors[i].t;
-			if (tt > 1.0f)
-				tt = 1.0f;
-			if (tt < 0.0f)
-				tt = 0.0f;
-
-			em.visit_children(_doors[i].door_root_handle, [&](world_handle child) {
-				float ss = _doors[i].direction;
-				if (em.get_entity_scale(child).x < 0.0f)
-					ss *= -1.0f;
-
-				const quat rot = quat::from_euler(0.0f, ss * tt * _doors[i].open_angle, 0.0f);
-				em.set_entity_rotation(child, rot);
-
-				world_handle  phys_ent_handle  = em.get_child_by_index(child, 0);
-				world_handle  phys_comp_handle = em.get_entity_component<comp_physics>(phys_ent_handle);
-				comp_physics& phys_comp		   = cm.get_component<comp_physics>(phys_comp_handle);
-				phys_comp.set_body_position_and_rotation(w, em.get_entity_position_abs(phys_ent_handle), em.get_entity_rotation_abs(phys_ent_handle));
-			});
-		}
-	}
-
-	void gameplay::begin_doors()
-	{
-		world&			   w  = _app.get_world();
-		component_manager& cm = w.get_comp_manager();
-		entity_manager&	   em = w.get_entity_manager();
-		physics_world&	   ph = w.get_physics_world();
-
-		vector<world_handle> tmp = {};
-
-		tmp.clear();
-		em.find_entities_by_tag("door_root", tmp);
-		for (int i = 0; i < tmp.size(); ++i)
-		{
-			// SFG_TRACE("DOOR: {0}", i);
-			door d = {
-				.door_root_handle	= tmp[i],
-				.t					= 0,
-				.open_angle			= 165.0f,
-				.is_opened			= false,
-				.auto_open_distance = 10.0f,
-				.direction			= 1.0f,
-			};
-
-			_doors.push_back(d);
-		}
-	}
-	
-	void gameplay::tick_managed_entities(float dt) {
-		world&				w  = _app.get_world();
-		component_manager&	cm = w.get_comp_manager();
-		entity_manager&		em = w.get_entity_manager();
-
-		for (int i = 0; i < _managed_entities.size(); ++i)
-		{
-			managed_entity& ent = _managed_entities[i];
-			ent.t += dt;
-
-			if (!em.is_valid(ent.handle) || ent.t >= ent.max_lifetime) {
-				ent.marked_for_removal = true;
-				continue;
-			}
-
-			vector3 position = em.get_entity_position_abs(ent.handle);
-			vector3 new_position = position + ent.velocity * dt;
-			em.set_entity_position_abs(ent.handle, new_position);
-		}
-
-		for (int i = _managed_entities.size()-1; i >= 0; ++i)
-		{
-			managed_entity& ent = _managed_entities[i];
-			if (ent.marked_for_removal) {
-				em.destroy_entity(ent.handle);
-				_managed_entities.pop_back();
-			}
 		}
 	}
 }
