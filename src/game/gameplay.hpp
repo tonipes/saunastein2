@@ -36,6 +36,18 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace SFG
 {
+	struct managed_entity_params {
+		float		 max_lifetime;
+		float		 speed;
+		bool destroy_on_collision;
+	};
+
+	static inline managed_entity_params bullet_params = {
+		.max_lifetime = 10.0f,
+		.speed = 10.0f,
+		.destroy_on_collision = true
+	};
+
 	struct door
 	{
 		// world_handle door_handle;
@@ -51,17 +63,17 @@ namespace SFG
 	{
 		world_handle handle;
 		float		 t;
-		float		 max_lifetime;
-		vector3		 velocity;
+		managed_entity_params params;
 		bool marked_for_removal;
-		bool destroy_on_collision;
 	};
+
 
 	class world;
 	class app;
 	class window;
 	struct window_event;
 	struct vector2ui16;
+	class quat;
 
 	class gameplay : public physics_contact_listener, public physics_character_contact_listener
 	{
@@ -87,7 +99,7 @@ namespace SFG
 		void on_character_contact_begin(world_handle character, world_handle other, const vector3& position, const vector3& normal) override;
 		void on_character_contact(world_handle character, world_handle other, const vector3& position, const vector3& normal) override;
 		void on_character_contact_end(world_handle character, world_handle other) override;
-		void spawn_managed_entity(string_id resource, vector3 position, vector3 velocity, float max_lifetime);
+		world_handle spawn_managed_entity(string_id resource, vector3 position, quat direction, const managed_entity_params& params);
 
 	private:
 		void tick_player(float dt);
@@ -101,6 +113,7 @@ namespace SFG
 
 		void begin_managed_entities();
 		void tick_managed_entities(float dt);
+
 		void check_managed_entities_collision(world_handle e1, world_handle e2);
 
 	private:

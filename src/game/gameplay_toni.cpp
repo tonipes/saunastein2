@@ -130,8 +130,8 @@ namespace SFG
 		for (int i = 0; i < _managed_entities.size(); ++i)
 		{
 			managed_entity& ent = _managed_entities[i];
-			if (!ent.destroy_on_collision)
-				continue;
+
+			 if (!ent.params.destroy_on_collision) continue;
 
 			if (ent.handle == e1 || ent.handle == e2)
 			{
@@ -149,7 +149,8 @@ namespace SFG
 		_managed_entities.clear();
 
 		string_id bullet_template = "assets/entities/bullet.stkent"_hs;
-		spawn_managed_entity(bullet_template, {2.0f, -5.0f, 0.0f}, {5.0f, 0.0f, 0.0f}, 100.0f);
+
+		spawn_managed_entity(bullet_template, {2.0f, -5.0f, 0.0f}, quat::identity, bullet_params);
 
 		// for (int i = 0; i < 100; ++i)
 		// {
@@ -159,7 +160,7 @@ namespace SFG
 		SFG_TRACE("begin_managed_entities");
 	}
 
-	void gameplay::spawn_managed_entity(string_id resource, vector3 position, vector3 velocity, float max_lifetime)
+	world_handle gameplay::spawn_managed_entity(string_id resource, vector3 position, quat direction, const managed_entity_params& params)
 	{
 		world&			   w  = _app.get_world();
 		resource_manager&  rm = w.get_resource_manager();
@@ -171,7 +172,7 @@ namespace SFG
 		if (res.is_null())
 		{
 			SFG_ERR("can't find resource to spawn! {0}", resource);
-			return;
+			return {};
 		}
 
 		world_handle handle = em.instantiate_template(res);
@@ -188,12 +189,13 @@ namespace SFG
 		}
 
 		managed_entity ent = {};
-		ent.handle		   = handle;
-		ent.max_lifetime   = max_lifetime;
-		ent.t			   = 0.0f;
-		ent.velocity	   = velocity;
+		ent.handle	= handle;
+		ent.params  = params;
+		ent.t		= 0.0f;
 
 		_managed_entities.push_back(ent);
+
+		return handle;
 	}
 
 	void gameplay::tick_managed_entities(float dt)
@@ -207,7 +209,7 @@ namespace SFG
 			managed_entity& ent = _managed_entities[i];
 			ent.t += dt;
 
-			if (!em.is_valid(ent.handle) || ent.t >= ent.max_lifetime)
+			if (!em.is_valid(ent.handle) || ent.t >= ent.params.max_lifetime)
 			{
 				ent.marked_for_removal = true;
 				continue;
@@ -216,19 +218,17 @@ namespace SFG
 			world_handle phys_comp_handle = em.get_entity_component<comp_physics>(ent.handle);
 			if (!phys_comp_handle.is_null())
 			{
+				quat		  rot		= em.get_entity_rotation_abs(ent.handle);
 				comp_physics& phys_comp = cm.get_component<comp_physics>(phys_comp_handle);
-				phys_comp.set_body_velocity(w, ent.velocity);
+				vector3		  velocity	= rot.get_forward() * ent.params.speed;
+				phys_comp.set_body_velocity(w, velocity);
 			}
-
-			// vector3 position = em.get_entity_position_abs(ent.handle);
-			// vector3 new_position = position + ent.velocity * dt;
-			// em.set_entity_position_abs(ent.handle, new_position);
 		}
 
 		for (int i = _managed_entities.size() - 1; i >= 0; --i)
 		{
 			managed_entity& ent = _managed_entities[i];
-			if (ent.marked_for_removal)
+			if (ent.marked_for_removal && !ent.handle.is_null())
 			{
 				em.destroy_entity(ent.handle);
 				_managed_entities.pop_back();
