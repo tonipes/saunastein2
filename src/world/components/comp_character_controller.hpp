@@ -86,7 +86,7 @@ namespace SFG
 		template <typename T, int> friend class comp_cache;
 
 		void create_controller(world& w);
-		void destroy_controller();
+		void destroy_controller(world& w);
 
 	private:
 		component_header	   _header			= {};

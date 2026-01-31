@@ -25,6 +25,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "comp_player.hpp"
+#include "comp_player_stats.hpp"
 #include "world/world.hpp"
 #include "platform/window.hpp"
 #include "gfx/event_stream/render_event_stream.hpp"
@@ -95,6 +96,10 @@ namespace SFG
 		if (_char_controller.is_null())
 			return;
 
+		_player_stats = em.get_entity_component<comp_player_stats>(_header.entity);
+		if (_player_stats.is_null())
+			return;
+
 		{
 			const vector3 player_pos = em.get_entity_position_abs(_header.entity);
 			const vector3 cam_pos	 = em.get_entity_position_abs(_camera_entity);
@@ -119,9 +124,6 @@ namespace SFG
 		_pitch_degrees		  = -45.0f;
 		_real_camera_distance = _camera_distance;
 	}
-
-	float dbg_line	= 10.0f;
-	color hit_color = color::red;
 
 	void comp_player::tick(world& w, float dt)
 	{
@@ -164,24 +166,40 @@ namespace SFG
 		const float cam_collision_pad = 0.2f;
 		const float cam_in_speed	  = 18.0f;
 		const float cam_out_speed	  = 8.0f;
+		const float cam_probe_radius  = 0.35f;
 
 		vector3 ray_dir = -forward;
 		ray_dir.normalize();
 
-		const bool res = _ray_caster.cast(w.get_physics_world(), target, ray_dir, cam_dist + cam_collision_pad);
+		const float	  ray_length = cam_dist + cam_collision_pad;
+		const vector3 right		 = orbit_rot.get_right();
+		const vector3 up		 = orbit_rot.get_up();
+
+		const vector3 offsets[] = {
+			vector3::zero,
+			right * cam_probe_radius,
+			-right * cam_probe_radius,
+			up * cam_probe_radius,
+			-up * cam_probe_radius,
+		};
+
+		bool  res		  = false;
+		float closest_hit = ray_length;
+		for (const vector3& off : offsets)
+		{
+			const bool hit = _ray_caster.cast(w.get_physics_world(), target + off, ray_dir, ray_length);
+			if (hit)
+			{
+				const ray_result& hit_res = _ray_caster.get_result();
+				closest_hit				  = math::min(closest_hit, hit_res.hit_distance);
+				res						  = true;
+			}
+		}
 
 		float desired_dist = cam_dist;
 		if (res)
 		{
-			const ray_result& hit = _ray_caster.get_result();
-			desired_dist		  = math::max(hit.hit_distance - cam_collision_pad, cam_min_dist);
-			hit_color			  = color::green;
-			dbg_line			  = hit.hit_distance;
-		}
-		else
-		{
-			dbg_line  = 15.0f;
-			hit_color = color::red;
+			desired_dist = math::max(closest_hit - cam_collision_pad, cam_min_dist);
 		}
 
 		const float speed	  = desired_dist < _real_camera_distance ? cam_in_speed : cam_out_speed;
@@ -203,7 +221,7 @@ namespace SFG
 		const vector3	player_pos = em.get_entity_position_abs(_header.entity);
 		const vector3	cam_pos	   = em.get_entity_position_abs(_camera_entity);
 
-		w.get_debug_rendering().draw_line(cam_pos + vector3(0, -0.5, 0), player_pos, hit_color, .25f);
+		//	w.get_debug_rendering().draw_line(cam_pos + vector3(0, -0.5, 0), player_pos, hit_color, .25f);
 	}
 
 	void comp_player::on_window_event(const window_event& ev)

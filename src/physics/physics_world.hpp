@@ -47,12 +47,17 @@ namespace JPH
 	class BodyID;
 	class Body;
 	class Shape;
+	class CharacterVirtual;
 }
 
 namespace SFG
 {
 	class world;
 	class quat;
+	class physics_contact_listener;
+	class physics_world_contact_listener;
+	class physics_character_contact_listener;
+	class physics_world_character_contact_listener;
 
 	class physics_layer_filter;
 	class physics_object_bp_layer_filter;
@@ -73,6 +78,10 @@ namespace SFG
 		void init_simulation();
 		void uninit_simulation();
 		void simulate(float rate);
+		void set_contact_listener(physics_contact_listener* listener);
+		void set_character_contact_listener(physics_character_contact_listener* listener);
+		void register_character_controller(JPH::CharacterVirtual* controller, world_handle entity);
+		void unregister_character_controller(JPH::CharacterVirtual* controller);
 
 		// -----------------------------------------------------------------------------
 		// impl
@@ -136,9 +145,13 @@ namespace SFG
 		physical_material_settings _default_material = {};
 		vector3					   _graivty			 = vector3::zero;
 
-		physics_layer_filter*			_layer_filter			= nullptr;
-		physics_object_bp_layer_filter* _object_bp_layer_filter = nullptr;
-		physics_bp_layer_interface*		_bp_layer_interface		= nullptr;
+		physics_layer_filter*					  _layer_filter						  = nullptr;
+		physics_object_bp_layer_filter*			  _object_bp_layer_filter			  = nullptr;
+		physics_bp_layer_interface*				  _bp_layer_interface				  = nullptr;
+		physics_world_contact_listener*			  _contact_listener_adapter			  = nullptr;
+		physics_contact_listener*				  _contact_listener					  = nullptr;
+		physics_world_character_contact_listener* _character_contact_listener_adapter = nullptr;
+		physics_character_contact_listener*		  _character_contact_listener		  = nullptr;
 
 #if !USE_FIXED_FRAMERATE
 		float _dt_counter = 0.0f;

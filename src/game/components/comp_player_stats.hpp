@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-	  list of conditions and the following disclaimer.
+      list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-	  this list of conditions and the following disclaimer in the documentation
-	  and/or other materials provided with the distribution.
+      this list of conditions and the following disclaimer in the documentation
+      and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -26,20 +26,61 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include "world/world_constants.hpp"
+#include "world/components/common_comps.hpp"
+#include "reflection/type_reflection.hpp"
 
 namespace SFG
 {
-	class vector3;
+	class world;
 
-	class physics_contact_listener
+	class comp_player_stats
 	{
 	public:
-		virtual void on_contact_begin(world_handle e1, world_handle e2, const vector3& p1, const vector3& p2) = 0;
-		virtual void on_contact(world_handle e1, world_handle e2, const vector3& p1, const vector3& p2)		  = 0;
-		virtual void on_contact_end(world_handle e1, world_handle e2)										  = 0;
+		static void reflect();
+
+		void on_add(world& w);
+		void on_remove(world& w);
+
+		inline const component_header& get_header() const
+		{
+			return _header;
+		}
+
+		inline float get_health() const
+		{
+			return _health;
+		}
+
+		inline float get_hydration_score() const
+		{
+			return _hydration_score;
+		}
+
+		inline int get_available_slow_mo_count() const
+		{
+			return _available_slow_mo_count;
+		}
+
+		inline bool can_slow_mo() const
+		{
+			return _available_slow_mo_count > 0;
+		}
+
+		void add_health(float delta);
+		void add_hydration_score(float delta);
+		void add_slow_mo_count(int delta);
+		bool try_consume_slow_mo();
+		void consume_slow_mo();
+
+	private:
+		template <typename T, int> friend class comp_cache;
+
+	private:
+		component_header _header = {};
+		float				 _health = 100.0f;
+		float				 _hydration_score = 0.0f;
+		int					 _available_slow_mo_count = 0;
 	};
 
-
-
+	REFLECT_TYPE(comp_player_stats);
 }

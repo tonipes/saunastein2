@@ -78,6 +78,7 @@ namespace SFG
 		world_handle _char_controller = {};
 		world_handle _camera_entity	  = {};
 		world_handle _camera_comp	  = {};
+		world_handle _player_stats	  = {};
 
 		vector2 _mouse_delta = vector2::zero;
 		vector2 _move_input	 = vector2::zero;

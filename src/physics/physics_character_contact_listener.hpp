@@ -6,11 +6,11 @@ Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
    1. Redistributions of source code must retain the above copyright notice, this
-	  list of conditions and the following disclaimer.
+      list of conditions and the following disclaimer.
 
    2. Redistributions in binary form must reproduce the above copyright notice,
-	  this list of conditions and the following disclaimer in the documentation
-	  and/or other materials provided with the distribution.
+      this list of conditions and the following disclaimer in the documentation
+      and/or other materials provided with the distribution.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -27,19 +27,15 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include "world/world_constants.hpp"
+#include "math/vector3.hpp"
 
 namespace SFG
 {
-	class vector3;
-
-	class physics_contact_listener
+	class physics_character_contact_listener
 	{
 	public:
-		virtual void on_contact_begin(world_handle e1, world_handle e2, const vector3& p1, const vector3& p2) = 0;
-		virtual void on_contact(world_handle e1, world_handle e2, const vector3& p1, const vector3& p2)		  = 0;
-		virtual void on_contact_end(world_handle e1, world_handle e2)										  = 0;
+		virtual void on_character_contact_begin(world_handle character, world_handle other, const vector3& position, const vector3& normal) = 0;
+		virtual void on_character_contact(world_handle character, world_handle other, const vector3& position, const vector3& normal)		 = 0;
+		virtual void on_character_contact_end(world_handle character, world_handle other)														 = 0;
 	};
-
-
-
 }
