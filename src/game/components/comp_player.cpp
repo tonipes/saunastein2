@@ -108,13 +108,16 @@ namespace SFG
 		if (_char_controller.is_null())
 			return;
 
-		_canvas_comp = em.get_entity_component<comp_canvas>(_header.entity);
+		component_manager& cm = w.get_comp_manager();
+		_canvas_comp		  = cm.add_component<comp_canvas>(_header.entity);
 		if (_canvas_comp.is_null())
 			return;
 
+		comp_canvas& cnv = cm.get_component<comp_canvas>(_canvas_comp);
+		cnv.update_counts_and_init(w, 64, 32);
+
 		{
-			component_manager& cm = w.get_comp_manager();
-			comp_canvas&	   cnv = cm.get_component<comp_canvas>(_canvas_comp);
+			comp_canvas& cnv = cm.get_component<comp_canvas>(_canvas_comp);
 			_ui.init(cnv.get_builder());
 		}
 
@@ -144,8 +147,7 @@ namespace SFG
 			}
 		}
 
-		component_manager& cm = w.get_comp_manager();
-		comp_camera&	   c  = cm.get_component<comp_camera>(_camera_comp);
+		comp_camera& c = cm.get_component<comp_camera>(_camera_comp);
 		c.set_main(w);
 		_inited = true;
 

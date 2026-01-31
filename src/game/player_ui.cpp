@@ -45,24 +45,24 @@ namespace SFG
 		gfx.flags			  = vekt::gfx_flags::gfx_is_rect;
 		gfx.color			  = VEKT_VEC4(1.0f, 1.0f, 1.0f, 1.0f);
 
-		_builder->widget_set_size_abs(_crosshair, VEKT_VEC2(6.0f, 6.0f));
-		_builder->widget_set_pos(_crosshair,
-								 VEKT_VEC2(0.5f, 0.5f),
-								 vekt::helper_pos_type::relative,
-								 vekt::helper_pos_type::relative,
-								 vekt::helper_anchor_type::center,
-								 vekt::helper_anchor_type::center);
+		vekt::size_props& sz = _builder->widget_get_size_props(_crosshair);
+		sz.size.y			 = 0.0025f;
+		sz.flags			 = vekt::size_flags::sf_y_relative | vekt::size_flags::sf_x_copy_y;
+
+		_builder->widget_set_pos(_crosshair, VEKT_VEC2(.5f, 0.5f), vekt::helper_pos_type::relative, vekt::helper_pos_type::relative, vekt::helper_anchor_type::center, vekt::helper_anchor_type::center);
+
+		_builder->build_hierarchy();
 	}
 
 	void player_ui::uninit()
 	{
-		if (_builder == nullptr)
-			return;
-
-		if (_crosshair != NULL_WIDGET_ID)
-			_builder->deallocate(_crosshair);
-
-		_crosshair = NULL_WIDGET_ID;
-		_builder	  = nullptr;
+		// if (_builder == nullptr)
+		// 	return;
+		//
+		// if (_crosshair != NULL_WIDGET_ID)
+		// 	_builder->deallocate(_crosshair);
+		//
+		// _crosshair = NULL_WIDGET_ID;
+		// _builder	  = nullptr;
 	}
 }

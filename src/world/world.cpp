@@ -230,7 +230,7 @@ namespace SFG
 
 		auto& canvases = _comp_manager.underlying_pool<comp_cache<comp_canvas, MAX_WORLD_COMP_CANVAS>, comp_canvas>();
 		for (comp_canvas& c : canvases)
-			c.draw(*this, res);
+			c.draw(*this, _screen.get_world_resolution());
 
 		auto& audios = _comp_manager.underlying_pool<comp_cache<comp_audio, MAX_WORLD_COMP_AUDIO>, comp_audio>();
 		for (comp_audio& c : audios)
