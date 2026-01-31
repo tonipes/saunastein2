@@ -62,6 +62,7 @@ namespace SFG
 	class physics_layer_filter;
 	class physics_object_bp_layer_filter;
 	class physics_bp_layer_interface;
+	class physics_contact_listener;
 
 	class physics_world
 	{
@@ -95,6 +96,13 @@ namespace SFG
 		void		 set_gravity(const vector3& g);
 		world_handle get_comp_physics_entity_by_id(JPH::BodyID id);
 		world_handle get_comp_physics_by_id(JPH::BodyID id);
+		void		 add_bodies_to_world(JPH::BodyID* body_ids, uint32 count);
+		void		 add_body_to_world(const JPH::Body& body);
+		void		 remove_body_from_world(const JPH::Body& body);
+		void		 remove_bodies_from_world(JPH::BodyID* body_ids, uint32 count);
+		JPH::Body*	 create_body(physics_body_type body_type, physics_shape_type shape, const vector3& extents_or_rad_height, resource_handle physical_material, bool is_sensor, const vector3& pos, const quat& rot, const vector3& scale, JPH::Shape* mesh_shape);
+		void		 destroy_body(JPH::Body* body);
+		void		 set_gravity(const vector3& g);
 
 		// -----------------------------------------------------------------------------
 		// accessors

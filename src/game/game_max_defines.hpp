@@ -81,6 +81,7 @@ namespace SFG
 #define MAX_WORLD_SKELETON_JOINTS			 128
 #define MAX_WORLD_COMP_PARTICLE_EMITTERS	 384
 #define MAX_WORLD_COMP_SPRITES				 2048
+#define MAX_WORLD_ENEMY_AI_BASIC			 64
 
 	// -----------------------------------------------------------------------------
 	// animations

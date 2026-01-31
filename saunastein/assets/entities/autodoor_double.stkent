@@ -1,0 +1,188 @@
+{
+    "components": [
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 1,
+            "material": 1,
+            "material0": "assets/models/door.stkmodel/dungeon_floor",
+            "mesh": "assets/models/door.stkmodel/Cube",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "body_type": 1,
+            "comp_type": 14536826215375575722,
+            "entity": 2,
+            "extents": [
+                2.0,
+                3.0,
+                0.5
+            ],
+            "is_sensor": 0,
+            "material": "",
+            "offset": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "shape_type": 1
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 3,
+            "material": 1,
+            "material0": "assets/models/door.stkmodel/dungeon_floor",
+            "mesh": "assets/models/door.stkmodel/Cube",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "body_type": 1,
+            "comp_type": 14536826215375575722,
+            "entity": 4,
+            "extents": [
+                2.0,
+                1.0,
+                1.0
+            ],
+            "is_sensor": 0,
+            "material": "",
+            "offset": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "shape_type": 1
+        }
+    ],
+    "entities": [
+        {
+            "first_child": 1,
+            "name": "assets/models/door.stkmodel",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                -28.908641815185547,
+                -10.836820602416992,
+                0.7741068005561829
+            ],
+            "rot": [
+                -5.115907697472721e-13,
+                0.7071070075035095,
+                -5.115907697472721e-13,
+                0.7071065306663513
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "door_root",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 2,
+            "name": "door",
+            "next_sibling": 3,
+            "parent": 0,
+            "pos": [
+                4.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                -1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "door",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "collider",
+            "next_sibling": -1,
+            "parent": 1,
+            "pos": [
+                2.0,
+                3.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 4,
+            "name": "door",
+            "next_sibling": -1,
+            "parent": 0,
+            "pos": [
+                -4.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "door",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "collider",
+            "next_sibling": -1,
+            "parent": 3,
+            "pos": [
+                2.0,
+                3.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        }
+    ],
+    "resources": [
+        "assets/models/door.stkmodel"
+    ]
+}

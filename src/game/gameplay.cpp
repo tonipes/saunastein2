@@ -28,6 +28,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "app/app.hpp"
 #include "world/world.hpp"
 #include "game/components/comp_player.hpp"
+#include "game/components/comp_player_stats.hpp"
 #include <world/components/comp_physics.hpp>
 
 namespace SFG
@@ -38,6 +39,7 @@ namespace SFG
 	void gameplay::init()
 	{
 		_app.get_world().get_comp_manager().register_cache<comp_player, MAX_PLAYERS>();
+		_app.get_world().get_comp_manager().register_cache<comp_player_stats, MAX_PLAYERS>();
 	}
 
 	void gameplay::uninit()
@@ -46,12 +48,16 @@ namespace SFG
 
 	void gameplay::on_world_begin(world& w)
 	{
+		w.get_physics_world().set_contact_listener(this);
+		w.get_physics_world().set_character_contact_listener(this);
 		begin_player();
 		begin_doors();
 	}
 
 	void gameplay::on_world_end(world& w)
 	{
+		w.get_physics_world().set_contact_listener(nullptr);
+		w.get_physics_world().set_character_contact_listener(nullptr);
 		_doors.clear();
 	}
 
@@ -73,6 +79,32 @@ namespace SFG
 		auto&			   players = cm.underlying_pool<comp_cache<comp_player, MAX_PLAYERS>, comp_player>();
 		for (comp_player& p : players)
 			p.on_window_event(ev);
+	}
+
+	void gameplay::on_contact_begin(world_handle e1, world_handle e2, const vector3& p1, const vector3& p2)
+	{
+	}
+
+	void gameplay::on_contact(world_handle e1, world_handle e2, const vector3& p1, const vector3& p2)
+	{
+	}
+
+	void gameplay::on_contact_end(world_handle e1, world_handle e2)
+	{
+	}
+
+	void gameplay::on_character_contact_begin(world_handle character, world_handle other, const vector3& position, const vector3& normal)
+	{
+	}
+
+	void gameplay::on_character_contact(world_handle character, world_handle other, const vector3& position, const vector3& normal)
+	{
+	}
+
+	void gameplay::on_character_contact_end(world_handle character, world_handle other)
+	{
+		(void)character;
+		(void)other;
 	}
 
 	void gameplay::tick_player(float dt)
