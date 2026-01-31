@@ -36,7 +36,7 @@ namespace SFG
 {
 	struct door
 	{
-		world_handle door_handle;
+		// world_handle door_handle;
 		world_handle door_root_handle;
 		float		 t;
 		float		 open_angle;

@@ -126,7 +126,7 @@ namespace SFG
 
 		for (int i = 0; i < _doors.size(); ++i)
 		{
-			if (_doors[i].door_handle.is_null())
+			if (_doors[i].door_root_handle.is_null())
 				continue;
 
 			float speed = 1.0f;
@@ -137,16 +137,22 @@ namespace SFG
 			if (tt < 0.0f)
 				tt = 0.0f;
 
-			const quat rot = quat::from_euler(0.0f, tt * _doors[i].open_angle, 0.0f);
-			em.set_entity_rotation(_doors[i].door_handle, rot);
+			em.visit_children(_doors[i].door_root_handle, [&](world_handle child) {
+				float ss = 1.0f;
+				if (em.get_entity_scale(child).x < 0.0f)
+					ss = -1.0f;
 
-			world_handle phys_ent_handle = em.get_child_by_index(_doors[i].door_handle, 0);
-			world_handle phys_comp_handle = em.get_entity_component<comp_physics>(phys_ent_handle);
-			comp_physics& phys_comp = cm.get_component<comp_physics>(phys_comp_handle);
-			phys_comp.set_body_position_and_rotation(w,
-			 	em.get_entity_position_abs(phys_ent_handle),
-				em.get_entity_rotation_abs(phys_ent_handle)
-			);
+				const quat rot = quat::from_euler(0.0f, ss*tt * _doors[i].open_angle, 0.0f);
+				em.set_entity_rotation(child, rot);
+
+				world_handle phys_ent_handle = em.get_child_by_index(child, 0);
+				world_handle phys_comp_handle = em.get_entity_component<comp_physics>(phys_ent_handle);
+				comp_physics& phys_comp = cm.get_component<comp_physics>(phys_comp_handle);
+				phys_comp.set_body_position_and_rotation(w,
+					em.get_entity_position_abs(phys_ent_handle),
+					em.get_entity_rotation_abs(phys_ent_handle)
+				);
+			});
 		}
 	}
 
@@ -158,26 +164,15 @@ namespace SFG
 
 		vector<world_handle> door_handles = {};
 
-		//em.find_entities_by_tag("door_root", door_handles);
-		//for (int i = 0; i < door_handles.size(); ++i)
-		//{
-		//	door d = {
-		//		.door_root_handle = door_handles[i],
-		//		.is_opened	 = false,
-		//		.t			 = 0,
-		//		.open_angle	 = 165.0f,
-		//	};
-
-		//	_doors.push_back(d);
-		//}
-
-		em.find_entities_by_tag("door", door_handles);
+		em.find_entities_by_tag("door_root", door_handles);
+		// SFG_TRACE("DOORS: {0}", door_handles.size());
 		for (int i = 0; i < door_handles.size(); ++i)
 		{
+			// SFG_TRACE("DOOR: {0}", i);
 			door d = {
-				.door_handle = door_handles[i],
+				.door_root_handle = door_handles[i],
 				.t			 = 0,
-				.open_angle   = 165.0f,
+				.open_angle	 = 165.0f,
 				.is_opened	 = false,
 			};
 
