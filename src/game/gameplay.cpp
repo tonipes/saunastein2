@@ -102,6 +102,7 @@ namespace SFG
 
 	void gameplay::on_contact_begin(world_handle e1, world_handle e2, const vector3& p1, const vector3& p2)
 	{
+		check_managed_entities_collision(e1, e2);
 	}
 
 	void gameplay::on_contact(world_handle e1, world_handle e2, const vector3& p1, const vector3& p2)
@@ -114,6 +115,7 @@ namespace SFG
 
 	void gameplay::on_character_contact_begin(world_handle character, world_handle other, const vector3& position, const vector3& normal)
 	{
+		check_managed_entities_collision(character, other);
 	}
 
 	void gameplay::on_character_contact(world_handle character, world_handle other, const vector3& position, const vector3& normal)

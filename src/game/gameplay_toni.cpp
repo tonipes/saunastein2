@@ -125,19 +125,33 @@ namespace SFG
 		}
 	}
 
+	void gameplay::check_managed_entities_collision(world_handle e1, world_handle e2){
+		for (int i = 0; i < _managed_entities.size(); ++i)
+		{
+			managed_entity& ent = _managed_entities[i];
+			if (!ent.destroy_on_collision) continue;
+			
+			if (ent.handle == e1 || ent.handle == e2) {
+				SFG_TRACE("Managed entity collides");
+				ent.marked_for_removal = true;
+			}
+		}
+	}
 
 	void gameplay::begin_managed_entities()
 	{
 		world&			   w  = _app.get_world();
 		resource_manager& rm = w.get_resource_manager();
+		
+		_managed_entities.clear();
 
+		string_id bullet_template = "assets/entities/bullet.stkent"_hs;\
+		spawn_managed_entity(bullet_template, {2.0f, -5.0f, 0.0f}, {5.0f, 0.0f, 0.0f}, 100.0f);
 
-
-		string_id bullet_template = "assets/entities/bullet.stkent"_hs;
-		for (int i = 0; i < 100; ++i)
-		{
-			spawn_managed_entity(bullet_template, {2.0f * i, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f * i}, 20.0f - 0.1f * i);
-		}
+		// for (int i = 0; i < 100; ++i)
+		// {
+		// 	spawn_managed_entity(bullet_template, {2.0f * i, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f * i}, 20.0f - 0.1f * i);
+		// }
 
 		SFG_TRACE("begin_managed_entities");
 	}
@@ -147,6 +161,7 @@ namespace SFG
 		world&			  w	 = _app.get_world();
 		resource_manager& rm = w.get_resource_manager();
 		entity_manager&	  em  = w.get_entity_manager();
+		component_manager& cm  = w.get_comp_manager();
 
 		auto res = rm.get_resource_handle_by_hash_if_exists<entity_template>(resource);
 
@@ -155,8 +170,19 @@ namespace SFG
 			SFG_ERR("can't find resource to spawn! {0}", resource);
 			return;
 		}
+
 		world_handle handle = em.instantiate_template(res);
-		em.set_entity_position_abs(handle, position);
+
+		world_handle phys_comp_handle = em.get_entity_component<comp_physics>(handle);
+		if (!phys_comp_handle.is_null())
+		{
+			comp_physics& phys_comp = cm.get_component<comp_physics>(phys_comp_handle);
+			phys_comp.set_body_position(w, position);
+		}
+		else
+		{
+			em.set_entity_position_abs(handle, position);
+		}
 
 		managed_entity ent = {};
 		ent.handle		   = handle;
@@ -181,10 +207,17 @@ namespace SFG
 				ent.marked_for_removal = true;
 				continue;
 			}
+			
+			world_handle phys_comp_handle = em.get_entity_component<comp_physics>(ent.handle);
+			if (!phys_comp_handle.is_null())
+			{
+				comp_physics& phys_comp = cm.get_component<comp_physics>(phys_comp_handle);
+				phys_comp.set_body_velocity(w, ent.velocity);
+			}
 
-			vector3 position = em.get_entity_position_abs(ent.handle);
-			vector3 new_position = position + ent.velocity * dt;
-			em.set_entity_position_abs(ent.handle, new_position);
+			//vector3 position = em.get_entity_position_abs(ent.handle);
+			//vector3 new_position = position + ent.velocity * dt;
+			//em.set_entity_position_abs(ent.handle, new_position);
 		}
 
 		for (int i = _managed_entities.size()-1; i >= 0; --i)

@@ -184,4 +184,12 @@ namespace SFG
 		inf.SetPositionAndRotation(_body->GetID(), to_jph_vec3(pos), to_jph_quat(q), JPH::EActivation::Activate);
 	}
 
+	void comp_physics::set_body_velocity(world& w, const vector3& velocity)
+	{
+		SFG_ASSERT(_body != nullptr);
+
+		JPH::PhysicsSystem* sys = w.get_physics_world().get_system();
+		JPH::BodyInterface& inf = sys->GetBodyInterface();
+		inf.SetLinearVelocity(_body->GetID(), to_jph_vec3(velocity));
+	}
 }

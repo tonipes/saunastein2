@@ -54,6 +54,7 @@ namespace SFG
 		float		 max_lifetime;
 		vector3		 velocity;
 		bool marked_for_removal;
+		bool destroy_on_collision;
 	};
 
 	class world;
@@ -95,6 +96,7 @@ namespace SFG
 		void begin_managed_entities();
 		void tick_managed_entities(float dt);
 		void spawn_managed_entity(string_id resource, vector3 position, vector3 velocity, float max_lifetime);
+		void check_managed_entities_collision(world_handle e1, world_handle e2);
 
 	private:
 		app&		 _app;
