@@ -41,6 +41,8 @@ namespace JPH
 namespace SFG
 {
 	class world;
+	class vector3;
+	class quat;
 
 	class comp_physics
 	{
