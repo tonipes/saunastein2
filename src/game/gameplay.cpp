@@ -33,6 +33,7 @@ namespace SFG
 {
 
 #define MAX_PLAYERS 1
+
 	void gameplay::init()
 	{
 		_app.get_world().get_comp_manager().register_cache<comp_player, MAX_PLAYERS>();
@@ -57,10 +58,12 @@ namespace SFG
 
 	void gameplay::on_window_event(const window_event& ev, window* wnd)
 	{
+
 	}
 
 	void gameplay::tick_player(float dt)
 	{
+		world&			   w	   = _app.get_world();
 		component_manager& cm	   = w.get_comp_manager();
 		auto&			   players = cm.underlying_pool<comp_cache<comp_player, MAX_PLAYERS>, comp_player>();
 		for (comp_player& p : players)
