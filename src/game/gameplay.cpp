@@ -143,24 +143,58 @@ namespace SFG
 
 		for (int i = 0; i < _doors.size(); ++i)
 		{
-			if (_doors[i].door_handle.is_null())
+			if (_doors[i].door_root_handle.is_null())
+				continue;
+
+			if (!_doors[i].is_opened)
+			{
+				vector3 player_pos = em.get_entity_position_abs(_player_entity);
+				vector3 door_pos   = em.get_entity_position_abs(_doors[i].door_root_handle);
+				quat	door_rot   = em.get_entity_rotation_abs(_doors[i].door_root_handle);
+
+				float distance = (player_pos - door_pos).magnitude();
+				if (distance < _doors[i].auto_open_distance)
+				{
+					_doors[i].is_opened			 = true;
+					vector3 door_forward		 = door_rot.get_forward();
+					vector3 to_player			 = (player_pos - door_pos).normalized();
+					float	dot					 = vector3::dot(door_forward, to_player);
+					bool	should_open_backward = dot > 0.0f;
+					if (should_open_backward)
+					{
+						_doors[i].direction *= -1.0f;
+					}
+
+					SFG_TRACE("OPEN DOOR: door_forward: [{0}, {1}], to_player: [{2}, {3}]: DOT {4}, BACKWARD: {5}", door_forward.x, door_forward.z, to_player.x, to_player.z, dot, should_open_backward);
+
+					// SFG_TRACE("OPEN DOOR: PLAYER: [{0}, {1}], DOOR: [{2}, {3}]: DIST {4}, BACKWARD: {5}", player_pos.x, player_pos.z, door_pos.x, door_pos.z, distance, _doors[i].direction);
+				}
+			}
+
+			if (!_doors[i].is_opened)
 				continue;
 
 			float speed = 1.0f;
 			_doors[i].t += dt * speed;
-			if (_doors[i].t > 1.0f)
-				_doors[i].t = 1.0f;
+			float tt = _doors[i].t;
+			if (tt > 1.0f)
+				tt = 1.0f;
+			if (tt < 0.0f)
+				tt = 0.0f;
 
-			const quat rot = quat::from_euler(0.0f, _doors[i].t * _doors[i].open_angle, 0.0f);
-			em.set_entity_rotation(_doors[i].door_handle, rot);
+			em.visit_children(_doors[i].door_root_handle, [&](world_handle child) {
+				float ss = _doors[i].direction;
+				if (em.get_entity_scale(child).x < 0.0f)
+					ss *= -1.0f;
 
-			world_handle  phys_ent_handle  = em.get_child_by_index(_doors[i].door_handle, 0);
-			world_handle  phys_comp_handle = em.get_entity_component<comp_physics>(phys_ent_handle);
-			comp_physics& phys_comp		   = cm.get_component<comp_physics>(phys_comp_handle);
-			phys_comp.set_body_position_and_rotation(w,
-													 // vector3(0.0f, 0.0f, 0.0f),
-													 em.get_entity_position_abs(phys_ent_handle),
-													 em.get_entity_rotation_abs(phys_ent_handle));
+				const quat rot = quat::from_euler(0.0f, ss * tt * _doors[i].open_angle, 0.0f);
+				em.set_entity_rotation(child, rot);
+
+				world_handle  phys_ent_handle  = em.get_child_by_index(child, 0);
+				world_handle  phys_comp_handle = em.get_entity_component<comp_physics>(phys_ent_handle);
+				comp_physics& phys_comp		   = cm.get_component<comp_physics>(phys_comp_handle);
+				phys_comp.set_body_position_and_rotation(w, em.get_entity_position_abs(phys_ent_handle), em.get_entity_rotation_abs(phys_ent_handle));
+			});
 		}
 	}
 
@@ -169,23 +203,34 @@ namespace SFG
 		world&			   w  = _app.get_world();
 		component_manager& cm = w.get_comp_manager();
 		entity_manager&	   em = w.get_entity_manager();
+		physics_world&	   ph = w.get_physics_world();
 
-		vector<world_handle> door_handles = {};
-		em.find_entities_by_tag("door", door_handles);
-		// SFG_TRACE("DOOR COUNT {0}", door_handles.size());
-		for (int i = 0; i < door_handles.size(); ++i)
+		vector<world_handle> tmp = {};
+
+		tmp.clear();
+		em.find_entities_by_tag("door_root", tmp);
+		for (int i = 0; i < tmp.size(); ++i)
 		{
-			SFG_TRACE("DOOR {0} {1}", i, door_handles[i].index);
-
-			// SFG_TRACE("DOOR {0} {1}", i, door_handles[i].index);
-
+			// SFG_TRACE("DOOR: {0}", i);
 			door d = {
-				.door_handle = door_handles[i],
-				.t			 = 0,
-				.open_angle	 = 165.0f,
+				.door_root_handle	= tmp[i],
+				.t					= 0,
+				.open_angle			= 165.0f,
+				.is_opened			= false,
+				.auto_open_distance = 10.0f,
+				.direction			= 1.0f,
 			};
 
 			_doors.push_back(d);
 		}
+
+		// tmp.clear();
+		// em.find_entities_by_tag("trigger", tmp);
+		// for (int i = 0; i < tmp.size(); ++i)
+		//{
+		//	world_handle handle = tmp[i];
+		//	world_handle phys_comp_handle = em.get_entity_component<comp_physics>(handle);
+		//	comp_physics& phys_comp = cm.get_component<comp_physics>(phys_comp_handle);
+		// }
 	}
 }
