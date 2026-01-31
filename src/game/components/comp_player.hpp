@@ -70,6 +70,16 @@ namespace SFG
 			return _header;
 		}
 
+		inline world_handle get_stats() const
+		{
+			return _player_stats;
+		}
+
+		inline world_handle get_char_controller() const
+		{
+			return _char_controller;
+		}
+
 	private:
 		void start_dive(world& w, comp_character_controller& controller, const vector3& dir);
 		void end_dive(world& w, comp_character_controller& controller);

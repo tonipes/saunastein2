@@ -67,7 +67,6 @@ namespace SFG
 		m.add_field<&comp_player::_dive_slowmo, comp_player>("dive_slowmo", reflected_field_type::rf_float, "", 0.0f, 1.0f);
 
 		m.add_function<void, const reflected_field_changed_params&>("on_reflected_changed"_hs, [](const reflected_field_changed_params& params) { comp_player* c = static_cast<comp_player*>(params.object_ptr); });
-
 		m.add_function<void, void*, world&>("on_reflect_load"_hs, [](void* obj, world& w) { comp_player* c = static_cast<comp_player*>(obj); });
 	}
 
