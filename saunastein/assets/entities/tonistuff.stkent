@@ -152,6 +152,51 @@
                 256,
                 256
             ]
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 20,
+            "material": 1,
+            "material0": "assets/materials/water_forward.stkmat",
+            "mesh": "assets/models/waterplane.stkmodel/Plane",
+            "skin": "",
+            "skin_entities": 0
+        },
+        {
+            "cast_shadows": 1,
+            "color": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "comp_type": 444826457028991798,
+            "entity": 21,
+            "intensity": 1000.0,
+            "near_plane": 0.0,
+            "range": 20.0,
+            "shadow_res": [
+                256,
+                256
+            ]
+        },
+        {
+            "cast_shadows": 1,
+            "color": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "comp_type": 444826457028991798,
+            "entity": 22,
+            "intensity": 1000.0,
+            "near_plane": 0.0,
+            "range": 20.0,
+            "shadow_res": [
+                256,
+                256
+            ]
         }
     ],
     "entities": [
@@ -436,9 +481,9 @@
             "next_sibling": 12,
             "parent": 0,
             "pos": [
-                -163.45199584960938,
-                5.311988830566406,
-                8.917319297790527
+                -163.2652130126953,
+                5.266597270965576,
+                9.319467544555664
             ],
             "rot": [
                 0.0,
@@ -633,7 +678,7 @@
         {
             "first_child": -1,
             "name": "particle_steam",
-            "next_sibling": -1,
+            "next_sibling": 20,
             "parent": 0,
             "pos": [
                 -211.22213745117188,
@@ -653,6 +698,81 @@
             ],
             "tag": "",
             "template": "assets/particles/steam.stkent",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "waterplane",
+            "next_sibling": 21,
+            "parent": 0,
+            "pos": [
+                -215.6488800048828,
+                -1.7046961784362793,
+                26.364646911621094
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                3.0,
+                5.0,
+                6.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "new_entity",
+            "next_sibling": 22,
+            "parent": 0,
+            "pos": [
+                -217.18528747558594,
+                5.266597270965576,
+                9.319467544555664
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "new_entity",
+            "next_sibling": -1,
+            "parent": 0,
+            "pos": [
+                -217.18528747558594,
+                5.266597270965576,
+                39.403873443603516
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
             "visible": 1
         }
     ],
