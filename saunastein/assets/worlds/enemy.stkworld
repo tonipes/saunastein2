@@ -53,6 +53,10 @@
                 0.0
             ],
             "comp_type": 7590390715442638056,
+            "dive_duration": 0.0,
+            "dive_jump_velocity": 0.0,
+            "dive_slowmo": 0.0,
+            "dive_speed": 0.0,
             "entity": 4,
             "movement_speed": 15.0,
             "orbit_max_pitch": 89.0,
@@ -86,6 +90,14 @@
             "step_up": 0.4000000059604645
         },
         {
+            "available_dive_count": 0,
+            "comp_type": 15818663065171639868,
+            "entity": 4,
+            "health": 100.0,
+            "hydration_score": 0.0,
+            "mask_count": 0
+        },
+        {
             "comp_type": 12829486272651206750,
             "entity": 6,
             "material": 1,
@@ -95,8 +107,26 @@
             "skin_entities": 0
         },
         {
-            "comp_type": 2550096278038808870,
+            "body_type": 1,
+            "comp_type": 14536826215375575722,
             "entity": 7,
+            "extents": [
+                1.0,
+                2.0,
+                1.0
+            ],
+            "is_sensor": 0,
+            "material": "",
+            "offset": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "shape_type": 1
+        },
+        {
+            "comp_type": 2550096278038808870,
+            "entity": 8,
             "far": 50.0,
             "fov_degrees": 75.0,
             "near": 0.10000000149011612
@@ -231,7 +261,7 @@
         {
             "first_child": 6,
             "name": "assets/models/cube.stkmodel",
-            "next_sibling": -1,
+            "next_sibling": 7,
             "parent": 4,
             "pos": [
                 0.0,
@@ -280,6 +310,31 @@
         },
         {
             "first_child": -1,
+            "name": "collider",
+            "next_sibling": -1,
+            "parent": 4,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
             "name": "PlayerCamera",
             "next_sibling": -1,
             "parent": -1,
@@ -311,14 +366,14 @@
         "assets/models/cube.stkmodel"
     ],
     "tool_cam_pos": [
-        10.728067398071289,
-        3.87634539604187,
-        6.242732524871826
+        16.717510223388672,
+        5.850259780883789,
+        9.704922676086426
     ],
     "tool_cam_rot": [
-        -0.07806692272424698,
-        0.4700896739959717,
-        0.04178990051150322,
-        0.8781656622886658
+        -0.10140832513570786,
+        0.512614369392395,
+        0.06112702935934067,
+        0.8504154086112976
     ]
 }

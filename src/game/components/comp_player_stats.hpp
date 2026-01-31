@@ -84,6 +84,7 @@ namespace SFG
 		void add_mask_count(int delta);
 		bool try_consume_mask();
 		void consume_mask();
+		void take_damage(float damage);
 
 	private:
 		template <typename T, int> friend class comp_cache;
