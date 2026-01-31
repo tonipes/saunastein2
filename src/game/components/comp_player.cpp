@@ -41,6 +41,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "platform/window_common.hpp"
 #include "input/input_mappings.hpp"
 #include "game/gameplay.hpp"
+
+#include "resources/skin.hpp"
 #include <Jolt/Physics/Character/CharacterVirtual.h>
 #include <cmath>
 
@@ -86,15 +88,23 @@ namespace SFG
 
 	void comp_player::begin_game(world& w, window& wnd)
 	{
-		_inited				 = false;
-		_is_diving			 = false;
-		_dive_requested		 = false;
-		_mask_fire_requested = false;
-		_dive_timer			 = 0.0f;
-		_player_anim_comp	 = {};
-		_player_anim_machine = {};
-		_player_move_x_param = {};
-		_player_move_y_param = {};
+		_inited					 = false;
+		_is_diving				 = false;
+		_dive_requested			 = false;
+		_mask_fire_requested	 = false;
+		_dive_timer				 = 0.0f;
+		_player_anim_comp		 = {};
+		_player_anim_machine	 = {};
+		_player_move_x_param	 = {};
+		_player_move_y_param	 = {};
+		_player_default_state	 = {};
+		_player_dive_right_state = {};
+		_player_dive_left_state	 = {};
+		_player_throw_state		 = {};
+		_player_prev_state		 = {};
+		_throw_timer			 = 0.0f;
+		_throw_duration			 = 0.0f;
+		_is_throwing			 = false;
 
 		entity_manager& em = w.get_entity_manager();
 
@@ -143,12 +153,17 @@ namespace SFG
 			_player_anim_comp	 = anim_comp;
 			_player_anim_machine = runtime_sm;
 		}
-		
+
+		animation_graph& anim_graph = w.get_animation_graph();
+
 		if (!_player_anim_machine.is_null())
 		{
-			animation_graph& anim_graph = w.get_animation_graph();
-			_player_move_x_param		= anim_graph.get_parameter_handle(_player_anim_machine, "move_x");
-			_player_move_y_param		= anim_graph.get_parameter_handle(_player_anim_machine, "move_y");
+			_player_move_x_param	 = anim_graph.get_parameter_handle(_player_anim_machine, "move_x");
+			_player_move_y_param	 = anim_graph.get_parameter_handle(_player_anim_machine, "move_y");
+			_player_dive_right_state = anim_graph.get_state_handle(_player_anim_machine, "PlayerDiveRight");
+			_player_dive_left_state	 = anim_graph.get_state_handle(_player_anim_machine, "PlayerDiveLeft");
+			_player_default_state	 = anim_graph.get_state_handle(_player_anim_machine, "Player");
+			_player_throw_state		 = anim_graph.get_state_handle(_player_anim_machine, "PlayerThrow");
 		}
 
 		_player_stats = em.get_entity_component<comp_player_stats>(_header.entity);
@@ -183,6 +198,21 @@ namespace SFG
 
 		_pitch_degrees		  = -45.0f;
 		_real_camera_distance = _camera_distance;
+
+		//const pool_handle16	  mask_handle = anim_graph.get_mask_handle("right_arm");
+		//animation_mask&		  mask		  = anim_graph.get_mask(mask_handle);
+		//resource_manager&	  rm		  = w.get_resource_manager();
+		//const resource_handle skin_handle = rm.get_resource_handle_by_hash<skin>("assets/models/player_final.stkmodel/Armature"_hs);
+
+		//vector<string_id> hashes = {
+		//	"mixamorig:RightShoulder"_hs,
+		//	"mixamorig:RightArm"_hs,
+		//	"mixamorig:RightForeArm"_hs,
+		//	"mixamorig:RightHand"_hs,
+		//
+		//};
+		//mask.mask_all(w, skin_handle);
+		//mask.unmask_joints(w, skin_handle, hashes.data(), hashes.size());
 	}
 
 	void comp_player::start_dive(world& w, comp_character_controller& controller, const vector3& dir)
@@ -190,6 +220,15 @@ namespace SFG
 		_is_diving		= true;
 		_dive_timer		= 0.0f;
 		_dive_direction = dir;
+
+		if (!_player_anim_machine.is_null())
+		{
+			animation_graph&	anim_graph	 = w.get_animation_graph();
+			const bool			to_right	 = _move_input.x >= 0.0f;
+			const pool_handle16 target_state = to_right ? _player_dive_right_state : _player_dive_left_state;
+			if (!target_state.is_null())
+				anim_graph.set_machine_active_state(_player_anim_machine, target_state);
+		}
 
 		if (_base_controller_radius > 0.0f)
 			controller.set_radius(w, _base_controller_radius * 0.5f);
@@ -210,6 +249,9 @@ namespace SFG
 
 		if (_base_controller_radius > 0.0f)
 			controller.set_radius(w, _base_controller_radius);
+
+		animation_graph& anim_graph = w.get_animation_graph();
+		anim_graph.set_machine_active_state(_player_anim_machine, _player_default_state);
 	}
 
 	void comp_player::fire_mask(world& w)
@@ -232,6 +274,26 @@ namespace SFG
 
 		// gameplay::get().spawn_managed_entity("assets/prefabs/mask.stkent"_hs, spawn_pos, spawn_rot.get_forward() * -50.0f, 5.0f);
 		gameplay::get().spawn_managed_entity("assets/prefabs/mask.stkent"_hs, spawn_pos, spawn_rot, bullet_params);
+	}
+
+	void comp_player::start_throw(world& w)
+	{
+		if (_player_anim_machine.is_null() || _player_throw_state.is_null())
+			return;
+
+		if (_is_diving)
+			return;
+
+		animation_graph&		 anim_graph = w.get_animation_graph();
+		animation_state_machine& machine	= anim_graph.get_state_machine(_player_anim_machine);
+		_player_prev_state					= machine.active_state;
+		anim_graph.set_machine_active_state(_player_anim_machine, _player_throw_state);
+
+		_throw_timer	= 0.0f;
+		_throw_duration = anim_graph.get_state(_player_throw_state).duration;
+		if (_throw_duration <= 0.0f)
+			_throw_duration = 0.25f;
+		_is_throwing = true;
 	}
 
 	void comp_player::tick(world& w, float dt)
@@ -300,7 +362,10 @@ namespace SFG
 			{
 				comp_player_stats& stats = cm.get_component<comp_player_stats>(_player_stats);
 				if (stats.try_consume_mask())
+				{
 					fire_mask(w);
+					start_throw(w);
+				}
 			}
 		}
 
@@ -356,6 +421,21 @@ namespace SFG
 			else
 			{
 				comp_char_cont.set_target_velocity(vector3::zero);
+			}
+		}
+
+		if (_is_throwing)
+		{
+			_throw_timer += w.get_time_manager().get_real_dt();
+			if (_throw_timer >= _throw_duration)
+			{
+				animation_graph&	anim_graph	 = w.get_animation_graph();
+				const pool_handle16 target_state = _player_prev_state.is_null() ? _player_default_state : _player_prev_state;
+				if (!_player_anim_machine.is_null() && !target_state.is_null())
+					anim_graph.set_machine_active_state(_player_anim_machine, target_state);
+
+				_is_throwing = false;
+				_throw_timer = 0.0f;
 			}
 		}
 

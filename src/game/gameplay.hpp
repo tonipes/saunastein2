@@ -33,6 +33,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "world/world_constants.hpp"
 #include "physics/physics_contact_listener.hpp"
 #include "physics/physics_character_contact_listener.hpp"
+#include "data/vector.hpp"
 
 namespace SFG
 {
@@ -45,7 +46,7 @@ namespace SFG
 	static inline managed_entity_params bullet_params = {
 		.max_lifetime = 10.0f,
 		.speed = 40.0f,
-		.destroy_on_collision = true
+		.destroy_on_collision = false,
 	};
 
 	struct pickup
@@ -126,6 +127,7 @@ namespace SFG
 	private:
 		app&		 _app;
 		world_handle _player_entity = {};
+		vector<world_handle>   _all_enemies		   = {};
 		vector<door> _doors			= {};
 		vector<managed_entity> _managed_entities = {};
 		bool		 _player_initialized = false;	

@@ -1,0 +1,158 @@
+{
+    "components": [
+        {
+            "cast_shadows": 0,
+            "color": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "comp_type": 444826457028991798,
+            "entity": 0,
+            "intensity": 55.0,
+            "near_plane": 0.0,
+            "range": 55.0,
+            "shadow_res": [
+                256,
+                256
+            ]
+        },
+        {
+            "color": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "comp_type": 2366491877753393331,
+            "entity": 1
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 3,
+            "material": 1,
+            "material0": "assets/models/alluprops.stkmodel/door",
+            "mesh": "assets/models/alluprops.stkmodel/Cube.005",
+            "skin": "",
+            "skin_entities": 0
+        }
+    ],
+    "entities": [
+        {
+            "first_child": -1,
+            "name": "new_entity",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                -3.9712347984313965,
+                0.3969973623752594,
+                -4.404687881469727
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "new_entity",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 3,
+            "name": "assets/models/alluprops.stkmodel",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                33.53525924682617,
+                16.10944366455078,
+                -11.304341316223145
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Cube.004",
+            "next_sibling": -1,
+            "parent": 2,
+            "pos": [
+                -92.01568603515625,
+                32.15269470214844,
+                2.493396043777466
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                3.1385722160339355,
+                6.0,
+                0.511991024017334
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        }
+    ],
+    "extra_resources": [],
+    "resources": [
+        "assets/models/alluprops.stkmodel"
+    ],
+    "tool_cam_pos": [
+        -51.526180267333984,
+        47.652889251708984,
+        -21.143644332885742
+    ],
+    "tool_cam_rot": [
+        -0.007540425285696983,
+        -0.9605190753936768,
+        0.026158444583415985,
+        -0.2768789231777191
+    ]
+}

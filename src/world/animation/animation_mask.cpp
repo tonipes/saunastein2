@@ -33,8 +33,30 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace SFG
 {
+	void animation_mask::unmask_joints(world& w, resource_handle skin_handle, string_id* name_hashes, uint16 name_hashes_count)
+	{
+		const resource_manager&	 rm		= w.get_resource_manager();
+		const chunk_allocator32& rm_aux = rm.get_aux();
+		const skin&				 sk		= w.get_resource_manager().get_resource<skin>(skin_handle);
 
-	void animation_mask::mask_joints(world& w, resource_handle skin_handle, string_id* name_hashes, uint16 name_hashes_count)
+		const skin_joint* joints_ptr = rm_aux.get<skin_joint>(sk.get_joints());
+
+		for (uint16 i = 0; i < sk.get_joints_count(); i++)
+		{
+			const skin_joint& j = joints_ptr[i];
+
+			for (uint16 k = 0; k < name_hashes_count; k++)
+			{
+				if (j.name_hash == name_hashes[k])
+				{
+					joints[j.model_node_index].is_masked = 0;
+					break;
+				}
+			}
+		}
+	}
+
+	void animation_mask::mask_all(world& w, resource_handle skin_handle)
 	{
 		const resource_manager&	 rm		= w.get_resource_manager();
 		const chunk_allocator32& rm_aux = rm.get_aux();
