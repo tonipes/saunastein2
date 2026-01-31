@@ -35,6 +35,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "math/quat.hpp"
 #include "math/math.hpp"
 #include "platform/window_common.hpp"
+#include "input/input_mappings.hpp"
 
 namespace SFG
 {
@@ -123,7 +124,6 @@ namespace SFG
 
 		component_manager&		   cm			  = w.get_comp_manager();
 		comp_character_controller& comp_char_cont = cm.get_component<comp_character_controller>(_char_controller);
-		// comp_char_cont.set_target_velocity(vector3::one);
 
 		_yaw_degrees -= _mouse_delta.x * _orbit_yaw_speed;
 		_pitch_degrees -= _mouse_delta.y * _orbit_pitch_speed;
@@ -134,8 +134,24 @@ namespace SFG
 		const vector3 target	 = player_pos + _camera_offset;
 		const quat	  orbit_rot	 = quat::from_euler(_pitch_degrees, _yaw_degrees, 0.0f);
 		const vector3 forward	 = orbit_rot.get_forward();
-		const float	  cam_dist	 = math::max(_camera_distance, 0.1f);
-		const vector3 cam_pos	 = target - forward * cam_dist;
+		vector3		  forward_xz = forward;
+		vector3		  right_xz	 = orbit_rot.get_right();
+		forward_xz.y			 = 0.0f;
+		right_xz.y				 = 0.0f;
+		forward_xz.normalize();
+		right_xz.normalize();
+		vector3 move_dir = (forward_xz * _move_input.y) + (right_xz * _move_input.x);
+		if (!move_dir.is_zero())
+		{
+			move_dir.normalize();
+			comp_char_cont.set_target_velocity(move_dir * _movement_speed);
+		}
+		else
+		{
+			comp_char_cont.set_target_velocity(vector3::zero);
+		}
+		const float	  cam_dist = math::max(_camera_distance, 0.1f);
+		const vector3 cam_pos  = target - forward * cam_dist;
 		em.set_entity_position_abs(_camera_entity, cam_pos);
 		em.set_entity_rotation_abs(_camera_entity, orbit_rot);
 	}
@@ -150,6 +166,28 @@ namespace SFG
 		case window_event_type::focus:
 			_mouse_delta = vector2::zero;
 			break;
+		case window_event_type::key: {
+			const uint16 button = ev.button;
+			if (button == input_code::key_w && ev.sub_type == window_event_sub_type::press)
+				_move_input.y += 1.0f;
+			else if (button == input_code::key_w && ev.sub_type == window_event_sub_type::release && _move_input.y > 0.1f)
+				_move_input.y -= 1.0f;
+			if (button == input_code::key_s && ev.sub_type == window_event_sub_type::press)
+				_move_input.y -= 1.0f;
+			else if (button == input_code::key_s && ev.sub_type == window_event_sub_type::release && _move_input.y < -0.1f)
+				_move_input.y += 1.0f;
+
+			if (button == input_code::key_d && ev.sub_type == window_event_sub_type::press)
+				_move_input.x += 1.0f;
+			else if (button == input_code::key_d && ev.sub_type == window_event_sub_type::release && _move_input.x > 0.1f)
+				_move_input.x -= 1.0f;
+			if (button == input_code::key_a && ev.sub_type == window_event_sub_type::press)
+				_move_input.x -= 1.0f;
+			else if (button == input_code::key_a && ev.sub_type == window_event_sub_type::release && _move_input.x < -0.1f)
+				_move_input.x += 1.0f;
+
+			break;
+		}
 		case window_event_type::delta:
 			_mouse_delta.x += static_cast<float>(ev.value.x);
 			_mouse_delta.y += static_cast<float>(ev.value.y);

@@ -76,6 +76,7 @@ namespace SFG
 		world_handle _camera_comp	  = {};
 
 		vector2 _mouse_delta = vector2::zero;
+		vector2 _move_input	 = vector2::zero;
 
 		float	_movement_speed	   = 15.0f;
 		float	_rotation_speed	   = 5.0f;
