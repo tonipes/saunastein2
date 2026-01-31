@@ -29,6 +29,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "world/world.hpp"
 #include "game/components/comp_player.hpp"
 #include <world/components/comp_physics.hpp>
+#include "game/components/comp_enemy_ai_basic.hpp"
 
 namespace SFG
 {
@@ -41,6 +42,7 @@ namespace SFG
 	void gameplay::init()
 	{
 		_app.get_world().get_comp_manager().register_cache<comp_player, MAX_PLAYERS>();
+		_app.get_world().get_comp_manager().register_cache<comp_enemy_ai_basic, MAX_WORLD_ENEMY_AI_BASIC>();
 	}
 
 	void gameplay::uninit()
@@ -51,6 +53,7 @@ namespace SFG
 	{
 		begin_player();
 		begin_doors();
+		begin_enemies();
 	}
 
 	void gameplay::on_world_end(world& w)
@@ -62,6 +65,7 @@ namespace SFG
 	{
 		tick_player(dt);
 		tick_doors(dt);
+		tick_enemies(dt);
 	}
 
 	void gameplay::on_window_event(const window_event& ev, window* wnd)
@@ -88,7 +92,29 @@ namespace SFG
 		component_manager& cm	   = w.get_comp_manager();
 		auto&			   players = cm.underlying_pool<comp_cache<comp_player, MAX_PLAYERS>, comp_player>();
 		for (comp_player& p : players)
+		{
 			p.begin_game(w, _app.get_main_window());
+			_player_entity = p.get_header().entity;
+			_player_initialized = true;
+		}
+	}
+
+	void gameplay::tick_enemies(float dt)
+	{
+		world&	   w		 = _app.get_world();
+		auto&	   enemies	 = w.get_comp_manager().underlying_pool<comp_cache<comp_enemy_ai_basic, MAX_WORLD_ENEMY_AI_BASIC>, comp_enemy_ai_basic>();
+		if (!_player_initialized) return;
+		const auto playerPos = w.get_entity_manager().get_entity_position(_player_entity);
+		for (comp_enemy_ai_basic& e : enemies)
+			e.tick(playerPos, dt);
+	}
+
+	void gameplay::begin_enemies()
+	{
+		world& w	   = _app.get_world();
+		auto&  enemies = w.get_comp_manager().underlying_pool<comp_cache<comp_enemy_ai_basic, MAX_WORLD_ENEMY_AI_BASIC>, comp_enemy_ai_basic>();
+		for (comp_enemy_ai_basic& e : enemies)
+			e.begin_play(w);
 	}
 
 	void gameplay::tick_doors(float dt)
