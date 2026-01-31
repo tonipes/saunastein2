@@ -510,7 +510,7 @@ namespace SFG
 						if (target_field->_is_list)
 						{
 							auto& v = target_field->value(comp_ptr).cast_ref<vector<resource_handle>>();
-							v.push_back(val.empty() ? resource_handle() : rm.get_resource_handle_by_hash(sub_type, TO_SID(val)));
+							v.push_back(val.empty() ? resource_handle() : rm.get_resource_handle_by_hash_if_exists(sub_type, TO_SID(val)));
 						}
 						else
 						{

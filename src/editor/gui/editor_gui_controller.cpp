@@ -34,6 +34,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "editor/editor.hpp"
 #include "editor/editor_theme.hpp"
 
+#include "world/world.hpp"
+
 #include "gfx/renderer.hpp"
 #include "game/game_world_renderer.hpp"
 #include "app/debug_controller.hpp"
@@ -46,7 +48,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "gui/icon_defs.hpp"
 #include "gui/vekt.hpp"
-
+#
 namespace SFG
 {
 #define MAX_PAYLOAD_SIZE   128
@@ -352,6 +354,28 @@ namespace SFG
 	{
 		if (h == editor::get().get_camera().get_entity())
 			return;
+
+		if (!h.is_null())
+		{
+			world& w  = editor::get().get_app().get_world();
+			auto&  em = w.get_entity_manager();
+
+			if (em.is_valid(h))
+			{
+				world_handle current = h;
+				while (!current.is_null())
+				{
+					const auto flags = em.get_entity_flags(current);
+					if (flags.is_set(entity_flags::entity_flags_template))
+					{
+						h = current;
+						break;
+					}
+
+					current = em.get_entity_family(current).parent;
+				}
+			}
+		}
 
 		if (_panel_entities)
 			_panel_entities->set_selected(h);

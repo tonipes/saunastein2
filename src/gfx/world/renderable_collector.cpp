@@ -121,7 +121,9 @@ namespace SFG
 			variant_flags.set(shader_variant_flags::variant_flag_double_sided, is_double_sided);
 
 			const gfx_id target_shader = pm.get_shader_variant(base_shader, variant_flags.value());
-			SFG_ASSERT(target_shader != NULL_GFX_ID);
+			
+			if (target_shader == NULL_GFX_ID)
+				continue;
 
 			stream.add_command({
 				.start_index			 = obj.index_start,

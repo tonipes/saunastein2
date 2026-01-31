@@ -82,7 +82,7 @@ namespace SFG
 		ZoneScoped;
 
 		_alloc.reset();
-		_draw_stream.prepare(_alloc, 1);
+		_draw_stream.prepare(_alloc, 64);
 
 		if (_selected_entity_id != NULL_WORLD_ID)
 		{
