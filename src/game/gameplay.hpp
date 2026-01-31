@@ -63,6 +63,8 @@ namespace SFG
 	private:
 		void tick_player(float dt);
 		void begin_player();
+		void tick_enemies(float dt);
+		void begin_enemies();
 
 		void tick_doors(float dt);
 		void begin_doors();
@@ -71,6 +73,8 @@ namespace SFG
 		app&		 _app;
 		world_handle _player_entity = {};
 		vector<door> _doors			= {};
+		bool		 _player_initialized = false;
+		
 	};
 
 }
