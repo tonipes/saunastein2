@@ -698,9 +698,22 @@ namespace SFG
 				continue;
 
 			const resource_handle anim_handle = state_animations[i];
+			if (anim_handle.is_null())
+				continue;
+
+			float anim_time = state._current_time;
+			const animation& anim = rm.get_resource<animation>(anim_handle);
+			const float anim_duration = anim.get_duration();
+			if (anim_duration > 0.0f)
+			{
+				if (state.flags.is_set(animation_state_flags_is_looping))
+					anim_time = math::fmodf(anim_time, anim_duration);
+				else
+					anim_time = math::clamp(anim_time, 0.0f, anim_duration);
+			}
 
 			pose_i.reset();
-			pose_i.sample_from_animation(w, anim_handle, state._current_time, mask);
+			pose_i.sample_from_animation(w, anim_handle, anim_time, mask);
 
 			if (!init)
 			{

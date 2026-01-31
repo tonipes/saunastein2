@@ -696,6 +696,7 @@ namespace SFG
 				}
 				*/
 
+
 				uint8* data = reinterpret_cast<uint8*>(SFG_MALLOC(img.image.size()));
 				SFG_MEMCPY(data, img.image.data(), img.image.size());
 				const vector2ui16 size = vector2ui16(static_cast<uint16>(img.width), static_cast<uint16>(img.height));

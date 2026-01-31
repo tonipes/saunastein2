@@ -74,6 +74,7 @@ namespace SFG
 		void start_dive(world& w, comp_character_controller& controller, const vector3& dir);
 		void end_dive(world& w, comp_character_controller& controller);
 		void fire_mask(world& w);
+		void start_throw(world& w);
 
 		template <typename T, int> friend class comp_cache;
 
@@ -91,9 +92,17 @@ namespace SFG
 		world_handle _player_mesh_entity  = {};
 		world_handle _player_anim_comp	  = {};
 
-		resource_handle _player_anim_machine = {};
-		pool_handle16	_player_move_x_param = {};
-		pool_handle16	_player_move_y_param = {};
+		resource_handle _player_anim_machine	 = {};
+		pool_handle16	_player_move_x_param	 = {};
+		pool_handle16	_player_move_y_param	 = {};
+		pool_handle16	_player_default_state	 = {};
+		pool_handle16	_player_dive_right_state = {};
+		pool_handle16	_player_dive_left_state	 = {};
+		pool_handle16	_player_throw_state		 = {};
+		pool_handle16	_player_prev_state		 = {};
+		float			_throw_timer			 = 0.0f;
+		float			_throw_duration			 = 0.0f;
+		bool			_is_throwing			 = false;
 
 		player_ui _ui = {};
 
