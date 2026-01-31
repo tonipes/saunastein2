@@ -68,6 +68,11 @@ namespace SFG
 	public:
 		gameplay(app& app) : _app(app) {};
 
+		static gameplay& get()
+		{
+			return *_inst;
+		}
+
 		void init();
 		void uninit();
 
@@ -82,6 +87,7 @@ namespace SFG
 		void on_character_contact_begin(world_handle character, world_handle other, const vector3& position, const vector3& normal) override;
 		void on_character_contact(world_handle character, world_handle other, const vector3& position, const vector3& normal) override;
 		void on_character_contact_end(world_handle character, world_handle other) override;
+		void spawn_managed_entity(string_id resource, vector3 position, vector3 velocity, float max_lifetime);
 
 	private:
 		void tick_player(float dt);
@@ -95,7 +101,6 @@ namespace SFG
 
 		void begin_managed_entities();
 		void tick_managed_entities(float dt);
-		void spawn_managed_entity(string_id resource, vector3 position, vector3 velocity, float max_lifetime);
 		void check_managed_entities_collision(world_handle e1, world_handle e2);
 
 	private:
@@ -103,6 +108,7 @@ namespace SFG
 		world_handle _player_entity = {};
 		vector<door> _doors			= {};
 		vector<managed_entity> _managed_entities = {};
-		bool		 _player_initialized = false;		
+		bool		 _player_initialized = false;	
+		static gameplay*	   _inst;
 	};
 }

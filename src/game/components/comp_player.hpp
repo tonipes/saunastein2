@@ -58,7 +58,7 @@ namespace SFG
 		void tick(world& w, float dt);
 		void tick_debug(world& w, float dt);
 
-		void on_window_event(const window_event& ev);
+		void on_window_event(world& w, const window_event& ev);
 
 		// -----------------------------------------------------------------------------
 		// accessors
@@ -81,11 +81,11 @@ namespace SFG
 
 		physics_raycast_single _ray_caster = {};
 
-		world_handle _char_controller = {};
-		world_handle _camera_entity	  = {};
-		world_handle _camera_comp	  = {};
-		world_handle _player_stats	  = {};
-		world_handle _canvas_comp	  = {};
+		world_handle _char_controller	  = {};
+		world_handle _camera_entity		  = {};
+		world_handle _camera_comp		  = {};
+		world_handle _player_stats		  = {};
+		world_handle _canvas_comp		  = {};
 		world_handle _spawn_offset_entity = {};
 		world_handle _player_mesh_entity  = {};
 

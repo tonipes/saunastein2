@@ -39,7 +39,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "physics/physics_convert.hpp"
 #include "platform/window_common.hpp"
 #include "input/input_mappings.hpp"
-
+#include "game/gameplay.hpp"
 #include <Jolt/Physics/Character/CharacterVirtual.h>
 #include <cmath>
 
@@ -203,6 +203,8 @@ namespace SFG
 		forward.normalize();
 		const quat spawn_rot = quat::look_at(spawn_pos, spawn_pos + forward, vector3::up);
 
+		gameplay::get().spawn_managed_entity("assets/prefabs/mask.stkent"_hs, spawn_pos, spawn_rot.get_forward() * -50.0f, 5.0f);
+
 		// TODO: spawn mask entity at spawn_pos with spawn_rot, and set its velocity toward forward.
 	}
 
@@ -238,6 +240,12 @@ namespace SFG
 		forward_xz.normalize();
 		right_xz.normalize();
 		vector3 move_dir = (forward_xz * _move_input.y) + (right_xz * _move_input.x);
+
+		if (!_player_stats.is_null())
+		{
+			comp_player_stats& stats = cm.get_component<comp_player_stats>(_player_stats);
+			_ui.set_health_fraction(stats.get_health() / 100.0f);
+		}
 
 		if (_mask_fire_requested)
 		{
@@ -368,7 +376,7 @@ namespace SFG
 		//	w.get_debug_rendering().draw_line(cam_pos + vector3(0, -0.5, 0), player_pos, hit_color, .25f);
 	}
 
-	void comp_player::on_window_event(const window_event& ev)
+	void comp_player::on_window_event(world& w, const window_event& ev)
 	{
 		if (!_inited)
 			return;
@@ -380,7 +388,17 @@ namespace SFG
 			break;
 		case window_event_type::key: {
 			const uint16 button = ev.button;
-			if (button == input_code::key_w && ev.sub_type == window_event_sub_type::press)
+
+			if (button == input_code::key_k && ev.sub_type == window_event_sub_type::press)
+			{
+				if (!_player_stats.is_null())
+				{
+					component_manager& cm	 = w.get_comp_manager();
+					comp_player_stats& stats = cm.get_component<comp_player_stats>(_player_stats);
+					stats.add_health(-10);
+				}
+			}
+			else if (button == input_code::key_w && ev.sub_type == window_event_sub_type::press)
 				_move_input.y += 1.0f;
 			else if (button == input_code::key_w && ev.sub_type == window_event_sub_type::release && _move_input.y > 0.1f)
 				_move_input.y -= 1.0f;
