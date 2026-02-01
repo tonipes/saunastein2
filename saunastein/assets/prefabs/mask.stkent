@@ -1,28 +1,23 @@
 {
     "components": [
         {
-            "body_type": 1,
-            "comp_type": 14536826215375575722,
+            "attenuation": 0,
+            "comp_type": 11611975037412134833,
             "entity": 0,
-            "extents": [
-                1.0,
-                1.0,
-                1.0
-            ],
-            "is_sensor": 1,
-            "material": "",
-            "offset": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "shape_type": 1
+            "looping": 0,
+            "max_radius": 10.0,
+            "min_radius": 0.0,
+            "play_on_start": 0,
+            "resource": "assets/audio/whip.stkaud",
+            "rolloff": 0.0,
+            "volume": 0.4974328875541687
         },
         {
-            "comp_type": 1084153302536849766,
+            "comp_type": 2501385800364323121,
+            "damage": 10.0,
             "entity": 0,
-            "material": "assets/_defaults/materials/particle_bullet_trail.stkmat",
-            "particle": "assets/_defaults/particles/bullet_trail.stkparticle"
+            "hit_distance": 4.0,
+            "speed": 20.0
         },
         {
             "comp_type": 12829486272651206750,
@@ -32,6 +27,24 @@
             "mesh": "assets/models/cube.stkmodel/Cube.001",
             "skin": "",
             "skin_entities": 0
+        },
+        {
+            "comp_type": 1084153302536849766,
+            "entity": 2,
+            "material": "assets/_defaults/materials/particle_bullet_trail.stkmat",
+            "particle": "assets/_defaults/particles/bullet_trail.stkparticle"
+        },
+        {
+            "comp_type": 1084153302536849766,
+            "entity": 3,
+            "material": "assets/_defaults/materials/particle_bullet_trail.stkmat",
+            "particle": "assets/_defaults/particles/bullet_trail.stkparticle"
+        },
+        {
+            "comp_type": 1084153302536849766,
+            "entity": 4,
+            "material": "assets/_defaults/materials/particle_bullet_trail.stkmat",
+            "particle": "assets/_defaults/particles/bullet_trail.stkparticle"
         }
     ],
     "entities": [
@@ -41,9 +54,9 @@
             "next_sibling": -1,
             "parent": -1,
             "pos": [
-                -163.3195037841797,
-                5.151586055755615,
-                5.184696197509766
+                -200.68865966796875,
+                101.9167251586914,
+                76.81218719482422
             ],
             "rot": [
                 0.0,
@@ -52,9 +65,9 @@
                 1.0
             ],
             "scale": [
-                0.1814703494310379,
-                0.21360090374946594,
-                0.21360090374946594
+                0.12000054121017456,
+                0.12000054121017456,
+                0.12000054121017456
             ],
             "tag": "",
             "template": "",
@@ -63,7 +76,7 @@
         {
             "first_child": -1,
             "name": "cube",
-            "next_sibling": -1,
+            "next_sibling": 2,
             "parent": 0,
             "pos": [
                 0.0,
@@ -73,13 +86,88 @@
             "rot": [
                 0.0,
                 0.0,
+                -0.1689416468143463,
+                0.9856260418891907
+            ],
+            "scale": [
+                1.7753221988677979,
+                3.373563051223755,
+                0.08333295583724976
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "new_entity",
+            "next_sibling": 3,
+            "parent": 0,
+            "pos": [
+                1.444091796875,
+                -1.73260498046875,
+                7.48291015625
+            ],
+            "rot": [
+                0.0,
+                0.0,
                 0.0,
                 1.0
             ],
             "scale": [
-                2.2199649810791016,
-                2.3003618717193604,
-                0.08333295583724976
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "new_entity",
+            "next_sibling": 4,
+            "parent": 0,
+            "pos": [
+                -2.3367919921875,
+                -1.3251953125,
+                7.48291015625
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "new_entity",
+            "next_sibling": -1,
+            "parent": 0,
+            "pos": [
+                0.0,
+                1.92474365234375,
+                7.48284912109375
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
             ],
             "tag": "",
             "template": "",
@@ -87,8 +175,9 @@
         }
     ],
     "resources": [
+        "assets/audio/whip.stkaud",
+        "assets/models/cube.stkmodel",
         "assets/_defaults/particles/bullet_trail.stkparticle",
-        "assets/_defaults/materials/particle_bullet_trail.stkmat",
-        "assets/models/cube.stkmodel"
+        "assets/_defaults/materials/particle_bullet_trail.stkmat"
     ]
 }

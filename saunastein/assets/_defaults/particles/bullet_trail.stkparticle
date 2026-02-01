@@ -32,8 +32,8 @@
     "integrate_point_angular_velocity": 0.0
   },
   "size": {
-    "min_start": 0.03,
-    "max_start": 0.05,
+    "min_start": 0.23,
+    "max_start": 0.25,
     "mid": 0.04,
     "end": 0.02,
     "integrate_point": 0.2

@@ -26,7 +26,8 @@
     },
      {
       "name": "Attack",
-      "loop": 1,
+      "loop": 0,
+      "speed": 2,
       "blend": "none",
       "samples": [
         {
