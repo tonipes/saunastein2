@@ -47,6 +47,8 @@ namespace SFG
 
 		uint32 obj_counter = 0;
 
+		const bool frustum = mesh_instances_peak > 30;
+
 		for (uint32 i = 0; i < mesh_instances_peak; i++)
 		{
 			const render_proxy_mesh_instance& mesh_instance = mesh_instances.get(i);
@@ -65,21 +67,24 @@ namespace SFG
 
 			const vector3 pos = proxy_entity.model.get_translation();
 
-			if (proxy_mesh.is_skinned)
+			if (frustum)
 			{
-				const vector3 scale = proxy_entity.model.get_scale();
-				const float max_scale = math::max(math::max(math::abs(scale.x), math::abs(scale.y)), math::abs(scale.z));
-				const float radius = proxy_mesh.local_aabb.bounds_half_extent.magnitude() * max_scale * 1.5f;
-				const float safe_radius = radius > 0.0f ? radius : 1.0f;
-				const frustum_result res = frustum::test(target_view.view_frustum, pos, safe_radius);
-				if (res == frustum_result::outside)
-					continue;
-			}
-			else
-			{
-				const frustum_result res = frustum::test(target_view.view_frustum, proxy_mesh.local_aabb, proxy_entity.model.to_linear3x3(), pos);
-				if (res == frustum_result::outside)
-					continue;
+				if (proxy_mesh.is_skinned)
+				{
+					const vector3		 scale		 = proxy_entity.model.get_scale();
+					const float			 max_scale	 = math::max(math::max(math::abs(scale.x), math::abs(scale.y)), math::abs(scale.z));
+					const float			 radius		 = proxy_mesh.local_aabb.bounds_half_extent.magnitude() * max_scale * 1.5f;
+					const float			 safe_radius = radius > 0.0f ? radius : 1.0f;
+					const frustum_result res		 = frustum::test(target_view.view_frustum, pos, safe_radius);
+					if (res == frustum_result::outside)
+						continue;
+				}
+				else
+				{
+					const frustum_result res = frustum::test(target_view.view_frustum, proxy_mesh.local_aabb, proxy_entity.model.to_linear3x3(), pos);
+					if (res == frustum_result::outside)
+						continue;
+				}
 			}
 
 			const uint32				  buffer_index = proxy_entity._assigned_index;

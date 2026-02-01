@@ -42,6 +42,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "input/input_mappings.hpp"
 #include "game/gameplay.hpp"
 #include "resources/font.hpp"
+#include "math/random.hpp"
 
 #include "resources/skin.hpp"
 #include <Jolt/Physics/Character/CharacterVirtual.h>
@@ -49,6 +50,35 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace SFG
 {
+	namespace
+	{
+		constexpr float kPlayerVoiceIntervalMin = 7.0f;
+		constexpr float kPlayerVoiceIntervalMax = 12.0f;
+
+		static constexpr string_id kPlayerVoiceHashes[] = {
+			"assets/audio/player_yell_0.stkaud"_hs,
+			"assets/audio/player_yell_1.stkaud"_hs,
+			"assets/audio/player_yell_2.stkaud"_hs,
+			"assets/audio/player_yell_3.stkaud"_hs,
+			"assets/audio/player_yell_4.stkaud"_hs,
+		};
+
+		constexpr int kPlayerVoiceHashCount = static_cast<int>(sizeof(kPlayerVoiceHashes) / sizeof(kPlayerVoiceHashes[0]));
+
+		inline float random_range(float min_value, float max_value)
+		{
+			return min_value + (max_value - min_value) * random::random_01();
+		}
+
+		inline int random_index(int count)
+		{
+			if (count <= 0)
+				return -1;
+			const int idx = static_cast<int>(random::random_01() * static_cast<float>(count));
+			return idx >= count ? (count - 1) : idx;
+		}
+	}
+
 	void comp_player::reflect()
 	{
 		meta& m = reflection::get().register_meta(type_id<comp_player>::value, 0, "component");
@@ -104,6 +134,8 @@ namespace SFG
 		_throw_timer			 = 0.0f;
 		_throw_duration			 = 0.0f;
 		_is_throwing			 = false;
+		_voice_timer			 = 0.0f;
+		_voice_interval			 = random_range(kPlayerVoiceIntervalMin, kPlayerVoiceIntervalMax);
 
 		entity_manager& em = w.get_entity_manager();
 
@@ -309,6 +341,16 @@ namespace SFG
 		forward_xz.normalize();
 		right_xz.normalize();
 		vector3 move_dir = (forward_xz * _move_input.y) + (right_xz * _move_input.x);
+
+		_voice_timer += w.get_time_manager().get_real_dt();
+		if (_voice_timer >= _voice_interval)
+		{
+			_voice_timer	= 0.0f;
+			_voice_interval = random_range(kPlayerVoiceIntervalMin, kPlayerVoiceIntervalMax);
+			const int idx	= random_index(kPlayerVoiceHashCount);
+			if (idx >= 0)
+				gameplay::get().spawn_fx(kPlayerVoiceHashes[idx], player_pos, em.get_entity_rotation_abs(_header.entity));
+		}
 
 		if (!_player_anim_machine.is_null())
 		{

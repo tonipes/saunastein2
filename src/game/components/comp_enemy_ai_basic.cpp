@@ -12,9 +12,30 @@ namespace SFG
 {
 	namespace
 	{
+		constexpr float kEnemyVoiceIntervalMin = 4.0f;
+		constexpr float kEnemyVoiceIntervalMax = 9.0f;
+
+		static constexpr string_id kEnemyVoiceHashes[] = {
+			"assets/audio/enemy_yell_0.stkaud"_hs,
+			"assets/audio/enemy_yell_1.stkaud"_hs,
+			"assets/audio/enemy_yell_2.stkaud"_hs,
+			"assets/audio/enemy_yell_3.stkaud"_hs,
+			"assets/audio/enemy_yell_4.stkaud"_hs,
+		};
+
+		constexpr int kEnemyVoiceHashCount = static_cast<int>(sizeof(kEnemyVoiceHashes) / sizeof(kEnemyVoiceHashes[0]));
+
 		float random_range(float min_value, float max_value)
 		{
 			return min_value + (max_value - min_value) * random::random_01();
+		}
+
+		int random_index(int count)
+		{
+			if (count <= 0)
+				return -1;
+			const int idx = static_cast<int>(random::random_01() * static_cast<float>(count));
+			return idx >= count ? (count - 1) : idx;
 		}
 
 		vector3 random_direction_xz()
@@ -55,6 +76,8 @@ namespace SFG
 		_chase_speed	   = _min_chase_speed + random::random_01() * (_max_chase_speed - _min_chase_speed);
 		_damage			   = _min_damage + random::random_01() * (_max_damage - _min_damage);
 		_health			   = _min_health + random::random_01() * (_max_health - _min_health);
+		_voice_timer	   = 0.0f;
+		_voice_interval	   = random_range(kEnemyVoiceIntervalMin, kEnemyVoiceIntervalMax);
 	}
 
 	void comp_enemy_ai_basic::set_state(world& w, enemy_state state)
@@ -86,6 +109,12 @@ namespace SFG
 			ag.set_machine_active_state(_state_machine, _anim_death);
 
 			w.get_entity_manager().set_entity_visible(_mask_mesh, true);
+		}
+
+		if (state == enemy_state::chase || state == enemy_state::attack)
+		{
+			_voice_timer	= 0.0f;
+			_voice_interval = random_range(kEnemyVoiceIntervalMin, kEnemyVoiceIntervalMax);
 		}
 
 		_state = state;
@@ -188,6 +217,23 @@ namespace SFG
 		case enemy_state::dead:
 			tick_death(w, dt);
 			break;
+		}
+
+		if (_state == enemy_state::chase || _state == enemy_state::attack)
+		{
+			_voice_timer += w.get_time_manager().get_real_dt();
+			if (_voice_timer >= _voice_interval)
+			{
+				_voice_timer	= 0.0f;
+				_voice_interval = random_range(kEnemyVoiceIntervalMin, kEnemyVoiceIntervalMax);
+				const int idx	= random_index(kEnemyVoiceHashCount);
+				if (idx >= 0)
+					gameplay::get().spawn_fx(kEnemyVoiceHashes[idx], w.get_entity_manager().get_entity_position(_header.entity), w.get_entity_manager().get_entity_rotation(_header.entity));
+			}
+		}
+		else
+		{
+			_voice_timer = 0.0f;
 		}
 	}
 

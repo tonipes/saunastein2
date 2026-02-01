@@ -119,6 +119,7 @@ namespace SFG
 		world_handle spawn_managed_entity(string_id resource, vector3 position, quat direction, const managed_entity_params& params);
 
 		void spawn_fx(spawn_type type, const vector3& p, const quat& r);
+		void spawn_fx(string_id hash, const vector3& p, const quat& r);
 
 		inline app& get_app()
 		{

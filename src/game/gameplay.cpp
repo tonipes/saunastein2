@@ -33,11 +33,13 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "game/components/comp_destroyer.hpp"
 #include "game/components/comp_mask.hpp"
 #include "game/components/comp_enemy_ai_basic.hpp"
+#include "world/components/comp_audio.hpp"
 #include <physics/physics_contact_listener.hpp>
 #include "platform/window_common.hpp"
 #include "input/input_mappings.hpp"
 #include "game/components/comp_enemy_ai_basic.hpp"
 #include "resources/entity_template.hpp"
+#include "resources/audio.hpp"
 
 #include "world/components/comp_camera.hpp"
 namespace SFG
@@ -73,6 +75,8 @@ namespace SFG
 
 	void gameplay::on_world_begin(world& w)
 	{
+		is_start_game = false;
+
 		entity_manager& em	= w.get_entity_manager();
 		_has_intro_cutscene = !em.find_entity("intro_cutscene").is_null();
 
@@ -300,6 +304,56 @@ namespace SFG
 		em.set_entity_position(h, p);
 		em.set_entity_rotation(h, r);
 		em.teleport_entity(h);
+	}
+
+	void gameplay::spawn_fx(string_id hash, const vector3& p, const quat& r)
+	{
+		if (hash == ""_hs)
+			return;
+
+		world&			  w	 = _app.get_world();
+		entity_manager&	  em = w.get_entity_manager();
+		resource_manager& rm = w.get_resource_manager();
+
+		resource_handle tmpl = rm.get_resource_handle_by_hash_if_exists<entity_template>(hash);
+		if (!tmpl.is_null())
+		{
+			const world_handle h = em.instantiate_template(tmpl);
+			em.set_entity_position(h, p);
+			em.set_entity_rotation(h, r);
+			em.teleport_entity(h);
+			return;
+		}
+
+		resource_handle aud = rm.get_resource_handle_by_hash_if_exists<audio>(hash);
+		if (aud.is_null())
+			return;
+
+		const world_handle h = em.create_entity("fx_audio");
+		em.set_entity_position(h, p);
+		em.set_entity_rotation(h, r);
+		em.set_entity_transient(h, true);
+
+		component_manager& cm		  = w.get_comp_manager();
+		const world_handle audio_comp = cm.add_component<comp_audio>(h);
+		if (audio_comp.is_null())
+		{
+			em.destroy_entity(h);
+			return;
+		}
+
+		comp_audio& audio_component = cm.get_component<comp_audio>(audio_comp);
+		audio_component.set_audio(w, aud);
+		audio_component.set_looping(w, false);
+		audio_component.set_audio_position(w, p);
+		audio_component.play(w);
+
+		const world_handle destroyer_comp = cm.add_component<comp_destroyer>(h);
+		if (!destroyer_comp.is_null())
+		{
+			comp_destroyer& destroyer = cm.get_component<comp_destroyer>(destroyer_comp);
+			destroyer.set_destroy_time(6.0f);
+		}
 	}
 
 	void gameplay::set_cutscene_subtitle_text(const char* text)

@@ -46,11 +46,11 @@ namespace SFG
 	namespace
 	{
 		static const char* k_cutscene_subtitles[] = {
-			"",
-			"The steam hangs in the air.",
-			"You feel the heat rising.",
-			"Something stirs beyond the door.",
-			"I feel like moisturizing",
+			"ever since shes gone, i keep thinking about her",
+			"all the plans we had, all the face masks we bought",
+			"i can not stop, she is always on my mind",
+			"well, im gonna keep my promise to her",
+			"today, I feel like moisturizing",
 		};
 
 		static constexpr int k_cutscene_subtitle_count = static_cast<int>(sizeof(k_cutscene_subtitles) / sizeof(k_cutscene_subtitles[0]));

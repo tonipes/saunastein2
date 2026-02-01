@@ -74,6 +74,8 @@ namespace SFG
 		float _attack_anim_duration		 = 0.0f;
 		bool  _attack_done_once			 = false;
 		float _health					 = 0.0f;
+		float _voice_timer				 = 0.0f;
+		float _voice_interval			 = 0.0f;
 
 		world_handle  _player					 = {};
 		world_handle  _mask_mesh				 = {};

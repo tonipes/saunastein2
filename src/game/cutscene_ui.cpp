@@ -66,7 +66,7 @@ namespace SFG
 		_canvas_comp = canvas_handle;
 
 		comp_canvas& cnv = cm.get_component<comp_canvas>(_canvas_comp);
-		cnv.update_counts_and_init(w, 32, 8);
+		cnv.update_counts_and_init(w, 1024, 32);
 
 		resource_manager& rm = w.get_resource_manager();
 		resource_handle font_handle = rm.get_resource_handle_by_hash_if_exists<font>("assets/fonts/roboto.stkfont"_hs);

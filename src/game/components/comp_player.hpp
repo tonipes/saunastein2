@@ -144,6 +144,9 @@ namespace SFG
 		float	_dive_jump_velocity		= 6.5f;
 		float	_base_controller_radius = 0.0f;
 		vector3 _dive_direction			= vector3::zero;
+
+		float _voice_timer	 = 0.0f;
+		float _voice_interval = 0.0f;
 	};
 
 	REFLECT_TYPE(comp_player);
