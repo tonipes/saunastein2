@@ -77,7 +77,7 @@ namespace SFG
 			.index_buffer_sz			 = 1024 * 1024,
 			.text_cache_vertex_buffer_sz = 1024 * 1024,
 			.text_cache_index_buffer_sz	 = 1024 * 1024,
-			.buffer_count				 = 50,
+			.buffer_count				 = 150,
 		};
 		_builder->init(conf);
 

@@ -30,6 +30,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "data/bitmask.hpp"
 #include "memory/chunk_handle.hpp"
 #include "reflection/type_reflection.hpp"
+#include <cstddef>
 
 struct ma_decoder;
 
@@ -62,6 +63,8 @@ namespace SFG
 		// -----------------------------------------------------------------------------
 
 		ma_decoder* get_decoder(world& w) const;
+		const void* get_audio_data_ptr(world& w) const;
+		size_t get_audio_data_size(world& w) const;
 
 		inline const bitmask<uint8>& get_flags() const
 		{

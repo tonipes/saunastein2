@@ -37,7 +37,7 @@
     },
      {
       "name": "Death",
-      "loop": 1,
+      "loop": 0,
       "blend": "none",
       "samples": [
         {

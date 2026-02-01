@@ -117,4 +117,16 @@ namespace SFG
 		chunk_allocator32& aux = rm.get_aux();
 		return aux.get<ma_decoder>(_decoder);
 	}
+
+	const void* audio::get_audio_data_ptr(world& w) const
+	{
+		resource_manager&  rm  = w.get_resource_manager();
+		chunk_allocator32& aux = rm.get_aux();
+		return _audio_data.size == 0 ? nullptr : aux.get(_audio_data.head);
+	}
+
+	size_t audio::get_audio_data_size(world& w) const
+	{
+		return static_cast<size_t>(_audio_data.size);
+	}
 }

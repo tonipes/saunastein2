@@ -87,6 +87,8 @@ namespace SFG
 		component_manager& cm  = w.get_comp_manager();
 		chunk_allocator32& aux = cm.get_aux();
 		_ma_sound			   = aux.allocate<ma_sound>(1);
+		_decoder			   = aux.allocate<ma_decoder>(1);
+		_decoder_inited		   = false;
 	}
 
 	void comp_audio::on_remove(world& w)
@@ -100,10 +102,18 @@ namespace SFG
 			ma_sound* snd = aux.get<ma_sound>(_ma_sound);
 			ma_sound_uninit(snd);
 		}
+		if (_decoder_inited)
+		{
+			ma_decoder* dec = aux.get<ma_decoder>(_decoder);
+			ma_decoder_uninit(dec);
+			_decoder_inited = false;
+		}
 
 		// dealloc sound
 		aux.free(_ma_sound);
+		aux.free(_decoder);
 		_ma_sound		= {};
+		_decoder		= {};
 		_audio_resource = {};
 	}
 
@@ -192,6 +202,12 @@ namespace SFG
 		if (!_audio_resource.is_null())
 		{
 			ma_sound_uninit(snd);
+			if (_decoder_inited)
+			{
+				ma_decoder* dec = aux.get<ma_decoder>(_decoder);
+				ma_decoder_uninit(dec);
+				_decoder_inited = false;
+			}
 			_audio_resource = {};
 		}
 
@@ -202,10 +218,34 @@ namespace SFG
 		audio& aud = rm.get_resource<audio>(_audio_resource);
 
 		ma_engine*		sound_engine = w.get_audio_manager().get_engine();
-		const ma_uint32 flags		 = aud.get_flags().is_set(audio::flags::is_streaming) ? MA_SOUND_FLAG_STREAM : 0;
-		const ma_result result		 = ma_sound_init_from_data_source(sound_engine, reinterpret_cast<ma_data_source*>(aud.get_decoder(w)), flags, nullptr, snd);
+		const void*		data		 = aud.get_audio_data_ptr(w);
+		const size_t	data_size	 = aud.get_audio_data_size(w);
+		if (data == nullptr || data_size == 0)
+		{
+			SFG_ERR("failed to init ma_sound for audio: empty data!");
+			_audio_resource = {};
+			return;
+		}
+
+		ma_result result = MA_ERROR;
+		ma_decoder* dec = aux.get<ma_decoder>(_decoder);
+		result = ma_decoder_init_memory(data, data_size, nullptr, dec);
 		if (result != MA_SUCCESS)
 		{
+			SFG_ERR("failed to init decoder for audio!");
+			_audio_resource = {};
+			return;
+		}
+		_decoder_inited = true;
+		result = ma_sound_init_from_data_source(sound_engine, reinterpret_cast<ma_data_source*>(dec), 0, nullptr, snd);
+		if (result != MA_SUCCESS)
+		{
+			if (_decoder_inited)
+			{
+				ma_decoder* dec = aux.get<ma_decoder>(_decoder);
+				ma_decoder_uninit(dec);
+				_decoder_inited = false;
+			}
 			SFG_ERR("failed to init ma_sound for audio!");
 			_audio_resource = {};
 			return;

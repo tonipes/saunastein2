@@ -4,11 +4,11 @@
             "attenuation": 0,
             "comp_type": 11611975037412134833,
             "entity": 1,
-            "looping": 1,
+            "looping": 0,
             "max_radius": 10.0,
             "min_radius": 0.0,
-            "play_on_start": 0,
-            "resource": "",
+            "play_on_start": 1,
+            "resource": "assets/audio/slap_hifi.stkaud",
             "rolloff": 0.0,
             "volume": 1.0
         },
@@ -72,6 +72,7 @@
         }
     ],
     "resources": [
+        "assets/audio/slap_hifi.stkaud",
         "assets/_defaults/particles/slap.stkparticle",
         "assets/_defaults/materials/particle_slap.stkmat"
     ]

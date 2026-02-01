@@ -63,6 +63,7 @@ namespace SFG
 				continue;
 
 			const vector3		 pos = proxy_entity.model.get_translation();
+		
 			const frustum_result res = frustum::test(target_view.view_frustum, proxy_mesh.local_aabb, proxy_entity.model.to_linear3x3(), pos);
 			if (res == frustum_result::outside)
 				continue;

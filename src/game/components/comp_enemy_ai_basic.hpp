@@ -76,6 +76,7 @@ namespace SFG
 		float _health					 = 0.0f;
 
 		world_handle  _player					 = {};
+		world_handle  _mask_mesh				 = {};
 		world_handle  _mesh_entity				 = {};
 		world_handle  _comp_player_handle		 = {};
 		world_handle  _comp_animator			 = {};

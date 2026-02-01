@@ -1,0 +1,4 @@
+{
+  "source": "assets/models/mask.glb",
+  "import_pbr_materials": 1
+}

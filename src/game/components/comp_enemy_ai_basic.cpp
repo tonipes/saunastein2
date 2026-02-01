@@ -59,7 +59,6 @@ namespace SFG
 
 	void comp_enemy_ai_basic::set_state(world& w, enemy_state state)
 	{
-		_state = state;
 
 		if (state == enemy_state::idle_wait)
 		{
@@ -80,9 +79,16 @@ namespace SFG
 		}
 		else if (state == enemy_state::dead)
 		{
+			if (_state == enemy_state::dead)
+				return;
+
 			animation_graph& ag = w.get_animation_graph();
 			ag.set_machine_active_state(_state_machine, _anim_death);
+
+			w.get_entity_manager().set_entity_visible(_mask_mesh, true);
 		}
+
+		_state = state;
 	}
 
 	void comp_enemy_ai_basic::begin_play(world& w)
@@ -97,20 +103,37 @@ namespace SFG
 		}
 
 		_comp_animator = {};
+		_mask_mesh	   = {};
 
-		bool ok = false;
 		em.visit_children_deep(_header.entity, [&](world_handle e) {
-			if (ok)
+			if (!_comp_animator.is_null())
 				return;
 
 			auto ac = em.get_entity_component<comp_animation_controller>(e);
 			if (!ac.is_null())
 			{
 				_comp_animator = ac;
-				ok			   = true;
 				return;
 			}
 		});
+
+		em.visit_children_deep(_header.entity, [&](world_handle e) {
+			if (!_mask_mesh.is_null())
+				return;
+
+			const char* n = em.get_entity_meta(e).name;
+			if (strcmp(n, "FaceMask") == 0)
+			{
+				_mask_mesh = e;
+				return;
+			}
+		});
+
+		if (_mask_mesh.is_null())
+			return;
+
+		em.set_entity_visible(_mask_mesh, false);
+
 		if (_comp_animator.is_null())
 			return;
 
@@ -269,8 +292,12 @@ namespace SFG
 		if (_state == enemy_state::dead)
 			return;
 
+		if (!_inited)
+			return;
+
 		SFG_INFO("taking damage");
 		_health -= damage;
+
 
 		component_manager& cm	  = w.get_comp_manager();
 		comp_player&	   player = cm.get_component<comp_player>(_comp_player_handle);

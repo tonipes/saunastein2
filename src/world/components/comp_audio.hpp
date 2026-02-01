@@ -115,6 +115,7 @@ namespace SFG
 		component_header  _header		  = {};
 		resource_handle	  _audio_resource = {};
 		chunk_handle32	  _ma_sound		  = {};
+		chunk_handle32	  _decoder		  = {};
 		float			  _rolloff		  = 0.0f;
 		float			  _radius_min	  = 0.0f;
 		float			  _radius_max	  = 10.0f;
@@ -122,6 +123,7 @@ namespace SFG
 		sound_attenuation _attenuation	  = sound_attenuation::none;
 		bool			  _is_looping	  = true;
 		bool			  _play_on_start  = false;
+		bool			  _decoder_inited = false;
 	};
 
 	REFLECT_TYPE(comp_audio);

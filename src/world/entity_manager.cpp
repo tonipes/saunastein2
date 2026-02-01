@@ -539,10 +539,10 @@ namespace SFG
 					}
 					else
 						SFG_MEMCPY(dest, val, f->get_type_size());
-
-					if (!skip_reflect_load)
-						m.invoke_function<void, void*, world&>("on_reflect_load"_hs, dst_ptr, _world);
 				}
+
+				if (!skip_reflect_load && m.has_function("on_reflect_load"_hs))
+					m.invoke_function<void, void*, world&>("on_reflect_load"_hs, dst_ptr, _world);
 
 				if (pm != play_mode::none && c.comp_type == type_id<comp_physics>::value)
 				{
@@ -550,12 +550,15 @@ namespace SFG
 					phy.set_is_in_simulation(true);
 					pw.add_body_to_world(*phy.create_body(_world));
 				}
-				else if (pm != play_mode::none && c.comp_type == type_id<comp_audio>::value)
-				{
-					comp_audio& aud = cm.get_component<comp_audio>(c.comp_handle);
-					if (aud.is_play_on_start())
-						aud.play(_world);
-				}
+					else if (pm != play_mode::none && c.comp_type == type_id<comp_audio>::value)
+					{
+						comp_audio& aud = cm.get_component<comp_audio>(c.comp_handle);
+						if (aud.is_play_on_start())
+						{
+							aud.reset(_world);
+							aud.play(_world);
+						}
+					}
 			}
 
 			const bitmask<uint16> fl = _flags->get(source_entity.index);
@@ -1264,7 +1267,10 @@ namespace SFG
 					{
 						comp_audio& aud = cm.get_component<comp_audio>(c.comp_handle);
 						if (aud.is_play_on_start())
+						{
+							aud.reset(_world);
 							aud.play(_world);
+						}
 					}
 
 					else if (c.comp_type == type_id<comp_physics>::value)

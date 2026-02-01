@@ -217,6 +217,9 @@ namespace SFG
 
 	void gameplay::tick_enemies(float dt)
 	{
+		if (_player_entity.is_null())
+			return;
+
 		world&			   w	   = _app.get_world();
 		component_manager& cm	   = w.get_comp_manager();
 		auto&			   enemies = cm.underlying_pool<comp_cache<comp_enemy_ai_basic, MAX_WORLD_ENEMY_AI_BASIC>, comp_enemy_ai_basic>();

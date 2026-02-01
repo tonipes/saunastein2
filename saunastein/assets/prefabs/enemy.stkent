@@ -1,29 +1,21 @@
 {
     "components": [
         {
-            "attack_cooldown": 2.0,
-            "attack_range": 1.5,
-            "comp_type": 2868544828885607743,
-            "damage": 10.0,
-            "entity": 0,
-            "movement_speed": 10.0
-        },
-        {
             "character_padding": 0.019999999552965164,
             "comp_type": 17190279333344653665,
             "enhanced_internal_edge_removal": 0,
             "entity": 0,
-            "half_height": 0.5,
+            "half_height": 1.899999976158142,
             "mass": 70.0,
             "max_slope_degrees": 50.0,
             "max_strength": 100.0,
             "object_layer": 1,
             "penetration_recovery_speed": 1.0,
             "predictive_contact_distance": 0.10000000149011612,
-            "radius": 0.4000000059604645,
+            "radius": 0.8999999761581421,
             "shape_offset": [
                 0.0,
-                1.0,
+                0.0,
                 0.0
             ],
             "step_down": 0.5,
@@ -33,73 +25,556 @@
             "step_up": 0.4000000059604645
         },
         {
+            "attack_range": 1.5,
+            "comp_type": 2868544828885607743,
+            "damage_range": 4.0,
+            "entity": 0,
+            "max_chase_range": 8.0,
+            "max_chase_speed": 10.0,
+            "max_damage": 5.0,
+            "max_health": 50.0,
+            "min_chase_range": 8.0,
+            "min_chase_speed": 10.0,
+            "min_damage": 3.0,
+            "min_health": 50.0
+        },
+        {
             "comp_type": 14356981188726125758,
-            "entity": 27,
-            "machine": "assets/models/saunaguy.stkanim",
-            "skin_entities": 27,
-            "skin_entities0": 8,
-            "skin_entities1": 7,
-            "skin_entities10": 13,
-            "skin_entities11": 5,
-            "skin_entities12": 4,
-            "skin_entities13": 3,
-            "skin_entities14": 21,
-            "skin_entities15": 20,
-            "skin_entities16": 19,
-            "skin_entities17": 18,
-            "skin_entities18": 17,
-            "skin_entities19": 26,
-            "skin_entities2": 6,
-            "skin_entities20": 25,
-            "skin_entities21": 24,
-            "skin_entities22": 23,
-            "skin_entities23": 22,
-            "skin_entities24": 2,
-            "skin_entities25": 27,
-            "skin_entities26": 1,
-            "skin_entities3": 12,
-            "skin_entities4": 11,
-            "skin_entities5": 10,
-            "skin_entities6": 9,
-            "skin_entities7": 16,
-            "skin_entities8": 15,
-            "skin_entities9": 14
+            "entity": 171,
+            "machine": "assets/models/enemy.stkanim",
+            "skin_entities": 171,
+            "skin_entities0": 9,
+            "skin_entities1": 8,
+            "skin_entities10": 18,
+            "skin_entities100": 106,
+            "skin_entities101": 105,
+            "skin_entities102": 104,
+            "skin_entities103": 110,
+            "skin_entities104": 109,
+            "skin_entities105": 114,
+            "skin_entities106": 115,
+            "skin_entities107": 113,
+            "skin_entities108": 112,
+            "skin_entities109": 111,
+            "skin_entities11": 25,
+            "skin_entities110": 100,
+            "skin_entities111": 120,
+            "skin_entities112": 119,
+            "skin_entities113": 123,
+            "skin_entities114": 122,
+            "skin_entities115": 121,
+            "skin_entities116": 126,
+            "skin_entities117": 125,
+            "skin_entities118": 124,
+            "skin_entities119": 129,
+            "skin_entities12": 24,
+            "skin_entities120": 128,
+            "skin_entities121": 127,
+            "skin_entities122": 132,
+            "skin_entities123": 131,
+            "skin_entities124": 130,
+            "skin_entities125": 118,
+            "skin_entities126": 117,
+            "skin_entities127": 116,
+            "skin_entities128": 99,
+            "skin_entities129": 98,
+            "skin_entities13": 23,
+            "skin_entities130": 135,
+            "skin_entities131": 138,
+            "skin_entities132": 137,
+            "skin_entities133": 136,
+            "skin_entities134": 134,
+            "skin_entities135": 143,
+            "skin_entities136": 145,
+            "skin_entities137": 146,
+            "skin_entities138": 144,
+            "skin_entities139": 147,
+            "skin_entities14": 22,
+            "skin_entities140": 142,
+            "skin_entities141": 141,
+            "skin_entities142": 140,
+            "skin_entities143": 139,
+            "skin_entities144": 148,
+            "skin_entities145": 133,
+            "skin_entities146": 149,
+            "skin_entities147": 152,
+            "skin_entities148": 155,
+            "skin_entities149": 154,
+            "skin_entities15": 29,
+            "skin_entities150": 153,
+            "skin_entities151": 151,
+            "skin_entities152": 160,
+            "skin_entities153": 162,
+            "skin_entities154": 163,
+            "skin_entities155": 161,
+            "skin_entities156": 164,
+            "skin_entities157": 159,
+            "skin_entities158": 158,
+            "skin_entities159": 157,
+            "skin_entities16": 28,
+            "skin_entities160": 156,
+            "skin_entities161": 165,
+            "skin_entities162": 150,
+            "skin_entities163": 166,
+            "skin_entities164": 167,
+            "skin_entities165": 168,
+            "skin_entities166": 169,
+            "skin_entities167": 170,
+            "skin_entities168": 171,
+            "skin_entities169": 172,
+            "skin_entities17": 27,
+            "skin_entities170": 2,
+            "skin_entities18": 26,
+            "skin_entities19": 33,
+            "skin_entities2": 7,
+            "skin_entities20": 32,
+            "skin_entities21": 31,
+            "skin_entities22": 30,
+            "skin_entities23": 36,
+            "skin_entities24": 35,
+            "skin_entities25": 34,
+            "skin_entities26": 39,
+            "skin_entities27": 38,
+            "skin_entities28": 37,
+            "skin_entities29": 42,
+            "skin_entities3": 17,
+            "skin_entities30": 41,
+            "skin_entities31": 40,
+            "skin_entities32": 45,
+            "skin_entities33": 44,
+            "skin_entities34": 43,
+            "skin_entities35": 48,
+            "skin_entities36": 47,
+            "skin_entities37": 46,
+            "skin_entities38": 13,
+            "skin_entities39": 12,
+            "skin_entities4": 16,
+            "skin_entities40": 11,
+            "skin_entities41": 10,
+            "skin_entities42": 56,
+            "skin_entities43": 55,
+            "skin_entities44": 54,
+            "skin_entities45": 53,
+            "skin_entities46": 60,
+            "skin_entities47": 59,
+            "skin_entities48": 58,
+            "skin_entities49": 57,
+            "skin_entities5": 15,
+            "skin_entities50": 64,
+            "skin_entities51": 63,
+            "skin_entities52": 62,
+            "skin_entities53": 61,
+            "skin_entities54": 68,
+            "skin_entities55": 67,
+            "skin_entities56": 66,
+            "skin_entities57": 65,
+            "skin_entities58": 72,
+            "skin_entities59": 71,
+            "skin_entities6": 14,
+            "skin_entities60": 70,
+            "skin_entities61": 69,
+            "skin_entities62": 75,
+            "skin_entities63": 74,
+            "skin_entities64": 73,
+            "skin_entities65": 78,
+            "skin_entities66": 77,
+            "skin_entities67": 76,
+            "skin_entities68": 81,
+            "skin_entities69": 80,
+            "skin_entities7": 21,
+            "skin_entities70": 79,
+            "skin_entities71": 84,
+            "skin_entities72": 83,
+            "skin_entities73": 82,
+            "skin_entities74": 87,
+            "skin_entities75": 86,
+            "skin_entities76": 85,
+            "skin_entities77": 52,
+            "skin_entities78": 51,
+            "skin_entities79": 50,
+            "skin_entities8": 20,
+            "skin_entities80": 49,
+            "skin_entities81": 6,
+            "skin_entities82": 5,
+            "skin_entities83": 4,
+            "skin_entities84": 92,
+            "skin_entities85": 91,
+            "skin_entities86": 90,
+            "skin_entities87": 89,
+            "skin_entities88": 88,
+            "skin_entities89": 97,
+            "skin_entities9": 19,
+            "skin_entities90": 96,
+            "skin_entities91": 95,
+            "skin_entities92": 94,
+            "skin_entities93": 93,
+            "skin_entities94": 3,
+            "skin_entities95": 101,
+            "skin_entities96": 103,
+            "skin_entities97": 102,
+            "skin_entities98": 107,
+            "skin_entities99": 108
         },
         {
             "comp_type": 12829486272651206750,
-            "entity": 27,
+            "entity": 171,
+            "material": 2,
+            "material0": "assets/models/enemy_final.stkmodel/EnemyHead",
+            "material1": "assets/models/enemy_final.stkmodel/EnemyBody",
+            "mesh": "assets/models/enemy_final.stkmodel/slippers.002",
+            "skin": "assets/models/enemy_final.stkmodel/Armature",
+            "skin_entities": 171,
+            "skin_entities0": 9,
+            "skin_entities1": 8,
+            "skin_entities10": 18,
+            "skin_entities100": 106,
+            "skin_entities101": 105,
+            "skin_entities102": 104,
+            "skin_entities103": 110,
+            "skin_entities104": 109,
+            "skin_entities105": 114,
+            "skin_entities106": 115,
+            "skin_entities107": 113,
+            "skin_entities108": 112,
+            "skin_entities109": 111,
+            "skin_entities11": 25,
+            "skin_entities110": 100,
+            "skin_entities111": 120,
+            "skin_entities112": 119,
+            "skin_entities113": 123,
+            "skin_entities114": 122,
+            "skin_entities115": 121,
+            "skin_entities116": 126,
+            "skin_entities117": 125,
+            "skin_entities118": 124,
+            "skin_entities119": 129,
+            "skin_entities12": 24,
+            "skin_entities120": 128,
+            "skin_entities121": 127,
+            "skin_entities122": 132,
+            "skin_entities123": 131,
+            "skin_entities124": 130,
+            "skin_entities125": 118,
+            "skin_entities126": 117,
+            "skin_entities127": 116,
+            "skin_entities128": 99,
+            "skin_entities129": 98,
+            "skin_entities13": 23,
+            "skin_entities130": 135,
+            "skin_entities131": 138,
+            "skin_entities132": 137,
+            "skin_entities133": 136,
+            "skin_entities134": 134,
+            "skin_entities135": 143,
+            "skin_entities136": 145,
+            "skin_entities137": 146,
+            "skin_entities138": 144,
+            "skin_entities139": 147,
+            "skin_entities14": 22,
+            "skin_entities140": 142,
+            "skin_entities141": 141,
+            "skin_entities142": 140,
+            "skin_entities143": 139,
+            "skin_entities144": 148,
+            "skin_entities145": 133,
+            "skin_entities146": 149,
+            "skin_entities147": 152,
+            "skin_entities148": 155,
+            "skin_entities149": 154,
+            "skin_entities15": 29,
+            "skin_entities150": 153,
+            "skin_entities151": 151,
+            "skin_entities152": 160,
+            "skin_entities153": 162,
+            "skin_entities154": 163,
+            "skin_entities155": 161,
+            "skin_entities156": 164,
+            "skin_entities157": 159,
+            "skin_entities158": 158,
+            "skin_entities159": 157,
+            "skin_entities16": 28,
+            "skin_entities160": 156,
+            "skin_entities161": 165,
+            "skin_entities162": 150,
+            "skin_entities163": 166,
+            "skin_entities164": 167,
+            "skin_entities165": 168,
+            "skin_entities166": 169,
+            "skin_entities167": 170,
+            "skin_entities168": 171,
+            "skin_entities169": 172,
+            "skin_entities17": 27,
+            "skin_entities170": 2,
+            "skin_entities18": 26,
+            "skin_entities19": 33,
+            "skin_entities2": 7,
+            "skin_entities20": 32,
+            "skin_entities21": 31,
+            "skin_entities22": 30,
+            "skin_entities23": 36,
+            "skin_entities24": 35,
+            "skin_entities25": 34,
+            "skin_entities26": 39,
+            "skin_entities27": 38,
+            "skin_entities28": 37,
+            "skin_entities29": 42,
+            "skin_entities3": 17,
+            "skin_entities30": 41,
+            "skin_entities31": 40,
+            "skin_entities32": 45,
+            "skin_entities33": 44,
+            "skin_entities34": 43,
+            "skin_entities35": 48,
+            "skin_entities36": 47,
+            "skin_entities37": 46,
+            "skin_entities38": 13,
+            "skin_entities39": 12,
+            "skin_entities4": 16,
+            "skin_entities40": 11,
+            "skin_entities41": 10,
+            "skin_entities42": 56,
+            "skin_entities43": 55,
+            "skin_entities44": 54,
+            "skin_entities45": 53,
+            "skin_entities46": 60,
+            "skin_entities47": 59,
+            "skin_entities48": 58,
+            "skin_entities49": 57,
+            "skin_entities5": 15,
+            "skin_entities50": 64,
+            "skin_entities51": 63,
+            "skin_entities52": 62,
+            "skin_entities53": 61,
+            "skin_entities54": 68,
+            "skin_entities55": 67,
+            "skin_entities56": 66,
+            "skin_entities57": 65,
+            "skin_entities58": 72,
+            "skin_entities59": 71,
+            "skin_entities6": 14,
+            "skin_entities60": 70,
+            "skin_entities61": 69,
+            "skin_entities62": 75,
+            "skin_entities63": 74,
+            "skin_entities64": 73,
+            "skin_entities65": 78,
+            "skin_entities66": 77,
+            "skin_entities67": 76,
+            "skin_entities68": 81,
+            "skin_entities69": 80,
+            "skin_entities7": 21,
+            "skin_entities70": 79,
+            "skin_entities71": 84,
+            "skin_entities72": 83,
+            "skin_entities73": 82,
+            "skin_entities74": 87,
+            "skin_entities75": 86,
+            "skin_entities76": 85,
+            "skin_entities77": 52,
+            "skin_entities78": 51,
+            "skin_entities79": 50,
+            "skin_entities8": 20,
+            "skin_entities80": 49,
+            "skin_entities81": 6,
+            "skin_entities82": 5,
+            "skin_entities83": 4,
+            "skin_entities84": 92,
+            "skin_entities85": 91,
+            "skin_entities86": 90,
+            "skin_entities87": 89,
+            "skin_entities88": 88,
+            "skin_entities89": 97,
+            "skin_entities9": 19,
+            "skin_entities90": 96,
+            "skin_entities91": 95,
+            "skin_entities92": 94,
+            "skin_entities93": 93,
+            "skin_entities94": 3,
+            "skin_entities95": 101,
+            "skin_entities96": 103,
+            "skin_entities97": 102,
+            "skin_entities98": 107,
+            "skin_entities99": 108
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 172,
             "material": 1,
-            "material0": "assets/models/saunaguy.stkmodel/saunaguy",
-            "mesh": "assets/models/saunaguy.stkmodel/saunaguy",
-            "skin": "assets/models/saunaguy.stkmodel/Armature",
-            "skin_entities": 27,
-            "skin_entities0": 8,
-            "skin_entities1": 7,
-            "skin_entities10": 13,
-            "skin_entities11": 5,
-            "skin_entities12": 4,
-            "skin_entities13": 3,
-            "skin_entities14": 21,
-            "skin_entities15": 20,
-            "skin_entities16": 19,
-            "skin_entities17": 18,
-            "skin_entities18": 17,
-            "skin_entities19": 26,
-            "skin_entities2": 6,
-            "skin_entities20": 25,
-            "skin_entities21": 24,
-            "skin_entities22": 23,
-            "skin_entities23": 22,
-            "skin_entities24": 2,
-            "skin_entities25": 27,
-            "skin_entities26": 1,
-            "skin_entities3": 12,
-            "skin_entities4": 11,
-            "skin_entities5": 10,
-            "skin_entities6": 9,
-            "skin_entities7": 16,
-            "skin_entities8": 15,
-            "skin_entities9": 14
+            "material0": "assets/models/enemy_final.stkmodel/EnemyHead",
+            "mesh": "assets/models/enemy_final.stkmodel/EnemyBody.002",
+            "skin": "assets/models/enemy_final.stkmodel/Armature",
+            "skin_entities": 171,
+            "skin_entities0": 9,
+            "skin_entities1": 8,
+            "skin_entities10": 18,
+            "skin_entities100": 106,
+            "skin_entities101": 105,
+            "skin_entities102": 104,
+            "skin_entities103": 110,
+            "skin_entities104": 109,
+            "skin_entities105": 114,
+            "skin_entities106": 115,
+            "skin_entities107": 113,
+            "skin_entities108": 112,
+            "skin_entities109": 111,
+            "skin_entities11": 25,
+            "skin_entities110": 100,
+            "skin_entities111": 120,
+            "skin_entities112": 119,
+            "skin_entities113": 123,
+            "skin_entities114": 122,
+            "skin_entities115": 121,
+            "skin_entities116": 126,
+            "skin_entities117": 125,
+            "skin_entities118": 124,
+            "skin_entities119": 129,
+            "skin_entities12": 24,
+            "skin_entities120": 128,
+            "skin_entities121": 127,
+            "skin_entities122": 132,
+            "skin_entities123": 131,
+            "skin_entities124": 130,
+            "skin_entities125": 118,
+            "skin_entities126": 117,
+            "skin_entities127": 116,
+            "skin_entities128": 99,
+            "skin_entities129": 98,
+            "skin_entities13": 23,
+            "skin_entities130": 135,
+            "skin_entities131": 138,
+            "skin_entities132": 137,
+            "skin_entities133": 136,
+            "skin_entities134": 134,
+            "skin_entities135": 143,
+            "skin_entities136": 145,
+            "skin_entities137": 146,
+            "skin_entities138": 144,
+            "skin_entities139": 147,
+            "skin_entities14": 22,
+            "skin_entities140": 142,
+            "skin_entities141": 141,
+            "skin_entities142": 140,
+            "skin_entities143": 139,
+            "skin_entities144": 148,
+            "skin_entities145": 133,
+            "skin_entities146": 149,
+            "skin_entities147": 152,
+            "skin_entities148": 155,
+            "skin_entities149": 154,
+            "skin_entities15": 29,
+            "skin_entities150": 153,
+            "skin_entities151": 151,
+            "skin_entities152": 160,
+            "skin_entities153": 162,
+            "skin_entities154": 163,
+            "skin_entities155": 161,
+            "skin_entities156": 164,
+            "skin_entities157": 159,
+            "skin_entities158": 158,
+            "skin_entities159": 157,
+            "skin_entities16": 28,
+            "skin_entities160": 156,
+            "skin_entities161": 165,
+            "skin_entities162": 150,
+            "skin_entities163": 166,
+            "skin_entities164": 167,
+            "skin_entities165": 168,
+            "skin_entities166": 169,
+            "skin_entities167": 170,
+            "skin_entities168": 171,
+            "skin_entities169": 172,
+            "skin_entities17": 27,
+            "skin_entities170": 2,
+            "skin_entities18": 26,
+            "skin_entities19": 33,
+            "skin_entities2": 7,
+            "skin_entities20": 32,
+            "skin_entities21": 31,
+            "skin_entities22": 30,
+            "skin_entities23": 36,
+            "skin_entities24": 35,
+            "skin_entities25": 34,
+            "skin_entities26": 39,
+            "skin_entities27": 38,
+            "skin_entities28": 37,
+            "skin_entities29": 42,
+            "skin_entities3": 17,
+            "skin_entities30": 41,
+            "skin_entities31": 40,
+            "skin_entities32": 45,
+            "skin_entities33": 44,
+            "skin_entities34": 43,
+            "skin_entities35": 48,
+            "skin_entities36": 47,
+            "skin_entities37": 46,
+            "skin_entities38": 13,
+            "skin_entities39": 12,
+            "skin_entities4": 16,
+            "skin_entities40": 11,
+            "skin_entities41": 10,
+            "skin_entities42": 56,
+            "skin_entities43": 55,
+            "skin_entities44": 54,
+            "skin_entities45": 53,
+            "skin_entities46": 60,
+            "skin_entities47": 59,
+            "skin_entities48": 58,
+            "skin_entities49": 57,
+            "skin_entities5": 15,
+            "skin_entities50": 64,
+            "skin_entities51": 63,
+            "skin_entities52": 62,
+            "skin_entities53": 61,
+            "skin_entities54": 68,
+            "skin_entities55": 67,
+            "skin_entities56": 66,
+            "skin_entities57": 65,
+            "skin_entities58": 72,
+            "skin_entities59": 71,
+            "skin_entities6": 14,
+            "skin_entities60": 70,
+            "skin_entities61": 69,
+            "skin_entities62": 75,
+            "skin_entities63": 74,
+            "skin_entities64": 73,
+            "skin_entities65": 78,
+            "skin_entities66": 77,
+            "skin_entities67": 76,
+            "skin_entities68": 81,
+            "skin_entities69": 80,
+            "skin_entities7": 21,
+            "skin_entities70": 79,
+            "skin_entities71": 84,
+            "skin_entities72": 83,
+            "skin_entities73": 82,
+            "skin_entities74": 87,
+            "skin_entities75": 86,
+            "skin_entities76": 85,
+            "skin_entities77": 52,
+            "skin_entities78": 51,
+            "skin_entities79": 50,
+            "skin_entities8": 20,
+            "skin_entities80": 49,
+            "skin_entities81": 6,
+            "skin_entities82": 5,
+            "skin_entities83": 4,
+            "skin_entities84": 92,
+            "skin_entities85": 91,
+            "skin_entities86": 90,
+            "skin_entities87": 89,
+            "skin_entities88": 88,
+            "skin_entities89": 97,
+            "skin_entities9": 19,
+            "skin_entities90": 96,
+            "skin_entities91": 95,
+            "skin_entities92": 94,
+            "skin_entities93": 93,
+            "skin_entities94": 3,
+            "skin_entities95": 101,
+            "skin_entities96": 103,
+            "skin_entities97": 102,
+            "skin_entities98": 107,
+            "skin_entities99": 108
         }
     ],
     "entities": [
@@ -109,9 +584,9 @@
             "next_sibling": -1,
             "parent": -1,
             "pos": [
-                1.9365311861038208,
-                0.0,
-                -0.5839486122131348
+                -168.68362426757813,
+                3.947464942932129,
+                -49.17649841308594
             ],
             "rot": [
                 0.0,
@@ -124,30 +599,30 @@
                 1.0,
                 1.0
             ],
-            "tag": "",
+            "tag": "enemy",
             "template": "",
             "visible": 1
         },
         {
             "first_child": 2,
-            "name": "Armature",
+            "name": "assets/models/enemy_final.stkmodel",
             "next_sibling": -1,
             "parent": 0,
             "pos": [
                 0.0,
-                0.0,
+                -3.0489063262939453,
                 0.0
             ],
             "rot": [
-                0.7071068286895752,
                 0.0,
                 0.0,
-                0.7071067094802856
+                0.0,
+                1.0
             ],
             "scale": [
-                0.009999999776482582,
-                0.010000000707805157,
-                0.010000000707805157
+                6.0,
+                6.0,
+                6.0
             ],
             "tag": "",
             "template": "",
@@ -155,22 +630,122 @@
         },
         {
             "first_child": 3,
-            "name": "mixamorig:Hips",
-            "next_sibling": 27,
+            "name": "Armature",
+            "next_sibling": -1,
             "parent": 1,
             "pos": [
                 0.0,
-                0.02991604618728161,
-                -100.44189453125
+                0.0,
+                0.0
             ],
             "rot": [
-                -0.7071067094802856,
                 0.0,
                 0.0,
-                0.7071068286895752
+                0.0,
+                1.0
             ],
             "scale": [
                 1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 4,
+            "name": "mixamorig:Hips",
+            "next_sibling": 98,
+            "parent": 2,
+            "pos": [
+                0.000827044015750289,
+                0.5804156064987183,
+                0.001896315487101674
+            ],
+            "rot": [
+                0.010261458344757557,
+                -0.09897061437368393,
+                -0.010067496448755264,
+                0.9949865341186523
+            ],
+            "scale": [
+                0.9999999403953552,
+                0.9999997019767761,
+                0.9999997019767761
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 5,
+            "name": "mixamorig:Spine",
+            "next_sibling": 88,
+            "parent": 3,
+            "pos": [
+                -1.862645149230957e-09,
+                0.06167737767100334,
+                -0.00562054431065917
+            ],
+            "rot": [
+                0.014343736693263054,
+                0.016966216266155243,
+                0.006151849869638681,
+                0.9997342824935913
+            ],
+            "scale": [
+                1.0000001192092896,
+                1.0000001192092896,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 6,
+            "name": "mixamorig:Spine1",
+            "next_sibling": -1,
+            "parent": 4,
+            "pos": [
+                3.4924596548080444e-10,
+                0.0722549557685852,
+                -3.3178326752647536e-09
+            ],
+            "rot": [
+                0.011108103208243847,
+                0.034776557236909866,
+                0.013142806477844715,
+                0.9992469549179077
+            ],
+            "scale": [
+                0.9999998807907104,
+                0.9999998807907104,
+                0.9999999403953552
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 7,
+            "name": "mixamorig:Spine2",
+            "next_sibling": -1,
+            "parent": 5,
+            "pos": [
+                1.1641532182693481e-10,
+                0.0825771763920784,
+                -8.250935046305585e-09
+            ],
+            "rot": [
+                -0.09208444505929947,
+                0.032463863492012024,
+                0.01717899926006794,
+                0.9950736165046692
+            ],
+            "scale": [
+                0.9999998807907104,
                 0.9999999403953552,
                 0.9999999403953552
             ],
@@ -179,20 +754,170 @@
             "visible": 1
         },
         {
-            "first_child": 4,
-            "name": "mixamorig:Spine",
-            "next_sibling": 17,
-            "parent": 2,
+            "first_child": 8,
+            "name": "mixamorig:Neck",
+            "next_sibling": 10,
+            "parent": 6,
             "pos": [
-                -2.244484278435266e-07,
-                10.297840118408203,
-                -0.8582958579063416
+                -1.30385160446167e-08,
+                0.09289922565221786,
+                -1.1635457930481152e-08
             ],
             "rot": [
-                -0.0382147952914238,
-                -0.0255446694791317,
-                0.02346949838101864,
-                0.998667299747467
+                0.1343519538640976,
+                0.023625938221812248,
+                -0.062046799808740616,
+                0.9887070059776306
+            ],
+            "scale": [
+                0.9999996423721313,
+                0.9999998807907104,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 9,
+            "name": "mixamorig:Head",
+            "next_sibling": -1,
+            "parent": 7,
+            "pos": [
+                -2.648448571562767e-09,
+                0.042008575052022934,
+                0.008183957077562809
+            ],
+            "rot": [
+                0.041186969727277756,
+                -0.010774573311209679,
+                0.07537014037370682,
+                0.9962464570999146
+            ],
+            "scale": [
+                1.0,
+                0.9999998807907104,
+                0.9999998807907104
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "mixamorig:HeadTop_End",
+            "next_sibling": -1,
+            "parent": 8,
+            "pos": [
+                6.984919309616089e-09,
+                0.14739105105400085,
+                0.028714178130030632
+            ],
+            "rot": [
+                5.2677933126688e-09,
+                -2.3283061589829401e-10,
+                5.820766646458253e-10,
+                1.0
+            ],
+            "scale": [
+                0.9999999403953552,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 11,
+            "name": "mixamorig:LeftShoulder",
+            "next_sibling": 49,
+            "parent": 6,
+            "pos": [
+                0.047055456787347794,
+                0.07704774290323257,
+                -0.0015148529782891273
+            ],
+            "rot": [
+                0.5373425483703613,
+                0.4365336298942566,
+                -0.5925349593162537,
+                0.41182979941368103
+            ],
+            "scale": [
+                1.000000238418579,
+                0.9999999403953552,
+                1.000000238418579
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 12,
+            "name": "mixamorig:LeftArm",
+            "next_sibling": -1,
+            "parent": 10,
+            "pos": [
+                1.33701472115888e-09,
+                0.10051029175519943,
+                9.351245466859837e-08
+            ],
+            "rot": [
+                0.5136758685112,
+                0.03376639634370804,
+                -0.10115298628807068,
+                0.851331353187561
+            ],
+            "scale": [
+                1.000000238418579,
+                0.9999998211860657,
+                1.000000238418579
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 13,
+            "name": "mixamorig:LeftForeArm",
+            "next_sibling": -1,
+            "parent": 11,
+            "pos": [
+                -2.407207588817073e-08,
+                0.14795367419719696,
+                -2.8229438786553374e-09
+            ],
+            "rot": [
+                8.924873640125952e-08,
+                -4.908014261673088e-07,
+                0.15243645012378693,
+                0.9883133172988892
+            ],
+            "scale": [
+                0.9999997019767761,
+                1.000000238418579,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 14,
+            "name": "mixamorig:LeftHand",
+            "next_sibling": -1,
+            "parent": 12,
+            "pos": [
+                1.5303768918784044e-08,
+                0.13799253106117249,
+                7.371324528548939e-08
+            ],
+            "rot": [
+                0.07944732159376144,
+                0.018736913800239563,
+                -0.06129978224635124,
+                0.9947760701179504
             ],
             "scale": [
                 1.0,
@@ -204,24 +929,49 @@
             "visible": 1
         },
         {
-            "first_child": 5,
-            "name": "mixamorig:Spine1",
-            "next_sibling": -1,
-            "parent": 3,
+            "first_child": 15,
+            "name": "mixamorig:LeftHandThumb1",
+            "next_sibling": 18,
+            "parent": 13,
             "pos": [
-                -1.867604169092374e-07,
-                12.055787086486816,
-                -1.4449165064434055e-06
+                -0.016593074426054955,
+                0.03009965643286705,
+                0.014955674298107624
             ],
             "rot": [
-                0.005137803498655558,
-                -0.04881821572780609,
-                0.023179184645414352,
-                0.9985255002975464
+                0.1003938838839531,
+                0.14146016538143158,
+                0.2709941565990448,
+                0.9468222260475159
             ],
             "scale": [
-                1.0,
-                1.0,
+                0.9999998807907104,
+                1.0000001192092896,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 16,
+            "name": "mixamorig:LeftHandThumb2",
+            "next_sibling": -1,
+            "parent": 14,
+            "pos": [
+                -0.0038635265082120895,
+                0.029736677184700966,
+                -1.1378160635899803e-08
+            ],
+            "rot": [
+                0.05432174727320671,
+                -0.09458307921886444,
+                -0.09072968363761902,
+                0.9898844957351685
+            ],
+            "scale": [
+                0.9999998807907104,
+                0.9999998807907104,
                 0.9999999403953552
             ],
             "tag": "",
@@ -229,24 +979,124 @@
             "visible": 1
         },
         {
-            "first_child": 6,
-            "name": "mixamorig:Spine2",
+            "first_child": 17,
+            "name": "mixamorig:LeftHandThumb3",
             "next_sibling": -1,
-            "parent": 4,
+            "parent": 15,
             "pos": [
-                5.801514362246962e-07,
-                13.778060913085938,
-                -4.728611884274869e-07
+                0.0007856469601392746,
+                0.02456788346171379,
+                7.055070971873079e-10
             ],
             "rot": [
-                0.005098260939121246,
-                -0.04897056147456169,
-                0.022871995344758034,
-                0.9985253214836121
+                0.0047158133238554,
+                -0.008163446560502052,
+                0.023047635331749916,
+                0.9996899366378784
             ],
             "scale": [
                 1.0,
+                0.9999998807907104,
+                1.0000001192092896
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "mixamorig:LeftHandThumb4",
+            "next_sibling": -1,
+            "parent": 16,
+            "pos": [
+                0.0030777938663959503,
+                0.020734790712594986,
+                -3.259634118180088e-09
+            ],
+            "rot": [
+                3.020613803528249e-08,
+                -2.79396972224788e-09,
+                -2.2334823768233036e-07,
+                1.0
+            ],
+            "scale": [
+                1.0000001192092896,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 19,
+            "name": "mixamorig:LeftHandIndex1",
+            "next_sibling": 22,
+            "parent": 13,
+            "pos": [
+                -0.02813234180212021,
+                0.09762002527713776,
+                0.0018697227351367474
+            ],
+            "rot": [
+                0.08717525005340576,
+                0.011555833742022514,
+                0.0748802199959755,
+                0.9933075904846191
+            ],
+            "scale": [
+                0.9999998211860657,
+                0.9999997019767761,
+                0.9999999403953552
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 20,
+            "name": "mixamorig:LeftHandIndex2",
+            "next_sibling": -1,
+            "parent": 18,
+            "pos": [
+                -0.00027197226881980896,
+                0.01908974163234234,
+                3.030367423662028e-08
+            ],
+            "rot": [
+                0.2052885740995407,
+                0.00567165482789278,
+                -0.02463678829371929,
+                0.9783749580383301
+            ],
+            "scale": [
+                1.0,
+                0.9999998807907104,
+                0.9999999403953552
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 21,
+            "name": "mixamorig:LeftHandIndex3",
+            "next_sibling": -1,
+            "parent": 19,
+            "pos": [
+                -0.0007973741739988327,
+                0.01804487779736519,
+                -2.9147539493123986e-08
+            ],
+            "rot": [
+                0.12458837032318115,
+                -0.006499646697193384,
+                0.055117763578891754,
+                0.9906551241874695
+            ],
+            "scale": [
                 0.9999999403953552,
+                0.9999997615814209,
                 0.9999999403953552
             ],
             "tag": "",
@@ -254,45 +1104,195 @@
             "visible": 1
         },
         {
-            "first_child": 7,
-            "name": "mixamorig:Neck",
-            "next_sibling": 9,
-            "parent": 5,
+            "first_child": -1,
+            "name": "mixamorig:LeftHandIndex4",
+            "next_sibling": -1,
+            "parent": 20,
             "pos": [
-                -3.317992423035321e-07,
-                15.500307083129883,
-                -3.6630206068366533e-07
+                0.0010693315416574478,
+                0.01326390914618969,
+                3.7252867457482353e-09
             ],
             "rot": [
-                0.022161301225423813,
-                0.005237460136413574,
-                0.00393764628097415,
-                0.9997329711914063
+                8.381901395182467e-09,
+                1.1175870895385742e-08,
+                1.0710211384434842e-08,
+                1.0
             ],
             "scale": [
                 1.0,
-                0.9999999403953552,
-                0.9999999403953552
+                0.9999998807907104,
+                1.0
             ],
             "tag": "",
             "template": "",
             "visible": 1
         },
         {
-            "first_child": 8,
-            "name": "mixamorig:Head",
-            "next_sibling": -1,
-            "parent": 6,
+            "first_child": 23,
+            "name": "mixamorig:LeftHandMiddle1",
+            "next_sibling": 26,
+            "parent": 13,
             "pos": [
-                -1.5149183241192077e-08,
-                10.851452827453613,
-                4.603984355926514
+                -0.009997846558690071,
+                0.09769240021705627,
+                -0.0008209720253944397
             ],
             "rot": [
-                -0.03655998036265373,
-                0.03531185910105705,
-                -0.018397070467472076,
-                0.9985379576683044
+                0.18437625467777252,
+                0.012295345775783062,
+                0.07034479081630707,
+                0.980258047580719
+            ],
+            "scale": [
+                1.0,
+                0.9999997615814209,
+                0.9999997019767761
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 24,
+            "name": "mixamorig:LeftHandMiddle2",
+            "next_sibling": -1,
+            "parent": 22,
+            "pos": [
+                0.000681040808558464,
+                0.01925038732588291,
+                2.362154916113468e-08
+            ],
+            "rot": [
+                0.23055410385131836,
+                0.00019834488921333104,
+                -0.04252113774418831,
+                0.9721300005912781
+            ],
+            "scale": [
+                1.0000001192092896,
+                0.9999998211860657,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 25,
+            "name": "mixamorig:LeftHandMiddle3",
+            "next_sibling": -1,
+            "parent": 23,
+            "pos": [
+                -0.0006935950368642807,
+                0.0202960092574358,
+                4.885335513904465e-08
+            ],
+            "rot": [
+                0.23908519744873047,
+                0.0057082404382526875,
+                0.008325197733938694,
+                0.9709461331367493
+            ],
+            "scale": [
+                0.9999999403953552,
+                0.9999997615814209,
+                0.9999997615814209
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "mixamorig:LeftHandMiddle4",
+            "next_sibling": -1,
+            "parent": 24,
+            "pos": [
+                1.2569129467010498e-05,
+                0.015909189358353615,
+                2.6077033865590238e-08
+            ],
+            "rot": [
+                7.450580596923828e-09,
+                6.146728992462158e-08,
+                3.119930624961853e-07,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 27,
+            "name": "mixamorig:LeftHandRing1",
+            "next_sibling": 30,
+            "parent": 13,
+            "pos": [
+                0.011189346201717854,
+                0.09801206737756729,
+                -0.003254001960158348
+            ],
+            "rot": [
+                0.23676973581314087,
+                -0.022613205015659332,
+                0.04818069562315941,
+                0.9701068997383118
+            ],
+            "scale": [
+                0.9999998211860657,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 28,
+            "name": "mixamorig:LeftHandRing2",
+            "next_sibling": -1,
+            "parent": 26,
+            "pos": [
+                0.0003816918469965458,
+                0.016921065747737885,
+                -1.5457835900178907e-07
+            ],
+            "rot": [
+                0.2632422149181366,
+                0.00038787012454122305,
+                -0.05336834862828255,
+                0.9632524251937866
+            ],
+            "scale": [
+                1.0,
+                0.9999997615814209,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 29,
+            "name": "mixamorig:LeftHandRing3",
+            "next_sibling": -1,
+            "parent": 27,
+            "pos": [
+                -0.0003770999610424042,
+                0.015344677492976189,
+                -4.1853798649071905e-08
+            ],
+            "rot": [
+                0.23760706186294556,
+                0.005043316632509232,
+                -0.015581919811666012,
+                0.9712232947349548
             ],
             "scale": [
                 0.9999999403953552,
@@ -305,18 +1305,118 @@
         },
         {
             "first_child": -1,
-            "name": "mixamorig:HeadTop_End",
+            "name": "mixamorig:LeftHandRing4",
             "next_sibling": -1,
-            "parent": 7,
+            "parent": 28,
             "pos": [
-                -2.086162567138672e-07,
-                18.90630531311035,
-                8.021434783935547
+                -4.555098712444305e-06,
+                0.011558461003005505,
+                -4.679895226900044e-08
             ],
             "rot": [
-                -1.6880226105797647e-09,
-                4.0745362639427185e-10,
-                1.0477378964424133e-09,
+                -5.378388578947124e-08,
+                -4.6566135836201283e-08,
+                -1.4551916649452323e-07,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                0.9999998807907104
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 31,
+            "name": "mixamorig:LeftHandPinky1",
+            "next_sibling": 34,
+            "parent": 13,
+            "pos": [
+                0.02694096602499485,
+                0.09084302932024002,
+                -0.0027967540081590414
+            ],
+            "rot": [
+                0.25590917468070984,
+                -0.08107416331768036,
+                0.02779984474182129,
+                0.9628939032554626
+            ],
+            "scale": [
+                0.9999997019767761,
+                0.9999998807907104,
+                0.9999998211860657
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 32,
+            "name": "mixamorig:LeftHandPinky2",
+            "next_sibling": -1,
+            "parent": 30,
+            "pos": [
+                0.0005612317472696304,
+                0.013168435543775558,
+                4.8565667043476424e-08
+            ],
+            "rot": [
+                0.1989331990480423,
+                0.0002190608502132818,
+                -0.07021257281303406,
+                0.9774946570396423
+            ],
+            "scale": [
+                0.9999998807907104,
+                0.9999998807907104,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 33,
+            "name": "mixamorig:LeftHandPinky3",
+            "next_sibling": -1,
+            "parent": 31,
+            "pos": [
+                -5.213217809796333e-05,
+                0.011224492453038692,
+                5.8787921197733795e-09
+            ],
+            "rot": [
+                0.19154776632785797,
+                0.007864147424697876,
+                -0.07265122979879379,
+                0.9787591695785522
+            ],
+            "scale": [
+                0.9999997019767761,
+                0.9999998211860657,
+                0.9999997615814209
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "mixamorig:LeftHandPinky4",
+            "next_sibling": -1,
+            "parent": 32,
+            "pos": [
+                -0.00050907745026052,
+                0.008040185086429119,
+                -2.4097969841818667e-08
+            ],
+            "rot": [
+                5.0131347961723804e-09,
+                -6.635673344135284e-08,
+                7.450582373280668e-09,
                 1.0
             ],
             "scale": [
@@ -329,23 +1429,848 @@
             "visible": 1
         },
         {
-            "first_child": 10,
-            "name": "mixamorig:LeftShoulder",
-            "next_sibling": 13,
-            "parent": 5,
+            "first_child": 35,
+            "name": "Ctrl_Thumb1_Left",
+            "next_sibling": 37,
+            "parent": 13,
             "pos": [
-                5.970674514770508,
-                13.274998664855957,
-                -0.19604025781154633
+                -0.016593068838119507,
+                0.030099650844931602,
+                0.014955644495785236
             ],
             "rot": [
-                0.6161969304084778,
-                0.3538171052932739,
-                -0.6206947565078735,
-                0.33144059777259827
+                0.10039394348859787,
+                0.14146018028259277,
+                0.2709939479827881,
+                0.9468222856521606
+            ],
+            "scale": [
+                0.9999998807907104,
+                1.0000001192092896,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 36,
+            "name": "Ctrl_Thumb2_Left",
+            "next_sibling": -1,
+            "parent": 34,
+            "pos": [
+                -0.0038634848315268755,
+                0.029736604541540146,
+                -1.1918032782887167e-08
+            ],
+            "rot": [
+                0.0543217808008194,
+                -0.09458304941654205,
+                -0.09072963893413544,
+                0.9898844957351685
+            ],
+            "scale": [
+                0.9999998211860657,
+                0.9999997615814209,
+                0.9999998807907104
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Ctrl_Thumb3_Left",
+            "next_sibling": -1,
+            "parent": 35,
+            "pos": [
+                0.0007856109295971692,
+                0.02456783317029476,
+                -6.595272772358385e-09
+            ],
+            "rot": [
+                0.0047157839871943,
+                -0.00816342793405056,
+                0.023047635331749916,
+                0.9996899366378784
             ],
             "scale": [
                 1.0,
+                0.9999998807907104,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 38,
+            "name": "Ctrl_Index1_Left",
+            "next_sibling": 40,
+            "parent": 13,
+            "pos": [
+                -0.0281323604285717,
+                0.09762004762887955,
+                0.0018697036430239677
+            ],
+            "rot": [
+                0.08717525005340576,
+                0.011555833742022514,
+                0.0748802199959755,
+                0.9933075904846191
+            ],
+            "scale": [
+                0.9999998807907104,
+                0.9999998211860657,
+                0.9999999403953552
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 39,
+            "name": "Ctrl_Index2_Left",
+            "next_sibling": -1,
+            "parent": 37,
+            "pos": [
+                -0.0002719694166444242,
+                0.0190897136926651,
+                3.7812970532513646e-09
+            ],
+            "rot": [
+                0.2052885740995407,
+                0.00567165482789278,
+                -0.02463678829371929,
+                0.9783749580383301
+            ],
+            "scale": [
+                1.0000001192092896,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Ctrl_Index3_Left",
+            "next_sibling": -1,
+            "parent": 38,
+            "pos": [
+                -0.0007973485626280308,
+                0.018044911324977875,
+                -6.834383725617954e-09
+            ],
+            "rot": [
+                0.12458837032318115,
+                -0.006499646697193384,
+                0.055117763578891754,
+                0.9906551241874695
+            ],
+            "scale": [
+                0.9999999403953552,
+                0.9999998211860657,
+                0.9999999403953552
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 41,
+            "name": "Ctrl_Middle1_Left",
+            "next_sibling": 43,
+            "parent": 13,
+            "pos": [
+                -0.009997847490012646,
+                0.09769240766763687,
+                -0.0008209775551222265
+            ],
+            "rot": [
+                0.18437625467777252,
+                0.012295345775783062,
+                0.07034479081630707,
+                0.980258047580719
+            ],
+            "scale": [
+                0.9999998211860657,
+                0.9999997615814209,
+                0.9999995827674866
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 42,
+            "name": "Ctrl_Middle2_Left",
+            "next_sibling": -1,
+            "parent": 40,
+            "pos": [
+                0.0006810569320805371,
+                0.019250379875302315,
+                2.023964462694039e-08
+            ],
+            "rot": [
+                0.23055410385131836,
+                0.00019834488921333104,
+                -0.04252113774418831,
+                0.9721300005912781
+            ],
+            "scale": [
+                0.9999999403953552,
+                0.9999999403953552,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Ctrl_Middle3_Left",
+            "next_sibling": -1,
+            "parent": 41,
+            "pos": [
+                -0.0006935864803381264,
+                0.020295996218919754,
+                6.151188358671789e-08
+            ],
+            "rot": [
+                0.23908519744873047,
+                0.0057082404382526875,
+                0.008325197733938694,
+                0.9709461331367493
+            ],
+            "scale": [
+                1.0,
+                0.9999998211860657,
+                0.9999998211860657
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 44,
+            "name": "Ctrl_Ring1_Left",
+            "next_sibling": 46,
+            "parent": 13,
+            "pos": [
+                0.011189359240233898,
+                0.09801208972930908,
+                -0.00325401802547276
+            ],
+            "rot": [
+                0.23676973581314087,
+                -0.022613205015659332,
+                0.04818069562315941,
+                0.9701068997383118
+            ],
+            "scale": [
+                0.9999999403953552,
+                1.000000238418579,
+                0.9999999403953552
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 45,
+            "name": "Ctrl_Ring2_Left",
+            "next_sibling": -1,
+            "parent": 43,
+            "pos": [
+                0.00038168817991390824,
+                0.016921065747737885,
+                -1.6221653709180828e-07
+            ],
+            "rot": [
+                0.2632422149181366,
+                0.00038787012454122305,
+                -0.05336834862828255,
+                0.9632524251937866
+            ],
+            "scale": [
+                1.0000001192092896,
+                0.9999998807907104,
+                1.0000001192092896
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Ctrl_Ring3_Left",
+            "next_sibling": -1,
+            "parent": 44,
+            "pos": [
+                -0.00037712175981141627,
+                0.015344723127782345,
+                -4.145006471389934e-08
+            ],
+            "rot": [
+                0.23760706186294556,
+                0.005043316632509232,
+                -0.015581919811666012,
+                0.9712232947349548
+            ],
+            "scale": [
+                0.9999999403953552,
+                0.9999999403953552,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 47,
+            "name": "Ctrl_Pinky1_Left",
+            "next_sibling": -1,
+            "parent": 13,
+            "pos": [
+                0.026940975338220596,
+                0.09084304422140121,
+                -0.002796731423586607
+            ],
+            "rot": [
+                0.25590917468070984,
+                -0.08107416331768036,
+                0.02779984474182129,
+                0.9628939032554626
+            ],
+            "scale": [
+                0.9999998211860657,
+                0.9999997615814209,
+                0.9999998807907104
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 48,
+            "name": "Ctrl_Pinky2_Left",
+            "next_sibling": -1,
+            "parent": 46,
+            "pos": [
+                0.0005612308159470558,
+                0.013168459758162498,
+                4.619482396606145e-08
+            ],
+            "rot": [
+                0.1989331990480423,
+                0.0002190608502132818,
+                -0.07021257281303406,
+                0.9774946570396423
+            ],
+            "scale": [
+                0.9999999403953552,
+                0.9999998211860657,
+                0.9999998807907104
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Ctrl_Pinky3_Left",
+            "next_sibling": -1,
+            "parent": 47,
+            "pos": [
+                -5.211891038925387e-05,
+                0.011224506422877312,
+                1.260896098642661e-08
+            ],
+            "rot": [
+                0.19154776632785797,
+                0.007864147424697876,
+                -0.07265122979879379,
+                0.9787591695785522
+            ],
+            "scale": [
+                0.9999997615814209,
+                0.9999997615814209,
+                0.9999997019767761
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 50,
+            "name": "mixamorig:RightShoulder",
+            "next_sibling": -1,
+            "parent": 6,
+            "pos": [
+                -0.04705553874373436,
+                0.07703515887260437,
+                -0.0013753736857324839
+            ],
+            "rot": [
+                0.5435702800750732,
+                -0.4361899197101593,
+                0.5699434876441956,
+                0.4352405071258545
+            ],
+            "scale": [
+                1.0000001192092896,
+                1.0000001192092896,
+                0.9999999403953552
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 51,
+            "name": "mixamorig:RightArm",
+            "next_sibling": -1,
+            "parent": 49,
+            "pos": [
+                7.853137029556478e-10,
+                0.10051024705171585,
+                1.1387280807184652e-07
+            ],
+            "rot": [
+                0.47659462690353394,
+                -0.06211338937282562,
+                0.09302033483982086,
+                0.8719786405563354
+            ],
+            "scale": [
+                0.9999996423721313,
+                0.9999998807907104,
+                0.9999995231628418
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 52,
+            "name": "mixamorig:RightForeArm",
+            "next_sibling": -1,
+            "parent": 50,
+            "pos": [
+                -6.691750265019891e-09,
+                0.1479375958442688,
+                1.7515727535055703e-08
+            ],
+            "rot": [
+                -1.4594505159948312e-07,
+                1.0692742762330454e-06,
+                -0.19252312183380127,
+                0.9812924861907959
+            ],
+            "scale": [
+                0.9999999403953552,
+                0.9999998807907104,
+                0.9999998211860657
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 53,
+            "name": "mixamorig:RightHand",
+            "next_sibling": -1,
+            "parent": 51,
+            "pos": [
+                -9.976656833998732e-09,
+                0.13797849416732788,
+                1.2027408402559558e-08
+            ],
+            "rot": [
+                0.041145551949739456,
+                -0.03356171399354935,
+                0.014634113758802414,
+                0.9984821081161499
+            ],
+            "scale": [
+                0.9999998211860657,
+                0.9999997615814209,
+                1.0000001192092896
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 54,
+            "name": "mixamorig:RightHandThumb1",
+            "next_sibling": 57,
+            "parent": 52,
+            "pos": [
+                0.01602359116077423,
+                0.029920833185315132,
+                0.01529852394014597
+            ],
+            "rot": [
+                0.09333473443984985,
+                -0.13786549866199493,
+                -0.2676936686038971,
+                0.949010968208313
+            ],
+            "scale": [
+                1.0000001192092896,
+                1.0000001192092896,
+                1.0000001192092896
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 55,
+            "name": "mixamorig:RightHandThumb2",
+            "next_sibling": -1,
+            "parent": 53,
+            "pos": [
+                0.0037113456055521965,
+                0.029551662504673004,
+                -7.176463157065882e-08
+            ],
+            "rot": [
+                0.05355553701519966,
+                0.094159796833992,
+                0.0915723443031311,
+                0.9898890256881714
+            ],
+            "scale": [
+                0.9999998807907104,
+                1.0000001192092896,
+                1.0000001192092896
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 56,
+            "name": "mixamorig:RightHandThumb3",
+            "next_sibling": -1,
+            "parent": 54,
+            "pos": [
+                -0.0008631749078631401,
+                0.02481352537870407,
+                -2.2340268301945798e-08
+            ],
+            "rot": [
+                0.00463851448148489,
+                0.008634595200419426,
+                -0.015109316445887089,
+                0.9998378157615662
+            ],
+            "scale": [
+                0.9999998807907104,
+                0.9999997615814209,
+                1.000000238418579
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "mixamorig:RightHandThumb4",
+            "next_sibling": -1,
+            "parent": 55,
+            "pos": [
+                -0.0028481557965278625,
+                0.02107882872223854,
+                1.2340016120049313e-08
+            ],
+            "rot": [
+                -6.931369398444076e-07,
+                6.43776658648676e-08,
+                -1.178705222315557e-08,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                0.9999998807907104,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 58,
+            "name": "mixamorig:RightHandIndex1",
+            "next_sibling": 61,
+            "parent": 52,
+            "pos": [
+                0.028691619634628296,
+                0.10118362307548523,
+                0.0015816657105460763
+            ],
+            "rot": [
+                0.07992427051067352,
+                -0.009668928571045399,
+                -0.07762274891138077,
+                0.9937270283699036
+            ],
+            "scale": [
+                1.0,
+                0.9999999403953552,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 59,
+            "name": "mixamorig:RightHandIndex2",
+            "next_sibling": -1,
+            "parent": 57,
+            "pos": [
+                4.470352976682079e-08,
+                0.017538592219352722,
+                -6.536883745411615e-08
+            ],
+            "rot": [
+                0.20639975368976593,
+                -0.003421252593398094,
+                0.017163878306746483,
+                0.9783112406730652
+            ],
+            "scale": [
+                0.9999997615814209,
+                0.9999999403953552,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 60,
+            "name": "mixamorig:RightHandIndex3",
+            "next_sibling": -1,
+            "parent": 58,
+            "pos": [
+                0.00027556996792554855,
+                0.016045620664954185,
+                -6.576119204737552e-08
+            ],
+            "rot": [
+                0.12576140463352203,
+                0.00038095747004263103,
+                -0.014108406379818916,
+                0.9919601678848267
+            ],
+            "scale": [
+                1.0000001192092896,
+                0.9999998211860657,
+                0.9999999403953552
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "mixamorig:RightHandIndex4",
+            "next_sibling": -1,
+            "parent": 59,
+            "pos": [
+                -0.00027560070157051086,
+                0.012598407454788685,
+                9.313226634333205e-09
+            ],
+            "rot": [
+                6.984921085972928e-09,
+                9.31324350972318e-10,
+                8.614732038836337e-09,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 62,
+            "name": "mixamorig:RightHandMiddle1",
+            "next_sibling": 65,
+            "parent": 52,
+            "pos": [
+                0.009337374940514565,
+                0.10058161616325378,
+                -0.00252142152749002
+            ],
+            "rot": [
+                0.1651768684387207,
+                -0.006293494254350662,
+                -0.055362749844789505,
+                0.9846888184547424
+            ],
+            "scale": [
+                1.000000238418579,
+                1.000000238418579,
+                1.0000001192092896
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 63,
+            "name": "mixamorig:RightHandMiddle2",
+            "next_sibling": -1,
+            "parent": 61,
+            "pos": [
+                -0.00025203637778759,
+                0.019247379153966904,
+                -6.853217371372011e-08
+            ],
+            "rot": [
+                0.21939000487327576,
+                -0.0006829365738667548,
+                0.02636648900806904,
+                0.9752807021141052
+            ],
+            "scale": [
+                1.0,
+                1.0000001192092896,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 64,
+            "name": "mixamorig:RightHandMiddle3",
+            "next_sibling": -1,
+            "parent": 62,
+            "pos": [
+                0.00037906505167484283,
+                0.018818451091647148,
+                -2.5631370803580467e-08
+            ],
+            "rot": [
+                0.2279859185218811,
+                -0.002210656413808465,
+                -0.0033292369917035103,
+                0.9736562371253967
+            ],
+            "scale": [
+                1.0,
+                0.9999998807907104,
+                0.9999999403953552
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "mixamorig:RightHandMiddle4",
+            "next_sibling": -1,
+            "parent": 63,
+            "pos": [
+                -0.00012705475091934204,
+                0.015393595211207867,
+                -1.3969806422764464e-09
+            ],
+            "rot": [
+                -7.729975948223e-08,
+                2.9802322387695313e-08,
+                -3.478489816188812e-07,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                0.9999999403953552
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 66,
+            "name": "mixamorig:RightHandRing1",
+            "next_sibling": 69,
+            "parent": 52,
+            "pos": [
+                -0.012811604887247086,
+                0.10232964158058167,
+                -0.0035698891151696444
+            ],
+            "rot": [
+                0.22351838648319244,
+                0.03645910322666168,
+                -0.032162152230739594,
+                0.9734864830970764
+            ],
+            "scale": [
+                0.9999999403953552,
+                0.9999998211860657,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 67,
+            "name": "mixamorig:RightHandRing2",
+            "next_sibling": -1,
+            "parent": 65,
+            "pos": [
+                -2.3779459297657013e-05,
+                0.015220156870782375,
+                3.4263361925468416e-08
+            ],
+            "rot": [
+                0.25657394528388977,
+                -0.0014610583893954754,
+                0.043513793498277664,
+                0.9655435085296631
+            ],
+            "scale": [
+                0.9999998807907104,
+                0.9999999403953552,
+                0.9999999403953552
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 68,
+            "name": "mixamorig:RightHandRing3",
+            "next_sibling": -1,
+            "parent": 66,
+            "pos": [
+                0.00019404198974370956,
+                0.014292705804109573,
+                -1.2299159912743107e-08
+            ],
+            "rot": [
+                0.23095190525054932,
+                -0.00038532353937625885,
+                0.017252866178750992,
+                0.9728121161460876
+            ],
+            "scale": [
+                0.9999998807907104,
                 0.9999997615814209,
                 0.9999999403953552
             ],
@@ -354,23 +2279,348 @@
             "visible": 1
         },
         {
-            "first_child": 11,
-            "name": "mixamorig:LeftArm",
+            "first_child": -1,
+            "name": "mixamorig:RightHandRing4",
             "next_sibling": -1,
-            "parent": 9,
+            "parent": 67,
             "pos": [
-                7.272464017660241e-07,
-                12.62559986114502,
-                2.8430604288587347e-06
+                -0.00017025088891386986,
+                0.009461462497711182,
+                -1.3271352905519507e-08
             ],
             "rot": [
-                0.4128502607345581,
-                0.00307687115855515,
-                0.20897354185581207,
-                0.8864961266517639
+                -6.9849175332592495e-09,
+                2.6240013539791107e-07,
+                1.7695128917694092e-08,
+                1.0
             ],
             "scale": [
                 1.0,
+                1.0,
+                1.0000001192092896
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 70,
+            "name": "mixamorig:RightHandPinky1",
+            "next_sibling": 73,
+            "parent": 52,
+            "pos": [
+                -0.025217361748218536,
+                0.09328427165746689,
+                -0.0029207072220742702
+            ],
+            "rot": [
+                0.23860511183738708,
+                0.11210000514984131,
+                -0.036918047815561295,
+                0.9639182090759277
+            ],
+            "scale": [
+                0.9999999403953552,
+                0.9999997615814209,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 71,
+            "name": "mixamorig:RightHandPinky2",
+            "next_sibling": -1,
+            "parent": 69,
+            "pos": [
+                -0.0010333564132452011,
+                0.013395308516919613,
+                1.7057148582466652e-08
+            ],
+            "rot": [
+                0.18990695476531982,
+                0.0006287896540015936,
+                0.1021396815776825,
+                0.9764745235443115
+            ],
+            "scale": [
+                0.9999998807907104,
+                0.9999997019767761,
+                0.9999995827674866
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 72,
+            "name": "mixamorig:RightHandPinky3",
+            "next_sibling": -1,
+            "parent": 70,
+            "pos": [
+                0.00022732571233063936,
+                0.010765369050204754,
+                3.479526000660371e-08
+            ],
+            "rot": [
+                0.18203090131282806,
+                -0.01931573823094368,
+                0.10625770688056946,
+                0.9773438572883606
+            ],
+            "scale": [
+                0.9999999403953552,
+                0.9999997615814209,
+                0.9999998807907104
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "mixamorig:RightHandPinky4",
+            "next_sibling": -1,
+            "parent": 71,
+            "pos": [
+                0.0008060478139668703,
+                0.005888352170586586,
+                -1.493026857701807e-08
+            ],
+            "rot": [
+                -7.211929187178612e-08,
+                -8.405186235904694e-08,
+                1.5075784176588058e-07,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                0.9999999403953552,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 74,
+            "name": "Ctrl_Thumb1_Right",
+            "next_sibling": 76,
+            "parent": 52,
+            "pos": [
+                0.01602359488606453,
+                0.029920851811766624,
+                0.015298542566597462
+            ],
+            "rot": [
+                0.0933348536491394,
+                -0.1378655731678009,
+                -0.2676936388015747,
+                0.949010968208313
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0000001192092896
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 75,
+            "name": "Ctrl_Thumb2_Right",
+            "next_sibling": -1,
+            "parent": 73,
+            "pos": [
+                0.003711341880261898,
+                0.029551655054092407,
+                -6.204501090678605e-08
+            ],
+            "rot": [
+                0.05355552211403847,
+                0.0941598191857338,
+                0.09157231450080872,
+                0.9898890256881714
+            ],
+            "scale": [
+                0.9999998211860657,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Ctrl_Thumb3_Right",
+            "next_sibling": -1,
+            "parent": 74,
+            "pos": [
+                -0.0008631786913610995,
+                0.024813517928123474,
+                -1.6483440390402393e-08
+            ],
+            "rot": [
+                0.004638507030904293,
+                0.008634638972580433,
+                -0.015109332278370857,
+                0.9998378753662109
+            ],
+            "scale": [
+                0.9999999403953552,
+                0.9999998211860657,
+                1.0000001192092896
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 77,
+            "name": "Ctrl_Index1_Right",
+            "next_sibling": 79,
+            "parent": 52,
+            "pos": [
+                0.028691614046692848,
+                0.10118363797664642,
+                0.0015816836385056376
+            ],
+            "rot": [
+                0.07992427051067352,
+                -0.009668928571045399,
+                -0.07762274891138077,
+                0.9937270283699036
+            ],
+            "scale": [
+                1.0,
+                0.9999999403953552,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 78,
+            "name": "Ctrl_Index2_Right",
+            "next_sibling": -1,
+            "parent": 76,
+            "pos": [
+                4.0504414045017256e-08,
+                0.017538612708449364,
+                -5.774083078335934e-08
+            ],
+            "rot": [
+                0.20639975368976593,
+                -0.003421252593398094,
+                0.017163878306746483,
+                0.9783112406730652
+            ],
+            "scale": [
+                0.9999998807907104,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Ctrl_Index3_Right",
+            "next_sibling": -1,
+            "parent": 77,
+            "pos": [
+                0.00027557314024306834,
+                0.016045594587922096,
+                6.868168700435717e-09
+            ],
+            "rot": [
+                0.12576140463352203,
+                0.00038095747004263103,
+                -0.014108406379818916,
+                0.9919601678848267
+            ],
+            "scale": [
+                1.0,
+                0.9999999403953552,
+                0.9999999403953552
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 80,
+            "name": "Ctrl_Middle1_Right",
+            "next_sibling": 82,
+            "parent": 52,
+            "pos": [
+                0.009337377734482288,
+                0.10058160871267319,
+                -0.002521378919482231
+            ],
+            "rot": [
+                0.1651768684387207,
+                -0.006293494254350662,
+                -0.055362749844789505,
+                0.9846888184547424
+            ],
+            "scale": [
+                1.0000001192092896,
+                1.0000001192092896,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 81,
+            "name": "Ctrl_Middle2_Right",
+            "next_sibling": -1,
+            "parent": 79,
+            "pos": [
+                -0.0002520316338632256,
+                0.019247369840741158,
+                -7.749532926482061e-08
+            ],
+            "rot": [
+                0.21939000487327576,
+                -0.0006829365738667548,
+                0.02636648900806904,
+                0.9752807021141052
+            ],
+            "scale": [
+                1.0,
+                1.0000001192092896,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Ctrl_Middle3_Right",
+            "next_sibling": -1,
+            "parent": 80,
+            "pos": [
+                0.0003790621994994581,
+                0.018818449229002,
+                -1.427072415793873e-08
+            ],
+            "rot": [
+                0.2279859185218811,
+                -0.002210656413808465,
+                -0.0033292369917035103,
+                0.9736562371253967
+            ],
+            "scale": [
+                0.9999999403953552,
                 0.9999998807907104,
                 0.9999998807907104
             ],
@@ -379,20 +2629,1270 @@
             "visible": 1
         },
         {
-            "first_child": 12,
-            "name": "mixamorig:LeftForeArm",
-            "next_sibling": -1,
-            "parent": 10,
+            "first_child": 83,
+            "name": "Ctrl_Ring1_Right",
+            "next_sibling": 85,
+            "parent": 52,
             "pos": [
-                2.975855295517249e-07,
-                29.108325958251953,
-                5.46242006294051e-07
+                -0.012811587192118168,
+                0.10232963413000107,
+                -0.0035698856227099895
             ],
             "rot": [
-                0.019355354830622673,
-                -0.00399700878188014,
-                0.18608245253562927,
-                0.9823353290557861
+                0.22351838648319244,
+                0.03645910322666168,
+                -0.032162152230739594,
+                0.9734864830970764
+            ],
+            "scale": [
+                0.9999999403953552,
+                0.9999998211860657,
+                0.9999998807907104
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 84,
+            "name": "Ctrl_Ring2_Right",
+            "next_sibling": -1,
+            "parent": 82,
+            "pos": [
+                -2.3784670702298172e-05,
+                0.015220177359879017,
+                4.392652641627137e-08
+            ],
+            "rot": [
+                0.25657394528388977,
+                -0.0014610583893954754,
+                0.043513793498277664,
+                0.9655435085296631
+            ],
+            "scale": [
+                0.9999998807907104,
+                0.9999999403953552,
+                0.9999998807907104
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Ctrl_Ring3_Right",
+            "next_sibling": -1,
+            "parent": 83,
+            "pos": [
+                0.00019404577324166894,
+                0.014292694628238678,
+                -3.156249306357495e-08
+            ],
+            "rot": [
+                0.23095190525054932,
+                -0.00038532353937625885,
+                0.017252866178750992,
+                0.9728121161460876
+            ],
+            "scale": [
+                0.9999999403953552,
+                0.9999998211860657,
+                0.9999998211860657
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 86,
+            "name": "Ctrl_Pinky1_Right",
+            "next_sibling": -1,
+            "parent": 52,
+            "pos": [
+                -0.025217385962605476,
+                0.09328427165746689,
+                -0.002920689294114709
+            ],
+            "rot": [
+                0.23860511183738708,
+                0.11210000514984131,
+                -0.036918047815561295,
+                0.9639182090759277
+            ],
+            "scale": [
+                0.9999999403953552,
+                0.9999997615814209,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 87,
+            "name": "Ctrl_Pinky2_Right",
+            "next_sibling": -1,
+            "parent": 85,
+            "pos": [
+                -0.0010333536192774773,
+                0.013395335525274277,
+                1.734712284928719e-08
+            ],
+            "rot": [
+                0.18990695476531982,
+                0.0006287896540015936,
+                0.1021396815776825,
+                0.9764745235443115
+            ],
+            "scale": [
+                0.9999997615814209,
+                0.9999998211860657,
+                0.9999996423721313
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Ctrl_Pinky3_Right",
+            "next_sibling": -1,
+            "parent": 86,
+            "pos": [
+                0.00022733128571417183,
+                0.010765427723526955,
+                2.1521010751257563e-08
+            ],
+            "rot": [
+                0.18203090131282806,
+                -0.01931573823094368,
+                0.10625770688056946,
+                0.9773438572883606
+            ],
+            "scale": [
+                1.0,
+                0.9999998807907104,
+                0.9999999403953552
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 89,
+            "name": "mixamorig:LeftUpLeg",
+            "next_sibling": 93,
+            "parent": 3,
+            "pos": [
+                0.08195701986551285,
+                -0.034208912402391434,
+                0.0043552108108997345
+            ],
+            "rot": [
+                -0.11960698664188385,
+                -0.10829541832208633,
+                -0.9808298945426941,
+                0.10926599055528641
+            ],
+            "scale": [
+                1.0000009536743164,
+                0.9999992847442627,
+                1.0000009536743164
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 90,
+            "name": "mixamorig:LeftLeg",
+            "next_sibling": -1,
+            "parent": 88,
+            "pos": [
+                2.6544007880602294e-08,
+                0.25111910700798035,
+                3.0883498425282596e-08
+            ],
+            "rot": [
+                -0.18061703443527222,
+                -1.0532443184274598e-06,
+                -1.9767122694247519e-07,
+                0.9835535287857056
+            ],
+            "scale": [
+                1.0,
+                1.0000001192092896,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 91,
+            "name": "mixamorig:LeftFoot",
+            "next_sibling": -1,
+            "parent": 89,
+            "pos": [
+                -1.1921088560740145e-09,
+                0.238908588886261,
+                -1.832987928107599e-10
+            ],
+            "rot": [
+                0.4937834143638611,
+                -0.13220608234405518,
+                0.02007651887834072,
+                0.859241783618927
+            ],
+            "scale": [
+                0.9999837279319763,
+                0.9999995231628418,
+                0.9999992251396179
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 92,
+            "name": "mixamorig:LeftToeBase",
+            "next_sibling": -1,
+            "parent": 90,
+            "pos": [
+                1.5606710590532202e-08,
+                0.11646618694067001,
+                2.3032017182345044e-08
+            ],
+            "rot": [
+                0.312537282705307,
+                -0.18568462133407593,
+                0.02360808290541172,
+                0.9312810301780701
+            ],
+            "scale": [
+                0.9999997019767761,
+                0.9999997615814209,
+                1.0000019073486328
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "mixamorig:LeftToe_End",
+            "next_sibling": -1,
+            "parent": 91,
+            "pos": [
+                5.500620847698201e-09,
+                0.04484517499804497,
+                -3.4923941516495915e-10
+            ],
+            "rot": [
+                3.082677721977234e-07,
+                -1.682201400399208e-07,
+                -4.7584762796759605e-08,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0000001192092896
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 94,
+            "name": "mixamorig:RightUpLeg",
+            "next_sibling": -1,
+            "parent": 3,
+            "pos": [
+                -0.08195702731609344,
+                -0.03420894965529442,
+                0.00400013942271471
+            ],
+            "rot": [
+                -0.08553069084882736,
+                0.04664405807852745,
+                0.9935325980186462,
+                0.058325350284576416
+            ],
+            "scale": [
+                1.0000008344650269,
+                1.000001072883606,
+                1.0000003576278687
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 95,
+            "name": "mixamorig:RightLeg",
+            "next_sibling": -1,
+            "parent": 93,
+            "pos": [
+                2.6397325214588818e-08,
+                0.25096139311790466,
+                -1.0889672275027351e-08
+            ],
+            "rot": [
+                -0.1654645800590515,
+                -4.683527095039608e-07,
+                -4.2292242596886354e-08,
+                0.9862157702445984
+            ],
+            "scale": [
+                0.9999997615814209,
+                0.9999999403953552,
+                0.9999997019767761
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 96,
+            "name": "mixamorig:RightFoot",
+            "next_sibling": -1,
+            "parent": 94,
+            "pos": [
+                1.464962906538858e-08,
+                0.23926761746406555,
+                8.537998752444764e-09
+            ],
+            "rot": [
+                0.5413259267807007,
+                0.08680102229118347,
+                -0.017689235508441925,
+                0.8361333608627319
+            ],
+            "scale": [
+                1.000011920928955,
+                1.0000001192092896,
+                0.999998927116394
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 97,
+            "name": "mixamorig:RightToeBase",
+            "next_sibling": -1,
+            "parent": 95,
+            "pos": [
+                1.9415176133463774e-09,
+                0.1147465780377388,
+                -9.215783691729484e-09
+            ],
+            "rot": [
+                0.33992335200309753,
+                0.1836594045162201,
+                -0.02152351289987564,
+                0.9220944046974182
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                0.9999985694885254
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "mixamorig:RightToe_End",
+            "next_sibling": -1,
+            "parent": 96,
+            "pos": [
+                -2.6193449631506383e-09,
+                0.04532874375581741,
+                -2.316664549084635e-08
+            ],
+            "rot": [
+                -2.6868656277656555e-07,
+                -1.6274863412490959e-07,
+                -1.9231812586895103e-07,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0000001192092896
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 99,
+            "name": "Ctrl_Master",
+            "next_sibling": 133,
+            "parent": 2,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                -2.9802698975345265e-08,
+                0.0049999775364995,
+                -1.5892634343871122e-17,
+                0.9999874830245972
+            ],
+            "scale": [
+                1.0,
+                0.9999999403953552,
+                0.9999999403953552
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 100,
+            "name": "Ctrl_Hips",
+            "next_sibling": -1,
+            "parent": 98,
+            "pos": [
+                0.0008080400875769556,
+                0.580415666103363,
+                0.0019044913351535797
+            ],
+            "rot": [
+                0.010311697609722614,
+                -0.1039443239569664,
+                -0.010016069747507572,
+                0.994479238986969
+            ],
+            "scale": [
+                0.9999999403953552,
+                0.9999998211860657,
+                0.9999995827674866
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 101,
+            "name": "Ctrl_Hips_Free",
+            "next_sibling": 116,
+            "parent": 99,
+            "pos": [
+                2.833983270278395e-09,
+                0.07991648465394974,
+                1.3039562762884316e-09
+            ],
+            "rot": [
+                1.0,
+                -9.377203458171834e-10,
+                4.0262584377614985e-08,
+                1.1313243675203921e-09
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Hips_Free_Helper",
+            "next_sibling": 102,
+            "parent": 100,
+            "pos": [
+                5.820744997109273e-10,
+                0.07991646230220795,
+                -1.8559054293376676e-09
+            ],
+            "rot": [
+                1.0,
+                6.920941042487527e-10,
+                7.523595968450536e-08,
+                1.1096865648596577e-09
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 103,
+            "name": "UpLeg_IK_Left",
+            "next_sibling": 104,
+            "parent": 100,
+            "pos": [
+                0.08195703476667404,
+                0.11412540823221207,
+                -0.004355196375399828
+            ],
+            "rot": [
+                0.109265998005867,
+                0.9808298945426941,
+                -0.10829535126686096,
+                0.11960700899362564
+            ],
+            "scale": [
+                1.0000001192092896,
+                1.0000008344650269,
+                1.0000001192092896
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Leg_IK_Left",
+            "next_sibling": -1,
+            "parent": 102,
+            "pos": [
+                -1.4548848348283627e-08,
+                0.25111913681030273,
+                1.5885769144574624e-08
+            ],
+            "rot": [
+                -0.1806170791387558,
+                -1.0534333796385908e-06,
+                -2.1089759627557214e-07,
+                0.9835535287857056
+            ],
+            "scale": [
+                1.0000001192092896,
+                1.0000001192092896,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 105,
+            "name": "Ctrl_UpLeg_FK_Left",
+            "next_sibling": 109,
+            "parent": 100,
+            "pos": [
+                0.08195702731609344,
+                0.11412540823221207,
+                -0.004355198238044977
+            ],
+            "rot": [
+                0.029783612117171288,
+                0.999211847782135,
+                0.026230640709400177,
+                0.0007808815571479499
+            ],
+            "scale": [
+                1.0,
+                1.0000001192092896,
+                0.9999998807907104
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 106,
+            "name": "Ctrl_Leg_FK_Left",
+            "next_sibling": -1,
+            "parent": 104,
+            "pos": [
+                -6.5743748223212606e-09,
+                0.25111910700798035,
+                4.44416814460169e-09
+            ],
+            "rot": [
+                -0.04185377433896065,
+                -1.0555319249760942e-06,
+                -5.080740095309011e-08,
+                0.9991238117218018
+            ],
+            "scale": [
+                0.9999999403953552,
+                0.9999998807907104,
+                0.9999999403953552
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 107,
+            "name": "Ctrl_Foot_FK_Left",
+            "next_sibling": -1,
+            "parent": 105,
+            "pos": [
+                -1.0363143232439143e-08,
+                0.23890860378742218,
+                6.786499362476661e-09
+            ],
+            "rot": [
+                0.5082311034202576,
+                -0.028453871607780457,
+                0.03776312991976738,
+                0.8599218130111694
+            ],
+            "scale": [
+                0.9999999403953552,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Foot_FK_Left",
+            "next_sibling": 108,
+            "parent": 106,
+            "pos": [
+                -6.984923195396675e-10,
+                -1.6298141503057195e-08,
+                8.96397978067398e-09
+            ],
+            "rot": [
+                -3.166496398421259e-08,
+                -5.587935447692871e-09,
+                -5.587934559514451e-09,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                0.9999997615814209,
+                0.9999998807907104
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Ctrl_Toe_FK_Left",
+            "next_sibling": -1,
+            "parent": 106,
+            "pos": [
+                -2.233736529078101e-09,
+                0.1164669543504715,
+                7.032748827739965e-10
+            ],
+            "rot": [
+                0.29317113757133484,
+                -0.16988538205623627,
+                0.053020548075437546,
+                0.9393500685691833
+            ],
+            "scale": [
+                0.9999998211860657,
+                0.9999998807907104,
+                0.9999998807907104
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 110,
+            "name": "UpLeg_IK_Right",
+            "next_sibling": 111,
+            "parent": 100,
+            "pos": [
+                -0.08195702731609344,
+                0.11412543803453445,
+                -0.004000149201601744
+            ],
+            "rot": [
+                0.05832537263631821,
+                -0.9935325980186462,
+                0.04664408043026924,
+                0.08553063124418259
+            ],
+            "scale": [
+                1.0000001192092896,
+                1.0000014305114746,
+                0.9999999403953552
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Leg_IK_Right",
+            "next_sibling": -1,
+            "parent": 109,
+            "pos": [
+                1.652775871718859e-08,
+                0.2509612739086151,
+                4.156234911789625e-09
+            ],
+            "rot": [
+                -0.16546456515789032,
+                -4.7562178906446206e-07,
+                -3.973074313989855e-08,
+                0.9862157702445984
+            ],
+            "scale": [
+                0.9999998211860657,
+                0.9999999403953552,
+                0.9999998211860657
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 112,
+            "name": "Ctrl_UpLeg_FK_Right",
+            "next_sibling": -1,
+            "parent": 100,
+            "pos": [
+                -0.08195701241493225,
+                0.11412543803453445,
+                -0.004000145476311445
+            ],
+            "rot": [
+                0.029785193502902985,
+                -0.9992644786834717,
+                -0.02414099872112274,
+                0.0007193259079940617
+            ],
+            "scale": [
+                0.9999999403953552,
+                1.0000003576278687,
+                0.9999998807907104
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 113,
+            "name": "Ctrl_Leg_FK_Right",
+            "next_sibling": -1,
+            "parent": 111,
+            "pos": [
+                2.325081904785975e-09,
+                0.2509613335132599,
+                3.1568669900394752e-09
+            ],
+            "rot": [
+                -0.04769818112254143,
+                -4.842514158553968e-07,
+                2.7017692971753604e-08,
+                0.9988617897033691
+            ],
+            "scale": [
+                1.0,
+                0.9999999403953552,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 114,
+            "name": "Ctrl_Foot_FK_Right",
+            "next_sibling": -1,
+            "parent": 112,
+            "pos": [
+                -6.081388725931447e-10,
+                0.23926742374897003,
+                -8.011312502276269e-09
+            ],
+            "rot": [
+                0.5065995454788208,
+                0.029068581759929657,
+                -0.03823281452059746,
+                0.860842764377594
+            ],
+            "scale": [
+                0.9999999403953552,
+                1.0,
+                1.0000001192092896
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Foot_FK_Right",
+            "next_sibling": 115,
+            "parent": 113,
+            "pos": [
+                1.909211100326047e-08,
+                -1.4901162970204496e-08,
+                5.122275492652761e-09
+            ],
+            "rot": [
+                2.5611357479249364e-09,
+                7.450581485102248e-09,
+                3.725290298461914e-09,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                0.9999998807907104,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Ctrl_Toe_FK_Right",
+            "next_sibling": -1,
+            "parent": 113,
+            "pos": [
+                7.861075346227153e-09,
+                0.11474703997373581,
+                -6.5747247646186224e-09
+            ],
+            "rot": [
+                0.2981300354003906,
+                0.1635989546775818,
+                -0.05194355547428131,
+                0.9389652609825134
+            ],
+            "scale": [
+                1.0,
+                0.9999997019767761,
+                0.9999998807907104
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 117,
+            "name": "Ctrl_Spine",
+            "next_sibling": -1,
+            "parent": 99,
+            "pos": [
+                -9.611680340526618e-10,
+                0.06167719513177872,
+                -0.005620519630610943
+            ],
+            "rot": [
+                0.014343734830617905,
+                0.01696624420583248,
+                0.006151848938316107,
+                0.9997342824935913
+            ],
+            "scale": [
+                1.0000001192092896,
+                0.9999998807907104,
+                0.9999998807907104
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 118,
+            "name": "Ctrl_Spine1",
+            "next_sibling": -1,
+            "parent": 116,
+            "pos": [
+                -1.539942173778286e-09,
+                0.0722549632191658,
+                -3.0925701999251487e-09
+            ],
+            "rot": [
+                0.011108103208243847,
+                0.034776557236909866,
+                0.013142806477844715,
+                0.9992469549179077
+            ],
+            "scale": [
+                0.9999999403953552,
+                0.9999999403953552,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 119,
+            "name": "Ctrl_Spine2",
+            "next_sibling": -1,
+            "parent": 117,
+            "pos": [
+                -3.0002651474347886e-09,
+                0.08257719874382019,
+                -3.4857503550256297e-09
+            ],
+            "rot": [
+                -0.09208445996046066,
+                0.032463863492012024,
+                0.01717899926006794,
+                0.9950736165046692
+            ],
+            "scale": [
+                0.9999999403953552,
+                1.0000001192092896,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 120,
+            "name": "Ctrl_Neck",
+            "next_sibling": 121,
+            "parent": 118,
+            "pos": [
+                -1.3592056369304828e-09,
+                0.09289932996034622,
+                1.3730433678915688e-08
+            ],
+            "rot": [
+                0.1343519389629364,
+                0.023625938221812248,
+                -0.062046799808740616,
+                0.9887070655822754
+            ],
+            "scale": [
+                0.9999998211860657,
+                1.0,
+                1.0000001192092896
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Ctrl_Head",
+            "next_sibling": -1,
+            "parent": 119,
+            "pos": [
+                2.297103840476211e-09,
+                0.04200851172208786,
+                0.008183958940207958
+            ],
+            "rot": [
+                0.04118696227669716,
+                -0.010774573311209679,
+                0.07537014037370682,
+                0.9962464570999146
+            ],
+            "scale": [
+                1.0,
+                0.9999999403953552,
+                0.9999999403953552
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 122,
+            "name": "Ctrl_Shoulder_Left",
+            "next_sibling": 124,
+            "parent": 118,
+            "pos": [
+                0.04705548658967018,
+                0.07704787701368332,
+                -0.0015148260863497853
+            ],
+            "rot": [
+                0.5373424887657166,
+                0.43653351068496704,
+                -0.5925350785255432,
+                0.41182976961135864
+            ],
+            "scale": [
+                1.0000001192092896,
+                1.0000001192092896,
+                1.000000238418579
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 123,
+            "name": "Arm_IK_Left",
+            "next_sibling": -1,
+            "parent": 121,
+            "pos": [
+                -7.674543667235412e-09,
+                0.10051031410694122,
+                -1.6654178480735027e-08
+            ],
+            "rot": [
+                0.5136758089065552,
+                0.03376638516783714,
+                -0.10115296393632889,
+                0.851331353187561
+            ],
+            "scale": [
+                1.000000238418579,
+                0.9999997019767761,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "ForeArm_IK_Left",
+            "next_sibling": -1,
+            "parent": 122,
+            "pos": [
+                -1.4982996177081986e-08,
+                0.14795346558094025,
+                6.624707538094299e-08
+            ],
+            "rot": [
+                9.236743636620304e-08,
+                -4.837908704757865e-07,
+                0.15243642032146454,
+                0.9883133172988892
+            ],
+            "scale": [
+                0.9999996423721313,
+                1.0000001192092896,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 125,
+            "name": "Ctrl_Arm_FK_Left",
+            "next_sibling": 127,
+            "parent": 118,
+            "pos": [
+                0.14326223731040955,
+                0.04893828555941582,
+                -0.009026513434946537
+            ],
+            "rot": [
+                0.6573102474212646,
+                0.32126349210739136,
+                -0.618630588054657,
+                0.2864074110984802
+            ],
+            "scale": [
+                1.000000238418579,
+                1.000000238418579,
+                1.000000238418579
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 126,
+            "name": "Ctrl_ForeArm_FK_Left",
+            "next_sibling": -1,
+            "parent": 124,
+            "pos": [
+                9.378256393688389e-09,
+                0.14795362949371338,
+                2.3427300988032584e-08
+            ],
+            "rot": [
+                -3.807271298228443e-08,
+                -4.711842223059648e-07,
+                0.1703481525182724,
+                0.985383927822113
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Ctrl_Hand_FK_Left",
+            "next_sibling": -1,
+            "parent": 125,
+            "pos": [
+                -1.142778316420845e-08,
+                0.13799230754375458,
+                -2.8402492802115376e-08
+            ],
+            "rot": [
+                0.1257764995098114,
+                -0.209251269698143,
+                -0.09059301763772964,
+                0.9654983878135681
+            ],
+            "scale": [
+                0.9999999403953552,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 128,
+            "name": "Ctrl_Shoulder_Right",
+            "next_sibling": 130,
+            "parent": 118,
+            "pos": [
+                -0.04705546796321869,
+                0.07703522592782974,
+                -0.001375343301333487
+            ],
+            "rot": [
+                0.5435702800750732,
+                -0.4361899197101593,
+                0.5699434876441956,
+                0.4352405071258545
+            ],
+            "scale": [
+                1.0,
+                1.0000001192092896,
+                0.9999998807907104
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 129,
+            "name": "Arm_IK_Right",
+            "next_sibling": -1,
+            "parent": 127,
+            "pos": [
+                7.181210737172705e-09,
+                0.10051020234823227,
+                4.6565361344619305e-08
+            ],
+            "rot": [
+                0.47659462690353394,
+                -0.06211337819695473,
+                0.09302033483982086,
+                0.8719786405563354
+            ],
+            "scale": [
+                0.9999997019767761,
+                0.9999998807907104,
+                0.9999994039535522
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "ForeArm_IK_Right",
+            "next_sibling": -1,
+            "parent": 128,
+            "pos": [
+                -3.426593053745819e-08,
+                0.14793749153614044,
+                2.0862000127408464e-08
+            ],
+            "rot": [
+                -1.528103155123972e-07,
+                1.0690891940612346e-06,
+                -0.19252310693264008,
+                0.9812924861907959
+            ],
+            "scale": [
+                0.9999998807907104,
+                0.9999999403953552,
+                0.9999997615814209
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 131,
+            "name": "Ctrl_Arm_FK_Right",
+            "next_sibling": -1,
+            "parent": 118,
+            "pos": [
+                -0.14458304643630981,
+                0.05285152047872543,
+                -0.0037915860302746296
+            ],
+            "rot": [
+                0.6569183468818665,
+                -0.3220660090446472,
+                0.6189788579940796,
+                0.28565192222595215
+            ],
+            "scale": [
+                1.0000003576278687,
+                1.000000238418579,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 132,
+            "name": "Ctrl_ForeArm_FK_Right",
+            "next_sibling": -1,
+            "parent": 130,
+            "pos": [
+                1.4475280973869076e-09,
+                0.14793743193149567,
+                1.6386769274845392e-08
+            ],
+            "rot": [
+                -1.9760744862651336e-07,
+                1.1511743878145353e-06,
+                -0.17139175534248352,
+                0.985202968120575
+            ],
+            "scale": [
+                1.0,
+                0.9999999403953552,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Ctrl_Hand_FK_Right",
+            "next_sibling": -1,
+            "parent": 131,
+            "pos": [
+                2.4928622721631655e-08,
+                0.13797840476036072,
+                1.752195544213464e-08
+            ],
+            "rot": [
+                0.1244526207447052,
+                0.22319342195987701,
+                0.09253907203674316,
+                0.9623579382896423
             ],
             "scale": [
                 1.0,
@@ -404,49 +3904,24 @@
             "visible": 1
         },
         {
-            "first_child": -1,
-            "name": "mixamorig:LeftHand",
-            "next_sibling": -1,
-            "parent": 11,
+            "first_child": 134,
+            "name": "Ctrl_Foot_IK_Left",
+            "next_sibling": 149,
+            "parent": 2,
             "pos": [
-                -2.384185791015625e-07,
-                26.118465423583984,
-                5.0961971282958984e-06
+                0.1637960821390152,
+                0.07003764063119888,
+                0.037609875202178955
             ],
             "rot": [
-                6.111802175468029e-10,
-                -5.1513779908418655e-09,
-                -8.061761036515236e-09,
-                1.0
+                -0.14194059371948242,
+                -0.6927083730697632,
+                -0.692713737487793,
+                0.141970694065094
             ],
             "scale": [
-                1.0,
-                1.0,
-                1.0
-            ],
-            "tag": "",
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 14,
-            "name": "mixamorig:RightShoulder",
-            "next_sibling": -1,
-            "parent": 5,
-            "pos": [
-                -5.970676422119141,
-                13.273260116577148,
-                -0.17504994571208954
-            ],
-            "rot": [
-                0.5808895230293274,
-                -0.37399962544441223,
-                0.6467670202255249,
-                0.323085218667984
-            ],
-            "scale": [
-                0.9999998211860657,
-                0.9999998211860657,
+                0.9999824166297913,
+                1.000001311302185,
                 0.9999998211860657
             ],
             "tag": "",
@@ -454,50 +3929,25 @@
             "visible": 1
         },
         {
-            "first_child": 15,
-            "name": "mixamorig:RightArm",
-            "next_sibling": -1,
-            "parent": 13,
+            "first_child": 135,
+            "name": "Foot_IK_Left",
+            "next_sibling": 139,
+            "parent": 133,
             "pos": [
-                -7.512064144066244e-07,
-                12.62560749053955,
-                5.086851615487831e-06
+                -1.6130547919601668e-06,
+                7.388936751340225e-07,
+                -1.0397644473414402e-05
             ],
             "rot": [
-                0.3606654405593872,
-                0.027514705434441566,
-                0.1718662828207016,
-                0.9163106679916382
+                -0.3083513379096985,
+                0.06287144869565964,
+                -0.020452087745070457,
+                0.948972225189209
             ],
             "scale": [
-                1.0000001192092896,
-                0.9999998211860657,
-                0.9999998807907104
-            ],
-            "tag": "",
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 16,
-            "name": "mixamorig:RightForeArm",
-            "next_sibling": -1,
-            "parent": 14,
-            "pos": [
-                -5.214090379013214e-06,
-                29.105806350708008,
-                5.3644289437215775e-06
-            ],
-            "rot": [
-                0.012681710533797741,
-                0.0027159308083355427,
-                -0.1254197508096695,
-                0.99201899766922
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0
+                1.0000004768371582,
+                0.9999998807907104,
+                0.9999996423721313
             ],
             "tag": "",
             "template": "",
@@ -505,48 +3955,23 @@
         },
         {
             "first_child": -1,
-            "name": "mixamorig:RightHand",
-            "next_sibling": -1,
-            "parent": 15,
+            "name": "Foot_Snap_Left",
+            "next_sibling": 136,
+            "parent": 134,
             "pos": [
-                -2.9802322387695313e-06,
-                26.11823272705078,
-                -6.139276592875831e-06
+                1.2387567416283218e-08,
+                -1.4557649308244436e-08,
+                -6.912703742756321e-11
             ],
             "rot": [
-                -2.677552179974896e-09,
-                7.654307410120964e-09,
-                6.461050361394882e-09,
-                1.0
+                0.3083846867084503,
+                -0.06287207454442978,
+                0.020445076748728752,
+                0.9489615559577942
             ],
             "scale": [
-                1.0,
-                1.0,
-                1.0
-            ],
-            "tag": "",
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 18,
-            "name": "mixamorig:LeftUpLeg",
-            "next_sibling": 22,
-            "parent": 2,
-            "pos": [
-                7.4784111976623535,
-                -5.74716329574585,
-                0.42228156328201294
-            ],
-            "rot": [
-                -0.08082704246044159,
-                0.028983622789382935,
-                -0.9844171404838562,
-                0.15345969796180725
-            ],
-            "scale": [
+                0.9999999403953552,
                 0.9999998807907104,
-                0.9999999403953552,
                 1.0
             ],
             "tag": "",
@@ -554,24 +3979,149 @@
             "visible": 1
         },
         {
-            "first_child": 19,
-            "name": "mixamorig:LeftLeg",
+            "first_child": 137,
+            "name": "ToeTrack_Left",
             "next_sibling": -1,
-            "parent": 17,
+            "parent": 134,
             "pos": [
-                1.7600223145564087e-06,
-                45.983951568603516,
-                -4.919227649224922e-06
+                1.1071129790707346e-08,
+                0.11646698415279388,
+                4.1903676084587005e-09
             ],
             "rot": [
-                -0.43849122524261475,
-                0.02024494856595993,
-                0.003501191968098283,
-                0.8985005021095276
+                0.29317817091941833,
+                -0.16987855732440948,
+                0.053036805242300034,
+                0.9393481612205505
             ],
             "scale": [
-                1.0000001192092896,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 138,
+            "name": "Toe01_IK_Left",
+            "next_sibling": -1,
+            "parent": 136,
+            "pos": [
+                1.4635006095886638e-08,
+                -5.482879259943729e-06,
+                3.7910676837782376e-06
+            ],
+            "rot": [
+                0.014713220298290253,
+                -0.025871116667985916,
+                -0.0258681271225214,
+                0.9992222189903259
+            ],
+            "scale": [
+                0.9999997615814209,
+                1.0,
+                1.0000015497207642
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Toe02_Left",
+            "next_sibling": -1,
+            "parent": 137,
+            "pos": [
+                1.5250149587586748e-08,
+                0.02242281474173069,
+                -1.9792123495676606e-09
+            ],
+            "rot": [
+                -6.99203269505233e-07,
+                -1.7012923763104482e-06,
+                -2.9465575153153623e-06,
+                1.0
+            ],
+            "scale": [
                 0.9999999403953552,
+                0.9999999403953552,
+                0.9999999403953552
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 140,
+            "name": "FootHeelOut_Left",
+            "next_sibling": 148,
+            "parent": 133,
+            "pos": [
+                -0.03463216871023178,
+                0.002710746368393302,
+                -0.06473774462938309
+            ],
+            "rot": [
+                1.968059271106881e-09,
+                0.05359752103686333,
+                2.2174734937152607e-08,
+                0.9985626339912415
+            ],
+            "scale": [
+                0.9999998211860657,
+                1.0,
+                1.0000001192092896
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 141,
+            "name": "FootHeelIn_Left",
+            "next_sibling": -1,
+            "parent": 139,
+            "pos": [
+                0.06967070698738098,
+                -0.0054215332493186,
+                2.7334317564964294e-07
+            ],
+            "rot": [
+                1.4454472285763131e-08,
+                2.1071170408504258e-07,
+                -1.0788089355173724e-07,
+                1.0
+            ],
+            "scale": [
+                1.000000238418579,
+                1.0000003576278687,
+                1.0000003576278687
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 142,
+            "name": "FootHeelMid_Left",
+            "next_sibling": -1,
+            "parent": 140,
+            "pos": [
+                -0.0348353311419487,
+                0.0027107628993690014,
+                -1.4511169865727425e-07
+            ],
+            "rot": [
+                4.8813809883085924e-08,
+                -5.005857062201358e-09,
+                1.0150336571257412e-08,
+                1.0
+            ],
+            "scale": [
+                1.000000238418579,
+                1.000000238418579,
                 1.000000238418579
             ],
             "tag": "",
@@ -579,50 +4129,25 @@
             "visible": 1
         },
         {
-            "first_child": 20,
-            "name": "mixamorig:LeftFoot",
+            "first_child": 143,
+            "name": "ToeEnd_Left",
             "next_sibling": -1,
-            "parent": 18,
+            "parent": 141,
             "pos": [
-                5.503380862137419e-08,
-                39.35029983520508,
-                3.298490582892555e-07
+                -0.005502094980329275,
+                0.1386711448431015,
+                -0.0021720444783568382
             ],
             "rot": [
-                0.30290061235427856,
-                0.08898375928401947,
-                0.07716340571641922,
-                0.9457160830497742
+                -0.015083612874150276,
+                -0.14491978287696838,
+                0.06435219198465347,
+                0.9872332811355591
             ],
             "scale": [
-                0.9999998807907104,
-                0.9999998211860657,
-                0.9999998211860657
-            ],
-            "tag": "",
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 21,
-            "name": "mixamorig:LeftToeBase",
-            "next_sibling": -1,
-            "parent": 19,
-            "pos": [
-                1.5158876465193316e-07,
-                19.31682014465332,
-                1.4358390671986854e-06
-            ],
-            "rot": [
-                0.5010135769844055,
-                -0.0337243489921093,
-                -0.015235502272844315,
-                0.8646479249000549
-            ],
-            "scale": [
-                1.0000001192092896,
                 0.9999999403953552,
-                0.9999999403953552
+                1.0,
+                1.0000003576278687
             ],
             "tag": "",
             "template": "",
@@ -630,23 +4155,73 @@
         },
         {
             "first_child": -1,
-            "name": "mixamorig:LeftToe_End",
-            "next_sibling": -1,
-            "parent": 20,
+            "name": "ToeEnd_01_Left",
+            "next_sibling": 144,
+            "parent": 142,
             "pos": [
-                7.450579886381092e-08,
-                7.391305923461914,
-                5.364417461350968e-07
+                1.3905405715775032e-08,
+                -2.0412567192096276e-09,
+                -2.553977695995968e-09
             ],
             "rot": [
-                2.3515896785397672e-08,
-                3.2247044146060944e-08,
-                -6.8685026555215245e-09,
+                2.8545036911964417e-07,
+                -3.5390257835388184e-08,
+                -1.7997808754444122e-07,
                 1.0
             ],
             "scale": [
                 1.0000001192092896,
-                0.9999999403953552,
+                1.0000001192092896,
+                1.0000001192092896
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 145,
+            "name": "Ctrl_Foot_01_Left",
+            "next_sibling": 147,
+            "parent": 142,
+            "pos": [
+                9.450048521486565e-10,
+                -0.04484565928578377,
+                3.7208938152843984e-09
+            ],
+            "rot": [
+                -0.29317110776901245,
+                0.16988319158554077,
+                -0.053021226078271866,
+                0.939350426197052
+            ],
+            "scale": [
+                1.0000001192092896,
+                1.0000001192092896,
+                1.0000001192092896
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Foot_IK_target_Left",
+            "next_sibling": 146,
+            "parent": 144,
+            "pos": [
+                2.950513611210681e-08,
+                -0.11646696925163269,
+                1.724993659024676e-08
+            ],
+            "rot": [
+                0.06612811982631683,
+                -1.1047061043711892e-08,
+                -0.9978111386299133,
+                6.620845205418391e-09
+            ],
+            "scale": [
+                1.0,
+                1.0,
                 1.0
             ],
             "tag": "",
@@ -654,98 +4229,398 @@
             "visible": 1
         },
         {
-            "first_child": 23,
-            "name": "mixamorig:RightUpLeg",
+            "first_child": -1,
+            "name": "Foot_01_Pole_Left",
             "next_sibling": -1,
+            "parent": 144,
+            "pos": [
+                1.324261688750994e-06,
+                -9.776326947985581e-08,
+                0.23293380439281464
+            ],
+            "rot": [
+                0.7068356275558472,
+                -0.01958182267844677,
+                -0.019585883244872093,
+                0.7068354487419128
+            ],
+            "scale": [
+                1.0000001192092896,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Ctrl_Toe_IK_Left",
+            "next_sibling": -1,
+            "parent": 142,
+            "pos": [
+                -9.068762629738103e-09,
+                -0.04484562575817108,
+                3.4269962423394418e-09
+            ],
+            "rot": [
+                0.014755018055438995,
+                -0.025868671014904976,
+                -0.02587241679430008,
+                0.9992215633392334
+            ],
+            "scale": [
+                0.9999997019767761,
+                0.9999997615814209,
+                1.000000238418579
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Ctrl_FootRoll_Cursor_Left",
+            "next_sibling": -1,
+            "parent": 133,
+            "pos": [
+                -1.1011479728040285e-08,
+                -0.11306080222129822,
+                1.1871179594891146e-08
+            ],
+            "rot": [
+                1.0574702192459734e-13,
+                -3.4793856684700586e-10,
+                -2.2351748896198842e-08,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Ctrl_LegPole_IK_Left",
+            "next_sibling": 150,
             "parent": 2,
             "pos": [
-                -7.478412628173828,
-                -5.747170925140381,
-                0.6489814519882202
+                0.13862361013889313,
+                0.3128359317779541,
+                0.310480535030365
             ],
             "rot": [
-                0.06034334748983383,
-                -0.2797686755657196,
-                -0.9569322466850281,
-                0.0486689917743206
+                -0.70710688829422,
+                -1.4146485227684025e-06,
+                -1.4274855857365765e-06,
+                0.7071066498756409
+            ],
+            "scale": [
+                0.9999964237213135,
+                1.000003457069397,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 151,
+            "name": "Ctrl_Foot_IK_Right",
+            "next_sibling": 166,
+            "parent": 2,
+            "pos": [
+                -0.1275690793991089,
+                0.07003788650035858,
+                -0.06733804196119308
+            ],
+            "rot": [
+                -0.2196352481842041,
+                0.6721398234367371,
+                0.6721304059028625,
+                0.21961110830307007
+            ],
+            "scale": [
+                1.0000147819519043,
+                0.9999967813491821,
+                0.9999998211860657
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 152,
+            "name": "Foot_IK_Right",
+            "next_sibling": 156,
+            "parent": 150,
+            "pos": [
+                5.108896630190429e-07,
+                -2.7157904014529777e-07,
+                -2.83655595012533e-06
+            ],
+            "rot": [
+                -0.3135356605052948,
+                -0.0639917254447937,
+                0.021172240376472473,
+                0.9471811652183533
+            ],
+            "scale": [
+                0.9999994039535522,
+                1.0000003576278687,
+                1.0000005960464478
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Foot_Snap_Right",
+            "next_sibling": 153,
+            "parent": 151,
+            "pos": [
+                1.88979676352119e-08,
+                -4.578315060399518e-09,
+                -1.945360539323815e-09
+            ],
+            "rot": [
+                0.3135455846786499,
+                0.06399274617433548,
+                -0.021173415705561638,
+                0.9471778273582458
             ],
             "scale": [
                 1.0000001192092896,
+                1.0000001192092896,
+                1.0000001192092896
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 154,
+            "name": "ToeTrack_Right",
+            "next_sibling": -1,
+            "parent": 151,
+            "pos": [
+                2.1965993468597844e-08,
+                0.1147470697760582,
+                -1.2106983859894171e-08
+            ],
+            "rot": [
+                0.29812952876091003,
+                0.1635974645614624,
+                -0.05194762349128723,
+                0.9389654994010925
+            ],
+            "scale": [
+                1.0000001192092896,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 155,
+            "name": "Toe01_IK_Right",
+            "next_sibling": -1,
+            "parent": 153,
+            "pos": [
+                -2.037668700438644e-08,
+                -1.3062235666438937e-06,
+                8.978531127468159e-07
+            ],
+            "rot": [
+                0.038252655416727066,
+                0.032838124781847,
+                0.028547992929816246,
+                0.9983203411102295
+            ],
+            "scale": [
+                0.9999997615814209,
+                0.9999998211860657,
+                0.9999986886978149
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Toe02_Right",
+            "next_sibling": -1,
+            "parent": 154,
+            "pos": [
+                -8.556528818814968e-09,
+                0.022664489224553108,
+                2.328306880627906e-09
+            ],
+            "rot": [
+                7.122287115635118e-07,
+                -1.1255035587964812e-06,
+                -2.99094290312496e-06,
+                1.0
+            ],
+            "scale": [
+                0.9999999403953552,
+                0.9999999403953552,
+                0.9999998807907104
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 157,
+            "name": "FootHeelOut_Right",
+            "next_sibling": 165,
+            "parent": 150,
+            "pos": [
+                0.03411316126585007,
+                0.0027621076442301273,
+                -0.06475089490413666
+            ],
+            "rot": [
+                6.217556691723303e-09,
+                -0.05422782897949219,
+                7.099653487330215e-08,
+                0.9985285997390747
+            ],
+            "scale": [
+                0.9999999403953552,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 158,
+            "name": "FootHeelIn_Right",
+            "next_sibling": -1,
+            "parent": 156,
+            "pos": [
+                -0.06862547248601913,
+                -0.00552420224994421,
+                -1.1624069173876705e-07
+            ],
+            "rot": [
+                -2.5415697990638364e-08,
+                4.825417576626023e-08,
+                -1.6337625652340648e-07,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0000001192092896,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 159,
+            "name": "FootHeelMid_Right",
+            "next_sibling": -1,
+            "parent": 157,
+            "pos": [
+                0.03431275486946106,
+                0.0027621015906333923,
+                7.211929187178612e-08
+            ],
+            "rot": [
+                9.692538327499278e-09,
+                -1.501757651567459e-08,
+                7.058707751639304e-08,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                0.9999998211860657,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 160,
+            "name": "ToeEnd_Right",
+            "next_sibling": -1,
+            "parent": 158,
+            "pos": [
+                0.005251743830740452,
+                0.13705465197563171,
+                -0.0021518028806895018
+            ],
+            "rot": [
+                -0.01548513863235712,
+                0.1386963278055191,
+                -0.06078527495265007,
+                0.9883464574813843
+            ],
+            "scale": [
+                1.0,
+                0.9999997615814209,
+                0.9999998211860657
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "ToeEnd_01_Right",
+            "next_sibling": 161,
+            "parent": 159,
+            "pos": [
+                -8.578355248367586e-10,
+                -1.797375048795402e-08,
+                -2.2692121515177632e-09
+            ],
+            "rot": [
+                -7.450569938782792e-09,
+                -1.6355190837202827e-06,
+                1.629815216119823e-08,
+                1.0
+            ],
+            "scale": [
+                1.0,
                 0.9999998807907104,
-                0.9999999403953552
+                1.0
             ],
             "tag": "",
             "template": "",
             "visible": 1
         },
         {
-            "first_child": 24,
-            "name": "mixamorig:RightLeg",
-            "next_sibling": -1,
-            "parent": 22,
+            "first_child": 162,
+            "name": "Ctrl_Foot_01_Right",
+            "next_sibling": 164,
+            "parent": 159,
             "pos": [
-                3.7145002806937555e-07,
-                45.985130310058594,
-                7.117100722098257e-07
+                1.2331427434730813e-08,
+                -0.0453290231525898,
+                8.949390561951986e-09
             ],
             "rot": [
-                -0.3973674774169922,
-                0.06786654889583588,
-                -0.04454425722360611,
-                0.9140619039535522
+                -0.2981301248073578,
+                -0.16360028088092804,
+                0.05194313824176788,
+                0.9389650225639343
             ],
             "scale": [
-                1.0,
-                1.0,
-                0.9999999403953552
-            ],
-            "tag": "",
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 25,
-            "name": "mixamorig:RightFoot",
-            "next_sibling": -1,
-            "parent": 23,
-            "pos": [
-                9.423506242001167e-08,
-                39.330257415771484,
-                -2.031705662375316e-06
-            ],
-            "rot": [
-                0.5249940752983093,
-                0.10050734132528305,
-                -0.028503654524683952,
-                0.8446698188781738
-            ],
-            "scale": [
-                0.9999998807907104,
-                1.0,
-                0.9999999403953552
-            ],
-            "tag": "",
-            "template": "",
-            "visible": 1
-        },
-        {
-            "first_child": 26,
-            "name": "mixamorig:RightToeBase",
-            "next_sibling": -1,
-            "parent": 24,
-            "pos": [
-                5.846589488101017e-07,
-                19.198278427124023,
-                1.96753262571292e-06
-            ],
-            "rot": [
-                0.3308051824569702,
-                -0.020025115460157394,
-                0.007021537981927395,
-                0.9434604644775391
-            ],
-            "scale": [
-                1.0,
+                0.9999999403953552,
                 0.9999998807907104,
                 0.9999998807907104
             ],
@@ -755,23 +4630,98 @@
         },
         {
             "first_child": -1,
-            "name": "mixamorig:RightToe_End",
-            "next_sibling": -1,
-            "parent": 25,
+            "name": "Foot_IK_target_Right",
+            "next_sibling": 163,
+            "parent": 161,
             "pos": [
-                -7.227064884318679e-07,
-                7.460337162017822,
-                2.384182948844682e-07
+                -9.144377699499273e-09,
+                -0.11474708467721939,
+                2.000601018181669e-09
             ],
             "rot": [
-                -3.9814040064811707e-08,
-                -2.6309862732887268e-08,
-                3.39350663125515e-08,
+                -0.0673927441239357,
+                -8.767536030518386e-09,
+                -0.997726559638977,
+                2.1565190522210287e-08
+            ],
+            "scale": [
+                1.0,
+                0.9999999403953552,
+                0.9999998807907104
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Foot_01_Pole_Right",
+            "next_sibling": -1,
+            "parent": 161,
+            "pos": [
+                8.67164033024892e-07,
+                1.614130162863603e-08,
+                0.22949405014514923
+            ],
+            "rot": [
+                0.7068029046058655,
+                0.020729925483465195,
+                0.020727144554257393,
+                0.7068029046058655
+            ],
+            "scale": [
+                0.9999998211860657,
+                1.0,
+                0.9999998807907104
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Ctrl_Toe_IK_Right",
+            "next_sibling": -1,
+            "parent": 159,
+            "pos": [
+                -9.495580322038677e-09,
+                -0.045329026877880096,
+                -4.769004746663086e-09
+            ],
+            "rot": [
+                0.03825642541050911,
+                0.032837409526109695,
+                0.028544887900352478,
+                0.9983202815055847
+            ],
+            "scale": [
+                0.9999998807907104,
+                0.9999998807907104,
+                0.9999996423721313
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Ctrl_FootRoll_Cursor_Right",
+            "next_sibling": -1,
+            "parent": 150,
+            "pos": [
+                1.4188125674330365e-10,
+                -0.11049888283014297,
+                8.890310709830374e-09
+            ],
+            "rot": [
+                4.815508885744335e-13,
+                1.9188917121937266e-10,
+                -1.862645504502325e-08,
                 1.0
             ],
             "scale": [
-                0.9999999403953552,
-                0.9999999403953552,
+                1.0000001192092896,
+                1.0000001192092896,
                 1.0
             ],
             "tag": "",
@@ -780,9 +4730,159 @@
         },
         {
             "first_child": -1,
-            "name": "saunaguy",
+            "name": "Ctrl_LegPole_IK_Right",
+            "next_sibling": 167,
+            "parent": 2,
+            "pos": [
+                -0.20872269570827484,
+                0.2826499044895172,
+                0.2174208164215088
+            ],
+            "rot": [
+                -0.70710688829422,
+                -1.772405084921047e-06,
+                -1.7838299299910432e-06,
+                0.7071066498756409
+            ],
+            "scale": [
+                1.0000051259994507,
+                0.9999949932098389,
+                1.0000001192092896
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Ctrl_ArmPole_IK_Left",
+            "next_sibling": 168,
+            "parent": 2,
+            "pos": [
+                0.16673986613750458,
+                0.6749351024627686,
+                -0.1492522954940796
+            ],
+            "rot": [
+                -0.70710688829422,
+                4.457461244555816e-08,
+                -1.79833481439573e-08,
+                0.7071066498756409
+            ],
+            "scale": [
+                0.9999999403953552,
+                0.9999997615814209,
+                0.9999998807907104
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Ctrl_Hand_IK_Left",
+            "next_sibling": 169,
+            "parent": 2,
+            "pos": [
+                0.21188805997371674,
+                0.57883620262146,
+                0.014486594125628471
+            ],
+            "rot": [
+                0.6849903464317322,
+                -0.0072967358864843845,
+                -0.7246365547180176,
+                0.07507903128862381
+            ],
+            "scale": [
+                0.9999999403953552,
+                0.9999997615814209,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Ctrl_ArmPole_IK_Right",
+            "next_sibling": 170,
+            "parent": 2,
+            "pos": [
+                -0.18301387131214142,
+                0.6593866348266602,
+                -0.15574650466442108
+            ],
+            "rot": [
+                -0.70710688829422,
+                4.457461244555816e-08,
+                -1.79833481439573e-08,
+                0.7071066498756409
+            ],
+            "scale": [
+                0.9999999403953552,
+                0.9999997615814209,
+                0.9999998807907104
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "Ctrl_Hand_IK_Right",
+            "next_sibling": 171,
+            "parent": 2,
+            "pos": [
+                -0.3568439781665802,
+                0.184071347117424,
+                0.030104616656899452
+            ],
+            "rot": [
+                0.5667742490768433,
+                -0.07117874175310135,
+                0.7618767023086548,
+                0.30535945296287537
+            ],
+            "scale": [
+                1.0,
+                1.0000001192092896,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "EnemyBody",
+            "next_sibling": 172,
+            "parent": 2,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "FaceMask",
             "next_sibling": -1,
-            "parent": 1,
+            "parent": 2,
             "pos": [
                 0.0,
                 0.0,
@@ -805,7 +4905,7 @@
         }
     ],
     "resources": [
-        "assets/models/saunaguy.stkanim",
-        "assets/models/saunaguy.stkmodel"
+        "assets/models/enemy.stkanim",
+        "assets/models/enemy_final.stkmodel"
     ]
 }

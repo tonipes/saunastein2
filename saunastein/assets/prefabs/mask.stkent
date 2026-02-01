@@ -20,29 +20,29 @@
             "speed": 20.0
         },
         {
-            "comp_type": 12829486272651206750,
+            "comp_type": 1084153302536849766,
             "entity": 1,
+            "material": "assets/_defaults/materials/particle_bullet_trail.stkmat",
+            "particle": "assets/_defaults/particles/bullet_trail.stkparticle"
+        },
+        {
+            "comp_type": 12829486272651206750,
+            "entity": 3,
             "material": 1,
-            "material0": "assets/models/cube.stkmodel/saunaguy",
-            "mesh": "assets/models/cube.stkmodel/Cube.001",
+            "material0": "assets/models/mask.stkmodel/EnemyHead",
+            "mesh": "assets/models/mask.stkmodel/EnemyBody.002",
             "skin": "",
             "skin_entities": 0
         },
         {
             "comp_type": 1084153302536849766,
-            "entity": 2,
-            "material": "assets/_defaults/materials/particle_bullet_trail.stkmat",
-            "particle": "assets/_defaults/particles/bullet_trail.stkparticle"
-        },
-        {
-            "comp_type": 1084153302536849766,
-            "entity": 3,
-            "material": "assets/_defaults/materials/particle_bullet_trail.stkmat",
-            "particle": "assets/_defaults/particles/bullet_trail.stkparticle"
-        },
-        {
-            "comp_type": 1084153302536849766,
             "entity": 4,
+            "material": "assets/_defaults/materials/particle_bullet_trail.stkmat",
+            "particle": "assets/_defaults/particles/bullet_trail.stkparticle"
+        },
+        {
+            "comp_type": 1084153302536849766,
+            "entity": 5,
             "material": "assets/_defaults/materials/particle_bullet_trail.stkmat",
             "particle": "assets/_defaults/particles/bullet_trail.stkparticle"
         }
@@ -65,9 +65,9 @@
                 1.0
             ],
             "scale": [
-                0.12000054121017456,
-                0.12000054121017456,
-                0.12000054121017456
+                1.0,
+                1.0,
+                1.0
             ],
             "tag": "",
             "template": "",
@@ -75,8 +75,33 @@
         },
         {
             "first_child": -1,
-            "name": "cube",
+            "name": "new_entity",
             "next_sibling": 2,
+            "parent": 0,
+            "pos": [
+                0.2143096923828125,
+                0.12966156005859375,
+                0.8592910766601563
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": 3,
+            "name": "assets/models/mask.stkmodel",
+            "next_sibling": 4,
             "parent": 0,
             "pos": [
                 0.0,
@@ -86,13 +111,13 @@
             "rot": [
                 0.0,
                 0.0,
-                -0.1689416468143463,
-                0.9856260418891907
+                0.0,
+                1.0
             ],
             "scale": [
-                1.7753221988677979,
-                3.373563051223755,
-                0.08333295583724976
+                6.0,
+                6.0,
+                6.0
             ],
             "tag": "",
             "template": "",
@@ -100,24 +125,24 @@
         },
         {
             "first_child": -1,
-            "name": "new_entity",
-            "next_sibling": 3,
-            "parent": 0,
+            "name": "FaceMask",
+            "next_sibling": -1,
+            "parent": 2,
             "pos": [
-                1.444091796875,
-                -1.73260498046875,
-                7.48291015625
+                0.0,
+                0.0,
+                0.0
             ],
             "rot": [
+                -0.012428909540176392,
                 0.0,
                 0.0,
-                0.0,
-                1.0
+                0.9999227523803711
             ],
             "scale": [
-                1.0,
-                1.0,
-                1.0
+                1.5735894441604614,
+                1.5735900402069092,
+                1.5735900402069092
             ],
             "tag": "",
             "template": "",
@@ -126,12 +151,12 @@
         {
             "first_child": -1,
             "name": "new_entity",
-            "next_sibling": 4,
+            "next_sibling": 5,
             "parent": 0,
             "pos": [
-                -2.3367919921875,
-                -1.3251953125,
-                7.48291015625
+                -0.2201080322265625,
+                0.131591796875,
+                0.76220703125
             ],
             "rot": [
                 0.0,
@@ -154,9 +179,9 @@
             "next_sibling": -1,
             "parent": 0,
             "pos": [
-                0.0,
-                1.92474365234375,
-                7.48284912109375
+                -0.04986572265625,
+                -0.258392333984375,
+                0.8592910766601563
             ],
             "rot": [
                 0.0,
@@ -176,8 +201,8 @@
     ],
     "resources": [
         "assets/audio/whip.stkaud",
-        "assets/models/cube.stkmodel",
         "assets/_defaults/particles/bullet_trail.stkparticle",
-        "assets/_defaults/materials/particle_bullet_trail.stkmat"
+        "assets/_defaults/materials/particle_bullet_trail.stkmat",
+        "assets/models/mask.stkmodel"
     ]
 }

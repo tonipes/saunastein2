@@ -1,0 +1,39 @@
+{
+    "components": [
+        {
+            "comp_type": 2550096278038808870,
+            "entity": 0,
+            "far": 1000.0,
+            "fov_degrees": 80.0,
+            "near": 0.10000000149011612
+        }
+    ],
+    "entities": [
+        {
+            "first_child": -1,
+            "name": "PlayerCamera",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        }
+    ],
+    "resources": []
+}
