@@ -41,7 +41,7 @@
       "blend": "none",
       "samples": [
         {
-          "animation": "assets/models/enemy_final.stkmodel/T-Pose"
+          "animation": "assets/models/enemy_final.stkmodel/Death"
         }
       ]
     }

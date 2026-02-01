@@ -7,7 +7,7 @@
 #include "math/math.hpp"
 #include "math/random.hpp"
 #include "math/quat.hpp"
-
+#include "game/gameplay.hpp"
 namespace SFG
 {
 	namespace
@@ -140,8 +140,7 @@ namespace SFG
 		_anim_death					= anim_graph.get_state_handle(_state_machine, "Death");
 		_attack_anim_duration		= anim_graph.get_state(_anim_attack).duration / anim_graph.get_state(_anim_attack).speed;
 
-		_mesh_entity	   = em.get_entity_family(_header.entity).first_child;
-		_audio_slap_entity = em.get_entity_family(_mesh_entity).next_sibling;
+		_mesh_entity = em.get_entity_family(_header.entity).first_child;
 
 		set_state(w, enemy_state::idle_wait);
 		_inited = true;
@@ -279,9 +278,7 @@ namespace SFG
 		comp_player_stats& st	  = cm.get_component<comp_player_stats>(stats);
 		st.add_hydration_score(10.0f);
 
-		comp_audio& slap = cm.get_component<comp_audio>(w.get_entity_manager().get_entity_component<comp_audio>(_audio_slap_entity));
-		slap.reset(w);
-		slap.play(w);
+		gameplay::get().spawn_fx(gameplay::spawn_type::slap_effect, w.get_entity_manager().get_entity_position(_header.entity), w.get_entity_manager().get_entity_rotation(_header.entity));
 
 		if (_health < 0.0f)
 			set_state(w, enemy_state::dead);

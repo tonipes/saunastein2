@@ -1,0 +1,78 @@
+{
+    "components": [
+        {
+            "attenuation": 0,
+            "comp_type": 11611975037412134833,
+            "entity": 1,
+            "looping": 1,
+            "max_radius": 10.0,
+            "min_radius": 0.0,
+            "play_on_start": 0,
+            "resource": "",
+            "rolloff": 0.0,
+            "volume": 1.0
+        },
+        {
+            "comp_type": 1084153302536849766,
+            "entity": 1,
+            "material": "assets/_defaults/materials/particle_slap.stkmat",
+            "particle": "assets/_defaults/particles/slap.stkparticle"
+        }
+    ],
+    "entities": [
+        {
+            "first_child": 1,
+            "name": "slap",
+            "next_sibling": -1,
+            "parent": -1,
+            "pos": [
+                -172.53067016601563,
+                1.8210453987121582,
+                -33.68413543701172
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "particle",
+            "next_sibling": -1,
+            "parent": 0,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        }
+    ],
+    "resources": [
+        "assets/_defaults/particles/slap.stkparticle",
+        "assets/_defaults/materials/particle_slap.stkmat"
+    ]
+}

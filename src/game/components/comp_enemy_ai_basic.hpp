@@ -77,7 +77,6 @@ namespace SFG
 
 		world_handle  _player					 = {};
 		world_handle  _mesh_entity				 = {};
-		world_handle  _audio_slap_entity		 = {};
 		world_handle  _comp_player_handle		 = {};
 		world_handle  _comp_animator			 = {};
 		world_handle  _comp_character_controller = {};

@@ -40,6 +40,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "world/components/comp_animation_controller.hpp"
 #include "world/components/comp_light.hpp"
 #include "world/components/comp_physics.hpp"
+#include "world/components/comp_audio.hpp"
 
 // resources
 #include "resources/resource_manager.hpp"
@@ -548,6 +549,12 @@ namespace SFG
 					comp_physics& phy = cm.get_component<comp_physics>(c.comp_handle);
 					phy.set_is_in_simulation(true);
 					pw.add_body_to_world(*phy.create_body(_world));
+				}
+				else if (pm != play_mode::none && c.comp_type == type_id<comp_audio>::value)
+				{
+					comp_audio& aud = cm.get_component<comp_audio>(c.comp_handle);
+					if (aud.is_play_on_start())
+						aud.play(_world);
 				}
 			}
 
@@ -1239,8 +1246,9 @@ namespace SFG
 		istream stream(raw.component_buffer.get_raw(), raw.component_buffer.get_size());
 		entity_template_utils::fill_components_from_buffer(stream, created, cm, rm, _world);
 
+		const play_mode pm = _world.get_playmode();
 		// add physicals
-		if (_world.get_playmode() != play_mode::none)
+		if (pm != play_mode::none)
 		{
 			component_manager& cm = _world.get_comp_manager();
 
@@ -1252,12 +1260,19 @@ namespace SFG
 				entity_comp_register& reg = _comp_registers->get(h.index);
 				for (const entity_comp& c : reg.comps)
 				{
-					if (c.comp_type != type_id<comp_physics>::value)
-						continue;
+					if (c.comp_type == type_id<comp_audio>::value)
+					{
+						comp_audio& aud = cm.get_component<comp_audio>(c.comp_handle);
+						if (aud.is_play_on_start())
+							aud.play(_world);
+					}
 
-					comp_physics& phy = cm.get_component<comp_physics>(c.comp_handle);
-					phy.set_is_in_simulation(true);
-					bodies.push_back(phy.create_body(_world)->GetID());
+					else if (c.comp_type == type_id<comp_physics>::value)
+					{
+						comp_physics& phy = cm.get_component<comp_physics>(c.comp_handle);
+						phy.set_is_in_simulation(true);
+						bodies.push_back(phy.create_body(_world)->GetID());
+					}
 				}
 			}
 

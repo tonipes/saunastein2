@@ -28,7 +28,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "reflection/reflection.hpp"
 #include "world/entity_manager.hpp"
 #include "world/world.hpp"
-#include "world/components/comp_audio.hpp"
 #include "world/component_manager.hpp"
 #include "game/components/comp_enemy_ai_basic.hpp"
 #include "game/gameplay.hpp"
@@ -59,11 +58,7 @@ namespace SFG
 		_enemies.clear();
 		entity_manager& em = w.get_entity_manager();
 		em.find_entities_by_tag("enemy", _enemies);
-		component_manager& cm = w.get_comp_manager();
 
-		comp_audio& ad = cm.get_component<comp_audio>(em.get_entity_component<comp_audio>(_header.entity));
-		ad.reset(w);
-		ad.play(w);
 	}
 
 	void comp_mask::update(world& w, float dt)

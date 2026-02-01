@@ -7,7 +7,7 @@
             "looping": 0,
             "max_radius": 10.0,
             "min_radius": 0.0,
-            "play_on_start": 0,
+            "play_on_start": 1,
             "resource": "assets/audio/whip.stkaud",
             "rolloff": 0.0,
             "volume": 0.4974328875541687
