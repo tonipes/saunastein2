@@ -191,6 +191,14 @@ namespace SFG
 					else if (st == physics_shape_type::plane)
 						debug_rendering.draw_oriented_plane(selected_pos + offset_world, val.x * selected_scale.x, val.z * selected_scale.z, vector3::up, col_phy, thickness);
 				}
+				else if (dd.type == debug_draw_type::mesh)
+				{
+					const comp_mesh_instance& i = cm.get_component<comp_mesh_instance>(dd.component);
+					const resource_handle h = i.get_mesh();
+					const mesh& m = w.get_resource_manager().get_resource<mesh>(h);
+					const aabb local = m.get_aabb();
+					debug_rendering.draw_box(selected_pos, local.bounds_half_extent, selected_rot.get_forward(), col_phy, thickness);
+				}
 				else if (dd.type == debug_draw_type::character_controller)
 				{
 					const comp_character_controller& c			  = cm.get_component<comp_character_controller>(dd.component);
@@ -428,6 +436,13 @@ namespace SFG
 			{
 				_selection_debug_draws.push_back({
 					.type	   = debug_draw_type::physics,
+					.component = c.comp_handle,
+				});
+			}
+			if (c.comp_type == type_id<comp_mesh_instance>::value)
+			{
+				_selection_debug_draws.push_back({
+					.type	   = debug_draw_type::mesh,
 					.component = c.comp_handle,
 				});
 			}

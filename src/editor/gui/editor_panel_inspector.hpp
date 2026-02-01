@@ -53,6 +53,7 @@ namespace SFG
 			spot_light,
 			audio,
 			camera,
+			mesh,
 		};
 
 		void init(vekt::builder* b, editor_panel_entities* entities);

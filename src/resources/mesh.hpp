@@ -28,6 +28,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "data/bitmask.hpp"
 #include "resources/common_resources.hpp"
 #include "reflection/type_reflection.hpp"
+#include "math/aabb.hpp"
 
 #ifndef SFG_STRIP_DEBUG_NAMES
 #include "memory/chunk_handle.hpp"
@@ -120,6 +121,11 @@ namespace SFG
 			return _mesh_shape;
 		}
 
+		inline const aabb& get_aabb() const
+		{
+			return _local_aabb;
+		}
+
 		JPH::Shape* get_mesh_shape(resource_manager& rm) const;
 
 	private:
@@ -131,6 +137,7 @@ namespace SFG
 #ifndef SFG_STRIP_DEBUG_NAMES
 		chunk_handle32 _name;
 #endif
+		aabb		   _local_aabb			  = {};
 		chunk_handle32 _material_indices	  = {};
 		uint16		   _material_count		  = 0;
 		uint16		   _node_index			  = 0;

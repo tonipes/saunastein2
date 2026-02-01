@@ -550,15 +550,15 @@ namespace SFG
 					phy.set_is_in_simulation(true);
 					pw.add_body_to_world(*phy.create_body(_world));
 				}
-					else if (pm != play_mode::none && c.comp_type == type_id<comp_audio>::value)
+				else if (pm != play_mode::none && c.comp_type == type_id<comp_audio>::value)
+				{
+					comp_audio& aud = cm.get_component<comp_audio>(c.comp_handle);
+					if (aud.is_play_on_start())
 					{
-						comp_audio& aud = cm.get_component<comp_audio>(c.comp_handle);
-						if (aud.is_play_on_start())
-						{
-							aud.reset(_world);
-							aud.play(_world);
-						}
+						aud.reset(_world);
+						aud.play(_world);
 					}
+				}
 			}
 
 			const bitmask<uint16> fl = _flags->get(source_entity.index);
@@ -1133,6 +1133,7 @@ namespace SFG
 					const world_handle light_handle = cm.add_component<comp_point_light>(entity);
 					comp_point_light&  comp_light	= cm.get_component<comp_point_light>(light_handle);
 					comp_light.set_values(_world, lr.base_color, lr.range, lr.intensity);
+					comp_light.set_shadow_values(_world, 1, 0.01f, vector2ui16(256, 256));
 				}
 				else if (lr.type == light_raw_type::spot)
 				{

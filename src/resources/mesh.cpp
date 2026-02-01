@@ -61,6 +61,7 @@ namespace SFG
 	{
 		SFG_ASSERT(!_flags.is_set(mesh::flags::created));
 		_flags.set(mesh::flags::created);
+		_local_aabb = raw.local_aabb;
 
 		render_event_stream& stream = w.get_render_stream();
 		resource_manager&	 rm		= w.get_resource_manager();

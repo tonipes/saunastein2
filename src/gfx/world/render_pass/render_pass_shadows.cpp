@@ -55,14 +55,13 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace SFG
 {
 
-#define MAX_PASS_COUNT 64
 
 	void render_pass_shadows::init()
 	{
-		_alloc.init(PASS_ALLOC_SIZE_OPAQUE * MAX_PASS_COUNT, 8);
+		_alloc.init(PASS_ALLOC_SIZE_OPAQUE * MAX_GPU_SHADOW_DATA, 8);
 		_barriers.reserve(64);
 
-		_passes = new pass[MAX_PASS_COUNT];
+		_passes = new pass[MAX_GPU_SHADOW_DATA];
 
 		gfx_backend* backend = gfx_backend::get();
 
@@ -73,7 +72,7 @@ namespace SFG
 			pfd.cmd_buffer = backend->create_command_buffer({.type = command_type::graphics, .debug_name = "shadows_cmd"});
 		}
 
-		for (uint16 i = 0; i < MAX_PASS_COUNT; i++)
+		for (uint16 i = 0; i < MAX_GPU_SHADOW_DATA; i++)
 		{
 			pass& p = _passes[i];
 
@@ -93,7 +92,7 @@ namespace SFG
 	{
 		_alloc.uninit();
 
-		for (uint16 i = 0; i < MAX_PASS_COUNT; i++)
+		for (uint16 i = 0; i < MAX_GPU_SHADOW_DATA; i++)
 		{
 			pass& p = _passes[i];
 

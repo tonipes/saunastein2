@@ -33,6 +33,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "math/frustum.hpp"
 #include "resources/vertex.hpp"
 #include "resources/shader_direct.hpp"
+#include "math/math.hpp"
 
 #include "io/log.hpp"
 namespace SFG
@@ -62,11 +63,24 @@ namespace SFG
 			if (proxy_mesh.primitives.size == 0)
 				continue;
 
-			const vector3		 pos = proxy_entity.model.get_translation();
-		
-			const frustum_result res = frustum::test(target_view.view_frustum, proxy_mesh.local_aabb, proxy_entity.model.to_linear3x3(), pos);
-			if (res == frustum_result::outside)
-				continue;
+			const vector3 pos = proxy_entity.model.get_translation();
+
+			if (proxy_mesh.is_skinned)
+			{
+				const vector3 scale = proxy_entity.model.get_scale();
+				const float max_scale = math::max(math::max(math::abs(scale.x), math::abs(scale.y)), math::abs(scale.z));
+				const float radius = proxy_mesh.local_aabb.bounds_half_extent.magnitude() * max_scale * 1.5f;
+				const float safe_radius = radius > 0.0f ? radius : 1.0f;
+				const frustum_result res = frustum::test(target_view.view_frustum, pos, safe_radius);
+				if (res == frustum_result::outside)
+					continue;
+			}
+			else
+			{
+				const frustum_result res = frustum::test(target_view.view_frustum, proxy_mesh.local_aabb, proxy_entity.model.to_linear3x3(), pos);
+				if (res == frustum_result::outside)
+					continue;
+			}
 
 			const uint32				  buffer_index = proxy_entity._assigned_index;
 			const render_proxy_primitive* primitives   = aux.get<render_proxy_primitive>(proxy_mesh.primitives);
