@@ -3234,7 +3234,7 @@ namespace SFG
 		command_buffer&				buffer	 = _command_buffers.get(cmd_id);
 		ID3D12GraphicsCommandList4* cmd_list = buffer.ptr.Get();
 
-		static_vector<CD3DX12_RESOURCE_BARRIER, 256> barriers;
+		vector<CD3DX12_RESOURCE_BARRIER> barriers;
 
 		for (uint16 i = 0; i < cmd.barrier_count; i++)
 		{

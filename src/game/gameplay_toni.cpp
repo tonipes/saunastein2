@@ -396,6 +396,7 @@ namespace SFG
 			em.set_entity_position_abs(handle, position);
 			em.set_entity_rotation_abs(handle, direction);
 		}
+		em.teleport_entity(handle);
 
 		managed_entity ent = {};
 		ent.handle		   = handle;
