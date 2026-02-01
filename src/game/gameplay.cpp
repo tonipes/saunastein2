@@ -95,17 +95,16 @@ namespace SFG
 		for (comp_player& p : players)
 			p.on_window_event(_app.get_world(), ev);
 
-
 		switch (ev.type)
 		{
-			case window_event_type::key: {
-				if (ev.button == input_code::key_space && ev.sub_type == window_event_sub_type::press)
-				{
-					SFG_TRACE("SPACE PRESSED");
-				}
+		case window_event_type::key: {
+			if (ev.button == input_code::key_space && ev.sub_type == window_event_sub_type::press)
+			{
+				SFG_TRACE("SPACE PRESSED");
 			}
-			default:
-				break;
+		}
+		default:
+			break;
 		}
 	}
 
@@ -133,7 +132,6 @@ namespace SFG
 
 	void gameplay::on_character_contact_end(world_handle character, world_handle other)
 	{
-	
 	}
 
 	void gameplay::tick_player(float dt)
@@ -170,7 +168,7 @@ namespace SFG
 	{
 		world&			   w	   = _app.get_world();
 		component_manager& cm	   = w.get_comp_manager();
-		auto&			   enemies	  = cm.underlying_pool<comp_cache<comp_enemy_ai_basic, MAX_WORLD_ENEMY_AI_BASIC>, comp_enemy_ai_basic>();
+		auto&			   enemies = cm.underlying_pool<comp_cache<comp_enemy_ai_basic, MAX_WORLD_ENEMY_AI_BASIC>, comp_enemy_ai_basic>();
 		auto			   player  = cm.get_component<comp_player_stats>(w.get_entity_manager().get_entity_component<comp_player_stats>(_player_entity));
 		for (auto& e : enemies)
 		{

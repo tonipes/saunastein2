@@ -98,7 +98,6 @@ namespace SFG
 		world_handle _camera_comp		  = {};
 		world_handle _player_stats		  = {};
 		world_handle _canvas_comp		  = {};
-		world_handle _spawn_offset_entity = {};
 		world_handle _player_mesh_entity  = {};
 		world_handle _player_anim_comp	  = {};
 

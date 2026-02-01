@@ -31,8 +31,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace SFG
 {
-#define MAX_RESOURCES		   2048
-#define MAX_TEXTURES		   2048
+#define MAX_RESOURCES		   10048
+#define MAX_TEXTURES		   10048
 #define MAX_SAMPLERS		   128
 #define MAX_SEMAPHORES		   64
 #define MAX_SHADERS			   2048
@@ -42,7 +42,7 @@ namespace SFG
 #define MAX_BIND_LAYOUTS	   128
 #define MAX_COMMAND_BUFFERS	   256
 #define MAX_QUEUES			   8
-#define MAX_DESCRIPTOR_HANDLES 1024
+#define MAX_DESCRIPTOR_HANDLES 8024
 #define COMMANDS_MAX_TID	   25
 
 #define BACK_BUFFER_COUNT 3
@@ -52,7 +52,7 @@ namespace SFG
 #define GPU_DEVICE 0
 
 	typedef unsigned short gfx_id;
-	typedef unsigned short primitive_index;
+	typedef unsigned int   primitive_index;
 	typedef unsigned int   gpu_index;
 
 #define NULL_GFX_ID	   std::numeric_limits<gfx_id>::max()

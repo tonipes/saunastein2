@@ -135,7 +135,6 @@ namespace SFG
 			_ui.init(cnv.get_builder());
 		}
 
-		_spawn_offset_entity		   = em.find_entity("PlayerSpawnOffset");
 		_player_mesh_entity			   = em.find_entity("PlayerMesh");
 		const world_handle anim_entity = em.find_entity_by_tag("player_anim");
 		if (!anim_entity.is_null())
@@ -198,20 +197,20 @@ namespace SFG
 		_pitch_degrees		  = -45.0f;
 		_real_camera_distance = _camera_distance;
 
-		//const pool_handle16	  mask_handle = anim_graph.get_mask_handle("right_arm");
-		//animation_mask&		  mask		  = anim_graph.get_mask(mask_handle);
-		//resource_manager&	  rm		  = w.get_resource_manager();
-		//const resource_handle skin_handle = rm.get_resource_handle_by_hash<skin>("assets/models/player_final.stkmodel/Armature"_hs);
+		// const pool_handle16	  mask_handle = anim_graph.get_mask_handle("right_arm");
+		// animation_mask&		  mask		  = anim_graph.get_mask(mask_handle);
+		// resource_manager&	  rm		  = w.get_resource_manager();
+		// const resource_handle skin_handle = rm.get_resource_handle_by_hash<skin>("assets/models/player_final.stkmodel/Armature"_hs);
 
-		//vector<string_id> hashes = {
+		// vector<string_id> hashes = {
 		//	"mixamorig:RightShoulder"_hs,
 		//	"mixamorig:RightArm"_hs,
 		//	"mixamorig:RightForeArm"_hs,
 		//	"mixamorig:RightHand"_hs,
 		//
-		//};
-		//mask.mask_all(w, skin_handle);
-		//mask.unmask_joints(w, skin_handle, hashes.data(), hashes.size());
+		// };
+		// mask.mask_all(w, skin_handle);
+		// mask.unmask_joints(w, skin_handle, hashes.data(), hashes.size());
 	}
 
 	void comp_player::start_dive(world& w, comp_character_controller& controller, const vector3& dir)
@@ -255,14 +254,14 @@ namespace SFG
 
 	void comp_player::fire_mask(world& w)
 	{
-		if (_spawn_offset_entity.is_null())
-			return;
-
 		entity_manager& em = w.get_entity_manager();
 		if (_camera_entity.is_null())
 			return;
 
-		const vector3 spawn_pos = em.get_entity_position_abs(_spawn_offset_entity);
+		const vector3 my_pos = em.get_entity_position_abs(_header.entity);
+		const quat	  my_rot = em.get_entity_rotation_abs(_player_mesh_entity);
+
+		const vector3 spawn_pos = my_pos + my_rot.get_right() * 2.0f + my_rot.get_forward() * 1.5f + vector3::up * 2.f;
 		const quat	  cam_rot	= em.get_entity_rotation_abs(_camera_entity);
 		vector3		  forward	= cam_rot.get_forward();
 		if (forward.is_zero())
@@ -272,7 +271,7 @@ namespace SFG
 		const quat spawn_rot = quat::look_at(spawn_pos, spawn_pos - forward, vector3::up);
 
 		// gameplay::get().spawn_managed_entity("assets/prefabs/mask.stkent"_hs, spawn_pos, spawn_rot.get_forward() * -50.0f, 5.0f);
-		gameplay::get().spawn_managed_entity("assets/prefabs/mask.stkent"_hs, spawn_pos, spawn_rot, bullet_params);
+		const world_handle h = gameplay::get().spawn_managed_entity("assets/prefabs/mask.stkent"_hs, spawn_pos, spawn_rot, bullet_params);
 	}
 
 	void comp_player::start_throw(world& w)
