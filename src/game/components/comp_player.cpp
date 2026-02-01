@@ -101,7 +101,6 @@ namespace SFG
 		_player_dive_right_state = {};
 		_player_dive_left_state	 = {};
 		_player_throw_state		 = {};
-		_player_prev_state		 = {};
 		_throw_timer			 = 0.0f;
 		_throw_duration			 = 0.0f;
 		_is_throwing			 = false;
@@ -205,21 +204,6 @@ namespace SFG
 
 		_pitch_degrees		  = -45.0f;
 		_real_camera_distance = _camera_distance;
-
-		// const pool_handle16	  mask_handle = anim_graph.get_mask_handle("right_arm");
-		// animation_mask&		  mask		  = anim_graph.get_mask(mask_handle);
-		// resource_manager&	  rm		  = w.get_resource_manager();
-		// const resource_handle skin_handle = rm.get_resource_handle_by_hash<skin>("assets/models/player_final.stkmodel/Armature"_hs);
-
-		// vector<string_id> hashes = {
-		//	"mixamorig:RightShoulder"_hs,
-		//	"mixamorig:RightArm"_hs,
-		//	"mixamorig:RightForeArm"_hs,
-		//	"mixamorig:RightHand"_hs,
-		//
-		// };
-		// mask.mask_all(w, skin_handle);
-		// mask.unmask_joints(w, skin_handle, hashes.data(), hashes.size());
 	}
 
 	void comp_player::start_dive(world& w, comp_character_controller& controller, const vector3& dir)
@@ -280,7 +264,7 @@ namespace SFG
 		const quat spawn_rot = quat::look_at(spawn_pos, spawn_pos - forward, vector3::up);
 
 		// gameplay::get().spawn_managed_entity("assets/prefabs/mask.stkent"_hs, spawn_pos, spawn_rot.get_forward() * -50.0f, 5.0f);
-		const world_handle h = gameplay::get().spawn_managed_entity("assets/prefabs/mask.stkent"_hs, spawn_pos, spawn_rot, bullet_params);
+		gameplay::get().spawn_fx(gameplay::spawn_type::mask, spawn_pos, spawn_rot);
 	}
 
 	void comp_player::start_throw(world& w)
@@ -293,14 +277,11 @@ namespace SFG
 
 		animation_graph&		 anim_graph = w.get_animation_graph();
 		animation_state_machine& machine	= anim_graph.get_state_machine(_player_anim_machine);
-		_player_prev_state					= machine.active_state;
 		anim_graph.set_machine_active_state(_player_anim_machine, _player_throw_state);
 
 		_throw_timer	= 0.0f;
-		_throw_duration = anim_graph.get_state(_player_throw_state).duration;
-		if (_throw_duration <= 0.0f)
-			_throw_duration = 0.25f;
-		_is_throwing = true;
+		_throw_duration = anim_graph.get_state(_player_throw_state).duration / anim_graph.get_state(_player_throw_state).speed;
+		_is_throwing	= true;
 	}
 
 	void comp_player::tick(world& w, float dt)
@@ -437,7 +418,7 @@ namespace SFG
 			if (_throw_timer >= _throw_duration)
 			{
 				animation_graph&	anim_graph	 = w.get_animation_graph();
-				const pool_handle16 target_state = _player_prev_state.is_null() ? _player_default_state : _player_prev_state;
+				const pool_handle16 target_state = _player_default_state;
 				if (!_player_anim_machine.is_null() && !target_state.is_null())
 					anim_graph.set_machine_active_state(_player_anim_machine, target_state);
 

@@ -30,11 +30,14 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "game/components/comp_player.hpp"
 #include "game/components/comp_player_stats.hpp"
 #include <world/components/comp_physics.hpp>
+#include "game/components/comp_destroyer.hpp"
+#include "game/components/comp_mask.hpp"
 #include "game/components/comp_enemy_ai_basic.hpp"
 #include <physics/physics_contact_listener.hpp>
 #include "platform/window_common.hpp"
 #include "input/input_mappings.hpp"
 #include "game/components/comp_enemy_ai_basic.hpp"
+#include "resources/entity_template.hpp"
 
 namespace SFG
 {
@@ -43,11 +46,16 @@ namespace SFG
 
 	gameplay* gameplay::_inst = nullptr;
 
+#define MAX_WORLD_DESTROYERS 1000
+#define MAX_WORLD_MASKS		 2000
+
 	void gameplay::init()
 	{
 		_app.get_world().get_comp_manager().register_cache<comp_player, MAX_PLAYERS>();
 		_app.get_world().get_comp_manager().register_cache<comp_player_stats, MAX_PLAYERS>();
 		_app.get_world().get_comp_manager().register_cache<comp_enemy_ai_basic, MAX_WORLD_ENEMY_AI_BASIC>();
+		_app.get_world().get_comp_manager().register_cache<comp_destroyer, MAX_WORLD_DESTROYERS>();
+		_app.get_world().get_comp_manager().register_cache<comp_mask, MAX_WORLD_MASKS>();
 		_inst = this;
 
 		_app.get_world().get_entity_manager().find_entities_by_tag("enemy", _all_enemies);
@@ -85,6 +93,8 @@ namespace SFG
 		tick_doors(dt);
 		tick_managed_entities(dt);
 		tick_enemies(dt);
+		tick_masks(dt);
+		tick_destroyers(dt);
 	}
 
 	void gameplay::on_window_event(const window_event& ev, window* wnd)
@@ -164,6 +174,47 @@ namespace SFG
 		}
 	}
 
+	void gameplay::tick_destroyers(float dt)
+	{
+		world&			   w		  = _app.get_world();
+		component_manager& cm		  = w.get_comp_manager();
+		auto&			   destroyers = cm.underlying_pool<comp_cache<comp_destroyer, MAX_WORLD_DESTROYERS>, comp_destroyer>();
+
+		vector<world_handle> deads;
+		for (auto& d : destroyers)
+		{
+			d.update(w, dt);
+
+			if (d.is_destroyed())
+				deads.push_back(d.get_header().entity);
+		}
+
+		entity_manager& em = w.get_entity_manager();
+		for (auto h : deads)
+			em.destroy_entity(h);
+	}
+
+	void gameplay::tick_masks(float dt)
+	{
+		world&				 w	   = _app.get_world();
+		component_manager&	 cm	   = w.get_comp_manager();
+		auto&				 masks = cm.underlying_pool<comp_cache<comp_mask, MAX_WORLD_MASKS>, comp_mask>();
+		vector<world_handle> deads;
+
+		for (auto& m : masks)
+		{
+			m.update(w, dt);
+			if (m.is_destroyed())
+			{
+				deads.push_back(m.get_header().entity);
+			}
+		}
+
+		entity_manager& em = w.get_entity_manager();
+		for (auto h : deads)
+			em.destroy_entity(h);
+	}
+
 	void gameplay::tick_enemies(float dt)
 	{
 		world&			   w	   = _app.get_world();
@@ -181,9 +232,35 @@ namespace SFG
 		world&			   w	   = _app.get_world();
 		component_manager& cm	   = w.get_comp_manager();
 		auto&			   enemies = cm.underlying_pool<comp_cache<comp_enemy_ai_basic, MAX_WORLD_ENEMY_AI_BASIC>, comp_enemy_ai_basic>();
+		_all_enemies.resize(0);
 		for (auto& e : enemies)
 		{
+			_all_enemies.push_back(e.get_header().entity);
 			e.begin_play(w);
 		}
 	}
+
+	
+	void gameplay::spawn_fx(spawn_type type, const vector3& p, const quat& r)
+	{
+		entity_manager& em	 = _app.get_world().get_entity_manager();
+		string_id		hash = ""_hs;
+
+		if (type == spawn_type::mask)
+			hash = "assets/prefabs/mask.stkent"_hs;
+		else if (type == spawn_type::slap_effect)
+			hash = "assets/prefabs/slap.stkent"_hs;
+		else if (type == spawn_type::get_damage_effect)
+			hash = "assets/prefabs/get_damage.stkent"_hs;
+
+		resource_handle tmp = _app.get_world().get_resource_manager().get_resource_handle_by_hash_if_exists<entity_template>(hash);
+		if (tmp.is_null())
+			return;
+
+		const world_handle h = em.instantiate_template(tmp);
+		em.set_entity_position(h, p);
+		em.set_entity_rotation(h, r);
+		em.teleport_entity(h);
+	}
+
 }

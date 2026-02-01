@@ -109,7 +109,6 @@ namespace SFG
 		pool_handle16	_player_default_state	 = {};
 		pool_handle16	_player_dive_right_state = {};
 		pool_handle16	_player_dive_left_state	 = {};
-		pool_handle16	_player_prev_state		 = {};
 		pool_handle16	_player_dive_right_param = {};
 		pool_handle16	_player_dive_left_param	 = {};
 		pool_handle16	_player_throw_param		 = {};

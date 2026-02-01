@@ -93,6 +93,14 @@ namespace SFG
 	class gameplay : public physics_contact_listener, public physics_character_contact_listener
 	{
 	public:
+
+		enum class spawn_type
+		{
+			mask,
+			slap_effect,
+			get_damage_effect,
+		};
+
 		gameplay(app& app) : _app(app) {};
 
 		static gameplay& get()
@@ -116,10 +124,14 @@ namespace SFG
 		void on_character_contact_end(world_handle character, world_handle other) override;
 		world_handle spawn_managed_entity(string_id resource, vector3 position, quat direction, const managed_entity_params& params);
 
+		void spawn_fx(spawn_type type, const vector3& p, const quat& r);
+
 	private:
 		void tick_player(float dt);
 		void tick_player_debug(float dt);
 		void begin_player();
+		void tick_destroyers(float dt);
+		void tick_masks(float dt);
 		void tick_enemies(float dt);
 		void begin_enemies();
 

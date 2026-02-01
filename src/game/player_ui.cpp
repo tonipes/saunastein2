@@ -65,7 +65,7 @@ namespace SFG
 			bg_gfx.color			 = VEKT_VEC4(0.0f, 0.0f, 0.0f, 0.65f);
 
 			_builder->widget_set_size_abs(_health_bg, VEKT_VEC2(220.0f, 40.0f));
-			_builder->widget_set_pos(_health_bg, VEKT_VEC2(0.02f, 0.98f), vekt::helper_pos_type::relative, vekt::helper_pos_type::relative, vekt::helper_anchor_type::start, vekt::helper_anchor_type::end);
+			_builder->widget_set_pos(_health_bg, VEKT_VEC2(0.02f, 0.98f), vekt::helper_pos_type::relative, vekt::helper_pos_type::relative, vekt::helper_anchor_type::start, vekt::helper_anchor_type::center);
 
 			vekt::size_props& bg_sz = _builder->widget_get_size_props(_health_bg);
 			bg_sz.child_margins		= {2.0f, 2.0f, 2.0f, 2.0f};
@@ -90,8 +90,8 @@ namespace SFG
 			bg_gfx.flags			 = vekt::gfx_flags::gfx_is_rect;
 			bg_gfx.color			 = VEKT_VEC4(0.0f, 0.0f, 0.0f, 0.65f);
 
-			_builder->widget_set_size_abs(_hydration_bg, VEKT_VEC2(220.0f, 28.0f));
-			_builder->widget_set_pos(_hydration_bg, VEKT_VEC2(0.5f, 0.52f), vekt::helper_pos_type::relative, vekt::helper_pos_type::relative, vekt::helper_anchor_type::start, vekt::helper_anchor_type::end);
+			_builder->widget_set_size_abs(_hydration_bg, VEKT_VEC2(220.0f, 40.0f));
+			_builder->widget_set_pos(_hydration_bg, VEKT_VEC2(0.5f, 0.52f), vekt::helper_pos_type::relative, vekt::helper_pos_type::relative, vekt::helper_anchor_type::start, vekt::helper_anchor_type::center);
 
 			vekt::size_props& bg_sz = _builder->widget_get_size_props(_hydration_bg);
 			bg_sz.child_margins		= {2.0f, 2.0f, 2.0f, 2.0f};

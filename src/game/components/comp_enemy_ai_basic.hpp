@@ -28,7 +28,7 @@ namespace SFG
 		void begin_play(world& w);
 		void tick(world& w, float dt);
 		void set_animation_state_machine(bool idle);
-		void take_damage(float damage);
+		void take_damage(world& w, float damage);
 
 		void tick_idle(world& w, float dt);
 		void tick_attack(world& w, float dt);
@@ -38,6 +38,11 @@ namespace SFG
 
 		void set_state(world& w, enemy_state state);
 
+		inline enemy_state get_state() const
+		{
+			return _state;
+		}
+
 		inline const component_header& get_header() const
 		{
 			return _header;
@@ -45,14 +50,16 @@ namespace SFG
 
 	private:
 		template <typename T, int> friend class comp_cache;
-		component_header _header = {};
-		enemy_state		 _state	 = enemy_state::none;
+		component_header   _header		 = {};
+		enemy_state		   _state		 = enemy_state::none;
 		comp_post_process* _post_process = nullptr;
 
 		float _min_chase_speed = 2.0f;
 		float _max_chase_speed = 6.0f;
 		float _min_chase_range = 5.0f;
 		float _max_chase_range = 10.0f;
+		float _min_health	   = 100.0f;
+		float _max_health	   = 110.0f;
 
 		float _chase_speed = 5.0f;
 		float _chase_range = 10.0f;
@@ -66,9 +73,11 @@ namespace SFG
 		float _attack_start_time		 = 0.0f;
 		float _attack_anim_duration		 = 0.0f;
 		bool  _attack_done_once			 = false;
+		float _health					 = 0.0f;
 
 		world_handle  _player					 = {};
 		world_handle  _mesh_entity				 = {};
+		world_handle  _audio_slap_entity		 = {};
 		world_handle  _comp_player_handle		 = {};
 		world_handle  _comp_animator			 = {};
 		world_handle  _comp_character_controller = {};

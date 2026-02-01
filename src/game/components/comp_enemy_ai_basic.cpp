@@ -3,6 +3,7 @@
 #include "reflection/reflection.hpp"
 #include "world/components/comp_animation_controller.hpp"
 #include "physics/physics_ray_collector.hpp"
+#include "world/components/comp_audio.hpp"
 #include "math/math.hpp"
 #include "math/random.hpp"
 #include "math/quat.hpp"
@@ -30,6 +31,8 @@ namespace SFG
 		meta& m = reflection::get().register_meta(type_id<comp_enemy_ai_basic>::value, 0, "component");
 		m.set_title("enemy_ai_basic");
 		m.set_category("enemy");
+		m.add_field<&comp_enemy_ai_basic::_min_health, comp_enemy_ai_basic>("min_health", reflected_field_type::rf_float, "");
+		m.add_field<&comp_enemy_ai_basic::_max_health, comp_enemy_ai_basic>("max_health", reflected_field_type::rf_float, "");
 		m.add_field<&comp_enemy_ai_basic::_min_chase_speed, comp_enemy_ai_basic>("min_chase_speed", reflected_field_type::rf_float, "");
 		m.add_field<&comp_enemy_ai_basic::_max_chase_speed, comp_enemy_ai_basic>("max_chase_speed", reflected_field_type::rf_float, "");
 		m.add_field<&comp_enemy_ai_basic::_min_chase_range, comp_enemy_ai_basic>("min_chase_range", reflected_field_type::rf_float, "");
@@ -51,6 +54,7 @@ namespace SFG
 		_chase_range	   = _min_chase_range + random::random_01() * (_max_chase_range - _min_chase_range);
 		_chase_speed	   = _min_chase_speed + random::random_01() * (_max_chase_speed - _min_chase_speed);
 		_damage			   = _min_damage + random::random_01() * (_max_damage - _min_damage);
+		_health			   = _min_health + random::random_01() * (_max_health - _min_health);
 	}
 
 	void comp_enemy_ai_basic::set_state(world& w, enemy_state state)
@@ -136,7 +140,8 @@ namespace SFG
 		_anim_death					= anim_graph.get_state_handle(_state_machine, "Death");
 		_attack_anim_duration		= anim_graph.get_state(_anim_attack).duration / anim_graph.get_state(_anim_attack).speed;
 
-		_mesh_entity = em.get_entity_family(_header.entity).first_child;
+		_mesh_entity	   = em.get_entity_family(_header.entity).first_child;
+		_audio_slap_entity = em.get_entity_family(_mesh_entity).next_sibling;
 
 		set_state(w, enemy_state::idle_wait);
 		_inited = true;
@@ -254,9 +259,34 @@ namespace SFG
 
 	void comp_enemy_ai_basic::tick_death(world& w, float dt)
 	{
+		component_manager& cm = w.get_comp_manager();
+
+		comp_character_controller& own_char = cm.get_component<comp_character_controller>(_comp_character_controller);
+		own_char.set_target_velocity(vector3::zero);
 	}
 
-	void comp_enemy_ai_basic::take_damage(float damage)
+	void comp_enemy_ai_basic::take_damage(world& w, float damage)
 	{
+		if (_state == enemy_state::dead)
+			return;
+
+		SFG_INFO("taking damage");
+		_health -= damage;
+
+		component_manager& cm	  = w.get_comp_manager();
+		comp_player&	   player = cm.get_component<comp_player>(_comp_player_handle);
+		const world_handle stats  = player.get_stats();
+		comp_player_stats& st	  = cm.get_component<comp_player_stats>(stats);
+		st.add_hydration_score(10.0f);
+
+		comp_audio& slap = cm.get_component<comp_audio>(w.get_entity_manager().get_entity_component<comp_audio>(_audio_slap_entity));
+		slap.reset(w);
+		slap.play(w);
+
+		if (_health < 0.0f)
+			set_state(w, enemy_state::dead);
+
+		if (_state == enemy_state::idle_wait)
+			set_state(w, enemy_state::chase);
 	}
 }
