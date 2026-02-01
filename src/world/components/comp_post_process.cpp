@@ -69,6 +69,7 @@ namespace SFG
 			.wb_temp			  = _wb_temp,
 			.wb_tint			  = _wb_tint,
 			.reinhard_white_point = _reinhard_white_point,
+			.damage_time		  = _damage_time,
 			.entity_index		  = _header.entity.index,
 		};
 
@@ -108,6 +109,7 @@ namespace SFG
 			.wb_temp			  = _wb_temp,
 			.wb_tint			  = _wb_tint,
 			.reinhard_white_point = _reinhard_white_point,
+			.damage_time		  = _damage_time,
 			.entity_index		  = _header.entity.index,
 		};
 
@@ -117,6 +119,12 @@ namespace SFG
 				.event_type = render_event_type::update_post_process,
 			},
 			ev);
+	}
+
+	void comp_post_process::set_damage_time(world& w, float time)
+	{
+		_damage_time = time;
+		set_values(w, _bloom_strength, _exposure, _tonemap_mode, _saturation, _wb_temp, _wb_tint, _reinhard_white_point);
 	}
 
 }

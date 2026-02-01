@@ -5,6 +5,7 @@
 #include "world/components/comp_character_controller.hpp"
 #include "world/world.hpp"
 #include "game/components/comp_player_stats.hpp"
+#include "world/components/comp_post_process.hpp"
 
 namespace SFG
 {
@@ -46,6 +47,7 @@ namespace SFG
 		template <typename T, int> friend class comp_cache;
 		component_header _header = {};
 		enemy_state		 _state	 = enemy_state::none;
+		comp_post_process* _post_process = nullptr;
 
 		float _min_chase_speed = 2.0f;
 		float _max_chase_speed = 6.0f;

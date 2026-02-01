@@ -52,7 +52,7 @@ namespace SFG
 			float	wb_temp				 = 0.0f;
 			float	wb_tint				 = 0.0f;
 			float	reinhard_white_point = 3.0f;
-			float	pad;
+			float	damage_time			 = -1000.f;
 		};
 
 		struct per_frame_data

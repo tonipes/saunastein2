@@ -107,29 +107,22 @@
             "skin_entities": 0
         },
         {
-            "body_type": 1,
-            "comp_type": 14536826215375575722,
-            "entity": 7,
-            "extents": [
-                1.0,
-                2.0,
-                1.0
-            ],
-            "is_sensor": 0,
-            "material": "",
-            "offset": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "shape_type": 1
-        },
-        {
             "comp_type": 2550096278038808870,
-            "entity": 8,
+            "entity": 7,
             "far": 50.0,
             "fov_degrees": 75.0,
             "near": 0.10000000149011612
+        },
+        {
+            "bloom_strength": 0.03999999910593033,
+            "comp_type": 12646063331636911837,
+            "entity": 8,
+            "exposure": 1.0,
+            "reinhard_white_point": 6.0,
+            "saturation": 1.0,
+            "tonemap_mode": 1,
+            "wb_temp": 0.0,
+            "wb_tint": 0.0
         }
     ],
     "entities": [
@@ -261,7 +254,7 @@
         {
             "first_child": 6,
             "name": "assets/models/cube.stkmodel",
-            "next_sibling": 7,
+            "next_sibling": -1,
             "parent": 4,
             "pos": [
                 0.0,
@@ -310,9 +303,9 @@
         },
         {
             "first_child": -1,
-            "name": "collider",
+            "name": "PlayerCamera",
             "next_sibling": -1,
-            "parent": 4,
+            "parent": -1,
             "pos": [
                 0.0,
                 0.0,
@@ -335,7 +328,7 @@
         },
         {
             "first_child": -1,
-            "name": "PlayerCamera",
+            "name": "post_process",
             "next_sibling": -1,
             "parent": -1,
             "pos": [
@@ -371,9 +364,9 @@
         9.704922676086426
     ],
     "tool_cam_rot": [
-        -0.10140832513570786,
-        0.512614369392395,
-        0.06112702935934067,
-        0.8504154086112976
+        -0.10140858590602875,
+        0.5126160979270935,
+        0.06112747639417648,
+        0.8504142761230469
     ]
 }

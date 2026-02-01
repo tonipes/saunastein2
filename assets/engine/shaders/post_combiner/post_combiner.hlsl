@@ -60,7 +60,7 @@ struct post_params
     float wb_temp;               // -1..+1 (blue<->orange)
     float wb_tint;               // -1..+1 (magenta<->green)
     float reinhard_white_point;  // ~3.0 default
-    float _pad_;
+    float damage_time;
 };
 
 SamplerState smp_linear : static_sampler_linear;
@@ -196,18 +196,29 @@ float4 outline(float2 uv, float2 texel_size, float thickness, Texture2D texture)
 float4 PSMain(vs_output IN) : SV_TARGET
 {
     post_params params = sfg_get_cbv<post_params>(sfg_rp_constant0);
+    float2 center = float2(0.5, 0.5);
+    float2 uv = IN.uv;
+    float dist_cent = distance(center, uv);
+    float thickness = 0.2;
+    float wave_speed = 2;
+    float time_since_dmg = sfg_global_elapsed - params.damage_time;
+    float wave_dist = time_since_dmg * wave_speed;
+    // float2 dir = normalize(uv - center);
+    // float2 wave_pos = center + dir * wave_dist;
+    uv = lerp(uv, center, (1 - clamp(abs(wave_dist - dist_cent) / thickness, -1, 1)));
+
     Texture2D<float4> tex_lighting = sfg_get_texture<Texture2D<float4> >(sfg_rp_constant1);
     Texture2D<float4> tex_bloom    = sfg_get_texture<Texture2D<float4> >(sfg_rp_constant2);
 
 #ifdef USE_SELECTION_OUTLINE
     Texture2D tex_selection   = sfg_get_texture<Texture2D>(sfg_rp_constant3);
     float2 texel_size = float2(1.0 / params.screen_size.x, 1.0 / params.screen_size.y);
-    float4 selection_color = outline(IN.uv, texel_size, 2.0, tex_selection);
+    float4 selection_color = outline(uv, texel_size, 2.0, tex_selection);
 #endif
 
     // Fetch HDR inputs (mip 0). 
-    float3 lighting = tex_lighting.SampleLevel(smp_linear, IN.uv, 0).rgb;
-    float3 bloom    = tex_bloom.SampleLevel(smp_linear, IN.uv, 0).rgb;
+    float3 lighting = tex_lighting.SampleLevel(smp_linear, uv, 0).rgb;
+    float3 bloom    = tex_bloom.SampleLevel(smp_linear, uv, 0).rgb;
     // Combine HDR
     float3 hdr = lighting + bloom * params.bloom_strength;
 
@@ -242,6 +253,9 @@ float4 PSMain(vs_output IN) : SV_TARGET
         // Useful to inspect raw HDR; clamp so it stays representable.
         ldr = saturate(hdr);
     }
+
+    // ldr *= clamp(time_since_dmg, 0, 1);
+    // ldr *= abs(sin(sfg_global_elapsed - params.damage_time));
 
 #ifdef USE_SELECTION_OUTLINE
     return float4(ldr, 1.0) + selection_color;

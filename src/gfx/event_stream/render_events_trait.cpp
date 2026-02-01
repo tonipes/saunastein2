@@ -133,6 +133,7 @@ namespace SFG
 		stream << wb_temp;
 		stream << wb_tint;
 		stream << reinhard_white_point;
+		stream << damage_time;
 	}
 
 	void render_event_post_process::deserialize(istream& stream)
@@ -145,6 +146,7 @@ namespace SFG
 		stream >> wb_temp;
 		stream >> wb_tint;
 		stream >> reinhard_white_point;
+		stream >> damage_time;
 	}
 
 	void render_event_skybox::serialize(ostream& stream) const

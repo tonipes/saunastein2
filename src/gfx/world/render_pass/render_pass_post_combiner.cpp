@@ -106,6 +106,7 @@ namespace SFG
 		const float						 wb_temp			  = post_exists ? post.wb_temp : 0.0f;
 		const float						 wb_tint			  = post_exists ? post.wb_tint : 0.0f;
 		const float						 reinhard_white_point = post_exists ? post.reinhard_white_point : 6.0f;
+		const float						 damage_time		  = post_exists ? post.damage_time : -1000.f;
 
 		per_frame_data& pfd = _pfd[frame_index];
 
@@ -118,6 +119,7 @@ namespace SFG
 			.wb_temp			  = wb_temp,
 			.wb_tint			  = wb_tint,
 			.reinhard_white_point = reinhard_white_point,
+			.damage_time		  = damage_time,
 		};
 
 		pfd.ubo.buffer_data(0, &ubo_data, sizeof(ubo));
