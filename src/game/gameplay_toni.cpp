@@ -572,7 +572,8 @@ namespace SFG
 		component_manager& cm = w.get_comp_manager();
 		entity_manager&	   em = w.get_entity_manager();
 
-		for (int i = 0; i < _managed_entities.size(); ++i)
+		int i = 0;
+		while (i < _managed_entities.size())
 		{
 			managed_entity& ent = _managed_entities[i];
 			ent.t += dt;
@@ -580,6 +581,7 @@ namespace SFG
 			if (!em.is_valid(ent.handle) || ent.t >= ent.params.max_lifetime)
 			{
 				ent.marked_for_removal = true;
+				i++;
 				continue;
 			}
 
@@ -590,7 +592,41 @@ namespace SFG
 				comp_physics& phys_comp = cm.get_component<comp_physics>(phys_comp_handle);
 				vector3		  velocity	= rot.get_forward() * ent.params.speed;
 				phys_comp.set_body_velocity(w, velocity);
+
+				for (world_handle h : _all_enemies)
+				{
+					const vector3	v	 = em.get_entity_position(h);
+					const vector3	me	 = em.get_entity_position(ent.handle);
+					const float		dist = (me - v).magnitude_sqr();
+					constexpr float trgt = 5.0f;
+					if (dist < trgt * trgt)
+					{
+						world_handle eh = em.get_entity_component<comp_enemy_ai_basic>(h);
+						if (!eh.is_null())
+						{
+							comp_enemy_ai_basic& ai = cm.get_component<comp_enemy_ai_basic>(eh);
+							if (ai.get_state() == comp_enemy_ai_basic::enemy_state::dead)
+								continue;
+
+							ai.take_damage(w, 10);
+							if (ai.get_state() == comp_enemy_ai_basic::enemy_state::dead)
+							{
+								// SPAWN PARTICLE
+							}
+						}
+						// INAN: spawn & damage
+						ent.marked_for_removal = true;
+						break;
+					}
+				}
+
+				if (ent.marked_for_removal)
+				{
+					i++;
+					continue;
+				}
 			}
+			i++;
 		}
 
 		for (int i = _managed_entities.size() - 1; i >= 0; --i)
