@@ -52,6 +52,7 @@ namespace SFG
 		void on_add(world& w);
 		void on_remove(world& w);
 		void set_values(world& w, float bloom_strength, float exposure, tonemap_mode tonemap, float saturation, float wb_temp, float wb_tint, float reinhard_white_point);
+		void set_damage_time(world& w, float time);
 
 		// -----------------------------------------------------------------------------
 		// accessors
@@ -74,6 +75,7 @@ namespace SFG
 		float			 _wb_temp			   = 0.0f;
 		float			 _wb_tint			   = 0.0f;
 		float			 _reinhard_white_point = 6.0f;
+		float			 _damage_time		   = -1000.f;
 	};
 
 	REFLECT_TYPE(comp_post_process);

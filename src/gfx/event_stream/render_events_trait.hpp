@@ -118,6 +118,7 @@ namespace SFG
 		float	 wb_temp			  = 0.0f;
 		float	 wb_tint			  = 0.0f;
 		float	 reinhard_white_point = 6.0f;
+		float	 damage_time		  = -1000.f;
 		world_id entity_index		  = 0;
 
 		void serialize(ostream& stream) const;

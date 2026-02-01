@@ -174,7 +174,7 @@ namespace SFG
 		auto			   player  = cm.get_component<comp_player_stats>(w.get_entity_manager().get_entity_component<comp_player_stats>(_player_entity));
 		for (auto& e : enemies)
 		{
-			e.tick(player, dt);
+			e.tick(w, dt);
 		}
 	}
 

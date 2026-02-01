@@ -465,6 +465,7 @@ namespace SFG
 			proxy.wb_temp					 = ev.wb_temp;
 			proxy.wb_tint					 = ev.wb_tint;
 			proxy.reinhard_white_point		 = ev.reinhard_white_point;
+			proxy.damage_time				 = ev.damage_time;
 		}
 		else if (type == render_event_type::update_skybox)
 		{

@@ -86,6 +86,11 @@ namespace SFG
 		reset_runtime();
 
 		entity_manager& em = w.get_entity_manager();
+		for (auto& pp : w.get_comp_manager().underlying_pool<comp_cache<comp_post_process, MAX_WORLD_COMP_POST_PROCESS>, comp_post_process>())
+		{
+			_post_process = &pp;
+			break;
+		}
 
 		_comp_animator = {};
 
@@ -232,6 +237,7 @@ namespace SFG
 				comp_player_stats& stats = cm.get_component<comp_player_stats>(cp.get_stats());
 				stats.take_damage(_damage);
 				_attack_done_once = true;
+				_post_process->set_damage_time(w, elapsed);
 			}
 		}
 
