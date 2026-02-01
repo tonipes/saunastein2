@@ -39,6 +39,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "game/components/comp_enemy_ai_basic.hpp"
 #include "resources/entity_template.hpp"
 
+#include "world/components/comp_camera.hpp"
 namespace SFG
 {
 
@@ -65,14 +66,33 @@ namespace SFG
 	{
 	}
 
+	bool		 is_start_game = false;
+	world_handle wp			   = {};
+	world_handle start_cam	   = {};
+	float		 start_ctr	   = 0.0f;
+
 	void gameplay::on_world_begin(world& w)
 	{
+		entity_manager& em	= w.get_entity_manager();
+		_has_intro_cutscene = !em.find_entity("intro_cutscene").is_null();
+
 		w.get_physics_world().set_contact_listener(this);
 		w.get_physics_world().set_character_contact_listener(this);
 		begin_player();
 		begin_doors();
 		begin_managed_entities();
 		begin_enemies();
+
+		start_cam = em.find_entity("start_wp0");
+
+		if (!start_cam.is_null())
+		{
+			is_start_game	= true;
+			comp_camera& cc = w.get_comp_manager().get_component<comp_camera>(w.get_entity_manager().get_entity_component<comp_camera>(start_cam));
+			cc.set_main(w);
+			start_ctr = 0.0f;
+			wp		  = w.get_entity_manager().find_entity("start_wp1");
+		}
 	}
 
 	void gameplay::on_world_end(world& w)
@@ -80,6 +100,7 @@ namespace SFG
 		w.get_physics_world().set_contact_listener(nullptr);
 		w.get_physics_world().set_character_contact_listener(nullptr);
 		_doors.clear();
+		_cutscene_ui.reset();
 	}
 
 	void gameplay::on_debug_tick(world& w, float dt, const vector2ui16& game_res)
@@ -89,6 +110,22 @@ namespace SFG
 
 	void gameplay::on_world_tick(world& w, float dt, const vector2ui16& game_res)
 	{
+
+		if (is_start_game)
+		{
+			auto& em = w.get_entity_manager();
+
+			if (start_ctr > 6.0f)
+			{
+				is_start_game	= false;
+				comp_camera& cc = w.get_comp_manager().get_component<comp_camera>(em.get_entity_component<comp_camera>(em.find_entity("PlayerCamera")));
+				cc.set_main(w);
+				return;
+			}
+			em.set_entity_position(start_cam, vector3::lerp(em.get_entity_position(start_cam), em.get_entity_position(wp), dt * 3.0f));
+
+			start_ctr += dt;
+		}
 		tick_player(dt);
 		tick_doors(dt);
 		tick_managed_entities(dt);
@@ -231,7 +268,7 @@ namespace SFG
 	}
 
 	void gameplay::begin_enemies()
-	{	
+	{
 		world&			   w	   = _app.get_world();
 		component_manager& cm	   = w.get_comp_manager();
 		auto&			   enemies = cm.underlying_pool<comp_cache<comp_enemy_ai_basic, MAX_WORLD_ENEMY_AI_BASIC>, comp_enemy_ai_basic>();
@@ -243,7 +280,6 @@ namespace SFG
 		}
 	}
 
-	
 	void gameplay::spawn_fx(spawn_type type, const vector3& p, const quat& r)
 	{
 		entity_manager& em	 = _app.get_world().get_entity_manager();
@@ -264,6 +300,11 @@ namespace SFG
 		em.set_entity_position(h, p);
 		em.set_entity_rotation(h, r);
 		em.teleport_entity(h);
+	}
+
+	void gameplay::set_cutscene_subtitle_text(const char* text)
+	{
+		_cutscene_ui.set_subtitle_text(text);
 	}
 
 }

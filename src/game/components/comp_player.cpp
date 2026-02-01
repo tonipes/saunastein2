@@ -342,11 +342,8 @@ namespace SFG
 			if (!_player_stats.is_null())
 			{
 				comp_player_stats& stats = cm.get_component<comp_player_stats>(_player_stats);
-				if (stats.try_consume_mask())
-				{
-					fire_mask(w);
-					start_throw(w);
-				}
+				fire_mask(w);
+				start_throw(w);
 			}
 		}
 
