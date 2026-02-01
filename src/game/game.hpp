@@ -60,12 +60,18 @@ namespace SFG
 		// accessors
 		// -----------------------------------------------------------------------------
 
+		static game& get()
+		{
+			return *_inst;
+		}
+
 		inline app& get_app()
 		{
 			return _app;
 		}
 
 	private:
+		static game* _inst;
 		app& _app;
 	};
 

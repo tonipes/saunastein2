@@ -217,9 +217,9 @@ namespace SFG
 
 		audio& aud = rm.get_resource<audio>(_audio_resource);
 
-		ma_engine*		sound_engine = w.get_audio_manager().get_engine();
-		const void*		data		 = aud.get_audio_data_ptr(w);
-		const size_t	data_size	 = aud.get_audio_data_size(w);
+		ma_engine*	 sound_engine = w.get_audio_manager().get_engine();
+		const void*	 data		  = aud.get_audio_data_ptr(w);
+		const size_t data_size	  = aud.get_audio_data_size(w);
 		if (data == nullptr || data_size == 0)
 		{
 			SFG_ERR("failed to init ma_sound for audio: empty data!");
@@ -227,9 +227,9 @@ namespace SFG
 			return;
 		}
 
-		ma_result result = MA_ERROR;
-		ma_decoder* dec = aux.get<ma_decoder>(_decoder);
-		result = ma_decoder_init_memory(data, data_size, nullptr, dec);
+		ma_result	result = MA_ERROR;
+		ma_decoder* dec	   = aux.get<ma_decoder>(_decoder);
+		result			   = ma_decoder_init_memory(data, data_size, nullptr, dec);
 		if (result != MA_SUCCESS)
 		{
 			SFG_ERR("failed to init decoder for audio!");
@@ -237,7 +237,7 @@ namespace SFG
 			return;
 		}
 		_decoder_inited = true;
-		result = ma_sound_init_from_data_source(sound_engine, reinterpret_cast<ma_data_source*>(dec), 0, nullptr, snd);
+		result			= ma_sound_init_from_data_source(sound_engine, reinterpret_cast<ma_data_source*>(dec), 0, nullptr, snd);
 		if (result != MA_SUCCESS)
 		{
 			if (_decoder_inited)

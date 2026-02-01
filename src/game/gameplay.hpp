@@ -163,5 +163,7 @@ namespace SFG
 		bool _cutscene_camera_skip_segment = false;
 		float _cutscene_camera_speed = 2.0f;
 		cutscene_ui _cutscene_ui = {};
+		float _cutscene_elapsed = 0.0f;
+		bool _cutscene_level_switch_requested = false;
 	};
 }

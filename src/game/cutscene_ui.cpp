@@ -106,6 +106,8 @@ namespace SFG
 		_builder->widget_set_text(_subtitle_text, "", 512);
 		_builder->widget_set_pos(_subtitle_text, VEKT_VEC2(0.5f, 0.5f), vekt::helper_pos_type::relative, vekt::helper_pos_type::relative, vekt::helper_anchor_type::center, vekt::helper_anchor_type::center);
 
+	
+
 		_builder->build_hierarchy();
 		_ready = true;
 	}
@@ -139,4 +141,5 @@ namespace SFG
 		const vector2 text_size = _builder->get_text_size(tp);
 		_builder->widget_set_size_abs(_subtitle_bg, VEKT_VEC2(text_size.x + 40.0f, text_size.y + 20.0f));
 	}
+
 }

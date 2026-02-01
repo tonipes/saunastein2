@@ -34,14 +34,18 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace SFG
 {
 
+	game* game::_inst = nullptr;
 
 	void game::init()
 	{
+		_inst = this;
 		load_level("assets/world/world0.stkworld");
 	}
 
 	void game::uninit()
 	{
+		if (_inst == this)
+			_inst = nullptr;
 	}
 	void game::tick()
 	{

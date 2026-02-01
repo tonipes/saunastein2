@@ -26,6 +26,10 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "gameplay.hpp"
 #include "app/app.hpp"
+#include "game/game.hpp"
+#ifdef SFG_TOOLMODE
+#include "editor/editor.hpp"
+#endif
 #include "world/world.hpp"
 #include "game/components/comp_player.hpp"
 #include "game/components/comp_player_stats.hpp"
@@ -54,6 +58,9 @@ namespace SFG
 		};
 
 		static constexpr int k_cutscene_subtitle_count = static_cast<int>(sizeof(k_cutscene_subtitles) / sizeof(k_cutscene_subtitles[0]));
+		static constexpr float k_cutscene_duration_seconds = 30.0f;
+		static constexpr float k_cutscene_fade_seconds = 2.0f;
+		static const char* k_cutscene_next_level = "assets/worlds/level_final.stkworld";
 	}
 
 	void gameplay::tick_doors(float dt)
@@ -143,6 +150,23 @@ namespace SFG
 			{
 				em.destroy_entity(p.root_handle);
 				_pickups.pop_back();
+			}
+		}
+
+		if (_has_intro_cutscene && !_cutscene_level_switch_requested)
+		{
+			_cutscene_elapsed += dt;
+
+			if (_cutscene_elapsed >= k_cutscene_duration_seconds)
+			{
+				_cutscene_level_switch_requested = true;
+#ifdef SFG_TOOLMODE
+				if (_app.get_editor() != nullptr)
+					_app.get_editor()->load_level(k_cutscene_next_level);
+#else
+				game::get().load_level(k_cutscene_next_level);
+#endif
+				return;
 			}
 		}
 
@@ -328,6 +352,8 @@ namespace SFG
 		_cutscene_camera_waypoint_t			 = 0.0f;
 		_cutscene_camera_wait_remaining		 = 0.0f;
 		_cutscene_camera_skip_segment		 = false;
+		_cutscene_elapsed					 = 0.0f;
+		_cutscene_level_switch_requested	 = false;
 		_cutscene_ui.reset();
 
 		tmp.clear();
@@ -368,7 +394,9 @@ namespace SFG
 			}
 
 			if (_has_intro_cutscene)
+			{
 				_cutscene_ui.init(w, _cutscene_camera);
+			}
 		}
 	}
 

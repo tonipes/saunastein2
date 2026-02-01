@@ -954,6 +954,7 @@ namespace SFG
 			.color_comp_flags		= ccf_red | ccf_green | ccf_blue | ccf_alpha,
 		};
 
+
 		vector<vertex_input> vertex_inputs = {};
 		vertex_inputs::get_vertex_inputs(vertex_input_style::gui, vertex_inputs);
 
