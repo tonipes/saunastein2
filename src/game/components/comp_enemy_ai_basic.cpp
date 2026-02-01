@@ -8,6 +8,7 @@
 #include "math/random.hpp"
 #include "math/quat.hpp"
 #include "game/gameplay.hpp"
+#include "resources/audio.hpp"
 namespace SFG
 {
 	namespace
@@ -16,11 +17,18 @@ namespace SFG
 		constexpr float kEnemyVoiceIntervalMax = 9.0f;
 
 		static constexpr string_id kEnemyVoiceHashes[] = {
-			"assets/audio/enemy_yell_0.stkaud"_hs,
-			"assets/audio/enemy_yell_1.stkaud"_hs,
-			"assets/audio/enemy_yell_2.stkaud"_hs,
-			"assets/audio/enemy_yell_3.stkaud"_hs,
-			"assets/audio/enemy_yell_4.stkaud"_hs,
+			"assets/audio/ai_grunt0.stkaud"_hs,
+			"assets/audio/ai_grunt1.stkaud"_hs,
+			"assets/audio/ai_grunt2.stkaud"_hs,
+			"assets/audio/ai_grunt3.stkaud"_hs,
+			"assets/audio/ai_grunt4.stkaud"_hs,
+			"assets/audio/ai_grunt5.stkaud"_hs,
+			"assets/audio/ai_grunt6.stkaud"_hs,
+			"assets/audio/ai_grunt7.stkaud"_hs,
+			"assets/audio/ai_grunt8.stkaud"_hs,
+			"assets/audio/ai_grunt9.stkaud"_hs,
+			"assets/audio/ai_grunt10.stkaud"_hs,
+			"assets/audio/ai_grunt11.stkaud"_hs,
 		};
 
 		constexpr int kEnemyVoiceHashCount = static_cast<int>(sizeof(kEnemyVoiceHashes) / sizeof(kEnemyVoiceHashes[0]));
@@ -113,8 +121,11 @@ namespace SFG
 
 		if (state == enemy_state::chase || state == enemy_state::attack)
 		{
-			_voice_timer	= 0.0f;
-			_voice_interval = random_range(kEnemyVoiceIntervalMin, kEnemyVoiceIntervalMax);
+			if (_state != enemy_state::chase && _state != enemy_state::attack)
+			{
+				_voice_timer	= 0.0f;
+				_voice_interval = random_range(kEnemyVoiceIntervalMin, kEnemyVoiceIntervalMax);
+			}
 		}
 
 		_state = state;
@@ -227,8 +238,21 @@ namespace SFG
 				_voice_timer	= 0.0f;
 				_voice_interval = random_range(kEnemyVoiceIntervalMin, kEnemyVoiceIntervalMax);
 				const int idx	= random_index(kEnemyVoiceHashCount);
-				if (idx >= 0)
-					gameplay::get().spawn_fx(kEnemyVoiceHashes[idx], w.get_entity_manager().get_entity_position(_header.entity), w.get_entity_manager().get_entity_rotation(_header.entity));
+				if (idx >= 0 && !_voice_audio_comp.is_null())
+				{
+					resource_manager& rm  = w.get_resource_manager();
+					resource_handle	  aud = rm.get_resource_handle_by_hash_if_exists<audio>(kEnemyVoiceHashes[idx]);
+					if (!aud.is_null())
+					{
+						component_manager& cm		   = w.get_comp_manager();
+						comp_audio&		   voice_audio = cm.get_component<comp_audio>(_voice_audio_comp);
+						const vector3	   pos		   = w.get_entity_manager().get_entity_position(_header.entity);
+						voice_audio.set_audio(w, aud);
+						voice_audio.set_looping(w, false);
+						voice_audio.set_audio_position(w, pos);
+						voice_audio.play(w);
+					}
+				}
 			}
 		}
 		else
@@ -243,6 +267,12 @@ namespace SFG
 
 	void comp_enemy_ai_basic::on_add(world& w)
 	{
+		entity_manager&	   em = w.get_entity_manager();
+		component_manager& cm = w.get_comp_manager();
+
+		_voice_audio_entity = em.create_entity("enemy_voice_audio");
+		em.set_entity_transient(_voice_audio_entity, true);
+		_voice_audio_comp = cm.add_component<comp_audio>(_voice_audio_entity);
 	}
 
 	void comp_enemy_ai_basic::on_remove(world& w)
@@ -343,7 +373,6 @@ namespace SFG
 
 		SFG_INFO("taking damage");
 		_health -= damage;
-
 
 		component_manager& cm	  = w.get_comp_manager();
 		comp_player&	   player = cm.get_component<comp_player>(_comp_player_handle);

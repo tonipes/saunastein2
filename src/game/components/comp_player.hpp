@@ -101,6 +101,8 @@ namespace SFG
 		world_handle _canvas_comp		  = {};
 		world_handle _player_mesh_entity  = {};
 		world_handle _player_anim_comp	  = {};
+		world_handle _voice_audio_entity  = {};
+		world_handle _voice_audio_comp	  = {};
 
 		resource_handle _player_anim_machine	 = {};
 		pool_handle16	_player_move_x_param	 = {};

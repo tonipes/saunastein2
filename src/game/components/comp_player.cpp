@@ -43,6 +43,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "game/gameplay.hpp"
 #include "resources/font.hpp"
 #include "math/random.hpp"
+#include "world/components/comp_audio.hpp"
+#include "resources/audio.hpp"
 
 #include "resources/skin.hpp"
 #include <Jolt/Physics/Character/CharacterVirtual.h>
@@ -56,11 +58,17 @@ namespace SFG
 		constexpr float kPlayerVoiceIntervalMax = 12.0f;
 
 		static constexpr string_id kPlayerVoiceHashes[] = {
-			"assets/audio/player_yell_0.stkaud"_hs,
-			"assets/audio/player_yell_1.stkaud"_hs,
-			"assets/audio/player_yell_2.stkaud"_hs,
-			"assets/audio/player_yell_3.stkaud"_hs,
-			"assets/audio/player_yell_4.stkaud"_hs,
+			"assets/audio/player_grunt0.stkaud"_hs,
+			"assets/audio/player_grunt1.stkaud"_hs,
+			"assets/audio/player_grunt2.stkaud"_hs,
+			"assets/audio/player_grunt3.stkaud"_hs,
+			"assets/audio/player_grunt4.stkaud"_hs,
+			"assets/audio/player_grunt5.stkaud"_hs,
+			"assets/audio/player_grunt6.stkaud"_hs,
+			"assets/audio/player_grunt7.stkaud"_hs,
+			"assets/audio/player_grunt8.stkaud"_hs,
+			"assets/audio/player_grunt9.stkaud"_hs,
+			"assets/audio/player_grunt10.stkaud"_hs,
 		};
 
 		constexpr int kPlayerVoiceHashCount = static_cast<int>(sizeof(kPlayerVoiceHashes) / sizeof(kPlayerVoiceHashes[0]));
@@ -104,12 +112,27 @@ namespace SFG
 	void comp_player::on_add(world& w)
 	{
 		w.get_entity_manager().add_render_proxy(_header.entity);
+
+		entity_manager& em = w.get_entity_manager();
+		component_manager& cm = w.get_comp_manager();
+
+		_voice_audio_entity = em.create_entity("player_voice_audio");
+		em.set_entity_transient(_voice_audio_entity, true);
+		_voice_audio_comp = cm.add_component<comp_audio>(_voice_audio_entity);
 	}
 
 	void comp_player::on_remove(world& w)
 	{
 		w.get_entity_manager().remove_render_proxy(_header.entity);
 		_ui.uninit();
+
+		entity_manager& em = w.get_entity_manager();
+		//if (!_voice_audio_entity.is_null())
+		//{
+		//	em.destroy_entity(_voice_audio_entity);
+		//	_voice_audio_entity = {};
+		//	_voice_audio_comp = {};
+		//}
 	}
 
 	void comp_player::set_values(world& w, const color& base_color)
@@ -348,8 +371,20 @@ namespace SFG
 			_voice_timer	= 0.0f;
 			_voice_interval = random_range(kPlayerVoiceIntervalMin, kPlayerVoiceIntervalMax);
 			const int idx	= random_index(kPlayerVoiceHashCount);
-			if (idx >= 0)
-				gameplay::get().spawn_fx(kPlayerVoiceHashes[idx], player_pos, em.get_entity_rotation_abs(_header.entity));
+			if (idx >= 0 && !_voice_audio_comp.is_null())
+			{
+				resource_manager& rm = w.get_resource_manager();
+				resource_handle aud = rm.get_resource_handle_by_hash_if_exists<audio>(kPlayerVoiceHashes[idx]);
+				if (!aud.is_null())
+				{
+					component_manager& cm = w.get_comp_manager();
+					comp_audio& voice_audio = cm.get_component<comp_audio>(_voice_audio_comp);
+					voice_audio.set_audio(w, aud);
+					voice_audio.set_looping(w, false);
+					voice_audio.set_audio_position(w, player_pos);
+					voice_audio.play(w);
+				}
+			}
 		}
 
 		if (!_player_anim_machine.is_null())

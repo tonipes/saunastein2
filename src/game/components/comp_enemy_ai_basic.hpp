@@ -83,6 +83,8 @@ namespace SFG
 		world_handle  _comp_player_handle		 = {};
 		world_handle  _comp_animator			 = {};
 		world_handle  _comp_character_controller = {};
+		world_handle  _voice_audio_entity		 = {};
+		world_handle  _voice_audio_comp			 = {};
 		pool_handle16 _anim_idle				 = {};
 		pool_handle16 _anim_attack				 = {};
 		pool_handle16 _anim_death				 = {};
