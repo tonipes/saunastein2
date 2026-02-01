@@ -134,5 +134,10 @@ namespace SFG
 		static gameplay*	   _inst;
 
 		vector<pickup> _pickups;
+		vector<world_handle> _cutscene_camera_waypoints;
+		world_handle _cutscene_camera;
+		int _cutscene_camera_waypoint_index = 0;
+		float _cutscene_camera_waypoint_t = 0.0f;
+		float _cutscene_camera_speed = 2.0f;
 	};
 }

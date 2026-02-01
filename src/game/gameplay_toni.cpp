@@ -35,6 +35,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "platform/window_common.hpp"
 #include "input/input_mappings.hpp"
 #include "resources/entity_template.hpp"
+#include <world/components/comp_camera.hpp>
 
 namespace SFG
 {
@@ -93,7 +94,7 @@ namespace SFG
 
 				const quat rot = quat::from_euler(0.0f, ss * tt * _doors[i].open_angle, 0.0f);
 				em.set_entity_rotation(child, rot);
-
+				
 				world_handle  phys_ent_handle  = em.get_child_by_index(child, 1);
 				world_handle  phys_comp_handle = em.get_entity_component<comp_physics>(phys_ent_handle);
 				comp_physics& phys_comp		   = cm.get_component<comp_physics>(phys_comp_handle);
@@ -126,6 +127,61 @@ namespace SFG
 			{
 				em.destroy_entity(p.root_handle);
 				_pickups.pop_back();
+			}
+
+		}
+
+		if (!_cutscene_camera.is_null() && !_cutscene_camera_waypoints.empty())
+		{
+			if (_cutscene_camera_waypoint_index < 0)
+				_cutscene_camera_waypoint_index = 0;
+
+			const int last_index = _cutscene_camera_waypoints.size() - 1;
+
+			if (_cutscene_camera_waypoint_index >= last_index)
+			{
+				const vector3 last_pos = em.get_entity_position_abs(_cutscene_camera_waypoints[last_index]);
+				const quat last_rot = em.get_entity_rotation_abs(_cutscene_camera_waypoints[last_index]);
+				em.set_entity_position_abs(_cutscene_camera, last_pos);
+				em.set_entity_rotation_abs(_cutscene_camera, last_rot);
+			}
+			else
+			{
+				const world_handle current_wp = _cutscene_camera_waypoints[_cutscene_camera_waypoint_index];
+				const world_handle next_wp = _cutscene_camera_waypoints[_cutscene_camera_waypoint_index + 1];
+				const vector3 start_pos = em.get_entity_position_abs(current_wp);
+				const vector3 end_pos = em.get_entity_position_abs(next_wp);
+				const quat start_rot = em.get_entity_rotation_abs(current_wp);
+				const quat end_rot = em.get_entity_rotation_abs(next_wp);
+				const float dist = vector3::distance(start_pos, end_pos);
+
+				if (dist <= 0.001f)
+				{
+					_cutscene_camera_waypoint_index++;
+					_cutscene_camera_waypoint_t = 0.0f;
+					em.set_entity_position_abs(_cutscene_camera, end_pos);
+					em.set_entity_rotation_abs(_cutscene_camera, end_rot);
+				}
+				else
+				{
+					_cutscene_camera_waypoint_t += (dt * _cutscene_camera_speed) / dist;
+					if (_cutscene_camera_waypoint_t >= 1.0f)
+					{
+						_cutscene_camera_waypoint_t = 0.0f;
+						_cutscene_camera_waypoint_index++;
+						em.set_entity_position_abs(_cutscene_camera, end_pos);
+						em.set_entity_rotation_abs(_cutscene_camera, end_rot);
+					}
+					else
+					{
+						const float t_smoothed = _cutscene_camera_waypoint_t * _cutscene_camera_waypoint_t
+							* (3.0f - 2.0f * _cutscene_camera_waypoint_t);
+						const vector3 pos = vector3::lerp(start_pos, end_pos, t_smoothed);
+						const quat rot = quat::slerp(start_rot, end_rot, t_smoothed);
+						em.set_entity_position_abs(_cutscene_camera, pos);
+						em.set_entity_rotation_abs(_cutscene_camera, rot);
+					}
+				}
 			}
 		}
 	}
@@ -178,6 +234,34 @@ namespace SFG
 			};
 
 			_pickups.push_back(p);
+		}
+
+		_cutscene_camera_waypoints.clear();
+		_cutscene_camera_waypoint_index = 0;
+		_cutscene_camera_waypoint_t = 0.0f;
+
+		tmp.clear();
+		em.find_entities_by_tag("camera_waypoint", tmp);
+		SFG_TRACE("CAMERA WAYPOINTS: {0}", tmp.size());
+		for (int i = 0; i < tmp.size(); ++i)
+		{
+			_cutscene_camera_waypoints.push_back(tmp[i]);
+		}
+
+		_cutscene_camera = em.find_entity_by_tag("cutscene_camera");
+		if (!_cutscene_camera.is_null() && !_cutscene_camera_waypoints.empty())
+		{
+			const vector3 start_pos = em.get_entity_position_abs(_cutscene_camera_waypoints[0]);
+			const quat start_rot = em.get_entity_rotation_abs(_cutscene_camera_waypoints[0]);
+			em.set_entity_position_abs(_cutscene_camera, start_pos);
+			em.set_entity_rotation_abs(_cutscene_camera, start_rot);
+
+			world_handle camera_comp_handle = em.get_entity_component<comp_camera>(_cutscene_camera);
+			if (!camera_comp_handle.is_null())
+			{
+				comp_camera& camera_comp = cm.get_component<comp_camera>(camera_comp_handle);
+				camera_comp.set_main(w);
+			}
 		}
 	}
 
