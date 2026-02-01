@@ -26,15 +26,18 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "player_ui.hpp"
 #include "math/math.hpp"
+#include "math/vector2.hpp"
+#include "data/char_util.hpp"
 
 namespace SFG
 {
-	void player_ui::init(vekt::builder* builder)
+	void player_ui::init(vekt::builder* builder, vekt::font* subtitle_font)
 	{
 		if (builder == nullptr)
 			return;
 
 		_builder = builder;
+		_subtitle_font = subtitle_font;
 
 		if (_crosshair == NULL_WIDGET_ID)
 		{
@@ -104,6 +107,34 @@ namespace SFG
 			_builder->widget_set_pos(_hydration_bar, VEKT_VEC2(0.0f, 0.0f), vekt::helper_pos_type::relative, vekt::helper_pos_type::relative, vekt::helper_anchor_type::start, vekt::helper_anchor_type::start);
 		}
 
+		if (_subtitle_bg == NULL_WIDGET_ID)
+		{
+			_subtitle_bg = _builder->allocate();
+			_builder->widget_add_child(_builder->get_root(), _subtitle_bg);
+
+			vekt::widget_gfx& bg_gfx = _builder->widget_get_gfx(_subtitle_bg);
+			bg_gfx.flags			  = vekt::gfx_flags::gfx_is_rect;
+			bg_gfx.color			  = VEKT_VEC4(0.0f, 0.0f, 0.0f, 0.6f);
+
+			_builder->widget_set_pos(_subtitle_bg, VEKT_VEC2(0.5f, 0.92f), vekt::helper_pos_type::relative, vekt::helper_pos_type::relative, vekt::helper_anchor_type::center, vekt::helper_anchor_type::center);
+			_builder->widget_set_size_abs(_subtitle_bg, VEKT_VEC2(400.0f, 60.0f));
+
+			_subtitle_text = _builder->allocate();
+			_builder->widget_add_child(_subtitle_bg, _subtitle_text);
+
+			vekt::widget_gfx& txt_gfx = _builder->widget_get_gfx(_subtitle_text);
+			txt_gfx.flags			  = vekt::gfx_flags::gfx_is_text;
+			txt_gfx.color			  = VEKT_VEC4(1.0f, 1.0f, 1.0f, 1.0f);
+
+			vekt::text_props& tp = _builder->widget_get_text(_subtitle_text);
+			tp.font				 = _subtitle_font;
+			_builder->widget_set_text(_subtitle_text, "", 512);
+			_builder->widget_set_pos(_subtitle_text, VEKT_VEC2(0.5f, 0.5f), vekt::helper_pos_type::relative, vekt::helper_pos_type::relative, vekt::helper_anchor_type::center, vekt::helper_anchor_type::center);
+
+			_builder->widget_set_visible(_subtitle_bg, false);
+			_builder->widget_set_visible(_subtitle_text, false);
+		}
+
 		_builder->build_hierarchy();
 	}
 
@@ -149,5 +180,39 @@ namespace SFG
 
 		const float clamped = math::clamp(hydration_fraction, 0.0f, 1.0f);
 		_builder->widget_set_size(_hydration_bar, VEKT_VEC2(clamped, 1.0f), vekt::helper_size_type::relative, vekt::helper_size_type::relative);
+	}
+
+	void player_ui::set_subtitle_text(const char* text)
+	{
+		if (_builder == nullptr || _subtitle_text == NULL_WIDGET_ID || _subtitle_bg == NULL_WIDGET_ID)
+			return;
+
+		const char* subtitle_text = text;
+		if (subtitle_text == nullptr || subtitle_text[0] == '\0')
+			subtitle_text = "TEST SUBTITLE";
+
+		vekt::text_props& tp = _builder->widget_get_text(_subtitle_text);
+
+		if (tp.text == nullptr)
+		{
+			_builder->widget_set_text(_subtitle_text, subtitle_text, 512);
+		}
+		else
+		{
+			char* start = const_cast<char*>(tp.text);
+			char* end = start + tp.text_capacity;
+			start[0] = '\0';
+			char* cur = start;
+			SFG::char_util::append(cur, end, subtitle_text);
+			if (cur == end)
+				end[-1] = '\0';
+			_builder->widget_update_text(_subtitle_text);
+		}
+
+		const vector2 text_size = _builder->get_text_size(tp);
+		_builder->widget_set_size_abs(_subtitle_bg, VEKT_VEC2(text_size.x + 40.0f, text_size.y + 20.0f));
+
+		_builder->widget_set_visible(_subtitle_bg, true);
+		_builder->widget_set_visible(_subtitle_text, true);
 	}
 }

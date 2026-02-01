@@ -29,12 +29,18 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "world/world.hpp"
 #include "game/components/comp_player.hpp"
 #include "game/components/comp_player_stats.hpp"
+#include "world/components/comp_canvas.hpp"
 #include <world/components/comp_physics.hpp>
 #include "game/components/comp_enemy_ai_basic.hpp"
 #include <physics/physics_contact_listener.hpp>
 #include "platform/window_common.hpp"
 #include "input/input_mappings.hpp"
 #include "resources/entity_template.hpp"
+#include "resources/font.hpp"
+#include "gui/vekt.hpp"
+#include "math/vector2.hpp"
+#include "data/char_util.hpp"
+#include "data/string.hpp"
 #include <algorithm>
 #include <cstdlib>
 #include <cstring>
@@ -42,6 +48,18 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace SFG
 {
+	namespace
+	{
+		static const char* k_cutscene_subtitles[] = {
+			"",
+			"The steam hangs in the air.",
+			"You feel the heat rising.",
+			"Something stirs beyond the door.",
+			"I feel like moisturizing",
+		};
+
+		static constexpr int k_cutscene_subtitle_count = static_cast<int>(sizeof(k_cutscene_subtitles) / sizeof(k_cutscene_subtitles[0]));
+	}
 	
 	void gameplay::tick_doors(float dt)
 	{
@@ -136,9 +154,12 @@ namespace SFG
 
 		if (!_cutscene_camera.is_null() && !_cutscene_camera_waypoints.empty())
 		{
-			auto parse_waypoint_params = [&](world_handle wp, float& wait_seconds, bool& skip_segment) {
+			auto parse_waypoint_params = [&](world_handle wp, float& wait_seconds, bool& skip_segment, bool& has_subtitle, char* subtitle_out, size_t subtitle_cap) {
 				wait_seconds = 0.0f;
 				skip_segment = false;
+				has_subtitle = false;
+				if (subtitle_out != nullptr && subtitle_cap > 0)
+					subtitle_out[0] = '\0';
 
 				const char* name = em.get_entity_meta(wp).name;
 				if (name == nullptr)
@@ -155,6 +176,25 @@ namespace SFG
 
 				if (std::strstr(name, "skip") != nullptr)
 					skip_segment = true;
+
+				const char* subtitle_ptr = std::strstr(name, "st=");
+				if (subtitle_ptr != nullptr && subtitle_out != nullptr && subtitle_cap > 0)
+				{
+					subtitle_ptr += 3;
+					char* end_ptr = nullptr;
+					const long idx_val = std::strtol(subtitle_ptr, &end_ptr, 10);
+					if (end_ptr != subtitle_ptr && idx_val >= 0 && idx_val < k_cutscene_subtitle_count)
+					{
+						const char* src = k_cutscene_subtitles[idx_val];
+						if (src != nullptr)
+						{
+							std::strncpy(subtitle_out, src, subtitle_cap - 1);
+							subtitle_out[subtitle_cap - 1] = '\0';
+							if (subtitle_out[0] != '\0')
+								has_subtitle = true;
+						}
+					}
+				}
 			};
 
 			if (_cutscene_camera_waypoint_index < 0)
@@ -180,7 +220,10 @@ namespace SFG
 
 				if (_cutscene_camera_waypoint_index_last != _cutscene_camera_waypoint_index)
 				{
-					parse_waypoint_params(current_wp, _cutscene_camera_wait_remaining, _cutscene_camera_skip_segment);
+					bool has_subtitle = false;
+					char subtitle_buf[256] = {};
+					parse_waypoint_params(current_wp, _cutscene_camera_wait_remaining, _cutscene_camera_skip_segment, has_subtitle, subtitle_buf, sizeof(subtitle_buf));
+					set_cutscene_subtitle_text(has_subtitle ? subtitle_buf : "");
 					_cutscene_camera_waypoint_index_last = _cutscene_camera_waypoint_index;
 				}
 
@@ -295,6 +338,12 @@ namespace SFG
 		_cutscene_camera_waypoint_t = 0.0f;
 		_cutscene_camera_wait_remaining = 0.0f;
 		_cutscene_camera_skip_segment = false;
+		_cutscene_canvas_comp = {};
+		_cutscene_subtitle_builder = nullptr;
+		_cutscene_subtitle_bg = NULL_WIDGET_ID;
+		_cutscene_subtitle_text = NULL_WIDGET_ID;
+		_cutscene_subtitle_font = nullptr;
+		_cutscene_subtitle_ready = false;
 
 		tmp.clear();
 		em.find_entities_by_tag("camera_waypoint", tmp);
@@ -316,20 +365,134 @@ namespace SFG
 		}
 
 		_cutscene_camera = em.find_entity_by_tag("cutscene_camera");
-		if (!_cutscene_camera.is_null() && !_cutscene_camera_waypoints.empty())
+		if (!_cutscene_camera.is_null())
 		{
-			const vector3 start_pos = em.get_entity_position_abs(_cutscene_camera_waypoints[0]);
-			const quat start_rot = em.get_entity_rotation_abs(_cutscene_camera_waypoints[0]);
-			em.set_entity_position_abs(_cutscene_camera, start_pos);
-			em.set_entity_rotation_abs(_cutscene_camera, start_rot);
-
-			world_handle camera_comp_handle = em.get_entity_component<comp_camera>(_cutscene_camera);
-			if (!camera_comp_handle.is_null())
+			if (!_cutscene_camera_waypoints.empty())
 			{
-				comp_camera& camera_comp = cm.get_component<comp_camera>(camera_comp_handle);
-				camera_comp.set_main(w);
+				const vector3 start_pos = em.get_entity_position_abs(_cutscene_camera_waypoints[0]);
+				const quat start_rot = em.get_entity_rotation_abs(_cutscene_camera_waypoints[0]);
+				em.set_entity_position_abs(_cutscene_camera, start_pos);
+				em.set_entity_rotation_abs(_cutscene_camera, start_rot);
+
+				world_handle camera_comp_handle = em.get_entity_component<comp_camera>(_cutscene_camera);
+				if (!camera_comp_handle.is_null())
+				{
+					comp_camera& camera_comp = cm.get_component<comp_camera>(camera_comp_handle);
+					camera_comp.set_main(w);
+				}
 			}
+
+			init_cutscene_subtitle_ui(w);
+			// set_cutscene_subtitle_text("TEST SUBTITLE");
 		}
+	}
+
+	void gameplay::init_cutscene_subtitle_ui(world& w)
+	{
+		if (_cutscene_camera.is_null() || _cutscene_subtitle_ready)
+			return;
+
+		component_manager& cm = w.get_comp_manager();
+		entity_manager& em = w.get_entity_manager();
+
+		world_handle canvas_handle = em.get_entity_component<comp_canvas>(_cutscene_camera);
+		if (canvas_handle.is_null())
+			canvas_handle = cm.add_component<comp_canvas>(_cutscene_camera);
+
+		if (canvas_handle.is_null())
+			return;
+
+		_cutscene_canvas_comp = canvas_handle;
+
+		comp_canvas& cnv = cm.get_component<comp_canvas>(_cutscene_canvas_comp);
+		cnv.update_counts_and_init(w, 32, 8);
+
+		resource_manager& rm = w.get_resource_manager();
+		resource_handle font_handle = rm.get_resource_handle_by_hash_if_exists<font>("assets/fonts/roboto.stkfont"_hs);
+		// if (font_handle.is_null())
+		// {
+		// 	rm.load_resources({string("assets/fonts/roboto.stkfont")});
+		// 	font_handle = rm.get_resource_handle_by_hash_if_exists<font>("assets/fonts/roboto.stkfont"_hs);
+		// }
+		// if (font_handle.is_null())
+		// {
+		// 	font_handle = rm.get_resource_handle_by_hash_if_exists<font>("assets/engine/fonts/roboto.stkfont"_hs);
+		// 	if (font_handle.is_null())
+		// 	{
+		// 		rm.load_resources({string("assets/engine/fonts/roboto.stkfont")});
+		// 		font_handle = rm.get_resource_handle_by_hash_if_exists<font>("assets/engine/fonts/roboto.stkfont"_hs);
+		// 	}
+		// }
+
+		if (font_handle.is_null())
+			return;
+
+		font& f = rm.get_resource<font>(font_handle);
+		_cutscene_subtitle_font = f.get_vekt_font();
+		if (_cutscene_subtitle_font == nullptr)
+			return;
+
+		vekt::builder* builder = cnv.get_builder();
+		_cutscene_subtitle_builder = builder;
+
+		_cutscene_subtitle_bg = builder->allocate();
+		builder->widget_add_child(builder->get_root(), _cutscene_subtitle_bg);
+
+		vekt::widget_gfx& bg_gfx = builder->widget_get_gfx(_cutscene_subtitle_bg);
+		bg_gfx.flags = vekt::gfx_flags::gfx_is_rect;
+		bg_gfx.color = VEKT_VEC4(0.0f, 0.0f, 0.0f, 0.6f);
+
+		builder->widget_set_pos(_cutscene_subtitle_bg, VEKT_VEC2(0.5f, 0.92f), vekt::helper_pos_type::relative, vekt::helper_pos_type::relative, vekt::helper_anchor_type::center, vekt::helper_anchor_type::center);
+		builder->widget_set_size_abs(_cutscene_subtitle_bg, VEKT_VEC2(400.0f, 60.0f));
+
+		_cutscene_subtitle_text = builder->allocate();
+		builder->widget_add_child(_cutscene_subtitle_bg, _cutscene_subtitle_text);
+
+		vekt::widget_gfx& txt_gfx = builder->widget_get_gfx(_cutscene_subtitle_text);
+		txt_gfx.flags = vekt::gfx_flags::gfx_is_text;
+		txt_gfx.color = VEKT_VEC4(1.0f, 1.0f, 1.0f, 1.0f);
+
+		vekt::text_props& tp = builder->widget_get_text(_cutscene_subtitle_text);
+		tp.font = _cutscene_subtitle_font;
+		tp.scale = 1.0f;
+		builder->widget_set_text(_cutscene_subtitle_text, "", 512);
+		builder->widget_set_pos(_cutscene_subtitle_text, VEKT_VEC2(0.5f, 0.5f), vekt::helper_pos_type::relative, vekt::helper_pos_type::relative, vekt::helper_anchor_type::center, vekt::helper_anchor_type::center);
+
+		builder->build_hierarchy();
+
+		_cutscene_subtitle_ready = true;
+	}
+
+	void gameplay::set_cutscene_subtitle_text(const char* text)
+	{
+		if (!_cutscene_subtitle_ready || _cutscene_subtitle_builder == nullptr || _cutscene_subtitle_text == NULL_WIDGET_ID || _cutscene_subtitle_bg == NULL_WIDGET_ID)
+			return;
+		if (_cutscene_subtitle_font == nullptr)
+			return;
+
+		const char* subtitle_text = text;
+		// if (subtitle_text == nullptr || subtitle_text[0] == '\0')
+		// 	subtitle_text = "TEST SUBTITLE";
+
+		vekt::text_props& tp = _cutscene_subtitle_builder->widget_get_text(_cutscene_subtitle_text);
+		if (tp.text == nullptr)
+		{
+			_cutscene_subtitle_builder->widget_set_text(_cutscene_subtitle_text, subtitle_text, 512);
+		}
+		else
+		{
+			char* start = const_cast<char*>(tp.text);
+			char* end = start + tp.text_capacity;
+			start[0] = '\0';
+			char* cur = start;
+			SFG::char_util::append(cur, end, subtitle_text);
+			if (cur == end)
+				end[-1] = '\0';
+			_cutscene_subtitle_builder->widget_update_text(_cutscene_subtitle_text);
+		}
+
+		const vector2 text_size = _cutscene_subtitle_builder->get_text_size(tp);
+		_cutscene_subtitle_builder->widget_set_size_abs(_cutscene_subtitle_bg, VEKT_VEC2(text_size.x + 40.0f, text_size.y + 20.0f));
 	}
 
 	void gameplay::check_managed_entities_collision(world_handle e1, world_handle e2)

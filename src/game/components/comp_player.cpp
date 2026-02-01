@@ -41,6 +41,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "platform/window_common.hpp"
 #include "input/input_mappings.hpp"
 #include "game/gameplay.hpp"
+#include "resources/font.hpp"
 
 #include "resources/skin.hpp"
 #include <Jolt/Physics/Character/CharacterVirtual.h>
@@ -132,7 +133,15 @@ namespace SFG
 
 		{
 			comp_canvas& cnv = cm.get_component<comp_canvas>(_canvas_comp);
-			_ui.init(cnv.get_builder());
+			resource_manager& rm = w.get_resource_manager();
+			resource_handle font_handle = rm.get_resource_handle_by_hash_if_exists<font>("assets/fonts/roboto.stkfont"_hs);
+			vekt::font* subtitle_font = nullptr;
+			if (!font_handle.is_null())
+			{
+				font& f = rm.get_resource<font>(font_handle);
+				subtitle_font = f.get_vekt_font();
+			}
+			_ui.init(cnv.get_builder(), subtitle_font);
 		}
 
 		_player_mesh_entity			   = em.find_entity("PlayerMesh");
@@ -556,6 +565,11 @@ namespace SFG
 		default:
 			break;
 		}
+	}
+
+	void comp_player::set_subtitle_text(const char* text)
+	{
+		_ui.set_subtitle_text(text);
 	}
 
 }

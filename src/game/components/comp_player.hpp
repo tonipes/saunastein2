@@ -58,6 +58,7 @@ namespace SFG
 		void begin_game(world& w, window& wnd);
 		void tick(world& w, float dt);
 		void tick_debug(world& w, float dt);
+		void set_subtitle_text(const char* text);
 
 		void on_window_event(world& w, const window_event& ev);
 

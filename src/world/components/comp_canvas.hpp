@@ -98,6 +98,8 @@ namespace SFG
 		void init_builder(world& w);
 		void uninit_builder(world& w);
 		void draw_vekt(const vekt::draw_buffer& buffer);
+		static const char* on_vekt_allocate_text(void* ud, size_t sz);
+		static void on_vekt_deallocate_text(void* ud, const char* ptr);
 
 	private:
 		template <typename T, int> friend class comp_cache;

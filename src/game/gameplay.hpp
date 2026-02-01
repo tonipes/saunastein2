@@ -34,6 +34,13 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "physics/physics_contact_listener.hpp"
 #include "physics/physics_character_contact_listener.hpp"
 #include "data/vector.hpp"
+#include "gui/vekt_defines.hpp"
+
+namespace vekt
+{
+	class builder;
+	struct font;
+}
 
 namespace SFG
 {
@@ -118,6 +125,8 @@ namespace SFG
 
 		void tick_doors(float dt) ;
 		void begin_doors();
+		void init_cutscene_subtitle_ui(world& w);
+		void set_cutscene_subtitle_text(const char* text);
 
 		void begin_managed_entities();
 		void tick_managed_entities(float dt);
@@ -142,5 +151,11 @@ namespace SFG
 		float _cutscene_camera_wait_remaining = 0.0f;
 		bool _cutscene_camera_skip_segment = false;
 		float _cutscene_camera_speed = 2.0f;
+		world_handle _cutscene_canvas_comp;
+		vekt::builder* _cutscene_subtitle_builder = nullptr;
+		vekt::id _cutscene_subtitle_bg = NULL_WIDGET_ID;
+		vekt::id _cutscene_subtitle_text = NULL_WIDGET_ID;
+		vekt::font* _cutscene_subtitle_font = nullptr;
+		bool _cutscene_subtitle_ready = false;
 	};
 }

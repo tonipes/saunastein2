@@ -33,10 +33,11 @@ namespace SFG
 	class player_ui
 	{
 	public:
-		void init(vekt::builder* builder);
+		void init(vekt::builder* builder, vekt::font* subtitle_font);
 		void uninit();
 		void set_health_fraction(float health_fraction);
 		void set_hydration_fraction(float hydration_fraction);
+		void set_subtitle_text(const char* text);
 
 	private:
 		vekt::builder* _builder = nullptr;
@@ -45,5 +46,8 @@ namespace SFG
 		vekt::id	   _health_bar = NULL_WIDGET_ID;
 		vekt::id	   _hydration_bg = NULL_WIDGET_ID;
 		vekt::id	   _hydration_bar = NULL_WIDGET_ID;
+		vekt::id	   _subtitle_bg = NULL_WIDGET_ID;
+		vekt::id	   _subtitle_text = NULL_WIDGET_ID;
+		vekt::font*	   _subtitle_font = nullptr;
 	};
 }

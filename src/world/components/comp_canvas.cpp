@@ -114,6 +114,10 @@ namespace SFG
 
 	void comp_canvas::init_builder(world& w)
 	{
+		_builder->set_callback_user_data(&w);
+		_builder->set_on_allocate_text(on_vekt_allocate_text);
+		_builder->set_on_deallocate_text(on_vekt_deallocate_text);
+
 		const vekt::builder::init_config cnf = {
 			.widget_count				 = _max_widget_count,
 			.vertex_buffer_sz			 = _max_widget_count * 1024,
@@ -223,6 +227,18 @@ namespace SFG
 				.event_type = render_event_type::canvas_add_draw,
 			},
 			ev);
+	}
+
+	const char* comp_canvas::on_vekt_allocate_text(void* ud, size_t sz)
+	{
+		world* w = static_cast<world*>(ud);
+		return w->get_text_allocator().allocate(sz);
+	}
+
+	void comp_canvas::on_vekt_deallocate_text(void* ud, const char* ptr)
+	{
+		world* w = static_cast<world*>(ud);
+		w->get_text_allocator().deallocate(ptr);
 	}
 
 }
