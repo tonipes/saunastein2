@@ -35,6 +35,9 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "platform/window_common.hpp"
 #include "input/input_mappings.hpp"
 #include "resources/entity_template.hpp"
+#include <algorithm>
+#include <cstdlib>
+#include <cstring>
 #include <world/components/comp_camera.hpp>
 
 namespace SFG
@@ -133,6 +136,27 @@ namespace SFG
 
 		if (!_cutscene_camera.is_null() && !_cutscene_camera_waypoints.empty())
 		{
+			auto parse_waypoint_params = [&](world_handle wp, float& wait_seconds, bool& skip_segment) {
+				wait_seconds = 0.0f;
+				skip_segment = false;
+
+				const char* name = em.get_entity_meta(wp).name;
+				if (name == nullptr)
+					return;
+
+				const char* wait_ptr = std::strstr(name, "wait=");
+				if (wait_ptr != nullptr)
+				{
+					char* end_ptr = nullptr;
+					const double wait_val = std::strtod(wait_ptr + 5, &end_ptr);
+					if (end_ptr != (wait_ptr + 5) && wait_val > 0.0)
+						wait_seconds = static_cast<float>(wait_val);
+				}
+
+				if (std::strstr(name, "skip") != nullptr)
+					skip_segment = true;
+			};
+
 			if (_cutscene_camera_waypoint_index < 0)
 				_cutscene_camera_waypoint_index = 0;
 
@@ -153,6 +177,35 @@ namespace SFG
 				const vector3 end_pos = em.get_entity_position_abs(next_wp);
 				const quat start_rot = em.get_entity_rotation_abs(current_wp);
 				const quat end_rot = em.get_entity_rotation_abs(next_wp);
+
+				if (_cutscene_camera_waypoint_index_last != _cutscene_camera_waypoint_index)
+				{
+					parse_waypoint_params(current_wp, _cutscene_camera_wait_remaining, _cutscene_camera_skip_segment);
+					_cutscene_camera_waypoint_index_last = _cutscene_camera_waypoint_index;
+				}
+
+				if (_cutscene_camera_wait_remaining > 0.0f)
+				{
+					_cutscene_camera_wait_remaining -= dt;
+					if (_cutscene_camera_wait_remaining < 0.0f)
+						_cutscene_camera_wait_remaining = 0.0f;
+
+					em.set_entity_position_abs(_cutscene_camera, start_pos);
+					em.set_entity_rotation_abs(_cutscene_camera, start_rot);
+					return;
+				}
+
+				if (_cutscene_camera_skip_segment)
+				{
+					em.set_entity_position_abs(_cutscene_camera, end_pos);
+					em.set_entity_rotation_abs(_cutscene_camera, end_rot);
+					_cutscene_camera_waypoint_index++;
+					_cutscene_camera_waypoint_t = 0.0f;
+					_cutscene_camera_waypoint_index_last = -1;
+					_cutscene_camera_skip_segment = false;
+					return;
+				}
+
 				const float dist = vector3::distance(start_pos, end_pos);
 
 				if (dist <= 0.001f)
@@ -238,10 +291,24 @@ namespace SFG
 
 		_cutscene_camera_waypoints.clear();
 		_cutscene_camera_waypoint_index = 0;
+		_cutscene_camera_waypoint_index_last = -1;
 		_cutscene_camera_waypoint_t = 0.0f;
+		_cutscene_camera_wait_remaining = 0.0f;
+		_cutscene_camera_skip_segment = false;
 
 		tmp.clear();
 		em.find_entities_by_tag("camera_waypoint", tmp);
+		std::sort(tmp.begin(), tmp.end(), [&](world_handle a, world_handle b) {
+			const char* name_a = em.get_entity_meta(a).name;
+			const char* name_b = em.get_entity_meta(b).name;
+			if (name_a == nullptr && name_b == nullptr)
+				return false;
+			if (name_a == nullptr)
+				return false;
+			if (name_b == nullptr)
+				return true;
+			return std::strcmp(name_a, name_b) < 0;
+		});
 		SFG_TRACE("CAMERA WAYPOINTS: {0}", tmp.size());
 		for (int i = 0; i < tmp.size(); ++i)
 		{

@@ -137,7 +137,10 @@ namespace SFG
 		vector<world_handle> _cutscene_camera_waypoints;
 		world_handle _cutscene_camera;
 		int _cutscene_camera_waypoint_index = 0;
+		int _cutscene_camera_waypoint_index_last = -1;
 		float _cutscene_camera_waypoint_t = 0.0f;
+		float _cutscene_camera_wait_remaining = 0.0f;
+		bool _cutscene_camera_skip_segment = false;
 		float _cutscene_camera_speed = 2.0f;
 	};
 }
