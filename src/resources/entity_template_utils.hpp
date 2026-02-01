@@ -58,6 +58,6 @@ namespace SFG
 		static entity_template_entity_raw entity_to_entity_template_entity_raw(world_handle entity, entity_manager& em, resource_manager& rm, const hash_map<uint32, int32>& index_by_world);
 #endif
 
-		static void fill_components_from_buffer(istream& in, const static_vector<world_handle, 1024>& created, component_manager& cm, resource_manager& rm, world& w);
+		static void fill_components_from_buffer(istream& in, const vector<world_handle>& created, component_manager& cm, resource_manager& rm, world& w);
 	};
 }

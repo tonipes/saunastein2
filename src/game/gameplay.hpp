@@ -126,6 +126,10 @@ namespace SFG
 
 		void spawn_fx(spawn_type type, const vector3& p, const quat& r);
 
+		inline app& get_app()
+		{
+			return _app;
+		}
 	private:
 		void tick_player(float dt);
 		void tick_player_debug(float dt);

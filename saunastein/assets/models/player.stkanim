@@ -31,23 +31,23 @@
       "blend_param_y": "move_y",
       "samples": [
         {
-          "animation": "assets/models/player_final.stkmodel/PlayerIdle",
+          "animation": "assets/models/player_final.stkmodel/Idle",
           "point": [0.0, 0.0]
         },
         {
-          "animation": "assets/models/player_final.stkmodel/PlayerJogRight",
+          "animation": "assets/models/player_final.stkmodel/Strafe_Right",
           "point": [1.0, 0.0]
         },
         {
-          "animation": "assets/models/player_final.stkmodel/PlayerJogLeft",
+          "animation": "assets/models/player_final.stkmodel/Strafe_Left",
           "point": [-1.0, 0.0]
         },
         {
-          "animation": "assets/models/player_final.stkmodel/PlayerJogBackwards",
+          "animation": "assets/models/player_final.stkmodel/Walk_Backwards",
           "point": [0.0, -1.0]
         },
         {
-          "animation": "assets/models/player_final.stkmodel/PlayerJogForward",
+          "animation": "assets/models/player_final.stkmodel/Walk_Forward",
           "point": [0.0, 1.0]
         }
       ]
@@ -59,7 +59,7 @@
       "speed" : 2.5,
       "samples": [
         {
-          "animation": "assets/models/player_final.stkmodel/PlayerDiveRight"
+          "animation": "assets/models/player_final.stkmodel/Dive_Right"
         }
       ]
     },
@@ -70,7 +70,7 @@
       "speed" : 2.5,
       "samples": [
         {
-          "animation": "assets/models/player_final.stkmodel/PlayerDiveLeft"
+          "animation": "assets/models/player_final.stkmodel/Dive_Left"
         }
       ]
     },
@@ -82,7 +82,7 @@
       "duration": 2.5,
       "samples": [
         {
-          "animation": "assets/models/player_final.stkmodel/PlayerThrow"
+          "animation": "assets/models/player_final.stkmodel/Attack"
         }
       ]
     }

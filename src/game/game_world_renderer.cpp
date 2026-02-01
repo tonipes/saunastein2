@@ -986,6 +986,10 @@ namespace SFG
 				if (res == frustum_result::outside)
 					continue;
 
+				const float dist = (pos - _main_camera_view.position).magnitude_sqr();
+				if (dist > 250 * 250)
+					continue;
+
 				int32		first_shadow_index = -1;
 				const float far_plane		   = math::almost_equal(light.range, 0.0f) ? main_cam_far : light.range;
 				const float near_plane		   = light.near_plane;

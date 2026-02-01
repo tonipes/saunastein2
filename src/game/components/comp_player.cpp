@@ -131,16 +131,7 @@ namespace SFG
 		cnv.update_counts_and_init(w, 64, 32);
 
 		{
-			comp_canvas& cnv = cm.get_component<comp_canvas>(_canvas_comp);
-			resource_manager& rm = w.get_resource_manager();
-			resource_handle font_handle = rm.get_resource_handle_by_hash_if_exists<font>("assets/fonts/roboto.stkfont"_hs);
-			vekt::font* subtitle_font = nullptr;
-			if (!font_handle.is_null())
-			{
-				font& f = rm.get_resource<font>(font_handle);
-				subtitle_font = f.get_vekt_font();
-			}
-			_ui.init(cnv.get_builder(), subtitle_font);
+			_ui.init(cnv.get_builder());
 		}
 
 		_player_mesh_entity			   = em.find_entity("PlayerMesh");
@@ -288,6 +279,8 @@ namespace SFG
 	{
 		if (!_inited)
 			return;
+
+		_ui.tick();
 
 		entity_manager& em = w.get_entity_manager();
 

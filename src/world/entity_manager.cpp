@@ -1132,7 +1132,7 @@ namespace SFG
 				{
 					const world_handle light_handle = cm.add_component<comp_point_light>(entity);
 					comp_point_light&  comp_light	= cm.get_component<comp_point_light>(light_handle);
-					comp_light.set_values(_world, lr.base_color, lr.range, lr.intensity);
+					comp_light.set_values(_world, lr.base_color, 50.0f, lr.intensity);
 					comp_light.set_shadow_values(_world, 1, 0.01f, vector2ui16(256, 256));
 				}
 				else if (lr.type == light_raw_type::spot)
@@ -1208,7 +1208,7 @@ namespace SFG
 		resource_manager&  rm = _world.get_resource_manager();
 		component_manager& cm = _world.get_comp_manager();
 
-		static_vector<world_handle, 1024> created;
+		vector<world_handle> created;
 
 		const uint32 sz = static_cast<uint32>(raw.entities.size());
 		created.resize(raw.entities.size());

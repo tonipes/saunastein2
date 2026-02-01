@@ -20,6 +20,11 @@
             "speed": 20.0
         },
         {
+            "comp_type": 9137708190725858926,
+            "destroy_time": 5.0,
+            "entity": 0
+        },
+        {
             "comp_type": 1084153302536849766,
             "entity": 1,
             "material": "assets/_defaults/materials/particle_bullet_trail.stkmat",
@@ -45,6 +50,24 @@
             "entity": 5,
             "material": "assets/_defaults/materials/particle_bullet_trail.stkmat",
             "particle": "assets/_defaults/particles/bullet_trail.stkparticle"
+        },
+        {
+            "cast_shadows": 0,
+            "color": [
+                4.2999982833862305,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "comp_type": 444826457028991798,
+            "entity": 6,
+            "intensity": 10.800004959106445,
+            "near_plane": 0.0,
+            "range": 9.399999618530273,
+            "shadow_res": [
+                256,
+                256
+            ]
         }
     ],
     "entities": [
@@ -54,9 +77,9 @@
             "next_sibling": -1,
             "parent": -1,
             "pos": [
-                -200.68865966796875,
-                101.9167251586914,
-                76.81218719482422
+                -63.293174743652344,
+                7.587056636810303,
+                -60.53091049194336
             ],
             "rot": [
                 0.0,
@@ -176,12 +199,37 @@
         {
             "first_child": -1,
             "name": "new_entity",
-            "next_sibling": -1,
+            "next_sibling": 6,
             "parent": 0,
             "pos": [
                 -0.04986572265625,
                 -0.258392333984375,
                 0.8592910766601563
+            ],
+            "rot": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "tag": "",
+            "template": "",
+            "visible": 1
+        },
+        {
+            "first_child": -1,
+            "name": "new_entity",
+            "next_sibling": -1,
+            "parent": 0,
+            "pos": [
+                0.0,
+                0.0,
+                0.0
             ],
             "rot": [
                 0.0,

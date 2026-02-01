@@ -392,7 +392,7 @@ namespace SFG
 	}
 #endif // SFG_TOOLMODE
 
-	void entity_template_utils::fill_components_from_buffer(istream& in, const static_vector<world_handle, 1024>& created, component_manager& cm, resource_manager& rm, world& w)
+	void entity_template_utils::fill_components_from_buffer(istream& in, const vector<world_handle>& created, component_manager& cm, resource_manager& rm, world& w)
 	{
 		while (!in.is_eof())
 		{

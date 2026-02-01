@@ -751,7 +751,7 @@ namespace SFG
 
 		constexpr size_t count_dsv		   = 1024;
 		constexpr size_t count_rtv		   = 1024;
-		constexpr size_t count_cbv_srv_uav = 1024;
+		constexpr size_t count_cbv_srv_uav = 1024 * 3;
 		constexpr size_t count_sampler	   = 1024;
 
 		_heap_dsv.init(_device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_DSV, count_dsv, size_dsv, false);

@@ -558,7 +558,7 @@ namespace SFG
 			.text		   = txt,
 			.font		   = _font_icon,
 			.text_capacity = strlen(txt),
-			.scale		   = 1.0f,
+			.scale		   = 3.0f,
 		};
 		const vector2 sz = _builder->get_text_size(tp);
 
